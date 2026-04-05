@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Metadata for a variable font axis.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Axis {
     /// maximum value
     #[serde(default)]
-    pub end: Option<f32>,
+    pub end: ::core::option::Option<f32>,
     /// minimum value
     #[serde(default)]
-    pub start: Option<f32>,
+    pub start: ::core::option::Option<f32>,
     /// tag name.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Metadata for a tag.
@@ -32,10 +32,10 @@ pub struct Axis {
 pub struct Tag {
     /// The name of the tag.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The weight of the tag.
     #[serde(default)]
-    pub weight: Option<f32>,
+    pub weight: ::core::option::Option<f32>,
 }
 
 /// Metadata describing a family of fonts.
@@ -43,40 +43,40 @@ pub struct Tag {
 pub struct Webfont {
     /// Axis for variable fonts.
     #[serde(default)]
-    pub axes: Option<Vec<Axis>>,
+    pub axes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Axis>>>,
     /// The category of the font.
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// The color format(s) available for this family.
     #[serde(default, rename = "colorCapabilities")]
-    pub color_capabilities: Option<Vec<String>>,
+    pub color_capabilities: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the font.
     #[serde(default)]
-    pub family: Option<String>,
+    pub family: ::core::option::Option<String>,
     /// The font files (with all supported scripts) for each one of the available variants, as a key : value map.
     #[serde(default)]
-    pub files: Option<serde_json::Value>,
+    pub files: ::core::option::Option<serde_json::Value>,
     /// This kind represents a webfont object in the webfonts service.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The date (format "yyyy-MM-dd") the font was modified for the last time.
     #[serde(default, rename = "lastModified")]
-    pub last_modified: Option<String>,
+    pub last_modified: ::core::option::Option<String>,
     /// Font URL for menu subset, a subset of the font that is enough to display the font name
     #[serde(default)]
-    pub menu: Option<String>,
+    pub menu: ::core::option::Option<String>,
     /// The scripts supported by the font.
     #[serde(default)]
-    pub subsets: Option<Vec<String>>,
+    pub subsets: ::core::option::Option<::std::vec::Vec<String>>,
     /// The tags that apply to this family.
     #[serde(default)]
-    pub tags: Option<Vec<Tag>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
     /// The available variants for the font.
     #[serde(default)]
-    pub variants: Option<Vec<String>>,
+    pub variants: ::core::option::Option<::std::vec::Vec<String>>,
     /// The font version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Response containing the list of fonts currently served by the Google Fonts API.
@@ -84,8 +84,8 @@ pub struct Webfont {
 pub struct WebfontList {
     /// The list of fonts currently served by the Google Fonts API.
     #[serde(default)]
-    pub items: Option<Vec<Webfont>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Webfont>>>,
     /// This kind represents a list of webfont objects in the webfonts service.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }

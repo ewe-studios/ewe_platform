@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Text annotation with a set of attributes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Annotation {
     /// A set of attributes on the annotation. You can have up to 4 attributes per Annotation.
     #[serde(default)]
-    pub attributes: Option<Attributes>,
+    pub attributes: ::core::option::Option<::std::boxed::Box<Attributes>>,
     /// A user-supplied message describing the event. The maximum length for the description is 256 bytes.
     #[serde(default)]
-    pub description: Option<TruncatableString>,
+    pub description: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
 }
 
 /// The allowed types for [VALUE] in a [KEY]:[VALUE] attribute.
@@ -29,13 +29,13 @@ pub struct Annotation {
 pub struct AttributeValue {
     /// A Boolean value represented by true or false.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// A 64-bit signed integer.
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// A string up to 256 bytes long.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<TruncatableString>,
+    pub string_value: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
 }
 
 /// A set of attributes as key-value pairs.
@@ -43,10 +43,10 @@ pub struct AttributeValue {
 pub struct Attributes {
     /// A set of attributes. Each attribute''s key can be up to 128 bytes long. The value can be a string up to 256 bytes, a signed 64-bit integer, or the boolean values true or false. For example: "/instance_id": { "string_value": { "value": "my-instance" } } "/http/request_bytes": { "int_value": 300 } "example.com/myattribute": { "bool_value": false }
     #[serde(default, rename = "attributeMap")]
-    pub attribute_map: Option<serde_json::Value>,
+    pub attribute_map: ::core::option::Option<serde_json::Value>,
     /// The number of attributes that were discarded. Attributes can be discarded because their keys are too long or because there are too many attributes. If this value is 0 then all attributes are valid.
     #[serde(default, rename = "droppedAttributesCount")]
-    pub dropped_attributes_count: Option<i32>,
+    pub dropped_attributes_count: ::core::option::Option<i32>,
 }
 
 /// The request message for the BatchWriteSpans method.
@@ -54,7 +54,7 @@ pub struct Attributes {
 pub struct BatchWriteSpansRequest {
     /// Required. A list of new spans. The span names must not match existing spans, otherwise the results are undefined.
     #[serde(default)]
-    pub spans: Option<Vec<Span>>,
+    pub spans: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Span>>>,
 }
 
 /// A pointer from the current span to another span in the same trace or in a different trace. For example, this can be used in batching operations, where a single batch handler processes multiple requests from different traces or when the handler receives a request from a different project.
@@ -62,16 +62,16 @@ pub struct BatchWriteSpansRequest {
 pub struct Link {
     /// A set of attributes on the link. Up to 32 attributes can be specified per link.
     #[serde(default)]
-    pub attributes: Option<Attributes>,
+    pub attributes: ::core::option::Option<::std::boxed::Box<Attributes>>,
     /// The [SPAN_ID] for a span within a trace.
     #[serde(default, rename = "spanId")]
-    pub span_id: Option<String>,
+    pub span_id: ::core::option::Option<String>,
     /// The [TRACE_ID] for a trace within a project.
     #[serde(default, rename = "traceId")]
-    pub trace_id: Option<String>,
+    pub trace_id: ::core::option::Option<String>,
     /// The relationship of the current span relative to the linked span. // TODO: enum values: ["TYPE_UNSPECIFIED", "CHILD_LINKED_SPAN", "PARENT_LINKED_SPAN"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A collection of links, which are references from this span to a span in the same or different trace.
@@ -79,10 +79,10 @@ pub struct Link {
 pub struct Links {
     /// The number of dropped links after the maximum size was enforced. If this value is 0, then no links were dropped.
     #[serde(default, rename = "droppedLinksCount")]
-    pub dropped_links_count: Option<i32>,
+    pub dropped_links_count: ::core::option::Option<i32>,
     /// A collection of links.
     #[serde(default)]
-    pub link: Option<Vec<Link>>,
+    pub link: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Link>>>,
 }
 
 /// An event describing a message sent/received between Spans.
@@ -90,16 +90,16 @@ pub struct Links {
 pub struct MessageEvent {
     /// The number of compressed bytes sent or received. If missing, the compressed size is assumed to be the same size as the uncompressed size.
     #[serde(default, rename = "compressedSizeBytes")]
-    pub compressed_size_bytes: Option<String>,
+    pub compressed_size_bytes: ::core::option::Option<String>,
     /// An identifier for the MessageEvent''s message that can be used to match SENT and RECEIVED MessageEvents.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Type of MessageEvent. Indicates whether the message was sent or received. // TODO: enum values: ["TYPE_UNSPECIFIED", "SENT", "RECEIVED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The number of uncompressed bytes sent or received.
     #[serde(default, rename = "uncompressedSizeBytes")]
-    pub uncompressed_size_bytes: Option<String>,
+    pub uncompressed_size_bytes: ::core::option::Option<String>,
 }
 
 /// Binary module.
@@ -107,10 +107,10 @@ pub struct MessageEvent {
 pub struct Module {
     /// A unique identifier for the module, usually a hash of its contents (up to 128 bytes).
     #[serde(default, rename = "buildId")]
-    pub build_id: Option<TruncatableString>,
+    pub build_id: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
     /// For example: main binary, kernel modules, and dynamic libraries such as libc.so, sharedlib.so (up to 256 bytes).
     #[serde(default)]
-    pub module: Option<TruncatableString>,
+    pub module: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
 }
 
 /// A span represents a single operation within a trace. Spans can be nested to form a trace tree. Often, a trace contains a root span that describes the end-to-end latency, and one or more subspans for its sub-operations. A trace can also contain multiple root spans, or none at all. Spans do not need to be contiguous. There might be gaps or overlaps between spans in a trace.
@@ -118,46 +118,46 @@ pub struct Module {
 pub struct Span {
     /// A set of attributes on the span. You can have up to 32 attributes per span.
     #[serde(default)]
-    pub attributes: Option<Attributes>,
+    pub attributes: ::core::option::Option<::std::boxed::Box<Attributes>>,
     /// Optional. The number of child spans that were generated while this span was active. If set, allows implementation to detect missing child spans.
     #[serde(default, rename = "childSpanCount")]
-    pub child_span_count: Option<i32>,
+    pub child_span_count: ::core::option::Option<i32>,
     /// Required. A description of the span''s operation (up to 128 bytes). Cloud Trace displays the description in the Cloud console. For example, the display name can be a qualified method name or a file name and a line number where the operation is called. A best practice is to use the same display name within an application and at the same call point. This makes it easier to correlate spans in different traces.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<TruncatableString>,
+    pub display_name: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
     /// Required. The end time of the span. On the client side, this is the time kept by the local machine where the span execution ends. On the server side, this is the time when the server application handler stops running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Links associated with the span. You can have up to 128 links per Span.
     #[serde(default)]
-    pub links: Option<Links>,
+    pub links: ::core::option::Option<::std::boxed::Box<Links>>,
     /// Required. The resource name of the span in the following format: * projects/[PROJECT_ID]/traces/[TRACE_ID]/spans/[SPAN_ID] [TRACE_ID] is a unique identifier for a trace within a project; it is a 32-character hexadecimal encoding of a 16-byte array. It should not be zero. [SPAN_ID] is a unique identifier for a span within a trace; it is a 16-character hexadecimal encoding of an 8-byte array. It should not be zero. .
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The [SPAN_ID] of this span''s parent span. If this is a root span, then this field must be empty.
     #[serde(default, rename = "parentSpanId")]
-    pub parent_span_id: Option<String>,
+    pub parent_span_id: ::core::option::Option<String>,
     /// Optional. Set this parameter to indicate whether this span is in the same process as its parent. If you do not set this parameter, Trace is unable to take advantage of this helpful information.
     #[serde(default, rename = "sameProcessAsParentSpan")]
-    pub same_process_as_parent_span: Option<bool>,
+    pub same_process_as_parent_span: ::core::option::Option<bool>,
     /// Required. The [SPAN_ID] portion of the span''s resource name.
     #[serde(default, rename = "spanId")]
-    pub span_id: Option<String>,
+    pub span_id: ::core::option::Option<String>,
     /// Optional. Distinguishes between spans generated in a particular context. For example, two spans with the same name may be distinguished using CLIENT (caller) and SERVER (callee) to identify an RPC call. // TODO: enum values: ["SPAN_KIND_UNSPECIFIED", "INTERNAL", "SERVER", "CLIENT", "PRODUCER", "CONSUMER"]
     #[serde(default, rename = "spanKind")]
-    pub span_kind: Option<String>,
+    pub span_kind: ::core::option::Option<String>,
     /// Stack trace captured at the start of the span.
     #[serde(default, rename = "stackTrace")]
-    pub stack_trace: Option<StackTrace>,
+    pub stack_trace: ::core::option::Option<::std::boxed::Box<StackTrace>>,
     /// Required. The start time of the span. On the client side, this is the time kept by the local machine where the span execution starts. On the server side, this is the time when the server''s application handler starts running.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Optional. The final status for this span.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
     /// A set of time events. You can have up to 32 annotations and 128 message events per span.
     #[serde(default, rename = "timeEvents")]
-    pub time_events: Option<TimeEvents>,
+    pub time_events: ::core::option::Option<::std::boxed::Box<TimeEvents>>,
 }
 
 /// Represents a single stack frame in a stack trace.
@@ -165,25 +165,25 @@ pub struct Span {
 pub struct StackFrame {
     /// The column number where the function call appears, if available. This is important in JavaScript because of its anonymous functions.
     #[serde(default, rename = "columnNumber")]
-    pub column_number: Option<String>,
+    pub column_number: ::core::option::Option<String>,
     /// The name of the source file where the function call appears (up to 256 bytes).
     #[serde(default, rename = "fileName")]
-    pub file_name: Option<TruncatableString>,
+    pub file_name: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
     /// The fully-qualified name that uniquely identifies the function or method that is active in this frame (up to 1024 bytes).
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<TruncatableString>,
+    pub function_name: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
     /// The line number in file_name where the function call appears.
     #[serde(default, rename = "lineNumber")]
-    pub line_number: Option<String>,
+    pub line_number: ::core::option::Option<String>,
     /// The binary module from where the code was loaded.
     #[serde(default, rename = "loadModule")]
-    pub load_module: Option<Module>,
+    pub load_module: ::core::option::Option<::std::boxed::Box<Module>>,
     /// An un-mangled function name, if function_name is mangled. To get information about name mangling, run [this search](https://www.google.com/search?q=cxx+name+mangling). The name can be fully-qualified (up to 1024 bytes).
     #[serde(default, rename = "originalFunctionName")]
-    pub original_function_name: Option<TruncatableString>,
+    pub original_function_name: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
     /// The version of the deployed source code (up to 128 bytes).
     #[serde(default, rename = "sourceVersion")]
-    pub source_version: Option<TruncatableString>,
+    pub source_version: ::core::option::Option<::std::boxed::Box<TruncatableString>>,
 }
 
 /// A collection of stack frames, which can be truncated.
@@ -191,10 +191,10 @@ pub struct StackFrame {
 pub struct StackFrames {
     /// The number of stack frames that were dropped because there were too many stack frames. If this value is 0, then no stack frames were dropped.
     #[serde(default, rename = "droppedFramesCount")]
-    pub dropped_frames_count: Option<i32>,
+    pub dropped_frames_count: ::core::option::Option<i32>,
     /// Stack frames in this call stack.
     #[serde(default)]
-    pub frame: Option<Vec<StackFrame>>,
+    pub frame: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StackFrame>>>,
 }
 
 /// A call stack appearing in a trace.
@@ -202,10 +202,10 @@ pub struct StackFrames {
 pub struct StackTrace {
     /// Stack frames in this stack trace. A maximum of 128 frames are allowed.
     #[serde(default, rename = "stackFrames")]
-    pub stack_frames: Option<StackFrames>,
+    pub stack_frames: ::core::option::Option<::std::boxed::Box<StackFrames>>,
     /// The hash ID is used to conserve network bandwidth for duplicate stack traces within a single trace. Often multiple spans will have identical stack traces. The first occurrence of a stack trace should contain both the stackFrame content and a value in stackTraceHashId. Subsequent spans within the same request can refer to that stack trace by only setting stackTraceHashId.
     #[serde(default, rename = "stackTraceHashId")]
-    pub stack_trace_hash_id: Option<String>,
+    pub stack_trace_hash_id: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -213,13 +213,13 @@ pub struct StackTrace {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A time-stamped annotation or message event in the Span.
@@ -227,13 +227,13 @@ pub struct Status {
 pub struct TimeEvent {
     /// Text annotation with a set of attributes.
     #[serde(default)]
-    pub annotation: Option<Annotation>,
+    pub annotation: ::core::option::Option<::std::boxed::Box<Annotation>>,
     /// An event describing a message sent/received between Spans.
     #[serde(default, rename = "messageEvent")]
-    pub message_event: Option<MessageEvent>,
+    pub message_event: ::core::option::Option<::std::boxed::Box<MessageEvent>>,
     /// The timestamp indicating the time the event occurred.
     #[serde(default)]
-    pub time: Option<String>,
+    pub time: ::core::option::Option<String>,
 }
 
 /// A collection of TimeEvents. A TimeEvent is a time-stamped annotation on the span, consisting of either user-supplied key:value pairs, or details of a message sent/received between Spans.
@@ -241,13 +241,13 @@ pub struct TimeEvent {
 pub struct TimeEvents {
     /// The number of dropped annotations in all the included time events. If the value is 0, then no annotations were dropped.
     #[serde(default, rename = "droppedAnnotationsCount")]
-    pub dropped_annotations_count: Option<i32>,
+    pub dropped_annotations_count: ::core::option::Option<i32>,
     /// The number of dropped message events in all the included time events. If the value is 0, then no message events were dropped.
     #[serde(default, rename = "droppedMessageEventsCount")]
-    pub dropped_message_events_count: Option<i32>,
+    pub dropped_message_events_count: ::core::option::Option<i32>,
     /// A collection of TimeEvents.
     #[serde(default, rename = "timeEvent")]
-    pub time_event: Option<Vec<TimeEvent>>,
+    pub time_event: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TimeEvent>>>,
 }
 
 /// Represents a string that might be shortened to a specified length.
@@ -255,8 +255,8 @@ pub struct TimeEvents {
 pub struct TruncatableString {
     /// The number of bytes removed from the original string. If this value is 0, then the string was not shortened.
     #[serde(default, rename = "truncatedByteCount")]
-    pub truncated_byte_count: Option<i32>,
+    pub truncated_byte_count: ::core::option::Option<i32>,
     /// The shortened string. For example, if the original string is 500 bytes long and the limit of the string is 128 bytes, then value contains the first 128 bytes of the 500-byte string. Truncation always happens on a UTF8 character boundary. If there are multi-byte characters in the string, then the length of the shortened string might be less than the size limit.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }

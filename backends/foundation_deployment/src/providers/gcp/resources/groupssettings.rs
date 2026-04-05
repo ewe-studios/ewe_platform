@@ -10,196 +10,196 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// JSON template for Group resource
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Groups {
     /// Identifies whether members external to your organization can join the group. Possible values are:  
     #[serde(default, rename = "allowExternalMembers")]
-    pub allow_external_members: Option<String>,
+    pub allow_external_members: ::core::option::Option<String>,
     /// Deprecated. Allows Google to contact administrator of the group.  
     #[serde(default, rename = "allowGoogleCommunication")]
-    pub allow_google_communication: Option<String>,
+    pub allow_google_communication: ::core::option::Option<String>,
     /// Allows posting from web. Possible values are:  
     #[serde(default, rename = "allowWebPosting")]
-    pub allow_web_posting: Option<String>,
+    pub allow_web_posting: ::core::option::Option<String>,
     /// Allows the group to be archived only. Possible values are:  
     #[serde(default, rename = "archiveOnly")]
-    pub archive_only: Option<String>,
+    pub archive_only: ::core::option::Option<String>,
     /// Set the content of custom footer text. The maximum number of characters is 1,000.
     #[serde(default, rename = "customFooterText")]
-    pub custom_footer_text: Option<String>,
+    pub custom_footer_text: ::core::option::Option<String>,
     /// An email address used when replying to a message if the replyTo property is set to REPLY_TO_CUSTOM. This address is defined by an account administrator.  
     #[serde(default, rename = "customReplyTo")]
-    pub custom_reply_to: Option<String>,
+    pub custom_reply_to: ::core::option::Option<String>,
     /// Specifies whether the group has a custom role that''s included in one of the settings being merged. This field is read-only and update/patch requests to it are ignored. Possible values are:  
     #[serde(default, rename = "customRolesEnabledForSettingsToBeMerged")]
-    pub custom_roles_enabled_for_settings_to_be_merged: Option<String>,
+    pub custom_roles_enabled_for_settings_to_be_merged: ::core::option::Option<String>,
     /// When a message is rejected, this is text for the rejection notification sent to the message''s author. By default, this property is empty and has no value in the API''s response body. The maximum notification text size is 10,000 characters. Note: Requires sendMessageDenyNotification property to be true.
     #[serde(default, rename = "defaultMessageDenyNotificationText")]
-    pub default_message_deny_notification_text: Option<String>,
+    pub default_message_deny_notification_text: ::core::option::Option<String>,
     /// Default sender for members who can post messages as the group. Possible values are: - DEFAULT_SELF: By default messages will be sent from the user - GROUP: By default messages will be sent from the group
     #[serde(default)]
-    pub default_sender: Option<String>,
+    pub default_sender: ::core::option::Option<String>,
     /// Description of the group. This property value may be an empty string if no group description has been entered. If entered, the maximum group description is no more than 300 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The group''s email address. This property can be updated using the Directory API. Note: Only a group owner can change a group''s email address. A group manager can''t do this.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Specifies whether a collaborative inbox will remain turned on for the group. Possible values are:  
     #[serde(default, rename = "enableCollaborativeInbox")]
-    pub enable_collaborative_inbox: Option<String>,
+    pub enable_collaborative_inbox: ::core::option::Option<String>,
     /// Indicates if favorite replies should be displayed above other replies.  
     #[serde(default, rename = "favoriteRepliesOnTop")]
-    pub favorite_replies_on_top: Option<String>,
+    pub favorite_replies_on_top: ::core::option::Option<String>,
     /// Whether to include custom footer. Possible values are:  
     #[serde(default, rename = "includeCustomFooter")]
-    pub include_custom_footer: Option<String>,
+    pub include_custom_footer: ::core::option::Option<String>,
     /// Enables the group to be included in the Global Address List. For more information, see the help center. Possible values are:  
     #[serde(default, rename = "includeInGlobalAddressList")]
-    pub include_in_global_address_list: Option<String>,
+    pub include_in_global_address_list: ::core::option::Option<String>,
     /// Allows the Group contents to be archived. Possible values are:  
     #[serde(default, rename = "isArchived")]
-    pub is_archived: Option<String>,
+    pub is_archived: ::core::option::Option<String>,
     /// The type of the resource. It is always groupsSettings#groups.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Deprecated. The maximum size of a message is 25Mb.
     #[serde(default, rename = "maxMessageBytes")]
-    pub max_message_bytes: Option<i32>,
+    pub max_message_bytes: ::core::option::Option<i32>,
     /// Enables members to post messages as the group. Possible values are:  
     #[serde(default, rename = "membersCanPostAsTheGroup")]
-    pub members_can_post_as_the_group: Option<String>,
+    pub members_can_post_as_the_group: ::core::option::Option<String>,
     /// Deprecated. The default message display font always has a value of "DEFAULT_FONT".
     #[serde(default, rename = "messageDisplayFont")]
-    pub message_display_font: Option<String>,
+    pub message_display_font: ::core::option::Option<String>,
     /// Moderation level of incoming messages. Possible values are:  
     #[serde(default, rename = "messageModerationLevel")]
-    pub message_moderation_level: Option<String>,
+    pub message_moderation_level: ::core::option::Option<String>,
     /// Name of the group, which has a maximum size of 75 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The primary language for group. For a group''s primary language use the language tags from the G Suite languages found at G Suite Email Settings API Email Language Tags.
     #[serde(default, rename = "primaryLanguage")]
-    pub primary_language: Option<String>,
+    pub primary_language: ::core::option::Option<String>,
     /// Specifies who receives the default reply. Possible values are:  
     #[serde(default, rename = "replyTo")]
-    pub reply_to: Option<String>,
+    pub reply_to: ::core::option::Option<String>,
     /// Allows a member to be notified if the member''s message to the group is denied by the group owner. Possible values are:  
     #[serde(default, rename = "sendMessageDenyNotification")]
-    pub send_message_deny_notification: Option<String>,
+    pub send_message_deny_notification: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanDiscoverGroup setting. Allows the group to be visible in the Groups Directory. Possible values are:  
     #[serde(default, rename = "showInGroupDirectory")]
-    pub show_in_group_directory: Option<String>,
+    pub show_in_group_directory: ::core::option::Option<String>,
     /// Specifies moderation levels for messages detected as spam. Possible values are:  
     #[serde(default, rename = "spamModerationLevel")]
-    pub spam_moderation_level: Option<String>,
+    pub spam_moderation_level: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to add members. Possible values are:  
     #[serde(default, rename = "whoCanAdd")]
-    pub who_can_add: Option<String>,
+    pub who_can_add: ::core::option::Option<String>,
     /// Deprecated. This functionality is no longer supported in the Google Groups UI. The value is always "NONE".
     #[serde(default, rename = "whoCanAddReferences")]
-    pub who_can_add_references: Option<String>,
+    pub who_can_add_references: ::core::option::Option<String>,
     /// Specifies who can approve members who ask to join groups. This permission will be deprecated once it is merged into the new whoCanModerateMembers setting. Possible values are:  
     #[serde(default, rename = "whoCanApproveMembers")]
-    pub who_can_approve_members: Option<String>,
+    pub who_can_approve_members: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can approve pending messages in the moderation queue. Possible values are:  
     #[serde(default, rename = "whoCanApproveMessages")]
-    pub who_can_approve_messages: Option<String>,
+    pub who_can_approve_messages: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to assign topics in a forum to another user. Possible values are:  
     #[serde(default, rename = "whoCanAssignTopics")]
-    pub who_can_assign_topics: Option<String>,
+    pub who_can_assign_topics: ::core::option::Option<String>,
     /// Specifies who can moderate metadata. Possible values are:  
     #[serde(default, rename = "whoCanAssistContent")]
-    pub who_can_assist_content: Option<String>,
+    pub who_can_assist_content: ::core::option::Option<String>,
     /// Specifies who can deny membership to users. This permission will be deprecated once it is merged into the new whoCanModerateMembers setting. Possible values are:  
     #[serde(default, rename = "whoCanBanUsers")]
-    pub who_can_ban_users: Option<String>,
+    pub who_can_ban_users: ::core::option::Option<String>,
     /// Permission to contact owner of the group via web UI. Possible values are:  
     #[serde(default, rename = "whoCanContactOwner")]
-    pub who_can_contact_owner: Option<String>,
+    pub who_can_contact_owner: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can delete replies to topics. (Authors can always delete their own posts). Possible values are:  
     #[serde(default, rename = "whoCanDeleteAnyPost")]
-    pub who_can_delete_any_post: Option<String>,
+    pub who_can_delete_any_post: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can delete topics. Possible values are:  
     #[serde(default, rename = "whoCanDeleteTopics")]
-    pub who_can_delete_topics: Option<String>,
+    pub who_can_delete_topics: ::core::option::Option<String>,
     /// Specifies the set of users for whom this group is discoverable. Possible values are:  
     #[serde(default, rename = "whoCanDiscoverGroup")]
-    pub who_can_discover_group: Option<String>,
+    pub who_can_discover_group: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to enter free form tags for topics in a forum. Possible values are:  
     #[serde(default, rename = "whoCanEnterFreeFormTags")]
-    pub who_can_enter_free_form_tags: Option<String>,
+    pub who_can_enter_free_form_tags: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can hide posts by reporting them as abuse. Possible values are:  
     #[serde(default, rename = "whoCanHideAbuse")]
-    pub who_can_hide_abuse: Option<String>,
+    pub who_can_hide_abuse: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to invite new members. Possible values are:  
     #[serde(default, rename = "whoCanInvite")]
-    pub who_can_invite: Option<String>,
+    pub who_can_invite: ::core::option::Option<String>,
     /// Permission to join group. Possible values are:  
     #[serde(default, rename = "whoCanJoin")]
-    pub who_can_join: Option<String>,
+    pub who_can_join: ::core::option::Option<String>,
     /// Permission to leave the group. Possible values are:  
     #[serde(default, rename = "whoCanLeaveGroup")]
-    pub who_can_leave_group: Option<String>,
+    pub who_can_leave_group: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can prevent users from posting replies to topics. Possible values are:  
     #[serde(default, rename = "whoCanLockTopics")]
-    pub who_can_lock_topics: Option<String>,
+    pub who_can_lock_topics: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can make topics appear at the top of the topic list. Possible values are:  
     #[serde(default, rename = "whoCanMakeTopicsSticky")]
-    pub who_can_make_topics_sticky: Option<String>,
+    pub who_can_make_topics_sticky: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to mark a topic as a duplicate of another topic. Possible values are:  
     #[serde(default, rename = "whoCanMarkDuplicate")]
-    pub who_can_mark_duplicate: Option<String>,
+    pub who_can_mark_duplicate: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to mark any other user''s post as a favorite reply. Possible values are:  
     #[serde(default, rename = "whoCanMarkFavoriteReplyOnAnyTopic")]
-    pub who_can_mark_favorite_reply_on_any_topic: Option<String>,
+    pub who_can_mark_favorite_reply_on_any_topic: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to mark a post for a topic they started as a favorite reply. Possible values are:  
     #[serde(default, rename = "whoCanMarkFavoriteReplyOnOwnTopic")]
-    pub who_can_mark_favorite_reply_on_own_topic: Option<String>,
+    pub who_can_mark_favorite_reply_on_own_topic: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to mark a topic as not needing a response. Possible values are:  
     #[serde(default, rename = "whoCanMarkNoResponseNeeded")]
-    pub who_can_mark_no_response_needed: Option<String>,
+    pub who_can_mark_no_response_needed: ::core::option::Option<String>,
     /// Specifies who can moderate content. Possible values are:  
     #[serde(default, rename = "whoCanModerateContent")]
-    pub who_can_moderate_content: Option<String>,
+    pub who_can_moderate_content: ::core::option::Option<String>,
     /// Specifies who can manage members. Possible values are:  
     #[serde(default, rename = "whoCanModerateMembers")]
-    pub who_can_moderate_members: Option<String>,
+    pub who_can_moderate_members: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateMembers setting. Specifies who can change group members'' roles. Possible values are:  
     #[serde(default, rename = "whoCanModifyMembers")]
-    pub who_can_modify_members: Option<String>,
+    pub who_can_modify_members: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to change tags and categories. Possible values are:  
     #[serde(default, rename = "whoCanModifyTagsAndCategories")]
-    pub who_can_modify_tags_and_categories: Option<String>,
+    pub who_can_modify_tags_and_categories: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can move topics into the group or forum. Possible values are:  
     #[serde(default, rename = "whoCanMoveTopicsIn")]
-    pub who_can_move_topics_in: Option<String>,
+    pub who_can_move_topics_in: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can move topics out of the group or forum. Possible values are:  
     #[serde(default, rename = "whoCanMoveTopicsOut")]
-    pub who_can_move_topics_out: Option<String>,
+    pub who_can_move_topics_out: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanModerateContent setting. Specifies who can post announcements, a special topic type. Possible values are:  
     #[serde(default, rename = "whoCanPostAnnouncements")]
-    pub who_can_post_announcements: Option<String>,
+    pub who_can_post_announcements: ::core::option::Option<String>,
     /// Permissions to post messages. Possible values are:  
     #[serde(default, rename = "whoCanPostMessage")]
-    pub who_can_post_message: Option<String>,
+    pub who_can_post_message: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to take topics in a forum. Possible values are:  
     #[serde(default, rename = "whoCanTakeTopics")]
-    pub who_can_take_topics: Option<String>,
+    pub who_can_take_topics: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to unassign any topic in a forum. Possible values are:  
     #[serde(default, rename = "whoCanUnassignTopic")]
-    pub who_can_unassign_topic: Option<String>,
+    pub who_can_unassign_topic: ::core::option::Option<String>,
     /// Deprecated. This is merged into the new whoCanAssistContent setting. Permission to unmark any post from a favorite reply. Possible values are:  
     #[serde(default, rename = "whoCanUnmarkFavoriteReplyOnAnyTopic")]
-    pub who_can_unmark_favorite_reply_on_any_topic: Option<String>,
+    pub who_can_unmark_favorite_reply_on_any_topic: ::core::option::Option<String>,
     /// Permissions to view group messages. Possible values are:  
     #[serde(default, rename = "whoCanViewGroup")]
-    pub who_can_view_group: Option<String>,
+    pub who_can_view_group: ::core::option::Option<String>,
     /// Permissions to view membership. Possible values are:  
     #[serde(default, rename = "whoCanViewMembership")]
-    pub who_can_view_membership: Option<String>,
+    pub who_can_view_membership: ::core::option::Option<String>,
 }

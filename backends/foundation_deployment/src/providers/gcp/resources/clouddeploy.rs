@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// AdvanceChildRolloutJobRun contains information specific to a advanceChildRollout JobRun.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdvanceChildRolloutJobRun {
     /// Output only. Name of the ChildRollout. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
     /// Output only. the ID of the ChildRollout''s Phase.
     #[serde(default, rename = "rolloutPhaseId")]
-    pub rollout_phase_id: Option<String>,
+    pub rollout_phase_id: ::core::option::Option<String>,
 }
 
 /// Contains the information of an automated advance-rollout operation.
@@ -29,16 +29,16 @@ pub struct AdvanceChildRolloutJobRun {
 pub struct AdvanceRolloutOperation {
     /// Output only. The phase the rollout will be advanced to.
     #[serde(default, rename = "destinationPhase")]
-    pub destination_phase: Option<String>,
+    pub destination_phase: ::core::option::Option<String>,
     /// Output only. The name of the rollout that initiates the AutomationRun.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
     /// Output only. The phase of a deployment that initiated the operation.
     #[serde(default, rename = "sourcePhase")]
-    pub source_phase: Option<String>,
+    pub source_phase: ::core::option::Option<String>,
     /// Output only. How long the operation will be paused.
     #[serde(default)]
-    pub wait: Option<String>,
+    pub wait: ::core::option::Option<String>,
 }
 
 /// The request object used by AdvanceRollout.
@@ -46,10 +46,10 @@ pub struct AdvanceRolloutOperation {
 pub struct AdvanceRolloutRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
-    pub override_deploy_policy: Option<Vec<String>>,
+    pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The phase ID to advance the Rollout to.
     #[serde(default, rename = "phaseId")]
-    pub phase_id: Option<String>,
+    pub phase_id: ::core::option::Option<String>,
 }
 
 /// The AdvanceRollout automation rule will automatically advance a successful Rollout to the next phase.
@@ -57,16 +57,16 @@ pub struct AdvanceRolloutRequest {
 pub struct AdvanceRolloutRule {
     /// Output only. Information around the state of the Automation rule.
     #[serde(default)]
-    pub condition: Option<AutomationRuleCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<AutomationRuleCondition>>,
     /// Required. ID of the rule. This id must be unique in the Automation resource to which this rule belongs. The format is [a-z]([a-z0-9-]{0,61}[a-z0-9])?.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. Proceeds only after phase name matched any one in the list. This value must consist of lower-case letters, numbers, and hyphens, start with a letter and end with a letter or a number, and have a max length of 63 characters. In other words, it must match the following regex: ^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$.
     #[serde(default, rename = "sourcePhases")]
-    pub source_phases: Option<Vec<String>>,
+    pub source_phases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. How long to wait after a rollout is finished.
     #[serde(default)]
-    pub wait: Option<String>,
+    pub wait: ::core::option::Option<String>,
 }
 
 /// AlertPolicyCheck configures a set of Cloud Monitoring alerting policies that will be periodically polled for alerts. If any of the listed policies have an active alert, the analysis check will fail.
@@ -74,13 +74,13 @@ pub struct AdvanceRolloutRule {
 pub struct AlertPolicyCheck {
     /// Required. The Cloud Monitoring Alert Policies to check for active alerts. Format is projects/{project}/alertPolicies/{alert_policy}.
     #[serde(default, rename = "alertPolicies")]
-    pub alert_policies: Option<Vec<String>>,
+    pub alert_policies: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The ID of the analysis check.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. A set of labels to filter active alerts. If set, only alerts having all of the specified labels will be considered. Otherwise, all active alerts will be considered.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// AlertPolicyCheckStatus contains information specific to a single run of an alert policy check.
@@ -88,19 +88,20 @@ pub struct AlertPolicyCheck {
 pub struct AlertPolicyCheckStatus {
     /// Output only. The alert policies that this analysis monitors. Format is projects/{project}/locations/{location}/alertPolicies/{alertPolicy}.
     #[serde(default, rename = "alertPolicies")]
-    pub alert_policies: Option<Vec<String>>,
+    pub alert_policies: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The alert policies that were found to be firing during this check. This will be empty if no incidents were found.
     #[serde(default, rename = "failedAlertPolicies")]
-    pub failed_alert_policies: Option<Vec<FailedAlertPolicy>>,
+    pub failed_alert_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FailedAlertPolicy>>>,
     /// Output only. Additional information about the alert policy check failure, if available. This will be empty if the alert policy check succeeded.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. The ID of this analysis.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. The resolved labels used to filter for specific incidents.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Analysis contains the configuration for the set of analyses to be performed on the target.
@@ -108,13 +109,13 @@ pub struct AlertPolicyCheckStatus {
 pub struct Analysis {
     /// Optional. Custom analysis checks from 3P metric providers.
     #[serde(default, rename = "customChecks")]
-    pub custom_checks: Option<Vec<CustomCheck>>,
+    pub custom_checks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomCheck>>>,
     /// Required. The amount of time in minutes the analysis on the target will last. If all analysis checks have successfully completed before the specified duration, the analysis is successful. If a check is still running while the specified duration passes, it will wait for that check to complete to determine if the analysis is successful. The maximum duration is 48 hours.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Optional. Google Cloud - based analysis checks.
     #[serde(default, rename = "googleCloud")]
-    pub google_cloud: Option<GoogleCloudAnalysis>,
+    pub google_cloud: ::core::option::Option<::std::boxed::Box<GoogleCloudAnalysis>>,
 }
 
 /// An analysis Job.
@@ -122,13 +123,13 @@ pub struct Analysis {
 pub struct AnalysisJob {
     /// Output only. Custom analysis checks from 3P metric providers that are run as part of the analysis Job.
     #[serde(default, rename = "customChecks")]
-    pub custom_checks: Option<Vec<CustomCheck>>,
+    pub custom_checks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomCheck>>>,
     /// Output only. The amount of time in minutes the analysis Job will run, up to a maximum of 48 hours. If any check in this Job is still running when the duration ends, the Job keeps running until that check completes.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Output only. Google Cloud - based analysis checks that are run as part of the analysis Job.
     #[serde(default, rename = "googleCloud")]
-    pub google_cloud: Option<GoogleCloudAnalysis>,
+    pub google_cloud: ::core::option::Option<::std::boxed::Box<GoogleCloudAnalysis>>,
 }
 
 /// AnalysisJobRun contains information specific to an analysis JobRun.
@@ -136,13 +137,15 @@ pub struct AnalysisJob {
 pub struct AnalysisJobRun {
     /// Output only. The status of the running alert policy checks configured for this analysis.
     #[serde(default, rename = "alertPolicyAnalyses")]
-    pub alert_policy_analyses: Option<Vec<AlertPolicyCheckStatus>>,
+    pub alert_policy_analyses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AlertPolicyCheckStatus>>>,
     /// Output only. The status of the running custom checks configured for this analysis.
     #[serde(default, rename = "customCheckAnalyses")]
-    pub custom_check_analyses: Option<Vec<CustomCheckStatus>>,
+    pub custom_check_analyses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomCheckStatus>>>,
     /// Output only. The ID of the configured check that failed. This will always be blank while the analysis is in progress or if it succeeded.
     #[serde(default, rename = "failedCheckId")]
-    pub failed_check_id: Option<String>,
+    pub failed_check_id: ::core::option::Option<String>,
 }
 
 /// Information specifying an Anthos Cluster.
@@ -150,7 +153,7 @@ pub struct AnalysisJobRun {
 pub struct AnthosCluster {
     /// Optional. Membership of the GKE Hub-registered cluster to which to apply the Skaffold configuration. Format is projects/{project}/locations/{location}/memberships/{membership_name}.
     #[serde(default)]
-    pub membership: Option<String>,
+    pub membership: ::core::option::Option<String>,
 }
 
 /// The request object used by ApproveRollout.
@@ -158,10 +161,10 @@ pub struct AnthosCluster {
 pub struct ApproveRolloutRequest {
     /// Required. True = approve; false = reject
     #[serde(default)]
-    pub approved: Option<bool>,
+    pub approved: ::core::option::Option<bool>,
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
-    pub override_deploy_policy: Option<Vec<String>>,
+    pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Information about entities associated with a Target.
@@ -169,10 +172,10 @@ pub struct ApproveRolloutRequest {
 pub struct AssociatedEntities {
     /// Optional. Information specifying Anthos clusters as associated entities.
     #[serde(default, rename = "anthosClusters")]
-    pub anthos_clusters: Option<Vec<AnthosCluster>>,
+    pub anthos_clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AnthosCluster>>>,
     /// Optional. Information specifying GKE clusters as associated entities.
     #[serde(default, rename = "gkeClusters")]
-    pub gke_clusters: Option<Vec<GkeCluster>>,
+    pub gke_clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GkeCluster>>>,
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
@@ -180,10 +183,11 @@ pub struct AssociatedEntities {
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    pub audit_log_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditLogConfig>>>,
     /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -191,10 +195,10 @@ pub struct AuditConfig {
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: Option<Vec<String>>,
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// An Automation resource in the Cloud Deploy API. An Automation enables the automation of manually driven actions for a Delivery Pipeline, which includes Release promotion among Targets, Rollout repair and Rollout deployment strategy advancement. The intention of Automation is to reduce manual intervention in the continuous delivery process.
@@ -202,40 +206,40 @@ pub struct AuditLogConfig {
 pub struct Automation {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. Annotations must meet the following constraints: * Annotations are key/value pairs. * Valid annotation keys have two segments: an optional prefix and name, separated by a slash (/). * The name segment is required and must be 63 characters or less, beginning and ending with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between. * The prefix is optional. If specified, the prefix must be a DNS subdomain: a series of DNS labels separated by dots(.), not longer than 253 characters in total, followed by a slash (/). See https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set for more details.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. Time at which the automation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of the Automation. Max length is 255 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. The weak etag of the Automation resource. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 63 characters.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Name of the Automation. Format is projects/{project}/locations/{location}/deliveryPipelines/{delivery_pipeline}/automations/{automation}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. List of Automation rules associated with the Automation resource. Must have at least one rule and limited to 250 rules per Delivery Pipeline. Note: the order of the rules here is not the same as the order of execution.
     #[serde(default)]
-    pub rules: Option<Vec<AutomationRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutomationRule>>>,
     /// Required. Selected resources to which the automation will be applied.
     #[serde(default)]
-    pub selector: Option<AutomationResourceSelector>,
+    pub selector: ::core::option::Option<::std::boxed::Box<AutomationResourceSelector>>,
     /// Required. Email address of the user-managed IAM service account that creates Cloud Deploy release and rollout resources.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Optional. When Suspended, automation is deactivated from execution.
     #[serde(default)]
-    pub suspended: Option<bool>,
+    pub suspended: ::core::option::Option<bool>,
     /// Output only. Unique identifier of the Automation.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Time at which the automation was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/automation" Platform Log event that describes the Automation related events.
@@ -243,16 +247,16 @@ pub struct Automation {
 pub struct AutomationEvent {
     /// The name of the AutomationRun.
     #[serde(default)]
-    pub automation: Option<String>,
+    pub automation: ::core::option::Option<String>,
     /// Debug message for when there is an update on the AutomationRun. Provides further details about the resource creation or state change.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the DeliveryPipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// AutomationResourceSelector contains the information to select the resources to which an Automation is going to be applied.
@@ -260,7 +264,7 @@ pub struct AutomationEvent {
 pub struct AutomationResourceSelector {
     /// Optional. Contains attributes about a target.
     #[serde(default)]
-    pub targets: Option<Vec<TargetAttribute>>,
+    pub targets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetAttribute>>>,
 }
 
 /// AutomationRolloutMetadata contains Automation-related actions that were performed on a rollout.
@@ -268,13 +272,13 @@ pub struct AutomationResourceSelector {
 pub struct AutomationRolloutMetadata {
     /// Output only. The names of the AutomationRuns initiated by an advance rollout rule.
     #[serde(default, rename = "advanceAutomationRuns")]
-    pub advance_automation_runs: Option<Vec<String>>,
+    pub advance_automation_runs: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The name of the AutomationRun initiated by a promote release rule.
     #[serde(default, rename = "promoteAutomationRun")]
-    pub promote_automation_run: Option<String>,
+    pub promote_automation_run: ::core::option::Option<String>,
     /// Output only. The names of the AutomationRuns initiated by a repair rollout rule.
     #[serde(default, rename = "repairAutomationRuns")]
-    pub repair_automation_runs: Option<Vec<String>>,
+    pub repair_automation_runs: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// AutomationRule defines the automation activities.
@@ -282,16 +286,17 @@ pub struct AutomationRolloutMetadata {
 pub struct AutomationRule {
     /// Optional. The AdvanceRolloutRule will automatically advance a successful Rollout.
     #[serde(default, rename = "advanceRolloutRule")]
-    pub advance_rollout_rule: Option<AdvanceRolloutRule>,
+    pub advance_rollout_rule: ::core::option::Option<::std::boxed::Box<AdvanceRolloutRule>>,
     /// Optional. PromoteReleaseRule will automatically promote a release from the current target to a specified target.
     #[serde(default, rename = "promoteReleaseRule")]
-    pub promote_release_rule: Option<PromoteReleaseRule>,
+    pub promote_release_rule: ::core::option::Option<::std::boxed::Box<PromoteReleaseRule>>,
     /// Optional. The RepairRolloutRule will automatically repair a failed rollout.
     #[serde(default, rename = "repairRolloutRule")]
-    pub repair_rollout_rule: Option<RepairRolloutRule>,
+    pub repair_rollout_rule: ::core::option::Option<::std::boxed::Box<RepairRolloutRule>>,
     /// Optional. The TimedPromoteReleaseRule will automatically promote a release from the current target(s) to the specified target(s) on a configured schedule.
     #[serde(default, rename = "timedPromoteReleaseRule")]
-    pub timed_promote_release_rule: Option<TimedPromoteReleaseRule>,
+    pub timed_promote_release_rule:
+        ::core::option::Option<::std::boxed::Box<TimedPromoteReleaseRule>>,
 }
 
 /// AutomationRuleCondition contains conditions relevant to an Automation rule.
@@ -299,10 +304,12 @@ pub struct AutomationRule {
 pub struct AutomationRuleCondition {
     /// Optional. Details around targets enumerated in the rule.
     #[serde(default, rename = "targetsPresentCondition")]
-    pub targets_present_condition: Option<TargetsPresentCondition>,
+    pub targets_present_condition:
+        ::core::option::Option<::std::boxed::Box<TargetsPresentCondition>>,
     /// Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.
     #[serde(default, rename = "timedPromoteReleaseCondition")]
-    pub timed_promote_release_condition: Option<TimedPromoteReleaseCondition>,
+    pub timed_promote_release_condition:
+        ::core::option::Option<::std::boxed::Box<TimedPromoteReleaseCondition>>,
 }
 
 /// An AutomationRun resource in the Cloud Deploy API. An AutomationRun represents an execution instance of an automation rule.
@@ -310,61 +317,64 @@ pub struct AutomationRuleCondition {
 pub struct AutomationRun {
     /// Output only. Advances a rollout to the next phase.
     #[serde(default, rename = "advanceRolloutOperation")]
-    pub advance_rollout_operation: Option<AdvanceRolloutOperation>,
+    pub advance_rollout_operation:
+        ::core::option::Option<::std::boxed::Box<AdvanceRolloutOperation>>,
     /// Output only. The ID of the automation that initiated the operation.
     #[serde(default, rename = "automationId")]
-    pub automation_id: Option<String>,
+    pub automation_id: ::core::option::Option<String>,
     /// Output only. Snapshot of the Automation taken at AutomationRun creation time.
     #[serde(default, rename = "automationSnapshot")]
-    pub automation_snapshot: Option<Automation>,
+    pub automation_snapshot: ::core::option::Option<::std::boxed::Box<Automation>>,
     /// Output only. Time at which the AutomationRun was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The weak etag of the AutomationRun resource. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Time the AutomationRun expires. An AutomationRun expires after 14 days from its creation date.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. Name of the AutomationRun. Format is projects/{project}/locations/{location}/deliveryPipelines/{delivery_pipeline}/automationRuns/{automation_run}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Contains information about what policies prevented the AutomationRun from proceeding.
     #[serde(default, rename = "policyViolation")]
-    pub policy_violation: Option<PolicyViolation>,
+    pub policy_violation: ::core::option::Option<::std::boxed::Box<PolicyViolation>>,
     /// Output only. Promotes a release to a specified ''Target''.
     #[serde(default, rename = "promoteReleaseOperation")]
-    pub promote_release_operation: Option<PromoteReleaseOperation>,
+    pub promote_release_operation:
+        ::core::option::Option<::std::boxed::Box<PromoteReleaseOperation>>,
     /// Output only. Repairs a failed ''Rollout''.
     #[serde(default, rename = "repairRolloutOperation")]
-    pub repair_rollout_operation: Option<RepairRolloutOperation>,
+    pub repair_rollout_operation: ::core::option::Option<::std::boxed::Box<RepairRolloutOperation>>,
     /// Output only. The ID of the automation rule that initiated the operation.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
     /// Output only. Email address of the user-managed IAM service account that performs the operations against Cloud Deploy resources.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Output only. Current state of the AutomationRun. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "CANCELLED", "FAILED", "IN_PROGRESS", "PENDING", "ABORTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Explains the current state of the AutomationRun. Present only when an explanation is needed.
     #[serde(default, rename = "stateDescription")]
-    pub state_description: Option<String>,
+    pub state_description: ::core::option::Option<String>,
     /// Output only. The ID of the source target that initiates the AutomationRun. The value of this field is the last segment of a target name.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Output only. Promotes a release to a specified ''Target'' as defined in a Timed Promote Release rule.
     #[serde(default, rename = "timedPromoteReleaseOperation")]
-    pub timed_promote_release_operation: Option<TimedPromoteReleaseOperation>,
+    pub timed_promote_release_operation:
+        ::core::option::Option<::std::boxed::Box<TimedPromoteReleaseOperation>>,
     /// Output only. Unique identifier of the AutomationRun.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Time at which the automationRun was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. Earliest time the AutomationRun will attempt to resume. Wait-time is configured by wait in automation rule.
     #[serde(default, rename = "waitUntilTime")]
-    pub wait_until_time: Option<String>,
+    pub wait_until_time: ::core::option::Option<String>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/automation_run" Platform Log event that describes the AutomationRun related events.
@@ -372,25 +382,25 @@ pub struct AutomationRun {
 pub struct AutomationRunEvent {
     /// Identifier of the Automation.
     #[serde(default, rename = "automationId")]
-    pub automation_id: Option<String>,
+    pub automation_id: ::core::option::Option<String>,
     /// The name of the AutomationRun.
     #[serde(default, rename = "automationRun")]
-    pub automation_run: Option<String>,
+    pub automation_run: ::core::option::Option<String>,
     /// ID of the Target to which the AutomationRun is created.
     #[serde(default, rename = "destinationTargetId")]
-    pub destination_target_id: Option<String>,
+    pub destination_target_id: ::core::option::Option<String>,
     /// Debug message for when there is an update on the AutomationRun. Provides further details about the resource creation or state change.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the DeliveryPipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// Identifier of the Automation rule.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -398,13 +408,13 @@ pub struct AutomationRunEvent {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Description of an a image to use during Skaffold rendering.
@@ -412,10 +422,10 @@ pub struct Binding {
 pub struct BuildArtifact {
     /// Optional. Image name in Skaffold configuration.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// Optional. Image tag to use. This will generally be the full path to an image, such as "gcr.io/my-project/busybox:1.2.3" or "gcr.io/my-project/busybox@sha256:abc123".
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Canary represents the canary deployment strategy.
@@ -423,13 +433,13 @@ pub struct BuildArtifact {
 pub struct Canary {
     /// Optional. Configures the progressive based deployment for a Target.
     #[serde(default, rename = "canaryDeployment")]
-    pub canary_deployment: Option<CanaryDeployment>,
+    pub canary_deployment: ::core::option::Option<::std::boxed::Box<CanaryDeployment>>,
     /// Optional. Configures the progressive based deployment for a Target, but allows customizing at the phase level where a phase represents each of the percentage deployments.
     #[serde(default, rename = "customCanaryDeployment")]
-    pub custom_canary_deployment: Option<CustomCanaryDeployment>,
+    pub custom_canary_deployment: ::core::option::Option<::std::boxed::Box<CustomCanaryDeployment>>,
     /// Optional. Runtime specific configurations for the deployment strategy. The runtime configuration is used to determine how Cloud Deploy will split traffic to enable a progressive deployment.
     #[serde(default, rename = "runtimeConfig")]
-    pub runtime_config: Option<RuntimeConfig>,
+    pub runtime_config: ::core::option::Option<::std::boxed::Box<RuntimeConfig>>,
 }
 
 /// CanaryDeployment represents the canary deployment configuration
@@ -437,22 +447,22 @@ pub struct Canary {
 pub struct CanaryDeployment {
     /// Optional. Configuration for the analysis job. If configured, the analysis will run after each percentage deployment.
     #[serde(default)]
-    pub analysis: Option<Analysis>,
+    pub analysis: ::core::option::Option<::std::boxed::Box<Analysis>>,
     /// Required. The percentage based deployments that will occur as a part of a Rollout. List is expected in ascending order and each integer n is 0 &lt;= n &lt; 100. If the GatewayServiceMesh is configured for Kubernetes, then the range for n is 0 &lt;= n &lt;= 100.
     #[serde(default)]
-    pub percentages: Option<Vec<i32>>,
+    pub percentages: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Optional. Configuration for the postdeploy job of the last phase. If this is not configured, there will be no postdeploy job for this phase.
     #[serde(default)]
-    pub postdeploy: Option<Postdeploy>,
+    pub postdeploy: ::core::option::Option<::std::boxed::Box<Postdeploy>>,
     /// Optional. Configuration for the predeploy job of the first phase. If this is not configured, there will be no predeploy job for this phase.
     #[serde(default)]
-    pub predeploy: Option<Predeploy>,
+    pub predeploy: ::core::option::Option<::std::boxed::Box<Predeploy>>,
     /// Optional. Whether to run verify tests after each percentage deployment via skaffold verify.
     #[serde(default)]
-    pub verify: Option<bool>,
+    pub verify: ::core::option::Option<bool>,
     /// Optional. Configuration for the verify job. Cannot be set if verify is set to true.
     #[serde(default, rename = "verifyConfig")]
-    pub verify_config: Option<Verify>,
+    pub verify_config: ::core::option::Option<::std::boxed::Box<Verify>>,
 }
 
 /// The request object used by CancelRollout.
@@ -460,7 +470,7 @@ pub struct CanaryDeployment {
 pub struct CancelRolloutRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
-    pub override_deploy_policy: Option<Vec<String>>,
+    pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ChildRollouts job composition
@@ -468,10 +478,10 @@ pub struct CancelRolloutRequest {
 pub struct ChildRolloutJobs {
     /// Output only. List of AdvanceChildRolloutJobs
     #[serde(default, rename = "advanceRolloutJobs")]
-    pub advance_rollout_jobs: Option<Vec<Job>>,
+    pub advance_rollout_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Job>>>,
     /// Output only. List of CreateChildRolloutJobs
     #[serde(default, rename = "createRolloutJobs")]
-    pub create_rollout_jobs: Option<Vec<Job>>,
+    pub create_rollout_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Job>>>,
 }
 
 /// CloudRunConfig contains the Cloud Run runtime configuration.
@@ -479,16 +489,16 @@ pub struct ChildRolloutJobs {
 pub struct CloudRunConfig {
     /// Optional. Whether Cloud Deploy should update the traffic stanza in a Cloud Run Service on the user''s behalf to facilitate traffic splitting. This is required to be true for CanaryDeployments, but optional for CustomCanaryDeployments.
     #[serde(default, rename = "automaticTrafficControl")]
-    pub automatic_traffic_control: Option<bool>,
+    pub automatic_traffic_control: ::core::option::Option<bool>,
     /// Optional. A list of tags that are added to the canary revision while the canary phase is in progress.
     #[serde(default, rename = "canaryRevisionTags")]
-    pub canary_revision_tags: Option<Vec<String>>,
+    pub canary_revision_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A list of tags that are added to the prior revision while the canary phase is in progress.
     #[serde(default, rename = "priorRevisionTags")]
-    pub prior_revision_tags: Option<Vec<String>>,
+    pub prior_revision_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A list of tags that are added to the final stable revision when the stable phase is applied.
     #[serde(default, rename = "stableRevisionTags")]
-    pub stable_revision_tags: Option<Vec<String>>,
+    pub stable_revision_tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Information specifying where to deploy a Cloud Run Service.
@@ -496,7 +506,7 @@ pub struct CloudRunConfig {
 pub struct CloudRunLocation {
     /// Required. The location for the Cloud Run Service. Format must be projects/{project}/locations/{location}.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
 }
 
 /// CloudRunMetadata contains information from a Cloud Run deployment.
@@ -504,22 +514,22 @@ pub struct CloudRunLocation {
 pub struct CloudRunMetadata {
     /// Output only. The name of the Cloud Run job that is associated with a Rollout. Format is projects/{project}/locations/{location}/jobs/{job_name}.
     #[serde(default)]
-    pub job: Option<String>,
+    pub job: ::core::option::Option<String>,
     /// Output only. The previous Cloud Run Revision name associated with a Rollout. Only set when a canary deployment strategy is configured. Format for service is projects/{project}/locations/{location}/services/{service}/revisions/{revision}. Format for worker pool is projects/{project}/locations/{location}/workerPools/{workerpool}/revisions/{revision}.
     #[serde(default, rename = "previousRevision")]
-    pub previous_revision: Option<String>,
+    pub previous_revision: ::core::option::Option<String>,
     /// Output only. The Cloud Run Revision id associated with a Rollout.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
     /// Output only. The name of the Cloud Run Service that is associated with a Rollout. Format is projects/{project}/locations/{location}/services/{service}.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
     /// Output only. The Cloud Run Service urls that are associated with a Rollout.
     #[serde(default, rename = "serviceUrls")]
-    pub service_urls: Option<Vec<String>>,
+    pub service_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The Cloud Run worker pool associated with a Rollout. Format is projects/{project}/locations/{location}/workerPools/{worker_pool}.
     #[serde(default, rename = "workerPool")]
-    pub worker_pool: Option<String>,
+    pub worker_pool: ::core::option::Option<String>,
 }
 
 /// CloudRunRenderMetadata contains Cloud Run information associated with a Release render.
@@ -527,16 +537,16 @@ pub struct CloudRunMetadata {
 pub struct CloudRunRenderMetadata {
     /// Output only. The name of the Cloud Run Job in the rendered manifest. Format is projects/{project}/locations/{location}/jobs/{job}.
     #[serde(default)]
-    pub job: Option<String>,
+    pub job: ::core::option::Option<String>,
     /// Output only. The name of the Cloud Run Revision in the rendered manifest. Format is projects/{project}/locations/{location}/services/{service}/revisions/{revision}.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
     /// Output only. The name of the Cloud Run Service in the rendered manifest. Format is projects/{project}/locations/{location}/services/{service}.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
     /// Output only. The name of the Cloud Run Worker Pool in the rendered manifest. Format is projects/{project}/locations/{location}/workerPools/{worker_pool}.
     #[serde(default, rename = "workerPool")]
-    pub worker_pool: Option<String>,
+    pub worker_pool: ::core::option::Option<String>,
 }
 
 /// Service-wide configuration.
@@ -544,16 +554,17 @@ pub struct CloudRunRenderMetadata {
 pub struct Config {
     /// Default Skaffold version that is assigned when a Release is created without specifying a Skaffold version.
     #[serde(default, rename = "defaultSkaffoldVersion")]
-    pub default_skaffold_version: Option<String>,
+    pub default_skaffold_version: ::core::option::Option<String>,
     /// Output only. Default tool versions. These tool versions are assigned when a Release is created without specifying tool versions.
     #[serde(default, rename = "defaultToolVersions")]
-    pub default_tool_versions: Option<ToolVersions>,
+    pub default_tool_versions: ::core::option::Option<::std::boxed::Box<ToolVersions>>,
     /// Name of the configuration.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// All supported versions of Skaffold.
     #[serde(default, rename = "supportedVersions")]
-    pub supported_versions: Option<Vec<SkaffoldVersion>>,
+    pub supported_versions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SkaffoldVersion>>>,
 }
 
 /// This task is represented by a container that is executed in the Cloud Build execution environment.
@@ -561,16 +572,16 @@ pub struct Config {
 pub struct ContainerTask {
     /// Optional. Args is the container arguments to use. This overrides the default arguments defined in the container image.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Command is the container entrypoint to use. This overrides the default entrypoint defined in the container image.
     #[serde(default)]
-    pub command: Option<Vec<String>>,
+    pub command: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Environment variables that are set in the container.
     #[serde(default)]
-    pub env: Option<serde_json::Value>,
+    pub env: ::core::option::Option<serde_json::Value>,
     /// Required. Image is the container image to use.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
 }
 
 /// CreateChildRolloutJobRun contains information specific to a createChildRollout JobRun.
@@ -578,10 +589,10 @@ pub struct ContainerTask {
 pub struct CreateChildRolloutJobRun {
     /// Output only. Name of the ChildRollout. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
     /// Output only. The ID of the childRollout Phase initiated by this JobRun.
     #[serde(default, rename = "rolloutPhaseId")]
-    pub rollout_phase_id: Option<String>,
+    pub rollout_phase_id: ::core::option::Option<String>,
 }
 
 /// CustomCanaryDeployment represents the custom canary deployment configuration.
@@ -589,7 +600,7 @@ pub struct CreateChildRolloutJobRun {
 pub struct CustomCanaryDeployment {
     /// Required. Configuration for each phase in the canary deployment in the order executed.
     #[serde(default, rename = "phaseConfigs")]
-    pub phase_configs: Option<Vec<PhaseConfig>>,
+    pub phase_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PhaseConfig>>>,
 }
 
 /// CustomCheck configures a third-party metric provider to run the analysis, via a Task that runs at a specified frequency.
@@ -597,13 +608,13 @@ pub struct CustomCanaryDeployment {
 pub struct CustomCheck {
     /// Optional. The frequency at which the custom check will be run, with a minimum and default of 5 minutes.
     #[serde(default)]
-    pub frequency: Option<String>,
+    pub frequency: ::core::option::Option<String>,
     /// Required. The ID of the custom Analysis check.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. The Task to be run for this custom check.
     #[serde(default)]
-    pub task: Option<Task>,
+    pub task: ::core::option::Option<::std::boxed::Box<Task>>,
 }
 
 /// CustomCheckStatus contains information specific to a single iteration of a custom analysis job.
@@ -611,25 +622,25 @@ pub struct CustomCheck {
 pub struct CustomCheckStatus {
     /// Output only. The reason the analysis failed. This will always be unspecified while the analysis is in progress or if it succeeded. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "DEADLINE_EXCEEDED", "CLOUD_BUILD_REQUEST_FAILED"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Output only. Additional information about the analysis failure, if available.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. The frequency in minutes at which the custom check is run.
     #[serde(default)]
-    pub frequency: Option<String>,
+    pub frequency: ::core::option::Option<String>,
     /// Output only. The ID of the custom check.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. The resource name of the Cloud Build Build object that was used to execute the latest run of this custom action check. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default, rename = "latestBuild")]
-    pub latest_build: Option<String>,
+    pub latest_build: ::core::option::Option<String>,
     /// Output only. Custom metadata provided by the user-defined custom check operation. result.
     #[serde(default)]
-    pub metadata: Option<CustomMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<CustomMetadata>>,
     /// Output only. The task that ran for this custom check.
     #[serde(default)]
-    pub task: Option<Task>,
+    pub task: ::core::option::Option<::std::boxed::Box<Task>>,
 }
 
 /// Information specifying a Custom Target.
@@ -637,7 +648,7 @@ pub struct CustomCheckStatus {
 pub struct CustomTarget {
     /// Required. The name of the CustomTargetType. Format must be projects/{project}/locations/{location}/customTargetTypes/{custom_target_type}.
     #[serde(default, rename = "customTargetType")]
-    pub custom_target_type: Option<String>,
+    pub custom_target_type: ::core::option::Option<String>,
 }
 
 /// CustomTargetDeployMetadata contains information from a Custom Target deploy operation.
@@ -645,7 +656,7 @@ pub struct CustomTarget {
 pub struct CustomTargetDeployMetadata {
     /// Output only. Skip message provided in the results of a custom deploy operation.
     #[serde(default, rename = "skipMessage")]
-    pub skip_message: Option<String>,
+    pub skip_message: ::core::option::Option<String>,
 }
 
 /// CustomTargetSkaffoldActions represents the CustomTargetType configuration using Skaffold custom actions.
@@ -653,13 +664,14 @@ pub struct CustomTargetDeployMetadata {
 pub struct CustomTargetSkaffoldActions {
     /// Required. The Skaffold custom action responsible for deploy operations.
     #[serde(default, rename = "deployAction")]
-    pub deploy_action: Option<String>,
+    pub deploy_action: ::core::option::Option<String>,
     /// Optional. List of Skaffold modules Cloud Deploy will include in the Skaffold Config as required before performing diagnose.
     #[serde(default, rename = "includeSkaffoldModules")]
-    pub include_skaffold_modules: Option<Vec<SkaffoldModules>>,
+    pub include_skaffold_modules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SkaffoldModules>>>,
     /// Optional. The Skaffold custom action responsible for render operations. If not provided then Cloud Deploy will perform the render operations via skaffold render.
     #[serde(default, rename = "renderAction")]
-    pub render_action: Option<String>,
+    pub render_action: ::core::option::Option<String>,
 }
 
 /// CustomTargetTasks represents the CustomTargetType configuration using tasks.
@@ -667,10 +679,10 @@ pub struct CustomTargetSkaffoldActions {
 pub struct CustomTargetTasks {
     /// Required. The task responsible for deploy operations.
     #[serde(default)]
-    pub deploy: Option<Task>,
+    pub deploy: ::core::option::Option<::std::boxed::Box<Task>>,
     /// Optional. The task responsible for render operations. If not provided then Cloud Deploy will perform its default rendering operation.
     #[serde(default)]
-    pub render: Option<Task>,
+    pub render: ::core::option::Option<::std::boxed::Box<Task>>,
 }
 
 /// A CustomTargetType resource in the Cloud Deploy API. A CustomTargetType defines a type of custom target that can be referenced in a Target in order to facilitate deploying to other systems besides the supported runtimes.
@@ -678,37 +690,37 @@ pub struct CustomTargetTasks {
 pub struct CustomTargetType {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. Time at which the CustomTargetType was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Configures render and deploy for the CustomTargetType using Skaffold custom actions.
     #[serde(default, rename = "customActions")]
-    pub custom_actions: Option<CustomTargetSkaffoldActions>,
+    pub custom_actions: ::core::option::Option<::std::boxed::Box<CustomTargetSkaffoldActions>>,
     /// Output only. Resource id of the CustomTargetType.
     #[serde(default, rename = "customTargetTypeId")]
-    pub custom_target_type_id: Option<String>,
+    pub custom_target_type_id: ::core::option::Option<String>,
     /// Optional. Description of the CustomTargetType. Max length is 255 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. Name of the CustomTargetType. Format is projects/{project}/locations/{location}/customTargetTypes/{customTargetType}. The customTargetType component must match [a-z]([a-z0-9-]{0,61}[a-z0-9])?
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Configures render and deploy for the CustomTargetType using tasks.
     #[serde(default)]
-    pub tasks: Option<CustomTargetTasks>,
+    pub tasks: ::core::option::Option<::std::boxed::Box<CustomTargetTasks>>,
     /// Output only. Unique identifier of the CustomTargetType.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Most recent time at which the CustomTargetType was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/customtargettype_notification" Platform Log event that describes the failure to send a custom target type status change Pub/Sub notification.
@@ -716,16 +728,16 @@ pub struct CustomTargetType {
 pub struct CustomTargetTypeNotificationEvent {
     /// The name of the CustomTargetType.
     #[serde(default, rename = "customTargetType")]
-    pub custom_target_type: Option<String>,
+    pub custom_target_type: ::core::option::Option<String>,
     /// Unique identifier of the CustomTargetType.
     #[serde(default, rename = "customTargetTypeUid")]
-    pub custom_target_type_uid: Option<String>,
+    pub custom_target_type_uid: ::core::option::Option<String>,
     /// Debug message for when a notification fails to send.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -733,13 +745,13 @@ pub struct CustomTargetTypeNotificationEvent {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Execution using the default Cloud Build pool.
@@ -747,10 +759,10 @@ pub struct Date {
 pub struct DefaultPool {
     /// Optional. Cloud Storage location where execution outputs should be stored. This can either be a bucket ("gs://my-bucket") or a path within a bucket ("gs://my-bucket/my-dir"). If unspecified, a default bucket located in the same region will be used.
     #[serde(default, rename = "artifactStorage")]
-    pub artifact_storage: Option<String>,
+    pub artifact_storage: ::core::option::Option<String>,
     /// Optional. Google service account to use for execution. If unspecified, the project execution service account (-compute@developer.gserviceaccount.com) will be used.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
 }
 
 /// A DeliveryPipeline resource in the Cloud Deploy API. A DeliveryPipeline defines a pipeline through which a Skaffold configuration can progress.
@@ -758,37 +770,37 @@ pub struct DefaultPool {
 pub struct DeliveryPipeline {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. Information around the state of the Delivery Pipeline.
     #[serde(default)]
-    pub condition: Option<PipelineCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<PipelineCondition>>,
     /// Output only. Time at which the pipeline was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of the DeliveryPipeline. Max length is 255 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. Name of the DeliveryPipeline. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}. The deliveryPipeline component must match [a-z]([a-z0-9-]{0,61}[a-z0-9])?
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. SerialPipeline defines a sequential set of stages for a DeliveryPipeline.
     #[serde(default, rename = "serialPipeline")]
-    pub serial_pipeline: Option<SerialPipeline>,
+    pub serial_pipeline: ::core::option::Option<::std::boxed::Box<SerialPipeline>>,
     /// Optional. When suspended, no new releases or rollouts can be created, but in-progress ones will complete.
     #[serde(default)]
-    pub suspended: Option<bool>,
+    pub suspended: ::core::option::Option<bool>,
     /// Output only. Unique identifier of the DeliveryPipeline.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Most recent time at which the pipeline was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Contains criteria for selecting DeliveryPipelines.
@@ -796,10 +808,10 @@ pub struct DeliveryPipeline {
 pub struct DeliveryPipelineAttribute {
     /// Optional. ID of the DeliveryPipeline. The value of this field could be one of the following: * The last segment of a pipeline name * "*", all delivery pipelines in a location
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// DeliveryPipeline labels.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/deliverypipeline_notification" Platform Log event that describes the failure to send delivery pipeline status change Pub/Sub notification.
@@ -807,16 +819,16 @@ pub struct DeliveryPipelineAttribute {
 pub struct DeliveryPipelineNotificationEvent {
     /// The name of the Delivery Pipeline.
     #[serde(default, rename = "deliveryPipeline")]
-    pub delivery_pipeline: Option<String>,
+    pub delivery_pipeline: ::core::option::Option<String>,
     /// Debug message for when a notification fails to send.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the DeliveryPipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The artifacts produced by a deploy operation.
@@ -824,10 +836,10 @@ pub struct DeliveryPipelineNotificationEvent {
 pub struct DeployArtifact {
     /// Output only. URI of a directory containing the artifacts. All paths are relative to this location.
     #[serde(default, rename = "artifactUri")]
-    pub artifact_uri: Option<String>,
+    pub artifact_uri: ::core::option::Option<String>,
     /// Output only. File paths of the manifests applied during the deploy operation relative to the URI.
     #[serde(default, rename = "manifestPaths")]
-    pub manifest_paths: Option<Vec<String>>,
+    pub manifest_paths: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// DeployJobRun contains information specific to a deploy JobRun.
@@ -835,19 +847,19 @@ pub struct DeployArtifact {
 pub struct DeployJobRun {
     /// Output only. The artifact of a deploy job run, if available.
     #[serde(default)]
-    pub artifact: Option<DeployArtifact>,
+    pub artifact: ::core::option::Option<::std::boxed::Box<DeployArtifact>>,
     /// Output only. The resource name of the Cloud Build Build object that is used to deploy. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default)]
-    pub build: Option<String>,
+    pub build: ::core::option::Option<String>,
     /// Output only. The reason the deploy failed. This will always be unspecified while the deploy is in progress or if it succeeded. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "DEADLINE_EXCEEDED", "MISSING_RESOURCES_FOR_CANARY", "CLOUD_BUILD_REQUEST_FAILED", "DEPLOY_FEATURE_NOT_SUPPORTED"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Output only. Additional information about the deploy failure, if available.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. Metadata containing information about the deploy job run.
     #[serde(default)]
-    pub metadata: Option<DeployJobRunMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<DeployJobRunMetadata>>,
 }
 
 /// DeployJobRunMetadata surfaces information associated with a DeployJobRun to the user.
@@ -855,13 +867,13 @@ pub struct DeployJobRun {
 pub struct DeployJobRunMetadata {
     /// Output only. The name of the Cloud Run Service that is associated with a DeployJobRun.
     #[serde(default, rename = "cloudRun")]
-    pub cloud_run: Option<CloudRunMetadata>,
+    pub cloud_run: ::core::option::Option<::std::boxed::Box<CloudRunMetadata>>,
     /// Output only. Custom metadata provided by user-defined deploy operation.
     #[serde(default)]
-    pub custom: Option<CustomMetadata>,
+    pub custom: ::core::option::Option<::std::boxed::Box<CustomMetadata>>,
     /// Output only. Custom Target metadata associated with a DeployJobRun.
     #[serde(default, rename = "customTarget")]
-    pub custom_target: Option<CustomTargetDeployMetadata>,
+    pub custom_target: ::core::option::Option<::std::boxed::Box<CustomTargetDeployMetadata>>,
 }
 
 /// DeployParameters contains deploy parameters information.
@@ -869,10 +881,10 @@ pub struct DeployJobRunMetadata {
 pub struct DeployParameters {
     /// Optional. Deploy parameters are applied to targets with match labels. If unspecified, deploy parameters are applied to all targets (including child targets of a multi-target).
     #[serde(default, rename = "matchTargetLabels")]
-    pub match_target_labels: Option<serde_json::Value>,
+    pub match_target_labels: ::core::option::Option<serde_json::Value>,
     /// Required. Values are deploy parameters in key-value pairs.
     #[serde(default)]
-    pub values: Option<serde_json::Value>,
+    pub values: ::core::option::Option<serde_json::Value>,
 }
 
 /// A DeployPolicy resource in the Cloud Deploy API. A DeployPolicy inhibits manual or automation-driven actions within a Delivery Pipeline or Target.
@@ -880,37 +892,38 @@ pub struct DeployParameters {
 pub struct DeployPolicy {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. Annotations must meet the following constraints: * Annotations are key/value pairs. * Valid annotation keys have two segments: an optional prefix and name, separated by a slash (/). * The name segment is required and must be 63 characters or less, beginning and ending with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between. * The prefix is optional. If specified, the prefix must be a DNS subdomain: a series of DNS labels separated by dots(.), not longer than 253 characters in total, followed by a slash (/). See https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set for more details.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. Time at which the deploy policy was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of the DeployPolicy. Max length is 255 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The weak etag of the DeployPolicy resource. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Name of the DeployPolicy. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}. The deployPolicy component must match [a-z]([a-z0-9-]{0,61}[a-z0-9])?
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Rules to apply. At least one rule must be present.
     #[serde(default)]
-    pub rules: Option<Vec<PolicyRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PolicyRule>>>,
     /// Required. Selected resources to which the policy will be applied. At least one selector is required. If one selector matches the resource the policy applies. For example, if there are two selectors and the action being attempted matches one of them, the policy will apply to that action.
     #[serde(default)]
-    pub selectors: Option<Vec<DeployPolicyResourceSelector>>,
+    pub selectors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeployPolicyResourceSelector>>>,
     /// Optional. When suspended, the policy will not prevent actions from occurring, even if the action violates the policy.
     #[serde(default)]
-    pub suspended: Option<bool>,
+    pub suspended: ::core::option::Option<bool>,
     /// Output only. Unique identifier of the DeployPolicy.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Most recent time at which the deploy policy was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/deploypolicy_evaluation" Platform Log event that describes the deploy policy evaluation event.
@@ -918,43 +931,43 @@ pub struct DeployPolicy {
 pub struct DeployPolicyEvaluationEvent {
     /// Whether the request is allowed. Allowed is set as true if: (1) the request complies with the policy; or (2) the request doesn''t comply with the policy but the policy was overridden; or (3) the request doesn''t comply with the policy but the policy was suspended
     #[serde(default)]
-    pub allowed: Option<bool>,
+    pub allowed: ::core::option::Option<bool>,
     /// The name of the Delivery Pipeline.
     #[serde(default, rename = "deliveryPipeline")]
-    pub delivery_pipeline: Option<String>,
+    pub delivery_pipeline: ::core::option::Option<String>,
     /// The name of the DeployPolicy.
     #[serde(default, rename = "deployPolicy")]
-    pub deploy_policy: Option<String>,
+    pub deploy_policy: ::core::option::Option<String>,
     /// Unique identifier of the DeployPolicy.
     #[serde(default, rename = "deployPolicyUid")]
-    pub deploy_policy_uid: Option<String>,
+    pub deploy_policy_uid: ::core::option::Option<String>,
     /// What invoked the action (e.g. a user or automation). // TODO: enum values: ["INVOKER_UNSPECIFIED", "USER", "DEPLOY_AUTOMATION"]
     #[serde(default)]
-    pub invoker: Option<String>,
+    pub invoker: ::core::option::Option<String>,
     /// Debug message for when a deploy policy event occurs.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Things that could have overridden the policy verdict. Overrides together with verdict decide whether the request is allowed.
     #[serde(default)]
-    pub overrides: Option<Vec<String>>,
+    pub overrides: ::core::option::Option<::std::vec::Vec<String>>,
     /// Unique identifier of the Delivery Pipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// Rule id.
     #[serde(default)]
-    pub rule: Option<String>,
+    pub rule: ::core::option::Option<String>,
     /// Rule type (e.g. Restrict Rollouts).
     #[serde(default, rename = "ruleType")]
-    pub rule_type: Option<String>,
+    pub rule_type: ::core::option::Option<String>,
     /// The name of the Target. This is an optional field, as a Target may not always be applicable to a policy.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Unique identifier of the Target. This is an optional field, as a Target may not always be applicable to a policy.
     #[serde(default, rename = "targetUid")]
-    pub target_uid: Option<String>,
+    pub target_uid: ::core::option::Option<String>,
     /// The policy verdict of the request. // TODO: enum values: ["POLICY_VERDICT_UNSPECIFIED", "ALLOWED_BY_POLICY", "DENIED_BY_POLICY"]
     #[serde(default)]
-    pub verdict: Option<String>,
+    pub verdict: ::core::option::Option<String>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/deploypolicy_notification". Platform Log event that describes the failure to send a pub/sub notification when there is a DeployPolicy status change.
@@ -962,16 +975,16 @@ pub struct DeployPolicyEvaluationEvent {
 pub struct DeployPolicyNotificationEvent {
     /// The name of the DeployPolicy.
     #[serde(default, rename = "deployPolicy")]
-    pub deploy_policy: Option<String>,
+    pub deploy_policy: ::core::option::Option<String>,
     /// Unique identifier of the deploy policy.
     #[serde(default, rename = "deployPolicyUid")]
-    pub deploy_policy_uid: Option<String>,
+    pub deploy_policy_uid: ::core::option::Option<String>,
     /// Debug message for when a deploy policy fails to send a pub/sub notification.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Contains information on the resources to select for a deploy policy. Attributes provided must all match the resource in order for policy restrictions to apply. For example, if delivery pipelines attributes given are an id "prod" and labels "foo: bar", a delivery pipeline resource must match both that id and have that label in order to be subject to the policy.
@@ -979,10 +992,10 @@ pub struct DeployPolicyNotificationEvent {
 pub struct DeployPolicyResourceSelector {
     /// Optional. Contains attributes about a delivery pipeline.
     #[serde(default, rename = "deliveryPipeline")]
-    pub delivery_pipeline: Option<DeliveryPipelineAttribute>,
+    pub delivery_pipeline: ::core::option::Option<::std::boxed::Box<DeliveryPipelineAttribute>>,
     /// Optional. Contains attributes about a target.
     #[serde(default)]
-    pub target: Option<TargetAttribute>,
+    pub target: ::core::option::Option<::std::boxed::Box<TargetAttribute>>,
 }
 
 /// Deployment job composition.
@@ -990,19 +1003,19 @@ pub struct DeployPolicyResourceSelector {
 pub struct DeploymentJobs {
     /// Output only. The analysis Job. Runs after a verify if there is a verify job and the verify job succeeds.
     #[serde(default, rename = "analysisJob")]
-    pub analysis_job: Option<Job>,
+    pub analysis_job: ::core::option::Option<::std::boxed::Box<Job>>,
     /// Output only. The deploy Job. This is the deploy job in the phase.
     #[serde(default, rename = "deployJob")]
-    pub deploy_job: Option<Job>,
+    pub deploy_job: ::core::option::Option<::std::boxed::Box<Job>>,
     /// Output only. The postdeploy Job, which is the last job on the phase.
     #[serde(default, rename = "postdeployJob")]
-    pub postdeploy_job: Option<Job>,
+    pub postdeploy_job: ::core::option::Option<::std::boxed::Box<Job>>,
     /// Output only. The predeploy Job, which is the first job on the phase.
     #[serde(default, rename = "predeployJob")]
-    pub predeploy_job: Option<Job>,
+    pub predeploy_job: ::core::option::Option<::std::boxed::Box<Job>>,
     /// Output only. The verify Job. Runs after a deploy if the deploy succeeds.
     #[serde(default, rename = "verifyJob")]
-    pub verify_job: Option<Job>,
+    pub verify_job: ::core::option::Option<::std::boxed::Box<Job>>,
 }
 
 /// Configuration of the environment to use when calling Skaffold.
@@ -1010,28 +1023,28 @@ pub struct DeploymentJobs {
 pub struct ExecutionConfig {
     /// Optional. Cloud Storage location in which to store execution outputs. This can either be a bucket ("gs://my-bucket") or a path within a bucket ("gs://my-bucket/my-dir"). If unspecified, a default bucket located in the same region will be used.
     #[serde(default, rename = "artifactStorage")]
-    pub artifact_storage: Option<String>,
+    pub artifact_storage: ::core::option::Option<String>,
     /// Optional. Use default Cloud Build pool.
     #[serde(default, rename = "defaultPool")]
-    pub default_pool: Option<DefaultPool>,
+    pub default_pool: ::core::option::Option<::std::boxed::Box<DefaultPool>>,
     /// Optional. Execution timeout for a Cloud Build Execution. This must be between 10m and 24h in seconds format. If unspecified, a default timeout of 1h is used.
     #[serde(default, rename = "executionTimeout")]
-    pub execution_timeout: Option<String>,
+    pub execution_timeout: ::core::option::Option<String>,
     /// Optional. Use private Cloud Build pool.
     #[serde(default, rename = "privatePool")]
-    pub private_pool: Option<PrivatePool>,
+    pub private_pool: ::core::option::Option<::std::boxed::Box<PrivatePool>>,
     /// Optional. Google service account to use for execution. If unspecified, the project execution service account (-compute@developer.gserviceaccount.com) is used.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Required. Usages when this configuration should be applied.
     #[serde(default)]
-    pub usages: Option<Vec<String>>,
+    pub usages: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. If true, additional logging will be enabled when running builds in this execution environment.
     #[serde(default)]
-    pub verbose: Option<bool>,
+    pub verbose: ::core::option::Option<bool>,
     /// Optional. The resource name of the WorkerPool, with the format projects/{project}/locations/{location}/workerPools/{worker_pool}. If this optional field is unspecified, the default Cloud Build pool will be used.
     #[serde(default, rename = "workerPool")]
-    pub worker_pool: Option<String>,
+    pub worker_pool: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -1039,16 +1052,16 @@ pub struct ExecutionConfig {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// FailedAlertPolicy contains information about an alert policy that was found to be firing during an alert policy check.
@@ -1056,10 +1069,10 @@ pub struct Expr {
 pub struct FailedAlertPolicy {
     /// Output only. The name of the alert policy that was found to be firing. Format is projects/{project}/locations/{location}/alertPolicies/{alertPolicy}.
     #[serde(default, rename = "alertPolicy")]
-    pub alert_policy: Option<String>,
+    pub alert_policy: ::core::option::Option<String>,
     /// Output only. Open alerts for the alerting policies that matched the alert policy check configuration.
     #[serde(default)]
-    pub alerts: Option<Vec<String>>,
+    pub alerts: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Information about the Kubernetes Gateway API service mesh configuration.
@@ -1067,25 +1080,25 @@ pub struct FailedAlertPolicy {
 pub struct GatewayServiceMesh {
     /// Required. Name of the Kubernetes Deployment whose traffic is managed by the specified HTTPRoute and Service.
     #[serde(default)]
-    pub deployment: Option<String>,
+    pub deployment: ::core::option::Option<String>,
     /// Required. Name of the Gateway API HTTPRoute.
     #[serde(default, rename = "httpRoute")]
-    pub http_route: Option<String>,
+    pub http_route: ::core::option::Option<String>,
     /// Optional. The label to use when selecting Pods for the Deployment and Service resources. This label must already be present in both resources.
     #[serde(default, rename = "podSelectorLabel")]
-    pub pod_selector_label: Option<String>,
+    pub pod_selector_label: ::core::option::Option<String>,
     /// Optional. Route destinations allow configuring the Gateway API HTTPRoute to be deployed to additional clusters. This option is available for multi-cluster service mesh set ups that require the route to exist in the clusters that call the service. If unspecified, the HTTPRoute will only be deployed to the Target cluster.
     #[serde(default, rename = "routeDestinations")]
-    pub route_destinations: Option<RouteDestinations>,
+    pub route_destinations: ::core::option::Option<::std::boxed::Box<RouteDestinations>>,
     /// Optional. The time to wait for route updates to propagate. The maximum configurable time is 3 hours, in seconds format. If unspecified, there is no wait time.
     #[serde(default, rename = "routeUpdateWaitTime")]
-    pub route_update_wait_time: Option<String>,
+    pub route_update_wait_time: ::core::option::Option<String>,
     /// Required. Name of the Kubernetes Service.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
     /// Optional. The amount of time to migrate traffic back from the canary Service to the original Service during the stable phase deployment. If specified, must be between 15s and 3600s. If unspecified, there is no cutback time.
     #[serde(default, rename = "stableCutbackDuration")]
-    pub stable_cutback_duration: Option<String>,
+    pub stable_cutback_duration: ::core::option::Option<String>,
 }
 
 /// Information specifying a GKE Cluster.
@@ -1093,16 +1106,16 @@ pub struct GatewayServiceMesh {
 pub struct GkeCluster {
     /// Optional. Information specifying a GKE Cluster. Format is projects/{project_id}/locations/{location_id}/clusters/{cluster_id}.
     #[serde(default)]
-    pub cluster: Option<String>,
+    pub cluster: ::core::option::Option<String>,
     /// Optional. If set, the cluster will be accessed using the DNS endpoint. Note that both dns_endpoint and internal_ip cannot be set to true.
     #[serde(default, rename = "dnsEndpoint")]
-    pub dns_endpoint: Option<bool>,
+    pub dns_endpoint: ::core::option::Option<bool>,
     /// Optional. If true, cluster is accessed using the private IP address of the control plane endpoint. Otherwise, the default IP address of the control plane endpoint is used. The default IP address is the private IP address for clusters with private control-plane endpoints and the public IP address otherwise. Only specify this option when cluster is a [private GKE cluster](https://cloud.google.com/kubernetes-engine/docs/concepts/private-cluster-concept). Note that internal_ip and dns_endpoint cannot both be set to true.
     #[serde(default, rename = "internalIp")]
-    pub internal_ip: Option<bool>,
+    pub internal_ip: ::core::option::Option<bool>,
     /// Optional. If set, used to configure a [proxy](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/#proxy) to the Kubernetes server.
     #[serde(default, rename = "proxyUrl")]
-    pub proxy_url: Option<String>,
+    pub proxy_url: ::core::option::Option<String>,
 }
 
 /// GoogleCloudAnalysis is a set of Google Cloud-based checks to perform on the deployment.
@@ -1110,7 +1123,8 @@ pub struct GkeCluster {
 pub struct GoogleCloudAnalysis {
     /// Optional. A list of Cloud Monitoring Alert Policy checks to perform as part of the analysis.
     #[serde(default, rename = "alertPolicyChecks")]
-    pub alert_policy_checks: Option<Vec<AlertPolicyCheck>>,
+    pub alert_policy_checks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AlertPolicyCheck>>>,
 }
 
 /// The request object used by IgnoreJob.
@@ -1118,13 +1132,13 @@ pub struct GoogleCloudAnalysis {
 pub struct IgnoreJobRequest {
     /// Required. The job ID for the Job to ignore.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
-    pub override_deploy_policy: Option<Vec<String>>,
+    pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The phase ID the Job to ignore belongs to.
     #[serde(default, rename = "phaseId")]
-    pub phase_id: Option<String>,
+    pub phase_id: ::core::option::Option<String>,
 }
 
 /// Job represents an operation for a Rollout.
@@ -1132,37 +1146,37 @@ pub struct IgnoreJobRequest {
 pub struct Job {
     /// Output only. An advanceChildRollout Job.
     #[serde(default, rename = "advanceChildRolloutJob")]
-    pub advance_child_rollout_job: Option<serde_json::Value>,
+    pub advance_child_rollout_job: ::core::option::Option<serde_json::Value>,
     /// Output only. An analysis Job.
     #[serde(default, rename = "analysisJob")]
-    pub analysis_job: Option<AnalysisJob>,
+    pub analysis_job: ::core::option::Option<::std::boxed::Box<AnalysisJob>>,
     /// Output only. A createChildRollout Job.
     #[serde(default, rename = "createChildRolloutJob")]
-    pub create_child_rollout_job: Option<serde_json::Value>,
+    pub create_child_rollout_job: ::core::option::Option<serde_json::Value>,
     /// Output only. A deploy Job.
     #[serde(default, rename = "deployJob")]
-    pub deploy_job: Option<serde_json::Value>,
+    pub deploy_job: ::core::option::Option<serde_json::Value>,
     /// Output only. The ID of the Job.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. The name of the JobRun responsible for the most recent invocation of this Job.
     #[serde(default, rename = "jobRun")]
-    pub job_run: Option<String>,
+    pub job_run: ::core::option::Option<String>,
     /// Output only. A postdeploy Job.
     #[serde(default, rename = "postdeployJob")]
-    pub postdeploy_job: Option<PostdeployJob>,
+    pub postdeploy_job: ::core::option::Option<::std::boxed::Box<PostdeployJob>>,
     /// Output only. A predeploy Job.
     #[serde(default, rename = "predeployJob")]
-    pub predeploy_job: Option<PredeployJob>,
+    pub predeploy_job: ::core::option::Option<::std::boxed::Box<PredeployJob>>,
     /// Output only. Additional information on why the Job was skipped, if available.
     #[serde(default, rename = "skipMessage")]
-    pub skip_message: Option<String>,
+    pub skip_message: ::core::option::Option<String>,
     /// Output only. The current state of the Job. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "DISABLED", "IN_PROGRESS", "SUCCEEDED", "FAILED", "ABORTED", "SKIPPED", "IGNORED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. A verify Job.
     #[serde(default, rename = "verifyJob")]
-    pub verify_job: Option<VerifyJob>,
+    pub verify_job: ::core::option::Option<::std::boxed::Box<VerifyJob>>,
 }
 
 /// A JobRun resource in the Cloud Deploy API. A JobRun contains information of a single Rollout job evaluation.
@@ -1170,52 +1184,54 @@ pub struct Job {
 pub struct JobRun {
     /// Output only. Information specific to an advanceChildRollout JobRun
     #[serde(default, rename = "advanceChildRolloutJobRun")]
-    pub advance_child_rollout_job_run: Option<AdvanceChildRolloutJobRun>,
+    pub advance_child_rollout_job_run:
+        ::core::option::Option<::std::boxed::Box<AdvanceChildRolloutJobRun>>,
     /// Output only. Information specific to an analysis JobRun.
     #[serde(default, rename = "analysisJobRun")]
-    pub analysis_job_run: Option<AnalysisJobRun>,
+    pub analysis_job_run: ::core::option::Option<::std::boxed::Box<AnalysisJobRun>>,
     /// Output only. Information specific to a createChildRollout JobRun.
     #[serde(default, rename = "createChildRolloutJobRun")]
-    pub create_child_rollout_job_run: Option<CreateChildRolloutJobRun>,
+    pub create_child_rollout_job_run:
+        ::core::option::Option<::std::boxed::Box<CreateChildRolloutJobRun>>,
     /// Output only. Time at which the JobRun was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Information specific to a deploy JobRun.
     #[serde(default, rename = "deployJobRun")]
-    pub deploy_job_run: Option<DeployJobRun>,
+    pub deploy_job_run: ::core::option::Option<::std::boxed::Box<DeployJobRun>>,
     /// Output only. Time at which the JobRun ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. ID of the Rollout job this JobRun corresponds to.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Output only. Name of the JobRun. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{releases}/rollouts/{rollouts}/jobRuns/{uuid}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. ID of the Rollout phase this JobRun belongs in.
     #[serde(default, rename = "phaseId")]
-    pub phase_id: Option<String>,
+    pub phase_id: ::core::option::Option<String>,
     /// Output only. Information specific to a postdeploy JobRun.
     #[serde(default, rename = "postdeployJobRun")]
-    pub postdeploy_job_run: Option<PostdeployJobRun>,
+    pub postdeploy_job_run: ::core::option::Option<::std::boxed::Box<PostdeployJobRun>>,
     /// Output only. Information specific to a predeploy JobRun.
     #[serde(default, rename = "predeployJobRun")]
-    pub predeploy_job_run: Option<PredeployJobRun>,
+    pub predeploy_job_run: ::core::option::Option<::std::boxed::Box<PredeployJobRun>>,
     /// Output only. Time at which the JobRun was started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The current state of the JobRun. // TODO: enum values: ["STATE_UNSPECIFIED", "IN_PROGRESS", "SUCCEEDED", "FAILED", "TERMINATING", "TERMINATED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Unique identifier of the JobRun.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Information specific to a verify JobRun.
     #[serde(default, rename = "verifyJobRun")]
-    pub verify_job_run: Option<VerifyJobRun>,
+    pub verify_job_run: ::core::option::Option<::std::boxed::Box<VerifyJobRun>>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/jobrun_notification" Platform Log event that describes the failure to send JobRun resource update Pub/Sub notification.
@@ -1223,31 +1239,31 @@ pub struct JobRun {
 pub struct JobRunNotificationEvent {
     /// The name of the JobRun.
     #[serde(default, rename = "jobRun")]
-    pub job_run: Option<String>,
+    pub job_run: ::core::option::Option<String>,
     /// Debug message for when a notification fails to send.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the DeliveryPipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// The name of the Release.
     #[serde(default)]
-    pub release: Option<String>,
+    pub release: ::core::option::Option<String>,
     /// Unique identifier of the Release.
     #[serde(default, rename = "releaseUid")]
-    pub release_uid: Option<String>,
+    pub release_uid: ::core::option::Option<String>,
     /// The name of the Rollout.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
     /// Unique identifier of the Rollout.
     #[serde(default, rename = "rolloutUid")]
-    pub rollout_uid: Option<String>,
+    pub rollout_uid: ::core::option::Option<String>,
     /// ID of the Target.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// KubernetesConfig contains the Kubernetes runtime configuration.
@@ -1255,10 +1271,10 @@ pub struct JobRunNotificationEvent {
 pub struct KubernetesConfig {
     /// Optional. Kubernetes Gateway API service mesh configuration.
     #[serde(default, rename = "gatewayServiceMesh")]
-    pub gateway_service_mesh: Option<GatewayServiceMesh>,
+    pub gateway_service_mesh: ::core::option::Option<::std::boxed::Box<GatewayServiceMesh>>,
     /// Optional. Kubernetes Service networking configuration.
     #[serde(default, rename = "serviceNetworking")]
-    pub service_networking: Option<ServiceNetworking>,
+    pub service_networking: ::core::option::Option<::std::boxed::Box<ServiceNetworking>>,
 }
 
 /// KubernetesRenderMetadata contains Kubernetes information associated with a Release render.
@@ -1266,13 +1282,13 @@ pub struct KubernetesConfig {
 pub struct KubernetesRenderMetadata {
     /// Output only. Name of the canary version of the Kubernetes Deployment that will be applied to the GKE cluster. Only set if a canary deployment strategy was configured.
     #[serde(default, rename = "canaryDeployment")]
-    pub canary_deployment: Option<String>,
+    pub canary_deployment: ::core::option::Option<String>,
     /// Output only. Name of the Kubernetes Deployment that will be applied to the GKE cluster. Only set if a single Deployment was provided in the rendered manifest.
     #[serde(default)]
-    pub deployment: Option<String>,
+    pub deployment: ::core::option::Option<String>,
     /// Output only. Namespace the Kubernetes resources will be applied to in the GKE cluster. Only set if applying resources to a single namespace.
     #[serde(default, rename = "kubernetesNamespace")]
-    pub kubernetes_namespace: Option<String>,
+    pub kubernetes_namespace: ::core::option::Option<String>,
 }
 
 /// The response object from ListAutomationRuns.
@@ -1280,13 +1296,13 @@ pub struct KubernetesRenderMetadata {
 pub struct ListAutomationRunsResponse {
     /// The AutomationRuns objects.
     #[serde(default, rename = "automationRuns")]
-    pub automation_runs: Option<Vec<AutomationRun>>,
+    pub automation_runs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutomationRun>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response object from ListAutomations.
@@ -1294,13 +1310,13 @@ pub struct ListAutomationRunsResponse {
 pub struct ListAutomationsResponse {
     /// The Automation objects.
     #[serde(default)]
-    pub automations: Option<Vec<Automation>>,
+    pub automations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Automation>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response object from ListCustomTargetTypes.
@@ -1308,13 +1324,14 @@ pub struct ListAutomationsResponse {
 pub struct ListCustomTargetTypesResponse {
     /// The CustomTargetType objects.
     #[serde(default, rename = "customTargetTypes")]
-    pub custom_target_types: Option<Vec<CustomTargetType>>,
+    pub custom_target_types:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomTargetType>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response object from ListDeliveryPipelines.
@@ -1322,13 +1339,14 @@ pub struct ListCustomTargetTypesResponse {
 pub struct ListDeliveryPipelinesResponse {
     /// The DeliveryPipeline objects.
     #[serde(default, rename = "deliveryPipelines")]
-    pub delivery_pipelines: Option<Vec<DeliveryPipeline>>,
+    pub delivery_pipelines:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeliveryPipeline>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response object from ListDeployPolicies.
@@ -1336,13 +1354,13 @@ pub struct ListDeliveryPipelinesResponse {
 pub struct ListDeployPoliciesResponse {
     /// The DeployPolicy objects.
     #[serde(default, rename = "deployPolicies")]
-    pub deploy_policies: Option<Vec<DeployPolicy>>,
+    pub deploy_policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeployPolicy>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ListJobRunsResponse is the response object returned by ListJobRuns.
@@ -1350,13 +1368,13 @@ pub struct ListDeployPoliciesResponse {
 pub struct ListJobRunsResponse {
     /// The JobRun objects.
     #[serde(default, rename = "jobRuns")]
-    pub job_runs: Option<Vec<JobRun>>,
+    pub job_runs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<JobRun>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1364,10 +1382,10 @@ pub struct ListJobRunsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1375,13 +1393,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response object from ListReleases.
@@ -1389,13 +1407,13 @@ pub struct ListOperationsResponse {
 pub struct ListReleasesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The Release objects.
     #[serde(default)]
-    pub releases: Option<Vec<Release>>,
+    pub releases: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Release>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ListRolloutsResponse is the response object returned by ListRollouts.
@@ -1403,13 +1421,13 @@ pub struct ListReleasesResponse {
 pub struct ListRolloutsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The Rollout objects.
     #[serde(default)]
-    pub rollouts: Option<Vec<Rollout>>,
+    pub rollouts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Rollout>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response object from ListTargets.
@@ -1417,13 +1435,13 @@ pub struct ListRolloutsResponse {
 pub struct ListTargetsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The Target objects.
     #[serde(default)]
-    pub targets: Option<Vec<Target>>,
+    pub targets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Target>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1431,19 +1449,19 @@ pub struct ListTargetsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata includes information associated with a Rollout.
@@ -1451,13 +1469,13 @@ pub struct Location {
 pub struct Metadata {
     /// Output only. AutomationRolloutMetadata contains the information about the interactions between Automation service and this rollout.
     #[serde(default)]
-    pub automation: Option<AutomationRolloutMetadata>,
+    pub automation: ::core::option::Option<::std::boxed::Box<AutomationRolloutMetadata>>,
     /// Output only. The name of the Cloud Run Service that is associated with a Rollout.
     #[serde(default, rename = "cloudRun")]
-    pub cloud_run: Option<CloudRunMetadata>,
+    pub cloud_run: ::core::option::Option<::std::boxed::Box<CloudRunMetadata>>,
     /// Output only. Custom metadata provided by user-defined Rollout operations.
     #[serde(default)]
-    pub custom: Option<CustomMetadata>,
+    pub custom: ::core::option::Option<::std::boxed::Box<CustomMetadata>>,
 }
 
 /// Information specifying a multiTarget.
@@ -1465,7 +1483,7 @@ pub struct Metadata {
 pub struct MultiTarget {
     /// Required. The target_ids of this multiTarget.
     #[serde(default, rename = "targetIds")]
-    pub target_ids: Option<Vec<String>>,
+    pub target_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// One-time window within which actions are restricted. For example, blocking actions over New Year''s Eve from December 31st at 5pm to January 1st at 9am.
@@ -1473,16 +1491,16 @@ pub struct MultiTarget {
 pub struct OneTimeWindow {
     /// Required. End date.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Required. End time (exclusive). You may use 24:00 for the end of the day.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<TimeOfDay>,
+    pub end_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
     /// Required. Start date.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Required. Start time (inclusive). Use 00:00 for the beginning of the day.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1490,19 +1508,19 @@ pub struct OneTimeWindow {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1510,25 +1528,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Phase represents a collection of jobs that are logically grouped together for a Rollout.
@@ -1536,19 +1554,19 @@ pub struct OperationMetadata {
 pub struct Phase {
     /// Output only. ChildRollout job composition.
     #[serde(default, rename = "childRolloutJobs")]
-    pub child_rollout_jobs: Option<ChildRolloutJobs>,
+    pub child_rollout_jobs: ::core::option::Option<::std::boxed::Box<ChildRolloutJobs>>,
     /// Output only. Deployment job composition.
     #[serde(default, rename = "deploymentJobs")]
-    pub deployment_jobs: Option<DeploymentJobs>,
+    pub deployment_jobs: ::core::option::Option<::std::boxed::Box<DeploymentJobs>>,
     /// Output only. The ID of the Phase.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Additional information on why the Phase was skipped, if available.
     #[serde(default, rename = "skipMessage")]
-    pub skip_message: Option<String>,
+    pub skip_message: ::core::option::Option<String>,
     /// Output only. Current state of the Phase. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "IN_PROGRESS", "SUCCEEDED", "FAILED", "ABORTED", "SKIPPED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Contains the paths to the artifacts, relative to the URI, for a phase.
@@ -1556,13 +1574,13 @@ pub struct Phase {
 pub struct PhaseArtifact {
     /// Output only. File path of the directory of rendered job manifests relative to the URI. This is only set if it is applicable.
     #[serde(default, rename = "jobManifestsPath")]
-    pub job_manifests_path: Option<String>,
+    pub job_manifests_path: ::core::option::Option<String>,
     /// Output only. File path of the rendered manifest relative to the URI.
     #[serde(default, rename = "manifestPath")]
-    pub manifest_path: Option<String>,
+    pub manifest_path: ::core::option::Option<String>,
     /// Output only. File path of the resolved Skaffold configuration relative to the URI.
     #[serde(default, rename = "skaffoldConfigPath")]
-    pub skaffold_config_path: Option<String>,
+    pub skaffold_config_path: ::core::option::Option<String>,
 }
 
 /// PhaseConfig represents the configuration for a phase in the custom canary deployment.
@@ -1570,28 +1588,28 @@ pub struct PhaseArtifact {
 pub struct PhaseConfig {
     /// Optional. Configuration for the analysis job of this phase. If this is not configured, there will be no analysis job for this phase.
     #[serde(default)]
-    pub analysis: Option<Analysis>,
+    pub analysis: ::core::option::Option<::std::boxed::Box<Analysis>>,
     /// Required. Percentage deployment for the phase.
     #[serde(default)]
-    pub percentage: Option<i32>,
+    pub percentage: ::core::option::Option<i32>,
     /// Required. The ID to assign to the Rollout phase. This value must consist of lower-case letters, numbers, and hyphens, start with a letter and end with a letter or a number, and have a max length of 63 characters. In other words, it must match the following regex: ^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$.
     #[serde(default, rename = "phaseId")]
-    pub phase_id: Option<String>,
+    pub phase_id: ::core::option::Option<String>,
     /// Optional. Configuration for the postdeploy job of this phase. If this is not configured, there will be no postdeploy job for this phase.
     #[serde(default)]
-    pub postdeploy: Option<Postdeploy>,
+    pub postdeploy: ::core::option::Option<::std::boxed::Box<Postdeploy>>,
     /// Optional. Configuration for the predeploy job of this phase. If this is not configured, there will be no predeploy job for this phase.
     #[serde(default)]
-    pub predeploy: Option<Predeploy>,
+    pub predeploy: ::core::option::Option<::std::boxed::Box<Predeploy>>,
     /// Optional. Skaffold profiles to use when rendering the manifest for this phase. These are in addition to the profiles list specified in the DeliveryPipeline stage.
     #[serde(default)]
-    pub profiles: Option<Vec<String>>,
+    pub profiles: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Whether to run verify tests after the deployment via skaffold verify.
     #[serde(default)]
-    pub verify: Option<bool>,
+    pub verify: ::core::option::Option<bool>,
     /// Optional. Configuration for the verify job. Cannot be set if verify is set to true.
     #[serde(default, rename = "verifyConfig")]
-    pub verify_config: Option<Verify>,
+    pub verify_config: ::core::option::Option<::std::boxed::Box<Verify>>,
 }
 
 /// PipelineCondition contains all conditions relevant to a Delivery Pipeline.
@@ -1599,13 +1617,14 @@ pub struct PhaseConfig {
 pub struct PipelineCondition {
     /// Details around the Pipeline''s overall status.
     #[serde(default, rename = "pipelineReadyCondition")]
-    pub pipeline_ready_condition: Option<PipelineReadyCondition>,
+    pub pipeline_ready_condition: ::core::option::Option<::std::boxed::Box<PipelineReadyCondition>>,
     /// Details around targets enumerated in the pipeline.
     #[serde(default, rename = "targetsPresentCondition")]
-    pub targets_present_condition: Option<TargetsPresentCondition>,
+    pub targets_present_condition:
+        ::core::option::Option<::std::boxed::Box<TargetsPresentCondition>>,
     /// Details on the whether the targets enumerated in the pipeline are of the same type.
     #[serde(default, rename = "targetsTypeCondition")]
-    pub targets_type_condition: Option<TargetsTypeCondition>,
+    pub targets_type_condition: ::core::option::Option<::std::boxed::Box<TargetsTypeCondition>>,
 }
 
 /// PipelineReadyCondition contains information around the status of the Pipeline.
@@ -1613,10 +1632,10 @@ pub struct PipelineCondition {
 pub struct PipelineReadyCondition {
     /// True if the Pipeline is in a valid state. Otherwise at least one condition in PipelineCondition is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Pipeline.
     #[serde(default)]
-    pub status: Option<bool>,
+    pub status: ::core::option::Option<bool>,
     /// Last time the condition was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -1624,16 +1643,16 @@ pub struct PipelineReadyCondition {
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: Option<Vec<AuditConfig>>,
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditConfig>>>,
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Deploy Policy rule.
@@ -1641,7 +1660,7 @@ pub struct Policy {
 pub struct PolicyRule {
     /// Optional. Rollout restrictions.
     #[serde(default, rename = "rolloutRestriction")]
-    pub rollout_restriction: Option<RolloutRestriction>,
+    pub rollout_restriction: ::core::option::Option<::std::boxed::Box<RolloutRestriction>>,
 }
 
 /// Returned from an action if one or more policies were violated, and therefore the action was prevented. Contains information about what policies were violated and why.
@@ -1649,7 +1668,8 @@ pub struct PolicyRule {
 pub struct PolicyViolation {
     /// Policy violation details.
     #[serde(default, rename = "policyViolationDetails")]
-    pub policy_violation_details: Option<Vec<PolicyViolationDetails>>,
+    pub policy_violation_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PolicyViolationDetails>>>,
 }
 
 /// Policy violation details.
@@ -1657,13 +1677,13 @@ pub struct PolicyViolation {
 pub struct PolicyViolationDetails {
     /// User readable message about why the request violated a policy. This is not intended for machine parsing.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Name of the policy that was violated. Policy resource will be in the format of projects/{project}/locations/{location}/policies/{policy}.
     #[serde(default)]
-    pub policy: Option<String>,
+    pub policy: ::core::option::Option<String>,
     /// Id of the rule that triggered the policy violation.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// Postdeploy contains the postdeploy job configuration information.
@@ -1671,10 +1691,10 @@ pub struct PolicyViolationDetails {
 pub struct Postdeploy {
     /// Optional. A sequence of Skaffold custom actions to invoke during execution of the postdeploy job.
     #[serde(default)]
-    pub actions: Option<Vec<String>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The tasks that will run as a part of the postdeploy job. The tasks are executed sequentially in the order specified. Only one of actions or tasks can be specified.
     #[serde(default)]
-    pub tasks: Option<Vec<Task>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
 }
 
 /// A postdeploy Job.
@@ -1682,10 +1702,10 @@ pub struct Postdeploy {
 pub struct PostdeployJob {
     /// Output only. The custom actions that the postdeploy Job executes.
     #[serde(default)]
-    pub actions: Option<Vec<String>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The tasks that are executed as part of the postdeploy Job.
     #[serde(default)]
-    pub tasks: Option<Vec<Task>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
 }
 
 /// PostdeployJobRun contains information specific to a postdeploy JobRun.
@@ -1693,16 +1713,16 @@ pub struct PostdeployJob {
 pub struct PostdeployJobRun {
     /// Output only. The resource name of the Cloud Build Build object that is used to execute the custom actions associated with the postdeploy Job. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default)]
-    pub build: Option<String>,
+    pub build: ::core::option::Option<String>,
     /// Output only. The reason the postdeploy failed. This will always be unspecified while the postdeploy is in progress or if it succeeded. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "DEADLINE_EXCEEDED", "CLOUD_BUILD_REQUEST_FAILED"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Output only. Additional information about the postdeploy failure, if available.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. Metadata containing information about the postdeploy JobRun.
     #[serde(default)]
-    pub metadata: Option<PostdeployJobRunMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<PostdeployJobRunMetadata>>,
 }
 
 /// PostdeployJobRunMetadata contains metadata about the postdeploy JobRun.
@@ -1710,7 +1730,7 @@ pub struct PostdeployJobRun {
 pub struct PostdeployJobRunMetadata {
     /// Output only. Custom metadata provided by user-defined postdeploy operation.
     #[serde(default)]
-    pub custom: Option<CustomMetadata>,
+    pub custom: ::core::option::Option<::std::boxed::Box<CustomMetadata>>,
 }
 
 /// Predeploy contains the predeploy job configuration information.
@@ -1718,10 +1738,10 @@ pub struct PostdeployJobRunMetadata {
 pub struct Predeploy {
     /// Optional. A sequence of Skaffold custom actions to invoke during execution of the predeploy job.
     #[serde(default)]
-    pub actions: Option<Vec<String>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The tasks that will run as a part of the predeploy job. The tasks are executed sequentially in the order specified. Only one of actions or tasks can be specified.
     #[serde(default)]
-    pub tasks: Option<Vec<Task>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
 }
 
 /// A predeploy Job.
@@ -1729,10 +1749,10 @@ pub struct Predeploy {
 pub struct PredeployJob {
     /// Output only. The custom actions that the predeploy Job executes.
     #[serde(default)]
-    pub actions: Option<Vec<String>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The tasks that are executed as part of the predeploy Job.
     #[serde(default)]
-    pub tasks: Option<Vec<Task>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
 }
 
 /// PredeployJobRun contains information specific to a predeploy JobRun.
@@ -1740,16 +1760,16 @@ pub struct PredeployJob {
 pub struct PredeployJobRun {
     /// Output only. The resource name of the Cloud Build Build object that is used to execute the custom actions associated with the predeploy Job. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default)]
-    pub build: Option<String>,
+    pub build: ::core::option::Option<String>,
     /// Output only. The reason the predeploy failed. This will always be unspecified while the predeploy is in progress or if it succeeded. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "DEADLINE_EXCEEDED", "CLOUD_BUILD_REQUEST_FAILED"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Output only. Additional information about the predeploy failure, if available.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. Metadata containing information about the predeploy JobRun.
     #[serde(default)]
-    pub metadata: Option<PredeployJobRunMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<PredeployJobRunMetadata>>,
 }
 
 /// PredeployJobRunMetadata contains metadata about the predeploy JobRun.
@@ -1757,7 +1777,7 @@ pub struct PredeployJobRun {
 pub struct PredeployJobRunMetadata {
     /// Output only. Custom metadata provided by user-defined predeploy operation.
     #[serde(default)]
-    pub custom: Option<CustomMetadata>,
+    pub custom: ::core::option::Option<::std::boxed::Box<CustomMetadata>>,
 }
 
 /// Execution using a private Cloud Build pool.
@@ -1765,13 +1785,13 @@ pub struct PredeployJobRunMetadata {
 pub struct PrivatePool {
     /// Optional. Cloud Storage location where execution outputs should be stored. This can either be a bucket ("gs://my-bucket") or a path within a bucket ("gs://my-bucket/my-dir"). If unspecified, a default bucket located in the same region will be used.
     #[serde(default, rename = "artifactStorage")]
-    pub artifact_storage: Option<String>,
+    pub artifact_storage: ::core::option::Option<String>,
     /// Optional. Google service account to use for execution. If unspecified, the project execution service account (-compute@developer.gserviceaccount.com) will be used.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Required. Resource name of the Cloud Build worker pool to use. The format is projects/{project}/locations/{location}/workerPools/{pool}.
     #[serde(default, rename = "workerPool")]
-    pub worker_pool: Option<String>,
+    pub worker_pool: ::core::option::Option<String>,
 }
 
 /// Contains the information of an automated promote-release operation.
@@ -1779,16 +1799,16 @@ pub struct PrivatePool {
 pub struct PromoteReleaseOperation {
     /// Output only. The starting phase of the rollout created by this operation.
     #[serde(default)]
-    pub phase: Option<String>,
+    pub phase: ::core::option::Option<String>,
     /// Output only. The name of the rollout that initiates the AutomationRun.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
     /// Output only. The ID of the target that represents the promotion stage to which the release will be promoted. The value of this field is the last segment of a target name.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Output only. How long the operation will be paused.
     #[serde(default)]
-    pub wait: Option<String>,
+    pub wait: ::core::option::Option<String>,
 }
 
 /// The PromoteRelease rule will automatically promote a release from the current target to a specified target.
@@ -1796,19 +1816,19 @@ pub struct PromoteReleaseOperation {
 pub struct PromoteReleaseRule {
     /// Output only. Information around the state of the Automation rule.
     #[serde(default)]
-    pub condition: Option<AutomationRuleCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<AutomationRuleCondition>>,
     /// Optional. The starting phase of the rollout created by this operation. Default to the first phase.
     #[serde(default, rename = "destinationPhase")]
-    pub destination_phase: Option<String>,
+    pub destination_phase: ::core::option::Option<String>,
     /// Optional. The ID of the stage in the pipeline to which this Release is deploying. If unspecified, default it to the next stage in the promotion flow. The value of this field could be one of the following: * The last segment of a target name * "@next", the next target in the promotion sequence
     #[serde(default, rename = "destinationTargetId")]
-    pub destination_target_id: Option<String>,
+    pub destination_target_id: ::core::option::Option<String>,
     /// Required. ID of the rule. This id must be unique in the Automation resource to which this rule belongs. The format is [a-z]([a-z0-9-]{0,61}[a-z0-9])?.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. How long the release need to be paused until being promoted to the next target.
     #[serde(default)]
-    pub wait: Option<String>,
+    pub wait: ::core::option::Option<String>,
 }
 
 /// A Release resource in the Cloud Deploy API. A Release defines a specific Skaffold configuration instance that can be deployed.
@@ -1816,73 +1836,74 @@ pub struct PromoteReleaseRule {
 pub struct Release {
     /// Output only. Indicates whether this is an abandoned release.
     #[serde(default)]
-    pub abandoned: Option<bool>,
+    pub abandoned: ::core::option::Option<bool>,
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Optional. List of artifacts to pass through to Skaffold command.
     #[serde(default, rename = "buildArtifacts")]
-    pub build_artifacts: Option<Vec<BuildArtifact>>,
+    pub build_artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BuildArtifact>>>,
     /// Output only. Information around the state of the Release.
     #[serde(default)]
-    pub condition: Option<ReleaseCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<ReleaseCondition>>,
     /// Output only. Time at which the Release was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Snapshot of the custom target types referenced by the targets taken at release creation time.
     #[serde(default, rename = "customTargetTypeSnapshots")]
-    pub custom_target_type_snapshots: Option<Vec<CustomTargetType>>,
+    pub custom_target_type_snapshots:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomTargetType>>>,
     /// Output only. Snapshot of the parent pipeline taken at release creation time.
     #[serde(default, rename = "deliveryPipelineSnapshot")]
-    pub delivery_pipeline_snapshot: Option<DeliveryPipeline>,
+    pub delivery_pipeline_snapshot: ::core::option::Option<::std::boxed::Box<DeliveryPipeline>>,
     /// Optional. The deploy parameters to use for all targets in this release.
     #[serde(default, rename = "deployParameters")]
-    pub deploy_parameters: Option<serde_json::Value>,
+    pub deploy_parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. Description of the Release. Max length is 255 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. Name of the Release. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}. The release component must match [a-z]([a-z0-9-]{0,61}[a-z0-9])?
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Time at which the render completed.
     #[serde(default, rename = "renderEndTime")]
-    pub render_end_time: Option<String>,
+    pub render_end_time: ::core::option::Option<String>,
     /// Output only. Time at which the render began.
     #[serde(default, rename = "renderStartTime")]
-    pub render_start_time: Option<String>,
+    pub render_start_time: ::core::option::Option<String>,
     /// Output only. Current state of the render operation. // TODO: enum values: ["RENDER_STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "IN_PROGRESS"]
     #[serde(default, rename = "renderState")]
-    pub render_state: Option<String>,
+    pub render_state: ::core::option::Option<String>,
     /// Optional. Filepath of the Skaffold config inside of the config URI.
     #[serde(default, rename = "skaffoldConfigPath")]
-    pub skaffold_config_path: Option<String>,
+    pub skaffold_config_path: ::core::option::Option<String>,
     /// Optional. Cloud Storage URI of tar.gz archive containing Skaffold configuration.
     #[serde(default, rename = "skaffoldConfigUri")]
-    pub skaffold_config_uri: Option<String>,
+    pub skaffold_config_uri: ::core::option::Option<String>,
     /// Optional. The Skaffold version to use when operating on this release, such as "1.20.0". Not all versions are valid; Cloud Deploy supports a specific set of versions. If unset, the most recent supported Skaffold version will be used.
     #[serde(default, rename = "skaffoldVersion")]
-    pub skaffold_version: Option<String>,
+    pub skaffold_version: ::core::option::Option<String>,
     /// Output only. Map from target ID to the target artifacts created during the render operation.
     #[serde(default, rename = "targetArtifacts")]
-    pub target_artifacts: Option<serde_json::Value>,
+    pub target_artifacts: ::core::option::Option<serde_json::Value>,
     /// Output only. Map from target ID to details of the render operation for that target.
     #[serde(default, rename = "targetRenders")]
-    pub target_renders: Option<serde_json::Value>,
+    pub target_renders: ::core::option::Option<serde_json::Value>,
     /// Output only. Snapshot of the targets taken at release creation time.
     #[serde(default, rename = "targetSnapshots")]
-    pub target_snapshots: Option<Vec<Target>>,
+    pub target_snapshots: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Target>>>,
     /// Optional. The tool versions to use for this release and all subsequent operations involving this release. If unset, tool versions are frozen when the release is created.
     #[serde(default, rename = "toolVersions")]
-    pub tool_versions: Option<ToolVersions>,
+    pub tool_versions: ::core::option::Option<::std::boxed::Box<ToolVersions>>,
     /// Output only. Unique identifier of the Release.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// ReleaseCondition contains all conditions relevant to a Release.
@@ -1890,28 +1911,35 @@ pub struct Release {
 pub struct ReleaseCondition {
     /// Output only. Details around the support state of the release''s Docker version.
     #[serde(default, rename = "dockerVersionSupportedCondition")]
-    pub docker_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    pub docker_version_supported_condition:
+        ::core::option::Option<::std::boxed::Box<ToolVersionSupportedCondition>>,
     /// Output only. Details around the support state of the release''s Helm version.
     #[serde(default, rename = "helmVersionSupportedCondition")]
-    pub helm_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    pub helm_version_supported_condition:
+        ::core::option::Option<::std::boxed::Box<ToolVersionSupportedCondition>>,
     /// Output only. Details around the support state of the release''s kpt version.
     #[serde(default, rename = "kptVersionSupportedCondition")]
-    pub kpt_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    pub kpt_version_supported_condition:
+        ::core::option::Option<::std::boxed::Box<ToolVersionSupportedCondition>>,
     /// Output only. Details around the support state of the release''s Kubectl version.
     #[serde(default, rename = "kubectlVersionSupportedCondition")]
-    pub kubectl_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    pub kubectl_version_supported_condition:
+        ::core::option::Option<::std::boxed::Box<ToolVersionSupportedCondition>>,
     /// Output only. Details around the support state of the release''s Kustomize version.
     #[serde(default, rename = "kustomizeVersionSupportedCondition")]
-    pub kustomize_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    pub kustomize_version_supported_condition:
+        ::core::option::Option<::std::boxed::Box<ToolVersionSupportedCondition>>,
     /// Details around the Releases''s overall status.
     #[serde(default, rename = "releaseReadyCondition")]
-    pub release_ready_condition: Option<ReleaseReadyCondition>,
+    pub release_ready_condition: ::core::option::Option<::std::boxed::Box<ReleaseReadyCondition>>,
     /// Details around the support state of the release''s Skaffold version.
     #[serde(default, rename = "skaffoldSupportedCondition")]
-    pub skaffold_supported_condition: Option<SkaffoldSupportedCondition>,
+    pub skaffold_supported_condition:
+        ::core::option::Option<::std::boxed::Box<SkaffoldSupportedCondition>>,
     /// Output only. Details around the support state of the release''s Skaffold version.
     #[serde(default, rename = "skaffoldVersionSupportedCondition")]
-    pub skaffold_version_supported_condition: Option<ToolVersionSupportedCondition>,
+    pub skaffold_version_supported_condition:
+        ::core::option::Option<::std::boxed::Box<ToolVersionSupportedCondition>>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/release_notification" Platform Log event that describes the failure to send release status change Pub/Sub notification.
@@ -1919,19 +1947,19 @@ pub struct ReleaseCondition {
 pub struct ReleaseNotificationEvent {
     /// Debug message for when a notification fails to send.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the DeliveryPipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// The name of the Release.
     #[serde(default)]
-    pub release: Option<String>,
+    pub release: ::core::option::Option<String>,
     /// Unique identifier of the Release.
     #[serde(default, rename = "releaseUid")]
-    pub release_uid: Option<String>,
+    pub release_uid: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// ReleaseReadyCondition contains information around the status of the Release. If a release is not ready, you cannot create a rollout with the release.
@@ -1939,7 +1967,7 @@ pub struct ReleaseNotificationEvent {
 pub struct ReleaseReadyCondition {
     /// True if the Release is in a valid state. Otherwise at least one condition in ReleaseCondition is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Release.
     #[serde(default)]
-    pub status: Option<bool>,
+    pub status: ::core::option::Option<bool>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/release_render" Platform Log event that describes the render status change.
@@ -1947,19 +1975,19 @@ pub struct ReleaseReadyCondition {
 pub struct ReleaseRenderEvent {
     /// Debug message for when a render transition occurs. Provides further details as rendering progresses through render states.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the DeliveryPipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// The name of the release. release_uid is not in this log message because we write some of these log messages at release creation time, before we''ve generated the uid.
     #[serde(default)]
-    pub release: Option<String>,
+    pub release: ::core::option::Option<String>,
     /// The state of the release render. // TODO: enum values: ["RENDER_STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "IN_PROGRESS"]
     #[serde(default, rename = "releaseRenderState")]
-    pub release_render_state: Option<String>,
+    pub release_render_state: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a release render state change event. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// RenderMetadata includes information associated with a Release render.
@@ -1967,13 +1995,13 @@ pub struct ReleaseRenderEvent {
 pub struct RenderMetadata {
     /// Output only. Metadata associated with rendering for Cloud Run.
     #[serde(default, rename = "cloudRun")]
-    pub cloud_run: Option<CloudRunRenderMetadata>,
+    pub cloud_run: ::core::option::Option<::std::boxed::Box<CloudRunRenderMetadata>>,
     /// Output only. Custom metadata provided by user-defined render operation.
     #[serde(default)]
-    pub custom: Option<CustomMetadata>,
+    pub custom: ::core::option::Option<::std::boxed::Box<CustomMetadata>>,
     /// Output only. Metadata associated with rendering for a Kubernetes cluster (GKE or GKE Enterprise target).
     #[serde(default)]
-    pub kubernetes: Option<KubernetesRenderMetadata>,
+    pub kubernetes: ::core::option::Option<::std::boxed::Box<KubernetesRenderMetadata>>,
 }
 
 /// RepairPhase tracks the repair attempts that have been made for each RepairPhaseConfig specified in the Automation resource.
@@ -1981,10 +2009,10 @@ pub struct RenderMetadata {
 pub struct RepairPhase {
     /// Output only. Records of the retry attempts for retry repair mode.
     #[serde(default)]
-    pub retry: Option<RetryPhase>,
+    pub retry: ::core::option::Option<::std::boxed::Box<RetryPhase>>,
     /// Output only. Rollback attempt for rollback repair mode .
     #[serde(default)]
-    pub rollback: Option<RollbackAttempt>,
+    pub rollback: ::core::option::Option<::std::boxed::Box<RollbackAttempt>>,
 }
 
 /// Configuration of the repair phase.
@@ -1992,10 +2020,10 @@ pub struct RepairPhase {
 pub struct RepairPhaseConfig {
     /// Optional. Retries a failed job.
     #[serde(default)]
-    pub retry: Option<Retry>,
+    pub retry: ::core::option::Option<::std::boxed::Box<Retry>>,
     /// Optional. Rolls back a Rollout.
     #[serde(default)]
-    pub rollback: Option<Rollback>,
+    pub rollback: ::core::option::Option<::std::boxed::Box<Rollback>>,
 }
 
 /// Contains the information for an automated repair rollout operation.
@@ -2003,19 +2031,19 @@ pub struct RepairPhaseConfig {
 pub struct RepairRolloutOperation {
     /// Output only. The index of the current repair action in the repair sequence.
     #[serde(default, rename = "currentRepairPhaseIndex")]
-    pub current_repair_phase_index: Option<String>,
+    pub current_repair_phase_index: ::core::option::Option<String>,
     /// Output only. The job ID for the Job to repair.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Output only. The phase ID of the phase that includes the job being repaired.
     #[serde(default, rename = "phaseId")]
-    pub phase_id: Option<String>,
+    pub phase_id: ::core::option::Option<String>,
     /// Output only. Records of the repair attempts. Each repair phase may have multiple retry attempts or single rollback attempt.
     #[serde(default, rename = "repairPhases")]
-    pub repair_phases: Option<Vec<RepairPhase>>,
+    pub repair_phases: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RepairPhase>>>,
     /// Output only. The name of the rollout that initiates the AutomationRun.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
 }
 
 /// The RepairRolloutRule automation rule will automatically repair a failed Rollout.
@@ -2023,19 +2051,20 @@ pub struct RepairRolloutOperation {
 pub struct RepairRolloutRule {
     /// Output only. Information around the state of the ''Automation'' rule.
     #[serde(default)]
-    pub condition: Option<AutomationRuleCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<AutomationRuleCondition>>,
     /// Required. ID of the rule. This id must be unique in the Automation resource to which this rule belongs. The format is [a-z]([a-z0-9-]{0,61}[a-z0-9])?.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. Jobs to repair. Proceeds only after job name matched any one in the list, or for all jobs if unspecified or empty. The phase that includes the job must match the phase ID specified in source_phase. This value must consist of lower-case letters, numbers, and hyphens, start with a letter and end with a letter or a number, and have a max length of 63 characters. In other words, it must match the following regex: ^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$.
     #[serde(default)]
-    pub jobs: Option<Vec<String>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Phases within which jobs are subject to automatic repair actions on failure. Proceeds only after phase name matched any one in the list, or for all phases if unspecified. This value must consist of lower-case letters, numbers, and hyphens, start with a letter and end with a letter or a number, and have a max length of 63 characters. In other words, it must match the following regex: ^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$.
     #[serde(default)]
-    pub phases: Option<Vec<String>>,
+    pub phases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Defines the types of automatic repair phases for failed jobs.
     #[serde(default, rename = "repairPhases")]
-    pub repair_phases: Option<Vec<RepairPhaseConfig>>,
+    pub repair_phases:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RepairPhaseConfig>>>,
 }
 
 /// Retries the failed job.
@@ -2043,13 +2072,13 @@ pub struct RepairRolloutRule {
 pub struct Retry {
     /// Required. Total number of retries. Retry is skipped if set to 0; The minimum value is 1, and the maximum value is 10.
     #[serde(default)]
-    pub attempts: Option<String>,
+    pub attempts: ::core::option::Option<String>,
     /// Optional. The pattern of how wait time will be increased. Default is linear. Backoff mode will be ignored if wait is 0. // TODO: enum values: ["BACKOFF_MODE_UNSPECIFIED", "BACKOFF_MODE_LINEAR", "BACKOFF_MODE_EXPONENTIAL"]
     #[serde(default, rename = "backoffMode")]
-    pub backoff_mode: Option<String>,
+    pub backoff_mode: ::core::option::Option<String>,
     /// Optional. How long to wait for the first retry. Default is 0, and the maximum value is 14d.
     #[serde(default)]
-    pub wait: Option<String>,
+    pub wait: ::core::option::Option<String>,
 }
 
 /// RetryAttempt represents an action of retrying the failed Cloud Deploy job.
@@ -2057,16 +2086,16 @@ pub struct Retry {
 pub struct RetryAttempt {
     /// Output only. The index of this retry attempt.
     #[serde(default)]
-    pub attempt: Option<String>,
+    pub attempt: ::core::option::Option<String>,
     /// Output only. Valid state of this retry action. // TODO: enum values: ["REPAIR_STATE_UNSPECIFIED", "REPAIR_STATE_SUCCEEDED", "REPAIR_STATE_CANCELLED", "REPAIR_STATE_FAILED", "REPAIR_STATE_IN_PROGRESS", "REPAIR_STATE_PENDING", "REPAIR_STATE_ABORTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Description of the state of the Retry.
     #[serde(default, rename = "stateDesc")]
-    pub state_desc: Option<String>,
+    pub state_desc: ::core::option::Option<String>,
     /// Output only. How long the operation will be paused.
     #[serde(default)]
-    pub wait: Option<String>,
+    pub wait: ::core::option::Option<String>,
 }
 
 /// RetryJobRequest is the request object used by RetryJob.
@@ -2074,13 +2103,13 @@ pub struct RetryAttempt {
 pub struct RetryJobRequest {
     /// Required. The job ID for the Job to retry.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
-    pub override_deploy_policy: Option<Vec<String>>,
+    pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The phase ID the Job to retry belongs to.
     #[serde(default, rename = "phaseId")]
-    pub phase_id: Option<String>,
+    pub phase_id: ::core::option::Option<String>,
 }
 
 /// RetryPhase contains the retry attempts and the metadata for initiating a new attempt.
@@ -2088,13 +2117,13 @@ pub struct RetryJobRequest {
 pub struct RetryPhase {
     /// Output only. Detail of a retry action.
     #[serde(default)]
-    pub attempts: Option<Vec<RetryAttempt>>,
+    pub attempts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RetryAttempt>>>,
     /// Output only. The pattern of how the wait time of the retry attempt is calculated. // TODO: enum values: ["BACKOFF_MODE_UNSPECIFIED", "BACKOFF_MODE_LINEAR", "BACKOFF_MODE_EXPONENTIAL"]
     #[serde(default, rename = "backoffMode")]
-    pub backoff_mode: Option<String>,
+    pub backoff_mode: ::core::option::Option<String>,
     /// Output only. The number of attempts that have been made.
     #[serde(default, rename = "totalAttempts")]
-    pub total_attempts: Option<String>,
+    pub total_attempts: ::core::option::Option<String>,
 }
 
 /// Rolls back a Rollout.
@@ -2102,10 +2131,10 @@ pub struct RetryPhase {
 pub struct Rollback {
     /// Optional. The starting phase ID for the Rollout. If unspecified, the Rollout will start in the stable phase.
     #[serde(default, rename = "destinationPhase")]
-    pub destination_phase: Option<String>,
+    pub destination_phase: ::core::option::Option<String>,
     /// Optional. If pending rollout exists on the target, the rollback operation will be aborted.
     #[serde(default, rename = "disableRollbackIfRolloutPending")]
-    pub disable_rollback_if_rollout_pending: Option<bool>,
+    pub disable_rollback_if_rollout_pending: ::core::option::Option<bool>,
 }
 
 /// RollbackAttempt represents an action of rolling back a Cloud Deploy ''Target''.
@@ -2113,19 +2142,19 @@ pub struct Rollback {
 pub struct RollbackAttempt {
     /// Output only. The phase to which the rollout will be rolled back to.
     #[serde(default, rename = "destinationPhase")]
-    pub destination_phase: Option<String>,
+    pub destination_phase: ::core::option::Option<String>,
     /// Output only. If active rollout exists on the target, abort this rollback.
     #[serde(default, rename = "disableRollbackIfRolloutPending")]
-    pub disable_rollback_if_rollout_pending: Option<bool>,
+    pub disable_rollback_if_rollout_pending: ::core::option::Option<bool>,
     /// Output only. ID of the rollback Rollout to create.
     #[serde(default, rename = "rolloutId")]
-    pub rollout_id: Option<String>,
+    pub rollout_id: ::core::option::Option<String>,
     /// Output only. Valid state of this rollback action. // TODO: enum values: ["REPAIR_STATE_UNSPECIFIED", "REPAIR_STATE_SUCCEEDED", "REPAIR_STATE_CANCELLED", "REPAIR_STATE_FAILED", "REPAIR_STATE_IN_PROGRESS", "REPAIR_STATE_PENDING", "REPAIR_STATE_ABORTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Description of the state of the Rollback.
     #[serde(default, rename = "stateDesc")]
-    pub state_desc: Option<String>,
+    pub state_desc: ::core::option::Option<String>,
 }
 
 /// Configs for the Rollback rollout.
@@ -2133,10 +2162,10 @@ pub struct RollbackAttempt {
 pub struct RollbackTargetConfig {
     /// Optional. The rollback Rollout to create.
     #[serde(default)]
-    pub rollout: Option<Rollout>,
+    pub rollout: ::core::option::Option<::std::boxed::Box<Rollout>>,
     /// Optional. The starting phase ID for the Rollout. If unspecified, the Rollout will start in the stable phase.
     #[serde(default, rename = "startingPhaseId")]
-    pub starting_phase_id: Option<String>,
+    pub starting_phase_id: ::core::option::Option<String>,
 }
 
 /// The request object for RollbackTarget.
@@ -2144,25 +2173,25 @@ pub struct RollbackTargetConfig {
 pub struct RollbackTargetRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deploy_policy}.
     #[serde(default, rename = "overrideDeployPolicy")]
-    pub override_deploy_policy: Option<Vec<String>>,
+    pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. ID of the Release to roll back to. If this isn''t specified, the previous successful Rollout to the specified target will be used to determine the Release.
     #[serde(default, rename = "releaseId")]
-    pub release_id: Option<String>,
+    pub release_id: ::core::option::Option<String>,
     /// Optional. Configs for the rollback Rollout.
     #[serde(default, rename = "rollbackConfig")]
-    pub rollback_config: Option<RollbackTargetConfig>,
+    pub rollback_config: ::core::option::Option<::std::boxed::Box<RollbackTargetConfig>>,
     /// Required. ID of the rollback Rollout to create.
     #[serde(default, rename = "rolloutId")]
-    pub rollout_id: Option<String>,
+    pub rollout_id: ::core::option::Option<String>,
     /// Optional. If provided, this must be the latest Rollout that is on the Target.
     #[serde(default, rename = "rolloutToRollBack")]
-    pub rollout_to_roll_back: Option<String>,
+    pub rollout_to_roll_back: ::core::option::Option<String>,
     /// Required. ID of the Target that is being rolled back.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Optional. If set to true, the request is validated and the user is provided with a RollbackTargetResponse.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// The response object from RollbackTarget.
@@ -2170,7 +2199,7 @@ pub struct RollbackTargetRequest {
 pub struct RollbackTargetResponse {
     /// The config of the rollback Rollout created or will be created.
     #[serde(default, rename = "rollbackConfig")]
-    pub rollback_config: Option<RollbackTargetConfig>,
+    pub rollback_config: ::core::option::Option<::std::boxed::Box<RollbackTargetConfig>>,
 }
 
 /// A Rollout resource in the Cloud Deploy API. A Rollout contains information around a specific deployment to a Target.
@@ -2178,73 +2207,73 @@ pub struct RollbackTargetResponse {
 pub struct Rollout {
     /// Output only. The AutomationRun actively repairing the rollout.
     #[serde(default, rename = "activeRepairAutomationRun")]
-    pub active_repair_automation_run: Option<String>,
+    pub active_repair_automation_run: ::core::option::Option<String>,
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. Approval state of the Rollout. // TODO: enum values: ["APPROVAL_STATE_UNSPECIFIED", "NEEDS_APPROVAL", "DOES_NOT_NEED_APPROVAL", "APPROVED", "REJECTED"]
     #[serde(default, rename = "approvalState")]
-    pub approval_state: Option<String>,
+    pub approval_state: ::core::option::Option<String>,
     /// Output only. Time at which the Rollout was approved.
     #[serde(default, rename = "approveTime")]
-    pub approve_time: Option<String>,
+    pub approve_time: ::core::option::Option<String>,
     /// Output only. Name of the ControllerRollout. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}.
     #[serde(default, rename = "controllerRollout")]
-    pub controller_rollout: Option<String>,
+    pub controller_rollout: ::core::option::Option<String>,
     /// Output only. Time at which the Rollout was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time at which the Rollout finished deploying.
     #[serde(default, rename = "deployEndTime")]
-    pub deploy_end_time: Option<String>,
+    pub deploy_end_time: ::core::option::Option<String>,
     /// Output only. The reason this rollout failed. This will always be unspecified while the rollout is in progress. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "DEADLINE_EXCEEDED", "RELEASE_FAILED", "RELEASE_ABANDONED", "VERIFICATION_CONFIG_NOT_FOUND", "CLOUD_BUILD_REQUEST_FAILED", "OPERATION_FEATURE_NOT_SUPPORTED"]
     #[serde(default, rename = "deployFailureCause")]
-    pub deploy_failure_cause: Option<String>,
+    pub deploy_failure_cause: ::core::option::Option<String>,
     /// Output only. Time at which the Rollout started deploying.
     #[serde(default, rename = "deployStartTime")]
-    pub deploy_start_time: Option<String>,
+    pub deploy_start_time: ::core::option::Option<String>,
     /// Output only. The resource name of the Cloud Build Build object that is used to deploy the Rollout. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default, rename = "deployingBuild")]
-    pub deploying_build: Option<String>,
+    pub deploying_build: ::core::option::Option<String>,
     /// Optional. Description of the Rollout for user purposes. Max length is 255 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Time at which the Rollout was enqueued.
     #[serde(default, rename = "enqueueTime")]
-    pub enqueue_time: Option<String>,
+    pub enqueue_time: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Additional information about the rollout failure, if available.
     #[serde(default, rename = "failureReason")]
-    pub failure_reason: Option<String>,
+    pub failure_reason: ::core::option::Option<String>,
     /// Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Metadata contains information about the rollout.
     #[serde(default)]
-    pub metadata: Option<Metadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<Metadata>>,
     /// Identifier. Name of the Rollout. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}. The rollout component must match [a-z]([a-z0-9-]{0,61}[a-z0-9])?
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The phases that represent the workflows of this Rollout.
     #[serde(default)]
-    pub phases: Option<Vec<Phase>>,
+    pub phases: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Phase>>>,
     /// Output only. Name of the Rollout that is rolled back by this Rollout. Empty if this Rollout wasn''t created as a rollback.
     #[serde(default, rename = "rollbackOfRollout")]
-    pub rollback_of_rollout: Option<String>,
+    pub rollback_of_rollout: ::core::option::Option<String>,
     /// Output only. Names of Rollouts that rolled back this Rollout.
     #[serde(default, rename = "rolledBackByRollouts")]
-    pub rolled_back_by_rollouts: Option<Vec<String>>,
+    pub rolled_back_by_rollouts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Current state of the Rollout. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "IN_PROGRESS", "PENDING_APPROVAL", "APPROVAL_REJECTED", "PENDING", "PENDING_RELEASE", "CANCELLING", "CANCELLED", "HALTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Required. The ID of Target to which this Rollout is deploying.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Output only. Unique identifier of the Rollout.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/rollout_notification" Platform Log event that describes the failure to send rollout status change Pub/Sub notification.
@@ -2252,28 +2281,28 @@ pub struct Rollout {
 pub struct RolloutNotificationEvent {
     /// Debug message for when a notification fails to send.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the DeliveryPipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// The name of the Release.
     #[serde(default)]
-    pub release: Option<String>,
+    pub release: ::core::option::Option<String>,
     /// Unique identifier of the Release.
     #[serde(default, rename = "releaseUid")]
-    pub release_uid: Option<String>,
+    pub release_uid: ::core::option::Option<String>,
     /// The name of the Rollout.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
     /// Unique identifier of the Rollout.
     #[serde(default, rename = "rolloutUid")]
-    pub rollout_uid: Option<String>,
+    pub rollout_uid: ::core::option::Option<String>,
     /// ID of the Target that the rollout is deployed to.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Rollout restrictions.
@@ -2281,16 +2310,16 @@ pub struct RolloutNotificationEvent {
 pub struct RolloutRestriction {
     /// Optional. Rollout actions to be restricted as part of the policy. If left empty, all actions will be restricted.
     #[serde(default)]
-    pub actions: Option<Vec<String>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Restriction rule ID. Required and must be unique within a DeployPolicy. The format is [a-z]([a-z0-9-]{0,61}[a-z0-9])?.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. What invoked the action. If left empty, all invoker types will be restricted.
     #[serde(default)]
-    pub invokers: Option<Vec<String>>,
+    pub invokers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Time window within which actions are restricted.
     #[serde(default, rename = "timeWindows")]
-    pub time_windows: Option<TimeWindows>,
+    pub time_windows: ::core::option::Option<::std::boxed::Box<TimeWindows>>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/rollout_update" Platform Log event that describes the rollout update event.
@@ -2298,28 +2327,28 @@ pub struct RolloutRestriction {
 pub struct RolloutUpdateEvent {
     /// Debug message for when a rollout update event occurs.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Unique identifier of the pipeline.
     #[serde(default, rename = "pipelineUid")]
-    pub pipeline_uid: Option<String>,
+    pub pipeline_uid: ::core::option::Option<String>,
     /// The name of the Release.
     #[serde(default)]
-    pub release: Option<String>,
+    pub release: ::core::option::Option<String>,
     /// Unique identifier of the release.
     #[serde(default, rename = "releaseUid")]
-    pub release_uid: Option<String>,
+    pub release_uid: ::core::option::Option<String>,
     /// The name of the rollout. rollout_uid is not in this log message because we write some of these log messages at rollout creation time, before we''ve generated the uid.
     #[serde(default)]
-    pub rollout: Option<String>,
+    pub rollout: ::core::option::Option<String>,
     /// The type of the rollout update. // TODO: enum values: ["ROLLOUT_UPDATE_TYPE_UNSPECIFIED", "PENDING", "PENDING_RELEASE", "IN_PROGRESS", "CANCELLING", "CANCELLED", "HALTED", "SUCCEEDED", "FAILED", "APPROVAL_REQUIRED", "APPROVED", "REJECTED", "ADVANCE_REQUIRED", "ADVANCED"]
     #[serde(default, rename = "rolloutUpdateType")]
-    pub rollout_update_type: Option<String>,
+    pub rollout_update_type: ::core::option::Option<String>,
     /// ID of the target.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a rollout update event. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about route destinations for the Gateway API service mesh.
@@ -2327,10 +2356,10 @@ pub struct RolloutUpdateEvent {
 pub struct RouteDestinations {
     /// Required. The clusters where the Gateway API HTTPRoute resource will be deployed to. Valid entries include the associated entities IDs configured in the Target resource and "@self" to include the Target cluster.
     #[serde(default, rename = "destinationIds")]
-    pub destination_ids: Option<Vec<String>>,
+    pub destination_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Whether to propagate the Kubernetes Service to the route destination clusters. The Service will always be deployed to the Target cluster even if the HTTPRoute is not. This option may be used to facilitate successful DNS lookup in the route destination clusters. Can only be set to true if destinations are specified.
     #[serde(default, rename = "propagateService")]
-    pub propagate_service: Option<bool>,
+    pub propagate_service: ::core::option::Option<bool>,
 }
 
 /// RuntimeConfig contains the runtime specific configurations for a deployment strategy.
@@ -2338,10 +2367,10 @@ pub struct RouteDestinations {
 pub struct RuntimeConfig {
     /// Optional. Cloud Run runtime configuration.
     #[serde(default, rename = "cloudRun")]
-    pub cloud_run: Option<CloudRunConfig>,
+    pub cloud_run: ::core::option::Option<::std::boxed::Box<CloudRunConfig>>,
     /// Optional. Kubernetes runtime configuration.
     #[serde(default)]
-    pub kubernetes: Option<KubernetesConfig>,
+    pub kubernetes: ::core::option::Option<::std::boxed::Box<KubernetesConfig>>,
 }
 
 /// SerialPipeline defines a sequential set of stages for a DeliveryPipeline.
@@ -2349,7 +2378,7 @@ pub struct RuntimeConfig {
 pub struct SerialPipeline {
     /// Optional. Each stage specifies configuration for a Target. The ordering of this list defines the promotion flow.
     #[serde(default)]
-    pub stages: Option<Vec<Stage>>,
+    pub stages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Stage>>>,
 }
 
 /// Information about the Kubernetes Service networking configuration.
@@ -2357,16 +2386,16 @@ pub struct SerialPipeline {
 pub struct ServiceNetworking {
     /// Required. Name of the Kubernetes Deployment whose traffic is managed by the specified Service.
     #[serde(default)]
-    pub deployment: Option<String>,
+    pub deployment: ::core::option::Option<String>,
     /// Optional. Whether to disable Pod overprovisioning. If Pod overprovisioning is disabled then Cloud Deploy will limit the number of total Pods used for the deployment strategy to the number of Pods the Deployment has on the cluster.
     #[serde(default, rename = "disablePodOverprovisioning")]
-    pub disable_pod_overprovisioning: Option<bool>,
+    pub disable_pod_overprovisioning: ::core::option::Option<bool>,
     /// Optional. The label to use when selecting Pods for the Deployment resource. This label must already be present in the Deployment.
     #[serde(default, rename = "podSelectorLabel")]
-    pub pod_selector_label: Option<String>,
+    pub pod_selector_label: ::core::option::Option<String>,
     /// Required. Name of the Kubernetes Service.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -2374,10 +2403,10 @@ pub struct ServiceNetworking {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
     /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Cloud Build V2 Repository containing Skaffold Configs.
@@ -2385,13 +2414,13 @@ pub struct SetIamPolicyRequest {
 pub struct SkaffoldGCBRepoSource {
     /// Optional. Relative path from the repository root to the Skaffold Config file.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Optional. Branch or tag to use when cloning the repository.
     #[serde(default, rename = "ref")]
-    pub ref_: Option<String>,
+    pub ref_: ::core::option::Option<String>,
     /// Required. Name of the Cloud Build V2 Repository. Format is projects/{project}/locations/{location}/connections/{connection}/repositories/{repository}.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
 }
 
 /// Cloud Storage bucket containing Skaffold Config modules.
@@ -2399,10 +2428,10 @@ pub struct SkaffoldGCBRepoSource {
 pub struct SkaffoldGCSSource {
     /// Optional. Relative path from the source to the Skaffold file.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Required. Cloud Storage source paths to copy recursively. For example, providing "gs://my-bucket/dir/configs/*" will result in Skaffold copying all files within the "dir/configs" directory in the bucket "my-bucket".
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// Git repository containing Skaffold Config modules.
@@ -2410,13 +2439,13 @@ pub struct SkaffoldGCSSource {
 pub struct SkaffoldGitSource {
     /// Optional. Relative path from the repository root to the Skaffold file.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Optional. Git branch or tag to use when cloning the repository.
     #[serde(default, rename = "ref")]
-    pub ref_: Option<String>,
+    pub ref_: ::core::option::Option<String>,
     /// Required. Git repository the package should be cloned from.
     #[serde(default)]
-    pub repo: Option<String>,
+    pub repo: ::core::option::Option<String>,
 }
 
 /// Skaffold Config modules and their remote source.
@@ -2424,16 +2453,16 @@ pub struct SkaffoldGitSource {
 pub struct SkaffoldModules {
     /// Optional. The Skaffold Config modules to use from the specified source.
     #[serde(default)]
-    pub configs: Option<Vec<String>>,
+    pub configs: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Remote git repository containing the Skaffold Config modules.
     #[serde(default)]
-    pub git: Option<SkaffoldGitSource>,
+    pub git: ::core::option::Option<::std::boxed::Box<SkaffoldGitSource>>,
     /// Optional. Cloud Build V2 repository containing the Skaffold Config modules.
     #[serde(default, rename = "googleCloudBuildRepo")]
-    pub google_cloud_build_repo: Option<SkaffoldGCBRepoSource>,
+    pub google_cloud_build_repo: ::core::option::Option<::std::boxed::Box<SkaffoldGCBRepoSource>>,
     /// Optional. Cloud Storage bucket containing the Skaffold Config modules.
     #[serde(default, rename = "googleCloudStorage")]
-    pub google_cloud_storage: Option<SkaffoldGCSSource>,
+    pub google_cloud_storage: ::core::option::Option<::std::boxed::Box<SkaffoldGCSSource>>,
 }
 
 /// SkaffoldSupportedCondition contains information about when support for the release''s version of Skaffold ends.
@@ -2441,16 +2470,16 @@ pub struct SkaffoldModules {
 pub struct SkaffoldSupportedCondition {
     /// The time at which this release''s version of Skaffold will enter maintenance mode.
     #[serde(default, rename = "maintenanceModeTime")]
-    pub maintenance_mode_time: Option<String>,
+    pub maintenance_mode_time: ::core::option::Option<String>,
     /// The Skaffold support state for this release''s version of Skaffold. // TODO: enum values: ["SKAFFOLD_SUPPORT_STATE_UNSPECIFIED", "SKAFFOLD_SUPPORT_STATE_SUPPORTED", "SKAFFOLD_SUPPORT_STATE_MAINTENANCE_MODE", "SKAFFOLD_SUPPORT_STATE_UNSUPPORTED"]
     #[serde(default, rename = "skaffoldSupportState")]
-    pub skaffold_support_state: Option<String>,
+    pub skaffold_support_state: ::core::option::Option<String>,
     /// True if the version of Skaffold used by this release is supported.
     #[serde(default)]
-    pub status: Option<bool>,
+    pub status: ::core::option::Option<bool>,
     /// The time at which this release''s version of Skaffold will no longer be supported.
     #[serde(default, rename = "supportExpirationTime")]
-    pub support_expiration_time: Option<String>,
+    pub support_expiration_time: ::core::option::Option<String>,
 }
 
 /// Details of a supported Skaffold version.
@@ -2458,16 +2487,16 @@ pub struct SkaffoldSupportedCondition {
 pub struct SkaffoldVersion {
     /// The time at which this version of Skaffold will enter maintenance mode.
     #[serde(default, rename = "maintenanceModeTime")]
-    pub maintenance_mode_time: Option<String>,
+    pub maintenance_mode_time: ::core::option::Option<String>,
     /// Date when this version is expected to no longer be supported.
     #[serde(default, rename = "supportEndDate")]
-    pub support_end_date: Option<Date>,
+    pub support_end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The time at which this version of Skaffold will no longer be supported.
     #[serde(default, rename = "supportExpirationTime")]
-    pub support_expiration_time: Option<String>,
+    pub support_expiration_time: ::core::option::Option<String>,
     /// Release version number. For example, "1.20.3".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Stage specifies a location to which to deploy.
@@ -2475,16 +2504,17 @@ pub struct SkaffoldVersion {
 pub struct Stage {
     /// Optional. The deploy parameters to use for the target in this stage.
     #[serde(default, rename = "deployParameters")]
-    pub deploy_parameters: Option<Vec<DeployParameters>>,
+    pub deploy_parameters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeployParameters>>>,
     /// Optional. Skaffold profiles to use when rendering the manifest for this stage''s Target.
     #[serde(default)]
-    pub profiles: Option<Vec<String>>,
+    pub profiles: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The strategy to use for a Rollout to this stage.
     #[serde(default)]
-    pub strategy: Option<Strategy>,
+    pub strategy: ::core::option::Option<::std::boxed::Box<Strategy>>,
     /// Optional. The target_id to which this stage points. This field refers exclusively to the last segment of a target name. For example, this field would just be my-target (rather than projects/project/locations/location/targets/my-target). The location of the Target is inferred to be the same as the location of the DeliveryPipeline that contains this Stage.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
 }
 
 /// Standard represents the standard deployment strategy.
@@ -2492,19 +2522,19 @@ pub struct Stage {
 pub struct Standard {
     /// Optional. Configuration for the analysis job. If this is not configured, the analysis job will not be present.
     #[serde(default)]
-    pub analysis: Option<Analysis>,
+    pub analysis: ::core::option::Option<::std::boxed::Box<Analysis>>,
     /// Optional. Configuration for the postdeploy job. If this is not configured, the postdeploy job will not be present.
     #[serde(default)]
-    pub postdeploy: Option<Postdeploy>,
+    pub postdeploy: ::core::option::Option<::std::boxed::Box<Postdeploy>>,
     /// Optional. Configuration for the predeploy job. If this is not configured, the predeploy job will not be present.
     #[serde(default)]
-    pub predeploy: Option<Predeploy>,
+    pub predeploy: ::core::option::Option<::std::boxed::Box<Predeploy>>,
     /// Optional. Whether to verify a deployment via skaffold verify.
     #[serde(default)]
-    pub verify: Option<bool>,
+    pub verify: ::core::option::Option<bool>,
     /// Optional. Configuration for the verify job. Cannot be set if verify is set to true.
     #[serde(default, rename = "verifyConfig")]
-    pub verify_config: Option<Verify>,
+    pub verify_config: ::core::option::Option<::std::boxed::Box<Verify>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2512,13 +2542,13 @@ pub struct Standard {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Strategy contains deployment strategy information.
@@ -2526,10 +2556,10 @@ pub struct Status {
 pub struct Strategy {
     /// Optional. Canary deployment strategy provides progressive percentage based deployments to a Target.
     #[serde(default)]
-    pub canary: Option<Canary>,
+    pub canary: ::core::option::Option<::std::boxed::Box<Canary>>,
     /// Optional. Standard deployment strategy executes a single deploy and allows verifying the deployment.
     #[serde(default)]
-    pub standard: Option<Standard>,
+    pub standard: ::core::option::Option<::std::boxed::Box<Standard>>,
 }
 
 /// A Target resource in the Cloud Deploy API. A Target defines a location to which a Skaffold configuration can be deployed.
@@ -2537,58 +2567,59 @@ pub struct Strategy {
 pub struct Target {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Optional. Information specifying an Anthos Cluster.
     #[serde(default, rename = "anthosCluster")]
-    pub anthos_cluster: Option<AnthosCluster>,
+    pub anthos_cluster: ::core::option::Option<::std::boxed::Box<AnthosCluster>>,
     /// Optional. Map of entity IDs to their associated entities. Associated entities allows specifying places other than the deployment target for specific features. For example, the Gateway API canary can be configured to deploy the HTTPRoute to a different cluster(s) than the deployment cluster using associated entities. An entity ID must consist of lower-case letters, numbers, and hyphens, start with a letter and end with a letter or a number, and have a max length of 63 characters. In other words, it must match the following regex: ^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$.
     #[serde(default, rename = "associatedEntities")]
-    pub associated_entities: Option<serde_json::Value>,
+    pub associated_entities: ::core::option::Option<serde_json::Value>,
     /// Output only. Time at which the Target was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Information specifying a Custom Target.
     #[serde(default, rename = "customTarget")]
-    pub custom_target: Option<CustomTarget>,
+    pub custom_target: ::core::option::Option<::std::boxed::Box<CustomTarget>>,
     /// Optional. The deploy parameters to use for this target.
     #[serde(default, rename = "deployParameters")]
-    pub deploy_parameters: Option<serde_json::Value>,
+    pub deploy_parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. Description of the Target. Max length is 255 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Configurations for all execution that relates to this Target. Each ExecutionEnvironmentUsage value may only be used in a single configuration; using the same value multiple times is an error. When one or more configurations are specified, they must include the RENDER and DEPLOY ExecutionEnvironmentUsage values. When no configurations are specified, execution will use the default specified in DefaultPool.
     #[serde(default, rename = "executionConfigs")]
-    pub execution_configs: Option<Vec<ExecutionConfig>>,
+    pub execution_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutionConfig>>>,
     /// Optional. Information specifying a GKE Cluster.
     #[serde(default)]
-    pub gke: Option<GkeCluster>,
+    pub gke: ::core::option::Option<::std::boxed::Box<GkeCluster>>,
     /// Optional. Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Information specifying a multiTarget.
     #[serde(default, rename = "multiTarget")]
-    pub multi_target: Option<MultiTarget>,
+    pub multi_target: ::core::option::Option<::std::boxed::Box<MultiTarget>>,
     /// Identifier. Name of the Target. Format is projects/{project}/locations/{location}/targets/{target}. The target component must match [a-z]([a-z0-9-]{0,61}[a-z0-9])?
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Whether or not the Target requires approval.
     #[serde(default, rename = "requireApproval")]
-    pub require_approval: Option<bool>,
+    pub require_approval: ::core::option::Option<bool>,
     /// Optional. Information specifying a Cloud Run deployment target.
     #[serde(default)]
-    pub run: Option<CloudRunLocation>,
+    pub run: ::core::option::Option<::std::boxed::Box<CloudRunLocation>>,
     /// Output only. Resource id of the Target.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     /// Output only. Unique identifier of the Target.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Most recent time at which the Target was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The artifacts produced by a target render operation.
@@ -2596,16 +2627,16 @@ pub struct Target {
 pub struct TargetArtifact {
     /// Output only. URI of a directory containing the artifacts. This contains deployment configuration used by Skaffold during a rollout, and all paths are relative to this location.
     #[serde(default, rename = "artifactUri")]
-    pub artifact_uri: Option<String>,
+    pub artifact_uri: ::core::option::Option<String>,
     /// Output only. File path of the rendered manifest relative to the URI for the stable phase.
     #[serde(default, rename = "manifestPath")]
-    pub manifest_path: Option<String>,
+    pub manifest_path: ::core::option::Option<String>,
     /// Output only. Map from the phase ID to the phase artifacts for the Target.
     #[serde(default, rename = "phaseArtifacts")]
-    pub phase_artifacts: Option<serde_json::Value>,
+    pub phase_artifacts: ::core::option::Option<serde_json::Value>,
     /// Output only. File path of the resolved Skaffold configuration for the stable phase, relative to the URI.
     #[serde(default, rename = "skaffoldConfigPath")]
-    pub skaffold_config_path: Option<String>,
+    pub skaffold_config_path: ::core::option::Option<String>,
 }
 
 /// Contains criteria for selecting Targets. This could be used to select targets for a Deploy Policy or for an Automation.
@@ -2613,10 +2644,10 @@ pub struct TargetArtifact {
 pub struct TargetAttribute {
     /// Optional. ID of the Target. The value of this field could be one of the following: * The last segment of a target name * "*", all targets in a location
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Target labels.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/target_notification" Platform Log event that describes the failure to send target status change Pub/Sub notification.
@@ -2624,13 +2655,13 @@ pub struct TargetAttribute {
 pub struct TargetNotificationEvent {
     /// Debug message for when a notification fails to send.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The name of the Target.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Type of this notification, e.g. for a Pub/Sub failure. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_PUBSUB_NOTIFICATION_FAILURE", "TYPE_RESOURCE_STATE_CHANGE", "TYPE_PROCESS_ABORTED", "TYPE_RESTRICTION_VIOLATED", "TYPE_RESOURCE_DELETED", "TYPE_ROLLOUT_UPDATE", "TYPE_DEPLOY_POLICY_EVALUATION", "TYPE_RENDER_STATUES_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Details of rendering for a single target.
@@ -2638,19 +2669,19 @@ pub struct TargetNotificationEvent {
 pub struct TargetRender {
     /// Output only. Reason this render failed. This will always be unspecified while the render in progress. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "CLOUD_BUILD_REQUEST_FAILED", "VERIFICATION_CONFIG_NOT_FOUND", "CUSTOM_ACTION_NOT_FOUND", "DEPLOYMENT_STRATEGY_NOT_SUPPORTED", "RENDER_FEATURE_NOT_SUPPORTED"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Output only. Additional information about the render failure, if available.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. Metadata related to the Release render for this Target.
     #[serde(default)]
-    pub metadata: Option<RenderMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<RenderMetadata>>,
     /// Output only. The resource name of the Cloud Build Build object that is used to render the manifest for this target. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default, rename = "renderingBuild")]
-    pub rendering_build: Option<String>,
+    pub rendering_build: ::core::option::Option<String>,
     /// Output only. Current state of the render operation for this Target. // TODO: enum values: ["TARGET_RENDER_STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "IN_PROGRESS"]
     #[serde(default, rename = "renderingState")]
-    pub rendering_state: Option<String>,
+    pub rendering_state: ::core::option::Option<String>,
 }
 
 /// The targets involved in a single timed promotion.
@@ -2658,10 +2689,10 @@ pub struct TargetRender {
 pub struct Targets {
     /// Optional. The destination target ID.
     #[serde(default, rename = "destinationTargetId")]
-    pub destination_target_id: Option<String>,
+    pub destination_target_id: ::core::option::Option<String>,
     /// Optional. The source target ID.
     #[serde(default, rename = "sourceTargetId")]
-    pub source_target_id: Option<String>,
+    pub source_target_id: ::core::option::Option<String>,
 }
 
 /// TargetsPresentCondition contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.
@@ -2669,13 +2700,13 @@ pub struct Targets {
 pub struct TargetsPresentCondition {
     /// The list of Target names that do not exist. For example, projects/{project_id}/locations/{location_name}/targets/{target_name}.
     #[serde(default, rename = "missingTargets")]
-    pub missing_targets: Option<Vec<String>>,
+    pub missing_targets: ::core::option::Option<::std::vec::Vec<String>>,
     /// True if there aren''t any missing Targets.
     #[serde(default)]
-    pub status: Option<bool>,
+    pub status: ::core::option::Option<bool>,
     /// Last time the condition was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// TargetsTypeCondition contains information on whether the Targets defined in the Delivery Pipeline are of the same type.
@@ -2683,10 +2714,10 @@ pub struct TargetsPresentCondition {
 pub struct TargetsTypeCondition {
     /// Human readable error message.
     #[serde(default, rename = "errorDetails")]
-    pub error_details: Option<String>,
+    pub error_details: ::core::option::Option<String>,
     /// True if the targets are all a comparable type. For example this is true if all targets are GKE clusters. This is false if some targets are Cloud Run targets and others are GKE clusters.
     #[serde(default)]
-    pub status: Option<bool>,
+    pub status: ::core::option::Option<bool>,
 }
 
 /// A Task represents a unit of work that is executed as part of a Job.
@@ -2694,7 +2725,7 @@ pub struct TargetsTypeCondition {
 pub struct Task {
     /// Optional. This task is represented by a container that is executed in the Cloud Build execution environment.
     #[serde(default)]
-    pub container: Option<ContainerTask>,
+    pub container: ::core::option::Option<::std::boxed::Box<ContainerTask>>,
 }
 
 /// The request object used by TerminateJobRun.
@@ -2702,7 +2733,7 @@ pub struct Task {
 pub struct TerminateJobRunRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
-    pub override_deploy_policy: Option<Vec<String>>,
+    pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -2710,7 +2741,7 @@ pub struct TerminateJobRunRequest {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -2718,7 +2749,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -2726,16 +2757,16 @@ pub struct TestIamPermissionsResponse {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// Time windows within which actions are restricted. See the [documentation](https://cloud.google.com/deploy/docs/deploy-policy#dates_times) for more information on how to configure dates/times.
@@ -2743,13 +2774,13 @@ pub struct TimeOfDay {
 pub struct TimeWindows {
     /// Optional. One-time windows within which actions are restricted.
     #[serde(default, rename = "oneTimeWindows")]
-    pub one_time_windows: Option<Vec<OneTimeWindow>>,
+    pub one_time_windows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OneTimeWindow>>>,
     /// Required. The time zone in IANA format [IANA Time Zone Database](https://www.iana.org/time-zones) (e.g. America/New_York).
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// Optional. Recurring weekly windows within which actions are restricted.
     #[serde(default, rename = "weeklyWindows")]
-    pub weekly_windows: Option<Vec<WeeklyWindow>>,
+    pub weekly_windows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WeeklyWindow>>>,
 }
 
 /// TimedPromoteReleaseCondition contains conditions specific to an Automation with a Timed Promote Release rule defined.
@@ -2757,10 +2788,10 @@ pub struct TimeWindows {
 pub struct TimedPromoteReleaseCondition {
     /// Output only. When the next scheduled promotion(s) will occur.
     #[serde(default, rename = "nextPromotionTime")]
-    pub next_promotion_time: Option<String>,
+    pub next_promotion_time: ::core::option::Option<String>,
     /// Output only. A list of targets involved in the upcoming timed promotion(s).
     #[serde(default, rename = "targetsList")]
-    pub targets_list: Option<Vec<Targets>>,
+    pub targets_list: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Targets>>>,
 }
 
 /// Contains the information of an automated timed promote-release operation.
@@ -2768,13 +2799,13 @@ pub struct TimedPromoteReleaseCondition {
 pub struct TimedPromoteReleaseOperation {
     /// Output only. The starting phase of the rollout created by this operation.
     #[serde(default)]
-    pub phase: Option<String>,
+    pub phase: ::core::option::Option<String>,
     /// Output only. The name of the release to be promoted.
     #[serde(default)]
-    pub release: Option<String>,
+    pub release: ::core::option::Option<String>,
     /// Output only. The ID of the target that represents the promotion stage to which the release will be promoted. The value of this field is the last segment of a target name.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
 }
 
 /// The TimedPromoteReleaseRule will automatically promote a release from the current target(s) to the specified target(s) on a configured schedule.
@@ -2782,22 +2813,22 @@ pub struct TimedPromoteReleaseOperation {
 pub struct TimedPromoteReleaseRule {
     /// Output only. Information around the state of the Automation rule.
     #[serde(default)]
-    pub condition: Option<AutomationRuleCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<AutomationRuleCondition>>,
     /// Optional. The starting phase of the rollout created by this rule. Default to the first phase.
     #[serde(default, rename = "destinationPhase")]
-    pub destination_phase: Option<String>,
+    pub destination_phase: ::core::option::Option<String>,
     /// Optional. The ID of the stage in the pipeline to which this Release is deploying. If unspecified, default it to the next stage in the promotion flow. The value of this field could be one of the following: * The last segment of a target name * "@next", the next target in the promotion sequence
     #[serde(default, rename = "destinationTargetId")]
-    pub destination_target_id: Option<String>,
+    pub destination_target_id: ::core::option::Option<String>,
     /// Required. ID of the rule. This ID must be unique in the Automation resource to which this rule belongs. The format is [a-z]([a-z0-9-]{0,61}[a-z0-9])?.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. Schedule in crontab format. e.g. "0 9 * * 1" for every Monday at 9am.
     #[serde(default)]
-    pub schedule: Option<String>,
+    pub schedule: ::core::option::Option<String>,
     /// Required. The time zone in IANA format [IANA Time Zone Database](https://www.iana.org/time-zones) (e.g. America/New_York).
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// ToolVersionSupportedCondition contains information about when support for the release''s version of a tool ends.
@@ -2805,16 +2836,16 @@ pub struct TimedPromoteReleaseRule {
 pub struct ToolVersionSupportedCondition {
     /// Output only. The time at which this release''s version of the tool will enter maintenance mode.
     #[serde(default, rename = "maintenanceModeTime")]
-    pub maintenance_mode_time: Option<String>,
+    pub maintenance_mode_time: ::core::option::Option<String>,
     /// Output only. True if the version of Tool used by this release is supported.
     #[serde(default)]
-    pub status: Option<bool>,
+    pub status: ::core::option::Option<bool>,
     /// Output only. The time at which this release''s version of the tool will no longer be supported.
     #[serde(default, rename = "supportExpirationTime")]
-    pub support_expiration_time: Option<String>,
+    pub support_expiration_time: ::core::option::Option<String>,
     /// Output only. The tool support state for this release''s version of the tool. // TODO: enum values: ["TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED", "TOOL_VERSION_SUPPORT_STATE_SUPPORTED", "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE", "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED"]
     #[serde(default, rename = "toolVersionSupportState")]
-    pub tool_version_support_state: Option<String>,
+    pub tool_version_support_state: ::core::option::Option<String>,
 }
 
 /// Details of ToolVersions for the release.
@@ -2822,22 +2853,22 @@ pub struct ToolVersionSupportedCondition {
 pub struct ToolVersions {
     /// Optional. The Docker version to use for Cloud Deploy operations.
     #[serde(default)]
-    pub docker: Option<String>,
+    pub docker: ::core::option::Option<String>,
     /// Optional. The Helm version to use for Cloud Deploy operations.
     #[serde(default)]
-    pub helm: Option<String>,
+    pub helm: ::core::option::Option<String>,
     /// Optional. The kpt version to use for Cloud Deploy operations.
     #[serde(default)]
-    pub kpt: Option<String>,
+    pub kpt: ::core::option::Option<String>,
     /// Optional. The Kubectl version to use for Cloud Deploy operations.
     #[serde(default)]
-    pub kubectl: Option<String>,
+    pub kubectl: ::core::option::Option<String>,
     /// Optional. The Kustomize version to use for Cloud Deploy operations.
     #[serde(default)]
-    pub kustomize: Option<String>,
+    pub kustomize: ::core::option::Option<String>,
     /// Optional. The Skaffold version to use for Cloud Deploy operations.
     #[serde(default)]
-    pub skaffold: Option<String>,
+    pub skaffold: ::core::option::Option<String>,
 }
 
 /// Verify contains the verify job configuration information.
@@ -2845,7 +2876,7 @@ pub struct ToolVersions {
 pub struct Verify {
     /// Optional. The tasks that will run as a part of the verify job. The tasks are executed sequentially in the order specified.
     #[serde(default)]
-    pub tasks: Option<Vec<Task>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
 }
 
 /// A verify Job.
@@ -2853,7 +2884,7 @@ pub struct Verify {
 pub struct VerifyJob {
     /// Output only. The tasks that are executed as part of the verify Job.
     #[serde(default)]
-    pub tasks: Option<Vec<Task>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
 }
 
 /// VerifyJobRun contains information specific to a verify JobRun.
@@ -2861,22 +2892,22 @@ pub struct VerifyJob {
 pub struct VerifyJobRun {
     /// Output only. URI of a directory containing the verify artifacts. This contains the Skaffold event log.
     #[serde(default, rename = "artifactUri")]
-    pub artifact_uri: Option<String>,
+    pub artifact_uri: ::core::option::Option<String>,
     /// Output only. The resource name of the Cloud Build Build object that is used to verify. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default)]
-    pub build: Option<String>,
+    pub build: ::core::option::Option<String>,
     /// Output only. File path of the Skaffold event log relative to the artifact URI.
     #[serde(default, rename = "eventLogPath")]
-    pub event_log_path: Option<String>,
+    pub event_log_path: ::core::option::Option<String>,
     /// Output only. The reason the verify failed. This will always be unspecified while the verify is in progress or if it succeeded. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "DEADLINE_EXCEEDED", "VERIFICATION_CONFIG_NOT_FOUND", "CLOUD_BUILD_REQUEST_FAILED"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Output only. Additional information about the verify failure, if available.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. Metadata containing information about the verify JobRun.
     #[serde(default)]
-    pub metadata: Option<VerifyJobRunMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<VerifyJobRunMetadata>>,
 }
 
 /// VerifyJobRunMetadata contains metadata about the verify JobRun.
@@ -2884,7 +2915,7 @@ pub struct VerifyJobRun {
 pub struct VerifyJobRunMetadata {
     /// Output only. Custom metadata provided by user-defined verify operation.
     #[serde(default)]
-    pub custom: Option<CustomMetadata>,
+    pub custom: ::core::option::Option<::std::boxed::Box<CustomMetadata>>,
 }
 
 /// Weekly windows. For example, blocking actions every Saturday and Sunday. Another example would be blocking actions every weekday from 5pm to midnight.
@@ -2892,11 +2923,11 @@ pub struct VerifyJobRunMetadata {
 pub struct WeeklyWindow {
     /// Optional. Days of week. If left empty, all days of the week will be included.
     #[serde(default, rename = "daysOfWeek")]
-    pub days_of_week: Option<Vec<String>>,
+    pub days_of_week: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. End time (exclusive). Use 24:00 to indicate midnight. If you specify end_time you must also specify start_time. If left empty, this will block for the entire day for the days specified in days_of_week.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<TimeOfDay>,
+    pub end_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
     /// Optional. Start time (inclusive). Use 00:00 for the beginning of the day. If you specify start_time you must also specify end_time. If left empty, this will block for the entire day for the days specified in days_of_week.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }

@@ -10,69 +10,69 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Contains properties of a Campaign Manager account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     /// Account permissions assigned to this account.
     #[serde(default, rename = "accountPermissionIds")]
-    pub account_permission_ids: Option<Vec<String>>,
+    pub account_permission_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Profile for this account. This is a read-only field that can be left blank. // TODO: enum values: ["ACCOUNT_PROFILE_BASIC", "ACCOUNT_PROFILE_STANDARD"]
     #[serde(default, rename = "accountProfile")]
-    pub account_profile: Option<String>,
+    pub account_profile: ::core::option::Option<String>,
     /// Whether this account is active.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Maximum number of active ads allowed for this account. // TODO: enum values: ["ACTIVE_ADS_TIER_40K", "ACTIVE_ADS_TIER_75K", "ACTIVE_ADS_TIER_100K", "ACTIVE_ADS_TIER_200K", "ACTIVE_ADS_TIER_300K", "ACTIVE_ADS_TIER_500K", "ACTIVE_ADS_TIER_750K", "ACTIVE_ADS_TIER_1M"]
     #[serde(default, rename = "activeAdsLimitTier")]
-    pub active_ads_limit_tier: Option<String>,
+    pub active_ads_limit_tier: ::core::option::Option<String>,
     /// Whether to serve creatives with Active View tags. If disabled, viewability data will not be available for any impressions.
     #[serde(default, rename = "activeViewOptOut")]
-    pub active_view_opt_out: Option<bool>,
+    pub active_view_opt_out: ::core::option::Option<bool>,
     /// User role permissions available to the user roles of this account.
     #[serde(default, rename = "availablePermissionIds")]
-    pub available_permission_ids: Option<Vec<String>>,
+    pub available_permission_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// ID of the country associated with this account.
     #[serde(default, rename = "countryId")]
-    pub country_id: Option<String>,
+    pub country_id: ::core::option::Option<String>,
     /// ID of currency associated with this account. This is a required field. Acceptable values are: - "1" for USD - "2" for GBP - "3" for ESP - "4" for SEK - "5" for CAD - "6" for JPY - "7" for DEM - "8" for AUD - "9" for FRF - "10" for ITL - "11" for DKK - "12" for NOK - "13" for FIM - "14" for ZAR - "15" for IEP - "16" for NLG - "17" for EUR - "18" for KRW - "19" for TWD - "20" for SGD - "21" for CNY - "22" for HKD - "23" for NZD - "24" for MYR - "25" for BRL - "26" for PTE - "28" for CLP - "29" for TRY - "30" for ARS - "31" for PEN - "32" for ILS - "33" for CHF - "34" for VEF - "35" for COP - "36" for GTQ - "37" for PLN - "39" for INR - "40" for THB - "41" for IDR - "42" for CZK - "43" for RON - "44" for HUF - "45" for RUB - "46" for AED - "47" for BGN - "48" for HRK - "49" for MXN - "50" for NGN - "51" for EGP
     #[serde(default, rename = "currencyId")]
-    pub currency_id: Option<String>,
+    pub currency_id: ::core::option::Option<String>,
     /// Default placement dimensions for this account.
     #[serde(default, rename = "defaultCreativeSizeId")]
-    pub default_creative_size_id: Option<String>,
+    pub default_creative_size_id: ::core::option::Option<String>,
     /// Description of this account.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// ID of this account. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#account".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Locale of this account. Acceptable values are: - "cs" (Czech) - "de" (German) - "en" (English) - "en-GB" (English United Kingdom) - "es" (Spanish) - "fr" (French) - "it" (Italian) - "ja" (Japanese) - "ko" (Korean) - "pl" (Polish) - "pt-BR" (Portuguese Brazil) - "ru" (Russian) - "sv" (Swedish) - "tr" (Turkish) - "zh-CN" (Chinese Simplified) - "zh-TW" (Chinese Traditional)
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// Maximum image size allowed for this account, in kilobytes. Value must be greater than or equal to 1.
     #[serde(default, rename = "maximumImageSize")]
-    pub maximum_image_size: Option<String>,
+    pub maximum_image_size: ::core::option::Option<String>,
     /// Name of this account. This is a required field, and must be less than 128 characters long and be globally unique.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Whether campaigns created in this account will be enabled for Nielsen OCR reach ratings by default.
     #[serde(default, rename = "nielsenOcrEnabled")]
-    pub nielsen_ocr_enabled: Option<bool>,
+    pub nielsen_ocr_enabled: ::core::option::Option<bool>,
     /// Reporting configuration of this account.
     #[serde(default, rename = "reportsConfiguration")]
-    pub reports_configuration: Option<ReportsConfiguration>,
+    pub reports_configuration: ::core::option::Option<::std::boxed::Box<ReportsConfiguration>>,
     /// Share Path to Conversion reports with Twitter.
     #[serde(default, rename = "shareReportsWithTwitter")]
-    pub share_reports_with_twitter: Option<bool>,
+    pub share_reports_with_twitter: ::core::option::Option<bool>,
     /// File size limit in kilobytes of Rich Media teaser creatives. Acceptable values are 1 to 10240, inclusive.
     #[serde(default, rename = "teaserSizeLimit")]
-    pub teaser_size_limit: Option<String>,
+    pub teaser_size_limit: ::core::option::Option<String>,
 }
 
 /// Gets a summary of active ads in an account.
@@ -80,19 +80,19 @@ pub struct Account {
 pub struct AccountActiveAdSummary {
     /// ID of the account.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Ads that have been activated for the account
     #[serde(default, rename = "activeAds")]
-    pub active_ads: Option<String>,
+    pub active_ads: ::core::option::Option<String>,
     /// Maximum number of active ads allowed for the account. // TODO: enum values: ["ACTIVE_ADS_TIER_40K", "ACTIVE_ADS_TIER_75K", "ACTIVE_ADS_TIER_100K", "ACTIVE_ADS_TIER_200K", "ACTIVE_ADS_TIER_300K", "ACTIVE_ADS_TIER_500K", "ACTIVE_ADS_TIER_750K", "ACTIVE_ADS_TIER_1M"]
     #[serde(default, rename = "activeAdsLimitTier")]
-    pub active_ads_limit_tier: Option<String>,
+    pub active_ads_limit_tier: ::core::option::Option<String>,
     /// Ads that can be activated for the account.
     #[serde(default, rename = "availableAds")]
-    pub available_ads: Option<String>,
+    pub available_ads: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountActiveAdSummary".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// AccountPermissions contains information about a particular account permission. Some features of Campaign Manager require an account permission to be present in the account.
@@ -100,22 +100,22 @@ pub struct AccountActiveAdSummary {
 pub struct AccountPermission {
     /// Account profiles associated with this account permission. Possible values are: - "ACCOUNT_PROFILE_BASIC" - "ACCOUNT_PROFILE_STANDARD"
     #[serde(default, rename = "accountProfiles")]
-    pub account_profiles: Option<Vec<String>>,
+    pub account_profiles: ::core::option::Option<::std::vec::Vec<String>>,
     /// ID of this account permission.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountPermission".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Administrative level required to enable this account permission. // TODO: enum values: ["USER", "ADMINISTRATOR"]
     #[serde(default)]
-    pub level: Option<String>,
+    pub level: ::core::option::Option<String>,
     /// Name of this account permission.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Permission group of this account permission.
     #[serde(default, rename = "permissionGroupId")]
-    pub permission_group_id: Option<String>,
+    pub permission_group_id: ::core::option::Option<String>,
 }
 
 /// AccountPermissionGroups contains a mapping of permission group IDs to names. A permission group is a grouping of account permissions.
@@ -123,13 +123,13 @@ pub struct AccountPermission {
 pub struct AccountPermissionGroup {
     /// ID of this account permission group.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountPermissionGroup".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this account permission group.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Account Permission Group List Response
@@ -137,10 +137,11 @@ pub struct AccountPermissionGroup {
 pub struct AccountPermissionGroupsListResponse {
     /// Account permission group collection.
     #[serde(default, rename = "accountPermissionGroups")]
-    pub account_permission_groups: Option<Vec<AccountPermissionGroup>>,
+    pub account_permission_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccountPermissionGroup>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountPermissionGroupGroupsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Account Permission List Response
@@ -148,10 +149,11 @@ pub struct AccountPermissionGroupsListResponse {
 pub struct AccountPermissionsListResponse {
     /// Account permission collection.
     #[serde(default, rename = "accountPermissions")]
-    pub account_permissions: Option<Vec<AccountPermission>>,
+    pub account_permissions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccountPermission>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountPermissionsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// AccountUserProfiles contains properties of a Campaign Manager user profile. This resource is specifically for managing user profiles, whereas UserProfiles is for accessing the API.
@@ -159,52 +161,52 @@ pub struct AccountPermissionsListResponse {
 pub struct AccountUserProfile {
     /// Account ID of the user profile. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether this user profile is active. This defaults to false, and must be set true on insert for the user profile to be usable.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Filter that describes which advertisers are visible to the user profile.
     #[serde(default, rename = "advertiserFilter")]
-    pub advertiser_filter: Option<ObjectFilter>,
+    pub advertiser_filter: ::core::option::Option<::std::boxed::Box<ObjectFilter>>,
     /// Filter that describes which campaigns are visible to the user profile.
     #[serde(default, rename = "campaignFilter")]
-    pub campaign_filter: Option<ObjectFilter>,
+    pub campaign_filter: ::core::option::Option<::std::boxed::Box<ObjectFilter>>,
     /// Comments for this user profile.
     #[serde(default)]
-    pub comments: Option<String>,
+    pub comments: ::core::option::Option<String>,
     /// Email of the user profile. The email address must be linked to a Google Account. This field is required on insertion and is read-only after insertion.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// ID of the user profile. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountUserProfile".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Locale of the user profile. This is a required field. Acceptable values are: - "cs" (Czech) - "de" (German) - "en" (English) - "en-GB" (English United Kingdom) - "es" (Spanish) - "fr" (French) - "it" (Italian) - "ja" (Japanese) - "ko" (Korean) - "pl" (Polish) - "pt-BR" (Portuguese Brazil) - "ru" (Russian) - "sv" (Swedish) - "tr" (Turkish) - "zh-CN" (Chinese Simplified) - "zh-TW" (Chinese Traditional)
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// Name of the user profile. This is a required field. Must be less than 64 characters long, must be globally unique, and cannot contain whitespace or any of the following characters: "&;&lt;&gt;"#%,".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Filter that describes which sites are visible to the user profile.
     #[serde(default, rename = "siteFilter")]
-    pub site_filter: Option<ObjectFilter>,
+    pub site_filter: ::core::option::Option<::std::boxed::Box<ObjectFilter>>,
     /// Subaccount ID of the user profile. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Trafficker type of this user profile. This is a read-only field. // TODO: enum values: ["INTERNAL_NON_TRAFFICKER", "INTERNAL_TRAFFICKER", "EXTERNAL_TRAFFICKER"]
     #[serde(default, rename = "traffickerType")]
-    pub trafficker_type: Option<String>,
+    pub trafficker_type: ::core::option::Option<String>,
     /// User type of the user profile. This is a read-only field that can be left blank. // TODO: enum values: ["NORMAL_USER", "SUPER_USER", "INTERNAL_ADMINISTRATOR", "READ_ONLY_SUPER_USER"]
     #[serde(default, rename = "userAccessType")]
-    pub user_access_type: Option<String>,
+    pub user_access_type: ::core::option::Option<String>,
     /// Filter that describes which user roles are visible to the user profile.
     #[serde(default, rename = "userRoleFilter")]
-    pub user_role_filter: Option<ObjectFilter>,
+    pub user_role_filter: ::core::option::Option<::std::boxed::Box<ObjectFilter>>,
     /// User role ID of the user profile. This is a required field.
     #[serde(default, rename = "userRoleId")]
-    pub user_role_id: Option<String>,
+    pub user_role_id: ::core::option::Option<String>,
 }
 
 /// Account User Profile List Response
@@ -212,13 +214,14 @@ pub struct AccountUserProfile {
 pub struct AccountUserProfilesListResponse {
     /// Account user profile collection.
     #[serde(default, rename = "accountUserProfiles")]
-    pub account_user_profiles: Option<Vec<AccountUserProfile>>,
+    pub account_user_profiles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccountUserProfile>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountUserProfilesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Account List Response
@@ -226,13 +229,13 @@ pub struct AccountUserProfilesListResponse {
 pub struct AccountsListResponse {
     /// Account collection.
     #[serde(default)]
-    pub accounts: Option<Vec<Account>>,
+    pub accounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Account>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#accountsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Represents an activity group.
@@ -240,13 +243,13 @@ pub struct AccountsListResponse {
 pub struct Activities {
     /// List of activity filters. The dimension values need to be all either of type "dfa:activity" or "dfa:activityGroup".
     #[serde(default)]
-    pub filters: Option<Vec<DimensionValue>>,
+    pub filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionValue>>>,
     /// The kind of resource this is, in this case dfareporting#activities.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// List of names of floodlight activity metrics.
     #[serde(default, rename = "metricNames")]
-    pub metric_names: Option<Vec<String>>,
+    pub metric_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Contains properties of a Campaign Manager ad.
@@ -254,122 +257,130 @@ pub struct Activities {
 pub struct Ad {
     /// Account ID of this ad. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether this ad is active. When true, archived must be false.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Advertiser ID of this ad. This is a required field on insertion.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether this ad is archived. When true, active must be false.
     #[serde(default)]
-    pub archived: Option<bool>,
+    pub archived: ::core::option::Option<bool>,
     /// Audience segment ID that is being targeted for this ad. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "audienceSegmentId")]
-    pub audience_segment_id: Option<String>,
+    pub audience_segment_id: ::core::option::Option<String>,
     /// Campaign ID of this ad. This is a required field on insertion.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the campaign. This is a read-only, auto-generated field.
     #[serde(default, rename = "campaignIdDimensionValue")]
-    pub campaign_id_dimension_value: Option<DimensionValue>,
+    pub campaign_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Click-through URL for this ad. This is a required field on insertion. Applicable when type is AD_SERVING_CLICK_TRACKER.
     #[serde(default, rename = "clickThroughUrl")]
-    pub click_through_url: Option<ClickThroughUrl>,
+    pub click_through_url: ::core::option::Option<::std::boxed::Box<ClickThroughUrl>>,
     /// Click-through URL suffix properties for this ad. Applies to the URL in the ad or (if overriding ad properties) the URL in the creative.
     #[serde(default, rename = "clickThroughUrlSuffixProperties")]
-    pub click_through_url_suffix_properties: Option<ClickThroughUrlSuffixProperties>,
+    pub click_through_url_suffix_properties:
+        ::core::option::Option<::std::boxed::Box<ClickThroughUrlSuffixProperties>>,
     /// Comments for this ad.
     #[serde(default)]
-    pub comments: Option<String>,
+    pub comments: ::core::option::Option<String>,
     /// Compatibility of this ad. Applicable when type is AD_SERVING_DEFAULT_AD. DISPLAY and DISPLAY_INTERSTITIAL refer to either rendering on desktop or on mobile devices or in mobile apps for regular or interstitial ads, respectively. APP and APP_INTERSTITIAL are only used for existing default ads. New mobile placements must be assigned DISPLAY or DISPLAY_INTERSTITIAL and default ads created for those placements will be limited to those compatibility types. IN_STREAM_VIDEO refers to rendering in-stream video ads developed with the VAST standard. // TODO: enum values: ["DISPLAY", "DISPLAY_INTERSTITIAL", "APP", "APP_INTERSTITIAL", "IN_STREAM_VIDEO", "IN_STREAM_AUDIO"]
     #[serde(default)]
-    pub compatibility: Option<String>,
+    pub compatibility: ::core::option::Option<String>,
     /// Optional. Contextual keyword targeting information for this ad.
     #[serde(default, rename = "contextualKeywordTargeting")]
-    pub contextual_keyword_targeting: Option<ContextualKeywordTargeting>,
+    pub contextual_keyword_targeting:
+        ::core::option::Option<::std::boxed::Box<ContextualKeywordTargeting>>,
     /// Information about the creation of this ad. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Creative group assignments for this ad. Applicable when type is AD_SERVING_CLICK_TRACKER. Only one assignment per creative group number is allowed for a maximum of two assignments.
     #[serde(default, rename = "creativeGroupAssignments")]
-    pub creative_group_assignments: Option<Vec<CreativeGroupAssignment>>,
+    pub creative_group_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeGroupAssignment>>>,
     /// Creative rotation for this ad. Applicable when type is AD_SERVING_DEFAULT_AD, AD_SERVING_STANDARD_AD, or AD_SERVING_TRACKING. When type is AD_SERVING_DEFAULT_AD, this field should have exactly one creativeAssignment .
     #[serde(default, rename = "creativeRotation")]
-    pub creative_rotation: Option<CreativeRotation>,
+    pub creative_rotation: ::core::option::Option<::std::boxed::Box<CreativeRotation>>,
     /// Time and day targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "dayPartTargeting")]
-    pub day_part_targeting: Option<DayPartTargeting>,
+    pub day_part_targeting: ::core::option::Option<::std::boxed::Box<DayPartTargeting>>,
     /// Default click-through event tag properties for this ad.
     #[serde(default, rename = "defaultClickThroughEventTagProperties")]
-    pub default_click_through_event_tag_properties: Option<DefaultClickThroughEventTagProperties>,
+    pub default_click_through_event_tag_properties:
+        ::core::option::Option<::std::boxed::Box<DefaultClickThroughEventTagProperties>>,
     /// Delivery schedule information for this ad. Applicable when type is AD_SERVING_STANDARD_AD or AD_SERVING_TRACKING. This field along with subfields priority and impressionRatio are required on insertion when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "deliverySchedule")]
-    pub delivery_schedule: Option<DeliverySchedule>,
+    pub delivery_schedule: ::core::option::Option<::std::boxed::Box<DeliverySchedule>>,
     /// Whether this ad is a dynamic click tracker. Applicable when type is AD_SERVING_CLICK_TRACKER. This is a required field on insert, and is read-only after insert.
     #[serde(default, rename = "dynamicClickTracker")]
-    pub dynamic_click_tracker: Option<bool>,
+    pub dynamic_click_tracker: ::core::option::Option<bool>,
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Event tag overrides for this ad.
     #[serde(default, rename = "eventTagOverrides")]
-    pub event_tag_overrides: Option<Vec<EventTagOverride>>,
+    pub event_tag_overrides:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventTagOverride>>>,
     /// Geographical targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "geoTargeting")]
-    pub geo_targeting: Option<GeoTargeting>,
+    pub geo_targeting: ::core::option::Option<::std::boxed::Box<GeoTargeting>>,
     /// ID of this ad. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this ad. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Key-value targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "keyValueTargetingExpression")]
-    pub key_value_targeting_expression: Option<KeyValueTargetingExpression>,
+    pub key_value_targeting_expression:
+        ::core::option::Option<::std::boxed::Box<KeyValueTargetingExpression>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#ad".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Language targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "languageTargeting")]
-    pub language_targeting: Option<LanguageTargeting>,
+    pub language_targeting: ::core::option::Option<::std::boxed::Box<LanguageTargeting>>,
     /// Information about the most recent modification of this ad. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Name of this ad. This is a required field and must be less than 256 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Placement assignments for this ad.
     #[serde(default, rename = "placementAssignments")]
-    pub placement_assignments: Option<Vec<PlacementAssignment>>,
+    pub placement_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlacementAssignment>>>,
     /// Remarketing list targeting expression for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "remarketingListExpression")]
-    pub remarketing_list_expression: Option<ListTargetingExpression>,
+    pub remarketing_list_expression:
+        ::core::option::Option<::std::boxed::Box<ListTargetingExpression>>,
     /// Size of this ad. Applicable when type is AD_SERVING_DEFAULT_AD.
     #[serde(default)]
-    pub size: Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// Whether this ad is ssl compliant. This is a read-only field that is auto-generated when the ad is inserted or updated.
     #[serde(default, rename = "sslCompliant")]
-    pub ssl_compliant: Option<bool>,
+    pub ssl_compliant: ::core::option::Option<bool>,
     /// Whether this ad requires ssl. This is a read-only field that is auto-generated when the ad is inserted or updated.
     #[serde(default, rename = "sslRequired")]
-    pub ssl_required: Option<bool>,
+    pub ssl_required: ::core::option::Option<bool>,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Subaccount ID of this ad. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Targeting template ID, used to apply preconfigured targeting information to this ad. This cannot be set while any of dayPartTargeting, geoTargeting, keyValueTargetingExpression, languageTargeting, remarketingListExpression, or technologyTargeting are set. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "targetingTemplateId")]
-    pub targeting_template_id: Option<String>,
+    pub targeting_template_id: ::core::option::Option<String>,
     /// Technology platform targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.
     #[serde(default, rename = "technologyTargeting")]
-    pub technology_targeting: Option<TechnologyTargeting>,
+    pub technology_targeting: ::core::option::Option<::std::boxed::Box<TechnologyTargeting>>,
     /// Type of ad. This is a required field on insertion. Note that default ads ( AD_SERVING_DEFAULT_AD) cannot be created directly (see Creative resource). // TODO: enum values: ["AD_SERVING_STANDARD_AD", "AD_SERVING_DEFAULT_AD", "AD_SERVING_CLICK_TRACKER", "AD_SERVING_TRACKING", "AD_SERVING_BRAND_SAFE_AD"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Campaign ad blocking settings.
@@ -377,7 +388,7 @@ pub struct Ad {
 pub struct AdBlockingConfiguration {
     /// Whether this campaign has enabled ad blocking. When true, ad blocking is enabled for placements in the campaign, but this may be overridden by site and placement settings. When false, ad blocking is disabled for all placements under the campaign, regardless of site and placement settings.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Ad List Response
@@ -385,13 +396,13 @@ pub struct AdBlockingConfiguration {
 pub struct AdsListResponse {
     /// Ad collection.
     #[serde(default)]
-    pub ads: Option<Vec<Ad>>,
+    pub ads: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Ad>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#adsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Contains properties of a Campaign Manager advertiser.
@@ -399,55 +410,57 @@ pub struct AdsListResponse {
 pub struct Advertiser {
     /// Account ID of this advertiser.This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// ID of the advertiser group this advertiser belongs to. You can group advertisers for reporting purposes, allowing you to see aggregated information for all advertisers in each group.
     #[serde(default, rename = "advertiserGroupId")]
-    pub advertiser_group_id: Option<String>,
+    pub advertiser_group_id: ::core::option::Option<String>,
     /// Suffix added to click-through URL of ad creative associations under this advertiser. Must be less than 129 characters long.
     #[serde(default, rename = "clickThroughUrlSuffix")]
-    pub click_through_url_suffix: Option<String>,
+    pub click_through_url_suffix: ::core::option::Option<String>,
     /// ID of the click-through event tag to apply by default to the landing pages of this advertiser''s campaigns.
     #[serde(default, rename = "defaultClickThroughEventTagId")]
-    pub default_click_through_event_tag_id: Option<String>,
+    pub default_click_through_event_tag_id: ::core::option::Option<String>,
     /// Default email address used in sender field for tag emails.
     #[serde(default, rename = "defaultEmail")]
-    pub default_email: Option<String>,
+    pub default_email: ::core::option::Option<String>,
     /// Optional. Whether the advertiser plans to serve EU political ads. // TODO: enum values: ["ADVERTISER_PLANS_TO_SERVE_EU_POLITICAL_ADS", "ADVERTISER_DOES_NOT_PLAN_TO_SERVE_EU_POLITICAL_ADS"]
     #[serde(default, rename = "euPoliticalAdsDeclaration")]
-    pub eu_political_ads_declaration: Option<String>,
+    pub eu_political_ads_declaration: ::core::option::Option<String>,
     /// Floodlight configuration ID of this advertiser. The floodlight configuration ID will be created automatically, so on insert this field should be left blank. This field can be set to another advertiser''s floodlight configuration ID in order to share that advertiser''s floodlight configuration with this advertiser, so long as: - This advertiser''s original floodlight configuration is not already associated with floodlight activities or floodlight activity groups. - This advertiser''s original floodlight configuration is not already shared with another advertiser.
     #[serde(default, rename = "floodlightConfigurationId")]
-    pub floodlight_configuration_id: Option<String>,
+    pub floodlight_configuration_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the floodlight configuration. This is a read-only, auto-generated field.
     #[serde(default, rename = "floodlightConfigurationIdDimensionValue")]
-    pub floodlight_configuration_id_dimension_value: Option<DimensionValue>,
+    pub floodlight_configuration_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// ID of this advertiser. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#advertiser".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Measurement partner advertiser link for tag wrapping.
     #[serde(default, rename = "measurementPartnerLink")]
-    pub measurement_partner_link: Option<MeasurementPartnerAdvertiserLink>,
+    pub measurement_partner_link:
+        ::core::option::Option<::std::boxed::Box<MeasurementPartnerAdvertiserLink>>,
     /// Name of this advertiser. This is a required field and must be less than 256 characters long and unique among advertisers of the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Original floodlight configuration before any sharing occurred. Set the floodlightConfigurationId of this advertiser to originalFloodlightConfigurationId to unshare the advertiser''s current floodlight configuration. You cannot unshare an advertiser''s floodlight configuration if the shared configuration has activities associated with any campaign or placement.
     #[serde(default, rename = "originalFloodlightConfigurationId")]
-    pub original_floodlight_configuration_id: Option<String>,
+    pub original_floodlight_configuration_id: ::core::option::Option<String>,
     /// Status of this advertiser. // TODO: enum values: ["APPROVED", "ON_HOLD"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Subaccount ID of this advertiser.This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Suspension status of this advertiser.
     #[serde(default)]
-    pub suspended: Option<bool>,
+    pub suspended: ::core::option::Option<bool>,
 }
 
 /// Groups advertisers together so that reports can be generated for the entire group at once.
@@ -455,16 +468,16 @@ pub struct Advertiser {
 pub struct AdvertiserGroup {
     /// Account ID of this advertiser group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// ID of this advertiser group. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#advertiserGroup".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this advertiser group. This is a required field and must be less than 256 characters long and unique among advertiser groups of the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Advertiser Group List Response
@@ -472,13 +485,14 @@ pub struct AdvertiserGroup {
 pub struct AdvertiserGroupsListResponse {
     /// Advertiser group collection.
     #[serde(default, rename = "advertiserGroups")]
-    pub advertiser_groups: Option<Vec<AdvertiserGroup>>,
+    pub advertiser_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdvertiserGroup>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#advertiserGroupsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Invoice List Response
@@ -486,13 +500,13 @@ pub struct AdvertiserGroupsListResponse {
 pub struct AdvertiserInvoicesListResponse {
     /// Invoice collection
     #[serde(default)]
-    pub invoices: Option<Vec<Invoice>>,
+    pub invoices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Invoice>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#advertiserInvoicesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Landing Page List Response
@@ -500,13 +514,13 @@ pub struct AdvertiserInvoicesListResponse {
 pub struct AdvertiserLandingPagesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#advertiserLandingPagesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Landing page collection
     #[serde(default, rename = "landingPages")]
-    pub landing_pages: Option<Vec<LandingPage>>,
+    pub landing_pages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LandingPage>>>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Advertiser List Response
@@ -514,13 +528,13 @@ pub struct AdvertiserLandingPagesListResponse {
 pub struct AdvertisersListResponse {
     /// Advertiser collection.
     #[serde(default)]
-    pub advertisers: Option<Vec<Advertiser>>,
+    pub advertisers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Advertiser>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#advertisersListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Audience Segment.
@@ -528,13 +542,13 @@ pub struct AdvertisersListResponse {
 pub struct AudienceSegment {
     /// Weight allocated to this segment. The weight assigned will be understood in proportion to the weights assigned to other segments in the same segment group. Acceptable values are 1 to 1000, inclusive.
     #[serde(default)]
-    pub allocation: Option<i32>,
+    pub allocation: ::core::option::Option<i32>,
     /// ID of this audience segment. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of this audience segment. This is a required field and must be less than 65 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Audience Segment Group.
@@ -542,13 +556,14 @@ pub struct AudienceSegment {
 pub struct AudienceSegmentGroup {
     /// Audience segments assigned to this group. The number of segments must be between 2 and 100.
     #[serde(default, rename = "audienceSegments")]
-    pub audience_segments: Option<Vec<AudienceSegment>>,
+    pub audience_segments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AudienceSegment>>>,
     /// ID of this audience segment group. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of this audience segment group. This is a required field and must be less than 65 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// List account, subaccount, advertiser, and campaign associated with a given Billing Profile.
@@ -556,19 +571,19 @@ pub struct AudienceSegmentGroup {
 pub struct BillingAssignment {
     /// ID of the account associated with the billing assignment.This is a read-only, auto-generated field.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// ID of the advertiser associated with the billing assignment.Wildcard (*) means this assignment is not limited to a single advertiser
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// ID of the campaign associated with the billing assignment. Wildcard (*) means this assignment is not limited to a single campaign
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#billingAssignment".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// ID of the subaccount associated with the billing assignment.Wildcard (*) means this assignment is not limited to a single subaccountThis is a read-only, auto-generated field.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Billing assignment List Response
@@ -576,10 +591,11 @@ pub struct BillingAssignment {
 pub struct BillingAssignmentsListResponse {
     /// Billing assignments collection.
     #[serde(default, rename = "billingAssignments")]
-    pub billing_assignments: Option<Vec<BillingAssignment>>,
+    pub billing_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BillingAssignment>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#billingAssignmentsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains properties of a Campaign Manager Billing Profile.
@@ -587,43 +603,43 @@ pub struct BillingAssignmentsListResponse {
 pub struct BillingProfile {
     /// Consolidated invoice option for this billing profile. Used to get a single, consolidated invoice across the chosen invoice level.
     #[serde(default, rename = "consolidatedInvoice")]
-    pub consolidated_invoice: Option<bool>,
+    pub consolidated_invoice: ::core::option::Option<bool>,
     /// Country code of this billing profile.This is a read-only field.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// Billing currency code in ISO 4217 format.This is a read-only field.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// ID of this billing profile. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Invoice level for this billing profile. Used to group fees into separate invoices by account, advertiser, or campaign. // TODO: enum values: ["ACCOUNT_LEVEL", "ADVERTISER_LEVEL", "CAMPAIGN_LEVEL"]
     #[serde(default, rename = "invoiceLevel")]
-    pub invoice_level: Option<String>,
+    pub invoice_level: ::core::option::Option<String>,
     /// True if the billing profile is the account default profile. This is a read-only field.
     #[serde(default, rename = "isDefault")]
-    pub is_default: Option<bool>,
+    pub is_default: ::core::option::Option<bool>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#billingProfile".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this billing profile. This is a required field and must be less than 256 characters long and must be unique among billing profile in the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The ID of the payment account the billing profile belongs to. This is a read-only field.
     #[serde(default, rename = "paymentsAccountId")]
-    pub payments_account_id: Option<String>,
+    pub payments_account_id: ::core::option::Option<String>,
     /// The ID of the payment customer the billing profile belongs to. This is a read-only field.
     #[serde(default, rename = "paymentsCustomerId")]
-    pub payments_customer_id: Option<String>,
+    pub payments_customer_id: ::core::option::Option<String>,
     /// Purchase order (PO) for this billing profile. This PO number is used in the invoices for all of the advertisers in this billing profile.
     #[serde(default, rename = "purchaseOrder")]
-    pub purchase_order: Option<String>,
+    pub purchase_order: ::core::option::Option<String>,
     /// The ID of the secondary payment customer the billing profile belongs to. This is a read-only field.
     #[serde(default, rename = "secondaryPaymentsCustomerId")]
-    pub secondary_payments_customer_id: Option<String>,
+    pub secondary_payments_customer_id: ::core::option::Option<String>,
     /// Status of this billing profile.This is a read-only field. // TODO: enum values: ["UNDER_REVIEW", "ACTIVE", "ARCHIVED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Billing profile List Response
@@ -631,13 +647,14 @@ pub struct BillingProfile {
 pub struct BillingProfilesListResponse {
     /// Billing profiles collection.
     #[serde(default, rename = "billingProfiles")]
-    pub billing_profiles: Option<Vec<BillingProfile>>,
+    pub billing_profiles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BillingProfile>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#billingProfilesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// BillingRate resource type.
@@ -645,31 +662,32 @@ pub struct BillingProfilesListResponse {
 pub struct BillingRate {
     /// Billing currency code in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// End date of this billing rate.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// ID of this billing rate.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of this billing rate. This must be less than 256 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Flat rate in micros of this billing rate. This cannot co-exist with tiered rate.
     #[serde(default, rename = "rateInMicros")]
-    pub rate_in_micros: Option<String>,
+    pub rate_in_micros: ::core::option::Option<String>,
     /// Start date of this billing rate.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// Tiered rate of this billing rate. This cannot co-exist with flat rate.
     #[serde(default, rename = "tieredRates")]
-    pub tiered_rates: Option<Vec<BillingRateTieredRate>>,
+    pub tiered_rates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BillingRateTieredRate>>>,
     /// Type of this billing rate. // TODO: enum values: ["AD_SERVING", "CLICKS", "MINIMUM_SERVICE", "PATH_TO_CONVERSION", "RICH_MEDIA_INPAGE", "RICH_MEDIA_EXPANDING", "RICH_MEDIA_FLOATING", "RICH_MEDIA_VIDEO", "RICH_MEDIA_TEASER", "RICH_MEDIA_VPAID", "INSTREAM_VIDEO", "PIXEL", "TRACKING", "TRAFFICKING_FEATURE", "CUSTOM_REPORTS", "EXPOSURE_TO_CONVERSION", "DATA_TRANSFER", "DATA_TRANSFER_SETUP", "STARTUP", "STATEMENT_OF_WORK", "PROVIDED_LIST", "PROVIDED_LIST_SETUP", "ENHANCED_FORMATS", "TRACKING_AD_IMPRESSIONS", "TRACKING_AD_CLICKS", "NIELSEN_DIGITAL_AD_RATINGS_FEE", "INSTREAM_VIDEO_REDIRECT", "INSTREAM_VIDEO_VPAID", "DISPLAY_AD_SERVING", "VIDEO_AD_SERVING", "AUDIO_AD_SERVING", "ADVANCED_DISPLAY_AD_SERVING"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Unit of measure for this billing rate. // TODO: enum values: ["CPM", "CPC", "EA", "P2C"]
     #[serde(default, rename = "unitOfMeasure")]
-    pub unit_of_measure: Option<String>,
+    pub unit_of_measure: ::core::option::Option<String>,
 }
 
 /// BillingRateTieredRate resource type.
@@ -677,13 +695,13 @@ pub struct BillingRate {
 pub struct BillingRateTieredRate {
     /// The maximum for this tier range.
     #[serde(default, rename = "highValue")]
-    pub high_value: Option<String>,
+    pub high_value: ::core::option::Option<String>,
     /// The minimum for this tier range.
     #[serde(default, rename = "lowValue")]
-    pub low_value: Option<String>,
+    pub low_value: ::core::option::Option<String>,
     /// Rate in micros for this tier.
     #[serde(default, rename = "rateInMicros")]
-    pub rate_in_micros: Option<String>,
+    pub rate_in_micros: ::core::option::Option<String>,
 }
 
 /// Billing Rate List Response
@@ -691,13 +709,13 @@ pub struct BillingRateTieredRate {
 pub struct BillingRatesListResponse {
     /// Billing rates collection.
     #[serde(default, rename = "billingRates")]
-    pub billing_rates: Option<Vec<BillingRate>>,
+    pub billing_rates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BillingRate>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#billingRatesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Contains information about a browser that can be targeted by ads.
@@ -705,22 +723,22 @@ pub struct BillingRatesListResponse {
 pub struct Browser {
     /// ID referring to this grouping of browser and version numbers. This is the ID used for targeting.
     #[serde(default, rename = "browserVersionId")]
-    pub browser_version_id: Option<String>,
+    pub browser_version_id: ::core::option::Option<String>,
     /// DART ID of this browser. This is the ID used when generating reports.
     #[serde(default, rename = "dartId")]
-    pub dart_id: Option<String>,
+    pub dart_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#browser".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Major version number (leftmost number) of this browser. For example, for Chrome 5.0.376.86 beta, this field should be set to 5. An asterisk (*) may be used to target any version number, and a question mark (?) may be used to target cases where the version number cannot be identified. For example, Chrome *.* targets any version of Chrome: 1.2, 2.5, 3.5, and so on. Chrome 3.* targets Chrome 3.1, 3.5, but not 4.0. Firefox ?.? targets cases where the ad server knows the browser is Firefox but can''t tell which version it is.
     #[serde(default, rename = "majorVersion")]
-    pub major_version: Option<String>,
+    pub major_version: ::core::option::Option<String>,
     /// Minor version number (number after first dot on left) of this browser. For example, for Chrome 5.0.375.86 beta, this field should be set to 0. An asterisk (*) may be used to target any version number, and a question mark (?) may be used to target cases where the version number cannot be identified. For example, Chrome *.* targets any version of Chrome: 1.2, 2.5, 3.5, and so on. Chrome 3.* targets Chrome 3.1, 3.5, but not 4.0. Firefox ?.? targets cases where the ad server knows the browser is Firefox but can''t tell which version it is.
     #[serde(default, rename = "minorVersion")]
-    pub minor_version: Option<String>,
+    pub minor_version: ::core::option::Option<String>,
     /// Name of this browser.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Browser List Response
@@ -728,10 +746,10 @@ pub struct Browser {
 pub struct BrowsersListResponse {
     /// Browser collection.
     #[serde(default)]
-    pub browsers: Option<Vec<Browser>>,
+    pub browsers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Browser>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#browsersListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains properties of a Campaign Manager campaign.
@@ -739,87 +757,95 @@ pub struct BrowsersListResponse {
 pub struct Campaign {
     /// Account ID of this campaign. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Ad blocking settings for this campaign.
     #[serde(default, rename = "adBlockingConfiguration")]
-    pub ad_blocking_configuration: Option<AdBlockingConfiguration>,
+    pub ad_blocking_configuration:
+        ::core::option::Option<::std::boxed::Box<AdBlockingConfiguration>>,
     /// Additional creative optimization configurations for the campaign.
     #[serde(default, rename = "additionalCreativeOptimizationConfigurations")]
-    pub additional_creative_optimization_configurations:
-        Option<Vec<CreativeOptimizationConfiguration>>,
+    pub additional_creative_optimization_configurations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CreativeOptimizationConfiguration>>,
+    >,
     /// Advertiser group ID of the associated advertiser.
     #[serde(default, rename = "advertiserGroupId")]
-    pub advertiser_group_id: Option<String>,
+    pub advertiser_group_id: ::core::option::Option<String>,
     /// Advertiser ID of this campaign. This is a required field.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the advertiser ID of this campaign. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether this campaign has been archived.
     #[serde(default)]
-    pub archived: Option<bool>,
+    pub archived: ::core::option::Option<bool>,
     /// Audience segment groups assigned to this campaign. Cannot have more than 300 segment groups.
     #[serde(default, rename = "audienceSegmentGroups")]
-    pub audience_segment_groups: Option<Vec<AudienceSegmentGroup>>,
+    pub audience_segment_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AudienceSegmentGroup>>>,
     /// Billing invoice code included in the Campaign Manager client billing invoices associated with the campaign.
     #[serde(default, rename = "billingInvoiceCode")]
-    pub billing_invoice_code: Option<String>,
+    pub billing_invoice_code: ::core::option::Option<String>,
     /// Click-through URL suffix override properties for this campaign.
     #[serde(default, rename = "clickThroughUrlSuffixProperties")]
-    pub click_through_url_suffix_properties: Option<ClickThroughUrlSuffixProperties>,
+    pub click_through_url_suffix_properties:
+        ::core::option::Option<::std::boxed::Box<ClickThroughUrlSuffixProperties>>,
     /// Arbitrary comments about this campaign. Must be less than 256 characters long.
     #[serde(default)]
-    pub comment: Option<String>,
+    pub comment: ::core::option::Option<String>,
     /// Information about the creation of this campaign. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// List of creative group IDs that are assigned to the campaign.
     #[serde(default, rename = "creativeGroupIds")]
-    pub creative_group_ids: Option<Vec<String>>,
+    pub creative_group_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Creative optimization configuration for the campaign.
     #[serde(default, rename = "creativeOptimizationConfiguration")]
-    pub creative_optimization_configuration: Option<CreativeOptimizationConfiguration>,
+    pub creative_optimization_configuration:
+        ::core::option::Option<::std::boxed::Box<CreativeOptimizationConfiguration>>,
     /// Click-through event tag ID override properties for this campaign.
     #[serde(default, rename = "defaultClickThroughEventTagProperties")]
-    pub default_click_through_event_tag_properties: Option<DefaultClickThroughEventTagProperties>,
+    pub default_click_through_event_tag_properties:
+        ::core::option::Option<::std::boxed::Box<DefaultClickThroughEventTagProperties>>,
     /// The default landing page ID for this campaign.
     #[serde(default, rename = "defaultLandingPageId")]
-    pub default_landing_page_id: Option<String>,
+    pub default_landing_page_id: ::core::option::Option<String>,
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// Optional. Whether the campaign has EU political ads. Campaign Manager 360 doesn''t allow campaigns with EU political ads to serve in the EU. They can still serve in other regions. // TODO: enum values: ["CONTAINS_EU_POLITICAL_ADS", "DOES_NOT_CONTAIN_EU_POLITICAL_ADS"]
     #[serde(default, rename = "euPoliticalAdsDeclaration")]
-    pub eu_political_ads_declaration: Option<String>,
+    pub eu_political_ads_declaration: ::core::option::Option<String>,
     /// Overrides that can be used to activate or deactivate advertiser event tags.
     #[serde(default, rename = "eventTagOverrides")]
-    pub event_tag_overrides: Option<Vec<EventTagOverride>>,
+    pub event_tag_overrides:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventTagOverride>>>,
     /// External ID for this campaign.
     #[serde(default, rename = "externalId")]
-    pub external_id: Option<String>,
+    pub external_id: ::core::option::Option<String>,
     /// ID of this campaign. This is a read-only auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this campaign. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#campaign".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Information about the most recent modification of this campaign. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Measurement partner campaign link for tag wrapping.
     #[serde(default, rename = "measurementPartnerLink")]
-    pub measurement_partner_link: Option<MeasurementPartnerCampaignLink>,
+    pub measurement_partner_link:
+        ::core::option::Option<::std::boxed::Box<MeasurementPartnerCampaignLink>>,
     /// Name of this campaign. This is a required field and must be less than 512 characters long and unique among campaigns of the same advertiser.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// Subaccount ID of this campaign. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Identifies a creative which has been associated with a given campaign.
@@ -827,10 +853,10 @@ pub struct Campaign {
 pub struct CampaignCreativeAssociation {
     /// ID of the creative associated with the campaign. This is a required field.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#campaignCreativeAssociation".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Campaign Creative Association List Response
@@ -838,13 +864,14 @@ pub struct CampaignCreativeAssociation {
 pub struct CampaignCreativeAssociationsListResponse {
     /// Campaign creative association collection
     #[serde(default, rename = "campaignCreativeAssociations")]
-    pub campaign_creative_associations: Option<Vec<CampaignCreativeAssociation>>,
+    pub campaign_creative_associations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CampaignCreativeAssociation>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#campaignCreativeAssociationsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Represents a summarized campaign information associated with this invoice.
@@ -852,19 +879,19 @@ pub struct CampaignCreativeAssociationsListResponse {
 pub struct CampaignSummary {
     /// Campaign billing invoice code.
     #[serde(default, rename = "billingInvoiceCode")]
-    pub billing_invoice_code: Option<String>,
+    pub billing_invoice_code: ::core::option::Option<String>,
     /// Campaign ID.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// The pre-tax amount for this campaign, in micros of the invoice''s currency.
     #[serde(default, rename = "preTaxAmountMicros")]
-    pub pre_tax_amount_micros: Option<String>,
+    pub pre_tax_amount_micros: ::core::option::Option<String>,
     /// The tax amount for this campaign, in micros of the invoice''s currency.
     #[serde(default, rename = "taxAmountMicros")]
-    pub tax_amount_micros: Option<String>,
+    pub tax_amount_micros: ::core::option::Option<String>,
     /// The total amount of charges for this campaign, in micros of the invoice''s currency.
     #[serde(default, rename = "totalAmountMicros")]
-    pub total_amount_micros: Option<String>,
+    pub total_amount_micros: ::core::option::Option<String>,
 }
 
 /// Campaign List Response
@@ -872,13 +899,13 @@ pub struct CampaignSummary {
 pub struct CampaignsListResponse {
     /// Campaign collection.
     #[serde(default)]
-    pub campaigns: Option<Vec<Campaign>>,
+    pub campaigns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Campaign>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#campaignsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Contains additional information about cart data. This field may only be used when calling batchinsert; it is not supported by batchupdate. Cart data reporting is only supported in SA360. [Learn more](https://support.google.com/sa360/topic/13425788)
@@ -886,16 +913,16 @@ pub struct CampaignsListResponse {
 pub struct CartData {
     /// Data of the items purchased.
     #[serde(default)]
-    pub items: Option<Vec<CartDataItem>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CartDataItem>>>,
     /// The feed labels associated with the feed where your items are uploaded. For more information, please refer to ​​ https://support.google.com/merchants/answer/12453549. Providing the feed label reduces ambiguity in identifying the right offer details.
     #[serde(default, rename = "merchantFeedLabel")]
-    pub merchant_feed_label: Option<String>,
+    pub merchant_feed_label: ::core::option::Option<String>,
     /// The language associated with the feed where your items are uploaded. Use ISO 639-1 language codes. Providing the feed language reduces ambiguity in identifying the right offer details.
     #[serde(default, rename = "merchantFeedLanguage")]
-    pub merchant_feed_language: Option<String>,
+    pub merchant_feed_language: ::core::option::Option<String>,
     /// The Merchant Center ID where the items are uploaded. Providing Merchant Center ID reduces ambiguity in identifying the right offer details.
     #[serde(default, rename = "merchantId")]
-    pub merchant_id: Option<String>,
+    pub merchant_id: ::core::option::Option<String>,
 }
 
 /// Contains data of the items purchased.
@@ -903,13 +930,13 @@ pub struct CartData {
 pub struct CartDataItem {
     /// The shopping id of the item. Must be equal to the Merchant Center product identifier. This is a required field.
     #[serde(default, rename = "itemId")]
-    pub item_id: Option<String>,
+    pub item_id: ::core::option::Option<String>,
     /// Number of items sold. This is a required field.
     #[serde(default)]
-    pub quantity: Option<i32>,
+    pub quantity: ::core::option::Option<i32>,
     /// Unit price excluding tax, shipping, and any transaction level discounts. Interpreted in CM360 Floodlight config parent advertiser''s currency code. This is a required field.
     #[serde(default, rename = "unitPrice")]
-    pub unit_price: Option<f64>,
+    pub unit_price: ::core::option::Option<f64>,
 }
 
 /// Describes a change that a user has made to a resource.
@@ -917,45 +944,45 @@ pub struct CartDataItem {
 pub struct ChangeLog {
     /// Account ID of the modified object.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Action which caused the change.
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "changeTime")]
-    pub change_time: Option<String>,
+    pub change_time: ::core::option::Option<String>,
     /// Field name of the object which changed.
     #[serde(default, rename = "fieldName")]
-    pub field_name: Option<String>,
+    pub field_name: ::core::option::Option<String>,
     /// ID of this change log.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#changeLog".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// New value of the object field.
     #[serde(default, rename = "newValue")]
-    pub new_value: Option<String>,
+    pub new_value: ::core::option::Option<String>,
     /// ID of the object of this change log. The object could be a campaign, placement, ad, or other type.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<String>,
+    pub object_id: ::core::option::Option<String>,
     /// Object type of the change log.
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
     /// Old value of the object field.
     #[serde(default, rename = "oldValue")]
-    pub old_value: Option<String>,
+    pub old_value: ::core::option::Option<String>,
     /// Subaccount ID of the modified object.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Transaction ID of this change log. When a single API call results in many changes, each change will have a separate ID in the change log but will share the same transactionId.
     #[serde(default, rename = "transactionId")]
-    pub transaction_id: Option<String>,
+    pub transaction_id: ::core::option::Option<String>,
     /// ID of the user who modified the object.
     #[serde(default, rename = "userProfileId")]
-    pub user_profile_id: Option<String>,
+    pub user_profile_id: ::core::option::Option<String>,
     /// User profile name of the user who modified the object.
     #[serde(default, rename = "userProfileName")]
-    pub user_profile_name: Option<String>,
+    pub user_profile_name: ::core::option::Option<String>,
 }
 
 /// Change Log List Response
@@ -963,13 +990,13 @@ pub struct ChangeLog {
 pub struct ChangeLogsListResponse {
     /// Change log collection.
     #[serde(default, rename = "changeLogs")]
-    pub change_logs: Option<Vec<ChangeLog>>,
+    pub change_logs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ChangeLog>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#changeLogsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// City List Response
@@ -977,10 +1004,10 @@ pub struct ChangeLogsListResponse {
 pub struct CitiesListResponse {
     /// City collection.
     #[serde(default)]
-    pub cities: Option<Vec<City>>,
+    pub cities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<City>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#citiesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains information about a city that can be targeted by ads.
@@ -988,31 +1015,31 @@ pub struct CitiesListResponse {
 pub struct City {
     /// Country code of the country to which this city belongs.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// DART ID of the country to which this city belongs.
     #[serde(default, rename = "countryDartId")]
-    pub country_dart_id: Option<String>,
+    pub country_dart_id: ::core::option::Option<String>,
     /// DART ID of this city. This is the ID used for targeting and generating reports.
     #[serde(default, rename = "dartId")]
-    pub dart_id: Option<String>,
+    pub dart_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#city".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metro region code of the metro region (DMA) to which this city belongs.
     #[serde(default, rename = "metroCode")]
-    pub metro_code: Option<String>,
+    pub metro_code: ::core::option::Option<String>,
     /// ID of the metro region (DMA) to which this city belongs.
     #[serde(default, rename = "metroDmaId")]
-    pub metro_dma_id: Option<String>,
+    pub metro_dma_id: ::core::option::Option<String>,
     /// Name of this city.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Region code of the region to which this city belongs.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
     /// DART ID of the region to which this city belongs.
     #[serde(default, rename = "regionDartId")]
-    pub region_dart_id: Option<String>,
+    pub region_dart_id: ::core::option::Option<String>,
 }
 
 /// Creative Click Tag.
@@ -1020,13 +1047,13 @@ pub struct City {
 pub struct ClickTag {
     /// Parameter value for the specified click tag. This field contains a click-through url.
     #[serde(default, rename = "clickThroughUrl")]
-    pub click_through_url: Option<CreativeClickThroughUrl>,
+    pub click_through_url: ::core::option::Option<::std::boxed::Box<CreativeClickThroughUrl>>,
     /// Advertiser event name associated with the click tag. This field is used by DISPLAY_IMAGE_GALLERY and HTML5_BANNER creatives. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "eventName")]
-    pub event_name: Option<String>,
+    pub event_name: ::core::option::Option<String>,
     /// Parameter name for the specified click tag. For DISPLAY_IMAGE_GALLERY creative assets, this field must match the value of the creative asset''s creativeAssetId.name field.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Click-through URL
@@ -1034,16 +1061,16 @@ pub struct ClickTag {
 pub struct ClickThroughUrl {
     /// Read-only convenience field representing the actual URL that will be used for this click-through. The URL is computed as follows: - If defaultLandingPage is enabled then the campaign''s default landing page URL is assigned to this field. - If defaultLandingPage is not enabled and a landingPageId is specified then that landing page''s URL is assigned to this field. - If neither of the above cases apply, then the customClickThroughUrl is assigned to this field.
     #[serde(default, rename = "computedClickThroughUrl")]
-    pub computed_click_through_url: Option<String>,
+    pub computed_click_through_url: ::core::option::Option<String>,
     /// Custom click-through URL. Applicable if the defaultLandingPage field is set to false and the landingPageId field is left unset.
     #[serde(default, rename = "customClickThroughUrl")]
-    pub custom_click_through_url: Option<String>,
+    pub custom_click_through_url: ::core::option::Option<String>,
     /// Whether the campaign default landing page is used.
     #[serde(default, rename = "defaultLandingPage")]
-    pub default_landing_page: Option<bool>,
+    pub default_landing_page: ::core::option::Option<bool>,
     /// ID of the landing page for the click-through URL. Applicable if the defaultLandingPage field is set to false.
     #[serde(default, rename = "landingPageId")]
-    pub landing_page_id: Option<String>,
+    pub landing_page_id: ::core::option::Option<String>,
 }
 
 /// Click Through URL Suffix settings.
@@ -1051,10 +1078,10 @@ pub struct ClickThroughUrl {
 pub struct ClickThroughUrlSuffixProperties {
     /// Click-through URL suffix to apply to all ads in this entity''s scope. Must be less than 128 characters long.
     #[serde(default, rename = "clickThroughUrlSuffix")]
-    pub click_through_url_suffix: Option<String>,
+    pub click_through_url_suffix: ::core::option::Option<String>,
     /// Whether this entity should override the inherited click-through URL suffix with its own defined value.
     #[serde(default, rename = "overrideInheritedSuffix")]
-    pub override_inherited_suffix: Option<bool>,
+    pub override_inherited_suffix: ::core::option::Option<bool>,
 }
 
 /// Companion Click-through override.
@@ -1062,10 +1089,10 @@ pub struct ClickThroughUrlSuffixProperties {
 pub struct CompanionClickThroughOverride {
     /// Click-through URL of this companion click-through override.
     #[serde(default, rename = "clickThroughUrl")]
-    pub click_through_url: Option<ClickThroughUrl>,
+    pub click_through_url: ::core::option::Option<::std::boxed::Box<ClickThroughUrl>>,
     /// ID of the creative for this companion click-through override.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
 }
 
 /// Companion Settings
@@ -1073,16 +1100,16 @@ pub struct CompanionClickThroughOverride {
 pub struct CompanionSetting {
     /// Whether companions are disabled for this placement.
     #[serde(default, rename = "companionsDisabled")]
-    pub companions_disabled: Option<bool>,
+    pub companions_disabled: ::core::option::Option<bool>,
     /// Allowlist of companion sizes to be served to this placement. Set this list to null or empty to serve all companion sizes.
     #[serde(default, rename = "enabledSizes")]
-    pub enabled_sizes: Option<Vec<Size>>,
+    pub enabled_sizes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Size>>>,
     /// Whether to serve only static images as companions.
     #[serde(default, rename = "imageOnly")]
-    pub image_only: Option<bool>,
+    pub image_only: ::core::option::Option<bool>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#companionSetting".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Represents a response to the queryCompatibleFields method. Next ID: 10
@@ -1091,25 +1118,29 @@ pub struct CompatibleFields {
     /// Contains items that are compatible to be selected for a report of type "CROSS_DIMENSION_REACH".
     #[serde(default, rename = "crossDimensionReachReportCompatibleFields")]
     pub cross_dimension_reach_report_compatible_fields:
-        Option<CrossDimensionReachReportCompatibleFields>,
+        ::core::option::Option<::std::boxed::Box<CrossDimensionReachReportCompatibleFields>>,
     /// Contains items that are compatible to be selected for a report of type "CROSS_MEDIA_REACH".
     #[serde(default, rename = "crossMediaReachReportCompatibleFields")]
-    pub cross_media_reach_report_compatible_fields: Option<CrossMediaReachReportCompatibleFields>,
+    pub cross_media_reach_report_compatible_fields:
+        ::core::option::Option<::std::boxed::Box<CrossMediaReachReportCompatibleFields>>,
     /// Contains items that are compatible to be selected for a report of type "FLOODLIGHT".
     #[serde(default, rename = "floodlightReportCompatibleFields")]
-    pub floodlight_report_compatible_fields: Option<FloodlightReportCompatibleFields>,
+    pub floodlight_report_compatible_fields:
+        ::core::option::Option<::std::boxed::Box<FloodlightReportCompatibleFields>>,
     /// The kind of resource this is, in this case dfareporting#compatibleFields.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Contains items that are compatible to be selected for a report of type "PATH_TO_CONVERSION".
     #[serde(default, rename = "pathToConversionReportCompatibleFields")]
-    pub path_to_conversion_report_compatible_fields: Option<PathToConversionReportCompatibleFields>,
+    pub path_to_conversion_report_compatible_fields:
+        ::core::option::Option<::std::boxed::Box<PathToConversionReportCompatibleFields>>,
     /// Contains items that are compatible to be selected for a report of type "REACH".
     #[serde(default, rename = "reachReportCompatibleFields")]
-    pub reach_report_compatible_fields: Option<ReachReportCompatibleFields>,
+    pub reach_report_compatible_fields:
+        ::core::option::Option<::std::boxed::Box<ReachReportCompatibleFields>>,
     /// Contains items that are compatible to be selected for a report of type "STANDARD".
     #[serde(default, rename = "reportCompatibleFields")]
-    pub report_compatible_fields: Option<ReportCompatibleFields>,
+    pub report_compatible_fields: ::core::option::Option<::std::boxed::Box<ReportCompatibleFields>>,
 }
 
 /// Contains information about an internet connection type that can be targeted by ads. Clients can use the connection type to target mobile vs. broadband users.
@@ -1117,13 +1148,13 @@ pub struct CompatibleFields {
 pub struct ConnectionType {
     /// ID of this connection type.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#connectionType".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this connection type.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Connection Type List Response
@@ -1131,10 +1162,11 @@ pub struct ConnectionType {
 pub struct ConnectionTypesListResponse {
     /// Collection of connection types such as broadband and mobile.
     #[serde(default, rename = "connectionTypes")]
-    pub connection_types: Option<Vec<ConnectionType>>,
+    pub connection_types:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConnectionType>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#connectionTypesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Content Category List Response
@@ -1142,13 +1174,14 @@ pub struct ConnectionTypesListResponse {
 pub struct ContentCategoriesListResponse {
     /// Content category collection.
     #[serde(default, rename = "contentCategories")]
-    pub content_categories: Option<Vec<ContentCategory>>,
+    pub content_categories:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContentCategory>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#contentCategoriesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ContentCategory resource type.
@@ -1156,16 +1189,16 @@ pub struct ContentCategoriesListResponse {
 pub struct ContentCategory {
     /// Account ID of this content category. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// ID of this content category. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#contentCategory".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this content category. This is a required field and must be less than 256 characters long and unique among content categories of the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Contains the content source of the dynamic feed.
@@ -1173,22 +1206,22 @@ pub struct ContentCategory {
 pub struct ContentSource {
     /// Optional. The name of the content source. It is defaulted to content source file name if not provided.
     #[serde(default, rename = "contentSourceName")]
-    pub content_source_name: Option<String>,
+    pub content_source_name: ::core::option::Option<String>,
     /// Output only. The creation timestamp of the content source. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Output only. The last modified timestamp of the content source. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Output only. Metadata of the content source. It contains the number of rows and the column names from resource link. This is a read-only field.
     #[serde(default, rename = "metaData")]
-    pub meta_data: Option<ContentSourceMetaData>,
+    pub meta_data: ::core::option::Option<::std::boxed::Box<ContentSourceMetaData>>,
     /// Required. The link to the file of the content source.
     #[serde(default, rename = "resourceLink")]
-    pub resource_link: Option<String>,
+    pub resource_link: ::core::option::Option<String>,
     /// Required. The resource type of the content source. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "RESOURCE_TYPE_GOOGLE_SPREADSHEET", "RESOURCE_TYPE_REMOTE_FILE"]
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
 }
 
 /// Contains the meta data of the content source. This is a read-only field.
@@ -1196,16 +1229,16 @@ pub struct ContentSource {
 pub struct ContentSourceMetaData {
     /// Output only. The charset of the content source.
     #[serde(default)]
-    pub charset: Option<String>,
+    pub charset: ::core::option::Option<String>,
     /// Output only. The list of column names in the content source.
     #[serde(default, rename = "fieldNames")]
-    pub field_names: Option<Vec<String>>,
+    pub field_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The number of rows in the content source.
     #[serde(default, rename = "rowNumber")]
-    pub row_number: Option<i32>,
+    pub row_number: ::core::option::Option<i32>,
     /// Output only. The separator of the content source.
     #[serde(default)]
-    pub separator: Option<String>,
+    pub separator: ::core::option::Option<String>,
 }
 
 /// Contains information about a Contextual Keyword that can be targeted by ads.
@@ -1213,7 +1246,7 @@ pub struct ContentSourceMetaData {
 pub struct ContextualKeyword {
     /// The keyword that can be targeted by ads.
     #[serde(default)]
-    pub keyword: Option<String>,
+    pub keyword: ::core::option::Option<String>,
 }
 
 /// Contextual Keyword Targeting.
@@ -1221,7 +1254,7 @@ pub struct ContextualKeyword {
 pub struct ContextualKeywordTargeting {
     /// Contextual keywords that this ad targets
     #[serde(default)]
-    pub keywords: Option<Vec<ContextualKeyword>>,
+    pub keywords: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContextualKeyword>>>,
 }
 
 /// A Conversion represents when a user successfully performs a desired action after seeing an ad.
@@ -1229,73 +1262,75 @@ pub struct ContextualKeywordTargeting {
 pub struct Conversion {
     /// This represents consent for ad user data. // TODO: enum values: ["GRANTED", "DENIED"]
     #[serde(default, rename = "adUserDataConsent")]
-    pub ad_user_data_consent: Option<String>,
+    pub ad_user_data_consent: ::core::option::Option<String>,
     /// The cart data associated with this conversion.
     #[serde(default, rename = "cartData")]
-    pub cart_data: Option<CartData>,
+    pub cart_data: ::core::option::Option<::std::boxed::Box<CartData>>,
     /// Whether this particular request may come from a user under the age of 13, under COPPA compliance.
     #[serde(default, rename = "childDirectedTreatment")]
-    pub child_directed_treatment: Option<bool>,
+    pub child_directed_treatment: ::core::option::Option<bool>,
     /// Custom floodlight variables.
     #[serde(default, rename = "customVariables")]
-    pub custom_variables: Option<Vec<CustomFloodlightVariable>>,
+    pub custom_variables:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomFloodlightVariable>>>,
     /// The display click ID. This field is mutually exclusive with encryptedUserId, encryptedUserIdCandidates[], matchId, mobileDeviceId, gclid, and impressionId. This or encryptedUserId or encryptedUserIdCandidates[] or matchId or mobileDeviceId or gclid or impressionId is a required field.
     #[serde(default)]
-    pub dclid: Option<String>,
+    pub dclid: ::core::option::Option<String>,
     /// The alphanumeric encrypted user ID. When set, encryptionInfo should also be specified. This field is mutually exclusive with encryptedUserIdCandidates[], matchId, mobileDeviceId, gclid, dclid, and impressionId. This or encryptedUserIdCandidates[] or matchId or mobileDeviceId or gclid or dclid or impressionId is a required field.
     #[serde(default, rename = "encryptedUserId")]
-    pub encrypted_user_id: Option<String>,
+    pub encrypted_user_id: ::core::option::Option<String>,
     /// A list of the alphanumeric encrypted user IDs. Any user ID with exposure prior to the conversion timestamp will be used in the inserted conversion. If no such user ID is found then the conversion will be rejected with INVALID_ARGUMENT error. When set, encryptionInfo should also be specified. This field may only be used when calling batchinsert; it is not supported by batchupdate. This field is mutually exclusive with encryptedUserId, matchId, mobileDeviceId, gclid dclid, and impressionId. This or encryptedUserId or matchId or mobileDeviceId or gclid or dclid or impressionId is a required field.
     #[serde(default, rename = "encryptedUserIdCandidates")]
-    pub encrypted_user_id_candidates: Option<Vec<String>>,
+    pub encrypted_user_id_candidates: ::core::option::Option<::std::vec::Vec<String>>,
     /// Floodlight Activity ID of this conversion. This is a required field.
     #[serde(default, rename = "floodlightActivityId")]
-    pub floodlight_activity_id: Option<String>,
+    pub floodlight_activity_id: ::core::option::Option<String>,
     /// Floodlight Configuration ID of this conversion. This is a required field.
     #[serde(default, rename = "floodlightConfigurationId")]
-    pub floodlight_configuration_id: Option<String>,
+    pub floodlight_configuration_id: ::core::option::Option<String>,
     /// The Google click ID. This field is mutually exclusive with encryptedUserId, encryptedUserIdCandidates[], matchId, mobileDeviceId, dclid, and impressionId. This or encryptedUserId or encryptedUserIdCandidates[] or matchId or mobileDeviceId or dclid or impressionId is a required field.
     #[serde(default)]
-    pub gclid: Option<String>,
+    pub gclid: ::core::option::Option<String>,
     /// The impression ID. This field is mutually exclusive with encryptedUserId, encryptedUserIdCandidates[], matchId, mobileDeviceId, and gclid. One of these identifiers must be set.
     #[serde(default, rename = "impressionId")]
-    pub impression_id: Option<String>,
+    pub impression_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#conversion".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether Limit Ad Tracking is enabled. When set to true, the conversion will be used for reporting but not targeting. This will prevent remarketing.
     #[serde(default, rename = "limitAdTracking")]
-    pub limit_ad_tracking: Option<bool>,
+    pub limit_ad_tracking: ::core::option::Option<bool>,
     /// The match ID field. A match ID is your own first-party identifier that has been synced with Google using the match ID feature in Floodlight. This field is mutually exclusive with encryptedUserId, encryptedUserIdCandidates[],mobileDeviceId, gclid, dclid, and impressionId. This or encryptedUserId orencryptedUserIdCandidates[] or mobileDeviceId or gclid or dclid or impressionIdis a required field.
     #[serde(default, rename = "matchId")]
-    pub match_id: Option<String>,
+    pub match_id: ::core::option::Option<String>,
     /// The mobile device ID. This field is mutually exclusive with encryptedUserId, encryptedUserIdCandidates[], matchId, gclid, dclid, and impressionId. This or encryptedUserId or encryptedUserIdCandidates[] or matchId or gclid or dclid or impressionId is a required field.
     #[serde(default, rename = "mobileDeviceId")]
-    pub mobile_device_id: Option<String>,
+    pub mobile_device_id: ::core::option::Option<String>,
     /// Whether the conversion was for a non personalized ad.
     #[serde(default, rename = "nonPersonalizedAd")]
-    pub non_personalized_ad: Option<bool>,
+    pub non_personalized_ad: ::core::option::Option<bool>,
     /// The ordinal of the conversion. Use this field to control how conversions of the same user and day are de-duplicated. This is a required field.
     #[serde(default)]
-    pub ordinal: Option<String>,
+    pub ordinal: ::core::option::Option<String>,
     /// The quantity of the conversion. This is a required field.
     #[serde(default)]
-    pub quantity: Option<String>,
+    pub quantity: ::core::option::Option<String>,
     /// Session attributes for the conversion, encoded as based64 bytes. This field may only be used when calling batchinsert; it is not supported by batchupdate.
     #[serde(default, rename = "sessionAttributesEncoded")]
-    pub session_attributes_encoded: Option<String>,
+    pub session_attributes_encoded: ::core::option::Option<String>,
     /// The timestamp of conversion, in Unix epoch micros. This is a required field.
     #[serde(default, rename = "timestampMicros")]
-    pub timestamp_micros: Option<String>,
+    pub timestamp_micros: ::core::option::Option<String>,
     /// Whether this particular request may come from a user under the age of 16 (may differ by country), under compliance with the European Union''s General Data Protection Regulation (GDPR).
     #[serde(default, rename = "treatmentForUnderage")]
-    pub treatment_for_underage: Option<bool>,
+    pub treatment_for_underage: ::core::option::Option<bool>,
     /// The user identifiers to enhance the conversion. The maximum number of user identifiers for each conversion is 5.
     #[serde(default, rename = "userIdentifiers")]
-    pub user_identifiers: Option<Vec<UserIdentifier>>,
+    pub user_identifiers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserIdentifier>>>,
     /// The value of the conversion. Interpreted in CM360 Floodlight config parent advertiser''s currency code. This is a required field.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// The error code and description for a conversion that failed to insert or update.
@@ -1303,13 +1338,13 @@ pub struct Conversion {
 pub struct ConversionError {
     /// The error code. // TODO: enum values: ["INVALID_ARGUMENT", "INTERNAL", "PERMISSION_DENIED", "NOT_FOUND"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#conversionError".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// A description of the error.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// The original conversion that was inserted or updated and whether there were any errors.
@@ -1317,13 +1352,13 @@ pub struct ConversionError {
 pub struct ConversionStatus {
     /// The original conversion that was inserted or updated.
     #[serde(default)]
-    pub conversion: Option<Conversion>,
+    pub conversion: ::core::option::Option<::std::boxed::Box<Conversion>>,
     /// A list of errors related to this conversion.
     #[serde(default)]
-    pub errors: Option<Vec<ConversionError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConversionError>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#conversionStatus".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Insert Conversions Request.
@@ -1331,13 +1366,13 @@ pub struct ConversionStatus {
 pub struct ConversionsBatchInsertRequest {
     /// The set of conversions to insert.
     #[serde(default)]
-    pub conversions: Option<Vec<Conversion>>,
+    pub conversions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Conversion>>>,
     /// Describes how encryptedUserId or encryptedUserIdCandidates[] is encrypted. This is a required field if encryptedUserId or encryptedUserIdCandidates[] is used.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#conversionsBatchInsertRequest".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Insert Conversions Response.
@@ -1345,13 +1380,13 @@ pub struct ConversionsBatchInsertRequest {
 pub struct ConversionsBatchInsertResponse {
     /// Indicates that some or all conversions failed to insert.
     #[serde(default, rename = "hasFailures")]
-    pub has_failures: Option<bool>,
+    pub has_failures: ::core::option::Option<bool>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#conversionsBatchInsertResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The insert status of each conversion. Statuses are returned in the same order that conversions are inserted.
     #[serde(default)]
-    pub status: Option<Vec<ConversionStatus>>,
+    pub status: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConversionStatus>>>,
 }
 
 /// Update Conversions Request.
@@ -1359,13 +1394,13 @@ pub struct ConversionsBatchInsertResponse {
 pub struct ConversionsBatchUpdateRequest {
     /// The set of conversions to update.
     #[serde(default)]
-    pub conversions: Option<Vec<Conversion>>,
+    pub conversions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Conversion>>>,
     /// Describes how encryptedUserId is encrypted. This is a required field if encryptedUserId is used.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#conversionsBatchUpdateRequest".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Update Conversions Response.
@@ -1373,13 +1408,13 @@ pub struct ConversionsBatchUpdateRequest {
 pub struct ConversionsBatchUpdateResponse {
     /// Indicates that some or all conversions failed to update.
     #[serde(default, rename = "hasFailures")]
-    pub has_failures: Option<bool>,
+    pub has_failures: ::core::option::Option<bool>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#conversionsBatchUpdateResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The update status of each conversion. Statuses are returned in the same order that conversions are updated.
     #[serde(default)]
-    pub status: Option<Vec<ConversionStatus>>,
+    pub status: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConversionStatus>>>,
 }
 
 /// Country List Response
@@ -1387,10 +1422,10 @@ pub struct ConversionsBatchUpdateResponse {
 pub struct CountriesListResponse {
     /// Country collection.
     #[serde(default)]
-    pub countries: Option<Vec<Country>>,
+    pub countries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Country>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#countriesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains information about a country that can be targeted by ads.
@@ -1398,22 +1433,22 @@ pub struct CountriesListResponse {
 pub struct Country {
     /// Country code.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// DART ID of this country. This is the ID used for targeting and generating reports.
     #[serde(default, rename = "dartId")]
-    pub dart_id: Option<String>,
+    pub dart_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#country".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this country.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Whether ad serving supports secure servers in this country.
     #[serde(default, rename = "sslEnabled")]
-    pub ssl_enabled: Option<bool>,
+    pub ssl_enabled: ::core::option::Option<bool>,
     /// Output only. The TV data providers supported in this country.
     #[serde(default, rename = "tvDataProviders")]
-    pub tv_data_providers: Option<Vec<String>>,
+    pub tv_data_providers: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Contains properties of a Creative.
@@ -1421,193 +1456,199 @@ pub struct Country {
 pub struct Creative {
     /// Account ID of this creative. This field, if left unset, will be auto-generated for both insert and update operations. Applicable to all creative types.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether the creative is active. Applicable to all creative types.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Ad parameters user for VPAID creative. This is a read-only field. Applicable to the following creative types: all VPAID.
     #[serde(default, rename = "adParameters")]
-    pub ad_parameters: Option<String>,
+    pub ad_parameters: ::core::option::Option<String>,
     /// Keywords for a Rich Media creative. Keywords let you customize the creative settings of a Rich Media ad running on your site without having to contact the advertiser. You can use keywords to dynamically change the look or functionality of a creative. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "adTagKeys")]
-    pub ad_tag_keys: Option<Vec<String>>,
+    pub ad_tag_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Additional sizes associated with a responsive creative. When inserting or updating a creative either the size ID field or size width and height fields can be used. Applicable to DISPLAY creatives when the primary asset type is HTML_IMAGE.
     #[serde(default, rename = "additionalSizes")]
-    pub additional_sizes: Option<Vec<Size>>,
+    pub additional_sizes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Size>>>,
     /// Required. Advertiser ID of this creative. This is a required field. Applicable to all creative types.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Whether script access is allowed for this creative. This is a read-only and deprecated field which will automatically be set to true on update. Applicable to the following creative types: FLASH_INPAGE.
     #[serde(default, rename = "allowScriptAccess")]
-    pub allow_script_access: Option<bool>,
+    pub allow_script_access: ::core::option::Option<bool>,
     /// Whether the creative is archived. Applicable to all creative types.
     #[serde(default)]
-    pub archived: Option<bool>,
+    pub archived: ::core::option::Option<bool>,
     /// Type of artwork used for the creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID. // TODO: enum values: ["ARTWORK_TYPE_FLASH", "ARTWORK_TYPE_HTML5", "ARTWORK_TYPE_MIXED", "ARTWORK_TYPE_IMAGE"]
     #[serde(default, rename = "artworkType")]
-    pub artwork_type: Option<String>,
+    pub artwork_type: ::core::option::Option<String>,
     /// Source application where creative was authored. Presently, only DBM authored creatives will have this field set. Applicable to all creative types. // TODO: enum values: ["CREATIVE_AUTHORING_SOURCE_DCM", "CREATIVE_AUTHORING_SOURCE_DBM", "CREATIVE_AUTHORING_SOURCE_STUDIO", "CREATIVE_AUTHORING_SOURCE_GWD", "CREATIVE_AUTHORING_SOURCE_ACS", "CREATIVE_AUTHORING_SOURCE_ADOBE", "CREATIVE_AUTHORING_SOURCE_TYPEFACE_AI", "CREATIVE_AUTHORING_SOURCE_REMBRAND", "CREATIVE_AUTHORING_SOURCE_TRACKTO_STUDIO", "CREATIVE_AUTHORING_SOURCE_BORNLOGIC"]
     #[serde(default, rename = "authoringSource")]
-    pub authoring_source: Option<String>,
+    pub authoring_source: ::core::option::Option<String>,
     /// Authoring tool for HTML5 banner creatives. This is a read-only field. Applicable to the following creative types: HTML5_BANNER. // TODO: enum values: ["NINJA", "SWIFFY"]
     #[serde(default, rename = "authoringTool")]
-    pub authoring_tool: Option<String>,
+    pub authoring_tool: ::core::option::Option<String>,
     /// Whether images are automatically advanced for image gallery creatives. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY.
     #[serde(default, rename = "autoAdvanceImages")]
-    pub auto_advance_images: Option<bool>,
+    pub auto_advance_images: ::core::option::Option<bool>,
     /// The 6-character HTML color code, beginning with #, for the background of the window area where the Flash file is displayed. Default is white. Applicable to the following creative types: FLASH_INPAGE.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: Option<String>,
+    pub background_color: ::core::option::Option<String>,
     /// Click-through URL for backup image. Applicable to ENHANCED_BANNER when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "backupImageClickThroughUrl")]
-    pub backup_image_click_through_url: Option<CreativeClickThroughUrl>,
+    pub backup_image_click_through_url:
+        ::core::option::Option<::std::boxed::Box<CreativeClickThroughUrl>>,
     /// List of feature dependencies that will cause a backup image to be served if the browser that serves the ad does not support them. Feature dependencies are features that a browser must be able to support in order to render your HTML5 creative asset correctly. This field is initially auto-generated to contain all features detected by Campaign Manager for all the assets of this creative and can then be modified by the client. To reset this field, copy over all the creativeAssets'' detected features. Applicable to the following creative types: HTML5_BANNER. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "backupImageFeatures")]
-    pub backup_image_features: Option<Vec<String>>,
+    pub backup_image_features: ::core::option::Option<::std::vec::Vec<String>>,
     /// Reporting label used for HTML5 banner backup image. Applicable to the following creative types: DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "backupImageReportingLabel")]
-    pub backup_image_reporting_label: Option<String>,
+    pub backup_image_reporting_label: ::core::option::Option<String>,
     /// Target window for backup image. Applicable to the following creative types: FLASH_INPAGE and HTML5_BANNER. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "backupImageTargetWindow")]
-    pub backup_image_target_window: Option<TargetWindow>,
+    pub backup_image_target_window: ::core::option::Option<::std::boxed::Box<TargetWindow>>,
     /// Click tags of the creative. For DISPLAY, FLASH_INPAGE, and HTML5_BANNER creatives, this is a subset of detected click tags for the assets associated with this creative. After creating a flash asset, detected click tags will be returned in the creativeAssetMetadata. When inserting the creative, populate the creative clickTags field using the creativeAssetMetadata.clickTags field. For DISPLAY_IMAGE_GALLERY creatives, there should be exactly one entry in this list for each image creative asset. A click tag is matched with a corresponding creative asset by matching the clickTag.name field with the creativeAsset.assetIdentifier.name field. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY, FLASH_INPAGE, HTML5_BANNER. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "clickTags")]
-    pub click_tags: Option<Vec<ClickTag>>,
+    pub click_tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClickTag>>>,
     /// Industry standard ID assigned to creative for reach and frequency. Applicable to INSTREAM_VIDEO_REDIRECT creatives.
     #[serde(default, rename = "commercialId")]
-    pub commercial_id: Option<String>,
+    pub commercial_id: ::core::option::Option<String>,
     /// List of companion creatives assigned to an in-Stream video creative. Acceptable values include IDs of existing flash and image creatives. Applicable to the following creative types: all VPAID, all INSTREAM_AUDIO and all INSTREAM_VIDEO with dynamicAssetSelection set to false.
     #[serde(default, rename = "companionCreatives")]
-    pub companion_creatives: Option<Vec<String>>,
+    pub companion_creatives: ::core::option::Option<::std::vec::Vec<String>>,
     /// Compatibilities associated with this creative. This is a read-only field. DISPLAY and DISPLAY_INTERSTITIAL refer to rendering either on desktop or on mobile devices or in mobile apps for regular or interstitial ads, respectively. APP and APP_INTERSTITIAL are for rendering in mobile apps. Only pre-existing creatives may have these compatibilities since new creatives will either be assigned DISPLAY or DISPLAY_INTERSTITIAL instead. IN_STREAM_VIDEO refers to rendering in in-stream video ads developed with the VAST standard. IN_STREAM_AUDIO refers to rendering in in-stream audio ads developed with the VAST standard. Applicable to all creative types. Acceptable values are: - "APP" - "APP_INTERSTITIAL" - "IN_STREAM_VIDEO" - "IN_STREAM_AUDIO" - "DISPLAY" - "DISPLAY_INTERSTITIAL"
     #[serde(default)]
-    pub compatibility: Option<Vec<String>>,
+    pub compatibility: ::core::option::Option<::std::vec::Vec<String>>,
     /// Whether Flash assets associated with the creative need to be automatically converted to HTML5. This flag is enabled by default and users can choose to disable it if they don''t want the system to generate and use HTML5 asset for this creative. Applicable to the following creative type: FLASH_INPAGE. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "convertFlashToHtml5")]
-    pub convert_flash_to_html5: Option<bool>,
+    pub convert_flash_to_html5: ::core::option::Option<bool>,
     /// List of counter events configured for the creative. For DISPLAY_IMAGE_GALLERY creatives, these are read-only and auto-generated from clickTags. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY, all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "counterCustomEvents")]
-    pub counter_custom_events: Option<Vec<CreativeCustomEvent>>,
+    pub counter_custom_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeCustomEvent>>>,
     /// Assets associated with a creative. Applicable to all but the following creative types: INTERNAL_REDIRECT, INTERSTITIAL_INTERNAL_REDIRECT, and REDIRECT
     #[serde(default, rename = "creativeAssets")]
-    pub creative_assets: Option<Vec<CreativeAsset>>,
+    pub creative_assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeAsset>>>,
     /// Creative field assignments for this creative. Applicable to all creative types.
     #[serde(default, rename = "creativeFieldAssignments")]
-    pub creative_field_assignments: Option<Vec<CreativeFieldAssignment>>,
+    pub creative_field_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeFieldAssignment>>>,
     /// Custom key-values for a Rich Media creative. Key-values let you customize the creative settings of a Rich Media ad running on your site without having to contact the advertiser. You can use key-values to dynamically change the look or functionality of a creative. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "customKeyValues")]
-    pub custom_key_values: Option<Vec<String>>,
+    pub custom_key_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of exit events configured for the creative. For DISPLAY and DISPLAY_IMAGE_GALLERY creatives, these are read-only and auto-generated from clickTags, For DISPLAY, an event is also created from the backupImageReportingLabel. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY, all RICH_MEDIA, and all VPAID. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "exitCustomEvents")]
-    pub exit_custom_events: Option<Vec<CreativeCustomEvent>>,
+    pub exit_custom_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeCustomEvent>>>,
     /// OpenWindow FSCommand of this creative. This lets the SWF file communicate with either Flash Player or the program hosting Flash Player, such as a web browser. This is only triggered if allowScriptAccess field is true. Applicable to the following creative types: FLASH_INPAGE.
     #[serde(default, rename = "fsCommand")]
-    pub fs_command: Option<FsCommand>,
+    pub fs_command: ::core::option::Option<::std::boxed::Box<FsCommand>>,
     /// HTML code for the creative. This is a required field when applicable. This field is ignored if htmlCodeLocked is true. Applicable to the following creative types: all CUSTOM, FLASH_INPAGE, and HTML5_BANNER, and all RICH_MEDIA.
     #[serde(default, rename = "htmlCode")]
-    pub html_code: Option<String>,
+    pub html_code: ::core::option::Option<String>,
     /// Whether HTML code is generated by Campaign Manager or manually entered. Set to true to ignore changes to htmlCode. Applicable to the following creative types: FLASH_INPAGE and HTML5_BANNER.
     #[serde(default, rename = "htmlCodeLocked")]
-    pub html_code_locked: Option<bool>,
+    pub html_code_locked: ::core::option::Option<bool>,
     /// ID of this creative. This is a read-only, auto-generated field. Applicable to all creative types.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this creative. This is a read-only field. Applicable to all creative types.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creative".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Creative last modification information. This is a read-only field. Applicable to all creative types.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Latest Studio trafficked creative ID associated with rich media and VPAID creatives. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "latestTraffickedCreativeId")]
-    pub latest_trafficked_creative_id: Option<String>,
+    pub latest_trafficked_creative_id: ::core::option::Option<String>,
     /// Description of the audio or video ad. Applicable to the following creative types: all INSTREAM_VIDEO, INSTREAM_AUDIO, and all VPAID.
     #[serde(default, rename = "mediaDescription")]
-    pub media_description: Option<String>,
+    pub media_description: ::core::option::Option<String>,
     /// Creative audio or video duration in seconds. This is a read-only field. Applicable to the following creative types: INSTREAM_VIDEO, INSTREAM_AUDIO, all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "mediaDuration")]
-    pub media_duration: Option<f32>,
+    pub media_duration: ::core::option::Option<f32>,
     /// Required. Name of the creative. This must be less than 256 characters long. Applicable to all creative types.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Online behavioral advertising icon to be added to the creative. Applicable to the following creative types: all INSTREAM_VIDEO.
     #[serde(default, rename = "obaIcon")]
-    pub oba_icon: Option<ObaIcon>,
+    pub oba_icon: ::core::option::Option<::std::boxed::Box<ObaIcon>>,
     /// Override CSS value for rich media creatives. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "overrideCss")]
-    pub override_css: Option<String>,
+    pub override_css: ::core::option::Option<String>,
     /// Amount of time to play the video before counting a view. Applicable to the following creative types: all INSTREAM_VIDEO.
     #[serde(default, rename = "progressOffset")]
-    pub progress_offset: Option<VideoOffset>,
+    pub progress_offset: ::core::option::Option<::std::boxed::Box<VideoOffset>>,
     /// URL of hosted image or hosted video or another ad tag. For INSTREAM_VIDEO_REDIRECT creatives this is the in-stream video redirect URL. The standard for a VAST (Video Ad Serving Template) ad response allows for a redirect link to another VAST 2.0 or 3.0 call. This is a required field when applicable. Applicable to the following creative types: DISPLAY_REDIRECT, INTERNAL_REDIRECT, INTERSTITIAL_INTERNAL_REDIRECT, and INSTREAM_VIDEO_REDIRECT
     #[serde(default, rename = "redirectUrl")]
-    pub redirect_url: Option<String>,
+    pub redirect_url: ::core::option::Option<String>,
     /// ID of current rendering version. This is a read-only field. Applicable to all creative types.
     #[serde(default, rename = "renderingId")]
-    pub rendering_id: Option<String>,
+    pub rendering_id: ::core::option::Option<String>,
     /// Dimension value for the rendering ID of this creative. This is a read-only field. Applicable to all creative types.
     #[serde(default, rename = "renderingIdDimensionValue")]
-    pub rendering_id_dimension_value: Option<DimensionValue>,
+    pub rendering_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// The minimum required Flash plugin version for this creative. For example, 11.2.202.235. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "requiredFlashPluginVersion")]
-    pub required_flash_plugin_version: Option<String>,
+    pub required_flash_plugin_version: ::core::option::Option<String>,
     /// The internal Flash version for this creative as calculated by Studio. This is a read-only field. Applicable to the following creative types: FLASH_INPAGE all RICH_MEDIA, and all VPAID. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "requiredFlashVersion")]
-    pub required_flash_version: Option<i32>,
+    pub required_flash_version: ::core::option::Option<i32>,
     /// Size associated with this creative. When inserting or updating a creative either the size ID field or size width and height fields can be used. This is a required field when applicable; however for IMAGE, FLASH_INPAGE creatives, and for DISPLAY creatives with a primary asset of type HTML_IMAGE, if left blank, this field will be automatically set using the actual size of the associated image assets. Applicable to the following creative types: DISPLAY, DISPLAY_IMAGE_GALLERY, FLASH_INPAGE, HTML5_BANNER, IMAGE, and all RICH_MEDIA.
     #[serde(default)]
-    pub size: Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// Amount of time to play the video before the skip button appears. Applicable to the following creative types: all INSTREAM_VIDEO.
     #[serde(default, rename = "skipOffset")]
-    pub skip_offset: Option<VideoOffset>,
+    pub skip_offset: ::core::option::Option<::std::boxed::Box<VideoOffset>>,
     /// Whether the user can choose to skip the creative. Applicable to the following creative types: all INSTREAM_VIDEO and all VPAID.
     #[serde(default)]
-    pub skippable: Option<bool>,
+    pub skippable: ::core::option::Option<bool>,
     /// Whether the creative is SSL-compliant. This is a read-only field. Applicable to all creative types.
     #[serde(default, rename = "sslCompliant")]
-    pub ssl_compliant: Option<bool>,
+    pub ssl_compliant: ::core::option::Option<bool>,
     /// Whether creative should be treated as SSL compliant even if the system scan shows it''s not. Applicable to all creative types.
     #[serde(default, rename = "sslOverride")]
-    pub ssl_override: Option<bool>,
+    pub ssl_override: ::core::option::Option<bool>,
     /// Studio advertiser ID associated with rich media and VPAID creatives. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "studioAdvertiserId")]
-    pub studio_advertiser_id: Option<String>,
+    pub studio_advertiser_id: ::core::option::Option<String>,
     /// Studio creative ID associated with rich media and VPAID creatives. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "studioCreativeId")]
-    pub studio_creative_id: Option<String>,
+    pub studio_creative_id: ::core::option::Option<String>,
     /// Studio trafficked creative ID associated with rich media and VPAID creatives. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "studioTraffickedCreativeId")]
-    pub studio_trafficked_creative_id: Option<String>,
+    pub studio_trafficked_creative_id: ::core::option::Option<String>,
     /// Subaccount ID of this creative. This field, if left unset, will be auto-generated for both insert and update operations. Applicable to all creative types.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Third-party URL used to record backup image impressions. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "thirdPartyBackupImageImpressionsUrl")]
-    pub third_party_backup_image_impressions_url: Option<String>,
+    pub third_party_backup_image_impressions_url: ::core::option::Option<String>,
     /// Third-party URL used to record rich media impressions. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "thirdPartyRichMediaImpressionsUrl")]
-    pub third_party_rich_media_impressions_url: Option<String>,
+    pub third_party_rich_media_impressions_url: ::core::option::Option<String>,
     /// Third-party URLs for tracking in-stream creative events. Applicable to the following creative types: all INSTREAM_VIDEO, all INSTREAM_AUDIO, and all VPAID.
     #[serde(default, rename = "thirdPartyUrls")]
-    pub third_party_urls: Option<Vec<ThirdPartyTrackingUrl>>,
+    pub third_party_urls:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThirdPartyTrackingUrl>>>,
     /// List of timer events configured for the creative. For DISPLAY_IMAGE_GALLERY creatives, these are read-only and auto-generated from clickTags. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY, all RICH_MEDIA, and all VPAID. Applicable to DISPLAY when the primary asset is not HTML_IMAGE.
     #[serde(default, rename = "timerCustomEvents")]
-    pub timer_custom_events: Option<Vec<CreativeCustomEvent>>,
+    pub timer_custom_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeCustomEvent>>>,
     /// Combined size of all creative assets. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.
     #[serde(default, rename = "totalFileSize")]
-    pub total_file_size: Option<String>,
+    pub total_file_size: ::core::option::Option<String>,
     /// Required. Type of this creative. Applicable to all creative types. *Note:* FLASH_INPAGE, HTML5_BANNER, and IMAGE are only used for existing creatives. New creatives should use DISPLAY as a replacement for these types. // TODO: enum values: ["IMAGE", "DISPLAY_REDIRECT", "CUSTOM_DISPLAY", "INTERNAL_REDIRECT", "CUSTOM_DISPLAY_INTERSTITIAL", "INTERSTITIAL_INTERNAL_REDIRECT", "TRACKING_TEXT", "RICH_MEDIA_DISPLAY_BANNER", "RICH_MEDIA_INPAGE_FLOATING", "RICH_MEDIA_IM_EXPAND", "RICH_MEDIA_DISPLAY_EXPANDING", "RICH_MEDIA_DISPLAY_INTERSTITIAL", "RICH_MEDIA_DISPLAY_MULTI_FLOATING_INTERSTITIAL", "RICH_MEDIA_MOBILE_IN_APP", "FLASH_INPAGE", "INSTREAM_VIDEO", "VPAID_LINEAR_VIDEO", "VPAID_NON_LINEAR_VIDEO", "INSTREAM_VIDEO_REDIRECT", "RICH_MEDIA_PEEL_DOWN", "HTML5_BANNER", "DISPLAY", "DISPLAY_IMAGE_GALLERY", "BRAND_SAFE_DEFAULT_INSTREAM_VIDEO", "INSTREAM_AUDIO"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// A Universal Ad ID as per the VAST 4.0 spec. Applicable to the following creative types: INSTREAM_AUDIO and INSTREAM_VIDEO and VPAID.
     #[serde(default, rename = "universalAdId")]
-    pub universal_ad_id: Option<UniversalAdId>,
+    pub universal_ad_id: ::core::option::Option<::std::boxed::Box<UniversalAdId>>,
     /// The version number helps you keep track of multiple versions of your creative in your reports. The version number will always be auto-generated during insert operations to start at 1. For tracking creatives the version cannot be incremented and will always remain at 1. For all other creative types the version can be incremented only by 1 during update operations. In addition, the version will be automatically incremented by 1 when undergoing Rich Media creative merging. Applicable to all creative types.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Creative Asset.
@@ -1615,154 +1656,154 @@ pub struct Creative {
 pub struct CreativeAsset {
     /// Whether ActionScript3 is enabled for the flash asset. This is a read-only field. Applicable to the following creative type: FLASH_INPAGE. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "actionScript3")]
-    pub action_script3: Option<bool>,
+    pub action_script3: ::core::option::Option<bool>,
     /// Whether the video or audio asset is active. This is a read-only field for VPAID_NON_LINEAR_VIDEO assets. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Additional sizes associated with this creative asset. HTML5 asset generated by compatible software such as GWD will be able to support more sizes this creative asset can render.
     #[serde(default, rename = "additionalSizes")]
-    pub additional_sizes: Option<Vec<Size>>,
+    pub additional_sizes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Size>>>,
     /// Possible alignments for an asset. This is a read-only field. Applicable to the following creative types: RICH_MEDIA_DISPLAY_MULTI_FLOATING_INTERSTITIAL . // TODO: enum values: ["ALIGNMENT_TOP", "ALIGNMENT_RIGHT", "ALIGNMENT_BOTTOM", "ALIGNMENT_LEFT"]
     #[serde(default)]
-    pub alignment: Option<String>,
+    pub alignment: ::core::option::Option<String>,
     /// Artwork type of rich media creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA. // TODO: enum values: ["ARTWORK_TYPE_FLASH", "ARTWORK_TYPE_HTML5", "ARTWORK_TYPE_MIXED", "ARTWORK_TYPE_IMAGE"]
     #[serde(default, rename = "artworkType")]
-    pub artwork_type: Option<String>,
+    pub artwork_type: ::core::option::Option<String>,
     /// Identifier of this asset. This is the same identifier returned during creative asset insert operation. This is a required field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.
     #[serde(default, rename = "assetIdentifier")]
-    pub asset_identifier: Option<CreativeAssetId>,
+    pub asset_identifier: ::core::option::Option<::std::boxed::Box<CreativeAssetId>>,
     /// Audio stream bit rate in kbps. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "audioBitRate")]
-    pub audio_bit_rate: Option<i32>,
+    pub audio_bit_rate: ::core::option::Option<i32>,
     /// Audio sample bit rate in hertz. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "audioSampleRate")]
-    pub audio_sample_rate: Option<i32>,
+    pub audio_sample_rate: ::core::option::Option<i32>,
     /// Exit event configured for the backup image. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "backupImageExit")]
-    pub backup_image_exit: Option<CreativeCustomEvent>,
+    pub backup_image_exit: ::core::option::Option<::std::boxed::Box<CreativeCustomEvent>>,
     /// Detected bit-rate for audio or video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "bitRate")]
-    pub bit_rate: Option<i32>,
+    pub bit_rate: ::core::option::Option<i32>,
     /// Rich media child asset type. This is a read-only field. Applicable to the following creative types: all VPAID. // TODO: enum values: ["CHILD_ASSET_TYPE_FLASH", "CHILD_ASSET_TYPE_VIDEO", "CHILD_ASSET_TYPE_IMAGE", "CHILD_ASSET_TYPE_DATA"]
     #[serde(default, rename = "childAssetType")]
-    pub child_asset_type: Option<String>,
+    pub child_asset_type: ::core::option::Option<String>,
     /// Size of an asset when collapsed. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID. Additionally, applicable to assets whose displayType is ASSET_DISPLAY_TYPE_EXPANDING or ASSET_DISPLAY_TYPE_PEEL_DOWN.
     #[serde(default, rename = "collapsedSize")]
-    pub collapsed_size: Option<Size>,
+    pub collapsed_size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// List of companion creatives assigned to an in-stream video creative asset. Acceptable values include IDs of existing flash and image creatives. Applicable to INSTREAM_VIDEO creative type with dynamicAssetSelection set to true.
     #[serde(default, rename = "companionCreativeIds")]
-    pub companion_creative_ids: Option<Vec<String>>,
+    pub companion_creative_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Custom start time in seconds for making the asset visible. Applicable to the following creative types: all RICH_MEDIA. Value must be greater than or equal to 0.
     #[serde(default, rename = "customStartTimeValue")]
-    pub custom_start_time_value: Option<i32>,
+    pub custom_start_time_value: ::core::option::Option<i32>,
     /// List of feature dependencies for the creative asset that are detected by Campaign Manager. Feature dependencies are features that a browser must be able to support in order to render your HTML5 creative correctly. This is a read-only, auto-generated field. Applicable to the following creative types: HTML5_BANNER. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "detectedFeatures")]
-    pub detected_features: Option<Vec<String>>,
+    pub detected_features: ::core::option::Option<::std::vec::Vec<String>>,
     /// Type of rich media asset. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA. // TODO: enum values: ["ASSET_DISPLAY_TYPE_INPAGE", "ASSET_DISPLAY_TYPE_FLOATING", "ASSET_DISPLAY_TYPE_OVERLAY", "ASSET_DISPLAY_TYPE_EXPANDING", "ASSET_DISPLAY_TYPE_FLASH_IN_FLASH", "ASSET_DISPLAY_TYPE_FLASH_IN_FLASH_EXPANDING", "ASSET_DISPLAY_TYPE_PEEL_DOWN", "ASSET_DISPLAY_TYPE_VPAID_LINEAR", "ASSET_DISPLAY_TYPE_VPAID_NON_LINEAR", "ASSET_DISPLAY_TYPE_BACKDROP"]
     #[serde(default, rename = "displayType")]
-    pub display_type: Option<String>,
+    pub display_type: ::core::option::Option<String>,
     /// Duration in seconds for which an asset will be displayed. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and VPAID_LINEAR_VIDEO. Value must be greater than or equal to 1.
     #[serde(default)]
-    pub duration: Option<i32>,
+    pub duration: ::core::option::Option<i32>,
     /// Duration type for which an asset will be displayed. Applicable to the following creative types: all RICH_MEDIA. // TODO: enum values: ["ASSET_DURATION_TYPE_AUTO", "ASSET_DURATION_TYPE_NONE", "ASSET_DURATION_TYPE_CUSTOM"]
     #[serde(default, rename = "durationType")]
-    pub duration_type: Option<String>,
+    pub duration_type: ::core::option::Option<String>,
     /// Detected expanded dimension for video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "expandedDimension")]
-    pub expanded_dimension: Option<Size>,
+    pub expanded_dimension: ::core::option::Option<::std::boxed::Box<Size>>,
     /// File size associated with this creative asset. This is a read-only field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.
     #[serde(default, rename = "fileSize")]
-    pub file_size: Option<String>,
+    pub file_size: ::core::option::Option<String>,
     /// Flash version of the asset. This is a read-only field. Applicable to the following creative types: FLASH_INPAGE, all RICH_MEDIA, and all VPAID. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "flashVersion")]
-    pub flash_version: Option<i32>,
+    pub flash_version: ::core::option::Option<i32>,
     /// Video frame rate for video asset in frames per second. This is a read-only field. Applicable to the following creative types: INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "frameRate")]
-    pub frame_rate: Option<f32>,
+    pub frame_rate: ::core::option::Option<f32>,
     /// Whether to hide Flash objects flag for an asset. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "hideFlashObjects")]
-    pub hide_flash_objects: Option<bool>,
+    pub hide_flash_objects: ::core::option::Option<bool>,
     /// Whether to hide selection boxes flag for an asset. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "hideSelectionBoxes")]
-    pub hide_selection_boxes: Option<bool>,
+    pub hide_selection_boxes: ::core::option::Option<bool>,
     /// Whether the asset is horizontally locked. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "horizontallyLocked")]
-    pub horizontally_locked: Option<bool>,
+    pub horizontally_locked: ::core::option::Option<bool>,
     /// Numeric ID of this creative asset. This is a required field and should not be modified. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of the asset. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Detected duration for audio or video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "mediaDuration")]
-    pub media_duration: Option<f32>,
+    pub media_duration: ::core::option::Option<f32>,
     /// Detected MIME type for audio or video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Offset position for an asset in collapsed mode. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID. Additionally, only applicable to assets whose displayType is ASSET_DISPLAY_TYPE_EXPANDING or ASSET_DISPLAY_TYPE_PEEL_DOWN.
     #[serde(default)]
-    pub offset: Option<OffsetPosition>,
+    pub offset: ::core::option::Option<::std::boxed::Box<OffsetPosition>>,
     /// Orientation of video asset. This is a read-only, auto-generated field. // TODO: enum values: ["LANDSCAPE", "PORTRAIT", "SQUARE"]
     #[serde(default)]
-    pub orientation: Option<String>,
+    pub orientation: ::core::option::Option<String>,
     /// Whether the backup asset is original or changed by the user in Campaign Manager. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "originalBackup")]
-    pub original_backup: Option<bool>,
+    pub original_backup: ::core::option::Option<bool>,
     /// Whether this asset is used as a polite load asset.
     #[serde(default, rename = "politeLoad")]
-    pub polite_load: Option<bool>,
+    pub polite_load: ::core::option::Option<bool>,
     /// Offset position for an asset. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default)]
-    pub position: Option<OffsetPosition>,
+    pub position: ::core::option::Option<::std::boxed::Box<OffsetPosition>>,
     /// Offset left unit for an asset. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA. // TODO: enum values: ["OFFSET_UNIT_PIXEL", "OFFSET_UNIT_PERCENT", "OFFSET_UNIT_PIXEL_FROM_CENTER"]
     #[serde(default, rename = "positionLeftUnit")]
-    pub position_left_unit: Option<String>,
+    pub position_left_unit: ::core::option::Option<String>,
     /// Offset top unit for an asset. This is a read-only field if the asset displayType is ASSET_DISPLAY_TYPE_OVERLAY. Applicable to the following creative types: all RICH_MEDIA. // TODO: enum values: ["OFFSET_UNIT_PIXEL", "OFFSET_UNIT_PERCENT", "OFFSET_UNIT_PIXEL_FROM_CENTER"]
     #[serde(default, rename = "positionTopUnit")]
-    pub position_top_unit: Option<String>,
+    pub position_top_unit: ::core::option::Option<String>,
     /// Progressive URL for video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "progressiveServingUrl")]
-    pub progressive_serving_url: Option<String>,
+    pub progressive_serving_url: ::core::option::Option<String>,
     /// Whether the asset pushes down other content. Applicable to the following creative types: all RICH_MEDIA. Additionally, only applicable when the asset offsets are 0, the collapsedSize.width matches size.width, and the collapsedSize.height is less than size.height.
     #[serde(default)]
-    pub pushdown: Option<bool>,
+    pub pushdown: ::core::option::Option<bool>,
     /// Pushdown duration in seconds for an asset. Applicable to the following creative types: all RICH_MEDIA.Additionally, only applicable when the asset pushdown field is true, the offsets are 0, the collapsedSize.width matches size.width, and the collapsedSize.height is less than size.height. Acceptable values are 0 to 9.99, inclusive.
     #[serde(default, rename = "pushdownDuration")]
-    pub pushdown_duration: Option<f32>,
+    pub pushdown_duration: ::core::option::Option<f32>,
     /// Role of the asset in relation to creative. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT. This is a required field. PRIMARY applies to DISPLAY, FLASH_INPAGE, HTML5_BANNER, IMAGE, DISPLAY_IMAGE_GALLERY, all RICH_MEDIA (which may contain multiple primary assets), and all VPAID creatives. BACKUP_IMAGE applies to FLASH_INPAGE, HTML5_BANNER, all RICH_MEDIA, and all VPAID creatives. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE. ADDITIONAL_IMAGE and ADDITIONAL_FLASH apply to FLASH_INPAGE creatives. OTHER refers to assets from sources other than Campaign Manager, such as Studio uploaded assets, applicable to all RICH_MEDIA and all VPAID creatives. PARENT_VIDEO refers to videos uploaded by the user in Campaign Manager and is applicable to INSTREAM_VIDEO and VPAID_LINEAR_VIDEO creatives. TRANSCODED_VIDEO refers to videos transcoded by Campaign Manager from PARENT_VIDEO assets and is applicable to INSTREAM_VIDEO and VPAID_LINEAR_VIDEO creatives. ALTERNATE_VIDEO refers to the Campaign Manager representation of child asset videos from Studio, and is applicable to VPAID_LINEAR_VIDEO creatives. These cannot be added or removed within Campaign Manager. For VPAID_LINEAR_VIDEO creatives, PARENT_VIDEO, TRANSCODED_VIDEO and ALTERNATE_VIDEO assets that are marked active serve as backup in case the VPAID creative cannot be served. Only PARENT_VIDEO assets can be added or removed for an INSTREAM_VIDEO or VPAID_LINEAR_VIDEO creative. PARENT_AUDIO refers to audios uploaded by the user in Campaign Manager and is applicable to INSTREAM_AUDIO creatives. TRANSCODED_AUDIO refers to audios transcoded by Campaign Manager from PARENT_AUDIO assets and is applicable to INSTREAM_AUDIO creatives.  // TODO: enum values: ["PRIMARY", "BACKUP_IMAGE", "ADDITIONAL_IMAGE", "ADDITIONAL_FLASH", "PARENT_VIDEO", "TRANSCODED_VIDEO", "OTHER", "ALTERNATE_VIDEO", "PARENT_AUDIO", "TRANSCODED_AUDIO"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// Size associated with this creative asset. This is a required field when applicable; however for IMAGE and FLASH_INPAGE, creatives if left blank, this field will be automatically set using the actual size of the associated image asset. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY, FLASH_INPAGE, HTML5_BANNER, IMAGE, and all RICH_MEDIA. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default)]
-    pub size: Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// Whether the asset is SSL-compliant. This is a read-only field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.
     #[serde(default, rename = "sslCompliant")]
-    pub ssl_compliant: Option<bool>,
+    pub ssl_compliant: ::core::option::Option<bool>,
     /// Initial wait time type before making the asset visible. Applicable to the following creative types: all RICH_MEDIA. // TODO: enum values: ["ASSET_START_TIME_TYPE_NONE", "ASSET_START_TIME_TYPE_CUSTOM"]
     #[serde(default, rename = "startTimeType")]
-    pub start_time_type: Option<String>,
+    pub start_time_type: ::core::option::Option<String>,
     /// Streaming URL for video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_VIDEO and all VPAID.
     #[serde(default, rename = "streamingServingUrl")]
-    pub streaming_serving_url: Option<String>,
+    pub streaming_serving_url: ::core::option::Option<String>,
     /// Whether the asset is transparent. Applicable to the following creative types: all RICH_MEDIA. Additionally, only applicable to HTML5 assets.
     #[serde(default)]
-    pub transparency: Option<bool>,
+    pub transparency: ::core::option::Option<bool>,
     /// Whether the asset is vertically locked. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA.
     #[serde(default, rename = "verticallyLocked")]
-    pub vertically_locked: Option<bool>,
+    pub vertically_locked: ::core::option::Option<bool>,
     /// Window mode options for flash assets. Applicable to the following creative types: FLASH_INPAGE, RICH_MEDIA_DISPLAY_EXPANDING, RICH_MEDIA_IM_EXPAND, RICH_MEDIA_DISPLAY_BANNER, and RICH_MEDIA_INPAGE_FLOATING. // TODO: enum values: ["OPAQUE", "WINDOW", "TRANSPARENT"]
     #[serde(default, rename = "windowMode")]
-    pub window_mode: Option<String>,
+    pub window_mode: ::core::option::Option<String>,
     /// zIndex value of an asset. Applicable to the following creative types: all RICH_MEDIA.Additionally, only applicable to assets whose displayType is NOT one of the following types: ASSET_DISPLAY_TYPE_INPAGE or ASSET_DISPLAY_TYPE_OVERLAY. Acceptable values are -999999999 to 999999999, inclusive.
     #[serde(default, rename = "zIndex")]
-    pub z_index: Option<i32>,
+    pub z_index: ::core::option::Option<i32>,
     /// File name of zip file. This is a read-only field. Applicable to the following creative types: HTML5_BANNER.
     #[serde(default, rename = "zipFilename")]
-    pub zip_filename: Option<String>,
+    pub zip_filename: ::core::option::Option<String>,
     /// Size of zip file. This is a read-only field. Applicable to the following creative types: HTML5_BANNER.
     #[serde(default, rename = "zipFilesize")]
-    pub zip_filesize: Option<String>,
+    pub zip_filesize: ::core::option::Option<String>,
 }
 
 /// Creative Asset ID.
@@ -1770,10 +1811,10 @@ pub struct CreativeAsset {
 pub struct CreativeAssetId {
     /// Name of the creative asset. This is a required field while inserting an asset. After insertion, this assetIdentifier is used to identify the uploaded asset. Characters in the name must be alphanumeric or one of the following: ".-_ ". Spaces are allowed.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Type of asset to upload. This is a required field. FLASH and IMAGE are no longer supported for new uploads. All image assets should use HTML_IMAGE. // TODO: enum values: ["IMAGE", "FLASH", "VIDEO", "HTML", "HTML_IMAGE", "AUDIO"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// CreativeAssets contains properties of a creative asset file which will be uploaded or has already been uploaded. Refer to the creative sample code for how to upload assets and insert a creative.
@@ -1781,37 +1822,40 @@ pub struct CreativeAssetId {
 pub struct CreativeAssetMetadata {
     /// ID of the creative asset. This is a required field.
     #[serde(default, rename = "assetIdentifier")]
-    pub asset_identifier: Option<CreativeAssetId>,
+    pub asset_identifier: ::core::option::Option<::std::boxed::Box<CreativeAssetId>>,
     /// List of detected click tags for assets. This is a read-only, auto-generated field. This field is empty for a rich media asset.
     #[serde(default, rename = "clickTags")]
-    pub click_tags: Option<Vec<ClickTag>>,
+    pub click_tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClickTag>>>,
     /// List of counter events configured for the asset. This is a read-only, auto-generated field and only applicable to a rich media asset.
     #[serde(default, rename = "counterCustomEvents")]
-    pub counter_custom_events: Option<Vec<CreativeCustomEvent>>,
+    pub counter_custom_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeCustomEvent>>>,
     /// List of feature dependencies for the creative asset that are detected by Campaign Manager. Feature dependencies are features that a browser must be able to support in order to render your HTML5 creative correctly. This is a read-only, auto-generated field.
     #[serde(default, rename = "detectedFeatures")]
-    pub detected_features: Option<Vec<String>>,
+    pub detected_features: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of exit events configured for the asset. This is a read-only, auto-generated field and only applicable to a rich media asset.
     #[serde(default, rename = "exitCustomEvents")]
-    pub exit_custom_events: Option<Vec<CreativeCustomEvent>>,
+    pub exit_custom_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeCustomEvent>>>,
     /// Numeric ID of the asset. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the numeric ID of the asset. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativeAssetMetadata".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// True if the uploaded asset is a rich media asset. This is a read-only, auto-generated field.
     #[serde(default, rename = "richMedia")]
-    pub rich_media: Option<bool>,
+    pub rich_media: ::core::option::Option<bool>,
     /// List of timer events configured for the asset. This is a read-only, auto-generated field and only applicable to a rich media asset.
     #[serde(default, rename = "timerCustomEvents")]
-    pub timer_custom_events: Option<Vec<CreativeCustomEvent>>,
+    pub timer_custom_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeCustomEvent>>>,
     /// Rules validated during code generation that generated a warning. This is a read-only, auto-generated field. Possible values are: - "ADMOB_REFERENCED" - "ASSET_FORMAT_UNSUPPORTED_DCM" - "ASSET_INVALID" - "CLICK_TAG_HARD_CODED" - "CLICK_TAG_INVALID" - "CLICK_TAG_IN_GWD" - "CLICK_TAG_MISSING" - "CLICK_TAG_MORE_THAN_ONE" - "CLICK_TAG_NON_TOP_LEVEL" - "COMPONENT_UNSUPPORTED_DCM" - "ENABLER_UNSUPPORTED_METHOD_DCM" - "EXTERNAL_FILE_REFERENCED" - "FILE_DETAIL_EMPTY" - "FILE_TYPE_INVALID" - "GWD_PROPERTIES_INVALID" - "HTML5_FEATURE_UNSUPPORTED" - "LINKED_FILE_NOT_FOUND" - "MAX_FLASH_VERSION_11" - "MRAID_REFERENCED" - "NOT_SSL_COMPLIANT" - "ORPHANED_ASSET" - "PRIMARY_HTML_MISSING" - "SVG_INVALID" - "ZIP_INVALID"
     #[serde(default, rename = "warnedValidationRules")]
-    pub warned_validation_rules: Option<Vec<String>>,
+    pub warned_validation_rules: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Creative Assignment.
@@ -1819,41 +1863,44 @@ pub struct CreativeAssetMetadata {
 pub struct CreativeAssignment {
     /// Whether this creative assignment is active. When true, the creative will be included in the ad''s rotation.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Whether applicable event tags should fire when this creative assignment is rendered. If this value is unset when the ad is inserted or updated, it will default to true for all creative types EXCEPT for INTERNAL_REDIRECT, INTERSTITIAL_INTERNAL_REDIRECT, and INSTREAM_VIDEO.
     #[serde(default, rename = "applyEventTags")]
-    pub apply_event_tags: Option<bool>,
+    pub apply_event_tags: ::core::option::Option<bool>,
     /// Click-through URL of the creative assignment.
     #[serde(default, rename = "clickThroughUrl")]
-    pub click_through_url: Option<ClickThroughUrl>,
+    pub click_through_url: ::core::option::Option<::std::boxed::Box<ClickThroughUrl>>,
     /// Companion creative overrides for this creative assignment. Applicable to video ads.
     #[serde(default, rename = "companionCreativeOverrides")]
-    pub companion_creative_overrides: Option<Vec<CompanionClickThroughOverride>>,
+    pub companion_creative_overrides:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CompanionClickThroughOverride>>>,
     /// Creative group assignments for this creative assignment. Only one assignment per creative group number is allowed for a maximum of two assignments.
     #[serde(default, rename = "creativeGroupAssignments")]
-    pub creative_group_assignments: Option<Vec<CreativeGroupAssignment>>,
+    pub creative_group_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeGroupAssignment>>>,
     /// ID of the creative to be assigned. This is a required field.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the creative. This is a read-only, auto-generated field.
     #[serde(default, rename = "creativeIdDimensionValue")]
-    pub creative_id_dimension_value: Option<DimensionValue>,
+    pub creative_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Rich media exit overrides for this creative assignment. Applicable when the creative type is any of the following: - DISPLAY - RICH_MEDIA_INPAGE - RICH_MEDIA_INPAGE_FLOATING - RICH_MEDIA_IM_EXPAND - RICH_MEDIA_EXPANDING - RICH_MEDIA_INTERSTITIAL_FLOAT - RICH_MEDIA_MOBILE_IN_APP - RICH_MEDIA_MULTI_FLOATING - RICH_MEDIA_PEEL_DOWN - VPAID_LINEAR - VPAID_NON_LINEAR
     #[serde(default, rename = "richMediaExitOverrides")]
-    pub rich_media_exit_overrides: Option<Vec<RichMediaExitOverride>>,
+    pub rich_media_exit_overrides:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RichMediaExitOverride>>>,
     /// Sequence number of the creative assignment, applicable when the rotation type is CREATIVE_ROTATION_TYPE_SEQUENTIAL. Acceptable values are 1 to 65535, inclusive.
     #[serde(default)]
-    pub sequence: Option<i32>,
+    pub sequence: ::core::option::Option<i32>,
     /// Whether the creative to be assigned is SSL-compliant. This is a read-only field that is auto-generated when the ad is inserted or updated.
     #[serde(default, rename = "sslCompliant")]
-    pub ssl_compliant: Option<bool>,
+    pub ssl_compliant: ::core::option::Option<bool>,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Weight of the creative assignment, applicable when the rotation type is CREATIVE_ROTATION_TYPE_RANDOM. Value must be greater than or equal to 1.
     #[serde(default)]
-    pub weight: Option<i32>,
+    pub weight: ::core::option::Option<i32>,
 }
 
 /// Click-through URL
@@ -1861,13 +1908,13 @@ pub struct CreativeAssignment {
 pub struct CreativeClickThroughUrl {
     /// Read-only convenience field representing the actual URL that will be used for this click-through. The URL is computed as follows: - If landingPageId is specified then that landing page''s URL is assigned to this field. - Otherwise, the customClickThroughUrl is assigned to this field.
     #[serde(default, rename = "computedClickThroughUrl")]
-    pub computed_click_through_url: Option<String>,
+    pub computed_click_through_url: ::core::option::Option<String>,
     /// Custom click-through URL. Applicable if the landingPageId field is left unset.
     #[serde(default, rename = "customClickThroughUrl")]
-    pub custom_click_through_url: Option<String>,
+    pub custom_click_through_url: ::core::option::Option<String>,
     /// ID of the landing page for the click-through URL.
     #[serde(default, rename = "landingPageId")]
-    pub landing_page_id: Option<String>,
+    pub landing_page_id: ::core::option::Option<String>,
 }
 
 /// Creative Custom Event.
@@ -1875,34 +1922,34 @@ pub struct CreativeClickThroughUrl {
 pub struct CreativeCustomEvent {
     /// Unique ID of this event used by Reporting and Data Transfer. This is a read-only field.
     #[serde(default, rename = "advertiserCustomEventId")]
-    pub advertiser_custom_event_id: Option<String>,
+    pub advertiser_custom_event_id: ::core::option::Option<String>,
     /// User-entered name for the event.
     #[serde(default, rename = "advertiserCustomEventName")]
-    pub advertiser_custom_event_name: Option<String>,
+    pub advertiser_custom_event_name: ::core::option::Option<String>,
     /// Type of the event. This is a read-only field. // TODO: enum values: ["ADVERTISER_EVENT_TIMER", "ADVERTISER_EVENT_EXIT", "ADVERTISER_EVENT_COUNTER"]
     #[serde(default, rename = "advertiserCustomEventType")]
-    pub advertiser_custom_event_type: Option<String>,
+    pub advertiser_custom_event_type: ::core::option::Option<String>,
     /// Artwork label column, used to link events in Campaign Manager back to events in Studio. This is a required field and should not be modified after insertion.
     #[serde(default, rename = "artworkLabel")]
-    pub artwork_label: Option<String>,
+    pub artwork_label: ::core::option::Option<String>,
     /// Artwork type used by the creative.This is a read-only field. // TODO: enum values: ["ARTWORK_TYPE_FLASH", "ARTWORK_TYPE_HTML5", "ARTWORK_TYPE_MIXED", "ARTWORK_TYPE_IMAGE"]
     #[serde(default, rename = "artworkType")]
-    pub artwork_type: Option<String>,
+    pub artwork_type: ::core::option::Option<String>,
     /// Exit click-through URL for the event. This field is used only for exit events.
     #[serde(default, rename = "exitClickThroughUrl")]
-    pub exit_click_through_url: Option<CreativeClickThroughUrl>,
+    pub exit_click_through_url: ::core::option::Option<::std::boxed::Box<CreativeClickThroughUrl>>,
     /// ID of this event. This is a required field and should not be modified after insertion.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Properties for rich media popup windows. This field is used only for exit events.
     #[serde(default, rename = "popupWindowProperties")]
-    pub popup_window_properties: Option<PopupWindowProperties>,
+    pub popup_window_properties: ::core::option::Option<::std::boxed::Box<PopupWindowProperties>>,
     /// Target type used by the event. // TODO: enum values: ["TARGET_BLANK", "TARGET_TOP", "TARGET_SELF", "TARGET_PARENT", "TARGET_POPUP"]
     #[serde(default, rename = "targetType")]
-    pub target_type: Option<String>,
+    pub target_type: ::core::option::Option<String>,
     /// Video reporting ID, used to differentiate multiple videos in a single creative. This is a read-only field.
     #[serde(default, rename = "videoReportingId")]
-    pub video_reporting_id: Option<String>,
+    pub video_reporting_id: ::core::option::Option<String>,
 }
 
 /// Contains properties of a creative field.
@@ -1910,25 +1957,25 @@ pub struct CreativeCustomEvent {
 pub struct CreativeField {
     /// Account ID of this creative field. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Advertiser ID of this creative field. This is a required field on insertion.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// ID of this creative field. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativeField".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this creative field. This is a required field and must be less than 256 characters long and unique among creative fields of the same advertiser.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Subaccount ID of this creative field. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Creative Field Assignment.
@@ -1936,10 +1983,10 @@ pub struct CreativeField {
 pub struct CreativeFieldAssignment {
     /// ID of the creative field.
     #[serde(default, rename = "creativeFieldId")]
-    pub creative_field_id: Option<String>,
+    pub creative_field_id: ::core::option::Option<String>,
     /// ID of the creative field value.
     #[serde(default, rename = "creativeFieldValueId")]
-    pub creative_field_value_id: Option<String>,
+    pub creative_field_value_id: ::core::option::Option<String>,
 }
 
 /// Contains properties of a creative field value.
@@ -1947,13 +1994,13 @@ pub struct CreativeFieldAssignment {
 pub struct CreativeFieldValue {
     /// ID of this creative field value. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativeFieldValue".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Value of this creative field value. It needs to be less than 256 characters in length and unique per creative field.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Creative Field Value List Response
@@ -1961,13 +2008,14 @@ pub struct CreativeFieldValue {
 pub struct CreativeFieldValuesListResponse {
     /// Creative field value collection.
     #[serde(default, rename = "creativeFieldValues")]
-    pub creative_field_values: Option<Vec<CreativeFieldValue>>,
+    pub creative_field_values:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeFieldValue>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativeFieldValuesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Creative Field List Response
@@ -1975,13 +2023,13 @@ pub struct CreativeFieldValuesListResponse {
 pub struct CreativeFieldsListResponse {
     /// Creative field collection.
     #[serde(default, rename = "creativeFields")]
-    pub creative_fields: Option<Vec<CreativeField>>,
+    pub creative_fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeField>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativeFieldsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Contains properties of a creative group.
@@ -1989,28 +2037,28 @@ pub struct CreativeFieldsListResponse {
 pub struct CreativeGroup {
     /// Account ID of this creative group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Advertiser ID of this creative group. This is a required field on insertion.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Subgroup of the creative group. Assign your creative groups to a subgroup in order to filter or manage them more easily. This field is required on insertion and is read-only after insertion. Acceptable values are 1 to 2, inclusive.
     #[serde(default, rename = "groupNumber")]
-    pub group_number: Option<i32>,
+    pub group_number: ::core::option::Option<i32>,
     /// ID of this creative group. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativeGroup".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this creative group. This is a required field and must be less than 256 characters long and unique among creative groups of the same advertiser.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Subaccount ID of this creative group. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Creative Group Assignment.
@@ -2018,10 +2066,10 @@ pub struct CreativeGroup {
 pub struct CreativeGroupAssignment {
     /// ID of the creative group to be assigned.
     #[serde(default, rename = "creativeGroupId")]
-    pub creative_group_id: Option<String>,
+    pub creative_group_id: ::core::option::Option<String>,
     /// Creative group number of the creative group assignment. // TODO: enum values: ["CREATIVE_GROUP_ONE", "CREATIVE_GROUP_TWO"]
     #[serde(default, rename = "creativeGroupNumber")]
-    pub creative_group_number: Option<String>,
+    pub creative_group_number: ::core::option::Option<String>,
 }
 
 /// Creative Group List Response
@@ -2029,13 +2077,13 @@ pub struct CreativeGroupAssignment {
 pub struct CreativeGroupsListResponse {
     /// Creative group collection.
     #[serde(default, rename = "creativeGroups")]
-    pub creative_groups: Option<Vec<CreativeGroup>>,
+    pub creative_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeGroup>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativeGroupsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Creative optimization settings.
@@ -2043,16 +2091,17 @@ pub struct CreativeGroupsListResponse {
 pub struct CreativeOptimizationConfiguration {
     /// ID of this creative optimization config. This field is auto-generated when the campaign is inserted or updated. It can be null for existing campaigns.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of this creative optimization config. This is a required field and must be less than 129 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// List of optimization activities associated with this configuration.
     #[serde(default, rename = "optimizationActivitys")]
-    pub optimization_activitys: Option<Vec<OptimizationActivity>>,
+    pub optimization_activitys:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OptimizationActivity>>>,
     /// Optimization model for this configuration. // TODO: enum values: ["CLICK", "POST_CLICK", "POST_IMPRESSION", "POST_CLICK_AND_IMPRESSION", "VIDEO_COMPLETION"]
     #[serde(default, rename = "optimizationModel")]
-    pub optimization_model: Option<String>,
+    pub optimization_model: ::core::option::Option<String>,
 }
 
 /// Creative Rotation.
@@ -2060,16 +2109,17 @@ pub struct CreativeOptimizationConfiguration {
 pub struct CreativeRotation {
     /// Creative assignments in this creative rotation.
     #[serde(default, rename = "creativeAssignments")]
-    pub creative_assignments: Option<Vec<CreativeAssignment>>,
+    pub creative_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeAssignment>>>,
     /// Creative optimization configuration that is used by this ad. It should refer to one of the existing optimization configurations in the ad''s campaign. If it is unset or set to 0, then the campaign''s default optimization configuration will be used for this ad.
     #[serde(default, rename = "creativeOptimizationConfigurationId")]
-    pub creative_optimization_configuration_id: Option<String>,
+    pub creative_optimization_configuration_id: ::core::option::Option<String>,
     /// Type of creative rotation. Can be used to specify whether to use sequential or random rotation. // TODO: enum values: ["CREATIVE_ROTATION_TYPE_SEQUENTIAL", "CREATIVE_ROTATION_TYPE_RANDOM"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Strategy for calculating weights. Used with CREATIVE_ROTATION_TYPE_RANDOM. // TODO: enum values: ["WEIGHT_STRATEGY_EQUAL", "WEIGHT_STRATEGY_CUSTOM", "WEIGHT_STRATEGY_HIGHEST_CTR", "WEIGHT_STRATEGY_OPTIMIZED"]
     #[serde(default, rename = "weightCalculationStrategy")]
-    pub weight_calculation_strategy: Option<String>,
+    pub weight_calculation_strategy: ::core::option::Option<String>,
 }
 
 /// Creative List Response
@@ -2077,13 +2127,13 @@ pub struct CreativeRotation {
 pub struct CreativesListResponse {
     /// Creative collection.
     #[serde(default)]
-    pub creatives: Option<Vec<Creative>>,
+    pub creatives: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Creative>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#creativesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Represents fields that are compatible to be selected for a report of type "CROSS_DIMENSION_REACH".
@@ -2091,19 +2141,19 @@ pub struct CreativesListResponse {
 pub struct CrossDimensionReachReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "breakdown" section of the report.
     #[serde(default)]
-    pub breakdown: Option<Vec<Dimension>>,
+    pub breakdown: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
-    pub dimension_filters: Option<Vec<Dimension>>,
+    pub dimension_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// The kind of resource this is, in this case dfareporting#crossDimensionReachReportCompatibleFields.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metrics which are compatible to be selected in the "metricNames" section of the report.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
     /// Metrics which are compatible to be selected in the "overlapMetricNames" section of the report.
     #[serde(default, rename = "overlapMetrics")]
-    pub overlap_metrics: Option<Vec<Metric>>,
+    pub overlap_metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
 }
 
 /// Represents fields that are compatible to be selected for a report of type "CROSS_MEDIA_REACH".
@@ -2111,16 +2161,16 @@ pub struct CrossDimensionReachReportCompatibleFields {
 pub struct CrossMediaReachReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
-    pub dimension_filters: Option<Vec<Dimension>>,
+    pub dimension_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// Dimensions which are compatible to be selected in the "dimensions" section of the report.
     #[serde(default)]
-    pub dimensions: Option<Vec<Dimension>>,
+    pub dimensions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// The kind of resource this is, in this case dfareporting#crossMediaReachReportCompatibleFields.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metrics which are compatible to be selected in the "metricNames" section of the report.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
 }
 
 /// A custom floodlight variable. Can be used in both batchinsert and batchupdate. Adding this in batchupdate will update or append the variable to the existing list.
@@ -2128,13 +2178,13 @@ pub struct CrossMediaReachReportCompatibleFields {
 pub struct CustomFloodlightVariable {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#customFloodlightVariable".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The type of custom floodlight variable to supply a value for. These map to the "u[1-100]=" in the tags. // TODO: enum values: ["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U21", "U22", "U23", "U24", "U25", "U26", "U27", "U28", "U29", "U30", "U31", "U32", "U33", "U34", "U35", "U36", "U37", "U38", "U39", "U40", "U41", "U42", "U43", "U44", "U45", "U46", "U47", "U48", "U49", "U50", "U51", "U52", "U53", "U54", "U55", "U56", "U57", "U58", "U59", "U60", "U61", "U62", "U63", "U64", "U65", "U66", "U67", "U68", "U69", "U70", "U71", "U72", "U73", "U74", "U75", "U76", "U77", "U78", "U79", "U80", "U81", "U82", "U83", "U84", "U85", "U86", "U87", "U88", "U89", "U90", "U91", "U92", "U93", "U94", "U95", "U96", "U97", "U98", "U99", "U100"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The value of the custom floodlight variable. The length of string must not exceed 100 characters.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Represents a Custom Rich Media Events group.
@@ -2142,10 +2192,11 @@ pub struct CustomFloodlightVariable {
 pub struct CustomRichMediaEvents {
     /// List of custom rich media event IDs. Dimension values must be all of type dfa:richMediaEventTypeIdAndName.
     #[serde(default, rename = "filteredEventIds")]
-    pub filtered_event_ids: Option<Vec<DimensionValue>>,
+    pub filtered_event_ids:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionValue>>>,
     /// The kind of resource this is, in this case dfareporting#customRichMediaEvents.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains custom rule information.
@@ -2153,13 +2204,13 @@ pub struct CustomRichMediaEvents {
 pub struct CustomRule {
     /// Optional. Name of this custom rule.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Priority of the custom rule.
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     /// Optional. A list of field filter, the custom rule will apply.
     #[serde(default, rename = "ruleBlocks")]
-    pub rule_blocks: Option<Vec<RuleBlock>>,
+    pub rule_blocks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RuleBlock>>>,
 }
 
 /// Contains custom value field information.
@@ -2167,10 +2218,10 @@ pub struct CustomRule {
 pub struct CustomValueField {
     /// Optional. Field ID in the element.
     #[serde(default, rename = "fieldId")]
-    pub field_id: Option<i32>,
+    pub field_id: ::core::option::Option<i32>,
     /// Optional. Custom key used to match for auto filtering.
     #[serde(default, rename = "requestKey")]
-    pub request_key: Option<String>,
+    pub request_key: ::core::option::Option<String>,
 }
 
 /// Custom Viewability Metric
@@ -2178,13 +2229,14 @@ pub struct CustomValueField {
 pub struct CustomViewabilityMetric {
     /// Configuration of the custom viewability metric.
     #[serde(default)]
-    pub configuration: Option<CustomViewabilityMetricConfiguration>,
+    pub configuration:
+        ::core::option::Option<::std::boxed::Box<CustomViewabilityMetricConfiguration>>,
     /// ID of the custom viewability metric.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of the custom viewability metric.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The attributes, like playtime and percent onscreen, that define the Custom Viewability Metric.
@@ -2192,31 +2244,31 @@ pub struct CustomViewabilityMetric {
 pub struct CustomViewabilityMetricConfiguration {
     /// Whether the video must be audible to count an impression.
     #[serde(default)]
-    pub audible: Option<bool>,
+    pub audible: ::core::option::Option<bool>,
     /// The time in milliseconds the video must play for the Custom Viewability Metric to count an impression. If both this and timePercent are specified, the earlier of the two will be used.
     #[serde(default, rename = "timeMillis")]
-    pub time_millis: Option<i32>,
+    pub time_millis: ::core::option::Option<i32>,
     /// The percentage of video that must play for the Custom Viewability Metric to count an impression. If both this and timeMillis are specified, the earlier of the two will be used.
     #[serde(default, rename = "timePercent")]
-    pub time_percent: Option<i32>,
+    pub time_percent: ::core::option::Option<i32>,
     /// The percentage of video that must be on screen for the Custom Viewability Metric to count an impression.
     #[serde(default, rename = "viewabilityPercent")]
-    pub viewability_percent: Option<i32>,
+    pub viewability_percent: ::core::option::Option<i32>,
 }
 
 /// Represents a date range.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DateRange {
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// The kind of resource this is, in this case dfareporting#dateRange.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The date range relative to the date of when the report is run. // TODO: enum values: ["TODAY", "YESTERDAY", "WEEK_TO_DATE", "MONTH_TO_DATE", "QUARTER_TO_DATE", "YEAR_TO_DATE", "PREVIOUS_WEEK", "PREVIOUS_MONTH", "PREVIOUS_QUARTER", "PREVIOUS_YEAR", "LAST_7_DAYS", "LAST_30_DAYS", "LAST_90_DAYS", "LAST_365_DAYS", "LAST_24_MONTHS", "LAST_14_DAYS", "LAST_60_DAYS"]
     #[serde(default, rename = "relativeDateRange")]
-    pub relative_date_range: Option<String>,
+    pub relative_date_range: ::core::option::Option<String>,
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
 }
 
 /// Day Part Targeting.
@@ -2224,13 +2276,13 @@ pub struct DateRange {
 pub struct DayPartTargeting {
     /// Days of the week when the ad will serve. Acceptable values are: - "SUNDAY" - "MONDAY" - "TUESDAY" - "WEDNESDAY" - "THURSDAY" - "FRIDAY" - "SATURDAY"
     #[serde(default, rename = "daysOfWeek")]
-    pub days_of_week: Option<Vec<String>>,
+    pub days_of_week: ::core::option::Option<::std::vec::Vec<String>>,
     /// Hours of the day when the ad will serve, where 0 is midnight to 1 AM and 23 is 11 PM to midnight. Can be specified with days of week, in which case the ad would serve during these hours on the specified days. For example if Monday, Wednesday, Friday are the days of week specified and 9-10am, 3-5pm (hours 9, 15, and 16) is specified, the ad would serve Monday, Wednesdays, and Fridays at 9-10am and 3-5pm. Acceptable values are 0 to 23, inclusive.
     #[serde(default, rename = "hoursOfDay")]
-    pub hours_of_day: Option<Vec<i32>>,
+    pub hours_of_day: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Whether or not to use the user''s local time. If false, the America/New York time zone applies.
     #[serde(default, rename = "userLocalTime")]
-    pub user_local_time: Option<bool>,
+    pub user_local_time: ::core::option::Option<bool>,
 }
 
 /// Contains information about a landing page deep link.
@@ -2238,19 +2290,19 @@ pub struct DayPartTargeting {
 pub struct DeepLink {
     /// The URL of the mobile app being linked to.
     #[serde(default, rename = "appUrl")]
-    pub app_url: Option<String>,
+    pub app_url: ::core::option::Option<String>,
     /// The fallback URL. This URL will be served to users who do not have the mobile app installed.
     #[serde(default, rename = "fallbackUrl")]
-    pub fallback_url: Option<String>,
+    pub fallback_url: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#deepLink".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The mobile app targeted by this deep link.
     #[serde(default, rename = "mobileApp")]
-    pub mobile_app: Option<MobileApp>,
+    pub mobile_app: ::core::option::Option<::std::boxed::Box<MobileApp>>,
     /// Ads served to users on these remarketing lists will use this deep link. Applicable when mobileApp.directory is APPLE_APP_STORE.
     #[serde(default, rename = "remarketingListIds")]
-    pub remarketing_list_ids: Option<Vec<String>>,
+    pub remarketing_list_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Properties of inheriting and overriding the default click-through event tag. A campaign may override the event tag defined at the advertiser level, and an ad may also override the campaign''s setting further.
@@ -2258,10 +2310,10 @@ pub struct DeepLink {
 pub struct DefaultClickThroughEventTagProperties {
     /// ID of the click-through event tag to apply to all ads in this entity''s scope.
     #[serde(default, rename = "defaultClickThroughEventTagId")]
-    pub default_click_through_event_tag_id: Option<String>,
+    pub default_click_through_event_tag_id: ::core::option::Option<String>,
     /// Whether this entity should override the inherited default click-through event tag with its own defined value.
     #[serde(default, rename = "overrideInheritedEventTag")]
-    pub override_inherited_event_tag: Option<bool>,
+    pub override_inherited_event_tag: ::core::option::Option<bool>,
 }
 
 /// Delivery Schedule.
@@ -2269,16 +2321,16 @@ pub struct DefaultClickThroughEventTagProperties {
 pub struct DeliverySchedule {
     /// Limit on the number of times an individual user can be served the ad within a specified period of time.
     #[serde(default, rename = "frequencyCap")]
-    pub frequency_cap: Option<FrequencyCap>,
+    pub frequency_cap: ::core::option::Option<::std::boxed::Box<FrequencyCap>>,
     /// Whether or not hard cutoff is enabled. If true, the ad will not serve after the end date and time. Otherwise the ad will continue to be served until it has reached its delivery goals.
     #[serde(default, rename = "hardCutoff")]
-    pub hard_cutoff: Option<bool>,
+    pub hard_cutoff: ::core::option::Option<bool>,
     /// Impression ratio for this ad. This ratio determines how often each ad is served relative to the others. For example, if ad A has an impression ratio of 1 and ad B has an impression ratio of 3, then Campaign Manager will serve ad B three times as often as ad A. Acceptable values are 1 to 10, inclusive.
     #[serde(default, rename = "impressionRatio")]
-    pub impression_ratio: Option<String>,
+    pub impression_ratio: ::core::option::Option<String>,
     /// Serving priority of an ad, with respect to other ads. The lower the priority number, the greater the priority with which it is served. // TODO: enum values: ["AD_PRIORITY_01", "AD_PRIORITY_02", "AD_PRIORITY_03", "AD_PRIORITY_04", "AD_PRIORITY_05", "AD_PRIORITY_06", "AD_PRIORITY_07", "AD_PRIORITY_08", "AD_PRIORITY_09", "AD_PRIORITY_10", "AD_PRIORITY_11", "AD_PRIORITY_12", "AD_PRIORITY_13", "AD_PRIORITY_14", "AD_PRIORITY_15", "AD_PRIORITY_16"]
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
 }
 
 /// Contains dependent field value information.
@@ -2286,10 +2338,10 @@ pub struct DeliverySchedule {
 pub struct DependentFieldValue {
     /// Optional. The ID of the element that value''s field will match against.
     #[serde(default, rename = "elementId")]
-    pub element_id: Option<String>,
+    pub element_id: ::core::option::Option<String>,
     /// Optional. The field id of the dependent field.
     #[serde(default, rename = "fieldId")]
-    pub field_id: Option<i32>,
+    pub field_id: ::core::option::Option<i32>,
 }
 
 /// Request message for DfareportingStudioCreativeAssets.Insert.
@@ -2297,13 +2349,13 @@ pub struct DependentFieldValue {
 pub struct DfareportingStudioCreativeAssetsInsertRequest {
     /// Optional. Studio account ID of the studio creative asset. It is a optional.
     #[serde(default, rename = "studioAccountId")]
-    pub studio_account_id: Option<String>,
+    pub studio_account_id: ::core::option::Option<String>,
     /// Required. Studio advertiser ID of the studio creative asset. It is a required field on insertion.
     #[serde(default, rename = "studioAdvertiserId")]
-    pub studio_advertiser_id: Option<String>,
+    pub studio_advertiser_id: ::core::option::Option<String>,
     /// Optional. Studio creative ID of the studio creative asset. It is a optional field. If it is set, the asset will be associated to the creative.
     #[serde(default, rename = "studioCreativeId")]
-    pub studio_creative_id: Option<String>,
+    pub studio_creative_id: ::core::option::Option<String>,
 }
 
 /// Google Ad Manager Settings
@@ -2311,19 +2363,19 @@ pub struct DfareportingStudioCreativeAssetsInsertRequest {
 pub struct DfpSettings {
     /// Ad Manager network code for this directory site.
     #[serde(default, rename = "dfpNetworkCode")]
-    pub dfp_network_code: Option<String>,
+    pub dfp_network_code: ::core::option::Option<String>,
     /// Ad Manager network name for this directory site.
     #[serde(default, rename = "dfpNetworkName")]
-    pub dfp_network_name: Option<String>,
+    pub dfp_network_name: ::core::option::Option<String>,
     /// Whether this directory site accepts programmatic placements.
     #[serde(default, rename = "programmaticPlacementAccepted")]
-    pub programmatic_placement_accepted: Option<bool>,
+    pub programmatic_placement_accepted: ::core::option::Option<bool>,
     /// Whether this directory site accepts publisher-paid tags.
     #[serde(default, rename = "pubPaidPlacementAccepted")]
-    pub pub_paid_placement_accepted: Option<bool>,
+    pub pub_paid_placement_accepted: ::core::option::Option<bool>,
     /// Whether this directory site is available only via Publisher Portal.
     #[serde(default, rename = "publisherPortalOnly")]
-    pub publisher_portal_only: Option<bool>,
+    pub publisher_portal_only: ::core::option::Option<bool>,
 }
 
 /// Represents a dimension.
@@ -2331,10 +2383,10 @@ pub struct DfpSettings {
 pub struct Dimension {
     /// The kind of resource this is, in this case dfareporting#dimension.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The dimension name, e.g. advertiser
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Represents a dimension filter.
@@ -2342,13 +2394,13 @@ pub struct Dimension {
 pub struct DimensionFilter {
     /// The name of the dimension to filter.
     #[serde(default, rename = "dimensionName")]
-    pub dimension_name: Option<String>,
+    pub dimension_name: ::core::option::Option<String>,
     /// The kind of resource this is, in this case dfareporting#dimensionFilter.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The value of the dimension to filter.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Represents a DimensionValue resource.
@@ -2356,22 +2408,22 @@ pub struct DimensionFilter {
 pub struct DimensionValue {
     /// The name of the dimension.
     #[serde(default, rename = "dimensionName")]
-    pub dimension_name: Option<String>,
+    pub dimension_name: ::core::option::Option<String>,
     /// The eTag of this response for caching purposes.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The ID associated with the value if available.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The kind of resource this is, in this case dfareporting#dimensionValue.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Determines how the ''value'' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, ''*'' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions (''dfa:paidSearch*'') allow a matchType other than EXACT. // TODO: enum values: ["EXACT", "BEGINS_WITH", "CONTAINS", "WILDCARD_EXPRESSION"]
     #[serde(default, rename = "matchType")]
-    pub match_type: Option<String>,
+    pub match_type: ::core::option::Option<String>,
     /// The value of the dimension.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Represents the list of DimensionValue resources.
@@ -2379,16 +2431,16 @@ pub struct DimensionValue {
 pub struct DimensionValueList {
     /// The eTag of this response for caching purposes.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The dimension values returned in this response.
     #[serde(default)]
-    pub items: Option<Vec<DimensionValue>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionValue>>>,
     /// The kind of list this is, in this case dfareporting#dimensionValueList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Continuation token used to page through dimension values. To retrieve the next page of results, set the next request''s "pageToken" to the value of this field. The page token is only valid for a limited amount of time and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Represents a DimensionValuesRequest.
@@ -2396,17 +2448,17 @@ pub struct DimensionValueList {
 pub struct DimensionValueRequest {
     /// The name of the dimension for which values should be requested.
     #[serde(default, rename = "dimensionName")]
-    pub dimension_name: Option<String>,
+    pub dimension_name: ::core::option::Option<String>,
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// The list of filters by which to filter values. The filters are ANDed.
     #[serde(default)]
-    pub filters: Option<Vec<DimensionFilter>>,
+    pub filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionFilter>>>,
     /// The kind of request this is, in this case dfareporting#dimensionValueRequest .
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
 }
 
 /// DirectorySites contains properties of a website from the Site Directory. Sites need to be added to an account via the Sites resource before they can be assigned to a placement.
@@ -2414,31 +2466,31 @@ pub struct DimensionValueRequest {
 pub struct DirectorySite {
     /// ID of this directory site. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this directory site. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Tag types for regular placements. Acceptable values are: - "STANDARD" - "IFRAME_JAVASCRIPT_INPAGE" - "INTERNAL_REDIRECT_INPAGE" - "JAVASCRIPT_INPAGE"
     #[serde(default, rename = "inpageTagFormats")]
-    pub inpage_tag_formats: Option<Vec<String>>,
+    pub inpage_tag_formats: ::core::option::Option<::std::vec::Vec<String>>,
     /// Tag types for interstitial placements. Acceptable values are: - "IFRAME_JAVASCRIPT_INTERSTITIAL" - "INTERNAL_REDIRECT_INTERSTITIAL" - "JAVASCRIPT_INTERSTITIAL"
     #[serde(default, rename = "interstitialTagFormats")]
-    pub interstitial_tag_formats: Option<Vec<String>>,
+    pub interstitial_tag_formats: ::core::option::Option<::std::vec::Vec<String>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#directorySite".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this directory site.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Default publisher specification ID of video placements under this directory site. Possible values are: * 1, Hulu * 2, NBC * 3, CBS * 4, CBS Desktop * 5, Discovery * 6, VEVO HD * 7, VEVO Vertical * 8, Fox * 9, CW Network * 10, Disney * 11, IGN * 12, NFL.com * 13, Turner Broadcasting * 14, Tubi on Fox * 15, Hearst Corporation * 16, Twitch Desktop * 17, ABC * 18, Univision * 19, MLB.com * 20, MLB.com Mobile * 21, MLB.com OTT * 22, Polsat * 23, TVN * 24, Mediaset * 25, Antena 3 * 26, Mediamond * 27, Sky Italia * 28, Tubi on CBS * 29, Spotify * 30, Paramount * 31, Max
     #[serde(default, rename = "publisherSpecificationId")]
-    pub publisher_specification_id: Option<String>,
+    pub publisher_specification_id: ::core::option::Option<String>,
     /// Directory site settings.
     #[serde(default)]
-    pub settings: Option<DirectorySiteSettings>,
+    pub settings: ::core::option::Option<::std::boxed::Box<DirectorySiteSettings>>,
     /// URL of this directory site.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Directory Site Settings
@@ -2446,16 +2498,16 @@ pub struct DirectorySite {
 pub struct DirectorySiteSettings {
     /// Whether this directory site has disabled active view creatives.
     #[serde(default, rename = "activeViewOptOut")]
-    pub active_view_opt_out: Option<bool>,
+    pub active_view_opt_out: ::core::option::Option<bool>,
     /// Directory site Ad Manager settings.
     #[serde(default, rename = "dfpSettings")]
-    pub dfp_settings: Option<DfpSettings>,
+    pub dfp_settings: ::core::option::Option<::std::boxed::Box<DfpSettings>>,
     /// Whether this site accepts in-stream video ads.
     #[serde(default, rename = "instreamVideoPlacementAccepted")]
-    pub instream_video_placement_accepted: Option<bool>,
+    pub instream_video_placement_accepted: ::core::option::Option<bool>,
     /// Whether this site accepts interstitial ads.
     #[serde(default, rename = "interstitialPlacementAccepted")]
-    pub interstitial_placement_accepted: Option<bool>,
+    pub interstitial_placement_accepted: ::core::option::Option<bool>,
 }
 
 /// Directory Site List Response
@@ -2463,13 +2515,13 @@ pub struct DirectorySiteSettings {
 pub struct DirectorySitesListResponse {
     /// Directory site collection.
     #[serde(default, rename = "directorySites")]
-    pub directory_sites: Option<Vec<DirectorySite>>,
+    pub directory_sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DirectorySite>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#directorySitesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains dynamic feed information.
@@ -2477,37 +2529,37 @@ pub struct DirectorySitesListResponse {
 pub struct DynamicFeed {
     /// Required. The content source of the dynamic feed. This is a required field.
     #[serde(default, rename = "contentSource")]
-    pub content_source: Option<ContentSource>,
+    pub content_source: ::core::option::Option<::std::boxed::Box<ContentSource>>,
     /// Output only. The creation timestamp of the dynamic feed. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Output only. Unique ID of this dynamic feed. This is a read-only, auto-generated field.
     #[serde(default, rename = "dynamicFeedId")]
-    pub dynamic_feed_id: Option<String>,
+    pub dynamic_feed_id: ::core::option::Option<String>,
     /// Optional. Name of this dynamic feed. It is defaulted to content source file name if not provided.
     #[serde(default, rename = "dynamicFeedName")]
-    pub dynamic_feed_name: Option<String>,
+    pub dynamic_feed_name: ::core::option::Option<String>,
     /// Required. The element of the dynamic feed that is to specify the schema of the feed. This is a required field.
     #[serde(default)]
-    pub element: Option<Element>,
+    pub element: ::core::option::Option<::std::boxed::Box<Element>>,
     /// Output only. The ingestion status of the dynamic feed. This is a read-only field.
     #[serde(default, rename = "feedIngestionStatus")]
-    pub feed_ingestion_status: Option<FeedIngestionStatus>,
+    pub feed_ingestion_status: ::core::option::Option<::std::boxed::Box<FeedIngestionStatus>>,
     /// Optional. The schedule of the dynamic feed. It can be set if the feed is published.
     #[serde(default, rename = "feedSchedule")]
-    pub feed_schedule: Option<FeedSchedule>,
+    pub feed_schedule: ::core::option::Option<::std::boxed::Box<FeedSchedule>>,
     /// Output only. Indicates whether the dynamic feed has a published version. This is a read-only field.
     #[serde(default, rename = "hasPublished")]
-    pub has_published: Option<bool>,
+    pub has_published: ::core::option::Option<bool>,
     /// Output only. The last modified timestamp of the dynamic feed. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Output only. The status of the feed. It is a read-only field that depends on the the feed ingestion status. The default value is INACTIVE, and it will be updated to ACTIVE once the feed is ingested successfully. // TODO: enum values: ["STATUS_UNKNOWN", "ACTIVE", "INACTIVE", "DELETED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Required. Advertiser ID of this dynamic feed. This is a required field.
     #[serde(default, rename = "studioAdvertiserId")]
-    pub studio_advertiser_id: Option<String>,
+    pub studio_advertiser_id: ::core::option::Option<String>,
 }
 
 /// Dynamic profile ID is required for dynamic feed insert as the current GPA API only can create a dynamic feed under profile context,even though the dynamic feed itself don''t need the dynamic profile id.
@@ -2515,10 +2567,10 @@ pub struct DynamicFeed {
 pub struct DynamicFeedsInsertRequest {
     /// Required. Dynamic feed to insert.
     #[serde(default, rename = "dynamicFeed")]
-    pub dynamic_feed: Option<DynamicFeed>,
+    pub dynamic_feed: ::core::option::Option<::std::boxed::Box<DynamicFeed>>,
     /// Required. Dynamic profile ID of the inserted dynamic feed.
     #[serde(default, rename = "dynamicProfileId")]
-    pub dynamic_profile_id: Option<String>,
+    pub dynamic_profile_id: ::core::option::Option<String>,
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains dynamic profile information.
@@ -2526,37 +2578,37 @@ pub struct DynamicFeedsInsertRequest {
 pub struct DynamicProfile {
     /// Optional. Active version of the dynamic profile.
     #[serde(default)]
-    pub active: Option<DynamicProfileVersion>,
+    pub active: ::core::option::Option<::std::boxed::Box<DynamicProfileVersion>>,
     /// Optional. Archive status of this dynamic profile. // TODO: enum values: ["ARCHIVE_STATUS_UNKNOWN", "UNARCHIVED", "ARCHIVED"]
     #[serde(default, rename = "archiveStatus")]
-    pub archive_status: Option<String>,
+    pub archive_status: ::core::option::Option<String>,
     /// Output only. The creation timestamp of the dynamic profile. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Optional. Description of this dynamic profile.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Draft version of the dynamic profile.
     #[serde(default)]
-    pub draft: Option<DynamicProfileVersion>,
+    pub draft: ::core::option::Option<::std::boxed::Box<DynamicProfileVersion>>,
     /// Output only. Unique ID of this dynamic profile. This is a read-only, auto-generated field.
     #[serde(default, rename = "dynamicProfileId")]
-    pub dynamic_profile_id: Option<String>,
+    pub dynamic_profile_id: ::core::option::Option<String>,
     /// Output only. Identifies what kind of resource this is. Value: the fixed string "dfareporting#dynamicProfile".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. The last modified timestamp of the dynamic profile. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Required. Identifier. Name of this dynamic profile. This is a required field and must be less than 256 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Status of this dynamic profile. // TODO: enum values: ["STATUS_UNKNOWN", "ACTIVE", "INACTIVE", "DELETED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Required. Advertiser ID of this dynamic profile. This is a required field on insertion.
     #[serde(default, rename = "studioAdvertiserId")]
-    pub studio_advertiser_id: Option<String>,
+    pub studio_advertiser_id: ::core::option::Option<String>,
 }
 
 /// Contains dynamic profile specific settings for an associated dynamic feed.
@@ -2564,13 +2616,13 @@ pub struct DynamicProfile {
 pub struct DynamicProfileFeedSettings {
     /// Optional. Dynamic feed ID associated with dynamic profile version.
     #[serde(default, rename = "dynamicFeedId")]
-    pub dynamic_feed_id: Option<String>,
+    pub dynamic_feed_id: ::core::option::Option<String>,
     /// Optional. Dynamic rules for row selection for the given dynamic feed in the given dynamic profile.
     #[serde(default, rename = "dynamicRules")]
-    pub dynamic_rules: Option<DynamicRules>,
+    pub dynamic_rules: ::core::option::Option<::std::boxed::Box<DynamicRules>>,
     /// Optional. The number of this dynamic feed rows needed by the dynamic profile, default value is 1. Acceptable values are between 1 to 99, inclusive.
     #[serde(default)]
-    pub quantity: Option<i32>,
+    pub quantity: ::core::option::Option<i32>,
 }
 
 /// Response message for DfareportingDynamicProfiles.GenerateCode.
@@ -2578,7 +2630,7 @@ pub struct DynamicProfileFeedSettings {
 pub struct DynamicProfileGenerateCodeResponse {
     /// Generated code for the dynamic profile. The code will need to be unescaped.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
 }
 
 /// Contains dynamic profile version information.
@@ -2586,10 +2638,11 @@ pub struct DynamicProfileGenerateCodeResponse {
 pub struct DynamicProfileVersion {
     /// Optional. Associated dynamic feeds and their settings (including dynamic rules) for this dynamic profile version.
     #[serde(default, rename = "dynamicProfileFeedSettings")]
-    pub dynamic_profile_feed_settings: Option<Vec<DynamicProfileFeedSettings>>,
+    pub dynamic_profile_feed_settings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DynamicProfileFeedSettings>>>,
     /// Output only. Version ID of this dynamic profile version. This is a read-only, auto-generated field. -1 for draft version, 0+ for published versions.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
 }
 
 /// Contains dynamic rules information.
@@ -2597,28 +2650,30 @@ pub struct DynamicProfileVersion {
 pub struct DynamicRules {
     /// Optional. List of field IDs in this element that should be auto-targeted. Applicable when rule type is AUTO.
     #[serde(default, rename = "autoTargetedFieldIds")]
-    pub auto_targeted_field_ids: Option<Vec<i32>>,
+    pub auto_targeted_field_ids: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Optional. The custom rules of the dynamic feed, only applicable when rule type is CUSTOM.
     #[serde(default, rename = "customRules")]
-    pub custom_rules: Option<Vec<CustomRule>>,
+    pub custom_rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomRule>>>,
     /// Optional. Mapping between field ID and custom key that are used to match for auto filtering.
     #[serde(default, rename = "customValueFields")]
-    pub custom_value_fields: Option<Vec<CustomValueField>>,
+    pub custom_value_fields:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomValueField>>>,
     /// Optional. The proximity targeting rules of the dynamic feed, only applicable when rule type is PROXIMITY_TARGETING.
     #[serde(default, rename = "proximityFilter")]
-    pub proximity_filter: Option<ProximityFilter>,
+    pub proximity_filter: ::core::option::Option<::std::boxed::Box<ProximityFilter>>,
     /// Optional. The link between an element field ID and a list of user attribute IDs.
     #[serde(default, rename = "remarketingValueAttributes")]
-    pub remarketing_value_attributes: Option<Vec<RemarketingValueAttribute>>,
+    pub remarketing_value_attributes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RemarketingValueAttribute>>>,
     /// Optional. The rotation type to select from eligible rows. Rotation type only apply when the filtering rule results in more than one eligible rows. // TODO: enum values: ["ROTATION_TYPE_UNKNOWN", "RANDOM", "OPTIMIZED", "WEIGHTED"]
     #[serde(default, rename = "rotationType")]
-    pub rotation_type: Option<String>,
+    pub rotation_type: ::core::option::Option<String>,
     /// Optional. The type of the rule, the default value is OPEN. // TODO: enum values: ["RULE_SET_TYPE_UNKNOWN", "OPEN", "AUTO", "CUSTOM", "PROXIMITY_TARGETING"]
     #[serde(default, rename = "ruleType")]
-    pub rule_type: Option<String>,
+    pub rule_type: ::core::option::Option<String>,
     /// Optional. The field ID for the feed that will be used for weighted rotation, only applicable when rotation type is WEIGHTED.
     #[serde(default, rename = "weightFieldId")]
-    pub weight_field_id: Option<i32>,
+    pub weight_field_id: ::core::option::Option<i32>,
 }
 
 /// Contains properties of a dynamic targeting key. Dynamic targeting keys are unique, user-friendly labels, created at the advertiser level in DCM, that can be assigned to ads, creatives, and placements and used for targeting with Studio dynamic creatives. Use these labels instead of numeric Campaign Manager IDs (such as placement IDs) to save time and avoid errors in your dynamic feeds.
@@ -2626,16 +2681,16 @@ pub struct DynamicRules {
 pub struct DynamicTargetingKey {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#dynamicTargetingKey".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this dynamic targeting key. This is a required field. Must be less than 256 characters long and cannot contain commas. All characters are converted to lowercase.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// ID of the object of this dynamic targeting key. This is a required field.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<String>,
+    pub object_id: ::core::option::Option<String>,
     /// Type of the object of this dynamic targeting key. This is a required field. // TODO: enum values: ["OBJECT_ADVERTISER", "OBJECT_AD", "OBJECT_CREATIVE", "OBJECT_PLACEMENT"]
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
 }
 
 /// Dynamic Targeting Key List Response
@@ -2643,10 +2698,11 @@ pub struct DynamicTargetingKey {
 pub struct DynamicTargetingKeysListResponse {
     /// Dynamic targeting key collection.
     #[serde(default, rename = "dynamicTargetingKeys")]
-    pub dynamic_targeting_keys: Option<Vec<DynamicTargetingKey>>,
+    pub dynamic_targeting_keys:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DynamicTargetingKey>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#dynamicTargetingKeysListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains the element of the dynamic feed.
@@ -2654,40 +2710,40 @@ pub struct DynamicTargetingKeysListResponse {
 pub struct Element {
     /// Optional. The field ID to specify the active field in the feed.
     #[serde(default, rename = "activeFieldId")]
-    pub active_field_id: Option<i32>,
+    pub active_field_id: ::core::option::Option<i32>,
     /// Output only. The creation timestamp of the element. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Optional. The field ID to specify the field that represents the default field in the feed.
     #[serde(default, rename = "defaultFieldId")]
-    pub default_field_id: Option<i32>,
+    pub default_field_id: ::core::option::Option<i32>,
     /// Optional. The name of the element. It is defaulted to resource file name if not provided.
     #[serde(default, rename = "elementName")]
-    pub element_name: Option<String>,
+    pub element_name: ::core::option::Option<String>,
     /// Optional. The field ID to specify the field that represents the end timestamp. Only applicable if you''re planning to use scheduling in your dynamic creative.
     #[serde(default, rename = "endTimestampFieldId")]
-    pub end_timestamp_field_id: Option<i32>,
+    pub end_timestamp_field_id: ::core::option::Option<i32>,
     /// Required. The field ID to specify the field used for uniquely identifying the feed row. This is a required field.
     #[serde(default, rename = "externalIdFieldId")]
-    pub external_id_field_id: Option<i32>,
+    pub external_id_field_id: ::core::option::Option<i32>,
     /// Required. The list of fields of the element. The field order and name should match the meta data in the content source source.
     #[serde(default, rename = "feedFields")]
-    pub feed_fields: Option<Vec<FeedField>>,
+    pub feed_fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FeedField>>>,
     /// Optional. Whether the start and end timestamp is local timestamp. The default value is false which means start and end timestamp is in UTC.
     #[serde(default, rename = "isLocalTimestamp")]
-    pub is_local_timestamp: Option<bool>,
+    pub is_local_timestamp: ::core::option::Option<bool>,
     /// Output only. The last modified timestamp of the element. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Optional. The field ID that specify field used for proximity targeting.
     #[serde(default, rename = "proximityTargetingFieldId")]
-    pub proximity_targeting_field_id: Option<i32>,
+    pub proximity_targeting_field_id: ::core::option::Option<i32>,
     /// Required. The field ID to specify the field used for dynamic reporting in Campaign Manager 360.
     #[serde(default, rename = "reportingLabelFieldId")]
-    pub reporting_label_field_id: Option<i32>,
+    pub reporting_label_field_id: ::core::option::Option<i32>,
     /// Optional. The field ID to specify the field that represents the start timestamp. Only applicable if you''re planning to use scheduling in your dynamic creative.
     #[serde(default, rename = "startTimestampFieldId")]
-    pub start_timestamp_field_id: Option<i32>,
+    pub start_timestamp_field_id: ::core::option::Option<i32>,
 }
 
 /// A description of how user IDs are encrypted.
@@ -2695,16 +2751,16 @@ pub struct Element {
 pub struct EncryptionInfo {
     /// The encryption entity ID. This should match the encryption configuration for ad serving or Data Transfer.
     #[serde(default, rename = "encryptionEntityId")]
-    pub encryption_entity_id: Option<String>,
+    pub encryption_entity_id: ::core::option::Option<String>,
     /// The encryption entity type. This should match the encryption configuration for ad serving or Data Transfer. // TODO: enum values: ["ENCRYPTION_ENTITY_TYPE_UNKNOWN", "DCM_ACCOUNT", "DCM_ADVERTISER", "DBM_PARTNER", "DBM_ADVERTISER", "ADWORDS_CUSTOMER", "DFP_NETWORK_CODE"]
     #[serde(default, rename = "encryptionEntityType")]
-    pub encryption_entity_type: Option<String>,
+    pub encryption_entity_type: ::core::option::Option<String>,
     /// Describes whether the encrypted cookie was received from ad serving (the %m macro) or from Data Transfer. // TODO: enum values: ["ENCRYPTION_SCOPE_UNKNOWN", "AD_SERVING", "DATA_TRANSFER"]
     #[serde(default, rename = "encryptionSource")]
-    pub encryption_source: Option<String>,
+    pub encryption_source: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#encryptionInfo".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains properties of an event tag.
@@ -2712,58 +2768,58 @@ pub struct EncryptionInfo {
 pub struct EventTag {
     /// Account ID of this event tag. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Advertiser ID of this event tag. This field or the campaignId field is required on insertion.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Campaign ID of this event tag. This field or the advertiserId field is required on insertion.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the campaign. This is a read-only, auto-generated field.
     #[serde(default, rename = "campaignIdDimensionValue")]
-    pub campaign_id_dimension_value: Option<DimensionValue>,
+    pub campaign_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether this event tag should be automatically enabled for all of the advertiser''s campaigns and ads.
     #[serde(default, rename = "enabledByDefault")]
-    pub enabled_by_default: Option<bool>,
+    pub enabled_by_default: ::core::option::Option<bool>,
     /// Whether to remove this event tag from ads that are trafficked through Display & Video 360 to Ad Exchange. This may be useful if the event tag uses a pixel that is unapproved for Ad Exchange bids on one or more networks, such as the Google Display Network.
     #[serde(default, rename = "excludeFromAdxRequests")]
-    pub exclude_from_adx_requests: Option<bool>,
+    pub exclude_from_adx_requests: ::core::option::Option<bool>,
     /// ID of this event tag. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#eventTag".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this event tag. This is a required field and must be less than 256 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Site filter type for this event tag. If no type is specified then the event tag will be applied to all sites. // TODO: enum values: ["ALLOWLIST", "BLOCKLIST"]
     #[serde(default, rename = "siteFilterType")]
-    pub site_filter_type: Option<String>,
+    pub site_filter_type: ::core::option::Option<String>,
     /// Filter list of site IDs associated with this event tag. The siteFilterType determines whether this is a allowlist or blocklist filter.
     #[serde(default, rename = "siteIds")]
-    pub site_ids: Option<Vec<String>>,
+    pub site_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Whether this tag is SSL-compliant or not. This is a read-only field.
     #[serde(default, rename = "sslCompliant")]
-    pub ssl_compliant: Option<bool>,
+    pub ssl_compliant: ::core::option::Option<bool>,
     /// Status of this event tag. Must be ENABLED for this event tag to fire. This is a required field. // TODO: enum values: ["ENABLED", "DISABLED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Subaccount ID of this event tag. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Event tag type. Can be used to specify whether to use a third-party pixel, a third-party JavaScript URL, or a third-party click-through URL for either impression or click tracking. This is a required field. // TODO: enum values: ["IMPRESSION_IMAGE_EVENT_TAG", "IMPRESSION_JAVASCRIPT_EVENT_TAG", "CLICK_THROUGH_EVENT_TAG"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Payload URL for this event tag. The URL on a click-through event tag should have a landing page URL appended to the end of it. This field is required on insertion.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// Number of times the landing page URL should be URL-escaped before being appended to the click-through event tag URL. Only applies to click-through event tags as specified by the event tag type.
     #[serde(default, rename = "urlEscapeLevels")]
-    pub url_escape_levels: Option<i32>,
+    pub url_escape_levels: ::core::option::Option<i32>,
 }
 
 /// Event tag override information.
@@ -2771,10 +2827,10 @@ pub struct EventTag {
 pub struct EventTagOverride {
     /// Whether this override is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// ID of this event tag override. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Event Tag List Response
@@ -2782,10 +2838,10 @@ pub struct EventTagOverride {
 pub struct EventTagsListResponse {
     /// Event tag collection.
     #[serde(default, rename = "eventTags")]
-    pub event_tags: Option<Vec<EventTag>>,
+    pub event_tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventTag>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#eventTagsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Each field of the element. This is a required field.
@@ -2793,25 +2849,25 @@ pub struct EventTagsListResponse {
 pub struct FeedField {
     /// Optional. The default value of the field.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<String>,
+    pub default_value: ::core::option::Option<String>,
     /// Optional. Whether the field is filterable. Could be set as true when the field type is any of the following and is not renderable: - STRING - BOOL - COUNTRY_CODE_ISO - CM360_SITE_ID - CM360_KEYWORD - CM360_CREATIVE_ID - CM360_PLACEMENT_ID - CM360_AD_ID - CM360_ADVERTISER_ID - CM360_CAMPAIGN_ID - CITY - REGION - POSTAL_CODE - METRO - CUSTOM_VALUE - REMARKETING_VALUE - GEO_CANONICAL - STRING_LIST - CREATIVE_DIMENSION - USERLIST_ID - CM360_DYNAMIC_TARGETING_KEY - DV360_LINE_ITEM_ID
     #[serde(default)]
-    pub filterable: Option<bool>,
+    pub filterable: ::core::option::Option<bool>,
     /// Required. The ID of the field. The ID is based on the column index starting from 0, and it should match the column index in the resource link.
     #[serde(default)]
-    pub id: Option<i32>,
+    pub id: ::core::option::Option<i32>,
     /// Required. The name of the field.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Whether the field is able to display. Could be set as true when the field type is not in any of the following and the field is not filterable: - COUNTRY_CODE_ISO - CITY - REGION - POSTAL_CODE - METRO - GEO_CANONICAL - USERLIST_ID - CONTEXTUAL_KEYWORD - CM360_DYNAMIC_TARGETING_KEY - WEIGHT
     #[serde(default)]
-    pub renderable: Option<bool>,
+    pub renderable: ::core::option::Option<bool>,
     /// Optional. Whether the field is required and should not be empty in the feed. Could be set as true when the field type is any of the following: - GPA_SERVED_IMAGE_URL - GPA_SERVED_ASSET_URL - ASSET_LIBRARY_HANDLE - ASSET_LIBRARY_VIDEO_HANDLE - ASSET_LIBRARY_DIRECTORY_HANDLE
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
     /// Required. The type of the field. // TODO: enum values: ["TYPE_UNKNOWN", "STRING", "LONG", "GPA_SERVED_IMAGE_URL", "GPA_SERVED_ASSET_URL", "COUNTRY_CODE_ISO", "FLOAT", "CM360_KEYWORD", "CM360_SITE_ID", "BOOL", "EXIT_URL", "DATETIME", "CM360_CREATIVE_ID", "CM360_PLACEMENT_ID", "CM360_AD_ID", "CM360_ADVERTISER_ID", "CM360_CAMPAIGN_ID", "CITY", "REGION", "POSTAL_CODE", "METRO", "CUSTOM_VALUE", "REMARKETING_VALUE", "GEO_CANONICAL", "WEIGHT", "STRING_LIST", "CREATIVE_DIMENSION", "USERLIST_ID", "ASSET_LIBRARY_DIRECTORY_HANDLE", "ASSET_LIBRARY_VIDEO_HANDLE", "ASSET_LIBRARY_HANDLE", "THIRD_PARTY_SERVED_URL", "CM360_DYNAMIC_TARGETING_KEY", "DV360_LINE_ITEM_ID"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Contains the ingestion status of the dynamic feed. Feed ingestion is an asynchronous process. If the feed create request is successful, feed ingestion will be processed in the background, including validation, assets retrieval, and saving the data from the resource link. The processing time is dependent on the data size in the resource link. This read-only status field contains the current stage of that processing and its ingestion state.
@@ -2819,13 +2875,14 @@ pub struct FeedField {
 pub struct FeedIngestionStatus {
     /// Output only. The ingestion error records of the feed.
     #[serde(default, rename = "ingestionErrorRecords")]
-    pub ingestion_error_records: Option<Vec<IngestionErrorRecord>>,
+    pub ingestion_error_records:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IngestionErrorRecord>>>,
     /// Output only. The ingestion status of the feed.
     #[serde(default, rename = "ingestionStatus")]
-    pub ingestion_status: Option<IngestionStatus>,
+    pub ingestion_status: ::core::option::Option<::std::boxed::Box<IngestionStatus>>,
     /// Output only. The processing state of the feed. // TODO: enum values: ["FEED_PROCESSING_STATE_UNKNOWN", "CANCELLED", "INGESTING_QUEUED", "INGESTING", "INGESTED_SUCCESS", "INGESTED_FAILURE", "REQUEST_TO_PUBLISH", "PUBLISHING", "PUBLISHED_SUCCESS", "PUBLISHED_FAILURE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Contains the schedule of the dynamic feed.
@@ -2833,19 +2890,19 @@ pub struct FeedIngestionStatus {
 pub struct FeedSchedule {
     /// Optional. The number of times the feed retransforms within one day. This is a required field if the schedule is enabled. Acceptable values are between 1 to 6, inclusive.
     #[serde(default, rename = "repeatValue")]
-    pub repeat_value: Option<String>,
+    pub repeat_value: ::core::option::Option<String>,
     /// Optional. Whether the schedule is enabled.
     #[serde(default, rename = "scheduleEnabled")]
-    pub schedule_enabled: Option<bool>,
+    pub schedule_enabled: ::core::option::Option<bool>,
     /// Optional. The hour of the day to start the feed. It is applicable if the repeat value is equal to 1. Default value is 0.
     #[serde(default, rename = "startHour")]
-    pub start_hour: Option<String>,
+    pub start_hour: ::core::option::Option<String>,
     /// Optional. The minute of the hour to start the feed. It is applicable if the repeat value is equal to 1. Default value is 0.
     #[serde(default, rename = "startMinute")]
-    pub start_minute: Option<String>,
+    pub start_minute: ::core::option::Option<String>,
     /// Optional. The time zone to schedule the feed. It is applicable if the repeat value is equal to 1. Default value is "America/Los_Angeles".
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// Contains the field error of the dynamic feed.
@@ -2853,19 +2910,19 @@ pub struct FeedSchedule {
 pub struct FieldError {
     /// Output only. The ID of the field.
     #[serde(default, rename = "fieldId")]
-    pub field_id: Option<i32>,
+    pub field_id: ::core::option::Option<i32>,
     /// Output only. The name of the field.
     #[serde(default, rename = "fieldName")]
-    pub field_name: Option<String>,
+    pub field_name: ::core::option::Option<String>,
     /// Output only. The list of values of the field.
     #[serde(default, rename = "fieldValues")]
-    pub field_values: Option<Vec<String>>,
+    pub field_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The ingestion error of the field. // TODO: enum values: ["UNKNOWN_PARSING_ERROR", "MISSING_ID", "MISSING_REPORTING_LABEL", "EMPTY_VALUE", "ASSET_DOWNLOAD_ERROR", "ID_TOO_LONG", "DUPLICATE_ID", "PARSING_ERROR", "COUNTRY_PARSING_ERROR", "LONG_PARSING_ERROR", "BOOL_PARSING_ERROR", "EXPANDED_URL_PARSING_ERROR", "FLOAT_PARSING_ERROR", "DATETIME_PARSING_ERROR", "INVALID_PREFERENCE_VALUE", "GEO_NOT_FOUND_ERROR", "GEO_PARSING_ERROR", "GEO_PROXIMITY_TARGETING_MULTIPLE_LOCATION_ERROR", "POSTAL_CODE_PARSING_ERROR", "METRO_CODE_PARSING_ERROR", "DATETIME_WITHOUT_TIMEZONE_PARSING_ERROR", "WEIGHT_PARSING_ERROR", "CREATIVE_DIMENSION_PARSING_ERROR", "MULTIVALUE_ID", "ENDTIME_BEFORE_STARTTIME", "INVALID_ASSET_LIBRARY_HANDLE", "INVALID_ASSET_LIBRARY_VIDEO_HANDLE", "INVALID_ASSET_LIBRARY_DIRECTORY_HANDLE", "DYNAMIC_TARGETING_KEY_NOT_DEFINED_FOR_ADVERTISER", "USERLIST_ID_NOT_ACCESSIBLE_FOR_ADVERTISER", "ENDTIME_PASSED", "ENDTIME_TOO_SOON", "TEXT_ASSET_REFERENCE", "IMAGE_ASSET_SCS_REFERENCE", "AIRPORT_GEO_TARGET", "CANONICAL_NAME_QUERY_MISMATCH", "NO_DEFAULT_ROW", "NO_ACTIVE_DEFAULT_ROW", "NO_DEFAULT_ROW_IN_DATE_RANGE", "NO_ACTIVE_DEFAULT_ROW_IN_DATE_RANGE", "PAYLOAD_LIMIT_EXCEEDED", "SSL_NOT_COMPLIANT"]
     #[serde(default, rename = "ingestionError")]
-    pub ingestion_error: Option<String>,
+    pub ingestion_error: ::core::option::Option<String>,
     /// Output only. Incidcates whether the field has error or warning.
     #[serde(default, rename = "isError")]
-    pub is_error: Option<bool>,
+    pub is_error: ::core::option::Option<bool>,
 }
 
 /// Contains field filter information.
@@ -2873,25 +2930,25 @@ pub struct FieldError {
 pub struct FieldFilter {
     /// Optional. The boolean values, only applicable when rhs_value_type is BOOL.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Optional. The dependent values, only applicable when rhs_value_type is DEPENDENT.
     #[serde(default, rename = "dependentFieldValue")]
-    pub dependent_field_value: Option<DependentFieldValue>,
+    pub dependent_field_value: ::core::option::Option<::std::boxed::Box<DependentFieldValue>>,
     /// Optional. The field ID on the left hand side of the expression.
     #[serde(default, rename = "fieldId")]
-    pub field_id: Option<i32>,
+    pub field_id: ::core::option::Option<i32>,
     /// Optional. Left hand side of the expression match type. // TODO: enum values: ["LHS_MATCH_TYPE_UNKNOWN", "EQUALS_OR_UNRESTRICTED", "EQUALS", "UNRESTRICTED", "NOT_EQUALS"]
     #[serde(default, rename = "matchType")]
-    pub match_type: Option<String>,
+    pub match_type: ::core::option::Option<String>,
     /// Optional. The request value, only applicable when rhs_value_type is REQUEST.
     #[serde(default, rename = "requestValue")]
-    pub request_value: Option<RequestValue>,
+    pub request_value: ::core::option::Option<::std::boxed::Box<RequestValue>>,
     /// Optional. The string value, only applicable when rhs_value_type is STRING.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
     /// Optional. Right hand side of the expression. // TODO: enum values: ["RHS_VALUE_TYPE_UNKNOWN", "STRING", "REQUEST", "BOOL", "DEPENDENT"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// Represents a File resource. A file contains the metadata for a report run. It shows the status of the run and holds the URLs to the generated report data if the run is finished and the status is "REPORT_AVAILABLE".
@@ -2899,34 +2956,34 @@ pub struct FieldFilter {
 pub struct File {
     /// The date range for which the file has report data. The date range will always be the absolute date range for which the report is run.
     #[serde(default, rename = "dateRange")]
-    pub date_range: Option<DateRange>,
+    pub date_range: ::core::option::Option<::std::boxed::Box<DateRange>>,
     /// Etag of this resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The filename of the file.
     #[serde(default, rename = "fileName")]
-    pub file_name: Option<String>,
+    pub file_name: ::core::option::Option<String>,
     /// The output format of the report. Only available once the file is available. // TODO: enum values: ["CSV", "EXCEL"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// The unique ID of this report file.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#file".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The timestamp in milliseconds since epoch when this file was last modified.
     #[serde(default, rename = "lastModifiedTime")]
-    pub last_modified_time: Option<String>,
+    pub last_modified_time: ::core::option::Option<String>,
     /// The ID of the report this file was generated from.
     #[serde(default, rename = "reportId")]
-    pub report_id: Option<String>,
+    pub report_id: ::core::option::Option<String>,
     /// The status of the report file. // TODO: enum values: ["PROCESSING", "REPORT_AVAILABLE", "FAILED", "CANCELLED", "QUEUED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// The URLs where the completed report file can be downloaded.
     #[serde(default)]
-    pub urls: Option<serde_json::Value>,
+    pub urls: ::core::option::Option<serde_json::Value>,
 }
 
 /// List of files for a report.
@@ -2934,16 +2991,16 @@ pub struct File {
 pub struct FileList {
     /// Etag of this resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The files returned in this response.
     #[serde(default)]
-    pub items: Option<Vec<File>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<File>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#fileList".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Continuation token used to page through files. To retrieve the next page of results, set the next request''s "pageToken" to the value of this field. The page token is only valid for a limited amount of time and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Floodlight Activity GenerateTag Response
@@ -2951,13 +3008,13 @@ pub struct FileList {
 pub struct FloodlightActivitiesGenerateTagResponse {
     /// Generated tag for this Floodlight activity. For Google tags, this is the event snippet.
     #[serde(default, rename = "floodlightActivityTag")]
-    pub floodlight_activity_tag: Option<String>,
+    pub floodlight_activity_tag: ::core::option::Option<String>,
     /// The global snippet section of a Google tag. The Google tag sets new cookies on your domain, which will store a unique identifier for a user or the ad click that brought the user to your site. Learn more.
     #[serde(default, rename = "globalSiteTagGlobalSnippet")]
-    pub global_site_tag_global_snippet: Option<String>,
+    pub global_site_tag_global_snippet: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#floodlightActivitiesGenerateTagResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Floodlight Activity List Response
@@ -2965,13 +3022,14 @@ pub struct FloodlightActivitiesGenerateTagResponse {
 pub struct FloodlightActivitiesListResponse {
     /// Floodlight activity collection.
     #[serde(default, rename = "floodlightActivities")]
-    pub floodlight_activities: Option<Vec<FloodlightActivity>>,
+    pub floodlight_activities:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FloodlightActivity>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#floodlightActivitiesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Contains properties of a Floodlight activity.
@@ -2979,94 +3037,98 @@ pub struct FloodlightActivitiesListResponse {
 pub struct FloodlightActivity {
     /// Account ID of this floodlight activity. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Advertiser ID of this floodlight activity. If this field is left blank, the value will be copied over either from the activity group''s advertiser or the existing activity''s advertiser.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether the activity is enabled for attribution.
     #[serde(default, rename = "attributionEnabled")]
-    pub attribution_enabled: Option<bool>,
+    pub attribution_enabled: ::core::option::Option<bool>,
     /// Code type used for cache busting in the generated tag. Applicable only when floodlightActivityGroupType is COUNTER and countingMethod is STANDARD_COUNTING or UNIQUE_COUNTING. // TODO: enum values: ["JAVASCRIPT", "ACTIVE_SERVER_PAGE", "JSP", "PHP", "COLD_FUSION"]
     #[serde(default, rename = "cacheBustingType")]
-    pub cache_busting_type: Option<String>,
+    pub cache_busting_type: ::core::option::Option<String>,
     /// Required. The conversion category of the activity. // TODO: enum values: ["CONVERSION_CATEGORY_DEFAULT", "CONVERSION_CATEGORY_PURCHASE", "CONVERSION_CATEGORY_SIGNUP", "CONVERSION_CATEGORY_PAGE_VIEW", "CONVERSION_CATEGORY_DOWNLOAD", "CONVERSION_CATEGORY_BOOM_EVENT", "CONVERSION_CATEGORY_ADD_TO_CART", "CONVERSION_CATEGORY_BEGIN_CHECKOUT", "CONVERSION_CATEGORY_SUBSCRIBE_PAID", "CONVERSION_CATEGORY_SUBSCRIBE_FREE", "CONVERSION_CATEGORY_PHONE_CALL_LEAD", "CONVERSION_CATEGORY_IMPORTED_LEAD", "CONVERSION_CATEGORY_SUBMIT_LEAD_FORM", "CONVERSION_CATEGORY_BOOK_APPOINTMENT", "CONVERSION_CATEGORY_REQUEST_QUOTE", "CONVERSION_CATEGORY_GET_DIRECTIONS", "CONVERSION_CATEGORY_OUTBOUND_CLICK", "CONVERSION_CATEGORY_CONTACT", "CONVERSION_CATEGORY_VIEW_KEY_PAGE", "CONVERSION_CATEGORY_ENGAGEMENT", "CONVERSION_CATEGORY_STORE_VISIT", "CONVERSION_CATEGORY_STORE_SALE", "CONVERSION_CATEGORY_QUALIFIED_LEAD", "CONVERSION_CATEGORY_CONVERTED_LEAD", "CONVERSION_CATEGORY_IN_APP_AD_REVENUE", "CONVERSION_CATEGORY_MESSAGE_LEAD"]
     #[serde(default, rename = "conversionCategory")]
-    pub conversion_category: Option<String>,
+    pub conversion_category: ::core::option::Option<String>,
     /// Counting method for conversions for this floodlight activity. This is a required field. // TODO: enum values: ["STANDARD_COUNTING", "UNIQUE_COUNTING", "SESSION_COUNTING", "TRANSACTIONS_COUNTING", "ITEMS_SOLD_COUNTING"]
     #[serde(default, rename = "countingMethod")]
-    pub counting_method: Option<String>,
+    pub counting_method: ::core::option::Option<String>,
     /// Dynamic floodlight tags.
     #[serde(default, rename = "defaultTags")]
-    pub default_tags: Option<Vec<FloodlightActivityDynamicTag>>,
+    pub default_tags:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FloodlightActivityDynamicTag>>>,
     /// URL where this tag will be deployed. If specified, must be less than 256 characters long.
     #[serde(default, rename = "expectedUrl")]
-    pub expected_url: Option<String>,
+    pub expected_url: ::core::option::Option<String>,
     /// Floodlight activity group ID of this floodlight activity. This is a required field.
     #[serde(default, rename = "floodlightActivityGroupId")]
-    pub floodlight_activity_group_id: Option<String>,
+    pub floodlight_activity_group_id: ::core::option::Option<String>,
     /// Name of the associated floodlight activity group. This is a read-only field.
     #[serde(default, rename = "floodlightActivityGroupName")]
-    pub floodlight_activity_group_name: Option<String>,
+    pub floodlight_activity_group_name: ::core::option::Option<String>,
     /// Tag string of the associated floodlight activity group. This is a read-only field.
     #[serde(default, rename = "floodlightActivityGroupTagString")]
-    pub floodlight_activity_group_tag_string: Option<String>,
+    pub floodlight_activity_group_tag_string: ::core::option::Option<String>,
     /// Type of the associated floodlight activity group. This is a read-only field. // TODO: enum values: ["COUNTER", "SALE"]
     #[serde(default, rename = "floodlightActivityGroupType")]
-    pub floodlight_activity_group_type: Option<String>,
+    pub floodlight_activity_group_type: ::core::option::Option<String>,
     /// Floodlight configuration ID of this floodlight activity. If this field is left blank, the value will be copied over either from the activity group''s floodlight configuration or from the existing activity''s floodlight configuration.
     #[serde(default, rename = "floodlightConfigurationId")]
-    pub floodlight_configuration_id: Option<String>,
+    pub floodlight_configuration_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the floodlight configuration. This is a read-only, auto-generated field.
     #[serde(default, rename = "floodlightConfigurationIdDimensionValue")]
-    pub floodlight_configuration_id_dimension_value: Option<DimensionValue>,
+    pub floodlight_configuration_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// The type of Floodlight tag this activity will generate. This is a required field. // TODO: enum values: ["IFRAME", "IMAGE", "GLOBAL_SITE_TAG"]
     #[serde(default, rename = "floodlightTagType")]
-    pub floodlight_tag_type: Option<String>,
+    pub floodlight_tag_type: ::core::option::Option<String>,
     /// ID of this floodlight activity. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this floodlight activity. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#floodlightActivity".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this floodlight activity. This is a required field. Must be less than 129 characters long and cannot contain quotes.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// General notes or implementation instructions for the tag.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// Publisher dynamic floodlight tags.
     #[serde(default, rename = "publisherTags")]
-    pub publisher_tags: Option<Vec<FloodlightActivityPublisherDynamicTag>>,
+    pub publisher_tags: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<FloodlightActivityPublisherDynamicTag>>,
+    >,
     /// Whether this tag should use SSL.
     #[serde(default)]
-    pub secure: Option<bool>,
+    pub secure: ::core::option::Option<bool>,
     /// Whether the floodlight activity is SSL-compliant. This is a read-only field, its value detected by the system from the floodlight tags.
     #[serde(default, rename = "sslCompliant")]
-    pub ssl_compliant: Option<bool>,
+    pub ssl_compliant: ::core::option::Option<bool>,
     /// Whether this floodlight activity must be SSL-compliant.
     #[serde(default, rename = "sslRequired")]
-    pub ssl_required: Option<bool>,
+    pub ssl_required: ::core::option::Option<bool>,
     /// The status of the activity. This can only be set to ACTIVE or ARCHIVED_AND_DISABLED. The ARCHIVED status is no longer supported and cannot be set for Floodlight activities. The DISABLED_POLICY status indicates that a Floodlight activity is violating Google policy. Contact your account manager for more information. // TODO: enum values: ["ACTIVE", "ARCHIVED_AND_DISABLED", "ARCHIVED", "DISABLED_POLICY"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Subaccount ID of this floodlight activity. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Tag format type for the floodlight activity. If left blank, the tag format will default to HTML. // TODO: enum values: ["HTML", "XHTML"]
     #[serde(default, rename = "tagFormat")]
-    pub tag_format: Option<String>,
+    pub tag_format: ::core::option::Option<String>,
     /// Value of the cat= parameter in the floodlight tag, which the ad servers use to identify the activity. This is optional: if empty, a new tag string will be generated for you. This string must be 1 to 8 characters long, with valid characters being a-z0-9[ _ ]. This tag string must also be unique among activities of the same activity group. This field is read-only after insertion.
     #[serde(default, rename = "tagString")]
-    pub tag_string: Option<String>,
+    pub tag_string: ::core::option::Option<String>,
     /// List of the user-defined variables used by this conversion tag. These map to the "u[1-100]=" in the tags. Each of these can have a user defined type. Acceptable values are U1 to U100, inclusive.
     #[serde(default, rename = "userDefinedVariableTypes")]
-    pub user_defined_variable_types: Option<Vec<String>>,
+    pub user_defined_variable_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Dynamic Tag
@@ -3074,13 +3136,13 @@ pub struct FloodlightActivity {
 pub struct FloodlightActivityDynamicTag {
     /// ID of this dynamic tag. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of this tag.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Tag code.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Contains properties of a Floodlight activity group.
@@ -3088,40 +3150,41 @@ pub struct FloodlightActivityDynamicTag {
 pub struct FloodlightActivityGroup {
     /// Account ID of this floodlight activity group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Advertiser ID of this floodlight activity group. If this field is left blank, the value will be copied over either from the floodlight configuration''s advertiser or from the existing activity group''s advertiser.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Floodlight configuration ID of this floodlight activity group. This is a required field.
     #[serde(default, rename = "floodlightConfigurationId")]
-    pub floodlight_configuration_id: Option<String>,
+    pub floodlight_configuration_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the floodlight configuration. This is a read-only, auto-generated field.
     #[serde(default, rename = "floodlightConfigurationIdDimensionValue")]
-    pub floodlight_configuration_id_dimension_value: Option<DimensionValue>,
+    pub floodlight_configuration_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// ID of this floodlight activity group. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this floodlight activity group. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#floodlightActivityGroup".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this floodlight activity group. This is a required field. Must be less than 65 characters long and cannot contain quotes.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Subaccount ID of this floodlight activity group. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Value of the type= parameter in the floodlight tag, which the ad servers use to identify the activity group that the activity belongs to. This is optional: if empty, a new tag string will be generated for you. This string must be 1 to 8 characters long, with valid characters being a-z0-9[ _ ]. This tag string must also be unique among activity groups of the same floodlight configuration. This field is read-only after insertion.
     #[serde(default, rename = "tagString")]
-    pub tag_string: Option<String>,
+    pub tag_string: ::core::option::Option<String>,
     /// Type of the floodlight activity group. This is a required field that is read-only after insertion. // TODO: enum values: ["COUNTER", "SALE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Floodlight Activity Group List Response
@@ -3129,13 +3192,14 @@ pub struct FloodlightActivityGroup {
 pub struct FloodlightActivityGroupsListResponse {
     /// Floodlight activity group collection.
     #[serde(default, rename = "floodlightActivityGroups")]
-    pub floodlight_activity_groups: Option<Vec<FloodlightActivityGroup>>,
+    pub floodlight_activity_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FloodlightActivityGroup>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#floodlightActivityGroupsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Publisher Dynamic Tag
@@ -3143,22 +3207,22 @@ pub struct FloodlightActivityGroupsListResponse {
 pub struct FloodlightActivityPublisherDynamicTag {
     /// Whether this tag is applicable only for click-throughs.
     #[serde(default, rename = "clickThrough")]
-    pub click_through: Option<bool>,
+    pub click_through: ::core::option::Option<bool>,
     /// Directory site ID of this dynamic tag. This is a write-only field that can be used as an alternative to the siteId field. When this resource is retrieved, only the siteId field will be populated.
     #[serde(default, rename = "directorySiteId")]
-    pub directory_site_id: Option<String>,
+    pub directory_site_id: ::core::option::Option<String>,
     /// Dynamic floodlight tag.
     #[serde(default, rename = "dynamicTag")]
-    pub dynamic_tag: Option<FloodlightActivityDynamicTag>,
+    pub dynamic_tag: ::core::option::Option<::std::boxed::Box<FloodlightActivityDynamicTag>>,
     /// Site ID of this dynamic tag.
     #[serde(default, rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the site. This is a read-only, auto-generated field.
     #[serde(default, rename = "siteIdDimensionValue")]
-    pub site_id_dimension_value: Option<DimensionValue>,
+    pub site_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether this tag is applicable only for view-throughs.
     #[serde(default, rename = "viewThrough")]
-    pub view_through: Option<bool>,
+    pub view_through: ::core::option::Option<bool>,
 }
 
 /// Contains properties of a Floodlight configuration.
@@ -3166,58 +3230,62 @@ pub struct FloodlightActivityPublisherDynamicTag {
 pub struct FloodlightConfiguration {
     /// Account ID of this floodlight configuration. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Advertiser ID of the parent advertiser of this floodlight configuration.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether advertiser data is shared with Google Analytics.
     #[serde(default, rename = "analyticsDataSharingEnabled")]
-    pub analytics_data_sharing_enabled: Option<bool>,
+    pub analytics_data_sharing_enabled: ::core::option::Option<bool>,
     /// Custom Viewability metric for the floodlight configuration.
     #[serde(default, rename = "customViewabilityMetric")]
-    pub custom_viewability_metric: Option<CustomViewabilityMetric>,
+    pub custom_viewability_metric:
+        ::core::option::Option<::std::boxed::Box<CustomViewabilityMetric>>,
     /// Whether the exposure-to-conversion report is enabled. This report shows detailed pathway information on up to 10 of the most recent ad exposures seen by a user before converting.
     #[serde(default, rename = "exposureToConversionEnabled")]
-    pub exposure_to_conversion_enabled: Option<bool>,
+    pub exposure_to_conversion_enabled: ::core::option::Option<bool>,
     /// TODO: enum values: ["SUNDAY", "MONDAY"]
     #[serde(default, rename = "firstDayOfWeek")]
-    pub first_day_of_week: Option<String>,
+    pub first_day_of_week: ::core::option::Option<String>,
     /// ID of this floodlight configuration. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this floodlight configuration. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether in-app attribution tracking is enabled.
     #[serde(default, rename = "inAppAttributionTrackingEnabled")]
-    pub in_app_attribution_tracking_enabled: Option<bool>,
+    pub in_app_attribution_tracking_enabled: ::core::option::Option<bool>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#floodlightConfiguration".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Lookback window settings for this floodlight configuration.
     #[serde(default, rename = "lookbackConfiguration")]
-    pub lookback_configuration: Option<LookbackConfiguration>,
+    pub lookback_configuration: ::core::option::Option<::std::boxed::Box<LookbackConfiguration>>,
     /// Types of attribution options for natural search conversions. // TODO: enum values: ["EXCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION", "INCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION", "INCLUDE_NATURAL_SEARCH_TIERED_CONVERSION_ATTRIBUTION"]
     #[serde(default, rename = "naturalSearchConversionAttributionOption")]
-    pub natural_search_conversion_attribution_option: Option<String>,
+    pub natural_search_conversion_attribution_option: ::core::option::Option<String>,
     /// Settings for Campaign Manager Omniture integration.
     #[serde(default, rename = "omnitureSettings")]
-    pub omniture_settings: Option<OmnitureSettings>,
+    pub omniture_settings: ::core::option::Option<::std::boxed::Box<OmnitureSettings>>,
     /// Subaccount ID of this floodlight configuration. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Configuration settings for dynamic and image floodlight tags.
     #[serde(default, rename = "tagSettings")]
-    pub tag_settings: Option<TagSettings>,
+    pub tag_settings: ::core::option::Option<::std::boxed::Box<TagSettings>>,
     /// List of third-party authentication tokens enabled for this configuration.
     #[serde(default, rename = "thirdPartyAuthenticationTokens")]
-    pub third_party_authentication_tokens: Option<Vec<ThirdPartyAuthenticationToken>>,
+    pub third_party_authentication_tokens:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThirdPartyAuthenticationToken>>>,
     /// List of user defined variables enabled for this configuration.
     #[serde(default, rename = "userDefinedVariableConfigurations")]
-    pub user_defined_variable_configurations: Option<Vec<UserDefinedVariableConfiguration>>,
+    pub user_defined_variable_configurations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<UserDefinedVariableConfiguration>>,
+    >,
 }
 
 /// Floodlight Configuration List Response
@@ -3225,10 +3293,11 @@ pub struct FloodlightConfiguration {
 pub struct FloodlightConfigurationsListResponse {
     /// Floodlight configuration collection.
     #[serde(default, rename = "floodlightConfigurations")]
-    pub floodlight_configurations: Option<Vec<FloodlightConfiguration>>,
+    pub floodlight_configurations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FloodlightConfiguration>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#floodlightConfigurationsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Represents fields that are compatible to be selected for a report of type "FlOODLIGHT".
@@ -3236,16 +3305,16 @@ pub struct FloodlightConfigurationsListResponse {
 pub struct FloodlightReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
-    pub dimension_filters: Option<Vec<Dimension>>,
+    pub dimension_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// Dimensions which are compatible to be selected in the "dimensions" section of the report.
     #[serde(default)]
-    pub dimensions: Option<Vec<Dimension>>,
+    pub dimensions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// The kind of resource this is, in this case dfareporting#floodlightReportCompatibleFields.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metrics which are compatible to be selected in the "metricNames" section of the report.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
 }
 
 /// Frequency Cap.
@@ -3253,10 +3322,10 @@ pub struct FloodlightReportCompatibleFields {
 pub struct FrequencyCap {
     /// Duration of time, in seconds, for this frequency cap. The maximum duration is 90 days. Acceptable values are 1 to 7776000, inclusive.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Number of times an individual user can be served the ad within the specified duration. Acceptable values are 1 to 15, inclusive.
     #[serde(default)]
-    pub impressions: Option<String>,
+    pub impressions: ::core::option::Option<String>,
 }
 
 /// FsCommand.
@@ -3264,19 +3333,19 @@ pub struct FrequencyCap {
 pub struct FsCommand {
     /// Distance from the left of the browser.Applicable when positionOption is DISTANCE_FROM_TOP_LEFT_CORNER.
     #[serde(default)]
-    pub left: Option<i32>,
+    pub left: ::core::option::Option<i32>,
     /// Position in the browser where the window will open. // TODO: enum values: ["CENTERED", "DISTANCE_FROM_TOP_LEFT_CORNER"]
     #[serde(default, rename = "positionOption")]
-    pub position_option: Option<String>,
+    pub position_option: ::core::option::Option<String>,
     /// Distance from the top of the browser. Applicable when positionOption is DISTANCE_FROM_TOP_LEFT_CORNER.
     #[serde(default)]
-    pub top: Option<i32>,
+    pub top: ::core::option::Option<i32>,
     /// Height of the window.
     #[serde(default, rename = "windowHeight")]
-    pub window_height: Option<i32>,
+    pub window_height: ::core::option::Option<i32>,
     /// Width of the window.
     #[serde(default, rename = "windowWidth")]
-    pub window_width: Option<i32>,
+    pub window_width: ::core::option::Option<i32>,
 }
 
 /// Geographical Targeting.
@@ -3284,22 +3353,22 @@ pub struct FsCommand {
 pub struct GeoTargeting {
     /// Cities to be targeted. For each city only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a city, do not target or exclude the country of the city, and do not target the metro or region of the city.
     #[serde(default)]
-    pub cities: Option<Vec<City>>,
+    pub cities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<City>>>,
     /// Countries to be targeted or excluded from targeting, depending on the setting of the excludeCountries field. For each country only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting or excluding a country, do not target regions, cities, metros, or postal codes in the same country.
     #[serde(default)]
-    pub countries: Option<Vec<Country>>,
+    pub countries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Country>>>,
     /// Whether or not to exclude the countries in the countries field from targeting. If false, the countries field refers to countries which will be targeted by the ad.
     #[serde(default, rename = "excludeCountries")]
-    pub exclude_countries: Option<bool>,
+    pub exclude_countries: ::core::option::Option<bool>,
     /// Metros to be targeted. For each metro only dmaId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a metro, do not target or exclude the country of the metro.
     #[serde(default)]
-    pub metros: Option<Vec<Metro>>,
+    pub metros: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metro>>>,
     /// Postal codes to be targeted. For each postal code only id is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a postal code, do not target or exclude the country of the postal code.
     #[serde(default, rename = "postalCodes")]
-    pub postal_codes: Option<Vec<PostalCode>>,
+    pub postal_codes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostalCode>>>,
     /// Regions to be targeted. For each region only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a region, do not target or exclude the country of the region.
     #[serde(default)]
-    pub regions: Option<Vec<Region>>,
+    pub regions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Region>>>,
 }
 
 /// Contains the ingestion error record of the dynamic feed. limited to 100 records.
@@ -3307,10 +3376,10 @@ pub struct GeoTargeting {
 pub struct IngestionErrorRecord {
     /// Output only. The list of field errors of the ingestion error record.
     #[serde(default)]
-    pub errors: Option<Vec<FieldError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldError>>>,
     /// Output only. The record ID of the ingestion error record.
     #[serde(default, rename = "recordId")]
-    pub record_id: Option<String>,
+    pub record_id: ::core::option::Option<String>,
 }
 
 /// Contains the ingestion status of the dynamic feed.
@@ -3318,19 +3387,19 @@ pub struct IngestionErrorRecord {
 pub struct IngestionStatus {
     /// Output only. The number of active rows in the feed.
     #[serde(default, rename = "numActiveRows")]
-    pub num_active_rows: Option<String>,
+    pub num_active_rows: ::core::option::Option<String>,
     /// Output only. The number of rows processed in the feed.
     #[serde(default, rename = "numRowsProcessed")]
-    pub num_rows_processed: Option<String>,
+    pub num_rows_processed: ::core::option::Option<String>,
     /// Output only. The total number of rows in the feed.
     #[serde(default, rename = "numRowsTotal")]
-    pub num_rows_total: Option<String>,
+    pub num_rows_total: ::core::option::Option<String>,
     /// Output only. The number of rows with errors in the feed.
     #[serde(default, rename = "numRowsWithErrors")]
-    pub num_rows_with_errors: Option<String>,
+    pub num_rows_with_errors: ::core::option::Option<String>,
     /// Output only. The total number of warnings in the feed.
     #[serde(default, rename = "numWarningsTotal")]
-    pub num_warnings_total: Option<String>,
+    pub num_warnings_total: ::core::option::Option<String>,
 }
 
 /// Contains information about a single invoice
@@ -3338,58 +3407,59 @@ pub struct IngestionStatus {
 pub struct Invoice {
     /// The list of summarized campaign information associated with this invoice.
     #[serde(default)]
-    pub campaign_summaries: Option<Vec<CampaignSummary>>,
+    pub campaign_summaries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CampaignSummary>>>,
     /// The originally issued invoice that is being adjusted by this invoice, if applicable. May appear on invoice PDF as *Reference invoice number*.
     #[serde(default, rename = "correctedInvoiceId")]
-    pub corrected_invoice_id: Option<String>,
+    pub corrected_invoice_id: ::core::option::Option<String>,
     /// Invoice currency code in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// The invoice due date.
     #[serde(default, rename = "dueDate")]
-    pub due_date: Option<String>,
+    pub due_date: ::core::option::Option<String>,
     /// ID of this invoice.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The type of invoice document. // TODO: enum values: ["INVOICE_TYPE_UNSPECIFIED", "INVOICE_TYPE_CREDIT", "INVOICE_TYPE_INVOICE"]
     #[serde(default, rename = "invoiceType")]
-    pub invoice_type: Option<String>,
+    pub invoice_type: ::core::option::Option<String>,
     /// The date when the invoice was issued.
     #[serde(default, rename = "issueDate")]
-    pub issue_date: Option<String>,
+    pub issue_date: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#invoice".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The ID of the payments account the invoice belongs to. Appears on the invoice PDF as *Billing Account Number*.
     #[serde(default, rename = "paymentsAccountId")]
-    pub payments_account_id: Option<String>,
+    pub payments_account_id: ::core::option::Option<String>,
     /// The ID of the payments profile the invoice belongs to. Appears on the invoice PDF as *Billing ID*.
     #[serde(default, rename = "paymentsProfileId")]
-    pub payments_profile_id: Option<String>,
+    pub payments_profile_id: ::core::option::Option<String>,
     /// The URL to download a PDF copy of the invoice. Note that this URL is user specific and requires a valid OAuth 2.0 access token to access. The access token must be provided in an *Authorization: Bearer* HTTP header. The URL will only be usable for 7 days from when the api is called.
     #[serde(default, rename = "pdfUrl")]
-    pub pdf_url: Option<String>,
+    pub pdf_url: ::core::option::Option<String>,
     /// Purchase order number associated with the invoice.
     #[serde(default, rename = "purchaseOrderNumber")]
-    pub purchase_order_number: Option<String>,
+    pub purchase_order_number: ::core::option::Option<String>,
     /// The originally issued invoice(s) that is being cancelled by this invoice, if applicable. May appear on invoice PDF as *Replaced invoice numbers*. Note: There may be multiple replaced invoices due to consolidation of multiple invoices into a single invoice.
     #[serde(default, rename = "replacedInvoiceIds")]
-    pub replaced_invoice_ids: Option<Vec<String>>,
+    pub replaced_invoice_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The invoice service end date.
     #[serde(default, rename = "serviceEndDate")]
-    pub service_end_date: Option<String>,
+    pub service_end_date: ::core::option::Option<String>,
     /// The invoice service start date.
     #[serde(default, rename = "serviceStartDate")]
-    pub service_start_date: Option<String>,
+    pub service_start_date: ::core::option::Option<String>,
     /// The pre-tax subtotal amount, in micros of the invoice''s currency.
     #[serde(default, rename = "subtotalAmountMicros")]
-    pub subtotal_amount_micros: Option<String>,
+    pub subtotal_amount_micros: ::core::option::Option<String>,
     /// The invoice total amount, in micros of the invoice''s currency.
     #[serde(default, rename = "totalAmountMicros")]
-    pub total_amount_micros: Option<String>,
+    pub total_amount_micros: ::core::option::Option<String>,
     /// The sum of all taxes in invoice, in micros of the invoice''s currency.
     #[serde(default, rename = "totalTaxAmountMicros")]
-    pub total_tax_amount_micros: Option<String>,
+    pub total_tax_amount_micros: ::core::option::Option<String>,
 }
 
 /// Key Value Targeting Expression.
@@ -3397,7 +3467,7 @@ pub struct Invoice {
 pub struct KeyValueTargetingExpression {
     /// Keyword expression being targeted by the ad.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
 }
 
 /// Contains information about where a user''s browser is taken after the user clicks an ad.
@@ -3405,25 +3475,25 @@ pub struct KeyValueTargetingExpression {
 pub struct LandingPage {
     /// Advertiser ID of this landing page. This is a required field.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Whether this landing page has been archived.
     #[serde(default)]
-    pub archived: Option<bool>,
+    pub archived: ::core::option::Option<bool>,
     /// Links that will direct the user to a mobile app, if installed.
     #[serde(default, rename = "deepLinks")]
-    pub deep_links: Option<Vec<DeepLink>>,
+    pub deep_links: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeepLink>>>,
     /// ID of this landing page. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#landingPage".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this landing page. This is a required field. It must be less than 256 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// URL of this landing page. This is a required field.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Contains information about a language that can be targeted by ads.
@@ -3431,16 +3501,16 @@ pub struct LandingPage {
 pub struct Language {
     /// Language ID of this language. This is the ID used for targeting and generating reports.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#language".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Format of language code is an ISO 639 two-letter language code optionally followed by an underscore followed by an ISO 3166 code. Examples are "en" for English or "zh_CN" for Simplified Chinese.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Name of this language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Language Targeting.
@@ -3448,7 +3518,7 @@ pub struct Language {
 pub struct LanguageTargeting {
     /// Languages that this ad targets. For each language only languageId is required. The other fields are populated automatically when the ad is inserted or updated.
     #[serde(default)]
-    pub languages: Option<Vec<Language>>,
+    pub languages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Language>>>,
 }
 
 /// Language List Response
@@ -3456,10 +3526,10 @@ pub struct LanguageTargeting {
 pub struct LanguagesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#languagesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Language collection.
     #[serde(default)]
-    pub languages: Option<Vec<Language>>,
+    pub languages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Language>>>,
 }
 
 /// Modification timestamp.
@@ -3467,7 +3537,7 @@ pub struct LanguagesListResponse {
 pub struct LastModifiedInfo {
     /// Timestamp of the last change in milliseconds since epoch.
     #[serde(default)]
-    pub time: Option<String>,
+    pub time: ::core::option::Option<String>,
 }
 
 /// A group clause made up of list population terms representing constraints joined by ORs.
@@ -3475,7 +3545,7 @@ pub struct LastModifiedInfo {
 pub struct ListPopulationClause {
     /// Terms of this list population clause. Each clause is made up of list population terms representing constraints and are joined by ORs.
     #[serde(default)]
-    pub terms: Option<Vec<ListPopulationTerm>>,
+    pub terms: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ListPopulationTerm>>>,
 }
 
 /// Remarketing List Population Rule.
@@ -3483,13 +3553,14 @@ pub struct ListPopulationClause {
 pub struct ListPopulationRule {
     /// Floodlight activity ID associated with this rule. This field can be left blank.
     #[serde(default, rename = "floodlightActivityId")]
-    pub floodlight_activity_id: Option<String>,
+    pub floodlight_activity_id: ::core::option::Option<String>,
     /// Name of floodlight activity associated with this rule. This is a read-only, auto-generated field.
     #[serde(default, rename = "floodlightActivityName")]
-    pub floodlight_activity_name: Option<String>,
+    pub floodlight_activity_name: ::core::option::Option<String>,
     /// Clauses that make up this list population rule. Clauses are joined by ANDs, and the clauses themselves are made up of list population terms which are joined by ORs.
     #[serde(default, rename = "listPopulationClauses")]
-    pub list_population_clauses: Option<Vec<ListPopulationClause>>,
+    pub list_population_clauses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ListPopulationClause>>>,
 }
 
 /// Remarketing List Population Rule Term.
@@ -3497,28 +3568,28 @@ pub struct ListPopulationRule {
 pub struct ListPopulationTerm {
     /// Will be true if the term should check if the user is in the list and false if the term should check if the user is not in the list. This field is only relevant when type is set to LIST_MEMBERSHIP_TERM. False by default.
     #[serde(default)]
-    pub contains: Option<bool>,
+    pub contains: ::core::option::Option<bool>,
     /// Whether to negate the comparison result of this term during rule evaluation. This field is only relevant when type is left unset or set to CUSTOM_VARIABLE_TERM or REFERRER_TERM.
     #[serde(default)]
-    pub negation: Option<bool>,
+    pub negation: ::core::option::Option<bool>,
     /// Comparison operator of this term. This field is only relevant when type is left unset or set to CUSTOM_VARIABLE_TERM or REFERRER_TERM. // TODO: enum values: ["NUM_EQUALS", "NUM_LESS_THAN", "NUM_LESS_THAN_EQUAL", "NUM_GREATER_THAN", "NUM_GREATER_THAN_EQUAL", "STRING_EQUALS", "STRING_CONTAINS"]
     #[serde(default)]
-    pub operator: Option<String>,
+    pub operator: ::core::option::Option<String>,
     /// ID of the list in question. This field is only relevant when type is set to LIST_MEMBERSHIP_TERM.
     #[serde(default, rename = "remarketingListId")]
-    pub remarketing_list_id: Option<String>,
+    pub remarketing_list_id: ::core::option::Option<String>,
     /// List population term type determines the applicable fields in this object. If left unset or set to CUSTOM_VARIABLE_TERM, then variableName, variableFriendlyName, operator, value, and negation are applicable. If set to LIST_MEMBERSHIP_TERM then remarketingListId and contains are applicable. If set to REFERRER_TERM then operator, value, and negation are applicable. // TODO: enum values: ["CUSTOM_VARIABLE_TERM", "LIST_MEMBERSHIP_TERM", "REFERRER_TERM"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Literal to compare the variable to. This field is only relevant when type is left unset or set to CUSTOM_VARIABLE_TERM or REFERRER_TERM.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
     /// Friendly name of this term''s variable. This is a read-only, auto-generated field. This field is only relevant when type is left unset or set to CUSTOM_VARIABLE_TERM.
     #[serde(default, rename = "variableFriendlyName")]
-    pub variable_friendly_name: Option<String>,
+    pub variable_friendly_name: ::core::option::Option<String>,
     /// Name of the variable (U1, U2, etc.) being compared in this term. This field is only relevant when type is set to null, CUSTOM_VARIABLE_TERM or REFERRER_TERM.
     #[serde(default, rename = "variableName")]
-    pub variable_name: Option<String>,
+    pub variable_name: ::core::option::Option<String>,
 }
 
 /// Remarketing List Targeting Expression.
@@ -3526,7 +3597,7 @@ pub struct ListPopulationTerm {
 pub struct ListTargetingExpression {
     /// Expression describing which lists are being targeted by the ad.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
 }
 
 /// Lookback configuration settings.
@@ -3534,10 +3605,10 @@ pub struct ListTargetingExpression {
 pub struct LookbackConfiguration {
     /// Lookback window, in days, from the last time a given user clicked on one of your ads. If you enter 0, clicks will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.
     #[serde(default, rename = "clickDuration")]
-    pub click_duration: Option<i32>,
+    pub click_duration: ::core::option::Option<i32>,
     /// Lookback window, in days, from the last time a given user viewed one of your ads. If you enter 0, impressions will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.
     #[serde(default, rename = "postImpressionActivitiesDuration")]
-    pub post_impression_activities_duration: Option<i32>,
+    pub post_impression_activities_duration: ::core::option::Option<i32>,
 }
 
 /// MeasurementPartnerAdvertiserLink resource type.
@@ -3545,13 +3616,13 @@ pub struct LookbackConfiguration {
 pub struct MeasurementPartnerAdvertiserLink {
     /// Status of the partner link. // TODO: enum values: ["MEASUREMENT_PARTNER_UNLINKED", "MEASUREMENT_PARTNER_LINKED", "MEASUREMENT_PARTNER_LINK_PENDING", "MEASUREMENT_PARTNER_LINK_FAILURE", "MEASUREMENT_PARTNER_LINK_OPT_OUT", "MEASUREMENT_PARTNER_LINK_OPT_OUT_PENDING", "MEASUREMENT_PARTNER_LINK_WRAPPING_PENDING", "MEASUREMENT_PARTNER_MODE_CHANGE_PENDING", "MEASUREMENT_PARTNER_UNLINK_PENDING"]
     #[serde(default, rename = "linkStatus")]
-    pub link_status: Option<String>,
+    pub link_status: ::core::option::Option<String>,
     /// Measurement partner used for tag wrapping. // TODO: enum values: ["NONE", "INTEGRAL_AD_SCIENCE", "DOUBLE_VERIFY"]
     #[serde(default, rename = "measurementPartner")]
-    pub measurement_partner: Option<String>,
+    pub measurement_partner: ::core::option::Option<String>,
     /// partner Advertiser Id.
     #[serde(default, rename = "partnerAdvertiserId")]
-    pub partner_advertiser_id: Option<String>,
+    pub partner_advertiser_id: ::core::option::Option<String>,
 }
 
 /// MeasurementPartnerCampaignLink resource type.
@@ -3559,13 +3630,13 @@ pub struct MeasurementPartnerAdvertiserLink {
 pub struct MeasurementPartnerCampaignLink {
     /// . // TODO: enum values: ["MEASUREMENT_PARTNER_UNLINKED", "MEASUREMENT_PARTNER_LINKED", "MEASUREMENT_PARTNER_LINK_PENDING", "MEASUREMENT_PARTNER_LINK_FAILURE", "MEASUREMENT_PARTNER_LINK_OPT_OUT", "MEASUREMENT_PARTNER_LINK_OPT_OUT_PENDING", "MEASUREMENT_PARTNER_LINK_WRAPPING_PENDING", "MEASUREMENT_PARTNER_MODE_CHANGE_PENDING", "MEASUREMENT_PARTNER_UNLINK_PENDING"]
     #[serde(default, rename = "linkStatus")]
-    pub link_status: Option<String>,
+    pub link_status: ::core::option::Option<String>,
     /// Measurement partner used for tag wrapping. // TODO: enum values: ["NONE", "INTEGRAL_AD_SCIENCE", "DOUBLE_VERIFY"]
     #[serde(default, rename = "measurementPartner")]
-    pub measurement_partner: Option<String>,
+    pub measurement_partner: ::core::option::Option<String>,
     /// Partner campaign ID needed for establishing linking with Measurement partner.
     #[serde(default, rename = "partnerCampaignId")]
-    pub partner_campaign_id: Option<String>,
+    pub partner_campaign_id: ::core::option::Option<String>,
 }
 
 /// Placement tag wrapping
@@ -3573,16 +3644,16 @@ pub struct MeasurementPartnerCampaignLink {
 pub struct MeasurementPartnerWrappingData {
     /// Placement wrapping status. // TODO: enum values: ["MEASUREMENT_PARTNER_UNLINKED", "MEASUREMENT_PARTNER_LINKED", "MEASUREMENT_PARTNER_LINK_PENDING", "MEASUREMENT_PARTNER_LINK_FAILURE", "MEASUREMENT_PARTNER_LINK_OPT_OUT", "MEASUREMENT_PARTNER_LINK_OPT_OUT_PENDING", "MEASUREMENT_PARTNER_LINK_WRAPPING_PENDING", "MEASUREMENT_PARTNER_MODE_CHANGE_PENDING", "MEASUREMENT_PARTNER_UNLINK_PENDING"]
     #[serde(default, rename = "linkStatus")]
-    pub link_status: Option<String>,
+    pub link_status: ::core::option::Option<String>,
     /// Measurement partner used for wrapping the placement. // TODO: enum values: ["NONE", "INTEGRAL_AD_SCIENCE", "DOUBLE_VERIFY"]
     #[serde(default, rename = "measurementPartner")]
-    pub measurement_partner: Option<String>,
+    pub measurement_partner: ::core::option::Option<String>,
     /// Measurement mode for the wrapped placement. // TODO: enum values: ["NONE", "BLOCKING", "MONITORING", "MONITORING_READ_ONLY", "VIDEO_PIXEL_MONITORING", "TRACKING", "VPAID_MONITORING", "VPAID_BLOCKING", "NON_VPAID_MONITORING", "VPAID_ONLY_MONITORING", "VPAID_ONLY_BLOCKING", "VPAID_ONLY_FILTERING", "VPAID_FILTERING", "NON_VPAID_FILTERING", "BLOCKING_FILTERING_VPAID", "BLOCKING_FILTERING_VPAID_ONLY"]
     #[serde(default, rename = "tagWrappingMode")]
-    pub tag_wrapping_mode: Option<String>,
+    pub tag_wrapping_mode: ::core::option::Option<String>,
     /// Tag provided by the measurement partner during wrapping.
     #[serde(default, rename = "wrappedTag")]
-    pub wrapped_tag: Option<String>,
+    pub wrapped_tag: ::core::option::Option<String>,
 }
 
 /// Represents a metric.
@@ -3590,10 +3661,10 @@ pub struct MeasurementPartnerWrappingData {
 pub struct Metric {
     /// The kind of resource this is, in this case dfareporting#metric.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The metric name, e.g. impressions
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Contains information about a metro region that can be targeted by ads.
@@ -3601,25 +3672,25 @@ pub struct Metric {
 pub struct Metro {
     /// Country code of the country to which this metro region belongs.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// DART ID of the country to which this metro region belongs.
     #[serde(default, rename = "countryDartId")]
-    pub country_dart_id: Option<String>,
+    pub country_dart_id: ::core::option::Option<String>,
     /// DART ID of this metro region.
     #[serde(default, rename = "dartId")]
-    pub dart_id: Option<String>,
+    pub dart_id: ::core::option::Option<String>,
     /// DMA ID of this metro region. This is the ID used for targeting and generating reports, and is equivalent to metro_code.
     #[serde(default, rename = "dmaId")]
-    pub dma_id: Option<String>,
+    pub dma_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#metro".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metro code of this metro region. This is equivalent to dma_id.
     #[serde(default, rename = "metroCode")]
-    pub metro_code: Option<String>,
+    pub metro_code: ::core::option::Option<String>,
     /// Name of this metro region.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metro List Response
@@ -3627,10 +3698,10 @@ pub struct Metro {
 pub struct MetrosListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#metrosListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metro collection.
     #[serde(default)]
-    pub metros: Option<Vec<Metro>>,
+    pub metros: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metro>>>,
 }
 
 /// Contains information about a mobile app. Used as a landing page deep link.
@@ -3638,19 +3709,19 @@ pub struct MetrosListResponse {
 pub struct MobileApp {
     /// Mobile app directory. // TODO: enum values: ["UNKNOWN", "APPLE_APP_STORE", "GOOGLE_PLAY_STORE", "ROKU_APP_STORE", "AMAZON_FIRETV_APP_STORE", "PLAYSTATION_APP_STORE", "APPLE_TV_APP_STORE", "XBOX_APP_STORE", "SAMSUNG_TV_APP_STORE", "ANDROID_TV_APP_STORE", "GENERIC_CTV_APP_STORE"]
     #[serde(default)]
-    pub directory: Option<String>,
+    pub directory: ::core::option::Option<String>,
     /// ID of this mobile app.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#mobileApp".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Publisher name.
     #[serde(default, rename = "publisherName")]
-    pub publisher_name: Option<String>,
+    pub publisher_name: ::core::option::Option<String>,
     /// Title of this mobile app.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Mobile app List Response
@@ -3658,13 +3729,13 @@ pub struct MobileApp {
 pub struct MobileAppsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#mobileAppsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Mobile apps collection.
     #[serde(default, rename = "mobileApps")]
-    pub mobile_apps: Option<Vec<MobileApp>>,
+    pub mobile_apps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MobileApp>>>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Contains information about a mobile carrier that can be targeted by ads.
@@ -3672,19 +3743,19 @@ pub struct MobileAppsListResponse {
 pub struct MobileCarrier {
     /// Country code of the country to which this mobile carrier belongs.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// DART ID of the country to which this mobile carrier belongs.
     #[serde(default, rename = "countryDartId")]
-    pub country_dart_id: Option<String>,
+    pub country_dart_id: ::core::option::Option<String>,
     /// ID of this mobile carrier.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#mobileCarrier".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this mobile carrier.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Mobile Carrier List Response
@@ -3692,10 +3763,10 @@ pub struct MobileCarrier {
 pub struct MobileCarriersListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#mobileCarriersListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Mobile carrier collection.
     #[serde(default, rename = "mobileCarriers")]
-    pub mobile_carriers: Option<Vec<MobileCarrier>>,
+    pub mobile_carriers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MobileCarrier>>>,
 }
 
 /// Online Behavioral Advertiser icon.
@@ -3703,28 +3774,28 @@ pub struct MobileCarriersListResponse {
 pub struct ObaIcon {
     /// URL to redirect to when an OBA icon is clicked.
     #[serde(default, rename = "iconClickThroughUrl")]
-    pub icon_click_through_url: Option<String>,
+    pub icon_click_through_url: ::core::option::Option<String>,
     /// URL to track click when an OBA icon is clicked.
     #[serde(default, rename = "iconClickTrackingUrl")]
-    pub icon_click_tracking_url: Option<String>,
+    pub icon_click_tracking_url: ::core::option::Option<String>,
     /// URL to track view when an OBA icon is clicked.
     #[serde(default, rename = "iconViewTrackingUrl")]
-    pub icon_view_tracking_url: Option<String>,
+    pub icon_view_tracking_url: ::core::option::Option<String>,
     /// Identifies the industry initiative that the icon supports. For example, AdChoices.
     #[serde(default)]
-    pub program: Option<String>,
+    pub program: ::core::option::Option<String>,
     /// OBA icon resource URL. Campaign Manager only supports image and JavaScript icons. Learn more
     #[serde(default, rename = "resourceUrl")]
-    pub resource_url: Option<String>,
+    pub resource_url: ::core::option::Option<String>,
     /// OBA icon size.
     #[serde(default)]
-    pub size: Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// OBA icon x coordinate position. Accepted values are left or right.
     #[serde(default, rename = "xPosition")]
-    pub x_position: Option<String>,
+    pub x_position: ::core::option::Option<String>,
     /// OBA icon y coordinate position. Accepted values are top or bottom.
     #[serde(default, rename = "yPosition")]
-    pub y_position: Option<String>,
+    pub y_position: ::core::option::Option<String>,
 }
 
 /// Object Filter.
@@ -3732,13 +3803,13 @@ pub struct ObaIcon {
 pub struct ObjectFilter {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#objectFilter".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Applicable when status is ASSIGNED. The user has access to objects with these object IDs.
     #[serde(default, rename = "objectIds")]
-    pub object_ids: Option<Vec<String>>,
+    pub object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list. // TODO: enum values: ["NONE", "ASSIGNED", "ALL"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Identify a user by name and address.
@@ -3746,25 +3817,25 @@ pub struct ObjectFilter {
 pub struct OfflineUserAddressInfo {
     /// City of the address.
     #[serde(default)]
-    pub city: Option<String>,
+    pub city: ::core::option::Option<String>,
     /// 2-letter country code in ISO-3166-1 alpha-2 of the user''s address.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// First name of the user, which is hashed as SHA-256 after normalized (Lowercase all characters; Remove any extra spaces before, after, and in between).
     #[serde(default, rename = "hashedFirstName")]
-    pub hashed_first_name: Option<String>,
+    pub hashed_first_name: ::core::option::Option<String>,
     /// Last name of the user, which is hashed as SHA-256 after normalized (lower case only and no punctuation).
     #[serde(default, rename = "hashedLastName")]
-    pub hashed_last_name: Option<String>,
+    pub hashed_last_name: ::core::option::Option<String>,
     /// The street address of the user hashed using SHA-256 hash function after normalization (lower case only).
     #[serde(default, rename = "hashedStreetAddress")]
-    pub hashed_street_address: Option<String>,
+    pub hashed_street_address: ::core::option::Option<String>,
     /// Postal code of the user''s address.
     #[serde(default, rename = "postalCode")]
-    pub postal_code: Option<String>,
+    pub postal_code: ::core::option::Option<String>,
     /// State code of the address.
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Offset Position.
@@ -3772,10 +3843,10 @@ pub struct OfflineUserAddressInfo {
 pub struct OffsetPosition {
     /// Offset distance from left side of an asset or a window.
     #[serde(default)]
-    pub left: Option<i32>,
+    pub left: ::core::option::Option<i32>,
     /// Offset distance from top side of an asset or a window.
     #[serde(default)]
-    pub top: Option<i32>,
+    pub top: ::core::option::Option<i32>,
 }
 
 /// Omniture Integration Settings.
@@ -3783,10 +3854,10 @@ pub struct OffsetPosition {
 pub struct OmnitureSettings {
     /// Whether placement cost data will be sent to Omniture. This property can be enabled only if omnitureIntegrationEnabled is true.
     #[serde(default, rename = "omnitureCostDataEnabled")]
-    pub omniture_cost_data_enabled: Option<bool>,
+    pub omniture_cost_data_enabled: ::core::option::Option<bool>,
     /// Whether Omniture integration is enabled. This property can be enabled only when the "Advanced Ad Serving" account setting is enabled.
     #[serde(default, rename = "omnitureIntegrationEnabled")]
-    pub omniture_integration_enabled: Option<bool>,
+    pub omniture_integration_enabled: ::core::option::Option<bool>,
 }
 
 /// Contains information about an operating system that can be targeted by ads.
@@ -3794,19 +3865,19 @@ pub struct OmnitureSettings {
 pub struct OperatingSystem {
     /// DART ID of this operating system. This is the ID used for targeting.
     #[serde(default, rename = "dartId")]
-    pub dart_id: Option<String>,
+    pub dart_id: ::core::option::Option<String>,
     /// Whether this operating system is for desktop.
     #[serde(default)]
-    pub desktop: Option<bool>,
+    pub desktop: ::core::option::Option<bool>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#operatingSystem".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether this operating system is for mobile.
     #[serde(default)]
-    pub mobile: Option<bool>,
+    pub mobile: ::core::option::Option<bool>,
     /// Name of this operating system.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Contains information about a particular version of an operating system that can be targeted by ads.
@@ -3814,22 +3885,22 @@ pub struct OperatingSystem {
 pub struct OperatingSystemVersion {
     /// ID of this operating system version.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#operatingSystemVersion".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Major version (leftmost number) of this operating system version.
     #[serde(default, rename = "majorVersion")]
-    pub major_version: Option<String>,
+    pub major_version: ::core::option::Option<String>,
     /// Minor version (number after the first dot) of this operating system version.
     #[serde(default, rename = "minorVersion")]
-    pub minor_version: Option<String>,
+    pub minor_version: ::core::option::Option<String>,
     /// Name of this operating system version.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Operating system of this operating system version.
     #[serde(default, rename = "operatingSystem")]
-    pub operating_system: Option<OperatingSystem>,
+    pub operating_system: ::core::option::Option<::std::boxed::Box<OperatingSystem>>,
 }
 
 /// Operating System Version List Response
@@ -3837,10 +3908,11 @@ pub struct OperatingSystemVersion {
 pub struct OperatingSystemVersionsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#operatingSystemVersionsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Operating system version collection.
     #[serde(default, rename = "operatingSystemVersions")]
-    pub operating_system_versions: Option<Vec<OperatingSystemVersion>>,
+    pub operating_system_versions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperatingSystemVersion>>>,
 }
 
 /// Operating System List Response
@@ -3848,10 +3920,11 @@ pub struct OperatingSystemVersionsListResponse {
 pub struct OperatingSystemsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#operatingSystemsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Operating system collection.
     #[serde(default, rename = "operatingSystems")]
-    pub operating_systems: Option<Vec<OperatingSystem>>,
+    pub operating_systems:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperatingSystem>>>,
 }
 
 /// Creative optimization activity.
@@ -3859,13 +3932,14 @@ pub struct OperatingSystemsListResponse {
 pub struct OptimizationActivity {
     /// Floodlight activity ID of this optimization activity. This is a required field.
     #[serde(default, rename = "floodlightActivityId")]
-    pub floodlight_activity_id: Option<String>,
+    pub floodlight_activity_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the floodlight activity. This is a read-only, auto-generated field.
     #[serde(default, rename = "floodlightActivityIdDimensionValue")]
-    pub floodlight_activity_id_dimension_value: Option<DimensionValue>,
+    pub floodlight_activity_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Weight associated with this optimization. The weight assigned will be understood in proportion to the weights assigned to the other optimization activities. Value must be greater than or equal to 1.
     #[serde(default)]
-    pub weight: Option<i32>,
+    pub weight: ::core::option::Option<i32>,
 }
 
 /// Represents fields that are compatible to be selected for a report of type "PATH_TO_CONVERSION".
@@ -3873,19 +3947,22 @@ pub struct OptimizationActivity {
 pub struct PathToConversionReportCompatibleFields {
     /// Conversion dimensions which are compatible to be selected in the "conversionDimensions" section of the report.
     #[serde(default, rename = "conversionDimensions")]
-    pub conversion_dimensions: Option<Vec<Dimension>>,
+    pub conversion_dimensions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// Custom floodlight variables which are compatible to be selected in the "customFloodlightVariables" section of the report.
     #[serde(default, rename = "customFloodlightVariables")]
-    pub custom_floodlight_variables: Option<Vec<Dimension>>,
+    pub custom_floodlight_variables:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// The kind of resource this is, in this case dfareporting#pathToConversionReportCompatibleFields.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metrics which are compatible to be selected in the "metricNames" section of the report.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
     /// Per-interaction dimensions which are compatible to be selected in the "perInteractionDimensions" section of the report.
     #[serde(default, rename = "perInteractionDimensions")]
-    pub per_interaction_dimensions: Option<Vec<Dimension>>,
+    pub per_interaction_dimensions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
 }
 
 /// Contains properties of a placement.
@@ -3893,148 +3970,152 @@ pub struct PathToConversionReportCompatibleFields {
 pub struct Placement {
     /// Account ID of this placement. This field can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether this placement is active, inactive, archived or permanently archived. // TODO: enum values: ["PLACEMENT_STATUS_UNKNOWN", "PLACEMENT_STATUS_ACTIVE", "PLACEMENT_STATUS_INACTIVE", "PLACEMENT_STATUS_ARCHIVED", "PLACEMENT_STATUS_PERMANENTLY_ARCHIVED"]
     #[serde(default, rename = "activeStatus")]
-    pub active_status: Option<String>,
+    pub active_status: ::core::option::Option<String>,
     /// Whether this placement opts out of ad blocking. When true, ad blocking is disabled for this placement. When false, the campaign and site settings take effect.
     #[serde(default, rename = "adBlockingOptOut")]
-    pub ad_blocking_opt_out: Option<bool>,
+    pub ad_blocking_opt_out: ::core::option::Option<bool>,
     /// Optional. Ad serving platform ID to identify the ad serving platform used by the placement. Measurement partners can use this field to add ad-server specific macros. Possible values are: * 1, Adelphic * 2, Adform * 3, Adobe * 4, Amobee * 5, Basis (Centro) * 6, Beeswax * 7, Amazon * 8, DV360 (DBM) * 9, Innovid * 10, MediaMath * 11, Roku OneView DSP * 12, TabMo Hawk * 13, The Trade Desk * 14, Xandr Invest DSP * 15, Yahoo DSP * 16, Zeta Global * 17, Scaleout * 18, Bidtellect * 19, Unicorn * 20, Teads * 21, Quantcast * 22, Cognitiv * 23, AdTheorent * 24, DeepIntent * 25, Pulsepoint
     #[serde(default, rename = "adServingPlatformId")]
-    pub ad_serving_platform_id: Option<String>,
+    pub ad_serving_platform_id: ::core::option::Option<String>,
     /// Additional sizes associated with this placement. When inserting or updating a placement, only the size ID field is used.
     #[serde(default, rename = "additionalSizes")]
-    pub additional_sizes: Option<Vec<Size>>,
+    pub additional_sizes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Size>>>,
     /// Advertiser ID of this placement. This field can be left blank.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Optional. Whether the placement is enabled for YouTube integration.
     #[serde(default, rename = "allowOnYoutube")]
-    pub allow_on_youtube: Option<bool>,
+    pub allow_on_youtube: ::core::option::Option<bool>,
     /// Campaign ID of this placement. This field is a required field on insertion.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the campaign. This is a read-only, auto-generated field.
     #[serde(default, rename = "campaignIdDimensionValue")]
-    pub campaign_id_dimension_value: Option<DimensionValue>,
+    pub campaign_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Comments for this placement.
     #[serde(default)]
-    pub comment: Option<String>,
+    pub comment: ::core::option::Option<String>,
     /// Placement compatibility. DISPLAY and DISPLAY_INTERSTITIAL refer to rendering on desktop, on mobile devices or in mobile apps for regular or interstitial ads respectively. APP and APP_INTERSTITIAL are no longer allowed for new placement insertions. Instead, use DISPLAY or DISPLAY_INTERSTITIAL. IN_STREAM_VIDEO refers to rendering in in-stream video ads developed with the VAST standard. This field is required on insertion. // TODO: enum values: ["DISPLAY", "DISPLAY_INTERSTITIAL", "APP", "APP_INTERSTITIAL", "IN_STREAM_VIDEO", "IN_STREAM_AUDIO"]
     #[serde(default)]
-    pub compatibility: Option<String>,
+    pub compatibility: ::core::option::Option<String>,
     /// ID of the content category assigned to this placement.
     #[serde(default, rename = "contentCategoryId")]
-    pub content_category_id: Option<String>,
+    pub content_category_id: ::core::option::Option<String>,
     /// Optional. Conversion domain overrides for a placement.
     #[serde(default, rename = "conversionDomainOverride")]
-    pub conversion_domain_override: Option<PlacementConversionDomainOverride>,
+    pub conversion_domain_override:
+        ::core::option::Option<::std::boxed::Box<PlacementConversionDomainOverride>>,
     /// Information about the creation of this placement. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Directory site ID of this placement. On insert, you must set either this field or the siteId field to specify the site associated with this placement. This is a required field that is read-only after insertion.
     #[serde(default, rename = "directorySiteId")]
-    pub directory_site_id: Option<String>,
+    pub directory_site_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the directory site. This is a read-only, auto-generated field.
     #[serde(default, rename = "directorySiteIdDimensionValue")]
-    pub directory_site_id_dimension_value: Option<DimensionValue>,
+    pub directory_site_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// External ID for this placement.
     #[serde(default, rename = "externalId")]
-    pub external_id: Option<String>,
+    pub external_id: ::core::option::Option<String>,
     /// ID of this placement. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this placement. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Key name of this placement. This is a read-only, auto-generated field.
     #[serde(default, rename = "keyName")]
-    pub key_name: Option<String>,
+    pub key_name: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placement".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Information about the most recent modification of this placement. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Lookback window settings for this placement.
     #[serde(default, rename = "lookbackConfiguration")]
-    pub lookback_configuration: Option<LookbackConfiguration>,
+    pub lookback_configuration: ::core::option::Option<::std::boxed::Box<LookbackConfiguration>>,
     /// Name of this placement.This is a required field and must be less than or equal to 512 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Measurement partner provided settings for a wrapped placement.
     #[serde(default, rename = "partnerWrappingData")]
-    pub partner_wrapping_data: Option<MeasurementPartnerWrappingData>,
+    pub partner_wrapping_data:
+        ::core::option::Option<::std::boxed::Box<MeasurementPartnerWrappingData>>,
     /// Whether payment was approved for this placement. This is a read-only field relevant only to publisher-paid placements.
     #[serde(default, rename = "paymentApproved")]
-    pub payment_approved: Option<bool>,
+    pub payment_approved: ::core::option::Option<bool>,
     /// Payment source for this placement. This is a required field that is read-only after insertion. // TODO: enum values: ["PLACEMENT_AGENCY_PAID", "PLACEMENT_PUBLISHER_PAID"]
     #[serde(default, rename = "paymentSource")]
-    pub payment_source: Option<String>,
+    pub payment_source: ::core::option::Option<String>,
     /// ID of this placement''s group, if applicable.
     #[serde(default, rename = "placementGroupId")]
-    pub placement_group_id: Option<String>,
+    pub placement_group_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the placement group. This is a read-only, auto-generated field.
     #[serde(default, rename = "placementGroupIdDimensionValue")]
-    pub placement_group_id_dimension_value: Option<DimensionValue>,
+    pub placement_group_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// ID of the placement strategy assigned to this placement.
     #[serde(default, rename = "placementStrategyId")]
-    pub placement_strategy_id: Option<String>,
+    pub placement_strategy_id: ::core::option::Option<String>,
     /// Pricing schedule of this placement. This field is required on insertion, specifically subfields startDate, endDate and pricingType.
     #[serde(default, rename = "pricingSchedule")]
-    pub pricing_schedule: Option<PricingSchedule>,
+    pub pricing_schedule: ::core::option::Option<::std::boxed::Box<PricingSchedule>>,
     /// Whether this placement is the primary placement of a roadblock (placement group). You cannot change this field from true to false. Setting this field to true will automatically set the primary field on the original primary placement of the roadblock to false, and it will automatically set the roadblock''s primaryPlacementId field to the ID of this placement.
     #[serde(default)]
-    pub primary: Option<bool>,
+    pub primary: ::core::option::Option<bool>,
     /// Information about the last publisher update. This is a read-only field.
     #[serde(default, rename = "publisherUpdateInfo")]
-    pub publisher_update_info: Option<LastModifiedInfo>,
+    pub publisher_update_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Site ID associated with this placement. On insert, you must set either this field or the directorySiteId field to specify the site associated with this placement. This is a required field that is read-only after insertion.
     #[serde(default, rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the site. This is a read-only, auto-generated field.
     #[serde(default, rename = "siteIdDimensionValue")]
-    pub site_id_dimension_value: Option<DimensionValue>,
+    pub site_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Optional. Whether the ads in the placement are served by another platform and CM is only used for tracking or they are served by CM. A false value indicates the ad is served by CM.
     #[serde(default, rename = "siteServed")]
-    pub site_served: Option<bool>,
+    pub site_served: ::core::option::Option<bool>,
     /// Size associated with this placement. When inserting or updating a placement, only the size ID field is used. This field is required on insertion.
     #[serde(default)]
-    pub size: Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// Whether creatives assigned to this placement must be SSL-compliant.
     #[serde(default, rename = "sslRequired")]
-    pub ssl_required: Option<bool>,
+    pub ssl_required: ::core::option::Option<bool>,
     /// Third-party placement status. // TODO: enum values: ["PENDING_REVIEW", "PAYMENT_ACCEPTED", "PAYMENT_REJECTED", "ACKNOWLEDGE_REJECTION", "ACKNOWLEDGE_ACCEPTANCE", "DRAFT"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Subaccount ID of this placement. This field can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Tag formats to generate for this placement. This field is required on insertion. Acceptable values are: - "PLACEMENT_TAG_STANDARD" - "PLACEMENT_TAG_IFRAME_JAVASCRIPT" - "PLACEMENT_TAG_IFRAME_ILAYER" - "PLACEMENT_TAG_INTERNAL_REDIRECT" - "PLACEMENT_TAG_JAVASCRIPT" - "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT" - "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT" - "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT" - "PLACEMENT_TAG_CLICK_COMMANDS" - "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH" - "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_3" - "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4" - "PLACEMENT_TAG_TRACKING" - "PLACEMENT_TAG_TRACKING_IFRAME" - "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
     #[serde(default, rename = "tagFormats")]
-    pub tag_formats: Option<Vec<String>>,
+    pub tag_formats: ::core::option::Option<::std::vec::Vec<String>>,
     /// Tag settings for this placement.
     #[serde(default, rename = "tagSetting")]
-    pub tag_setting: Option<TagSetting>,
+    pub tag_setting: ::core::option::Option<::std::boxed::Box<TagSetting>>,
     /// Whether Verification and ActiveView are disabled for in-stream video creatives for this placement. The same setting videoActiveViewOptOut exists on the site level -- the opt out occurs if either of these settings are true. These settings are distinct from DirectorySites.settings.activeViewOptOut or Sites.siteSettings.activeViewOptOut which only apply to display ads. However, Accounts.activeViewOptOut opts out both video traffic, as well as display ads, from Verification and ActiveView.
     #[serde(default, rename = "videoActiveViewOptOut")]
-    pub video_active_view_opt_out: Option<bool>,
+    pub video_active_view_opt_out: ::core::option::Option<bool>,
     /// A collection of settings which affect video creatives served through this placement. Applicable to placements with IN_STREAM_VIDEO compatibility.
     #[serde(default, rename = "videoSettings")]
-    pub video_settings: Option<VideoSettings>,
+    pub video_settings: ::core::option::Option<::std::boxed::Box<VideoSettings>>,
     /// VPAID adapter setting for this placement. Controls which VPAID format the measurement adapter will use for in-stream video creatives assigned to this placement. *Note:* Flash is no longer supported. This field now defaults to HTML5 when the following values are provided: FLASH, BOTH. // TODO: enum values: ["DEFAULT", "FLASH", "HTML5", "BOTH"]
     #[serde(default, rename = "vpaidAdapterChoice")]
-    pub vpaid_adapter_choice: Option<String>,
+    pub vpaid_adapter_choice: ::core::option::Option<String>,
     /// Whether this placement opts out of tag wrapping.
     #[serde(default, rename = "wrappingOptOut")]
-    pub wrapping_opt_out: Option<bool>,
+    pub wrapping_opt_out: ::core::option::Option<bool>,
     /// Optional. YouTube settings for the placement. The placement must be enabled for YouTube to use this field.
     #[serde(default, rename = "youtubeSettings")]
-    pub youtube_settings: Option<YoutubeSettings>,
+    pub youtube_settings: ::core::option::Option<::std::boxed::Box<YoutubeSettings>>,
 }
 
 /// Placement Assignment.
@@ -4042,23 +4123,24 @@ pub struct Placement {
 pub struct PlacementAssignment {
     /// Whether this placement assignment is active. When true, the placement will be included in the ad''s rotation.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// ID of the placement to be assigned. This is a required field.
     #[serde(default, rename = "placementId")]
-    pub placement_id: Option<String>,
+    pub placement_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the placement. This is a read-only, auto-generated field.
     #[serde(default, rename = "placementIdDimensionValue")]
-    pub placement_id_dimension_value: Option<DimensionValue>,
+    pub placement_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Whether the placement to be assigned requires SSL. This is a read-only field that is auto-generated when the ad is inserted or updated.
     #[serde(default, rename = "sslRequired")]
-    pub ssl_required: Option<bool>,
+    pub ssl_required: ::core::option::Option<bool>,
 }
 
 /// PlacementConversionDomainOverride resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlacementConversionDomainOverride {
     #[serde(default, rename = "conversionDomains")]
-    pub conversion_domains: Option<Vec<PlacementSingleConversionDomain>>,
+    pub conversion_domains:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlacementSingleConversionDomain>>>,
 }
 
 /// Contains properties of a package or roadblock.
@@ -4066,82 +4148,84 @@ pub struct PlacementConversionDomainOverride {
 pub struct PlacementGroup {
     /// Account ID of this placement group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether this placement group is active, inactive, archived or permanently archived. // TODO: enum values: ["PLACEMENT_STATUS_UNKNOWN", "PLACEMENT_STATUS_ACTIVE", "PLACEMENT_STATUS_INACTIVE", "PLACEMENT_STATUS_ARCHIVED", "PLACEMENT_STATUS_PERMANENTLY_ARCHIVED"]
     #[serde(default, rename = "activeStatus")]
-    pub active_status: Option<String>,
+    pub active_status: ::core::option::Option<String>,
     /// Advertiser ID of this placement group. This is a required field on insertion.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Campaign ID of this placement group. This field is required on insertion.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the campaign. This is a read-only, auto-generated field.
     #[serde(default, rename = "campaignIdDimensionValue")]
-    pub campaign_id_dimension_value: Option<DimensionValue>,
+    pub campaign_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// IDs of placements which are assigned to this placement group. This is a read-only, auto-generated field.
     #[serde(default, rename = "childPlacementIds")]
-    pub child_placement_ids: Option<Vec<String>>,
+    pub child_placement_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Comments for this placement group.
     #[serde(default)]
-    pub comment: Option<String>,
+    pub comment: ::core::option::Option<String>,
     /// ID of the content category assigned to this placement group.
     #[serde(default, rename = "contentCategoryId")]
-    pub content_category_id: Option<String>,
+    pub content_category_id: ::core::option::Option<String>,
     /// Information about the creation of this placement group. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Directory site ID associated with this placement group. On insert, you must set either this field or the site_id field to specify the site associated with this placement group. This is a required field that is read-only after insertion.
     #[serde(default, rename = "directorySiteId")]
-    pub directory_site_id: Option<String>,
+    pub directory_site_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the directory site. This is a read-only, auto-generated field.
     #[serde(default, rename = "directorySiteIdDimensionValue")]
-    pub directory_site_id_dimension_value: Option<DimensionValue>,
+    pub directory_site_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// External ID for this placement.
     #[serde(default, rename = "externalId")]
-    pub external_id: Option<String>,
+    pub external_id: ::core::option::Option<String>,
     /// ID of this placement group. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this placement group. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementGroup".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Information about the most recent modification of this placement group. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Name of this placement group. This is a required field and must be less than 256 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Type of this placement group. A package is a simple group of placements that acts as a single pricing point for a group of tags. A roadblock is a group of placements that not only acts as a single pricing point, but also assumes that all the tags in it will be served at the same time. A roadblock requires one of its assigned placements to be marked as primary for reporting. This field is required on insertion. // TODO: enum values: ["PLACEMENT_PACKAGE", "PLACEMENT_ROADBLOCK"]
     #[serde(default, rename = "placementGroupType")]
-    pub placement_group_type: Option<String>,
+    pub placement_group_type: ::core::option::Option<String>,
     /// ID of the placement strategy assigned to this placement group.
     #[serde(default, rename = "placementStrategyId")]
-    pub placement_strategy_id: Option<String>,
+    pub placement_strategy_id: ::core::option::Option<String>,
     /// Pricing schedule of this placement group. This field is required on insertion.
     #[serde(default, rename = "pricingSchedule")]
-    pub pricing_schedule: Option<PricingSchedule>,
+    pub pricing_schedule: ::core::option::Option<::std::boxed::Box<PricingSchedule>>,
     /// ID of the primary placement, used to calculate the media cost of a roadblock (placement group). Modifying this field will automatically modify the primary field on all affected roadblock child placements.
     #[serde(default, rename = "primaryPlacementId")]
-    pub primary_placement_id: Option<String>,
+    pub primary_placement_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the primary placement. This is a read-only, auto-generated field.
     #[serde(default, rename = "primaryPlacementIdDimensionValue")]
-    pub primary_placement_id_dimension_value: Option<DimensionValue>,
+    pub primary_placement_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Site ID associated with this placement group. On insert, you must set either this field or the directorySiteId field to specify the site associated with this placement group. This is a required field that is read-only after insertion.
     #[serde(default, rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the site. This is a read-only, auto-generated field.
     #[serde(default, rename = "siteIdDimensionValue")]
-    pub site_id_dimension_value: Option<DimensionValue>,
+    pub site_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Subaccount ID of this placement group. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Placement Group List Response
@@ -4149,22 +4233,23 @@ pub struct PlacementGroup {
 pub struct PlacementGroupsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementGroupsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Placement group collection.
     #[serde(default, rename = "placementGroups")]
-    pub placement_groups: Option<Vec<PlacementGroup>>,
+    pub placement_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlacementGroup>>>,
 }
 
 /// PlacementSingleConversionDomain resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlacementSingleConversionDomain {
     #[serde(default, rename = "conversionDomainId")]
-    pub conversion_domain_id: Option<String>,
+    pub conversion_domain_id: ::core::option::Option<String>,
     #[serde(default, rename = "conversionDomainValue")]
-    pub conversion_domain_value: Option<String>,
+    pub conversion_domain_value: ::core::option::Option<String>,
 }
 
 /// Placement Strategy List Response
@@ -4172,13 +4257,14 @@ pub struct PlacementSingleConversionDomain {
 pub struct PlacementStrategiesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementStrategiesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Placement strategy collection.
     #[serde(default, rename = "placementStrategies")]
-    pub placement_strategies: Option<Vec<PlacementStrategy>>,
+    pub placement_strategies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlacementStrategy>>>,
 }
 
 /// Contains properties of a placement strategy.
@@ -4186,16 +4272,16 @@ pub struct PlacementStrategiesListResponse {
 pub struct PlacementStrategy {
     /// Account ID of this placement strategy.This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// ID of this placement strategy. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementStrategy".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this placement strategy. This is a required field. It must be less than 256 characters long and unique among placement strategies of the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Placement Tag
@@ -4203,10 +4289,10 @@ pub struct PlacementStrategy {
 pub struct PlacementTag {
     /// Placement ID
     #[serde(default, rename = "placementId")]
-    pub placement_id: Option<String>,
+    pub placement_id: ::core::option::Option<String>,
     /// Tags generated for this placement.
     #[serde(default, rename = "tagDatas")]
-    pub tag_datas: Option<Vec<TagData>>,
+    pub tag_datas: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TagData>>>,
 }
 
 /// Placement GenerateTags Response
@@ -4214,10 +4300,10 @@ pub struct PlacementTag {
 pub struct PlacementsGenerateTagsResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementsGenerateTagsResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Set of generated tags for the specified placements.
     #[serde(default, rename = "placementTags")]
-    pub placement_tags: Option<Vec<PlacementTag>>,
+    pub placement_tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlacementTag>>>,
 }
 
 /// Placement List Response
@@ -4225,13 +4311,13 @@ pub struct PlacementsGenerateTagsResponse {
 pub struct PlacementsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Placement collection.
     #[serde(default)]
-    pub placements: Option<Vec<Placement>>,
+    pub placements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Placement>>>,
 }
 
 /// Contains information about a platform type that can be targeted by ads.
@@ -4239,13 +4325,13 @@ pub struct PlacementsListResponse {
 pub struct PlatformType {
     /// ID of this platform type.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#platformType".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this platform type.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Platform Type List Response
@@ -4253,10 +4339,10 @@ pub struct PlatformType {
 pub struct PlatformTypesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#platformTypesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Platform type collection.
     #[serde(default, rename = "platformTypes")]
-    pub platform_types: Option<Vec<PlatformType>>,
+    pub platform_types: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlatformType>>>,
 }
 
 /// Popup Window Properties.
@@ -4264,31 +4350,31 @@ pub struct PlatformTypesListResponse {
 pub struct PopupWindowProperties {
     /// Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID
     #[serde(default)]
-    pub dimension: Option<Size>,
+    pub dimension: ::core::option::Option<::std::boxed::Box<Size>>,
     /// Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.
     #[serde(default)]
-    pub offset: Option<OffsetPosition>,
+    pub offset: ::core::option::Option<::std::boxed::Box<OffsetPosition>>,
     /// Popup window position either centered or at specific coordinate. // TODO: enum values: ["CENTER", "COORDINATES"]
     #[serde(default, rename = "positionType")]
-    pub position_type: Option<String>,
+    pub position_type: ::core::option::Option<String>,
     /// Whether to display the browser address bar.
     #[serde(default, rename = "showAddressBar")]
-    pub show_address_bar: Option<bool>,
+    pub show_address_bar: ::core::option::Option<bool>,
     /// Whether to display the browser menu bar.
     #[serde(default, rename = "showMenuBar")]
-    pub show_menu_bar: Option<bool>,
+    pub show_menu_bar: ::core::option::Option<bool>,
     /// Whether to display the browser scroll bar.
     #[serde(default, rename = "showScrollBar")]
-    pub show_scroll_bar: Option<bool>,
+    pub show_scroll_bar: ::core::option::Option<bool>,
     /// Whether to display the browser status bar.
     #[serde(default, rename = "showStatusBar")]
-    pub show_status_bar: Option<bool>,
+    pub show_status_bar: ::core::option::Option<bool>,
     /// Whether to display the browser tool bar.
     #[serde(default, rename = "showToolBar")]
-    pub show_tool_bar: Option<bool>,
+    pub show_tool_bar: ::core::option::Option<bool>,
     /// Title of popup window.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Contains information about a postal code that can be targeted by ads.
@@ -4296,19 +4382,19 @@ pub struct PopupWindowProperties {
 pub struct PostalCode {
     /// Postal code. This is equivalent to the id field.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Country code of the country to which this postal code belongs.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// DART ID of the country to which this postal code belongs.
     #[serde(default, rename = "countryDartId")]
-    pub country_dart_id: Option<String>,
+    pub country_dart_id: ::core::option::Option<String>,
     /// ID of this postal code.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#postalCode".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Postal Code List Response
@@ -4316,10 +4402,10 @@ pub struct PostalCode {
 pub struct PostalCodesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#postalCodesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Postal code collection.
     #[serde(default, rename = "postalCodes")]
-    pub postal_codes: Option<Vec<PostalCode>>,
+    pub postal_codes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostalCode>>>,
 }
 
 /// Pricing Schedule
@@ -4327,43 +4413,44 @@ pub struct PostalCodesListResponse {
 pub struct PricingSchedule {
     /// Placement cap cost option. // TODO: enum values: ["CAP_COST_NONE", "CAP_COST_MONTHLY", "CAP_COST_CUMULATIVE"]
     #[serde(default, rename = "capCostOption")]
-    pub cap_cost_option: Option<String>,
+    pub cap_cost_option: ::core::option::Option<String>,
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// Whether this placement is flighted. If true, pricing periods will be computed automatically.
     #[serde(default)]
-    pub flighted: Option<bool>,
+    pub flighted: ::core::option::Option<bool>,
     /// Floodlight activity ID associated with this placement. This field should be set when placement pricing type is set to PRICING_TYPE_CPA.
     #[serde(default, rename = "floodlightActivityId")]
-    pub floodlight_activity_id: Option<String>,
+    pub floodlight_activity_id: ::core::option::Option<String>,
     /// Pricing periods for this placement.
     #[serde(default, rename = "pricingPeriods")]
-    pub pricing_periods: Option<Vec<PricingSchedulePricingPeriod>>,
+    pub pricing_periods:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PricingSchedulePricingPeriod>>>,
     /// Placement pricing type. This field is required on insertion. // TODO: enum values: ["PRICING_TYPE_CPM", "PRICING_TYPE_CPC", "PRICING_TYPE_CPA", "PRICING_TYPE_FLAT_RATE_IMPRESSIONS", "PRICING_TYPE_FLAT_RATE_CLICKS", "PRICING_TYPE_CPM_ACTIVEVIEW"]
     #[serde(default, rename = "pricingType")]
-    pub pricing_type: Option<String>,
+    pub pricing_type: ::core::option::Option<String>,
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     #[serde(default, rename = "testingStartDate")]
-    pub testing_start_date: Option<String>,
+    pub testing_start_date: ::core::option::Option<String>,
 }
 
 /// Pricing Period
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PricingSchedulePricingPeriod {
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// Comments for this pricing period.
     #[serde(default, rename = "pricingComment")]
-    pub pricing_comment: Option<String>,
+    pub pricing_comment: ::core::option::Option<String>,
     /// Rate or cost of this pricing period in nanos (i.e., multiplied by 1000000000). Acceptable values are 0 to 1000000000000000000, inclusive.
     #[serde(default, rename = "rateOrCostNanos")]
-    pub rate_or_cost_nanos: Option<String>,
+    pub rate_or_cost_nanos: ::core::option::Option<String>,
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// Units of this pricing period. Acceptable values are 0 to 10000000000, inclusive.
     #[serde(default)]
-    pub units: Option<String>,
+    pub units: ::core::option::Option<String>,
 }
 
 /// Contains proximity filter information.
@@ -4371,16 +4458,16 @@ pub struct PricingSchedulePricingPeriod {
 pub struct ProximityFilter {
     /// Optional. Field ID in the element.
     #[serde(default, rename = "fieldId")]
-    pub field_id: Option<i32>,
+    pub field_id: ::core::option::Option<i32>,
     /// Optional. The radius bucket type of the proximity filter // TODO: enum values: ["RADIUS_BUCKET_TYPE_UNKNOWN", "SMALL", "MEDIUM", "LARGE", "MULTI_REGIONAL", "NATIONAL"]
     #[serde(default, rename = "radiusBucketType")]
-    pub radius_bucket_type: Option<String>,
+    pub radius_bucket_type: ::core::option::Option<String>,
     /// Optional. The units of the radius value // TODO: enum values: ["RADIUS_UNIT_TYPE_UNKNOWN", "KILOMETERS", "MILES"]
     #[serde(default, rename = "radiusUnitType")]
-    pub radius_unit_type: Option<String>,
+    pub radius_unit_type: ::core::option::Option<String>,
     /// Optional. Radius length in units defined by radius_units.
     #[serde(default, rename = "radiusValue")]
-    pub radius_value: Option<i32>,
+    pub radius_value: ::core::option::Option<i32>,
 }
 
 /// Represents fields that are compatible to be selected for a report of type "REACH".
@@ -4388,22 +4475,24 @@ pub struct ProximityFilter {
 pub struct ReachReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
-    pub dimension_filters: Option<Vec<Dimension>>,
+    pub dimension_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// Dimensions which are compatible to be selected in the "dimensions" section of the report.
     #[serde(default)]
-    pub dimensions: Option<Vec<Dimension>>,
+    pub dimensions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// The kind of resource this is, in this case dfareporting#reachReportCompatibleFields.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metrics which are compatible to be selected in the "metricNames" section of the report.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
     /// Metrics which are compatible to be selected as activity metrics to pivot on in the "activities" section of the report.
     #[serde(default, rename = "pivotedActivityMetrics")]
-    pub pivoted_activity_metrics: Option<Vec<Metric>>,
+    pub pivoted_activity_metrics:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
     /// Metrics which are compatible to be selected in the "reachByFrequencyMetricNames" section of the report.
     #[serde(default, rename = "reachByFrequencyMetrics")]
-    pub reach_by_frequency_metrics: Option<Vec<Metric>>,
+    pub reach_by_frequency_metrics:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
 }
 
 /// Represents a recipient.
@@ -4411,13 +4500,13 @@ pub struct ReachReportCompatibleFields {
 pub struct Recipient {
     /// The delivery type for the recipient. // TODO: enum values: ["LINK", "ATTACHMENT"]
     #[serde(default, rename = "deliveryType")]
-    pub delivery_type: Option<String>,
+    pub delivery_type: ::core::option::Option<String>,
     /// The email address of the recipient.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The kind of resource this is, in this case dfareporting#recipient.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains information about a region that can be targeted by ads.
@@ -4425,22 +4514,22 @@ pub struct Recipient {
 pub struct Region {
     /// Country code of the country to which this region belongs.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// DART ID of the country to which this region belongs.
     #[serde(default, rename = "countryDartId")]
-    pub country_dart_id: Option<String>,
+    pub country_dart_id: ::core::option::Option<String>,
     /// DART ID of this region.
     #[serde(default, rename = "dartId")]
-    pub dart_id: Option<String>,
+    pub dart_id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#region".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this region.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Region code.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
 }
 
 /// Region List Response
@@ -4448,10 +4537,10 @@ pub struct Region {
 pub struct RegionsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#regionsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Region collection.
     #[serde(default)]
-    pub regions: Option<Vec<Region>>,
+    pub regions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Region>>>,
 }
 
 /// Contains properties of a remarketing list. Remarketing enables you to create lists of users who have performed specific actions on a site, then target ads to members of those lists. This resource can be used to manage remarketing lists that are owned by your advertisers. To see all remarketing lists that are visible to your advertisers, including those that are shared to your advertiser or account, use the TargetableRemarketingLists resource.
@@ -4459,43 +4548,43 @@ pub struct RegionsListResponse {
 pub struct RemarketingList {
     /// Account ID of this remarketing list. This is a read-only, auto-generated field that is only returned in GET requests.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether this remarketing list is active.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Dimension value for the advertiser ID that owns this remarketing list. This is a required field.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Remarketing list description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Remarketing list ID. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#remarketingList".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Number of days that a user should remain in the remarketing list without an impression. Acceptable values are 1 to 540, inclusive.
     #[serde(default, rename = "lifeSpan")]
-    pub life_span: Option<String>,
+    pub life_span: ::core::option::Option<String>,
     /// Rule used to populate the remarketing list with users.
     #[serde(default, rename = "listPopulationRule")]
-    pub list_population_rule: Option<ListPopulationRule>,
+    pub list_population_rule: ::core::option::Option<::std::boxed::Box<ListPopulationRule>>,
     /// Number of users currently in the list. This is a read-only field.
     #[serde(default, rename = "listSize")]
-    pub list_size: Option<String>,
+    pub list_size: ::core::option::Option<String>,
     /// Product from which this remarketing list was originated. // TODO: enum values: ["REMARKETING_LIST_SOURCE_OTHER", "REMARKETING_LIST_SOURCE_ADX", "REMARKETING_LIST_SOURCE_DFP", "REMARKETING_LIST_SOURCE_XFP", "REMARKETING_LIST_SOURCE_DFA", "REMARKETING_LIST_SOURCE_GA", "REMARKETING_LIST_SOURCE_YOUTUBE", "REMARKETING_LIST_SOURCE_DBM", "REMARKETING_LIST_SOURCE_GPLUS", "REMARKETING_LIST_SOURCE_DMP", "REMARKETING_LIST_SOURCE_PLAY_STORE"]
     #[serde(default, rename = "listSource")]
-    pub list_source: Option<String>,
+    pub list_source: ::core::option::Option<String>,
     /// Name of the remarketing list. This is a required field. Must be no greater than 128 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Subaccount ID of this remarketing list. This is a read-only, auto-generated field that is only returned in GET requests.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Contains properties of a remarketing list''s sharing information. Sharing allows other accounts or advertisers to target to your remarketing lists. This resource can be used to manage remarketing list sharing to other accounts and advertisers.
@@ -4503,16 +4592,16 @@ pub struct RemarketingList {
 pub struct RemarketingListShare {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#remarketingListShare".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Remarketing list ID. This is a read-only, auto-generated field.
     #[serde(default, rename = "remarketingListId")]
-    pub remarketing_list_id: Option<String>,
+    pub remarketing_list_id: ::core::option::Option<String>,
     /// Accounts that the remarketing list is shared with.
     #[serde(default, rename = "sharedAccountIds")]
-    pub shared_account_ids: Option<Vec<String>>,
+    pub shared_account_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Advertisers that the remarketing list is shared with.
     #[serde(default, rename = "sharedAdvertiserIds")]
-    pub shared_advertiser_ids: Option<Vec<String>>,
+    pub shared_advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Remarketing list response
@@ -4520,13 +4609,14 @@ pub struct RemarketingListShare {
 pub struct RemarketingListsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#remarketingListsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Remarketing list collection.
     #[serde(default, rename = "remarketingLists")]
-    pub remarketing_lists: Option<Vec<RemarketingList>>,
+    pub remarketing_lists:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RemarketingList>>>,
 }
 
 /// Contains remarketing value attribute information.
@@ -4534,10 +4624,10 @@ pub struct RemarketingListsListResponse {
 pub struct RemarketingValueAttribute {
     /// Optional. Field ID in the element.
     #[serde(default, rename = "fieldId")]
-    pub field_id: Option<i32>,
+    pub field_id: ::core::option::Option<i32>,
     /// Optional. Remarketing user attribute IDs for auto filtering.
     #[serde(default, rename = "userAttributeIds")]
-    pub user_attribute_ids: Option<Vec<String>>,
+    pub user_attribute_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a Report resource.
@@ -4545,58 +4635,58 @@ pub struct RemarketingValueAttribute {
 pub struct Report {
     /// The account ID to which this report belongs.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The report criteria for a report of type "STANDARD".
     #[serde(default)]
-    pub criteria: Option<serde_json::Value>,
+    pub criteria: ::core::option::Option<serde_json::Value>,
     /// Optional. The report criteria for a report of type "CROSS_MEDIA_REACH".
     #[serde(default, rename = "crossMediaReachCriteria")]
-    pub cross_media_reach_criteria: Option<serde_json::Value>,
+    pub cross_media_reach_criteria: ::core::option::Option<serde_json::Value>,
     /// The report''s email delivery settings.
     #[serde(default)]
-    pub delivery: Option<serde_json::Value>,
+    pub delivery: ::core::option::Option<serde_json::Value>,
     /// The eTag of this response for caching purposes.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The filename used when generating report files for this report.
     #[serde(default, rename = "fileName")]
-    pub file_name: Option<String>,
+    pub file_name: ::core::option::Option<String>,
     /// The report criteria for a report of type "FLOODLIGHT".
     #[serde(default, rename = "floodlightCriteria")]
-    pub floodlight_criteria: Option<serde_json::Value>,
+    pub floodlight_criteria: ::core::option::Option<serde_json::Value>,
     /// The output format of the report. If not specified, default format is "CSV". Note that the actual format in the completed report file might differ if for instance the report''s size exceeds the format''s capabilities. "CSV" will then be the fallback format. // TODO: enum values: ["CSV", "EXCEL"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// The unique ID identifying this report resource.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The kind of resource this is, in this case dfareporting#report.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The timestamp (in milliseconds since epoch) of when this report was last modified.
     #[serde(default, rename = "lastModifiedTime")]
-    pub last_modified_time: Option<String>,
+    pub last_modified_time: ::core::option::Option<String>,
     /// The name of the report.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The user profile id of the owner of this report.
     #[serde(default, rename = "ownerProfileId")]
-    pub owner_profile_id: Option<String>,
+    pub owner_profile_id: ::core::option::Option<String>,
     /// The report criteria for a report of type "PATH_TO_CONVERSION".
     #[serde(default, rename = "pathToConversionCriteria")]
-    pub path_to_conversion_criteria: Option<serde_json::Value>,
+    pub path_to_conversion_criteria: ::core::option::Option<serde_json::Value>,
     /// The report criteria for a report of type "REACH".
     #[serde(default, rename = "reachCriteria")]
-    pub reach_criteria: Option<serde_json::Value>,
+    pub reach_criteria: ::core::option::Option<serde_json::Value>,
     /// The report''s schedule. Can only be set if the report''s ''dateRange'' is a relative date range and the relative date range is not "TODAY".
     #[serde(default)]
-    pub schedule: Option<serde_json::Value>,
+    pub schedule: ::core::option::Option<serde_json::Value>,
     /// The subaccount ID to which this report belongs if applicable.
     #[serde(default, rename = "subAccountId")]
-    pub sub_account_id: Option<String>,
+    pub sub_account_id: ::core::option::Option<String>,
     /// The type of the report. // TODO: enum values: ["STANDARD", "REACH", "PATH_TO_CONVERSION", "FLOODLIGHT", "CROSS_MEDIA_REACH"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents fields that are compatible to be selected for a report of type "STANDARD".
@@ -4604,19 +4694,20 @@ pub struct Report {
 pub struct ReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
-    pub dimension_filters: Option<Vec<Dimension>>,
+    pub dimension_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// Dimensions which are compatible to be selected in the "dimensions" section of the report.
     #[serde(default)]
-    pub dimensions: Option<Vec<Dimension>>,
+    pub dimensions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimension>>>,
     /// The kind of resource this is, in this case dfareporting#reportCompatibleFields.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Metrics which are compatible to be selected in the "metricNames" section of the report.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
     /// Metrics which are compatible to be selected as activity metrics to pivot on in the "activities" section of the report.
     #[serde(default, rename = "pivotedActivityMetrics")]
-    pub pivoted_activity_metrics: Option<Vec<Metric>>,
+    pub pivoted_activity_metrics:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
 }
 
 /// Represents the list of reports.
@@ -4624,16 +4715,16 @@ pub struct ReportCompatibleFields {
 pub struct ReportList {
     /// The eTag of this response for caching purposes.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The reports returned in this response.
     #[serde(default)]
-    pub items: Option<Vec<Report>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Report>>>,
     /// The kind of list this is, in this case dfareporting#reportList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Continuation token used to page through reports. To retrieve the next page of results, set the next request''s "pageToken" to the value of this field. The page token is only valid for a limited amount of time and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Reporting Configuration
@@ -4641,13 +4732,13 @@ pub struct ReportList {
 pub struct ReportsConfiguration {
     /// Whether the exposure to conversion report is enabled. This report shows detailed pathway information on up to 10 of the most recent ad exposures seen by a user before converting.
     #[serde(default, rename = "exposureToConversionEnabled")]
-    pub exposure_to_conversion_enabled: Option<bool>,
+    pub exposure_to_conversion_enabled: ::core::option::Option<bool>,
     /// Default lookback windows for new advertisers in this account.
     #[serde(default, rename = "lookbackConfiguration")]
-    pub lookback_configuration: Option<LookbackConfiguration>,
+    pub lookback_configuration: ::core::option::Option<::std::boxed::Box<LookbackConfiguration>>,
     /// Report generation time zone ID of this account. This is a required field that cannot be changed on update. Acceptable values are: - "1" for "America/New_York" - "2" for "Europe/London" - "3" for "Europe/Paris" - "4" for "Africa/Johannesburg" - "5" for "Asia/Jerusalem" - "6" for "Asia/Shanghai" - "7" for "Asia/Hong_Kong" - "8" for "Asia/Tokyo" - "9" for "Australia/Sydney" - "10" for "Asia/Dubai" - "11" for "America/Los_Angeles" - "12" for "Pacific/Auckland" - "13" for "America/Sao_Paulo" - "16" for "America/Asuncion" - "17" for "America/Chicago" - "18" for "America/Denver" - "19" for "America/St_Johns" - "20" for "Asia/Dhaka" - "21" for "Asia/Jakarta" - "22" for "Asia/Kabul" - "23" for "Asia/Karachi" - "24" for "Asia/Calcutta" - "25" for "Asia/Pyongyang" - "26" for "Asia/Rangoon" - "27" for "Atlantic/Cape_Verde" - "28" for "Atlantic/South_Georgia" - "29" for "Australia/Adelaide" - "30" for "Australia/Lord_Howe" - "31" for "Europe/Moscow" - "32" for "Pacific/Kiritimati" - "35" for "Pacific/Norfolk" - "36" for "Pacific/Tongatapu"
     #[serde(default, rename = "reportGenerationTimeZoneId")]
-    pub report_generation_time_zone_id: Option<String>,
+    pub report_generation_time_zone_id: ::core::option::Option<String>,
 }
 
 /// Contains request value information.
@@ -4655,13 +4746,13 @@ pub struct ReportsConfiguration {
 pub struct RequestValue {
     /// Optional. User attribute IDs in the request that should be excluded. Used only when the field type is REMARKETING_VALUE or USER_ATTRIBUTE_ID.
     #[serde(default, rename = "excludeFromUserAttributeIds")]
-    pub exclude_from_user_attribute_ids: Option<Vec<String>>,
+    pub exclude_from_user_attribute_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Custom key in the request. Used only when the field type is CUSTOM_VALUE.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Optional. User attribute IDs in the request. Used only when the field type is REMARKETING_VALUE or USER_ATTRIBUTE_ID.
     #[serde(default, rename = "userAttributeIds")]
-    pub user_attribute_ids: Option<Vec<String>>,
+    pub user_attribute_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Rich Media Exit Override.
@@ -4669,13 +4760,13 @@ pub struct RequestValue {
 pub struct RichMediaExitOverride {
     /// Click-through URL of this rich media exit override. Applicable if the enabled field is set to true.
     #[serde(default, rename = "clickThroughUrl")]
-    pub click_through_url: Option<ClickThroughUrl>,
+    pub click_through_url: ::core::option::Option<::std::boxed::Box<ClickThroughUrl>>,
     /// Whether to use the clickThroughUrl. If false, the creative-level exit will be used.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// ID for the override to refer to a specific exit in the creative.
     #[serde(default, rename = "exitId")]
-    pub exit_id: Option<String>,
+    pub exit_id: ::core::option::Option<String>,
 }
 
 /// Contains a list of field filters that the given custom rule will apply.
@@ -4683,7 +4774,7 @@ pub struct RichMediaExitOverride {
 pub struct RuleBlock {
     /// Optional. A list of non-auto field filters
     #[serde(default, rename = "fieldFilter")]
-    pub field_filter: Option<Vec<FieldFilter>>,
+    pub field_filter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldFilter>>>,
 }
 
 /// Contains properties of a site.
@@ -4691,46 +4782,47 @@ pub struct RuleBlock {
 pub struct Site {
     /// Account ID of this site. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Optional. Ad serving platform ID to identify the ad serving platform used by the site. Measurement partners can use this field to add ad-server specific macros. If set, this value acts as the default during placement creation. Possible values are: * 1, Adelphic * 2, Adform * 3, Adobe * 4, Amobee * 5, Basis (Centro) * 6, Beeswax * 7, Amazon * 8, DV360 (DBM) * 9, Innovid * 10, MediaMath * 11, Roku OneView DSP * 12, TabMo Hawk * 13, The Trade Desk * 14, Xandr Invest DSP * 15, Yahoo DSP * 16, Zeta Global * 17, Scaleout * 18, Bidtellect * 19, Unicorn * 20, Teads * 21, Quantcast * 22, Cognitiv * 23, AdTheorent * 24, DeepIntent * 25, Pulsepoint
     #[serde(default, rename = "adServingPlatformId")]
-    pub ad_serving_platform_id: Option<String>,
+    pub ad_serving_platform_id: ::core::option::Option<String>,
     /// Whether this site is approved.
     #[serde(default)]
-    pub approved: Option<bool>,
+    pub approved: ::core::option::Option<bool>,
     /// Directory site associated with this site. This is a required field that is read-only after insertion.
     #[serde(default, rename = "directorySiteId")]
-    pub directory_site_id: Option<String>,
+    pub directory_site_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the directory site. This is a read-only, auto-generated field.
     #[serde(default, rename = "directorySiteIdDimensionValue")]
-    pub directory_site_id_dimension_value: Option<DimensionValue>,
+    pub directory_site_id_dimension_value:
+        ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// ID of this site. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Dimension value for the ID of this site. This is a read-only, auto-generated field.
     #[serde(default, rename = "idDimensionValue")]
-    pub id_dimension_value: Option<DimensionValue>,
+    pub id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Key name of this site. This is a read-only, auto-generated field.
     #[serde(default, rename = "keyName")]
-    pub key_name: Option<String>,
+    pub key_name: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#site".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this site.This is a required field. Must be less than 128 characters long. If this site is under a subaccount, the name must be unique among sites of the same subaccount. Otherwise, this site is a top-level site, and the name must be unique among top-level sites of the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Site contacts.
     #[serde(default, rename = "siteContacts")]
-    pub site_contacts: Option<Vec<SiteContact>>,
+    pub site_contacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SiteContact>>>,
     /// Site-wide settings.
     #[serde(default, rename = "siteSettings")]
-    pub site_settings: Option<SiteSettings>,
+    pub site_settings: ::core::option::Option<::std::boxed::Box<SiteSettings>>,
     /// Subaccount ID of this site. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Default video settings for new placements created under this site. This value will be used to populate the placements.videoSettings field, when no value is specified for the new placement.
     #[serde(default, rename = "videoSettings")]
-    pub video_settings: Option<SiteVideoSettings>,
+    pub video_settings: ::core::option::Option<::std::boxed::Box<SiteVideoSettings>>,
 }
 
 /// Companion Settings
@@ -4738,16 +4830,16 @@ pub struct Site {
 pub struct SiteCompanionSetting {
     /// Whether companions are disabled for this site template.
     #[serde(default, rename = "companionsDisabled")]
-    pub companions_disabled: Option<bool>,
+    pub companions_disabled: ::core::option::Option<bool>,
     /// Allowlist of companion sizes to be served via this site template. Set this list to null or empty to serve all companion sizes.
     #[serde(default, rename = "enabledSizes")]
-    pub enabled_sizes: Option<Vec<Size>>,
+    pub enabled_sizes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Size>>>,
     /// Whether to serve only static images as companions.
     #[serde(default, rename = "imageOnly")]
-    pub image_only: Option<bool>,
+    pub image_only: ::core::option::Option<bool>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#siteCompanionSetting".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Site Contact
@@ -4755,28 +4847,28 @@ pub struct SiteCompanionSetting {
 pub struct SiteContact {
     /// Address of this site contact.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Site contact type. // TODO: enum values: ["SALES_PERSON", "TRAFFICKER"]
     #[serde(default, rename = "contactType")]
-    pub contact_type: Option<String>,
+    pub contact_type: ::core::option::Option<String>,
     /// Email address of this site contact. This is a required field.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// First name of this site contact.
     #[serde(default, rename = "firstName")]
-    pub first_name: Option<String>,
+    pub first_name: ::core::option::Option<String>,
     /// ID of this site contact. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Last name of this site contact.
     #[serde(default, rename = "lastName")]
-    pub last_name: Option<String>,
+    pub last_name: ::core::option::Option<String>,
     /// Primary phone number of this site contact.
     #[serde(default)]
-    pub phone: Option<String>,
+    pub phone: ::core::option::Option<String>,
     /// Title or designation of this site contact.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Site Settings
@@ -4784,22 +4876,22 @@ pub struct SiteContact {
 pub struct SiteSettings {
     /// Whether active view creatives are disabled for this site.
     #[serde(default, rename = "activeViewOptOut")]
-    pub active_view_opt_out: Option<bool>,
+    pub active_view_opt_out: ::core::option::Option<bool>,
     /// Whether this site opts out of ad blocking. When true, ad blocking is disabled for all placements under the site, regardless of the individual placement settings. When false, the campaign and placement settings take effect.
     #[serde(default, rename = "adBlockingOptOut")]
-    pub ad_blocking_opt_out: Option<bool>,
+    pub ad_blocking_opt_out: ::core::option::Option<bool>,
     /// Whether new cookies are disabled for this site.
     #[serde(default, rename = "disableNewCookie")]
-    pub disable_new_cookie: Option<bool>,
+    pub disable_new_cookie: ::core::option::Option<bool>,
     /// Configuration settings for dynamic and image floodlight tags.
     #[serde(default, rename = "tagSetting")]
-    pub tag_setting: Option<TagSetting>,
+    pub tag_setting: ::core::option::Option<::std::boxed::Box<TagSetting>>,
     /// Whether Verification and ActiveView for in-stream video creatives are disabled by default for new placements created under this site. This value will be used to populate the placement.videoActiveViewOptOut field, when no value is specified for the new placement.
     #[serde(default, rename = "videoActiveViewOptOutTemplate")]
-    pub video_active_view_opt_out_template: Option<bool>,
+    pub video_active_view_opt_out_template: ::core::option::Option<bool>,
     /// Default VPAID adapter setting for new placements created under this site. This value will be used to populate the placements.vpaidAdapterChoice field, when no value is specified for the new placement. Controls which VPAID format the measurement adapter will use for in-stream video creatives assigned to the placement. The publisher''s specifications will typically determine this setting. For VPAID creatives, the adapter format will match the VPAID format (HTML5 VPAID creatives use the HTML5 adapter). *Note:* Flash is no longer supported. This field now defaults to HTML5 when the following values are provided: FLASH, BOTH. // TODO: enum values: ["DEFAULT", "FLASH", "HTML5", "BOTH"]
     #[serde(default, rename = "vpaidAdapterChoiceTemplate")]
-    pub vpaid_adapter_choice_template: Option<String>,
+    pub vpaid_adapter_choice_template: ::core::option::Option<String>,
 }
 
 /// Skippable Settings
@@ -4807,16 +4899,16 @@ pub struct SiteSettings {
 pub struct SiteSkippableSetting {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#siteSkippableSetting".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Amount of time to play videos served to this site template before counting a view. Applicable when skippable is true.
     #[serde(default, rename = "progressOffset")]
-    pub progress_offset: Option<VideoOffset>,
+    pub progress_offset: ::core::option::Option<::std::boxed::Box<VideoOffset>>,
     /// Amount of time to play videos served to this site before the skip button should appear. Applicable when skippable is true.
     #[serde(default, rename = "skipOffset")]
-    pub skip_offset: Option<VideoOffset>,
+    pub skip_offset: ::core::option::Option<::std::boxed::Box<VideoOffset>>,
     /// Whether the user can skip creatives served to this site. This will act as default for new placements created under this site.
     #[serde(default)]
-    pub skippable: Option<bool>,
+    pub skippable: ::core::option::Option<bool>,
 }
 
 /// Transcode Settings
@@ -4824,10 +4916,10 @@ pub struct SiteSkippableSetting {
 pub struct SiteTranscodeSetting {
     /// Allowlist of video formats to be served to this site template. Set this list to null or empty to serve all video formats.
     #[serde(default, rename = "enabledVideoFormats")]
-    pub enabled_video_formats: Option<Vec<i32>>,
+    pub enabled_video_formats: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#siteTranscodeSetting".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Video Settings
@@ -4835,28 +4927,28 @@ pub struct SiteTranscodeSetting {
 pub struct SiteVideoSettings {
     /// Settings for the companion creatives of video creatives served to this site.
     #[serde(default, rename = "companionSettings")]
-    pub companion_settings: Option<SiteCompanionSetting>,
+    pub companion_settings: ::core::option::Option<::std::boxed::Box<SiteCompanionSetting>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#siteVideoSettings".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether OBA icons are enabled for this placement.
     #[serde(default, rename = "obaEnabled")]
-    pub oba_enabled: Option<bool>,
+    pub oba_enabled: ::core::option::Option<bool>,
     /// Settings for the OBA icon of video creatives served to this site. This will act as default for new placements created under this site.
     #[serde(default, rename = "obaSettings")]
-    pub oba_settings: Option<ObaIcon>,
+    pub oba_settings: ::core::option::Option<::std::boxed::Box<ObaIcon>>,
     /// Orientation of a site template used for video. This will act as default for new placements created under this site. // TODO: enum values: ["ANY", "LANDSCAPE", "PORTRAIT"]
     #[serde(default)]
-    pub orientation: Option<String>,
+    pub orientation: ::core::option::Option<String>,
     /// Publisher specification ID used to identify site-associated publisher requirements and automatically populate transcode settings. If publisher specification ID is specified, it will take precedence over transcode settings. Possible values are: * 1, Hulu * 2, NBC * 3, CBS * 4, CBS Desktop * 5, Discovery * 6, VEVO HD * 7, VEVO Vertical * 8, Fox * 9, CW Network * 10, Disney * 11, IGN * 12, NFL.com * 13, Turner Broadcasting * 14, Tubi on Fox * 15, Hearst Corporation * 16, Twitch Desktop * 17, ABC * 18, Univision * 19, MLB.com * 20, MLB.com Mobile * 21, MLB.com OTT * 22, Polsat * 23, TVN * 24, Mediaset * 25, Antena 3 * 26, Mediamond * 27, Sky Italia * 28, Tubi on CBS * 29, Spotify * 30, Paramount * 31, Max
     #[serde(default, rename = "publisherSpecificationId")]
-    pub publisher_specification_id: Option<String>,
+    pub publisher_specification_id: ::core::option::Option<String>,
     /// Settings for the skippability of video creatives served to this site. This will act as default for new placements created under this site.
     #[serde(default, rename = "skippableSettings")]
-    pub skippable_settings: Option<SiteSkippableSetting>,
+    pub skippable_settings: ::core::option::Option<::std::boxed::Box<SiteSkippableSetting>>,
     /// Settings for the transcodes of video creatives served to this site. This will act as default for new placements created under this site.
     #[serde(default, rename = "transcodeSettings")]
-    pub transcode_settings: Option<SiteTranscodeSetting>,
+    pub transcode_settings: ::core::option::Option<::std::boxed::Box<SiteTranscodeSetting>>,
 }
 
 /// Site List Response
@@ -4864,13 +4956,13 @@ pub struct SiteVideoSettings {
 pub struct SitesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#sitesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Site collection.
     #[serde(default)]
-    pub sites: Option<Vec<Site>>,
+    pub sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Site>>>,
 }
 
 /// Represents the dimensions of ads, placements, creatives, or creative assets.
@@ -4878,19 +4970,19 @@ pub struct SitesListResponse {
 pub struct Size {
     /// Height of this size. Acceptable values are 0 to 32767, inclusive.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// IAB standard size. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub iab: Option<bool>,
+    pub iab: ::core::option::Option<bool>,
     /// ID of this size. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#size".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Width of this size. Acceptable values are 0 to 32767, inclusive.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Size List Response
@@ -4898,10 +4990,10 @@ pub struct Size {
 pub struct SizesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#sizesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Size collection.
     #[serde(default)]
-    pub sizes: Option<Vec<Size>>,
+    pub sizes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Size>>>,
 }
 
 /// Skippable Settings
@@ -4909,16 +5001,16 @@ pub struct SizesListResponse {
 pub struct SkippableSetting {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#skippableSetting".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Amount of time to play videos served to this placement before counting a view. Applicable when skippable is true.
     #[serde(default, rename = "progressOffset")]
-    pub progress_offset: Option<VideoOffset>,
+    pub progress_offset: ::core::option::Option<::std::boxed::Box<VideoOffset>>,
     /// Amount of time to play videos served to this placement before the skip button should appear. Applicable when skippable is true.
     #[serde(default, rename = "skipOffset")]
-    pub skip_offset: Option<VideoOffset>,
+    pub skip_offset: ::core::option::Option<::std::boxed::Box<VideoOffset>>,
     /// Whether the user can skip creatives served to this placement.
     #[serde(default)]
-    pub skippable: Option<bool>,
+    pub skippable: ::core::option::Option<bool>,
 }
 
 /// Represents a sorted dimension.
@@ -4926,13 +5018,13 @@ pub struct SkippableSetting {
 pub struct SortedDimension {
     /// The kind of resource this is, in this case dfareporting#sortedDimension.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the dimension.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// An optional sort order for the dimension column. // TODO: enum values: ["ASCENDING", "DESCENDING"]
     #[serde(default, rename = "sortOrder")]
-    pub sort_order: Option<String>,
+    pub sort_order: ::core::option::Option<String>,
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains studio creative information.
@@ -4940,43 +5032,43 @@ pub struct SortedDimension {
 pub struct StudioCreative {
     /// List of assets associated with this studio creative. It is a required field on insertion.
     #[serde(default, rename = "assetIds")]
-    pub asset_ids: Option<Vec<String>>,
+    pub asset_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Backup image asset ID of this studio creative. It is a required field on insertion.
     #[serde(default, rename = "backupImageAssetId")]
-    pub backup_image_asset_id: Option<String>,
+    pub backup_image_asset_id: ::core::option::Option<String>,
     /// The timestamp when the studio creative was created. This is a read-only, auto-generated field.
     #[serde(default, rename = "createdInfo")]
-    pub created_info: Option<LastModifiedInfo>,
+    pub created_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Dimension of this studio creative. This is a required field on insertion if format is BANNER or EXPANDING.
     #[serde(default)]
-    pub dimension: Option<StudioCreativeDimension>,
+    pub dimension: ::core::option::Option<::std::boxed::Box<StudioCreativeDimension>>,
     /// Dynamic profile ID of this studio creative.
     #[serde(default, rename = "dynamicProfileId")]
-    pub dynamic_profile_id: Option<String>,
+    pub dynamic_profile_id: ::core::option::Option<String>,
     /// Format of this studio creative. This is a required field on insertion. // TODO: enum values: ["UNKNOWN", "BANNER", "EXPANDING", "INTERSTITIAL", "VPAID_LINEAR_VIDEO"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Output only. Unique ID of this studio creative. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The timestamp when the studio creative was last modified. This is a read-only, auto-generated field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Identifier. Name of this studio creative. This is a required field on insertion.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Status of this studio creative. It is a read-only field. // TODO: enum values: ["UNKNOWN_STATUS", "IN_DEVELOPMENT", "PUBLISHED", "QA_REJECTED", "QA_APPROVED", "TRAFFICKED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Studio account ID of this creative. This field, if left unset, will be auto-populated.
     #[serde(default, rename = "studioAccountId")]
-    pub studio_account_id: Option<String>,
+    pub studio_account_id: ::core::option::Option<String>,
     /// Studio advertiser ID of this studio creative. This is a required field on insertion.
     #[serde(default, rename = "studioAdvertiserId")]
-    pub studio_advertiser_id: Option<String>,
+    pub studio_advertiser_id: ::core::option::Option<String>,
     /// Studio campaign ID of this studio creative. This is a required field on insertion.
     #[serde(default, rename = "studioCampaignId")]
-    pub studio_campaign_id: Option<String>,
+    pub studio_campaign_id: ::core::option::Option<String>,
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains studio creative asset information.
@@ -4984,34 +5076,34 @@ pub struct StudioCreative {
 pub struct StudioCreativeAsset {
     /// Output only. The creation timestamp of the studio creative asset. This is a read-only field.
     #[serde(default, rename = "createInfo")]
-    pub create_info: Option<LastModifiedInfo>,
+    pub create_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// The filename of the studio creative asset. It is default to the original filename of the asset.
     #[serde(default)]
-    pub filename: Option<String>,
+    pub filename: ::core::option::Option<String>,
     /// The filesize of the studio creative asset. This is a read-only field.
     #[serde(default)]
-    pub filesize: Option<String>,
+    pub filesize: ::core::option::Option<String>,
     /// Output only. Unique ID of this studio creative asset. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. The last modified timestamp of the studio creative asset. This is a read-only field.
     #[serde(default, rename = "lastModifiedInfo")]
-    pub last_modified_info: Option<LastModifiedInfo>,
+    pub last_modified_info: ::core::option::Option<::std::boxed::Box<LastModifiedInfo>>,
     /// Studio account ID of this studio creative asset. This field, if left unset, will be auto-populated..
     #[serde(default, rename = "studioAccountId")]
-    pub studio_account_id: Option<String>,
+    pub studio_account_id: ::core::option::Option<String>,
     /// Studio advertiser ID of this studio creative asset. This is a required field on insertion.
     #[serde(default, rename = "studioAdvertiserId")]
-    pub studio_advertiser_id: Option<String>,
+    pub studio_advertiser_id: ::core::option::Option<String>,
     /// Studio creative ID of this studio creative asset. The asset will be associated to the creative if creative id is set.
     #[serde(default, rename = "studioCreativeId")]
-    pub studio_creative_id: Option<String>,
+    pub studio_creative_id: ::core::option::Option<String>,
     /// The type of the studio creative asset. It is a auto-generated, read-only field. // TODO: enum values: ["UNKNOWN_TYPE", "HTML", "VIDEO", "IMAGE", "FONT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The processing data of the studio creative asset. This is a read-only field.
     #[serde(default, rename = "videoProcessingData")]
-    pub video_processing_data: Option<VideoProcessingData>,
+    pub video_processing_data: ::core::option::Option<::std::boxed::Box<VideoProcessingData>>,
 }
 
 /// Response message for DfareportingStudioCreativeAssets.Insert.
@@ -5019,7 +5111,7 @@ pub struct StudioCreativeAsset {
 pub struct StudioCreativeAssetsResponse {
     /// The list of studio creative assets.
     #[serde(default)]
-    pub assets: Option<Vec<StudioCreativeAsset>>,
+    pub assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StudioCreativeAsset>>>,
 }
 
 /// Dimension information for a studio creative.
@@ -5027,10 +5119,10 @@ pub struct StudioCreativeAssetsResponse {
 pub struct StudioCreativeDimension {
     /// Height of the studio creative.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Width of the studio creative.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Contains properties of a Campaign Manager subaccount.
@@ -5038,19 +5130,19 @@ pub struct StudioCreativeDimension {
 pub struct Subaccount {
     /// ID of the account that contains this subaccount. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// IDs of the available user role permissions for this subaccount.
     #[serde(default, rename = "availablePermissionIds")]
-    pub available_permission_ids: Option<Vec<String>>,
+    pub available_permission_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// ID of this subaccount. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#subaccount".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this subaccount. This is a required field. Must be less than 128 characters long and be unique among subaccounts of the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Subaccount List Response
@@ -5058,13 +5150,13 @@ pub struct Subaccount {
 pub struct SubaccountsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#subaccountsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Subaccount collection.
     #[serde(default)]
-    pub subaccounts: Option<Vec<Subaccount>>,
+    pub subaccounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Subaccount>>>,
 }
 
 /// Placement Tag Data
@@ -5072,19 +5164,19 @@ pub struct SubaccountsListResponse {
 pub struct TagData {
     /// Ad associated with this placement tag. Applicable only when format is PLACEMENT_TAG_TRACKING.
     #[serde(default, rename = "adId")]
-    pub ad_id: Option<String>,
+    pub ad_id: ::core::option::Option<String>,
     /// Tag string to record a click.
     #[serde(default, rename = "clickTag")]
-    pub click_tag: Option<String>,
+    pub click_tag: ::core::option::Option<String>,
     /// Creative associated with this placement tag. Applicable only when format is PLACEMENT_TAG_TRACKING.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// TagData tag format of this tag. // TODO: enum values: ["PLACEMENT_TAG_STANDARD", "PLACEMENT_TAG_IFRAME_JAVASCRIPT", "PLACEMENT_TAG_IFRAME_ILAYER", "PLACEMENT_TAG_INTERNAL_REDIRECT", "PLACEMENT_TAG_JAVASCRIPT", "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT", "PLACEMENT_TAG_INTERSTITIAL_INTERNAL_REDIRECT", "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT", "PLACEMENT_TAG_CLICK_COMMANDS", "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH", "PLACEMENT_TAG_TRACKING", "PLACEMENT_TAG_TRACKING_IFRAME", "PLACEMENT_TAG_TRACKING_JAVASCRIPT", "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_3", "PLACEMENT_TAG_IFRAME_JAVASCRIPT_LEGACY", "PLACEMENT_TAG_JAVASCRIPT_LEGACY", "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT_LEGACY", "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT_LEGACY", "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4", "PLACEMENT_TAG_TRACKING_THIRD_PARTY_MEASUREMENT"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Tag string for serving an ad.
     #[serde(default, rename = "impressionTag")]
-    pub impression_tag: Option<String>,
+    pub impression_tag: ::core::option::Option<String>,
 }
 
 /// Tag Settings
@@ -5092,19 +5184,19 @@ pub struct TagData {
 pub struct TagSetting {
     /// Additional key-values to be included in tags. Each key-value pair must be of the form key=value, and pairs must be separated by a semicolon (;). Keys and values must not contain commas. For example, id=2;color=red is a valid value for this field.
     #[serde(default, rename = "additionalKeyValues")]
-    pub additional_key_values: Option<String>,
+    pub additional_key_values: ::core::option::Option<String>,
     /// Whether static landing page URLs should be included in the tags. New placements will default to the value set on their site.
     #[serde(default, rename = "includeClickThroughUrls")]
-    pub include_click_through_urls: Option<bool>,
+    pub include_click_through_urls: ::core::option::Option<bool>,
     /// Whether click-tracking string should be included in the tags.
     #[serde(default, rename = "includeClickTracking")]
-    pub include_click_tracking: Option<bool>,
+    pub include_click_tracking: ::core::option::Option<bool>,
     /// Optional. Indicates that the unescapedlpurl macro should be included in the tag for the static landing page. New placements will default to the value set on their site.
     #[serde(default, rename = "includeUnescapedlpurlMacro")]
-    pub include_unescapedlpurl_macro: Option<bool>,
+    pub include_unescapedlpurl_macro: ::core::option::Option<bool>,
     /// Option specifying how keywords are embedded in ad tags. This setting can be used to specify whether keyword placeholders are inserted in placement tags for this site. Publishers can then add keywords to those placeholders. // TODO: enum values: ["PLACEHOLDER_WITH_LIST_OF_KEYWORDS", "IGNORE", "GENERATE_SEPARATE_TAG_FOR_EACH_KEYWORD"]
     #[serde(default, rename = "keywordOption")]
-    pub keyword_option: Option<String>,
+    pub keyword_option: ::core::option::Option<String>,
 }
 
 /// Dynamic and Image Tag Settings.
@@ -5112,10 +5204,10 @@ pub struct TagSetting {
 pub struct TagSettings {
     /// Whether dynamic floodlight tags are enabled.
     #[serde(default, rename = "dynamicTagEnabled")]
-    pub dynamic_tag_enabled: Option<bool>,
+    pub dynamic_tag_enabled: ::core::option::Option<bool>,
     /// Whether image tags are enabled.
     #[serde(default, rename = "imageTagEnabled")]
-    pub image_tag_enabled: Option<bool>,
+    pub image_tag_enabled: ::core::option::Option<bool>,
 }
 
 /// Target Window.
@@ -5123,10 +5215,10 @@ pub struct TagSettings {
 pub struct TargetWindow {
     /// User-entered value.
     #[serde(default, rename = "customHtml")]
-    pub custom_html: Option<String>,
+    pub custom_html: ::core::option::Option<String>,
     /// Type of browser window for which the backup image of the flash creative can be displayed. // TODO: enum values: ["NEW_WINDOW", "CURRENT_WINDOW", "CUSTOM"]
     #[serde(default, rename = "targetWindowOption")]
-    pub target_window_option: Option<String>,
+    pub target_window_option: ::core::option::Option<String>,
 }
 
 /// Contains properties of a targetable remarketing list. Remarketing enables you to create lists of users who have performed specific actions on a site, then target ads to members of those lists. This resource is a read-only view of a remarketing list to be used to facilitate targeting ads to specific lists. Remarketing lists that are owned by your advertisers and those that are shared to your advertisers or account are accessible via this resource. To manage remarketing lists that are owned by your advertisers, use the RemarketingLists resource.
@@ -5134,40 +5226,40 @@ pub struct TargetWindow {
 pub struct TargetableRemarketingList {
     /// Account ID of this remarketing list. This is a read-only, auto-generated field that is only returned in GET requests.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether this targetable remarketing list is active.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Dimension value for the advertiser ID that owns this targetable remarketing list.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Targetable remarketing list description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Targetable remarketing list ID.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#targetableRemarketingList".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Number of days that a user should remain in the targetable remarketing list without an impression.
     #[serde(default, rename = "lifeSpan")]
-    pub life_span: Option<String>,
+    pub life_span: ::core::option::Option<String>,
     /// Number of users currently in the list. This is a read-only field.
     #[serde(default, rename = "listSize")]
-    pub list_size: Option<String>,
+    pub list_size: ::core::option::Option<String>,
     /// Product from which this targetable remarketing list was originated. // TODO: enum values: ["REMARKETING_LIST_SOURCE_OTHER", "REMARKETING_LIST_SOURCE_ADX", "REMARKETING_LIST_SOURCE_DFP", "REMARKETING_LIST_SOURCE_XFP", "REMARKETING_LIST_SOURCE_DFA", "REMARKETING_LIST_SOURCE_GA", "REMARKETING_LIST_SOURCE_YOUTUBE", "REMARKETING_LIST_SOURCE_DBM", "REMARKETING_LIST_SOURCE_GPLUS", "REMARKETING_LIST_SOURCE_DMP", "REMARKETING_LIST_SOURCE_PLAY_STORE"]
     #[serde(default, rename = "listSource")]
-    pub list_source: Option<String>,
+    pub list_source: ::core::option::Option<String>,
     /// Name of the targetable remarketing list. Is no greater than 128 characters long.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Subaccount ID of this remarketing list. This is a read-only, auto-generated field that is only returned in GET requests.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Targetable remarketing list response
@@ -5175,13 +5267,14 @@ pub struct TargetableRemarketingList {
 pub struct TargetableRemarketingListsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#targetableRemarketingListsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Targetable remarketing list collection.
     #[serde(default, rename = "targetableRemarketingLists")]
-    pub targetable_remarketing_lists: Option<Vec<TargetableRemarketingList>>,
+    pub targetable_remarketing_lists:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetableRemarketingList>>>,
 }
 
 /// Contains properties of a targeting template. A targeting template encapsulates targeting information which can be reused across multiple ads.
@@ -5189,46 +5282,49 @@ pub struct TargetableRemarketingListsListResponse {
 pub struct TargetingTemplate {
     /// Account ID of this targeting template. This field, if left unset, will be auto-generated on insert and is read-only after insert.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Advertiser ID of this targeting template. This is a required field on insert and is read-only after insert.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.
     #[serde(default, rename = "advertiserIdDimensionValue")]
-    pub advertiser_id_dimension_value: Option<DimensionValue>,
+    pub advertiser_id_dimension_value: ::core::option::Option<::std::boxed::Box<DimensionValue>>,
     /// Optional. Contextual keyword targeting criteria.
     #[serde(default, rename = "contextualKeywordTargeting")]
-    pub contextual_keyword_targeting: Option<ContextualKeywordTargeting>,
+    pub contextual_keyword_targeting:
+        ::core::option::Option<::std::boxed::Box<ContextualKeywordTargeting>>,
     /// Time and day targeting criteria.
     #[serde(default, rename = "dayPartTargeting")]
-    pub day_part_targeting: Option<DayPartTargeting>,
+    pub day_part_targeting: ::core::option::Option<::std::boxed::Box<DayPartTargeting>>,
     /// Geographical targeting criteria.
     #[serde(default, rename = "geoTargeting")]
-    pub geo_targeting: Option<GeoTargeting>,
+    pub geo_targeting: ::core::option::Option<::std::boxed::Box<GeoTargeting>>,
     /// ID of this targeting template. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Key-value targeting criteria.
     #[serde(default, rename = "keyValueTargetingExpression")]
-    pub key_value_targeting_expression: Option<KeyValueTargetingExpression>,
+    pub key_value_targeting_expression:
+        ::core::option::Option<::std::boxed::Box<KeyValueTargetingExpression>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#targetingTemplate".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Language targeting criteria.
     #[serde(default, rename = "languageTargeting")]
-    pub language_targeting: Option<LanguageTargeting>,
+    pub language_targeting: ::core::option::Option<::std::boxed::Box<LanguageTargeting>>,
     /// Remarketing list targeting criteria.
     #[serde(default, rename = "listTargetingExpression")]
-    pub list_targeting_expression: Option<ListTargetingExpression>,
+    pub list_targeting_expression:
+        ::core::option::Option<::std::boxed::Box<ListTargetingExpression>>,
     /// Name of this targeting template. This field is required. It must be less than 256 characters long and unique within an advertiser.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Subaccount ID of this targeting template. This field, if left unset, will be auto-generated on insert and is read-only after insert.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
     /// Technology platform targeting criteria.
     #[serde(default, rename = "technologyTargeting")]
-    pub technology_targeting: Option<TechnologyTargeting>,
+    pub technology_targeting: ::core::option::Option<::std::boxed::Box<TechnologyTargeting>>,
 }
 
 /// Targeting Template List Response
@@ -5236,13 +5332,14 @@ pub struct TargetingTemplate {
 pub struct TargetingTemplatesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#targetingTemplatesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Targeting template collection.
     #[serde(default, rename = "targetingTemplates")]
-    pub targeting_templates: Option<Vec<TargetingTemplate>>,
+    pub targeting_templates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetingTemplate>>>,
 }
 
 /// Technology Targeting.
@@ -5250,22 +5347,25 @@ pub struct TargetingTemplatesListResponse {
 pub struct TechnologyTargeting {
     /// Browsers that this ad targets. For each browser either set browserVersionId or dartId along with the version numbers. If both are specified, only browserVersionId will be used. The other fields are populated automatically when the ad is inserted or updated.
     #[serde(default)]
-    pub browsers: Option<Vec<Browser>>,
+    pub browsers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Browser>>>,
     /// Connection types that this ad targets. For each connection type only id is required. The other fields are populated automatically when the ad is inserted or updated.
     #[serde(default, rename = "connectionTypes")]
-    pub connection_types: Option<Vec<ConnectionType>>,
+    pub connection_types:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConnectionType>>>,
     /// Mobile carriers that this ad targets. For each mobile carrier only id is required, and the other fields are populated automatically when the ad is inserted or updated. If targeting a mobile carrier, do not set targeting for any zip codes.
     #[serde(default, rename = "mobileCarriers")]
-    pub mobile_carriers: Option<Vec<MobileCarrier>>,
+    pub mobile_carriers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MobileCarrier>>>,
     /// Operating system versions that this ad targets. To target all versions, use operatingSystems. For each operating system version, only id is required. The other fields are populated automatically when the ad is inserted or updated. If targeting an operating system version, do not set targeting for the corresponding operating system in operatingSystems.
     #[serde(default, rename = "operatingSystemVersions")]
-    pub operating_system_versions: Option<Vec<OperatingSystemVersion>>,
+    pub operating_system_versions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperatingSystemVersion>>>,
     /// Operating systems that this ad targets. To target specific versions, use operatingSystemVersions. For each operating system only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting an operating system, do not set targeting for operating system versions for the same operating system.
     #[serde(default, rename = "operatingSystems")]
-    pub operating_systems: Option<Vec<OperatingSystem>>,
+    pub operating_systems:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperatingSystem>>>,
     /// Platform types that this ad targets. For example, desktop, mobile, or tablet. For each platform type, only id is required, and the other fields are populated automatically when the ad is inserted or updated.
     #[serde(default, rename = "platformTypes")]
-    pub platform_types: Option<Vec<PlatformType>>,
+    pub platform_types: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlatformType>>>,
 }
 
 /// Third Party Authentication Token
@@ -5273,10 +5373,10 @@ pub struct TechnologyTargeting {
 pub struct ThirdPartyAuthenticationToken {
     /// Name of the third-party authentication token.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value of the third-party authentication token. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Third-party Tracking URL.
@@ -5284,10 +5384,10 @@ pub struct ThirdPartyAuthenticationToken {
 pub struct ThirdPartyTrackingUrl {
     /// Third-party URL type for in-stream video and in-stream audio creatives. // TODO: enum values: ["IMPRESSION", "CLICK_TRACKING", "VIDEO_START", "VIDEO_FIRST_QUARTILE", "VIDEO_MIDPOINT", "VIDEO_THIRD_QUARTILE", "VIDEO_COMPLETE", "VIDEO_MUTE", "VIDEO_PAUSE", "VIDEO_REWIND", "VIDEO_FULLSCREEN", "VIDEO_STOP", "VIDEO_CUSTOM", "SURVEY", "RICH_MEDIA_IMPRESSION", "RICH_MEDIA_RM_IMPRESSION", "RICH_MEDIA_BACKUP_IMPRESSION", "VIDEO_SKIP", "VIDEO_PROGRESS"]
     #[serde(default, rename = "thirdPartyUrlType")]
-    pub third_party_url_type: Option<String>,
+    pub third_party_url_type: ::core::option::Option<String>,
     /// URL for the specified third-party URL type.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Transcode Settings
@@ -5295,10 +5395,10 @@ pub struct ThirdPartyTrackingUrl {
 pub struct TranscodeSetting {
     /// Allowlist of video formats to be served to this placement. Set this list to null or empty to serve all video formats.
     #[serde(default, rename = "enabledVideoFormats")]
-    pub enabled_video_formats: Option<Vec<i32>>,
+    pub enabled_video_formats: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#transcodeSetting".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// TvCampaignDetail contains data from a TV campaign for specific start dates and date windows.
@@ -5306,13 +5406,13 @@ pub struct TranscodeSetting {
 pub struct TvCampaignDetail {
     /// ID of this TV campaign.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#tvCampaignSummary".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The timepoints of the TV campaign.
     #[serde(default)]
-    pub timepoints: Option<Vec<TvCampaignTimepoint>>,
+    pub timepoints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TvCampaignTimepoint>>>,
 }
 
 /// Response message for TvCampaignSummariesService.List.
@@ -5320,10 +5420,11 @@ pub struct TvCampaignDetail {
 pub struct TvCampaignSummariesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#tvCampaignSummariesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// List of TV campaign summaries.
     #[serde(default, rename = "tvCampaignSummaries")]
-    pub tv_campaign_summaries: Option<Vec<TvCampaignSummary>>,
+    pub tv_campaign_summaries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TvCampaignSummary>>>,
 }
 
 /// TvCampaignSummary contains aggregate data from a TV campaign.
@@ -5331,31 +5432,31 @@ pub struct TvCampaignSummariesListResponse {
 pub struct TvCampaignSummary {
     /// The end date of the TV campaign, inclusive. A string of the format: "yyyy-MM-dd".
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// GRP of this TV campaign.
     #[serde(default)]
-    pub grp: Option<String>,
+    pub grp: ::core::option::Option<String>,
     /// ID of this TV campaign.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Impressions across the entire TV campaign.
     #[serde(default)]
-    pub impressions: Option<String>,
+    pub impressions: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#tvCampaignSummary".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Identifier. Name of this TV campaign.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Spend across the entire TV campaign.
     #[serde(default)]
-    pub spend: Option<f64>,
+    pub spend: ::core::option::Option<f64>,
     /// The start date of the TV campaign, inclusive. A string of the format: "yyyy-MM-dd".
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// "CampaignComponentType" of this TV campaign. // TODO: enum values: ["CAMPAIGN_COMPONENT_TYPE_UNSPECIFIED", "COMPANY", "BRAND", "PRODUCT", "CAMPAIGN"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A single data point for TvCampaignDetail, which holds information about the TV campaign for a specific start date and date window.
@@ -5363,13 +5464,13 @@ pub struct TvCampaignSummary {
 pub struct TvCampaignTimepoint {
     /// The date window of the timepoint. // TODO: enum values: ["WEEKS_UNSPECIFIED", "DAYS_ONE", "WEEKS_ONE", "WEEKS_FOUR", "WEEKS_EIGHT", "WEEKS_TWELVE"]
     #[serde(default, rename = "dateWindow")]
-    pub date_window: Option<String>,
+    pub date_window: ::core::option::Option<String>,
     /// The spend within the time range of the timepoint.
     #[serde(default)]
-    pub spend: Option<f64>,
+    pub spend: ::core::option::Option<f64>,
     /// The start date of the timepoint. A string in the format of "yyyy-MM-dd".
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
 }
 
 /// A Universal Ad ID as per the VAST 4.0 spec. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and VPAID.
@@ -5377,10 +5478,10 @@ pub struct TvCampaignTimepoint {
 pub struct UniversalAdId {
     /// Registry used for the Ad ID value. // TODO: enum values: ["OTHER", "AD_ID_OFFICIAL", "CLEARCAST", "DCM", "ARPP", "CUSV"]
     #[serde(default)]
-    pub registry: Option<String>,
+    pub registry: ::core::option::Option<String>,
     /// ID value for this creative. Only alphanumeric characters and the following symbols are valid: "_/\-". Maximum length is 64 characters. Read only when registry is DCM.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// User Defined Variable configuration.
@@ -5388,13 +5489,13 @@ pub struct UniversalAdId {
 pub struct UserDefinedVariableConfiguration {
     /// Data type for the variable. This is a required field. // TODO: enum values: ["STRING", "NUMBER"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// User-friendly name for the variable which will appear in reports. This is a required field, must be less than 64 characters long, and cannot contain the following characters: ""&lt;&gt;".
     #[serde(default, rename = "reportName")]
-    pub report_name: Option<String>,
+    pub report_name: ::core::option::Option<String>,
     /// Variable name in the tag. This is a required field. // TODO: enum values: ["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16", "U17", "U18", "U19", "U20", "U21", "U22", "U23", "U24", "U25", "U26", "U27", "U28", "U29", "U30", "U31", "U32", "U33", "U34", "U35", "U36", "U37", "U38", "U39", "U40", "U41", "U42", "U43", "U44", "U45", "U46", "U47", "U48", "U49", "U50", "U51", "U52", "U53", "U54", "U55", "U56", "U57", "U58", "U59", "U60", "U61", "U62", "U63", "U64", "U65", "U66", "U67", "U68", "U69", "U70", "U71", "U72", "U73", "U74", "U75", "U76", "U77", "U78", "U79", "U80", "U81", "U82", "U83", "U84", "U85", "U86", "U87", "U88", "U89", "U90", "U91", "U92", "U93", "U94", "U95", "U96", "U97", "U98", "U99", "U100"]
     #[serde(default, rename = "variableType")]
-    pub variable_type: Option<String>,
+    pub variable_type: ::core::option::Option<String>,
 }
 
 /// User identifying information. Exactly one type of identifier must be specified.
@@ -5402,13 +5503,13 @@ pub struct UserDefinedVariableConfiguration {
 pub struct UserIdentifier {
     /// Address information.
     #[serde(default, rename = "addressInfo")]
-    pub address_info: Option<OfflineUserAddressInfo>,
+    pub address_info: ::core::option::Option<::std::boxed::Box<OfflineUserAddressInfo>>,
     /// Hashed email address using SHA-256 hash function after normalization.
     #[serde(default, rename = "hashedEmail")]
-    pub hashed_email: Option<String>,
+    pub hashed_email: ::core::option::Option<String>,
     /// Hashed phone number using SHA-256 hash function after normalization (E164 standard).
     #[serde(default, rename = "hashedPhoneNumber")]
-    pub hashed_phone_number: Option<String>,
+    pub hashed_phone_number: ::core::option::Option<String>,
 }
 
 /// A UserProfile resource lets you list all DFA user profiles that are associated with a Google user account. The profile_id needs to be specified in other API requests.
@@ -5416,28 +5517,28 @@ pub struct UserIdentifier {
 pub struct UserProfile {
     /// The account ID to which this profile belongs.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The account name this profile belongs to.
     #[serde(default, rename = "accountName")]
-    pub account_name: Option<String>,
+    pub account_name: ::core::option::Option<String>,
     /// Etag of this resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userProfile".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The unique ID of the user profile.
     #[serde(default, rename = "profileId")]
-    pub profile_id: Option<String>,
+    pub profile_id: ::core::option::Option<String>,
     /// The sub account ID this profile belongs to if applicable.
     #[serde(default, rename = "subAccountId")]
-    pub sub_account_id: Option<String>,
+    pub sub_account_id: ::core::option::Option<String>,
     /// The sub account name this profile belongs to if applicable.
     #[serde(default, rename = "subAccountName")]
-    pub sub_account_name: Option<String>,
+    pub sub_account_name: ::core::option::Option<String>,
     /// The user name.
     #[serde(default, rename = "userName")]
-    pub user_name: Option<String>,
+    pub user_name: ::core::option::Option<String>,
 }
 
 /// Represents the list of user profiles.
@@ -5445,13 +5546,13 @@ pub struct UserProfile {
 pub struct UserProfileList {
     /// Etag of this resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The user profiles returned in this response.
     #[serde(default)]
-    pub items: Option<Vec<UserProfile>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserProfile>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userProfileList".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Contains properties of auser role, which is used to manage user access.
@@ -5459,28 +5560,28 @@ pub struct UserProfileList {
 pub struct UserRole {
     /// Account ID of this user role. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Whether this is a default user role. Default user roles are created by the system for the account/subaccount and cannot be modified or deleted. Each default user role comes with a basic set of preassigned permissions.
     #[serde(default, rename = "defaultUserRole")]
-    pub default_user_role: Option<bool>,
+    pub default_user_role: ::core::option::Option<bool>,
     /// ID of this user role. This is a read-only, auto-generated field.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRole".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this user role. This is a required field. Must be less than 256 characters long. If this user role is under a subaccount, the name must be unique among sites of the same subaccount. Otherwise, this user role is a top-level user role, and the name must be unique among top-level user roles of the same account.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// ID of the user role that this user role is based on or copied from. This is a required field.
     #[serde(default, rename = "parentUserRoleId")]
-    pub parent_user_role_id: Option<String>,
+    pub parent_user_role_id: ::core::option::Option<String>,
     /// List of permissions associated with this user role.
     #[serde(default)]
-    pub permissions: Option<Vec<UserRolePermission>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserRolePermission>>>,
     /// Subaccount ID of this user role. This is a read-only field that can be left blank.
     #[serde(default, rename = "subaccountId")]
-    pub subaccount_id: Option<String>,
+    pub subaccount_id: ::core::option::Option<String>,
 }
 
 /// Contains properties of a user role permission.
@@ -5488,19 +5589,19 @@ pub struct UserRole {
 pub struct UserRolePermission {
     /// Levels of availability for a user role permission. // TODO: enum values: ["NOT_AVAILABLE_BY_DEFAULT", "ACCOUNT_BY_DEFAULT", "SUBACCOUNT_AND_ACCOUNT_BY_DEFAULT", "ACCOUNT_ALWAYS", "SUBACCOUNT_AND_ACCOUNT_ALWAYS", "USER_PROFILE_ONLY"]
     #[serde(default)]
-    pub availability: Option<String>,
+    pub availability: ::core::option::Option<String>,
     /// ID of this user role permission.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolePermission".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this user role permission.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// ID of the permission group that this user role permission belongs to.
     #[serde(default, rename = "permissionGroupId")]
-    pub permission_group_id: Option<String>,
+    pub permission_group_id: ::core::option::Option<String>,
 }
 
 /// Represents a grouping of related user role permissions.
@@ -5508,13 +5609,13 @@ pub struct UserRolePermission {
 pub struct UserRolePermissionGroup {
     /// ID of this user role permission.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolePermissionGroup".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of this user role permission group.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// User Role Permission Group List Response
@@ -5522,10 +5623,11 @@ pub struct UserRolePermissionGroup {
 pub struct UserRolePermissionGroupsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolePermissionGroupsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// User role permission group collection.
     #[serde(default, rename = "userRolePermissionGroups")]
-    pub user_role_permission_groups: Option<Vec<UserRolePermissionGroup>>,
+    pub user_role_permission_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserRolePermissionGroup>>>,
 }
 
 /// User Role Permission List Response
@@ -5533,10 +5635,11 @@ pub struct UserRolePermissionGroupsListResponse {
 pub struct UserRolePermissionsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolePermissionsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// User role permission collection.
     #[serde(default, rename = "userRolePermissions")]
-    pub user_role_permissions: Option<Vec<UserRolePermission>>,
+    pub user_role_permissions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserRolePermission>>>,
 }
 
 /// User Role List Response
@@ -5544,13 +5647,13 @@ pub struct UserRolePermissionsListResponse {
 pub struct UserRolesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolesListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to be used for the next list operation.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// User role collection.
     #[serde(default, rename = "userRoles")]
-    pub user_roles: Option<Vec<UserRole>>,
+    pub user_roles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserRole>>>,
 }
 
 /// Contains information about supported video formats.
@@ -5558,19 +5661,19 @@ pub struct UserRolesListResponse {
 pub struct VideoFormat {
     /// File type of the video format. // TODO: enum values: ["FLV", "THREEGPP", "MP4", "WEBM", "M3U8"]
     #[serde(default, rename = "fileType")]
-    pub file_type: Option<String>,
+    pub file_type: ::core::option::Option<String>,
     /// ID of the video format.
     #[serde(default)]
-    pub id: Option<i32>,
+    pub id: ::core::option::Option<i32>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#videoFormat".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The resolution of this video format.
     #[serde(default)]
-    pub resolution: Option<Size>,
+    pub resolution: ::core::option::Option<::std::boxed::Box<Size>>,
     /// The target bit rate of this video format.
     #[serde(default, rename = "targetBitRate")]
-    pub target_bit_rate: Option<i32>,
+    pub target_bit_rate: ::core::option::Option<i32>,
 }
 
 /// Video Format List Response
@@ -5578,10 +5681,10 @@ pub struct VideoFormat {
 pub struct VideoFormatsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#videoFormatsListResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Video format collection.
     #[serde(default, rename = "videoFormats")]
-    pub video_formats: Option<Vec<VideoFormat>>,
+    pub video_formats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VideoFormat>>>,
 }
 
 /// Video Offset
@@ -5589,10 +5692,10 @@ pub struct VideoFormatsListResponse {
 pub struct VideoOffset {
     /// Duration, as a percentage of video duration. Do not set when offsetSeconds is set. Acceptable values are 0 to 100, inclusive.
     #[serde(default, rename = "offsetPercentage")]
-    pub offset_percentage: Option<i32>,
+    pub offset_percentage: ::core::option::Option<i32>,
     /// Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.
     #[serde(default, rename = "offsetSeconds")]
-    pub offset_seconds: Option<i32>,
+    pub offset_seconds: ::core::option::Option<i32>,
 }
 
 /// Contains processing data for a video asset.
@@ -5600,10 +5703,10 @@ pub struct VideoOffset {
 pub struct VideoProcessingData {
     /// For a FAILED processing state, the error reason discovered.
     #[serde(default, rename = "errorReason")]
-    pub error_reason: Option<String>,
+    pub error_reason: ::core::option::Option<String>,
     /// Output only. The processing state of the studio creative asset. // TODO: enum values: ["UNKNOWN", "PROCESSING", "SUCCEEDED", "FAILED"]
     #[serde(default, rename = "processingState")]
-    pub processing_state: Option<String>,
+    pub processing_state: ::core::option::Option<String>,
 }
 
 /// Video Settings
@@ -5611,31 +5714,31 @@ pub struct VideoProcessingData {
 pub struct VideoSettings {
     /// Settings for the companion creatives of video creatives served to this placement.
     #[serde(default, rename = "companionSettings")]
-    pub companion_settings: Option<CompanionSetting>,
+    pub companion_settings: ::core::option::Option<::std::boxed::Box<CompanionSetting>>,
     /// Duration of a video placement in seconds.
     #[serde(default, rename = "durationSeconds")]
-    pub duration_seconds: Option<i32>,
+    pub duration_seconds: ::core::option::Option<i32>,
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#videoSettings".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether OBA icons are enabled for this placement.
     #[serde(default, rename = "obaEnabled")]
-    pub oba_enabled: Option<bool>,
+    pub oba_enabled: ::core::option::Option<bool>,
     /// Settings for the OBA icon of video creatives served to this placement. If this object is provided, the creative-level OBA settings will be overridden.
     #[serde(default, rename = "obaSettings")]
-    pub oba_settings: Option<ObaIcon>,
+    pub oba_settings: ::core::option::Option<::std::boxed::Box<ObaIcon>>,
     /// Orientation of a video placement. If this value is set, placement will return assets matching the specified orientation. // TODO: enum values: ["ANY", "LANDSCAPE", "PORTRAIT"]
     #[serde(default)]
-    pub orientation: Option<String>,
+    pub orientation: ::core::option::Option<String>,
     /// Publisher specification ID of a video placement. Possible values are: * 1, Hulu * 2, NBC * 3, CBS * 4, CBS Desktop * 5, Discovery * 6, VEVO HD * 7, VEVO Vertical * 8, Fox * 9, CW Network * 10, Disney * 11, IGN * 12, NFL.com * 13, Turner Broadcasting * 14, Tubi on Fox * 15, Hearst Corporation * 16, Twitch Desktop * 17, ABC * 18, Univision * 19, MLB.com * 20, MLB.com Mobile * 21, MLB.com OTT * 22, Polsat * 23, TVN * 24, Mediaset * 25, Antena 3 * 26, Mediamond * 27, Sky Italia * 28, Tubi on CBS * 29, Spotify * 30, Paramount * 31, Max
     #[serde(default, rename = "publisherSpecificationId")]
-    pub publisher_specification_id: Option<String>,
+    pub publisher_specification_id: ::core::option::Option<String>,
     /// Settings for the skippability of video creatives served to this placement. If this object is provided, the creative-level skippable settings will be overridden.
     #[serde(default, rename = "skippableSettings")]
-    pub skippable_settings: Option<SkippableSetting>,
+    pub skippable_settings: ::core::option::Option<::std::boxed::Box<SkippableSetting>>,
     /// Settings for the transcodes of video creatives served to this placement. If this object is provided, the creative-level transcode settings will be overridden.
     #[serde(default, rename = "transcodeSettings")]
-    pub transcode_settings: Option<TranscodeSetting>,
+    pub transcode_settings: ::core::option::Option<::std::boxed::Box<TranscodeSetting>>,
 }
 
 /// Contains the YouTube settings.
@@ -5643,20 +5746,20 @@ pub struct VideoSettings {
 pub struct YoutubeSettings {
     /// Optional. The IDs of the creatives to use for the business logo. Currently only one creative is supported.
     #[serde(default, rename = "businessLogoCreativeIds")]
-    pub business_logo_creative_ids: Option<Vec<String>>,
+    pub business_logo_creative_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The business name.
     #[serde(default, rename = "businessName")]
-    pub business_name: Option<String>,
+    pub business_name: ::core::option::Option<String>,
     /// Optional. The call to actions. Currently only one call to action is supported.
     #[serde(default, rename = "callToActions")]
-    pub call_to_actions: Option<Vec<String>>,
+    pub call_to_actions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The descriptions. Currently only one description is supported.
     #[serde(default)]
-    pub descriptions: Option<Vec<String>>,
+    pub descriptions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The headlines associated with the call to actions. Currently only one headline is supported.
     #[serde(default)]
-    pub headlines: Option<Vec<String>>,
+    pub headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The long headlines. Currently only one long headline is supported.
     #[serde(default, rename = "longHeadlines")]
-    pub long_headlines: Option<Vec<String>>,
+    pub long_headlines: ::core::option::Option<::std::vec::Vec<String>>,
 }

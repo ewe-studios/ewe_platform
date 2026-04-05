@@ -10,27 +10,27 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration for API handlers.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiConfigHandler {
     /// Action to take when users access resources that require authentication. Defaults to redirect. // TODO: enum values: ["AUTH_FAIL_ACTION_UNSPECIFIED", "AUTH_FAIL_ACTION_REDIRECT", "AUTH_FAIL_ACTION_UNAUTHORIZED"]
     #[serde(default, rename = "authFailAction")]
-    pub auth_fail_action: Option<String>,
+    pub auth_fail_action: ::core::option::Option<String>,
     /// Level of login required to access this resource. Defaults to optional. // TODO: enum values: ["LOGIN_UNSPECIFIED", "LOGIN_OPTIONAL", "LOGIN_ADMIN", "LOGIN_REQUIRED"]
     #[serde(default)]
-    pub login: Option<String>,
+    pub login: ::core::option::Option<String>,
     /// Path to the script from the application root directory.
     #[serde(default)]
-    pub script: Option<String>,
+    pub script: ::core::option::Option<String>,
     /// Security (HTTPS) enforcement for this URL. // TODO: enum values: ["SECURE_UNSPECIFIED", "SECURE_DEFAULT", "SECURE_NEVER", "SECURE_OPTIONAL", "SECURE_ALWAYS"]
     #[serde(default, rename = "securityLevel")]
-    pub security_level: Option<String>,
+    pub security_level: ::core::option::Option<String>,
     /// URL to serve the endpoint at.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Uses Google Cloud Endpoints to handle requests.
@@ -38,7 +38,7 @@ pub struct ApiConfigHandler {
 pub struct ApiEndpointHandler {
     /// Path to the script from the application root directory.
     #[serde(default, rename = "scriptPath")]
-    pub script_path: Option<String>,
+    pub script_path: ::core::option::Option<String>,
 }
 
 /// An Application resource contains the top-level configuration of an App Engine application.
@@ -46,53 +46,53 @@ pub struct ApiEndpointHandler {
 pub struct Application {
     /// Google Apps authentication domain that controls which users can access this application.Defaults to open access for any Google Account.
     #[serde(default, rename = "authDomain")]
-    pub auth_domain: Option<String>,
+    pub auth_domain: ::core::option::Option<String>,
     /// Output only. Google Cloud Storage bucket that can be used for storing files associated with this application. This bucket is associated with the application and can be used by the gcloud deployment commands.@OutputOnly
     #[serde(default, rename = "codeBucket")]
-    pub code_bucket: Option<String>,
+    pub code_bucket: ::core::option::Option<String>,
     /// The type of the Cloud Firestore or Cloud Datastore database associated with this application. // TODO: enum values: ["DATABASE_TYPE_UNSPECIFIED", "CLOUD_DATASTORE", "CLOUD_FIRESTORE", "CLOUD_DATASTORE_COMPATIBILITY"]
     #[serde(default, rename = "databaseType")]
-    pub database_type: Option<String>,
+    pub database_type: ::core::option::Option<String>,
     /// Output only. Google Cloud Storage bucket that can be used by this application to store content.@OutputOnly
     #[serde(default, rename = "defaultBucket")]
-    pub default_bucket: Option<String>,
+    pub default_bucket: ::core::option::Option<String>,
     /// Cookie expiration policy for this application.
     #[serde(default, rename = "defaultCookieExpiration")]
-    pub default_cookie_expiration: Option<String>,
+    pub default_cookie_expiration: ::core::option::Option<String>,
     /// Output only. Hostname used to reach this application, as resolved by App Engine.@OutputOnly
     #[serde(default, rename = "defaultHostname")]
-    pub default_hostname: Option<String>,
+    pub default_hostname: ::core::option::Option<String>,
     /// HTTP path dispatch rules for requests to the application that do not explicitly target a service or version. Rules are order-dependent. Up to 20 dispatch rules can be supported.
     #[serde(default, rename = "dispatchRules")]
-    pub dispatch_rules: Option<Vec<UrlDispatchRule>>,
+    pub dispatch_rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UrlDispatchRule>>>,
     /// The feature specific settings to be used in the application.
     #[serde(default, rename = "featureSettings")]
-    pub feature_settings: Option<FeatureSettings>,
+    pub feature_settings: ::core::option::Option<::std::boxed::Box<FeatureSettings>>,
     /// Output only. The Google Container Registry domain used for storing managed build docker images for this application.
     #[serde(default, rename = "gcrDomain")]
-    pub gcr_domain: Option<String>,
+    pub gcr_domain: ::core::option::Option<String>,
     /// Additional Google Generated Customer Metadata, this field won''t be provided by default and can be requested by setting the IncludeExtraData field in GetApplicationRequest
     #[serde(default, rename = "generatedCustomerMetadata")]
-    pub generated_customer_metadata: Option<serde_json::Value>,
+    pub generated_customer_metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub iap: Option<IdentityAwareProxy>,
+    pub iap: ::core::option::Option<::std::boxed::Box<IdentityAwareProxy>>,
     /// Identifier of the Application resource. This identifier is equivalent to the project ID of the Google Cloud Platform project where you want to deploy your application. Example: myapp.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Location from which this application runs. Application instances run out of the data centers in the specified location, which is also where all of the application''s end user content is stored.Defaults to us-central.View the list of supported locations (https://cloud.google.com/appengine/docs/locations).
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The service account associated with the application. This is the app-level default identity. If no identity provided during create version, Admin API will fallback to this one.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Serving status of this application. // TODO: enum values: ["UNSPECIFIED", "SERVING", "USER_DISABLED", "SYSTEM_DISABLED"]
     #[serde(default, rename = "servingStatus")]
-    pub serving_status: Option<String>,
+    pub serving_status: ::core::option::Option<String>,
     /// The SSL policy that will be applied to the application. If set to Modern it will restrict traffic with TLS &lt; 1.2 and allow only Modern Ciphers suite // TODO: enum values: ["SSL_POLICY_UNSPECIFIED", "DEFAULT", "MODERN"]
     #[serde(default, rename = "sslPolicy")]
-    pub ssl_policy: Option<String>,
+    pub ssl_policy: ::core::option::Option<String>,
 }
 
 /// An SSL certificate that a user has been authorized to administer. A user is authorized to administer any certificate that applies to one of their authorized domains.
@@ -100,31 +100,31 @@ pub struct Application {
 pub struct AuthorizedCertificate {
     /// The SSL certificate serving the AuthorizedCertificate resource. This must be obtained independently from a certificate authority.
     #[serde(default, rename = "certificateRawData")]
-    pub certificate_raw_data: Option<CertificateRawData>,
+    pub certificate_raw_data: ::core::option::Option<::std::boxed::Box<CertificateRawData>>,
     /// The user-specified display name of the certificate. This is not guaranteed to be unique. Example: My Certificate.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Aggregate count of the domain mappings with this certificate mapped. This count includes domain mappings on applications for which the user does not have VIEWER permissions.Only returned by GET or LIST requests when specifically requested by the view=FULL_CERTIFICATE option.@OutputOnly
     #[serde(default, rename = "domainMappingsCount")]
-    pub domain_mappings_count: Option<i32>,
+    pub domain_mappings_count: ::core::option::Option<i32>,
     /// Output only. Topmost applicable domains of this certificate. This certificate applies to these domains and their subdomains. Example: example.com.@OutputOnly
     #[serde(default, rename = "domainNames")]
-    pub domain_names: Option<Vec<String>>,
+    pub domain_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The time when this certificate expires. To update the renewal time on this certificate, upload an SSL certificate with a different expiration time using AuthorizedCertificates.UpdateAuthorizedCertificate.@OutputOnly
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. Relative name of the certificate. This is a unique value autogenerated on AuthorizedCertificate resource creation. Example: 12345.@OutputOnly
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Only applicable if this certificate is managed by App Engine. Managed certificates are tied to the lifecycle of a DomainMapping and cannot be updated or deleted via the AuthorizedCertificates API. If this certificate is manually administered by the user, this field will be empty.@OutputOnly
     #[serde(default, rename = "managedCertificate")]
-    pub managed_certificate: Option<ManagedCertificate>,
+    pub managed_certificate: ::core::option::Option<::std::boxed::Box<ManagedCertificate>>,
     /// Output only. Full path to the AuthorizedCertificate resource in the API. Example: apps/myapp/authorizedCertificates/12345.@OutputOnly
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The full paths to user visible Domain Mapping resources that have this certificate mapped. Example: apps/myapp/domainMappings/example.com.This may not represent the full list of mapped domain mappings if the user does not have VIEWER permissions on all of the applications that have this certificate mapped. See domain_mappings_count for a complete count.Only returned by GET or LIST requests when specifically requested by the view=FULL_CERTIFICATE option.@OutputOnly
     #[serde(default, rename = "visibleDomainMappings")]
-    pub visible_domain_mappings: Option<Vec<String>>,
+    pub visible_domain_mappings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A domain that a user has been authorized to administer. To authorize use of a domain, verify ownership via Search Console (https://search.google.com/search-console/welcome).
@@ -132,10 +132,10 @@ pub struct AuthorizedCertificate {
 pub struct AuthorizedDomain {
     /// Fully qualified domain name of the domain authorized for use. Example: example.com.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Full path to the AuthorizedDomain resource in the API. Example: apps/myapp/authorizedDomains/example.com.@OutputOnly
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Automatic scaling is based on request rate, response latencies, and other application metrics.
@@ -143,43 +143,44 @@ pub struct AuthorizedDomain {
 pub struct AutomaticScaling {
     /// The time period that the Autoscaler (https://cloud.google.com/compute/docs/autoscaler/) should wait before it starts collecting information from a new instance. This prevents the autoscaler from collecting information when the instance is initializing, during which the collected usage would not be reliable. Only applicable in the App Engine flexible environment.
     #[serde(default, rename = "coolDownPeriod")]
-    pub cool_down_period: Option<String>,
+    pub cool_down_period: ::core::option::Option<String>,
     /// Target scaling by CPU usage.
     #[serde(default, rename = "cpuUtilization")]
-    pub cpu_utilization: Option<CpuUtilization>,
+    pub cpu_utilization: ::core::option::Option<::std::boxed::Box<CpuUtilization>>,
     /// Target scaling by disk usage.
     #[serde(default, rename = "diskUtilization")]
-    pub disk_utilization: Option<DiskUtilization>,
+    pub disk_utilization: ::core::option::Option<::std::boxed::Box<DiskUtilization>>,
     /// Number of concurrent requests an automatic scaling instance can accept before the scheduler spawns a new instance.Defaults to a runtime-specific value.
     #[serde(default, rename = "maxConcurrentRequests")]
-    pub max_concurrent_requests: Option<i32>,
+    pub max_concurrent_requests: ::core::option::Option<i32>,
     /// Maximum number of idle instances that should be maintained for this version.
     #[serde(default, rename = "maxIdleInstances")]
-    pub max_idle_instances: Option<i32>,
+    pub max_idle_instances: ::core::option::Option<i32>,
     /// Maximum amount of time that a request should wait in the pending queue before starting a new instance to handle it.
     #[serde(default, rename = "maxPendingLatency")]
-    pub max_pending_latency: Option<String>,
+    pub max_pending_latency: ::core::option::Option<String>,
     /// Maximum number of instances that should be started to handle requests for this version.
     #[serde(default, rename = "maxTotalInstances")]
-    pub max_total_instances: Option<i32>,
+    pub max_total_instances: ::core::option::Option<i32>,
     /// Minimum number of idle instances that should be maintained for this version. Only applicable for the default version of a service.
     #[serde(default, rename = "minIdleInstances")]
-    pub min_idle_instances: Option<i32>,
+    pub min_idle_instances: ::core::option::Option<i32>,
     /// Minimum amount of time a request should wait in the pending queue before starting a new instance to handle it.
     #[serde(default, rename = "minPendingLatency")]
-    pub min_pending_latency: Option<String>,
+    pub min_pending_latency: ::core::option::Option<String>,
     /// Minimum number of running instances that should be maintained for this version.
     #[serde(default, rename = "minTotalInstances")]
-    pub min_total_instances: Option<i32>,
+    pub min_total_instances: ::core::option::Option<i32>,
     /// Target scaling by network usage.
     #[serde(default, rename = "networkUtilization")]
-    pub network_utilization: Option<NetworkUtilization>,
+    pub network_utilization: ::core::option::Option<::std::boxed::Box<NetworkUtilization>>,
     /// Target scaling by request utilization.
     #[serde(default, rename = "requestUtilization")]
-    pub request_utilization: Option<RequestUtilization>,
+    pub request_utilization: ::core::option::Option<::std::boxed::Box<RequestUtilization>>,
     /// Scheduler settings for standard environment.
     #[serde(default, rename = "standardSchedulerSettings")]
-    pub standard_scheduler_settings: Option<StandardSchedulerSettings>,
+    pub standard_scheduler_settings:
+        ::core::option::Option<::std::boxed::Box<StandardSchedulerSettings>>,
 }
 
 /// A service with basic scaling will create an instance when the application receives a request. The instance will be turned down when the app becomes idle. Basic scaling is ideal for work that is intermittent or driven by user activity.
@@ -187,10 +188,10 @@ pub struct AutomaticScaling {
 pub struct BasicScaling {
     /// Duration of time after the last request that an instance must wait before the instance is shut down.
     #[serde(default, rename = "idleTimeout")]
-    pub idle_timeout: Option<String>,
+    pub idle_timeout: ::core::option::Option<String>,
     /// Maximum number of instances to create for this version.
     #[serde(default, rename = "maxInstances")]
-    pub max_instances: Option<i32>,
+    pub max_instances: ::core::option::Option<i32>,
 }
 
 /// Request message for Firewall.BatchUpdateIngressRules.
@@ -198,7 +199,7 @@ pub struct BasicScaling {
 pub struct BatchUpdateIngressRulesRequest {
     /// A list of FirewallRules to replace the existing set.
     #[serde(default, rename = "ingressRules")]
-    pub ingress_rules: Option<Vec<FirewallRule>>,
+    pub ingress_rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FirewallRule>>>,
 }
 
 /// Response message for Firewall.UpdateAllIngressRules.
@@ -206,7 +207,7 @@ pub struct BatchUpdateIngressRulesRequest {
 pub struct BatchUpdateIngressRulesResponse {
     /// The full list of ingress FirewallRules for this application.
     #[serde(default, rename = "ingressRules")]
-    pub ingress_rules: Option<Vec<FirewallRule>>,
+    pub ingress_rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FirewallRule>>>,
 }
 
 /// An SSL certificate obtained from a certificate authority.
@@ -214,10 +215,10 @@ pub struct BatchUpdateIngressRulesResponse {
 pub struct CertificateRawData {
     /// Unencrypted PEM encoded RSA private key. This field is set once on certificate creation and then encrypted. The key size must be 2048 bits or fewer. Must include the header and footer. Example: -----BEGIN RSA PRIVATE KEY----- -----END RSA PRIVATE KEY----- @InputOnly
     #[serde(default, rename = "privateKey")]
-    pub private_key: Option<String>,
+    pub private_key: ::core::option::Option<String>,
     /// PEM encoded x.509 public key certificate. This field is set once on certificate creation. Must include the header and footer. Example: -----BEGIN CERTIFICATE----- -----END CERTIFICATE-----
     #[serde(default, rename = "publicCertificate")]
-    pub public_certificate: Option<String>,
+    pub public_certificate: ::core::option::Option<String>,
 }
 
 /// Options for the build operations performed as a part of the version deployment. Only applicable for App Engine flexible environment when creating a version using source code directly.
@@ -225,10 +226,10 @@ pub struct CertificateRawData {
 pub struct CloudBuildOptions {
     /// Path to the yaml file used in deployment, used to determine runtime configuration details.Required for flexible environment builds.See https://cloud.google.com/appengine/docs/standard/python/config/appref for more details.
     #[serde(default, rename = "appYamlPath")]
-    pub app_yaml_path: Option<String>,
+    pub app_yaml_path: ::core::option::Option<String>,
     /// The Cloud Build timeout used as part of any dependent builds performed by version creation. Defaults to 10 minutes.
     #[serde(default, rename = "cloudBuildTimeout")]
-    pub cloud_build_timeout: Option<String>,
+    pub cloud_build_timeout: ::core::option::Option<String>,
 }
 
 /// Docker image that is used to create a container and start a VM instance for the version that you deploy. Only applicable for instances running in the App Engine flexible environment.
@@ -236,20 +237,20 @@ pub struct CloudBuildOptions {
 pub struct ContainerInfo {
     /// URI to the hosted container image in Google Container Registry. The URI must be fully qualified and include a tag or digest. Examples: "gcr.io/my-project/image:tag" or "gcr.io/my-project/image@digest"
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
 }
 
 /// ContainerState contains the externally-visible container state that is used to communicate the state and reasoning for that state to the CLH. This data is not persisted by CCFE, but is instead derived from CCFE''s internal representation of the container state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContainerState {
     #[serde(default, rename = "currentReasons")]
-    pub current_reasons: Option<Reasons>,
+    pub current_reasons: ::core::option::Option<::std::boxed::Box<Reasons>>,
     /// The previous and current reasons for a container state will be sent for a container event. CLHs that need to know the signal that caused the container event to trigger (edges) as opposed to just knowing the state can act upon differences in the previous and current reasons.Reasons will be provided for every system: service management, data governance, abuse, and billing.If this is a CCFE-triggered event used for reconciliation then the current reasons will be set to their *_CONTROL_PLANE_SYNC state. The previous reasons will contain the last known set of non-unknown non-control_plane_sync reasons for the state.
     #[serde(default, rename = "previousReasons")]
-    pub previous_reasons: Option<Reasons>,
+    pub previous_reasons: ::core::option::Option<::std::boxed::Box<Reasons>>,
     /// The current state of the container. This state is the culmination of all of the opinions from external systems that CCFE knows about of the container. // TODO: enum values: ["UNKNOWN_STATE", "ON", "OFF", "DELETED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Target scaling by CPU usage.
@@ -257,10 +258,10 @@ pub struct ContainerState {
 pub struct CpuUtilization {
     /// Period of time over which CPU utilization is calculated.
     #[serde(default, rename = "aggregationWindowLength")]
-    pub aggregation_window_length: Option<String>,
+    pub aggregation_window_length: ::core::option::Option<String>,
     /// Target CPU utilization ratio to maintain when scaling. Must be between 0 and 1.
     #[serde(default, rename = "targetUtilization")]
-    pub target_utilization: Option<f64>,
+    pub target_utilization: ::core::option::Option<f64>,
 }
 
 /// Metadata for the given google.longrunning.Operation during a google.appengine.v1.CreateVersionRequest.
@@ -268,7 +269,7 @@ pub struct CpuUtilization {
 pub struct CreateVersionMetadataV1 {
     /// The Cloud Build ID if one was created as part of the version create. @OutputOnly
     #[serde(default, rename = "cloudBuildId")]
-    pub cloud_build_id: Option<String>,
+    pub cloud_build_id: ::core::option::Option<String>,
 }
 
 /// Metadata for the given google.longrunning.Operation during a google.appengine.v1alpha.CreateVersionRequest.
@@ -276,7 +277,7 @@ pub struct CreateVersionMetadataV1 {
 pub struct CreateVersionMetadataV1Alpha {
     /// The Cloud Build ID if one was created as part of the version create. @OutputOnly
     #[serde(default, rename = "cloudBuildId")]
-    pub cloud_build_id: Option<String>,
+    pub cloud_build_id: ::core::option::Option<String>,
 }
 
 /// Metadata for the given google.longrunning.Operation during a google.appengine.v1beta.CreateVersionRequest.
@@ -284,7 +285,7 @@ pub struct CreateVersionMetadataV1Alpha {
 pub struct CreateVersionMetadataV1Beta {
     /// The Cloud Build ID if one was created as part of the version create. @OutputOnly
     #[serde(default, rename = "cloudBuildId")]
-    pub cloud_build_id: Option<String>,
+    pub cloud_build_id: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp
@@ -292,13 +293,13 @@ pub struct CreateVersionMetadataV1Beta {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Request message for Instances.DebugInstance.
@@ -306,7 +307,7 @@ pub struct Date {
 pub struct DebugInstanceRequest {
     /// Public SSH key to add to the instance. Examples: [USERNAME]:ssh-rsa [KEY_VALUE] [USERNAME] [USERNAME]:ssh-rsa [KEY_VALUE] google-ssh {"userName":"[USERNAME]","expireOn":"[EXPIRE_TIME]"}For more information, see Adding and Removing SSH Keys (https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys).
     #[serde(default, rename = "sshKey")]
-    pub ssh_key: Option<String>,
+    pub ssh_key: ::core::option::Option<String>,
 }
 
 /// Code and application artifacts used to deploy a version to App Engine.
@@ -314,16 +315,16 @@ pub struct DebugInstanceRequest {
 pub struct Deployment {
     /// Options for any Google Cloud Build builds created as a part of this deployment.These options will only be used if a new build is created, such as when deploying to the App Engine flexible environment using files or zip.
     #[serde(default, rename = "cloudBuildOptions")]
-    pub cloud_build_options: Option<CloudBuildOptions>,
+    pub cloud_build_options: ::core::option::Option<::std::boxed::Box<CloudBuildOptions>>,
     /// The Docker image for the container that runs the version. Only applicable for instances running in the App Engine flexible environment.
     #[serde(default)]
-    pub container: Option<ContainerInfo>,
+    pub container: ::core::option::Option<::std::boxed::Box<ContainerInfo>>,
     /// Manifest of the files stored in Google Cloud Storage that are included as part of this version. All files must be readable using the credentials supplied with this call.
     #[serde(default)]
-    pub files: Option<serde_json::Value>,
+    pub files: ::core::option::Option<serde_json::Value>,
     /// The zip file for this deployment, if this is a zip deployment.
     #[serde(default)]
-    pub zip: Option<ZipInfo>,
+    pub zip: ::core::option::Option<::std::boxed::Box<ZipInfo>>,
 }
 
 /// Target scaling by disk usage. Only applicable in the App Engine flexible environment.
@@ -331,16 +332,16 @@ pub struct Deployment {
 pub struct DiskUtilization {
     /// Target bytes read per second.
     #[serde(default, rename = "targetReadBytesPerSecond")]
-    pub target_read_bytes_per_second: Option<i32>,
+    pub target_read_bytes_per_second: ::core::option::Option<i32>,
     /// Target ops read per seconds.
     #[serde(default, rename = "targetReadOpsPerSecond")]
-    pub target_read_ops_per_second: Option<i32>,
+    pub target_read_ops_per_second: ::core::option::Option<i32>,
     /// Target bytes written per second.
     #[serde(default, rename = "targetWriteBytesPerSecond")]
-    pub target_write_bytes_per_second: Option<i32>,
+    pub target_write_bytes_per_second: ::core::option::Option<i32>,
     /// Target ops written per second.
     #[serde(default, rename = "targetWriteOpsPerSecond")]
-    pub target_write_ops_per_second: Option<i32>,
+    pub target_write_ops_per_second: ::core::option::Option<i32>,
 }
 
 /// A domain serving an App Engine application.
@@ -348,16 +349,17 @@ pub struct DiskUtilization {
 pub struct DomainMapping {
     /// Relative name of the domain serving the application. Example: example.com.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Full path to the DomainMapping resource in the API. Example: apps/myapp/domainMapping/example.com.@OutputOnly
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The resource records required to configure this domain mapping. These records must be added to the domain''s DNS configuration in order to serve the application via this domain mapping.@OutputOnly
     #[serde(default, rename = "resourceRecords")]
-    pub resource_records: Option<Vec<ResourceRecord>>,
+    pub resource_records:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceRecord>>>,
     /// SSL configuration for this domain. If unconfigured, this domain will not serve with SSL.
     #[serde(default, rename = "sslSettings")]
-    pub ssl_settings: Option<SslSettings>,
+    pub ssl_settings: ::core::option::Option<::std::boxed::Box<SslSettings>>,
 }
 
 /// Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration. The Endpoints API Service provides tooling for serving Open API and gRPC endpoints via an NGINX proxy. Only valid for App Engine Flexible environment deployments.The fields here refer to the name and configuration ID of a "service" resource in the Service Management API (https://cloud.google.com/service-management/overview).
@@ -365,16 +367,16 @@ pub struct DomainMapping {
 pub struct EndpointsApiService {
     /// Endpoints service configuration ID as specified by the Service Management API. For example "2016-09-19r1".By default, the rollout strategy for Endpoints is RolloutStrategy.FIXED. This means that Endpoints starts up with a particular configuration ID. When a new configuration is rolled out, Endpoints must be given the new configuration ID. The config_id field is used to give the configuration ID and is required in this case.Endpoints also has a rollout strategy called RolloutStrategy.MANAGED. When using this, Endpoints fetches the latest configuration and does not need the configuration ID. In this case, config_id must be omitted.
     #[serde(default, rename = "configId")]
-    pub config_id: Option<String>,
+    pub config_id: ::core::option::Option<String>,
     /// Enable or disable trace sampling. By default, this is set to false for enabled.
     #[serde(default, rename = "disableTraceSampling")]
-    pub disable_trace_sampling: Option<bool>,
+    pub disable_trace_sampling: ::core::option::Option<bool>,
     /// Endpoints service name which is the name of the "service" resource in the Service Management API. For example "myapi.endpoints.myproject.cloud.goog"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Endpoints rollout strategy. If FIXED, config_id must be specified. If MANAGED, config_id must be omitted. // TODO: enum values: ["UNSPECIFIED_ROLLOUT_STRATEGY", "FIXED", "MANAGED"]
     #[serde(default, rename = "rolloutStrategy")]
-    pub rollout_strategy: Option<String>,
+    pub rollout_strategy: ::core::option::Option<String>,
 }
 
 /// The entrypoint for the application.
@@ -382,7 +384,7 @@ pub struct EndpointsApiService {
 pub struct Entrypoint {
     /// The format should be a shell command that can be fed to bash -c.
     #[serde(default)]
-    pub shell: Option<String>,
+    pub shell: ::core::option::Option<String>,
 }
 
 /// Custom static error page to be served when an error occurs.
@@ -390,13 +392,13 @@ pub struct Entrypoint {
 pub struct ErrorHandler {
     /// Error condition this handler applies to. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "ERROR_CODE_DEFAULT", "ERROR_CODE_OVER_QUOTA", "ERROR_CODE_DOS_API_DENIAL", "ERROR_CODE_TIMEOUT"]
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
     /// MIME type of file. Defaults to text/html.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Static file content to be served for this error.
     #[serde(default, rename = "staticFile")]
-    pub static_file: Option<String>,
+    pub static_file: ::core::option::Option<String>,
 }
 
 /// Request message for Versions.ExportAppImage.
@@ -404,7 +406,7 @@ pub struct ErrorHandler {
 pub struct ExportAppImageRequest {
     /// Optional. The full resource name of the AR repository to export to. Format: projects/{project}/locations/{location}/repositories/{repository} If not specified, defaults to projects/{project}/locations/{location}/repositories/gae-standard in the same region as the app. The default repository will be created if it does not exist.
     #[serde(default, rename = "destinationRepository")]
-    pub destination_repository: Option<String>,
+    pub destination_repository: ::core::option::Option<String>,
 }
 
 /// The feature specific settings to be used in the application. These define behaviors that are user configurable.
@@ -412,10 +414,10 @@ pub struct ExportAppImageRequest {
 pub struct FeatureSettings {
     /// Boolean value indicating if split health checks should be used instead of the legacy health checks. At an app.yaml level, this means defaulting to ''readiness_check'' and ''liveness_check'' values instead of ''health_check'' ones. Once the legacy ''health_check'' behavior is deprecated, and this value is always true, this setting can be removed.
     #[serde(default, rename = "splitHealthChecks")]
-    pub split_health_checks: Option<bool>,
+    pub split_health_checks: ::core::option::Option<bool>,
     /// If true, use Container-Optimized OS (https://cloud.google.com/container-optimized-os/) base image for VMs, rather than a base Debian image.
     #[serde(default, rename = "useContainerOptimizedOs")]
-    pub use_container_optimized_os: Option<bool>,
+    pub use_container_optimized_os: ::core::option::Option<bool>,
 }
 
 /// Single source file that is part of the version to be deployed. Each source file that is deployed must be specified separately.
@@ -423,13 +425,13 @@ pub struct FeatureSettings {
 pub struct FileInfo {
     /// The MIME type of the file.Defaults to the value from Google Cloud Storage.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// The SHA1 hash of the file, in hex.
     #[serde(default, rename = "sha1Sum")]
-    pub sha1_sum: Option<String>,
+    pub sha1_sum: ::core::option::Option<String>,
     /// URL source to use to fetch this file. Must be a URL to a resource in Google Cloud Storage in the form ''http(s)://storage.googleapis.com//''.
     #[serde(default, rename = "sourceUrl")]
-    pub source_url: Option<String>,
+    pub source_url: ::core::option::Option<String>,
 }
 
 /// A single firewall rule that is evaluated against incoming traffic and provides an action to take on matched requests. A positive integer between 1, Int32.MaxValue-1 that defines the order of rule evaluation. Rules with the lowest priority are evaluated first.A default rule at priority Int32.MaxValue matches all IPv4 and IPv6 traffic when no previous rule matches. Only the action of this rule can be modified by the user.
@@ -437,15 +439,15 @@ pub struct FileInfo {
 pub struct FirewallRule {
     /// The action to take on matched requests. // TODO: enum values: ["UNSPECIFIED_ACTION", "ALLOW", "DENY"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// An optional string description of this rule. This field has a maximum length of 400 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     /// IP address or range, defined using CIDR notation, of requests that this rule applies to. You can use the wildcard character "*" to match all IPs equivalent to "0/0" and "::/0" together. Examples: 192.168.1.1 or 192.168.0.0/16 or 2001:db8::/32 or 2001:0db8:0000:0042:0000:8a2e:0370:7334. Truncation will be silently performed on addresses which are not properly truncated. For example, 1.2.3.4/24 is accepted as the same address as 1.2.3.0/24. Similarly, for IPv6, 2001:db8::1/32 is accepted as the same address as 2001:db8::/32.
     #[serde(default, rename = "sourceRange")]
-    pub source_range: Option<String>,
+    pub source_range: ::core::option::Option<String>,
 }
 
 /// Runtime settings for the App Engine flexible environment.
@@ -453,10 +455,10 @@ pub struct FirewallRule {
 pub struct FlexibleRuntimeSettings {
     /// The operating system of the application runtime.
     #[serde(default, rename = "operatingSystem")]
-    pub operating_system: Option<String>,
+    pub operating_system: ::core::option::Option<String>,
     /// The runtime version of an App Engine flexible application.
     #[serde(default, rename = "runtimeVersion")]
-    pub runtime_version: Option<String>,
+    pub runtime_version: ::core::option::Option<String>,
 }
 
 /// For use only by GCE. GceTag is a wrapper around the GCE administrative tag with parent info.
@@ -464,10 +466,10 @@ pub struct FlexibleRuntimeSettings {
 pub struct GceTag {
     /// The parents(s) of the tag. Eg. projects/123, folders/456 It usually contains only one parent. But, in some corner cases, it can contain multiple parents. Currently, organizations are not supported.
     #[serde(default)]
-    pub parent: Option<Vec<String>>,
+    pub parent: ::core::option::Option<::std::vec::Vec<String>>,
     /// The administrative_tag name.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Metadata for the given google.cloud.location.Location.
@@ -475,13 +477,13 @@ pub struct GceTag {
 pub struct GoogleAppengineV1betaLocationMetadata {
     /// App Engine flexible environment is available in the given location.@OutputOnly
     #[serde(default, rename = "flexibleEnvironmentAvailable")]
-    pub flexible_environment_available: Option<bool>,
+    pub flexible_environment_available: ::core::option::Option<bool>,
     /// Output only. Search API (https://cloud.google.com/appengine/docs/standard/python/search) is available in the given location.
     #[serde(default, rename = "searchApiAvailable")]
-    pub search_api_available: Option<bool>,
+    pub search_api_available: ::core::option::Option<bool>,
     /// App Engine standard environment is available in the given location.@OutputOnly
     #[serde(default, rename = "standardEnvironmentAvailable")]
-    pub standard_environment_available: Option<bool>,
+    pub standard_environment_available: ::core::option::Option<bool>,
 }
 
 /// Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances. Only applicable for instances in App Engine flexible environment.
@@ -489,25 +491,25 @@ pub struct GoogleAppengineV1betaLocationMetadata {
 pub struct HealthCheck {
     /// Interval between health checks.
     #[serde(default, rename = "checkInterval")]
-    pub check_interval: Option<String>,
+    pub check_interval: ::core::option::Option<String>,
     /// Whether to explicitly disable health checks for this instance.
     #[serde(default, rename = "disableHealthCheck")]
-    pub disable_health_check: Option<bool>,
+    pub disable_health_check: ::core::option::Option<bool>,
     /// Number of consecutive successful health checks required before receiving traffic.
     #[serde(default, rename = "healthyThreshold")]
-    pub healthy_threshold: Option<i64>,
+    pub healthy_threshold: ::core::option::Option<i64>,
     /// Host header to send when performing an HTTP health check. Example: "myapp.appspot.com"
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// Number of consecutive failed health checks required before an instance is restarted.
     #[serde(default, rename = "restartThreshold")]
-    pub restart_threshold: Option<i64>,
+    pub restart_threshold: ::core::option::Option<i64>,
     /// Time before the health check is considered failed.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
     /// Number of consecutive failed health checks required before removing traffic.
     #[serde(default, rename = "unhealthyThreshold")]
-    pub unhealthy_threshold: Option<i64>,
+    pub unhealthy_threshold: ::core::option::Option<i64>,
 }
 
 /// Identity-Aware Proxy
@@ -515,16 +517,16 @@ pub struct HealthCheck {
 pub struct IdentityAwareProxy {
     /// Whether the serving infrastructure will authenticate and authorize all incoming requests.If true, the oauth2_client_id and oauth2_client_secret fields must be non-empty.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// OAuth2 client ID to use for the authentication flow.
     #[serde(default, rename = "oauth2ClientId")]
-    pub oauth2_client_id: Option<String>,
+    pub oauth2_client_id: ::core::option::Option<String>,
     /// OAuth2 client secret to use for the authentication flow.For security reasons, this value cannot be retrieved via the API. Instead, the SHA-256 hash of the value is returned in the oauth2_client_secret_sha256 field.@InputOnly
     #[serde(default, rename = "oauth2ClientSecret")]
-    pub oauth2_client_secret: Option<String>,
+    pub oauth2_client_secret: ::core::option::Option<String>,
     /// Output only. Hex-encoded SHA-256 hash of the client secret.@OutputOnly
     #[serde(default, rename = "oauth2ClientSecretSha256")]
-    pub oauth2_client_secret_sha256: Option<String>,
+    pub oauth2_client_secret_sha256: ::core::option::Option<String>,
 }
 
 /// An Instance resource is the computing unit that App Engine uses to automatically scale an application.
@@ -532,55 +534,55 @@ pub struct IdentityAwareProxy {
 pub struct Instance {
     /// Output only. App Engine release this instance is running on.
     #[serde(default, rename = "appEngineRelease")]
-    pub app_engine_release: Option<String>,
+    pub app_engine_release: ::core::option::Option<String>,
     /// Output only. Availability of the instance. // TODO: enum values: ["UNSPECIFIED", "RESIDENT", "DYNAMIC"]
     #[serde(default)]
-    pub availability: Option<String>,
+    pub availability: ::core::option::Option<String>,
     /// Output only. Average latency (ms) over the last minute.
     #[serde(default, rename = "averageLatency")]
-    pub average_latency: Option<i32>,
+    pub average_latency: ::core::option::Option<i32>,
     /// Output only. Number of errors since this instance was started.
     #[serde(default)]
-    pub errors: Option<i32>,
+    pub errors: ::core::option::Option<i32>,
     /// Output only. Relative name of the instance within the version. Example: instance-1.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Total memory in use (bytes).
     #[serde(default, rename = "memoryUsage")]
-    pub memory_usage: Option<String>,
+    pub memory_usage: ::core::option::Option<String>,
     /// Output only. Full path to the Instance resource in the API. Example: apps/myapp/services/default/versions/v1/instances/instance-1.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Average queries per second (QPS) over the last minute.
     #[serde(default)]
-    pub qps: Option<f32>,
+    pub qps: ::core::option::Option<f32>,
     /// Output only. Number of requests since this instance was started.
     #[serde(default)]
-    pub requests: Option<i32>,
+    pub requests: ::core::option::Option<i32>,
     /// Output only. Time that this instance was started.@OutputOnly
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. Whether this instance is in debug mode. Only applicable for instances in App Engine flexible environment.
     #[serde(default, rename = "vmDebugEnabled")]
-    pub vm_debug_enabled: Option<bool>,
+    pub vm_debug_enabled: ::core::option::Option<bool>,
     /// Output only. Virtual machine ID of this instance. Only applicable for instances in App Engine flexible environment.
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
     /// Output only. The IP address of this instance. Only applicable for instances in App Engine flexible environment.
     #[serde(default, rename = "vmIp")]
-    pub vm_ip: Option<String>,
+    pub vm_ip: ::core::option::Option<String>,
     /// Output only. The liveness health check of this instance. Only applicable for instances in App Engine flexible environment. // TODO: enum values: ["LIVENESS_STATE_UNSPECIFIED", "UNKNOWN", "HEALTHY", "UNHEALTHY", "DRAINING", "TIMEOUT"]
     #[serde(default, rename = "vmLiveness")]
-    pub vm_liveness: Option<String>,
+    pub vm_liveness: ::core::option::Option<String>,
     /// Output only. Name of the virtual machine where this instance lives. Only applicable for instances in App Engine flexible environment.
     #[serde(default, rename = "vmName")]
-    pub vm_name: Option<String>,
+    pub vm_name: ::core::option::Option<String>,
     /// Output only. Status of the virtual machine where this instance lives. Only applicable for instances in App Engine flexible environment.
     #[serde(default, rename = "vmStatus")]
-    pub vm_status: Option<String>,
+    pub vm_status: ::core::option::Option<String>,
     /// Output only. Zone where the virtual machine is located. Only applicable for instances in App Engine flexible environment.
     #[serde(default, rename = "vmZoneName")]
-    pub vm_zone_name: Option<String>,
+    pub vm_zone_name: ::core::option::Option<String>,
 }
 
 /// Third-party Python runtime library that is required by the application.
@@ -588,10 +590,10 @@ pub struct Instance {
 pub struct Library {
     /// Name of the library. Example: "django".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Version of the library to select, or "latest".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Response message for AuthorizedCertificates.ListAuthorizedCertificates.
@@ -599,10 +601,11 @@ pub struct Library {
 pub struct ListAuthorizedCertificatesResponse {
     /// The SSL certificates the user is authorized to administer.
     #[serde(default)]
-    pub certificates: Option<Vec<AuthorizedCertificate>>,
+    pub certificates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthorizedCertificate>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for AuthorizedDomains.ListAuthorizedDomains.
@@ -610,10 +613,10 @@ pub struct ListAuthorizedCertificatesResponse {
 pub struct ListAuthorizedDomainsResponse {
     /// The authorized domains belonging to the user.
     #[serde(default)]
-    pub domains: Option<Vec<AuthorizedDomain>>,
+    pub domains: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthorizedDomain>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for DomainMappings.ListDomainMappings.
@@ -621,10 +624,10 @@ pub struct ListAuthorizedDomainsResponse {
 pub struct ListDomainMappingsResponse {
     /// The domain mappings for the application.
     #[serde(default, rename = "domainMappings")]
-    pub domain_mappings: Option<Vec<DomainMapping>>,
+    pub domain_mappings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DomainMapping>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for Firewall.ListIngressRules.
@@ -632,10 +635,10 @@ pub struct ListDomainMappingsResponse {
 pub struct ListIngressRulesResponse {
     /// The ingress FirewallRules for this application.
     #[serde(default, rename = "ingressRules")]
-    pub ingress_rules: Option<Vec<FirewallRule>>,
+    pub ingress_rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FirewallRule>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for Instances.ListInstances.
@@ -643,10 +646,10 @@ pub struct ListIngressRulesResponse {
 pub struct ListInstancesResponse {
     /// The instances belonging to the requested version.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -654,10 +657,10 @@ pub struct ListInstancesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -665,13 +668,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for Applications.ListRuntimes.
@@ -679,10 +682,10 @@ pub struct ListOperationsResponse {
 pub struct ListRuntimesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The runtimes available to the requested application.
     #[serde(default)]
-    pub runtimes: Option<Vec<Runtime>>,
+    pub runtimes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Runtime>>>,
 }
 
 /// Response message for Services.ListServices.
@@ -690,10 +693,10 @@ pub struct ListRuntimesResponse {
 pub struct ListServicesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The services belonging to the requested application.
     #[serde(default)]
-    pub services: Option<Vec<Service>>,
+    pub services: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Service>>>,
 }
 
 /// Response message for Versions.ListVersions.
@@ -701,10 +704,10 @@ pub struct ListServicesResponse {
 pub struct ListVersionsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The versions belonging to the requested service.
     #[serde(default)]
-    pub versions: Option<Vec<Version>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Version>>>,
 }
 
 /// Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances.
@@ -712,25 +715,25 @@ pub struct ListVersionsResponse {
 pub struct LivenessCheck {
     /// Interval between health checks.
     #[serde(default, rename = "checkInterval")]
-    pub check_interval: Option<String>,
+    pub check_interval: ::core::option::Option<String>,
     /// Number of consecutive failed checks required before considering the VM unhealthy.
     #[serde(default, rename = "failureThreshold")]
-    pub failure_threshold: Option<i64>,
+    pub failure_threshold: ::core::option::Option<i64>,
     /// Host header to send when performing a HTTP Liveness check. Example: "myapp.appspot.com"
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// The initial delay before starting to execute the checks.
     #[serde(default, rename = "initialDelay")]
-    pub initial_delay: Option<String>,
+    pub initial_delay: ::core::option::Option<String>,
     /// The request path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Number of consecutive successful checks required before considering the VM healthy.
     #[serde(default, rename = "successThreshold")]
-    pub success_threshold: Option<i64>,
+    pub success_threshold: ::core::option::Option<i64>,
     /// Time before the check is considered failed.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -738,19 +741,19 @@ pub struct LivenessCheck {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata for the given google.cloud.location.Location.
@@ -758,13 +761,13 @@ pub struct Location {
 pub struct LocationMetadata {
     /// App Engine flexible environment is available in the given location.@OutputOnly
     #[serde(default, rename = "flexibleEnvironmentAvailable")]
-    pub flexible_environment_available: Option<bool>,
+    pub flexible_environment_available: ::core::option::Option<bool>,
     /// Output only. Search API (https://cloud.google.com/appengine/docs/standard/python/search) is available in the given location.
     #[serde(default, rename = "searchApiAvailable")]
-    pub search_api_available: Option<bool>,
+    pub search_api_available: ::core::option::Option<bool>,
     /// App Engine standard environment is available in the given location.@OutputOnly
     #[serde(default, rename = "standardEnvironmentAvailable")]
-    pub standard_environment_available: Option<bool>,
+    pub standard_environment_available: ::core::option::Option<bool>,
 }
 
 /// A certificate managed by App Engine.
@@ -772,10 +775,10 @@ pub struct LocationMetadata {
 pub struct ManagedCertificate {
     /// Time at which the certificate was last renewed. The renewal process is fully managed. Certificate renewal will automatically occur before the certificate expires. Renewal errors can be tracked via ManagementStatus.@OutputOnly
     #[serde(default, rename = "lastRenewalTime")]
-    pub last_renewal_time: Option<String>,
+    pub last_renewal_time: ::core::option::Option<String>,
     /// Status of certificate management. Refers to the most recent certificate acquisition or renewal attempt.@OutputOnly // TODO: enum values: ["MANAGEMENT_STATUS_UNSPECIFIED", "OK", "PENDING", "FAILED_RETRYING_NOT_VISIBLE", "FAILED_PERMANENT", "FAILED_RETRYING_CAA_FORBIDDEN", "FAILED_RETRYING_CAA_CHECKING"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// A service with manual scaling runs continuously, allowing you to perform complex initialization and rely on the state of its memory over time.
@@ -783,7 +786,7 @@ pub struct ManagedCertificate {
 pub struct ManualScaling {
     /// Number of instances to assign to the service at the start. This number can later be altered by using the Modules API (https://cloud.google.com/appengine/docs/python/modules/functions) set_num_instances() function.
     #[serde(default)]
-    pub instances: Option<i32>,
+    pub instances: ::core::option::Option<i32>,
 }
 
 /// Extra network settings. Only applicable in the App Engine flexible environment.
@@ -791,22 +794,22 @@ pub struct ManualScaling {
 pub struct Network {
     /// List of ports, or port pairs, to forward from the virtual machine to the application container. Only applicable in the App Engine flexible environment.
     #[serde(default, rename = "forwardedPorts")]
-    pub forwarded_ports: Option<Vec<String>>,
+    pub forwarded_ports: ::core::option::Option<::std::vec::Vec<String>>,
     /// The IP mode for instances. Only applicable in the App Engine flexible environment. // TODO: enum values: ["INSTANCE_IP_MODE_UNSPECIFIED", "EXTERNAL", "INTERNAL"]
     #[serde(default, rename = "instanceIpMode")]
-    pub instance_ip_mode: Option<String>,
+    pub instance_ip_mode: ::core::option::Option<String>,
     /// Tag to apply to the instance during creation. Only applicable in the App Engine flexible environment.
     #[serde(default, rename = "instanceTag")]
-    pub instance_tag: Option<String>,
+    pub instance_tag: ::core::option::Option<String>,
     /// Google Compute Engine network where the virtual machines are created. Specify the short name, not the resource path.Defaults to default.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Enable session affinity. Only applicable in the App Engine flexible environment.
     #[serde(default, rename = "sessionAffinity")]
-    pub session_affinity: Option<bool>,
+    pub session_affinity: ::core::option::Option<bool>,
     /// Google Cloud Platform sub-network where the virtual machines are created. Specify the short name, not the resource path.If a subnetwork name is specified, a network name will also be required unless it is for the default network. If the network that the instance is being created in is a Legacy network, then the IP address is allocated from the IPv4Range. If the network that the instance is being created in is an auto Subnet Mode Network, then only network name should be specified (not the subnetwork_name) and the IP address is created from the IPCidrRange of the subnetwork that exists in that zone for that network. If the network that the instance is being created in is a custom Subnet Mode Network, then the subnetwork_name must be specified and the IP address is created from the IPCidrRange of the subnetwork.If specified, the subnetwork must exist in the same region as the App Engine flexible environment application.
     #[serde(default, rename = "subnetworkName")]
-    pub subnetwork_name: Option<String>,
+    pub subnetwork_name: ::core::option::Option<String>,
 }
 
 /// A NetworkSettings resource is a container for ingress settings for a version or service.
@@ -814,7 +817,7 @@ pub struct Network {
 pub struct NetworkSettings {
     /// The ingress settings for version or service. // TODO: enum values: ["INGRESS_TRAFFIC_ALLOWED_UNSPECIFIED", "INGRESS_TRAFFIC_ALLOWED_ALL", "INGRESS_TRAFFIC_ALLOWED_INTERNAL_ONLY", "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"]
     #[serde(default, rename = "ingressTrafficAllowed")]
-    pub ingress_traffic_allowed: Option<String>,
+    pub ingress_traffic_allowed: ::core::option::Option<String>,
 }
 
 /// Target scaling by network usage. Only applicable in the App Engine flexible environment.
@@ -822,16 +825,16 @@ pub struct NetworkSettings {
 pub struct NetworkUtilization {
     /// Target bytes received per second.
     #[serde(default, rename = "targetReceivedBytesPerSecond")]
-    pub target_received_bytes_per_second: Option<i32>,
+    pub target_received_bytes_per_second: ::core::option::Option<i32>,
     /// Target packets received per second.
     #[serde(default, rename = "targetReceivedPacketsPerSecond")]
-    pub target_received_packets_per_second: Option<i32>,
+    pub target_received_packets_per_second: ::core::option::Option<i32>,
     /// Target bytes sent per second.
     #[serde(default, rename = "targetSentBytesPerSecond")]
-    pub target_sent_bytes_per_second: Option<i32>,
+    pub target_sent_bytes_per_second: ::core::option::Option<i32>,
     /// Target packets sent per second.
     #[serde(default, rename = "targetSentPacketsPerSecond")]
-    pub target_sent_packets_per_second: Option<i32>,
+    pub target_sent_packets_per_second: ::core::option::Option<i32>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -839,103 +842,105 @@ pub struct NetworkUtilization {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for the given google.longrunning.Operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadataV1 {
     #[serde(default, rename = "createVersionMetadata")]
-    pub create_version_metadata: Option<CreateVersionMetadataV1>,
+    pub create_version_metadata: ::core::option::Option<::std::boxed::Box<CreateVersionMetadataV1>>,
     /// Time that this operation completed.@OutputOnly
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Ephemeral message that may change every time the operation is polled. @OutputOnly
     #[serde(default, rename = "ephemeralMessage")]
-    pub ephemeral_message: Option<String>,
+    pub ephemeral_message: ::core::option::Option<String>,
     /// Time that this operation was created.@OutputOnly
     #[serde(default, rename = "insertTime")]
-    pub insert_time: Option<String>,
+    pub insert_time: ::core::option::Option<String>,
     /// API method that initiated this operation. Example: google.appengine.v1.Versions.CreateVersion.@OutputOnly
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Name of the resource that this operation is acting on. Example: apps/myapp/services/default.@OutputOnly
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// User who requested this operation.@OutputOnly
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
     /// Durable messages that persist on every operation poll. @OutputOnly
     #[serde(default)]
-    pub warning: Option<Vec<String>>,
+    pub warning: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata for the given google.longrunning.Operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadataV1Alpha {
     #[serde(default, rename = "createVersionMetadata")]
-    pub create_version_metadata: Option<CreateVersionMetadataV1Alpha>,
+    pub create_version_metadata:
+        ::core::option::Option<::std::boxed::Box<CreateVersionMetadataV1Alpha>>,
     /// Time that this operation completed.@OutputOnly
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Ephemeral message that may change every time the operation is polled. @OutputOnly
     #[serde(default, rename = "ephemeralMessage")]
-    pub ephemeral_message: Option<String>,
+    pub ephemeral_message: ::core::option::Option<String>,
     /// Time that this operation was created.@OutputOnly
     #[serde(default, rename = "insertTime")]
-    pub insert_time: Option<String>,
+    pub insert_time: ::core::option::Option<String>,
     /// API method that initiated this operation. Example: google.appengine.v1alpha.Versions.CreateVersion.@OutputOnly
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Name of the resource that this operation is acting on. Example: apps/myapp/services/default.@OutputOnly
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// User who requested this operation.@OutputOnly
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
     /// Durable messages that persist on every operation poll. @OutputOnly
     #[serde(default)]
-    pub warning: Option<Vec<String>>,
+    pub warning: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata for the given google.longrunning.Operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadataV1Beta {
     #[serde(default, rename = "createVersionMetadata")]
-    pub create_version_metadata: Option<CreateVersionMetadataV1Beta>,
+    pub create_version_metadata:
+        ::core::option::Option<::std::boxed::Box<CreateVersionMetadataV1Beta>>,
     /// Time that this operation completed.@OutputOnly
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Ephemeral message that may change every time the operation is polled. @OutputOnly
     #[serde(default, rename = "ephemeralMessage")]
-    pub ephemeral_message: Option<String>,
+    pub ephemeral_message: ::core::option::Option<String>,
     /// Time that this operation was created.@OutputOnly
     #[serde(default, rename = "insertTime")]
-    pub insert_time: Option<String>,
+    pub insert_time: ::core::option::Option<String>,
     /// API method that initiated this operation. Example: google.appengine.v1beta.Versions.CreateVersion.@OutputOnly
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Name of the resource that this operation is acting on. Example: apps/myapp/services/default.@OutputOnly
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// User who requested this operation.@OutputOnly
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
     /// Durable messages that persist on every operation poll. @OutputOnly
     #[serde(default)]
-    pub warning: Option<Vec<String>>,
+    pub warning: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The request sent to CLHs during project events.
@@ -943,16 +948,16 @@ pub struct OperationMetadataV1Beta {
 pub struct ProjectEvent {
     /// The unique ID for this project event. CLHs can use this value to dedup repeated calls. required
     #[serde(default, rename = "eventId")]
-    pub event_id: Option<String>,
+    pub event_id: ::core::option::Option<String>,
     /// Phase indicates when in the container event propagation this event is being communicated. Events are sent before and after the per-resource events are propagated. required // TODO: enum values: ["CONTAINER_EVENT_PHASE_UNSPECIFIED", "BEFORE_RESOURCE_HANDLING", "AFTER_RESOURCE_HANDLING"]
     #[serde(default)]
-    pub phase: Option<String>,
+    pub phase: ::core::option::Option<String>,
     /// The projects metadata for this project. required
     #[serde(default, rename = "projectMetadata")]
-    pub project_metadata: Option<ProjectsMetadata>,
+    pub project_metadata: ::core::option::Option<::std::boxed::Box<ProjectsMetadata>>,
     /// The state of the organization that led to this event.
     #[serde(default)]
-    pub state: Option<ContainerState>,
+    pub state: ::core::option::Option<::std::boxed::Box<ContainerState>>,
 }
 
 /// ProjectsMetadata is the metadata CCFE stores about the all the relevant projects (tenant, consumer, producer).
@@ -960,34 +965,34 @@ pub struct ProjectEvent {
 pub struct ProjectsMetadata {
     /// The consumer project id.
     #[serde(default, rename = "consumerProjectId")]
-    pub consumer_project_id: Option<String>,
+    pub consumer_project_id: ::core::option::Option<String>,
     /// The consumer project number.
     #[serde(default, rename = "consumerProjectNumber")]
-    pub consumer_project_number: Option<String>,
+    pub consumer_project_number: ::core::option::Option<String>,
     /// The CCFE state of the consumer project. It is the same state that is communicated to the CLH during project events. Notice that this field is not set in the DB, it is only set in this proto when communicated to CLH in the side channel. // TODO: enum values: ["UNKNOWN_STATE", "ON", "OFF", "DELETED"]
     #[serde(default, rename = "consumerProjectState")]
-    pub consumer_project_state: Option<String>,
+    pub consumer_project_state: ::core::option::Option<String>,
     /// The GCE tags associated with the consumer project and those inherited due to their ancestry, if any. Not supported by CCFE.
     #[serde(default, rename = "gceTag")]
-    pub gce_tag: Option<Vec<GceTag>>,
+    pub gce_tag: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GceTag>>>,
     /// DEPRECATED: Indicates whether the GCE project is in the DEPROVISIONING state. This field is a temporary workaround (see b/475310865) to allow GCE extensions to bypass certain checks during deprovisioning. It will be replaced by a permanent solution in the future.
     #[serde(default, rename = "isGceProjectDeprovisioning")]
-    pub is_gce_project_deprovisioning: Option<bool>,
+    pub is_gce_project_deprovisioning: ::core::option::Option<bool>,
     /// The service account authorized to operate on the consumer project. Note: CCFE only propagates P4SA with default tag to CLH.
     #[serde(default, rename = "p4ServiceAccount")]
-    pub p4_service_account: Option<String>,
+    pub p4_service_account: ::core::option::Option<String>,
     /// The producer project id.
     #[serde(default, rename = "producerProjectId")]
-    pub producer_project_id: Option<String>,
+    pub producer_project_id: ::core::option::Option<String>,
     /// The producer project number.
     #[serde(default, rename = "producerProjectNumber")]
-    pub producer_project_number: Option<String>,
+    pub producer_project_number: ::core::option::Option<String>,
     /// The tenant project id.
     #[serde(default, rename = "tenantProjectId")]
-    pub tenant_project_id: Option<String>,
+    pub tenant_project_id: ::core::option::Option<String>,
     /// The tenant project number.
     #[serde(default, rename = "tenantProjectNumber")]
-    pub tenant_project_number: Option<String>,
+    pub tenant_project_number: ::core::option::Option<String>,
 }
 
 /// Readiness checking configuration for VM instances. Unhealthy instances are removed from traffic rotation.
@@ -995,25 +1000,25 @@ pub struct ProjectsMetadata {
 pub struct ReadinessCheck {
     /// A maximum time limit on application initialization, measured from moment the application successfully replies to a healthcheck until it is ready to serve traffic.
     #[serde(default, rename = "appStartTimeout")]
-    pub app_start_timeout: Option<String>,
+    pub app_start_timeout: ::core::option::Option<String>,
     /// Interval between health checks.
     #[serde(default, rename = "checkInterval")]
-    pub check_interval: Option<String>,
+    pub check_interval: ::core::option::Option<String>,
     /// Number of consecutive failed checks required before removing traffic.
     #[serde(default, rename = "failureThreshold")]
-    pub failure_threshold: Option<i64>,
+    pub failure_threshold: ::core::option::Option<i64>,
     /// Host header to send when performing a HTTP Readiness check. Example: "myapp.appspot.com"
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// The request path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Number of consecutive successful checks required before receiving traffic.
     #[serde(default, rename = "successThreshold")]
-    pub success_threshold: Option<i64>,
+    pub success_threshold: ::core::option::Option<i64>,
     /// Time before the check is considered failed.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
 }
 
 /// Containers transition between and within states based on reasons sent from various systems. CCFE will provide the CLH with reasons for the current state per system.The current systems that CCFE supports are: Service Management (Inception) Data Governance (Wipeout) Abuse (Ares) Billing (Internal Cloud Billing API) Service Activation (Service Controller)
@@ -1021,19 +1026,19 @@ pub struct ReadinessCheck {
 pub struct Reasons {
     /// TODO: enum values: ["ABUSE_UNKNOWN_REASON", "ABUSE_CONTROL_PLANE_SYNC", "SUSPEND", "REINSTATE"]
     #[serde(default)]
-    pub abuse: Option<String>,
+    pub abuse: ::core::option::Option<String>,
     /// TODO: enum values: ["BILLING_UNKNOWN_REASON", "BILLING_CONTROL_PLANE_SYNC", "PROBATION", "CLOSE", "OPEN"]
     #[serde(default)]
-    pub billing: Option<String>,
+    pub billing: ::core::option::Option<String>,
     /// TODO: enum values: ["DATA_GOVERNANCE_UNKNOWN_REASON", "DATA_GOVERNANCE_CONTROL_PLANE_SYNC", "HIDE", "UNHIDE", "PURGE"]
     #[serde(default, rename = "dataGovernance")]
-    pub data_governance: Option<String>,
+    pub data_governance: ::core::option::Option<String>,
     /// Consumer Container denotes if the service is active within a project or not. This information could be used to clean up resources in case service in DISABLED_FULL i.e. Service is inactive &gt; 30 days. // TODO: enum values: ["SERVICE_ACTIVATION_STATUS_UNSPECIFIED", "SERVICE_ACTIVATION_ENABLED", "SERVICE_ACTIVATION_DISABLED", "SERVICE_ACTIVATION_DISABLED_FULL", "SERVICE_ACTIVATION_UNKNOWN_REASON"]
     #[serde(default, rename = "serviceActivation")]
-    pub service_activation: Option<String>,
+    pub service_activation: ::core::option::Option<String>,
     /// TODO: enum values: ["SERVICE_MANAGEMENT_UNKNOWN_REASON", "SERVICE_MANAGEMENT_CONTROL_PLANE_SYNC", "ACTIVATION", "PREPARE_DEACTIVATION", "ABORT_DEACTIVATION", "COMMIT_DEACTIVATION"]
     #[serde(default, rename = "serviceManagement")]
-    pub service_management: Option<String>,
+    pub service_management: ::core::option::Option<String>,
 }
 
 /// Target scaling by request utilization. Only applicable in the App Engine flexible environment.
@@ -1041,10 +1046,10 @@ pub struct Reasons {
 pub struct RequestUtilization {
     /// Target number of concurrent requests.
     #[serde(default, rename = "targetConcurrentRequests")]
-    pub target_concurrent_requests: Option<i32>,
+    pub target_concurrent_requests: ::core::option::Option<i32>,
     /// Target requests per second.
     #[serde(default, rename = "targetRequestCountPerSecond")]
-    pub target_request_count_per_second: Option<i32>,
+    pub target_request_count_per_second: ::core::option::Option<i32>,
 }
 
 /// The request that is passed to CLH during per-resource events. The request will be sent with update semantics in all cases except for data governance purge events. These events will be sent with delete semantics and the CLH is expected to delete the resource receiving this event.
@@ -1052,13 +1057,13 @@ pub struct RequestUtilization {
 pub struct ResourceEvent {
     /// The unique ID for this per-resource event. CLHs can use this value to dedup repeated calls. required
     #[serde(default, rename = "eventId")]
-    pub event_id: Option<String>,
+    pub event_id: ::core::option::Option<String>,
     /// The name of the resource for which this event is. required
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The state of the project that led to this event.
     #[serde(default)]
-    pub state: Option<ContainerState>,
+    pub state: ::core::option::Option<::std::boxed::Box<ContainerState>>,
 }
 
 /// A DNS resource record.
@@ -1066,13 +1071,13 @@ pub struct ResourceEvent {
 pub struct ResourceRecord {
     /// Relative name of the object affected by this record. Only applicable for CNAME records. Example: ''www''.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Data for this record. Values vary by record type, as defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1).
     #[serde(default)]
-    pub rrdata: Option<String>,
+    pub rrdata: ::core::option::Option<String>,
     /// Resource record type. Example: AAAA. // TODO: enum values: ["RECORD_TYPE_UNSPECIFIED", "A", "AAAA", "CNAME"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Machine resources for a version.
@@ -1080,19 +1085,19 @@ pub struct ResourceRecord {
 pub struct Resources {
     /// Number of CPU cores needed.
     #[serde(default)]
-    pub cpu: Option<f64>,
+    pub cpu: ::core::option::Option<f64>,
     /// Disk size (GB) needed.
     #[serde(default, rename = "diskGb")]
-    pub disk_gb: Option<f64>,
+    pub disk_gb: ::core::option::Option<f64>,
     /// The name of the encryption key that is stored in Google Cloud KMS. Only should be used by Cloud Composer to encrypt the vm disk
     #[serde(default, rename = "kmsKeyReference")]
-    pub kms_key_reference: Option<String>,
+    pub kms_key_reference: ::core::option::Option<String>,
     /// Memory (GB) needed.
     #[serde(default, rename = "memoryGb")]
-    pub memory_gb: Option<f64>,
+    pub memory_gb: ::core::option::Option<f64>,
     /// User specified volumes.
     #[serde(default)]
-    pub volumes: Option<Vec<Volume>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Volume>>>,
 }
 
 /// Runtime versions for App Engine.
@@ -1100,31 +1105,31 @@ pub struct Resources {
 pub struct Runtime {
     /// Date when Runtime is decommissioned.
     #[serde(default, rename = "decommissionedDate")]
-    pub decommissioned_date: Option<Date>,
+    pub decommissioned_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Date when Runtime is deprecated.
     #[serde(default, rename = "deprecationDate")]
-    pub deprecation_date: Option<Date>,
+    pub deprecation_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// User-friendly display name, e.g. ''Node.js 12'', etc.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Date when Runtime is end of support.
     #[serde(default, rename = "endOfSupportDate")]
-    pub end_of_support_date: Option<Date>,
+    pub end_of_support_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The environment of the runtime. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "STANDARD", "FLEXIBLE"]
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// The name of the runtime, e.g., ''go113'', ''nodejs12'', etc.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The stage of life this runtime is in, e.g., BETA, GA, etc. // TODO: enum values: ["RUNTIME_STAGE_UNSPECIFIED", "DEVELOPMENT", "ALPHA", "BETA", "GA", "DEPRECATED", "DECOMMISSIONED", "END_OF_SUPPORT"]
     #[serde(default)]
-    pub stage: Option<String>,
+    pub stage: ::core::option::Option<String>,
     /// Supported operating systems for the runtime, e.g., ''ubuntu22'', etc.
     #[serde(default, rename = "supportedOperatingSystems")]
-    pub supported_operating_systems: Option<Vec<String>>,
+    pub supported_operating_systems: ::core::option::Option<::std::vec::Vec<String>>,
     /// Warning messages, e.g., a deprecation warning.
     #[serde(default)]
-    pub warnings: Option<Vec<String>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Executes a script to handle the request that matches the URL pattern.
@@ -1132,7 +1137,7 @@ pub struct Runtime {
 pub struct ScriptHandler {
     /// Path to the script from the application root directory.
     #[serde(default, rename = "scriptPath")]
-    pub script_path: Option<String>,
+    pub script_path: ::core::option::Option<String>,
 }
 
 /// A Service resource is a logical component of an application that can share state and communicate in a secure fashion with other services. For example, an application that handles customer requests might include separate services to handle tasks such as backend data analysis or API requests from mobile devices. Each service has a collection of versions that define a specific set of code used to implement the functionality of that service.
@@ -1140,22 +1145,22 @@ pub struct ScriptHandler {
 pub struct Service {
     /// Additional Google Generated Customer Metadata, this field won''t be provided by default and can be requested by setting the IncludeExtraData field in GetServiceRequest
     #[serde(default, rename = "generatedCustomerMetadata")]
-    pub generated_customer_metadata: Option<serde_json::Value>,
+    pub generated_customer_metadata: ::core::option::Option<serde_json::Value>,
     /// Output only. Relative name of the service within the application. Example: default.@OutputOnly
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// A set of labels to apply to this service. Labels are key/value pairs that describe the service and all resources that belong to it (e.g., versions). The labels can be used to search and group resources, and are propagated to the usage and billing reports, enabling fine-grain analysis of costs. An example of using labels is to tag resources belonging to different environments (e.g., "env=prod", "env=qa"). Label keys and values can be no longer than 63 characters and can only contain lowercase letters, numeric characters, underscores, dashes, and international characters. Label keys must start with a lowercase letter or an international character. Each service can have at most 32 labels.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Full path to the Service resource in the API. Example: apps/myapp/services/default.@OutputOnly
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Ingress settings for this service. Will apply to all versions.
     #[serde(default, rename = "networkSettings")]
-    pub network_settings: Option<NetworkSettings>,
+    pub network_settings: ::core::option::Option<::std::boxed::Box<NetworkSettings>>,
     /// Mapping that defines fractional HTTP traffic diversion to different versions within the service.
     #[serde(default)]
-    pub split: Option<TrafficSplit>,
+    pub split: ::core::option::Option<::std::boxed::Box<TrafficSplit>>,
 }
 
 /// SSL configuration for a DomainMapping resource.
@@ -1163,13 +1168,13 @@ pub struct Service {
 pub struct SslSettings {
     /// ID of the AuthorizedCertificate resource configuring SSL for the application. Clearing this field will remove SSL support.By default, a managed certificate is automatically created for every domain mapping. To omit SSL support or to configure SSL manually, specify SslManagementType.MANUAL on a CREATE or UPDATE request. You must be authorized to administer the AuthorizedCertificate resource to manually map it to a DomainMapping resource. Example: 12345.
     #[serde(default, rename = "certificateId")]
-    pub certificate_id: Option<String>,
+    pub certificate_id: ::core::option::Option<String>,
     /// Output only. ID of the managed AuthorizedCertificate resource currently being provisioned, if applicable. Until the new managed certificate has been successfully provisioned, the previous SSL state will be preserved. Once the provisioning process completes, the certificate_id field will reflect the new managed certificate and this field will be left empty. To remove SSL support while there is still a pending managed certificate, clear the certificate_id field with an UpdateDomainMappingRequest.@OutputOnly
     #[serde(default, rename = "pendingManagedCertificateId")]
-    pub pending_managed_certificate_id: Option<String>,
+    pub pending_managed_certificate_id: ::core::option::Option<String>,
     /// SSL management type for this domain. If AUTOMATIC, a managed certificate is automatically provisioned. If MANUAL, certificate_id must be manually specified in order to configure SSL for this domain. // TODO: enum values: ["SSL_MANAGEMENT_TYPE_UNSPECIFIED", "AUTOMATIC", "MANUAL"]
     #[serde(default, rename = "sslManagementType")]
-    pub ssl_management_type: Option<String>,
+    pub ssl_management_type: ::core::option::Option<String>,
 }
 
 /// Scheduler settings for standard environment.
@@ -1177,16 +1182,16 @@ pub struct SslSettings {
 pub struct StandardSchedulerSettings {
     /// Maximum number of instances to run for this version. Set to 2147483647 to disable max_instances configuration.
     #[serde(default, rename = "maxInstances")]
-    pub max_instances: Option<i32>,
+    pub max_instances: ::core::option::Option<i32>,
     /// Minimum number of instances to run for this version. Set to zero to disable min_instances configuration.
     #[serde(default, rename = "minInstances")]
-    pub min_instances: Option<i32>,
+    pub min_instances: ::core::option::Option<i32>,
     /// Target CPU utilization ratio to maintain when scaling.
     #[serde(default, rename = "targetCpuUtilization")]
-    pub target_cpu_utilization: Option<f64>,
+    pub target_cpu_utilization: ::core::option::Option<f64>,
     /// Target throughput utilization ratio to maintain when scaling
     #[serde(default, rename = "targetThroughputUtilization")]
-    pub target_throughput_utilization: Option<f64>,
+    pub target_throughput_utilization: ::core::option::Option<f64>,
 }
 
 /// Files served directly to the user for a given URL, such as images, CSS stylesheets, or JavaScript source files. Static file handlers describe which files in the application directory are static files, and which URLs serve them.
@@ -1194,25 +1199,25 @@ pub struct StandardSchedulerSettings {
 pub struct StaticFilesHandler {
     /// Whether files should also be uploaded as code data. By default, files declared in static file handlers are uploaded as static data and are only served to end users; they cannot be read by the application. If enabled, uploads are charged against both your code and static data storage resource quotas.
     #[serde(default, rename = "applicationReadable")]
-    pub application_readable: Option<bool>,
+    pub application_readable: ::core::option::Option<bool>,
     /// Time a static file served by this handler should be cached by web proxies and browsers.
     #[serde(default)]
-    pub expiration: Option<String>,
+    pub expiration: ::core::option::Option<String>,
     /// HTTP headers to use for all responses from these URLs.
     #[serde(default, rename = "httpHeaders")]
-    pub http_headers: Option<serde_json::Value>,
+    pub http_headers: ::core::option::Option<serde_json::Value>,
     /// MIME type used to serve all files served by this handler.Defaults to file-specific MIME types, which are derived from each file''s filename extension.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Path to the static files matched by the URL pattern, from the application root directory. The path can refer to text matched in groupings in the URL pattern.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Whether this handler should match the request if the file referenced by the handler does not exist.
     #[serde(default, rename = "requireMatchingFile")]
-    pub require_matching_file: Option<bool>,
+    pub require_matching_file: ::core::option::Option<bool>,
     /// Regular expression that matches the file paths for all files that should be referenced by this handler.
     #[serde(default, rename = "uploadPathRegex")]
-    pub upload_path_regex: Option<String>,
+    pub upload_path_regex: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
@@ -1220,13 +1225,13 @@ pub struct StaticFilesHandler {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Traffic routing configuration for versions within a single service. Traffic splits define how traffic directed to the service is assigned to versions.
@@ -1234,10 +1239,10 @@ pub struct Status {
 pub struct TrafficSplit {
     /// Mapping from version IDs within the service to fractional (0.000, 1] allocations of traffic for that version. Each version can be specified only once, but some versions in the service may not have any traffic allocation. Services that have traffic allocated cannot be deleted until either the service is deleted or their traffic allocation is removed. Allocations must sum to 1. Up to two decimal place precision is supported for IP-based splits and up to three decimal places is supported for cookie-based splits.
     #[serde(default)]
-    pub allocations: Option<serde_json::Value>,
+    pub allocations: ::core::option::Option<serde_json::Value>,
     /// Mechanism used to determine which version a request is sent to. The traffic selection algorithm will be stable for either type until allocations are changed. // TODO: enum values: ["UNSPECIFIED", "COOKIE", "IP", "RANDOM"]
     #[serde(default, rename = "shardBy")]
-    pub shard_by: Option<String>,
+    pub shard_by: ::core::option::Option<String>,
 }
 
 /// Rules to match an HTTP request and dispatch that request to a service.
@@ -1245,13 +1250,13 @@ pub struct TrafficSplit {
 pub struct UrlDispatchRule {
     /// Domain name to match against. The wildcard "*" is supported if specified before a period: "*.".Defaults to matching all domains: "*".
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Pathname within the host. Must start with a "/". A single "*" can be included at the end of the path.The sum of the lengths of the domain and path may not exceed 100 characters.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Resource ID of a service in this application that should serve the matched request. The service must already exist. Example: default.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// URL pattern and description of how the URL should be handled. App Engine can handle URLs by executing application code or by serving static files uploaded with the version, such as images, CSS, or JavaScript.
@@ -1259,28 +1264,28 @@ pub struct UrlDispatchRule {
 pub struct UrlMap {
     /// Uses API Endpoints to handle requests.
     #[serde(default, rename = "apiEndpoint")]
-    pub api_endpoint: Option<ApiEndpointHandler>,
+    pub api_endpoint: ::core::option::Option<::std::boxed::Box<ApiEndpointHandler>>,
     /// Action to take when users access resources that require authentication. Defaults to redirect. // TODO: enum values: ["AUTH_FAIL_ACTION_UNSPECIFIED", "AUTH_FAIL_ACTION_REDIRECT", "AUTH_FAIL_ACTION_UNAUTHORIZED"]
     #[serde(default, rename = "authFailAction")]
-    pub auth_fail_action: Option<String>,
+    pub auth_fail_action: ::core::option::Option<String>,
     /// Level of login required to access this resource. Not supported for Node.js in the App Engine standard environment. // TODO: enum values: ["LOGIN_UNSPECIFIED", "LOGIN_OPTIONAL", "LOGIN_ADMIN", "LOGIN_REQUIRED"]
     #[serde(default)]
-    pub login: Option<String>,
+    pub login: ::core::option::Option<String>,
     /// 30x code to use when performing redirects for the secure field. Defaults to 302. // TODO: enum values: ["REDIRECT_HTTP_RESPONSE_CODE_UNSPECIFIED", "REDIRECT_HTTP_RESPONSE_CODE_301", "REDIRECT_HTTP_RESPONSE_CODE_302", "REDIRECT_HTTP_RESPONSE_CODE_303", "REDIRECT_HTTP_RESPONSE_CODE_307"]
     #[serde(default, rename = "redirectHttpResponseCode")]
-    pub redirect_http_response_code: Option<String>,
+    pub redirect_http_response_code: ::core::option::Option<String>,
     /// Executes a script to handle the requests that match this URL pattern. Only the auto value is supported for Node.js in the App Engine standard environment, for example "script": "auto".
     #[serde(default)]
-    pub script: Option<ScriptHandler>,
+    pub script: ::core::option::Option<::std::boxed::Box<ScriptHandler>>,
     /// Security (HTTPS) enforcement for this URL. // TODO: enum values: ["SECURE_UNSPECIFIED", "SECURE_DEFAULT", "SECURE_NEVER", "SECURE_OPTIONAL", "SECURE_ALWAYS"]
     #[serde(default, rename = "securityLevel")]
-    pub security_level: Option<String>,
+    pub security_level: ::core::option::Option<String>,
     /// Returns the contents of a file, such as an image, as the response.
     #[serde(default, rename = "staticFiles")]
-    pub static_files: Option<StaticFilesHandler>,
+    pub static_files: ::core::option::Option<::std::boxed::Box<StaticFilesHandler>>,
     /// URL prefix. Uses regular expression syntax, which means regexp special characters must be escaped, but should not contain groupings. All URLs that begin with this prefix are handled by this handler, using the portion of the URL after the prefix as part of the file path.
     #[serde(default, rename = "urlRegex")]
-    pub url_regex: Option<String>,
+    pub url_regex: ::core::option::Option<String>,
 }
 
 /// A Version resource is a specific set of source code and configuration files that are deployed into a service.
@@ -1288,130 +1293,131 @@ pub struct UrlMap {
 pub struct Version {
     /// Serving configuration for Google Cloud Endpoints (https://cloud.google.com/endpoints).Only returned in GET requests if view=FULL is set.
     #[serde(default, rename = "apiConfig")]
-    pub api_config: Option<ApiConfigHandler>,
+    pub api_config: ::core::option::Option<::std::boxed::Box<ApiConfigHandler>>,
     /// Allows App Engine second generation runtimes to access the legacy bundled services.
     #[serde(default, rename = "appEngineApis")]
-    pub app_engine_apis: Option<bool>,
+    pub app_engine_apis: ::core::option::Option<bool>,
     /// Automatic scaling is based on request rate, response latencies, and other application metrics. Instances are dynamically created and destroyed as needed in order to handle traffic.
     #[serde(default, rename = "automaticScaling")]
-    pub automatic_scaling: Option<AutomaticScaling>,
+    pub automatic_scaling: ::core::option::Option<::std::boxed::Box<AutomaticScaling>>,
     /// A service with basic scaling will create an instance when the application receives a request. The instance will be turned down when the app becomes idle. Basic scaling is ideal for work that is intermittent or driven by user activity.
     #[serde(default, rename = "basicScaling")]
-    pub basic_scaling: Option<BasicScaling>,
+    pub basic_scaling: ::core::option::Option<::std::boxed::Box<BasicScaling>>,
     /// Metadata settings that are supplied to this version to enable beta runtime features.
     #[serde(default, rename = "betaSettings")]
-    pub beta_settings: Option<serde_json::Value>,
+    pub beta_settings: ::core::option::Option<serde_json::Value>,
     /// Environment variables available to the build environment.Only returned in GET requests if view=FULL is set.
     #[serde(default, rename = "buildEnvVariables")]
-    pub build_env_variables: Option<serde_json::Value>,
+    pub build_env_variables: ::core::option::Option<serde_json::Value>,
     /// Time that this version was created.@OutputOnly
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Email address of the user who created this version.@OutputOnly
     #[serde(default, rename = "createdBy")]
-    pub created_by: Option<String>,
+    pub created_by: ::core::option::Option<String>,
     /// Duration that static files should be cached by web proxies and browsers. Only applicable if the corresponding StaticFilesHandler (https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions#StaticFilesHandler) does not specify its own expiration time.Only returned in GET requests if view=FULL is set.
     #[serde(default, rename = "defaultExpiration")]
-    pub default_expiration: Option<String>,
+    pub default_expiration: ::core::option::Option<String>,
     /// Code and application artifacts that make up this version.Only returned in GET requests if view=FULL is set.
     #[serde(default)]
-    pub deployment: Option<Deployment>,
+    pub deployment: ::core::option::Option<::std::boxed::Box<Deployment>>,
     /// Output only. Total size in bytes of all the files that are included in this version and currently hosted on the App Engine disk.@OutputOnly
     #[serde(default, rename = "diskUsageBytes")]
-    pub disk_usage_bytes: Option<String>,
+    pub disk_usage_bytes: ::core::option::Option<String>,
     /// Cloud Endpoints configuration.If endpoints_api_service is set, the Cloud Endpoints Extensible Service Proxy will be provided to serve the API implemented by the app.
     #[serde(default, rename = "endpointsApiService")]
-    pub endpoints_api_service: Option<EndpointsApiService>,
+    pub endpoints_api_service: ::core::option::Option<::std::boxed::Box<EndpointsApiService>>,
     /// The entrypoint for the application.
     #[serde(default)]
-    pub entrypoint: Option<Entrypoint>,
+    pub entrypoint: ::core::option::Option<::std::boxed::Box<Entrypoint>>,
     /// App Engine execution environment for this version.Defaults to standard.
     #[serde(default)]
-    pub env: Option<String>,
+    pub env: ::core::option::Option<String>,
     /// Environment variables available to the application.Only returned in GET requests if view=FULL is set.
     #[serde(default, rename = "envVariables")]
-    pub env_variables: Option<serde_json::Value>,
+    pub env_variables: ::core::option::Option<serde_json::Value>,
     /// Custom static error pages. Limited to 10KB per page.Only returned in GET requests if view=FULL is set.
     #[serde(default, rename = "errorHandlers")]
-    pub error_handlers: Option<Vec<ErrorHandler>>,
+    pub error_handlers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ErrorHandler>>>,
     /// Settings for App Engine flexible runtimes.
     #[serde(default, rename = "flexibleRuntimeSettings")]
-    pub flexible_runtime_settings: Option<FlexibleRuntimeSettings>,
+    pub flexible_runtime_settings:
+        ::core::option::Option<::std::boxed::Box<FlexibleRuntimeSettings>>,
     /// Additional Google Generated Customer Metadata, this field won''t be provided by default and can be requested by setting the IncludeExtraData field in GetVersionRequest
     #[serde(default, rename = "generatedCustomerMetadata")]
-    pub generated_customer_metadata: Option<serde_json::Value>,
+    pub generated_customer_metadata: ::core::option::Option<serde_json::Value>,
     /// An ordered list of URL-matching patterns that should be applied to incoming requests. The first matching URL handles the request and other request handlers are not attempted.Only returned in GET requests if view=FULL is set.
     #[serde(default)]
-    pub handlers: Option<Vec<UrlMap>>,
+    pub handlers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UrlMap>>>,
     /// Configures health checking for instances. Unhealthy instances are stopped and replaced with new instances. Only applicable in the App Engine flexible environment.
     #[serde(default, rename = "healthCheck")]
-    pub health_check: Option<HealthCheck>,
+    pub health_check: ::core::option::Option<::std::boxed::Box<HealthCheck>>,
     /// Relative name of the version within the service. Example: v1. Version names can contain only lowercase letters, numbers, or hyphens. Reserved names: "default", "latest", and any name with the prefix "ah-".
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Before an application can receive email or XMPP messages, the application must be configured to enable the service.
     #[serde(default, rename = "inboundServices")]
-    pub inbound_services: Option<Vec<String>>,
+    pub inbound_services: ::core::option::Option<::std::vec::Vec<String>>,
     /// Instance class that is used to run this version. Valid values are: AutomaticScaling: F1, F2, F4, F4_1G ManualScaling or BasicScaling: B1, B2, B4, B8, B4_1GDefaults to F1 for AutomaticScaling and B1 for ManualScaling or BasicScaling.
     #[serde(default, rename = "instanceClass")]
-    pub instance_class: Option<String>,
+    pub instance_class: ::core::option::Option<String>,
     /// Configuration for third-party Python runtime libraries that are required by the application.Only returned in GET requests if view=FULL is set.
     #[serde(default)]
-    pub libraries: Option<Vec<Library>>,
+    pub libraries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Library>>>,
     /// Configures liveness health checking for instances. Unhealthy instances are stopped and replaced with new instances
     #[serde(default, rename = "livenessCheck")]
-    pub liveness_check: Option<LivenessCheck>,
+    pub liveness_check: ::core::option::Option<::std::boxed::Box<LivenessCheck>>,
     /// A service with manual scaling runs continuously, allowing you to perform complex initialization and rely on the state of its memory over time. Manually scaled versions are sometimes referred to as "backends".
     #[serde(default, rename = "manualScaling")]
-    pub manual_scaling: Option<ManualScaling>,
+    pub manual_scaling: ::core::option::Option<::std::boxed::Box<ManualScaling>>,
     /// Output only. Full path to the Version resource in the API. Example: apps/myapp/services/default/versions/v1.@OutputOnly
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Extra network settings. Only applicable in the App Engine flexible environment.
     #[serde(default)]
-    pub network: Option<Network>,
+    pub network: ::core::option::Option<::std::boxed::Box<Network>>,
     /// Files that match this pattern will not be built into this version. Only applicable for Go runtimes.Only returned in GET requests if view=FULL is set.
     #[serde(default, rename = "nobuildFilesRegex")]
-    pub nobuild_files_regex: Option<String>,
+    pub nobuild_files_regex: ::core::option::Option<String>,
     /// Configures readiness health checking for instances. Unhealthy instances are not put into the backend traffic rotation.
     #[serde(default, rename = "readinessCheck")]
-    pub readiness_check: Option<ReadinessCheck>,
+    pub readiness_check: ::core::option::Option<::std::boxed::Box<ReadinessCheck>>,
     /// Machine resources for this version. Only applicable in the App Engine flexible environment.
     #[serde(default)]
-    pub resources: Option<Resources>,
+    pub resources: ::core::option::Option<::std::boxed::Box<Resources>>,
     /// Desired runtime. Example: python27.
     #[serde(default)]
-    pub runtime: Option<String>,
+    pub runtime: ::core::option::Option<String>,
     /// The version of the API in the given runtime environment. Please see the app.yaml reference for valid values at https://cloud.google.com/appengine/docs/standard//config/appref
     #[serde(default, rename = "runtimeApiVersion")]
-    pub runtime_api_version: Option<String>,
+    pub runtime_api_version: ::core::option::Option<String>,
     /// The channel of the runtime to use. Only available for some runtimes. Defaults to the default channel.
     #[serde(default, rename = "runtimeChannel")]
-    pub runtime_channel: Option<String>,
+    pub runtime_channel: ::core::option::Option<String>,
     /// The path or name of the app''s main executable.
     #[serde(default, rename = "runtimeMainExecutablePath")]
-    pub runtime_main_executable_path: Option<String>,
+    pub runtime_main_executable_path: ::core::option::Option<String>,
     /// The identity that the deployed version will run as. Admin API will use the App Engine Appspot service account as default if this field is neither provided in app.yaml file nor through CLI flag.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Current serving status of this version. Only the versions with a SERVING status create instances and can be billed.SERVING_STATUS_UNSPECIFIED is an invalid value. Defaults to SERVING. // TODO: enum values: ["SERVING_STATUS_UNSPECIFIED", "SERVING", "STOPPED"]
     #[serde(default, rename = "servingStatus")]
-    pub serving_status: Option<String>,
+    pub serving_status: ::core::option::Option<String>,
     /// Whether multiple requests can be dispatched to this version at once.
     #[serde(default)]
-    pub threadsafe: Option<bool>,
+    pub threadsafe: ::core::option::Option<bool>,
     /// Output only. Serving URL for this version. Example: "https://myversion-dot-myservice-dot-myapp.appspot.com"@OutputOnly
     #[serde(default, rename = "versionUrl")]
-    pub version_url: Option<String>,
+    pub version_url: ::core::option::Option<String>,
     /// Whether to deploy this version in a container on a virtual machine.
     #[serde(default)]
-    pub vm: Option<bool>,
+    pub vm: ::core::option::Option<bool>,
     /// Enables VPC connectivity for standard apps.
     #[serde(default, rename = "vpcAccessConnector")]
-    pub vpc_access_connector: Option<VpcAccessConnector>,
+    pub vpc_access_connector: ::core::option::Option<::std::boxed::Box<VpcAccessConnector>>,
     /// The Google Compute Engine zones that are supported by this version in the App Engine flexible environment. Deprecated.
     #[serde(default)]
-    pub zones: Option<Vec<String>>,
+    pub zones: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Volumes mounted within the app container. Only applicable in the App Engine flexible environment.
@@ -1419,13 +1425,13 @@ pub struct Version {
 pub struct Volume {
     /// Unique name for the volume.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Volume size in gigabytes.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<f64>,
+    pub size_gb: ::core::option::Option<f64>,
     /// Underlying volume type, e.g. ''tmpfs''.
     #[serde(default, rename = "volumeType")]
-    pub volume_type: Option<String>,
+    pub volume_type: ::core::option::Option<String>,
 }
 
 /// VPC access connector specification.
@@ -1433,10 +1439,10 @@ pub struct Volume {
 pub struct VpcAccessConnector {
     /// The egress setting for the connector, controlling what traffic is diverted through it. // TODO: enum values: ["EGRESS_SETTING_UNSPECIFIED", "ALL_TRAFFIC", "PRIVATE_IP_RANGES"]
     #[serde(default, rename = "egressSetting")]
-    pub egress_setting: Option<String>,
+    pub egress_setting: ::core::option::Option<String>,
     /// Full Serverless VPC Access Connector name e.g. projects/my-project/locations/us-central1/connectors/c1.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The zip file information for a zip deployment.
@@ -1444,8 +1450,8 @@ pub struct VpcAccessConnector {
 pub struct ZipInfo {
     /// An estimate of the number of files in a zip for a zip deployment. If set, must be greater than or equal to the actual number of files. Used for optimizing performance; if not provided, deployment may be slow.
     #[serde(default, rename = "filesCount")]
-    pub files_count: Option<i32>,
+    pub files_count: ::core::option::Option<i32>,
     /// URL of the zip file to deploy from. Must be a URL to a resource in Google Cloud Storage in the form ''http(s)://storage.googleapis.com//''.
     #[serde(default, rename = "sourceUrl")]
-    pub source_url: Option<String>,
+    pub source_url: ::core::option::Option<String>,
 }

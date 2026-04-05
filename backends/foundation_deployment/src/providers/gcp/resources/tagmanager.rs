@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents a Google Tag Manager Account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     /// The Account ID uniquely identifies the GTM Account.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Read-only Account feature set
     #[serde(default)]
-    pub features: Option<AccountFeatures>,
+    pub features: ::core::option::Option<::std::boxed::Box<AccountFeatures>>,
     /// The fingerprint of the GTM Account as computed at storage time. This value is recomputed whenever the account is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Account display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// GTM Account''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Whether the account shares data anonymously with Google and others. This flag enables benchmarking by sharing your data in an anonymous form. Google will remove all identifiable information about your website, combine the data with hundreds of other anonymous sites and report aggregate trends in the benchmarking service.
     #[serde(default, rename = "shareData")]
-    pub share_data: Option<bool>,
+    pub share_data: ::core::option::Option<bool>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
 }
 
 /// Defines the Google Tag Manager Account access permissions.
@@ -44,7 +44,7 @@ pub struct Account {
 pub struct AccountAccess {
     /// Whether the user has no access, user access, or admin access to an account. // TODO: enum values: ["accountPermissionUnspecified", "noAccess", "user", "admin"]
     #[serde(default)]
-    pub permission: Option<String>,
+    pub permission: ::core::option::Option<String>,
 }
 
 /// AccountFeatures resource type.
@@ -52,10 +52,10 @@ pub struct AccountAccess {
 pub struct AccountFeatures {
     /// Whether this Account supports multiple Containers.
     #[serde(default, rename = "supportMultipleContainers")]
-    pub support_multiple_containers: Option<bool>,
+    pub support_multiple_containers: ::core::option::Option<bool>,
     /// Whether this Account supports user permissions managed by GTM.
     #[serde(default, rename = "supportUserPermissions")]
-    pub support_user_permissions: Option<bool>,
+    pub support_user_permissions: ::core::option::Option<bool>,
 }
 
 /// Built-in variables are a special category of variables that are pre-created and non-customizable. They provide common functionality like accessing properties of the gtm data layer, monitoring clicks, or accessing elements of a page URL.
@@ -63,22 +63,22 @@ pub struct AccountFeatures {
 pub struct BuiltInVariable {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// Name of the built-in variable to be used to refer to the built-in variable.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// GTM BuiltInVariable''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Type of built-in variable. // TODO: enum values: ["builtInVariableTypeUnspecified", "pageUrl", "pageHostname", "pagePath", "referrer", "event", "clickElement", "clickClasses", "clickId", "clickTarget", "clickUrl", "clickText", "firstPartyServingUrl", "formElement", "formClasses", "formId", "formTarget", "formUrl", "formText", "errorMessage", "errorUrl", "errorLine", "newHistoryUrl", "oldHistoryUrl", "newHistoryFragment", "oldHistoryFragment", "newHistoryState", "oldHistoryState", "historySource", "containerVersion", "debugMode", "randomNumber", "containerId", "appId", "appName", "appVersionCode", "appVersionName", "language", "osVersion", "platform", "sdkVersion", "deviceName", "resolution", "advertiserId", "advertisingTrackingEnabled", "htmlId", "environmentName", "ampBrowserLanguage", "ampCanonicalPath", "ampCanonicalUrl", "ampCanonicalHost", "ampReferrer", "ampTitle", "ampClientId", "ampClientTimezone", "ampClientTimestamp", "ampClientScreenWidth", "ampClientScreenHeight", "ampClientScrollX", "ampClientScrollY", "ampClientMaxScrollX", "ampClientMaxScrollY", "ampTotalEngagedTime", "ampPageViewId", "ampPageLoadTime", "ampPageDownloadTime", "ampGtmEvent", "eventName", "firebaseEventParameterCampaign", "firebaseEventParameterCampaignAclid", "firebaseEventParameterCampaignAnid", "firebaseEventParameterCampaignClickTimestamp", "firebaseEventParameterCampaignContent", "firebaseEventParameterCampaignCp1", "firebaseEventParameterCampaignGclid", "firebaseEventParameterCampaignSource", "firebaseEventParameterCampaignTerm", "firebaseEventParameterCurrency", "firebaseEventParameterDynamicLinkAcceptTime", "firebaseEventParameterDynamicLinkLinkid", "firebaseEventParameterNotificationMessageDeviceTime", "firebaseEventParameterNotificationMessageId", "firebaseEventParameterNotificationMessageName", "firebaseEventParameterNotificationMessageTime", "firebaseEventParameterNotificationTopic", "firebaseEventParameterPreviousAppVersion", "firebaseEventParameterPreviousOsVersion", "firebaseEventParameterPrice", "firebaseEventParameterProductId", "firebaseEventParameterQuantity", "firebaseEventParameterValue", "videoProvider", "videoUrl", "videoTitle", "videoDuration", "videoPercent", "videoVisible", "videoStatus", "videoCurrentTime", "scrollDepthThreshold", "scrollDepthUnits", "scrollDepthDirection", "elementVisibilityRatio", "elementVisibilityTime", "elementVisibilityFirstTime", "elementVisibilityRecentTime", "requestPath", "requestMethod", "clientName", "queryString", "serverPageLocationUrl", "serverPageLocationPath", "serverPageLocationHostname", "visitorRegion", "analyticsClientId", "analyticsSessionId", "analyticsSessionNumber"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// BulkUpdateWorkspaceResponse resource type.
@@ -86,7 +86,7 @@ pub struct BuiltInVariable {
 pub struct BulkUpdateWorkspaceResponse {
     /// The entities that were added or updated during the bulk-update. Does not include entities that were deleted or updated by the system.
     #[serde(default)]
-    pub changes: Option<Vec<Entity>>,
+    pub changes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entity>>>,
 }
 
 /// Client resource type.
@@ -94,43 +94,43 @@ pub struct BulkUpdateWorkspaceResponse {
 pub struct Client {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The Client ID uniquely identifies the GTM client.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The fingerprint of the GTM Client as computed at storage time. This value is recomputed whenever the client is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Client display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User notes on how to apply this tag in the container.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// The client''s parameters.
     #[serde(default)]
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
-    pub parent_folder_id: Option<String>,
+    pub parent_folder_id: ::core::option::Option<String>,
     /// GTM client''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Priority determines relative firing order.
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// Client type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// Represents a predicate.
@@ -138,10 +138,10 @@ pub struct Client {
 pub struct Condition {
     /// A list of named parameters (key/value), depending on the condition''s type. Notes: - For binary operators, include parameters named arg0 and arg1 for specifying the left and right operands, respectively. - At this time, the left operand (arg0) must be a reference to a variable. - For case-insensitive Regex matching, include a boolean parameter named ignore_case that is set to true. If not specified or set to any other value, the matching will be case sensitive. - To negate an operator, include a boolean parameter named negate boolean parameter that is set to true.
     #[serde(default)]
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// The type of operator for this condition. // TODO: enum values: ["conditionTypeUnspecified", "equals", "contains", "startsWith", "endsWith", "matchRegex", "greater", "greaterOrEquals", "less", "lessOrEquals", "cssSelector", "urlMatches"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Manager Container, which specifies the platform tags will run on, manages workspaces, and retains container versions.
@@ -149,43 +149,43 @@ pub struct Condition {
 pub struct Container {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The Container ID uniquely identifies the GTM Container.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// List of domain names associated with the Container.
     #[serde(default, rename = "domainName")]
-    pub domain_name: Option<Vec<String>>,
+    pub domain_name: ::core::option::Option<::std::vec::Vec<String>>,
     /// Read-only Container feature set.
     #[serde(default)]
-    pub features: Option<ContainerFeatures>,
+    pub features: ::core::option::Option<::std::boxed::Box<ContainerFeatures>>,
     /// The fingerprint of the GTM Container as computed at storage time. This value is recomputed whenever the account is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Container display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Container Notes.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// GTM Container''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Container Public ID.
     #[serde(default, rename = "publicId")]
-    pub public_id: Option<String>,
+    pub public_id: ::core::option::Option<String>,
     /// All Tag IDs that refer to this Container.
     #[serde(default, rename = "tagIds")]
-    pub tag_ids: Option<Vec<String>>,
+    pub tag_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// List of server-side container URLs for the Container. If multiple URLs are provided, all URL paths must match.
     #[serde(default, rename = "taggingServerUrls")]
-    pub tagging_server_urls: Option<Vec<String>>,
+    pub tagging_server_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of Usage Contexts for the Container. Valid values include: web, android, or ios.
     #[serde(default, rename = "usageContext")]
-    pub usage_context: Option<Vec<String>>,
+    pub usage_context: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Defines the Google Tag Manager Container access permissions.
@@ -193,10 +193,10 @@ pub struct Container {
 pub struct ContainerAccess {
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// List of Container permissions. // TODO: enum values: ["containerPermissionUnspecified", "noAccess", "read", "edit", "approve", "publish"]
     #[serde(default)]
-    pub permission: Option<String>,
+    pub permission: ::core::option::Option<String>,
 }
 
 /// ContainerFeatures resource type.
@@ -204,46 +204,46 @@ pub struct ContainerAccess {
 pub struct ContainerFeatures {
     /// Whether this Container supports built-in variables
     #[serde(default, rename = "supportBuiltInVariables")]
-    pub support_built_in_variables: Option<bool>,
+    pub support_built_in_variables: ::core::option::Option<bool>,
     /// Whether this Container supports clients.
     #[serde(default, rename = "supportClients")]
-    pub support_clients: Option<bool>,
+    pub support_clients: ::core::option::Option<bool>,
     /// Whether this Container supports environments.
     #[serde(default, rename = "supportEnvironments")]
-    pub support_environments: Option<bool>,
+    pub support_environments: ::core::option::Option<bool>,
     /// Whether this Container supports folders.
     #[serde(default, rename = "supportFolders")]
-    pub support_folders: Option<bool>,
+    pub support_folders: ::core::option::Option<bool>,
     /// Whether this Container supports Google tag config.
     #[serde(default, rename = "supportGtagConfigs")]
-    pub support_gtag_configs: Option<bool>,
+    pub support_gtag_configs: ::core::option::Option<bool>,
     /// Whether this Container supports tags.
     #[serde(default, rename = "supportTags")]
-    pub support_tags: Option<bool>,
+    pub support_tags: ::core::option::Option<bool>,
     /// Whether this Container supports templates.
     #[serde(default, rename = "supportTemplates")]
-    pub support_templates: Option<bool>,
+    pub support_templates: ::core::option::Option<bool>,
     /// Whether this Container supports transformations.
     #[serde(default, rename = "supportTransformations")]
-    pub support_transformations: Option<bool>,
+    pub support_transformations: ::core::option::Option<bool>,
     /// Whether this Container supports triggers.
     #[serde(default, rename = "supportTriggers")]
-    pub support_triggers: Option<bool>,
+    pub support_triggers: ::core::option::Option<bool>,
     /// Whether this Container supports user permissions managed by GTM.
     #[serde(default, rename = "supportUserPermissions")]
-    pub support_user_permissions: Option<bool>,
+    pub support_user_permissions: ::core::option::Option<bool>,
     /// Whether this Container supports variables.
     #[serde(default, rename = "supportVariables")]
-    pub support_variables: Option<bool>,
+    pub support_variables: ::core::option::Option<bool>,
     /// Whether this Container supports Container versions.
     #[serde(default, rename = "supportVersions")]
-    pub support_versions: Option<bool>,
+    pub support_versions: ::core::option::Option<bool>,
     /// Whether this Container supports workspaces.
     #[serde(default, rename = "supportWorkspaces")]
-    pub support_workspaces: Option<bool>,
+    pub support_workspaces: ::core::option::Option<bool>,
     /// Whether this Container supports zones.
     #[serde(default, rename = "supportZones")]
-    pub support_zones: Option<bool>,
+    pub support_zones: ::core::option::Option<bool>,
 }
 
 /// Represents a Google Tag Manager Container Version.
@@ -251,64 +251,65 @@ pub struct ContainerFeatures {
 pub struct ContainerVersion {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The built-in variables in the container that this version was taken from.
     #[serde(default, rename = "builtInVariable")]
-    pub built_in_variable: Option<Vec<BuiltInVariable>>,
+    pub built_in_variable:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BuiltInVariable>>>,
     /// The clients in the container that this version was taken from.
     #[serde(default)]
-    pub client: Option<Vec<Client>>,
+    pub client: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Client>>>,
     /// The container that this version was taken from.
     #[serde(default)]
-    pub container: Option<Container>,
+    pub container: ::core::option::Option<::std::boxed::Box<Container>>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The Container Version ID uniquely identifies the GTM Container Version.
     #[serde(default, rename = "containerVersionId")]
-    pub container_version_id: Option<String>,
+    pub container_version_id: ::core::option::Option<String>,
     /// The custom templates in the container that this version was taken from.
     #[serde(default, rename = "customTemplate")]
-    pub custom_template: Option<Vec<CustomTemplate>>,
+    pub custom_template: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomTemplate>>>,
     /// A value of true indicates this container version has been deleted.
     #[serde(default)]
-    pub deleted: Option<bool>,
+    pub deleted: ::core::option::Option<bool>,
     /// Container version description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The fingerprint of the GTM Container Version as computed at storage time. This value is recomputed whenever the container version is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// The folders in the container that this version was taken from.
     #[serde(default)]
-    pub folder: Option<Vec<Folder>>,
+    pub folder: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Folder>>>,
     /// The Google tag configs in the container that this version was taken from.
     #[serde(default, rename = "gtagConfig")]
-    pub gtag_config: Option<Vec<GtagConfig>>,
+    pub gtag_config: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GtagConfig>>>,
     /// Container version display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// GTM Container Version''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// The tags in the container that this version was taken from.
     #[serde(default)]
-    pub tag: Option<Vec<Tag>>,
+    pub tag: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// The transformations in the container that this version was taken from.
     #[serde(default)]
-    pub transformation: Option<Vec<Transformation>>,
+    pub transformation: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Transformation>>>,
     /// The triggers in the container that this version was taken from.
     #[serde(default)]
-    pub trigger: Option<Vec<Trigger>>,
+    pub trigger: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Trigger>>>,
     /// The variables in the container that this version was taken from.
     #[serde(default)]
-    pub variable: Option<Vec<Variable>>,
+    pub variable: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Variable>>>,
     /// The zones in the container that this version was taken from.
     #[serde(default)]
-    pub zone: Option<Vec<Zone>>,
+    pub zone: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Zone>>>,
 }
 
 /// Represents a Google Tag Manager Container Version Header.
@@ -316,46 +317,46 @@ pub struct ContainerVersion {
 pub struct ContainerVersionHeader {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The Container Version ID uniquely identifies the GTM Container Version.
     #[serde(default, rename = "containerVersionId")]
-    pub container_version_id: Option<String>,
+    pub container_version_id: ::core::option::Option<String>,
     /// A value of true indicates this container version has been deleted.
     #[serde(default)]
-    pub deleted: Option<bool>,
+    pub deleted: ::core::option::Option<bool>,
     /// Container version display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Number of clients in the container version.
     #[serde(default, rename = "numClients")]
-    pub num_clients: Option<String>,
+    pub num_clients: ::core::option::Option<String>,
     /// Number of custom templates in the container version.
     #[serde(default, rename = "numCustomTemplates")]
-    pub num_custom_templates: Option<String>,
+    pub num_custom_templates: ::core::option::Option<String>,
     /// Number of Google tag configs in the container version.
     #[serde(default, rename = "numGtagConfigs")]
-    pub num_gtag_configs: Option<String>,
+    pub num_gtag_configs: ::core::option::Option<String>,
     /// Number of tags in the container version.
     #[serde(default, rename = "numTags")]
-    pub num_tags: Option<String>,
+    pub num_tags: ::core::option::Option<String>,
     /// Number of transformations in the container version.
     #[serde(default, rename = "numTransformations")]
-    pub num_transformations: Option<String>,
+    pub num_transformations: ::core::option::Option<String>,
     /// Number of triggers in the container version.
     #[serde(default, rename = "numTriggers")]
-    pub num_triggers: Option<String>,
+    pub num_triggers: ::core::option::Option<String>,
     /// Number of variables in the container version.
     #[serde(default, rename = "numVariables")]
-    pub num_variables: Option<String>,
+    pub num_variables: ::core::option::Option<String>,
     /// Number of zones in the container version.
     #[serde(default, rename = "numZones")]
-    pub num_zones: Option<String>,
+    pub num_zones: ::core::option::Option<String>,
     /// GTM Container Version''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// CreateBuiltInVariableResponse resource type.
@@ -363,7 +364,8 @@ pub struct ContainerVersionHeader {
 pub struct CreateBuiltInVariableResponse {
     /// List of created built-in variables.
     #[serde(default, rename = "builtInVariable")]
-    pub built_in_variable: Option<Vec<BuiltInVariable>>,
+    pub built_in_variable:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BuiltInVariable>>>,
 }
 
 /// Options for new container versions.
@@ -371,10 +373,10 @@ pub struct CreateBuiltInVariableResponse {
 pub struct CreateContainerVersionRequestVersionOptions {
     /// The name of the container version to be created.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The notes of the container version to be created.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
 }
 
 /// Create container versions response.
@@ -382,16 +384,16 @@ pub struct CreateContainerVersionRequestVersionOptions {
 pub struct CreateContainerVersionResponse {
     /// Compiler errors or not.
     #[serde(default, rename = "compilerError")]
-    pub compiler_error: Option<bool>,
+    pub compiler_error: ::core::option::Option<bool>,
     /// The container version created.
     #[serde(default, rename = "containerVersion")]
-    pub container_version: Option<ContainerVersion>,
+    pub container_version: ::core::option::Option<::std::boxed::Box<ContainerVersion>>,
     /// Auto generated workspace path created as a result of version creation. This field should only be populated if the created version was not a quick preview.
     #[serde(default, rename = "newWorkspacePath")]
-    pub new_workspace_path: Option<String>,
+    pub new_workspace_path: ::core::option::Option<String>,
     /// Whether version creation failed when syncing the workspace to the latest container version.
     #[serde(default, rename = "syncStatus")]
-    pub sync_status: Option<SyncStatus>,
+    pub sync_status: ::core::option::Option<::std::boxed::Box<SyncStatus>>,
 }
 
 /// Represents a Google Tag Manager Custom Template''s contents.
@@ -399,34 +401,34 @@ pub struct CreateContainerVersionResponse {
 pub struct CustomTemplate {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The fingerprint of the GTM Custom Template as computed at storage time. This value is recomputed whenever the template is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// A reference to the Community Template Gallery entry.
     #[serde(default, rename = "galleryReference")]
-    pub gallery_reference: Option<GalleryReference>,
+    pub gallery_reference: ::core::option::Option<::std::boxed::Box<GalleryReference>>,
     /// Custom Template display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// GTM Custom Template''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// The custom template in text format.
     #[serde(default, rename = "templateData")]
-    pub template_data: Option<String>,
+    pub template_data: ::core::option::Option<String>,
     /// The Custom Template ID uniquely identifies the GTM custom template.
     #[serde(default, rename = "templateId")]
-    pub template_id: Option<String>,
+    pub template_id: ::core::option::Option<String>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Destination.
@@ -434,28 +436,28 @@ pub struct CustomTemplate {
 pub struct Destination {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// Destination ID.
     #[serde(default, rename = "destinationId")]
-    pub destination_id: Option<String>,
+    pub destination_id: ::core::option::Option<String>,
     /// The Destination link ID uniquely identifies the Destination.
     #[serde(default, rename = "destinationLinkId")]
-    pub destination_link_id: Option<String>,
+    pub destination_link_id: ::core::option::Option<String>,
     /// The fingerprint of the Google Tag Destination as computed at storage time. This value is recomputed whenever the destination is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Destination display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Destination''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI.
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
 }
 
 /// A workspace entity that may represent a tag, trigger, variable, or folder in addition to its status in the workspace.
@@ -463,37 +465,37 @@ pub struct Destination {
 pub struct Entity {
     /// The built in variable being represented by the entity.
     #[serde(default, rename = "builtInVariable")]
-    pub built_in_variable: Option<BuiltInVariable>,
+    pub built_in_variable: ::core::option::Option<::std::boxed::Box<BuiltInVariable>>,
     /// Represents how the entity has been changed in the workspace. // TODO: enum values: ["changeStatusUnspecified", "none", "added", "deleted", "updated"]
     #[serde(default, rename = "changeStatus")]
-    pub change_status: Option<String>,
+    pub change_status: ::core::option::Option<String>,
     /// The client being represented by the entity.
     #[serde(default)]
-    pub client: Option<Client>,
+    pub client: ::core::option::Option<::std::boxed::Box<Client>>,
     /// The custom template being represented by the entity.
     #[serde(default, rename = "customTemplate")]
-    pub custom_template: Option<CustomTemplate>,
+    pub custom_template: ::core::option::Option<::std::boxed::Box<CustomTemplate>>,
     /// The folder being represented by the entity.
     #[serde(default)]
-    pub folder: Option<Folder>,
+    pub folder: ::core::option::Option<::std::boxed::Box<Folder>>,
     /// The gtag config being represented by the entity.
     #[serde(default, rename = "gtagConfig")]
-    pub gtag_config: Option<GtagConfig>,
+    pub gtag_config: ::core::option::Option<::std::boxed::Box<GtagConfig>>,
     /// The tag being represented by the entity.
     #[serde(default)]
-    pub tag: Option<Tag>,
+    pub tag: ::core::option::Option<::std::boxed::Box<Tag>>,
     /// The transformation being represented by the entity.
     #[serde(default)]
-    pub transformation: Option<Transformation>,
+    pub transformation: ::core::option::Option<::std::boxed::Box<Transformation>>,
     /// The trigger being represented by the entity.
     #[serde(default)]
-    pub trigger: Option<Trigger>,
+    pub trigger: ::core::option::Option<::std::boxed::Box<Trigger>>,
     /// The variable being represented by the entity.
     #[serde(default)]
-    pub variable: Option<Variable>,
+    pub variable: ::core::option::Option<::std::boxed::Box<Variable>>,
     /// The zone being represented by the entity.
     #[serde(default)]
-    pub zone: Option<Zone>,
+    pub zone: ::core::option::Option<::std::boxed::Box<Zone>>,
 }
 
 /// Represents a Google Tag Manager Environment. Note that a user can create, delete and update environments of type USER, but can only update the enable_debug and url fields of environments of other types.
@@ -501,49 +503,49 @@ pub struct Entity {
 pub struct Environment {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The environment authorization code.
     #[serde(default, rename = "authorizationCode")]
-    pub authorization_code: Option<String>,
+    pub authorization_code: ::core::option::Option<String>,
     /// The last update time-stamp for the authorization code.
     #[serde(default, rename = "authorizationTimestamp")]
-    pub authorization_timestamp: Option<String>,
+    pub authorization_timestamp: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// Represents a link to a container version.
     #[serde(default, rename = "containerVersionId")]
-    pub container_version_id: Option<String>,
+    pub container_version_id: ::core::option::Option<String>,
     /// The environment description. Can be set or changed only on USER type environments.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Whether or not to enable debug by default for the environment.
     #[serde(default, rename = "enableDebug")]
-    pub enable_debug: Option<bool>,
+    pub enable_debug: ::core::option::Option<bool>,
     /// GTM Environment ID uniquely identifies the GTM Environment.
     #[serde(default, rename = "environmentId")]
-    pub environment_id: Option<String>,
+    pub environment_id: ::core::option::Option<String>,
     /// The fingerprint of the GTM environment as computed at storage time. This value is recomputed whenever the environment is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// The environment display name. Can be set or changed only on USER type environments.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// GTM Environment''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// The type of this environment. // TODO: enum values: ["user", "live", "latest", "workspace"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Default preview page url for the environment.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// Represents a link to a quick preview of a workspace.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Manager Folder.
@@ -551,31 +553,31 @@ pub struct Environment {
 pub struct Folder {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The fingerprint of the GTM Folder as computed at storage time. This value is recomputed whenever the folder is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// The Folder ID uniquely identifies the GTM Folder.
     #[serde(default, rename = "folderId")]
-    pub folder_id: Option<String>,
+    pub folder_id: ::core::option::Option<String>,
     /// Folder display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User notes on how to apply this folder in the container.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// GTM Folder''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Manager Folder''s contents.
@@ -583,16 +585,16 @@ pub struct Folder {
 pub struct FolderEntities {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of tags inside the folder.
     #[serde(default)]
-    pub tag: Option<Vec<Tag>>,
+    pub tag: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
     /// The list of triggers inside the folder.
     #[serde(default)]
-    pub trigger: Option<Vec<Trigger>>,
+    pub trigger: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Trigger>>>,
     /// The list of variables inside the folder.
     #[serde(default)]
-    pub variable: Option<Vec<Variable>>,
+    pub variable: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Variable>>>,
 }
 
 /// Represents the link between a custom template and an entry on the Community Template Gallery site.
@@ -600,28 +602,28 @@ pub struct FolderEntities {
 pub struct GalleryReference {
     /// ID for the gallery template that is generated once during first sync and travels with the template redirects.
     #[serde(default, rename = "galleryTemplateId")]
-    pub gallery_template_id: Option<String>,
+    pub gallery_template_id: ::core::option::Option<String>,
     /// The name of the host for the community gallery template.
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// If a user has manually edited the community gallery template.
     #[serde(default, rename = "isModified")]
-    pub is_modified: Option<bool>,
+    pub is_modified: ::core::option::Option<bool>,
     /// The name of the owner for the community gallery template.
     #[serde(default)]
-    pub owner: Option<String>,
+    pub owner: ::core::option::Option<String>,
     /// The name of the repository for the community gallery template.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
     /// The signature of the community gallery template as computed at import time. This value is recomputed whenever the template is updated from the gallery.
     #[serde(default)]
-    pub signature: Option<String>,
+    pub signature: ::core::option::Option<String>,
     /// The developer id of the community gallery template. This value is set whenever the template is created from the gallery.
     #[serde(default, rename = "templateDeveloperId")]
-    pub template_developer_id: Option<String>,
+    pub template_developer_id: ::core::option::Option<String>,
     /// The version of the community gallery template.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GetContainerSnippetResponse resource type.
@@ -629,10 +631,10 @@ pub struct GalleryReference {
 pub struct GetContainerSnippetResponse {
     /// Server container config param for manually provisioning a tagging server.
     #[serde(default, rename = "containerConfig")]
-    pub container_config: Option<String>,
+    pub container_config: ::core::option::Option<String>,
     /// Tagging snippet for a Container.
     #[serde(default)]
-    pub snippet: Option<String>,
+    pub snippet: ::core::option::Option<String>,
 }
 
 /// The changes that have occurred in the workspace since the base container version.
@@ -640,10 +642,10 @@ pub struct GetContainerSnippetResponse {
 pub struct GetWorkspaceStatusResponse {
     /// The merge conflict after sync.
     #[serde(default, rename = "mergeConflict")]
-    pub merge_conflict: Option<Vec<MergeConflict>>,
+    pub merge_conflict: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MergeConflict>>>,
     /// Entities that have been changed in the workspace.
     #[serde(default, rename = "workspaceChange")]
-    pub workspace_change: Option<Vec<Entity>>,
+    pub workspace_change: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entity>>>,
 }
 
 /// Represents a Google tag configuration.
@@ -651,31 +653,31 @@ pub struct GetWorkspaceStatusResponse {
 pub struct GtagConfig {
     /// Google tag account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Google tag container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The fingerprint of the Google tag config as computed at storage time. This value is recomputed whenever the config is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// The ID uniquely identifies the Google tag config.
     #[serde(default, rename = "gtagConfigId")]
-    pub gtag_config_id: Option<String>,
+    pub gtag_config_id: ::core::option::Option<String>,
     /// The Google tag config''s parameters.
     #[serde(default)]
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// Google tag config''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// Google tag config type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Google tag workspace ID. Only used by GTM containers. Set to 0 otherwise.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// List Accounts Response.
@@ -683,10 +685,10 @@ pub struct GtagConfig {
 pub struct ListAccountsResponse {
     /// List of GTM Accounts that a user has access to.
     #[serde(default)]
-    pub account: Option<Vec<Account>>,
+    pub account: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Account>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListClientsResponse resource type.
@@ -694,10 +696,10 @@ pub struct ListAccountsResponse {
 pub struct ListClientsResponse {
     /// All GTM Clients of a GTM Container.
     #[serde(default)]
-    pub client: Option<Vec<Client>>,
+    pub client: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Client>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// List container versions response.
@@ -705,10 +707,11 @@ pub struct ListClientsResponse {
 pub struct ListContainerVersionsResponse {
     /// All container version headers of a GTM Container.
     #[serde(default, rename = "containerVersionHeader")]
-    pub container_version_header: Option<Vec<ContainerVersionHeader>>,
+    pub container_version_header:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContainerVersionHeader>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// List Containers Response.
@@ -716,10 +719,10 @@ pub struct ListContainerVersionsResponse {
 pub struct ListContainersResponse {
     /// All Containers of a GTM Account.
     #[serde(default)]
-    pub container: Option<Vec<Container>>,
+    pub container: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Container>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListDestinationsResponse resource type.
@@ -727,10 +730,10 @@ pub struct ListContainersResponse {
 pub struct ListDestinationsResponse {
     /// All Destinations linked to a GTM Container.
     #[serde(default)]
-    pub destination: Option<Vec<Destination>>,
+    pub destination: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Destination>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A list of enabled built-in variables.
@@ -738,10 +741,11 @@ pub struct ListDestinationsResponse {
 pub struct ListEnabledBuiltInVariablesResponse {
     /// All GTM BuiltInVariables of a GTM container.
     #[serde(default, rename = "builtInVariable")]
-    pub built_in_variable: Option<Vec<BuiltInVariable>>,
+    pub built_in_variable:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BuiltInVariable>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// List Environments Response.
@@ -749,10 +753,10 @@ pub struct ListEnabledBuiltInVariablesResponse {
 pub struct ListEnvironmentsResponse {
     /// All Environments of a GTM Container.
     #[serde(default)]
-    pub environment: Option<Vec<Environment>>,
+    pub environment: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Environment>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// List Folders Response.
@@ -760,10 +764,10 @@ pub struct ListEnvironmentsResponse {
 pub struct ListFoldersResponse {
     /// All GTM Folders of a GTM Container.
     #[serde(default)]
-    pub folder: Option<Vec<Folder>>,
+    pub folder: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Folder>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListGtagConfigResponse resource type.
@@ -771,10 +775,10 @@ pub struct ListFoldersResponse {
 pub struct ListGtagConfigResponse {
     /// All Google tag configs in a Container.
     #[serde(default, rename = "gtagConfig")]
-    pub gtag_config: Option<Vec<GtagConfig>>,
+    pub gtag_config: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GtagConfig>>>,
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// List Tags Response.
@@ -782,10 +786,10 @@ pub struct ListGtagConfigResponse {
 pub struct ListTagsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All GTM Tags of a GTM Container.
     #[serde(default)]
-    pub tag: Option<Vec<Tag>>,
+    pub tag: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
 }
 
 /// ListTemplatesResponse resource type.
@@ -793,10 +797,10 @@ pub struct ListTagsResponse {
 pub struct ListTemplatesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All GTM Custom Templates of a GTM Container.
     #[serde(default)]
-    pub template: Option<Vec<CustomTemplate>>,
+    pub template: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomTemplate>>>,
 }
 
 /// ListTransformationsResponse resource type.
@@ -804,10 +808,10 @@ pub struct ListTemplatesResponse {
 pub struct ListTransformationsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All GTM Transformations of a GTM Container.
     #[serde(default)]
-    pub transformation: Option<Vec<Transformation>>,
+    pub transformation: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Transformation>>>,
 }
 
 /// List triggers response.
@@ -815,10 +819,10 @@ pub struct ListTransformationsResponse {
 pub struct ListTriggersResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All GTM Triggers of a GTM Container.
     #[serde(default)]
-    pub trigger: Option<Vec<Trigger>>,
+    pub trigger: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Trigger>>>,
 }
 
 /// List user permissions response.
@@ -826,10 +830,10 @@ pub struct ListTriggersResponse {
 pub struct ListUserPermissionsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All GTM UserPermissions of a GTM Account.
     #[serde(default, rename = "userPermission")]
-    pub user_permission: Option<Vec<UserPermission>>,
+    pub user_permission: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserPermission>>>,
 }
 
 /// List Variables Response.
@@ -837,10 +841,10 @@ pub struct ListUserPermissionsResponse {
 pub struct ListVariablesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All GTM Variables of a GTM Container.
     #[serde(default)]
-    pub variable: Option<Vec<Variable>>,
+    pub variable: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Variable>>>,
 }
 
 /// A list of workspaces in a container.
@@ -848,10 +852,10 @@ pub struct ListVariablesResponse {
 pub struct ListWorkspacesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All Workspaces of a GTM Container.
     #[serde(default)]
-    pub workspace: Option<Vec<Workspace>>,
+    pub workspace: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Workspace>>>,
 }
 
 /// ListZonesResponse resource type.
@@ -859,10 +863,10 @@ pub struct ListWorkspacesResponse {
 pub struct ListZonesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All GTM Zones of a GTM Container.
     #[serde(default)]
-    pub zone: Option<Vec<Zone>>,
+    pub zone: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Zone>>>,
 }
 
 /// Represents a merge conflict.
@@ -870,10 +874,10 @@ pub struct ListZonesResponse {
 pub struct MergeConflict {
     /// The base version entity (since the latest sync operation) that has conflicting changes compared to the workspace. If this field is missing, it means the workspace entity is deleted from the base version.
     #[serde(default, rename = "entityInBaseVersion")]
-    pub entity_in_base_version: Option<Entity>,
+    pub entity_in_base_version: ::core::option::Option<::std::boxed::Box<Entity>>,
     /// The workspace entity that has conflicting changes compared to the base version. If an entity is deleted in a workspace, it will still appear with a deleted change status.
     #[serde(default, rename = "entityInWorkspace")]
-    pub entity_in_workspace: Option<Entity>,
+    pub entity_in_workspace: ::core::option::Option<::std::boxed::Box<Entity>>,
 }
 
 /// Represents a Google Tag Manager Parameter.
@@ -881,22 +885,22 @@ pub struct MergeConflict {
 pub struct Parameter {
     /// Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.
     #[serde(default, rename = "isWeakReference")]
-    pub is_weak_reference: Option<bool>,
+    pub is_weak_reference: ::core::option::Option<bool>,
     /// The named key that uniquely identifies a parameter. Required for top-level parameters, as well as map values. Ignored for list values.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// This list parameter''s parameters (keys will be ignored).
     #[serde(default)]
-    pub list: Option<Vec<Parameter>>,
+    pub list: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// This map parameter''s parameters (must have keys; keys must be unique).
     #[serde(default)]
-    pub map: Option<Vec<Parameter>>,
+    pub map: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// The parameter type. Valid values are: - boolean: The value represents a boolean, represented as ''true'' or ''false'' - integer: The value represents a 64-bit signed integer value, in base 10 - list: A list of parameters should be specified - map: A map of parameters should be specified - template: The value represents any text; this can include variable references (even variable references that might return non-string types) - trigger_reference: The value represents a trigger, represented as the trigger id - tag_reference: The value represents a tag, represented as the tag name  // TODO: enum values: ["typeUnspecified", "template", "integer", "boolean", "list", "map", "triggerReference", "tagReference"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// A parameter''s value (may contain variable references). as appropriate to the specified type.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// ProposedChange resource type.
@@ -904,7 +908,7 @@ pub struct Parameter {
 pub struct ProposedChange {
     /// The list of workspace changes to be applied.
     #[serde(default)]
-    pub changes: Option<Vec<Entity>>,
+    pub changes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entity>>>,
 }
 
 /// Publish container version response.
@@ -912,10 +916,10 @@ pub struct ProposedChange {
 pub struct PublishContainerVersionResponse {
     /// Compiler errors or not.
     #[serde(default, rename = "compilerError")]
-    pub compiler_error: Option<bool>,
+    pub compiler_error: ::core::option::Option<bool>,
     /// The container version created.
     #[serde(default, rename = "containerVersion")]
-    pub container_version: Option<ContainerVersion>,
+    pub container_version: ::core::option::Option<::std::boxed::Box<ContainerVersion>>,
 }
 
 /// Response to quick previewing a workspace.
@@ -923,13 +927,13 @@ pub struct PublishContainerVersionResponse {
 pub struct QuickPreviewResponse {
     /// Were there compiler errors or not.
     #[serde(default, rename = "compilerError")]
-    pub compiler_error: Option<bool>,
+    pub compiler_error: ::core::option::Option<bool>,
     /// The quick previewed container version.
     #[serde(default, rename = "containerVersion")]
-    pub container_version: Option<ContainerVersion>,
+    pub container_version: ::core::option::Option<::std::boxed::Box<ContainerVersion>>,
     /// Whether quick previewing failed when syncing the workspace to the latest container version.
     #[serde(default, rename = "syncStatus")]
-    pub sync_status: Option<SyncStatus>,
+    pub sync_status: ::core::option::Option<::std::boxed::Box<SyncStatus>>,
 }
 
 /// The result of reverting a built-in variable in a workspace.
@@ -937,7 +941,7 @@ pub struct QuickPreviewResponse {
 pub struct RevertBuiltInVariableResponse {
     /// Whether the built-in variable is enabled after reversion.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// The result of reverting a client in a workspace.
@@ -945,7 +949,7 @@ pub struct RevertBuiltInVariableResponse {
 pub struct RevertClientResponse {
     /// Client as it appears in the latest container version since the last workspace synchronization operation. If no client is present, that means the client was deleted in the latest container version.
     #[serde(default)]
-    pub client: Option<Client>,
+    pub client: ::core::option::Option<::std::boxed::Box<Client>>,
 }
 
 /// The result of reverting folder changes in a workspace.
@@ -953,7 +957,7 @@ pub struct RevertClientResponse {
 pub struct RevertFolderResponse {
     /// Folder as it appears in the latest container version since the last workspace synchronization operation. If no folder is present, that means the folder was deleted in the latest container version.
     #[serde(default)]
-    pub folder: Option<Folder>,
+    pub folder: ::core::option::Option<::std::boxed::Box<Folder>>,
 }
 
 /// The result of reverting a tag in a workspace.
@@ -961,7 +965,7 @@ pub struct RevertFolderResponse {
 pub struct RevertTagResponse {
     /// Tag as it appears in the latest container version since the last workspace synchronization operation. If no tag is present, that means the tag was deleted in the latest container version.
     #[serde(default)]
-    pub tag: Option<Tag>,
+    pub tag: ::core::option::Option<::std::boxed::Box<Tag>>,
 }
 
 /// The result of reverting a template in a workspace.
@@ -969,7 +973,7 @@ pub struct RevertTagResponse {
 pub struct RevertTemplateResponse {
     /// Template as it appears in the latest container version since the last workspace synchronization operation. If no template is present, that means the template was deleted in the latest container version.
     #[serde(default)]
-    pub template: Option<CustomTemplate>,
+    pub template: ::core::option::Option<::std::boxed::Box<CustomTemplate>>,
 }
 
 /// The result of reverting a transformation in a workspace.
@@ -977,7 +981,7 @@ pub struct RevertTemplateResponse {
 pub struct RevertTransformationResponse {
     /// Transformation as it appears in the latest container version since the last workspace synchronization operation. If no transformation is present, that means the transformation was deleted in the latest container version.
     #[serde(default)]
-    pub transformation: Option<Transformation>,
+    pub transformation: ::core::option::Option<::std::boxed::Box<Transformation>>,
 }
 
 /// The result of reverting a trigger in a workspace.
@@ -985,7 +989,7 @@ pub struct RevertTransformationResponse {
 pub struct RevertTriggerResponse {
     /// Trigger as it appears in the latest container version since the last workspace synchronization operation. If no trigger is present, that means the trigger was deleted in the latest container version.
     #[serde(default)]
-    pub trigger: Option<Trigger>,
+    pub trigger: ::core::option::Option<::std::boxed::Box<Trigger>>,
 }
 
 /// The result of reverting a variable in a workspace.
@@ -993,7 +997,7 @@ pub struct RevertTriggerResponse {
 pub struct RevertVariableResponse {
     /// Variable as it appears in the latest container version since the last workspace synchronization operation. If no variable is present, that means the variable was deleted in the latest container version.
     #[serde(default)]
-    pub variable: Option<Variable>,
+    pub variable: ::core::option::Option<::std::boxed::Box<Variable>>,
 }
 
 /// The result of reverting a zone in a workspace.
@@ -1001,7 +1005,7 @@ pub struct RevertVariableResponse {
 pub struct RevertZoneResponse {
     /// Zone as it appears in the latest container version since the last workspace synchronization operation. If no zone is present, that means the zone was deleted in the latest container version.
     #[serde(default)]
-    pub zone: Option<Zone>,
+    pub zone: ::core::option::Option<::std::boxed::Box<Zone>>,
 }
 
 /// Represents a reference to atag that fires before another tag in order to set up dependencies.
@@ -1009,10 +1013,10 @@ pub struct RevertZoneResponse {
 pub struct SetupTag {
     /// If true, fire the main tag if and only if the setup tag fires successfully. If false, fire the main tag regardless of setup tag firing status.
     #[serde(default, rename = "stopOnSetupFailure")]
-    pub stop_on_setup_failure: Option<bool>,
+    pub stop_on_setup_failure: ::core::option::Option<bool>,
     /// The name of the setup tag.
     #[serde(default, rename = "tagName")]
-    pub tag_name: Option<String>,
+    pub tag_name: ::core::option::Option<String>,
 }
 
 /// The status of a workspace after synchronization.
@@ -1020,10 +1024,10 @@ pub struct SetupTag {
 pub struct SyncStatus {
     /// Synchornization operation detected a merge conflict.
     #[serde(default, rename = "mergeConflict")]
-    pub merge_conflict: Option<bool>,
+    pub merge_conflict: ::core::option::Option<bool>,
     /// An error occurred during the synchronization operation.
     #[serde(default, rename = "syncError")]
-    pub sync_error: Option<bool>,
+    pub sync_error: ::core::option::Option<bool>,
 }
 
 /// A response after synchronizing the workspace to the latest container version.
@@ -1031,10 +1035,10 @@ pub struct SyncStatus {
 pub struct SyncWorkspaceResponse {
     /// The merge conflict after sync. If this field is not empty, the sync is still treated as successful. But a version cannot be created until all conflicts are resolved.
     #[serde(default, rename = "mergeConflict")]
-    pub merge_conflict: Option<Vec<MergeConflict>>,
+    pub merge_conflict: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MergeConflict>>>,
     /// Indicates whether synchronization caused a merge conflict or sync error.
     #[serde(default, rename = "syncStatus")]
-    pub sync_status: Option<SyncStatus>,
+    pub sync_status: ::core::option::Option<::std::boxed::Box<SyncStatus>>,
 }
 
 /// Represents a Google Tag Manager Tag.
@@ -1042,79 +1046,79 @@ pub struct SyncWorkspaceResponse {
 pub struct Tag {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Blocking trigger IDs. If any of the listed triggers evaluate to true, the tag will not fire.
     #[serde(default, rename = "blockingTriggerId")]
-    pub blocking_trigger_id: Option<Vec<String>>,
+    pub blocking_trigger_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// Consent settings of a tag.
     #[serde(default, rename = "consentSettings")]
-    pub consent_settings: Option<TagConsentSetting>,
+    pub consent_settings: ::core::option::Option<::std::boxed::Box<TagConsentSetting>>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The fingerprint of the GTM Tag as computed at storage time. This value is recomputed whenever the tag is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Firing trigger IDs. A tag will fire when any of the listed triggers are true and all of its blockingTriggerIds (if any specified) are false.
     #[serde(default, rename = "firingTriggerId")]
-    pub firing_trigger_id: Option<Vec<String>>,
+    pub firing_trigger_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// If set to true, this tag will only fire in the live environment (e.g. not in preview or debug mode).
     #[serde(default, rename = "liveOnly")]
-    pub live_only: Option<bool>,
+    pub live_only: ::core::option::Option<bool>,
     /// A map of key-value pairs of tag metadata to be included in the event data for tag monitoring. Notes: - This parameter must be type MAP. - Each parameter in the map are type TEMPLATE, however cannot contain variable references.
     #[serde(default, rename = "monitoringMetadata")]
-    pub monitoring_metadata: Option<Parameter>,
+    pub monitoring_metadata: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// If non-empty, then the tag display name will be included in the monitoring metadata map using the key specified.
     #[serde(default, rename = "monitoringMetadataTagNameKey")]
-    pub monitoring_metadata_tag_name_key: Option<String>,
+    pub monitoring_metadata_tag_name_key: ::core::option::Option<String>,
     /// Tag display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User notes on how to apply this tag in the container.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// The tag''s parameters.
     #[serde(default)]
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
-    pub parent_folder_id: Option<String>,
+    pub parent_folder_id: ::core::option::Option<String>,
     /// GTM Tag''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Indicates whether the tag is paused, which prevents the tag from firing.
     #[serde(default)]
-    pub paused: Option<bool>,
+    pub paused: ::core::option::Option<bool>,
     /// User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag''s priority can be a positive or negative value. The default value is 0.
     #[serde(default)]
-    pub priority: Option<Parameter>,
+    pub priority: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The end timestamp in milliseconds to schedule a tag.
     #[serde(default, rename = "scheduleEndMs")]
-    pub schedule_end_ms: Option<String>,
+    pub schedule_end_ms: ::core::option::Option<String>,
     /// The start timestamp in milliseconds to schedule a tag.
     #[serde(default, rename = "scheduleStartMs")]
-    pub schedule_start_ms: Option<String>,
+    pub schedule_start_ms: ::core::option::Option<String>,
     /// The list of setup tags. Currently we only allow one.
     #[serde(default, rename = "setupTag")]
-    pub setup_tag: Option<Vec<SetupTag>>,
+    pub setup_tag: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SetupTag>>>,
     /// Option to fire this tag. // TODO: enum values: ["tagFiringOptionUnspecified", "unlimited", "oncePerEvent", "oncePerLoad"]
     #[serde(default, rename = "tagFiringOption")]
-    pub tag_firing_option: Option<String>,
+    pub tag_firing_option: ::core::option::Option<String>,
     /// The Tag ID uniquely identifies the GTM Tag.
     #[serde(default, rename = "tagId")]
-    pub tag_id: Option<String>,
+    pub tag_id: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// The list of teardown tags. Currently we only allow one.
     #[serde(default, rename = "teardownTag")]
-    pub teardown_tag: Option<Vec<TeardownTag>>,
+    pub teardown_tag: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TeardownTag>>>,
     /// GTM Tag Type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// TagConsentSetting resource type.
@@ -1122,10 +1126,10 @@ pub struct Tag {
 pub struct TagConsentSetting {
     /// The tag''s consent status. If set to NEEDED, the runtime will check that the consent types specified by the consent_type field have been granted. // TODO: enum values: ["notSet", "notNeeded", "needed"]
     #[serde(default, rename = "consentStatus")]
-    pub consent_status: Option<String>,
+    pub consent_status: ::core::option::Option<String>,
     /// The type of consents to check for during tag firing if in the consent NEEDED state. This parameter must be of type LIST where each list item is of type STRING.
     #[serde(default, rename = "consentType")]
-    pub consent_type: Option<Parameter>,
+    pub consent_type: ::core::option::Option<::std::boxed::Box<Parameter>>,
 }
 
 /// Represents a tag that fires after another tag in order to tear down dependencies.
@@ -1133,10 +1137,10 @@ pub struct TagConsentSetting {
 pub struct TeardownTag {
     /// If true, fire the teardown tag if and only if the main tag fires successfully. If false, fire the teardown tag regardless of main tag firing status.
     #[serde(default, rename = "stopTeardownOnFailure")]
-    pub stop_teardown_on_failure: Option<bool>,
+    pub stop_teardown_on_failure: ::core::option::Option<bool>,
     /// The name of the teardown tag.
     #[serde(default, rename = "tagName")]
-    pub tag_name: Option<String>,
+    pub tag_name: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Manager Transformation.
@@ -1144,40 +1148,40 @@ pub struct TeardownTag {
 pub struct Transformation {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The fingerprint of the GTM Transformation as computed at storage time. This value is recomputed whenever the transformation is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Transformation display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User notes on how to apply this transformation in the container.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// The transformation''s parameters.
     #[serde(default)]
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
-    pub parent_folder_id: Option<String>,
+    pub parent_folder_id: ::core::option::Option<String>,
     /// GTM transformation''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// The Transformation ID uniquely identifies the GTM transformation.
     #[serde(default, rename = "transformationId")]
-    pub transformation_id: Option<String>,
+    pub transformation_id: ::core::option::Option<String>,
     /// Transformation type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Manager Trigger
@@ -1185,100 +1189,100 @@ pub struct Transformation {
 pub struct Trigger {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Used in the case of auto event tracking.
     #[serde(default, rename = "autoEventFilter")]
-    pub auto_event_filter: Option<Vec<Condition>>,
+    pub auto_event_filter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Condition>>>,
     /// Whether or not we should only fire tags if the form submit or link click event is not cancelled by some other event handler (e.g. because of validation). Only valid for Form Submission and Link Click triggers.
     #[serde(default, rename = "checkValidation")]
-    pub check_validation: Option<Parameter>,
+    pub check_validation: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// A visibility trigger minimum continuous visible time (in milliseconds). Only valid for AMP Visibility trigger.
     #[serde(default, rename = "continuousTimeMinMilliseconds")]
-    pub continuous_time_min_milliseconds: Option<Parameter>,
+    pub continuous_time_min_milliseconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Used in the case of custom event, which is fired iff all Conditions are true.
     #[serde(default, rename = "customEventFilter")]
-    pub custom_event_filter: Option<Vec<Condition>>,
+    pub custom_event_filter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Condition>>>,
     /// Name of the GTM event that is fired. Only valid for Timer triggers.
     #[serde(default, rename = "eventName")]
-    pub event_name: Option<Parameter>,
+    pub event_name: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The trigger will only fire iff all Conditions are true.
     #[serde(default)]
-    pub filter: Option<Vec<Condition>>,
+    pub filter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Condition>>>,
     /// The fingerprint of the GTM Trigger as computed at storage time. This value is recomputed whenever the trigger is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled horizontally. Only valid for AMP scroll triggers.
     #[serde(default, rename = "horizontalScrollPercentageList")]
-    pub horizontal_scroll_percentage_list: Option<Parameter>,
+    pub horizontal_scroll_percentage_list: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Time between triggering recurring Timer Events (in milliseconds). Only valid for Timer triggers.
     #[serde(default)]
-    pub interval: Option<Parameter>,
+    pub interval: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Time between Timer Events to fire (in seconds). Only valid for AMP Timer trigger.
     #[serde(default, rename = "intervalSeconds")]
-    pub interval_seconds: Option<Parameter>,
+    pub interval_seconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Limit of the number of GTM events this Timer Trigger will fire. If no limit is set, we will continue to fire GTM events until the user leaves the page. Only valid for Timer triggers.
     #[serde(default)]
-    pub limit: Option<Parameter>,
+    pub limit: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Max time to fire Timer Events (in seconds). Only valid for AMP Timer trigger.
     #[serde(default, rename = "maxTimerLengthSeconds")]
-    pub max_timer_length_seconds: Option<Parameter>,
+    pub max_timer_length_seconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Trigger display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User notes on how to apply this trigger in the container.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// Additional parameters.
     #[serde(default)]
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
-    pub parent_folder_id: Option<String>,
+    pub parent_folder_id: ::core::option::Option<String>,
     /// GTM Trigger''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// A click trigger CSS selector (i.e. "a", "button" etc.). Only valid for AMP Click trigger.
     #[serde(default)]
-    pub selector: Option<Parameter>,
+    pub selector: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// A visibility trigger minimum total visible time (in milliseconds). Only valid for AMP Visibility trigger.
     #[serde(default, rename = "totalTimeMinMilliseconds")]
-    pub total_time_min_milliseconds: Option<Parameter>,
+    pub total_time_min_milliseconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The Trigger ID uniquely identifies the GTM Trigger.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// Defines the data layer event that causes this trigger. // TODO: enum values: ["eventTypeUnspecified", "pageview", "domReady", "windowLoaded", "customEvent", "triggerGroup", "init", "consentInit", "serverPageview", "always", "firebaseAppException", "firebaseAppUpdate", "firebaseCampaign", "firebaseFirstOpen", "firebaseInAppPurchase", "firebaseNotificationDismiss", "firebaseNotificationForeground", "firebaseNotificationOpen", "firebaseNotificationReceive", "firebaseOsUpdate", "firebaseSessionStart", "firebaseUserEngagement", "formSubmission", "click", "linkClick", "jsError", "historyChange", "timer", "ampClick", "ampTimer", "ampScroll", "ampVisibility", "youTubeVideo", "scrollDepth", "elementVisibility"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Globally unique id of the trigger that auto-generates this (a Form Submit, Link Click or Timer listener) if any. Used to make incompatible auto-events work together with trigger filtering based on trigger ids. This value is populated during output generation since the tags implied by triggers don''t exist until then. Only valid for Form Submit, Link Click and Timer triggers.
     #[serde(default, rename = "uniqueTriggerId")]
-    pub unique_trigger_id: Option<Parameter>,
+    pub unique_trigger_id: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled vertically. Only valid for AMP scroll triggers.
     #[serde(default, rename = "verticalScrollPercentageList")]
-    pub vertical_scroll_percentage_list: Option<Parameter>,
+    pub vertical_scroll_percentage_list: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// A visibility trigger CSS selector (i.e. "#id"). Only valid for AMP Visibility trigger.
     #[serde(default, rename = "visibilitySelector")]
-    pub visibility_selector: Option<Parameter>,
+    pub visibility_selector: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// A visibility trigger maximum percent visibility. Only valid for AMP Visibility trigger.
     #[serde(default, rename = "visiblePercentageMax")]
-    pub visible_percentage_max: Option<Parameter>,
+    pub visible_percentage_max: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// A visibility trigger minimum percent visibility. Only valid for AMP Visibility trigger.
     #[serde(default, rename = "visiblePercentageMin")]
-    pub visible_percentage_min: Option<Parameter>,
+    pub visible_percentage_min: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Whether or not we should delay the form submissions or link opening until all of the tags have fired (by preventing the default action and later simulating the default action). Only valid for Form Submission and Link Click triggers.
     #[serde(default, rename = "waitForTags")]
-    pub wait_for_tags: Option<Parameter>,
+    pub wait_for_tags: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// How long to wait (in milliseconds) for tags to fire when ''waits_for_tags'' above evaluates to true. Only valid for Form Submission and Link Click triggers.
     #[serde(default, rename = "waitForTagsTimeout")]
-    pub wait_for_tags_timeout: Option<Parameter>,
+    pub wait_for_tags_timeout: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// Represents a user''s permissions to an account and its container.
@@ -1286,19 +1290,20 @@ pub struct Trigger {
 pub struct UserPermission {
     /// GTM Account access permissions.
     #[serde(default, rename = "accountAccess")]
-    pub account_access: Option<AccountAccess>,
+    pub account_access: ::core::option::Option<::std::boxed::Box<AccountAccess>>,
     /// The Account ID uniquely identifies the GTM Account.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container access permissions.
     #[serde(default, rename = "containerAccess")]
-    pub container_access: Option<Vec<ContainerAccess>>,
+    pub container_access:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContainerAccess>>>,
     /// User''s email address.
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<String>,
+    pub email_address: ::core::option::Option<String>,
     /// GTM UserPermission''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Manager Variable.
@@ -1306,55 +1311,55 @@ pub struct UserPermission {
 pub struct Variable {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// For mobile containers only: A list of trigger IDs for disabling conditional variables; the variable is enabled if one of the enabling trigger is true while all the disabling trigger are false. Treated as an unordered set.
     #[serde(default, rename = "disablingTriggerId")]
-    pub disabling_trigger_id: Option<Vec<String>>,
+    pub disabling_trigger_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// For mobile containers only: A list of trigger IDs for enabling conditional variables; the variable is enabled if one of the enabling triggers is true while all the disabling triggers are false. Treated as an unordered set.
     #[serde(default, rename = "enablingTriggerId")]
-    pub enabling_trigger_id: Option<Vec<String>>,
+    pub enabling_trigger_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// The fingerprint of the GTM Variable as computed at storage time. This value is recomputed whenever the variable is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Option to convert a variable value to other value.
     #[serde(default, rename = "formatValue")]
-    pub format_value: Option<VariableFormatValue>,
+    pub format_value: ::core::option::Option<::std::boxed::Box<VariableFormatValue>>,
     /// Variable display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User notes on how to apply this variable in the container.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// The variable''s parameters.
     #[serde(default)]
-    pub parameter: Option<Vec<Parameter>>,
+    pub parameter: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
-    pub parent_folder_id: Option<String>,
+    pub parent_folder_id: ::core::option::Option<String>,
     /// GTM Variable''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// The end timestamp in milliseconds to schedule a variable.
     #[serde(default, rename = "scheduleEndMs")]
-    pub schedule_end_ms: Option<String>,
+    pub schedule_end_ms: ::core::option::Option<String>,
     /// The start timestamp in milliseconds to schedule a variable.
     #[serde(default, rename = "scheduleStartMs")]
-    pub schedule_start_ms: Option<String>,
+    pub schedule_start_ms: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// GTM Variable Type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The Variable ID uniquely identifies the GTM Variable.
     #[serde(default, rename = "variableId")]
-    pub variable_id: Option<String>,
+    pub variable_id: ::core::option::Option<String>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// VariableFormatValue resource type.
@@ -1362,25 +1367,25 @@ pub struct Variable {
 pub struct VariableFormatValue {
     /// The option to convert a string-type variable value to either lowercase or uppercase. // TODO: enum values: ["none", "lowercase", "uppercase"]
     #[serde(default, rename = "caseConversionType")]
-    pub case_conversion_type: Option<String>,
+    pub case_conversion_type: ::core::option::Option<String>,
     /// The value to convert if a variable value is false.
     #[serde(default, rename = "convertFalseToValue")]
-    pub convert_false_to_value: Option<Parameter>,
+    pub convert_false_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The value to convert if a variable value is null.
     #[serde(default, rename = "convertNullToValue")]
-    pub convert_null_to_value: Option<Parameter>,
+    pub convert_null_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The option to convert a variable value to a boolean.
     #[serde(default, rename = "convertToBoolean")]
-    pub convert_to_boolean: Option<bool>,
+    pub convert_to_boolean: ::core::option::Option<bool>,
     /// The option to convert a variable value to a number. // TODO: enum values: ["decimalSeparatorTypeUnspecified", "period", "comma"]
     #[serde(default, rename = "convertToNumber")]
-    pub convert_to_number: Option<String>,
+    pub convert_to_number: ::core::option::Option<String>,
     /// The value to convert if a variable value is true.
     #[serde(default, rename = "convertTrueToValue")]
-    pub convert_true_to_value: Option<Parameter>,
+    pub convert_true_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The value to convert if a variable value is undefined.
     #[serde(default, rename = "convertUndefinedToValue")]
-    pub convert_undefined_to_value: Option<Parameter>,
+    pub convert_undefined_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
 }
 
 /// Represents a Google Tag Manager Container Workspace.
@@ -1388,28 +1393,28 @@ pub struct VariableFormatValue {
 pub struct Workspace {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// Workspace description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The fingerprint of the GTM Workspace as computed at storage time. This value is recomputed whenever the workspace is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Workspace display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// GTM Workspace''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// The Workspace ID uniquely identifies the GTM Workspace.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
 }
 
 /// Represents a Google Tag Manager Zone''s contents.
@@ -1417,40 +1422,41 @@ pub struct Workspace {
 pub struct Zone {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// This Zone''s boundary.
     #[serde(default)]
-    pub boundary: Option<ZoneBoundary>,
+    pub boundary: ::core::option::Option<::std::boxed::Box<ZoneBoundary>>,
     /// Containers that are children of this Zone.
     #[serde(default, rename = "childContainer")]
-    pub child_container: Option<Vec<ZoneChildContainer>>,
+    pub child_container:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ZoneChildContainer>>>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// The fingerprint of the GTM Zone as computed at storage time. This value is recomputed whenever the zone is modified.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Zone display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User notes on how to apply this zone in the container.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// GTM Zone''s API relative path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
-    pub tag_manager_url: Option<String>,
+    pub tag_manager_url: ::core::option::Option<String>,
     /// This Zone''s type restrictions.
     #[serde(default, rename = "typeRestriction")]
-    pub type_restriction: Option<ZoneTypeRestriction>,
+    pub type_restriction: ::core::option::Option<::std::boxed::Box<ZoneTypeRestriction>>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
-    pub workspace_id: Option<String>,
+    pub workspace_id: ::core::option::Option<String>,
     /// The Zone ID uniquely identifies the GTM Zone.
     #[serde(default, rename = "zoneId")]
-    pub zone_id: Option<String>,
+    pub zone_id: ::core::option::Option<String>,
 }
 
 /// Represents a Zone''s boundaries.
@@ -1458,10 +1464,10 @@ pub struct Zone {
 pub struct ZoneBoundary {
     /// The conditions that, when conjoined, make up the boundary.
     #[serde(default)]
-    pub condition: Option<Vec<Condition>>,
+    pub condition: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Condition>>>,
     /// Custom evaluation trigger IDs. A zone will evaluate its boundary conditions when any of the listed triggers are true.
     #[serde(default, rename = "customEvaluationTriggerId")]
-    pub custom_evaluation_trigger_id: Option<Vec<String>>,
+    pub custom_evaluation_trigger_id: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a child container of a Zone.
@@ -1469,10 +1475,10 @@ pub struct ZoneBoundary {
 pub struct ZoneChildContainer {
     /// The zone''s nickname for the child container.
     #[serde(default)]
-    pub nickname: Option<String>,
+    pub nickname: ::core::option::Option<String>,
     /// The child container''s public id.
     #[serde(default, rename = "publicId")]
-    pub public_id: Option<String>,
+    pub public_id: ::core::option::Option<String>,
 }
 
 /// Represents a Zone''s type restrictions.
@@ -1480,8 +1486,8 @@ pub struct ZoneChildContainer {
 pub struct ZoneTypeRestriction {
     /// True if type restrictions have been enabled for this Zone.
     #[serde(default)]
-    pub enable: Option<bool>,
+    pub enable: ::core::option::Option<bool>,
     /// List of type public ids that have been whitelisted for use in this Zone.
     #[serde(default, rename = "whitelistedTypeId")]
-    pub whitelisted_type_id: Option<Vec<String>>,
+    pub whitelisted_type_id: ::core::option::Option<::std::vec::Vec<String>>,
 }

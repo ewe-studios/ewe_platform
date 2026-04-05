@@ -10,42 +10,42 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An account is a container for your location. If you are the only user who manages locations for your business, you can use your personal Google Account. To share management of locations with multiple users, [create a business account] (https://support.google.com/business/answer/6085339?ref_topic=6085325).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     /// Required. The name of the account. For an account of type PERSONAL, this is the first and last name of the user account.
     #[serde(default, rename = "accountName")]
-    pub account_name: Option<String>,
+    pub account_name: ::core::option::Option<String>,
     /// Output only. Account reference number if provisioned.
     #[serde(default, rename = "accountNumber")]
-    pub account_number: Option<String>,
+    pub account_number: ::core::option::Option<String>,
     /// Immutable. The resource name, in the format accounts/{account_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Additional info for an organization. This is populated only for an organization account.
     #[serde(default, rename = "organizationInfo")]
-    pub organization_info: Option<OrganizationInfo>,
+    pub organization_info: ::core::option::Option<::std::boxed::Box<OrganizationInfo>>,
     /// Output only. Specifies the permission level the user has for this account. // TODO: enum values: ["PERMISSION_LEVEL_UNSPECIFIED", "OWNER_LEVEL", "MEMBER_LEVEL"]
     #[serde(default, rename = "permissionLevel")]
-    pub permission_level: Option<String>,
+    pub permission_level: ::core::option::Option<String>,
     /// Required. Input only. The resource name of the account which will be the primary owner of the account being created. It should be of the form accounts/{account_id}.
     #[serde(default, rename = "primaryOwner")]
-    pub primary_owner: Option<String>,
+    pub primary_owner: ::core::option::Option<String>,
     /// Output only. Specifies the AccountRole of this account. // TODO: enum values: ["ACCOUNT_ROLE_UNSPECIFIED", "PRIMARY_OWNER", "OWNER", "MANAGER", "SITE_MANAGER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// Required. Contains the type of account. Accounts of type PERSONAL and ORGANIZATION cannot be created using this API. // TODO: enum values: ["ACCOUNT_TYPE_UNSPECIFIED", "PERSONAL", "LOCATION_GROUP", "USER_GROUP", "ORGANIZATION"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. If verified, future locations that are created are automatically connected to Google Maps, and have Google+ pages created, without requiring moderation. // TODO: enum values: ["VERIFICATION_STATE_UNSPECIFIED", "VERIFIED", "UNVERIFIED", "VERIFICATION_REQUESTED"]
     #[serde(default, rename = "verificationState")]
-    pub verification_state: Option<String>,
+    pub verification_state: ::core::option::Option<String>,
     /// Output only. Indicates whether the account is vetted by Google. A vetted account is able to verify locations via the VETTED_PARTNER method. // TODO: enum values: ["VETTED_STATE_UNSPECIFIED", "NOT_VETTED", "VETTED", "INVALID"]
     #[serde(default, rename = "vettedState")]
-    pub vetted_state: Option<String>,
+    pub vetted_state: ::core::option::Option<String>,
 }
 
 /// An administrator of an Account or a location.
@@ -53,19 +53,19 @@ pub struct Account {
 pub struct Admin {
     /// Immutable. The name of the Account resource that this Admin refers to. Used when calling locations.admins.create to invite a LocationGroup as an admin. If both this field and admin are set on CREATE requests, this field takes precedence and the email address in admin will be ignored. Format: accounts/{account}.
     #[serde(default)]
-    pub account: Option<String>,
+    pub account: ::core::option::Option<String>,
     /// Optional. The name of the admin. When making the initial invitation, this is the invitee''s email address. On GET calls, the user''s email address is returned if the invitation is still pending. Otherwise, it contains the user''s first and last names. This field is only needed to be set during admin creation.
     #[serde(default)]
-    pub admin: Option<String>,
+    pub admin: ::core::option::Option<String>,
     /// Immutable. The resource name. For account admins, this is in the form: accounts/{account_id}/admins/{admin_id} For location admins, this is in the form: locations/{location_id}/admins/{admin_id} This field will be ignored if set during admin creation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Indicates whether this admin has a pending invitation for the specified resource.
     #[serde(default, rename = "pendingInvitation")]
-    pub pending_invitation: Option<bool>,
+    pub pending_invitation: ::core::option::Option<bool>,
     /// Required. Specifies the role that this admin uses with the specified Account or Location. // TODO: enum values: ["ADMIN_ROLE_UNSPECIFIED", "PRIMARY_OWNER", "OWNER", "MANAGER", "SITE_MANAGER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Represents a pending invitation.
@@ -73,19 +73,19 @@ pub struct Admin {
 pub struct Invitation {
     /// Required. The resource name for the invitation. accounts/{account_id}/invitations/{invitation_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The invited role on the account. // TODO: enum values: ["ADMIN_ROLE_UNSPECIFIED", "PRIMARY_OWNER", "OWNER", "MANAGER", "SITE_MANAGER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// The sparsely populated account this invitation is for.
     #[serde(default, rename = "targetAccount")]
-    pub target_account: Option<Account>,
+    pub target_account: ::core::option::Option<::std::boxed::Box<Account>>,
     /// The target location this invitation is for.
     #[serde(default, rename = "targetLocation")]
-    pub target_location: Option<TargetLocation>,
+    pub target_location: ::core::option::Option<::std::boxed::Box<TargetLocation>>,
     /// Output only. Specifies which target types should appear in the response. // TODO: enum values: ["TARGET_TYPE_UNSPECIFIED", "ACCOUNTS_ONLY", "LOCATIONS_ONLY"]
     #[serde(default, rename = "targetType")]
-    pub target_type: Option<String>,
+    pub target_type: ::core::option::Option<String>,
 }
 
 /// Response message for AccessControl.ListAccountAdmins.
@@ -93,7 +93,7 @@ pub struct Invitation {
 pub struct ListAccountAdminsResponse {
     /// A collection of Admin instances.
     #[serde(default, rename = "accountAdmins")]
-    pub account_admins: Option<Vec<Admin>>,
+    pub account_admins: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Admin>>>,
 }
 
 /// Response message for Accounts.ListAccounts.
@@ -101,10 +101,10 @@ pub struct ListAccountAdminsResponse {
 pub struct ListAccountsResponse {
     /// A collection of accounts to which the user has access. The personal account of the user doing the query will always be the first item of the result, unless it is filtered out.
     #[serde(default)]
-    pub accounts: Option<Vec<Account>>,
+    pub accounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Account>>>,
     /// If the number of accounts exceeds the requested page size, this field is populated with a token to fetch the next page of accounts on a subsequent call to accounts.list. If there are no more accounts, this field is not present in the response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for AccessControl.ListInvitations.
@@ -112,7 +112,7 @@ pub struct ListAccountsResponse {
 pub struct ListInvitationsResponse {
     /// A collection of invitations that are pending for the account. The number of invitations listed here cannot exceed 1000.
     #[serde(default)]
-    pub invitations: Option<Vec<Invitation>>,
+    pub invitations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Invitation>>>,
 }
 
 /// Response message for AccessControl.ListLocationAdmins.
@@ -120,7 +120,7 @@ pub struct ListInvitationsResponse {
 pub struct ListLocationAdminsResponse {
     /// A collection of Admins.
     #[serde(default)]
-    pub admins: Option<Vec<Admin>>,
+    pub admins: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Admin>>>,
 }
 
 /// Additional information stored for an organization.
@@ -128,13 +128,13 @@ pub struct ListLocationAdminsResponse {
 pub struct OrganizationInfo {
     /// Output only. The postal address for the account.
     #[serde(default)]
-    pub address: Option<PostalAddress>,
+    pub address: ::core::option::Option<::std::boxed::Box<PostalAddress>>,
     /// Output only. The contact number for the organization.
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
     /// Output only. The registered domain for the account.
     #[serde(default, rename = "registeredDomain")]
-    pub registered_domain: Option<String>,
+    pub registered_domain: ::core::option::Option<String>,
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
@@ -142,37 +142,37 @@ pub struct OrganizationInfo {
 pub struct PostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
-    pub address_lines: Option<Vec<String>>,
+    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.
     #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: Option<String>,
+    pub administrative_area: ::core::option::Option<String>,
     /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
     #[serde(default)]
-    pub locality: Option<String>,
+    pub locality: ::core::option::Option<String>,
     /// Optional. The name of the organization at the address.
     #[serde(default)]
-    pub organization: Option<String>,
+    pub organization: ::core::option::Option<String>,
     /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).
     #[serde(default, rename = "postalCode")]
-    pub postal_code: Option<String>,
+    pub postal_code: ::core::option::Option<String>,
     /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
     #[serde(default)]
-    pub recipients: Option<Vec<String>>,
+    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
     /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
     #[serde(default)]
-    pub revision: Option<i32>,
+    pub revision: ::core::option::Option<i32>,
     /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d''Ivoire).
     #[serde(default, rename = "sortingCode")]
-    pub sorting_code: Option<String>,
+    pub sorting_code: ::core::option::Option<String>,
     /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
     #[serde(default)]
-    pub sublocality: Option<String>,
+    pub sublocality: ::core::option::Option<String>,
 }
 
 /// Represents a target location for a pending invitation.
@@ -180,10 +180,10 @@ pub struct PostalAddress {
 pub struct TargetLocation {
     /// The address of the location to which the user is invited.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// The name of the location to which the user is invited.
     #[serde(default, rename = "locationName")]
-    pub location_name: Option<String>,
+    pub location_name: ::core::option::Option<String>,
 }
 
 /// Request message for AccessControl.TransferLocation.
@@ -191,5 +191,5 @@ pub struct TargetLocation {
 pub struct TransferLocationRequest {
     /// Required. Name of the account resource to transfer the location to (for example, "accounts/{account}").
     #[serde(default, rename = "destinationAccount")]
-    pub destination_account: Option<String>,
+    pub destination_account: ::core::option::Option<String>,
 }

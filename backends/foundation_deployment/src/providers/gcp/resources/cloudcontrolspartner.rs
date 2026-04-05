@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Details about the Access request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessApprovalRequest {
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/accessApprovalRequests/{access_approval_request}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time at which approval was requested.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// The requested expiration for the approval. If the request is approved, access will be granted from the time of approval until the expiration time.
     #[serde(default, rename = "requestedExpirationTime")]
-    pub requested_expiration_time: Option<String>,
+    pub requested_expiration_time: ::core::option::Option<String>,
     /// The justification for which approval is being requested.
     #[serde(default, rename = "requestedReason")]
-    pub requested_reason: Option<AccessReason>,
+    pub requested_reason: ::core::option::Option<::std::boxed::Box<AccessReason>>,
 }
 
 /// Reason for the access.
@@ -35,10 +35,10 @@ pub struct AccessApprovalRequest {
 pub struct AccessReason {
     /// More detail about certain reason types. See comments for each type above.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// Type of access justification. // TODO: enum values: ["TYPE_UNSPECIFIED", "CUSTOMER_INITIATED_SUPPORT", "GOOGLE_INITIATED_SERVICE", "GOOGLE_INITIATED_REVIEW", "THIRD_PARTY_DATA_REQUEST", "GOOGLE_RESPONSE_TO_PRODUCTION_ALERT", "CLOUD_INITIATED_ACCESS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information around the error that occurred if the connection state is anything other than available or unspecified
@@ -46,10 +46,10 @@ pub struct AccessReason {
 pub struct ConnectionError {
     /// The error domain for the error
     #[serde(default, rename = "errorDomain")]
-    pub error_domain: Option<String>,
+    pub error_domain: ::core::option::Option<String>,
     /// The error message for the error
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
 }
 
 /// Remediation instructions to resolve violation via cloud console
@@ -57,13 +57,13 @@ pub struct ConnectionError {
 pub struct Console {
     /// Additional urls for more information about steps
     #[serde(default, rename = "additionalLinks")]
-    pub additional_links: Option<Vec<String>>,
+    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
     /// Link to console page where violations can be resolved
     #[serde(default, rename = "consoleUris")]
-    pub console_uris: Option<Vec<String>>,
+    pub console_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Steps to resolve violation via cloud console
     #[serde(default)]
-    pub steps: Option<Vec<String>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Contains metadata around a Cloud Controls Partner Customer
@@ -71,19 +71,20 @@ pub struct Console {
 pub struct Customer {
     /// Output only. Container for customer onboarding steps
     #[serde(default, rename = "customerOnboardingState")]
-    pub customer_onboarding_state: Option<CustomerOnboardingState>,
+    pub customer_onboarding_state:
+        ::core::option::Option<::std::boxed::Box<CustomerOnboardingState>>,
     /// Required. Display name for the customer
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Indicates whether a customer is fully onboarded
     #[serde(default, rename = "isOnboarded")]
-    pub is_onboarded: Option<bool>,
+    pub is_onboarded: ::core::option::Option<bool>,
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The customer organization domain, extracted from CRM Organization’s display_name field. e.g. "google.com"
     #[serde(default, rename = "organizationDomain")]
-    pub organization_domain: Option<String>,
+    pub organization_domain: ::core::option::Option<String>,
 }
 
 /// Container for customer onboarding steps
@@ -91,7 +92,8 @@ pub struct Customer {
 pub struct CustomerOnboardingState {
     /// List of customer onboarding steps
     #[serde(default, rename = "onboardingSteps")]
-    pub onboarding_steps: Option<Vec<CustomerOnboardingStep>>,
+    pub onboarding_steps:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerOnboardingStep>>>,
 }
 
 /// Container for customer onboarding information
@@ -99,16 +101,16 @@ pub struct CustomerOnboardingState {
 pub struct CustomerOnboardingStep {
     /// Output only. Current state of the step // TODO: enum values: ["COMPLETION_STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED", "NOT_APPLICABLE"]
     #[serde(default, rename = "completionState")]
-    pub completion_state: Option<String>,
+    pub completion_state: ::core::option::Option<String>,
     /// The completion time of the onboarding step
     #[serde(default, rename = "completionTime")]
-    pub completion_time: Option<String>,
+    pub completion_time: ::core::option::Option<String>,
     /// The starting time of the onboarding step
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The onboarding step // TODO: enum values: ["STEP_UNSPECIFIED", "KAJ_ENROLLMENT", "CUSTOMER_ENVIRONMENT"]
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
 }
 
 /// Details about the EKM connection
@@ -116,13 +118,13 @@ pub struct CustomerOnboardingStep {
 pub struct EkmConnection {
     /// The connection error that occurred if any
     #[serde(default, rename = "connectionError")]
-    pub connection_error: Option<ConnectionError>,
+    pub connection_error: ::core::option::Option<::std::boxed::Box<ConnectionError>>,
     /// Resource name of the EKM connection in the format: projects/{project}/locations/{location}/ekmConnections/{ekm_connection}
     #[serde(default, rename = "connectionName")]
-    pub connection_name: Option<String>,
+    pub connection_name: ::core::option::Option<String>,
     /// Output only. The connection state // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "AVAILABLE", "NOT_AVAILABLE", "ERROR", "PERMISSION_DENIED"]
     #[serde(default, rename = "connectionState")]
-    pub connection_state: Option<String>,
+    pub connection_state: ::core::option::Option<String>,
 }
 
 /// The EKM connections associated with a workload
@@ -130,10 +132,10 @@ pub struct EkmConnection {
 pub struct EkmConnections {
     /// The EKM connections associated with the workload
     #[serde(default, rename = "ekmConnections")]
-    pub ekm_connections: Option<Vec<EkmConnection>>,
+    pub ekm_connections: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EkmConnection>>>,
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/ekmConnections
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Holds information needed by Mudbray to use partner EKMs for workloads.
@@ -141,10 +143,10 @@ pub struct EkmConnections {
 pub struct EkmMetadata {
     /// Endpoint for sending requests to the EKM for key provisioning during Assured Workload creation.
     #[serde(default, rename = "ekmEndpointUri")]
-    pub ekm_endpoint_uri: Option<String>,
+    pub ekm_endpoint_uri: ::core::option::Option<String>,
     /// The Cloud EKM partner. // TODO: enum values: ["EKM_SOLUTION_UNSPECIFIED", "FORTANIX", "FUTUREX", "THALES", "VIRTRU"]
     #[serde(default, rename = "ekmSolution")]
-    pub ekm_solution: Option<String>,
+    pub ekm_solution: ::core::option::Option<String>,
 }
 
 /// Remediation instructions to resolve violation via gcloud cli
@@ -152,13 +154,13 @@ pub struct EkmMetadata {
 pub struct Gcloud {
     /// Additional urls for more information about steps
     #[serde(default, rename = "additionalLinks")]
-    pub additional_links: Option<Vec<String>>,
+    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
     /// Gcloud command to resolve violation
     #[serde(default, rename = "gcloudCommands")]
-    pub gcloud_commands: Option<Vec<String>>,
+    pub gcloud_commands: ::core::option::Option<::std::vec::Vec<String>>,
     /// Steps to resolve violation via gcloud cli
     #[serde(default)]
-    pub steps: Option<Vec<String>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Instructions to remediate violation
@@ -166,10 +168,10 @@ pub struct Gcloud {
 pub struct Instructions {
     /// Remediation instructions to resolve violation via cloud console
     #[serde(default, rename = "consoleInstructions")]
-    pub console_instructions: Option<Console>,
+    pub console_instructions: ::core::option::Option<::std::boxed::Box<Console>>,
     /// Remediation instructions to resolve violation via gcloud cli
     #[serde(default, rename = "gcloudInstructions")]
-    pub gcloud_instructions: Option<Gcloud>,
+    pub gcloud_instructions: ::core::option::Option<::std::boxed::Box<Gcloud>>,
 }
 
 /// Response message for list access requests.
@@ -177,13 +179,14 @@ pub struct Instructions {
 pub struct ListAccessApprovalRequestsResponse {
     /// List of access approval requests
     #[serde(default, rename = "accessApprovalRequests")]
-    pub access_approval_requests: Option<Vec<AccessApprovalRequest>>,
+    pub access_approval_requests:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccessApprovalRequest>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for list customer Customers requests
@@ -191,13 +194,13 @@ pub struct ListAccessApprovalRequestsResponse {
 pub struct ListCustomersResponse {
     /// List of customers
     #[serde(default)]
-    pub customers: Option<Vec<Customer>>,
+    pub customers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Customer>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for list customer violation requests
@@ -205,13 +208,13 @@ pub struct ListCustomersResponse {
 pub struct ListViolationsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Workloads that could not be reached due to permission errors or any other error. Ref: https://google.aip.dev/217
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of violation
     #[serde(default)]
-    pub violations: Option<Vec<Violation>>,
+    pub violations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Violation>>>,
 }
 
 /// Response message for list customer workloads requests.
@@ -219,13 +222,13 @@ pub struct ListViolationsResponse {
 pub struct ListWorkloadsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of customer workloads
     #[serde(default)]
-    pub workloads: Option<Vec<Workload>>,
+    pub workloads: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Workload>>>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -233,25 +236,25 @@ pub struct ListWorkloadsResponse {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Message describing Partner resource
@@ -259,25 +262,25 @@ pub struct OperationMetadata {
 pub struct Partner {
     /// Output only. Time the resource was created
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// List of Google Cloud supported EKM partners supported by the partner
     #[serde(default, rename = "ekmSolutions")]
-    pub ekm_solutions: Option<Vec<EkmMetadata>>,
+    pub ekm_solutions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EkmMetadata>>>,
     /// Identifier. The resource name of the partner. Format: organizations/{organization}/locations/{location}/partner Example: "organizations/123456/locations/us-central1/partner"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// List of Google Cloud regions that the partner sells services to customers. Valid Google Cloud regions found here: https://cloud.google.com/compute/docs/regions-zones
     #[serde(default, rename = "operatedCloudRegions")]
-    pub operated_cloud_regions: Option<Vec<String>>,
+    pub operated_cloud_regions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Google Cloud project ID in the partner''s Google Cloud organization for receiving enhanced Logs for Partners.
     #[serde(default, rename = "partnerProjectId")]
-    pub partner_project_id: Option<String>,
+    pub partner_project_id: ::core::option::Option<String>,
     /// List of SKUs the partner is offering
     #[serde(default)]
-    pub skus: Option<Vec<Sku>>,
+    pub skus: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Sku>>>,
     /// Output only. The last time the resource was updated
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The permissions granted to the partner for a workload
@@ -285,10 +288,10 @@ pub struct Partner {
 pub struct PartnerPermissions {
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/partnerPermissions
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The partner permissions granted for the workload
     #[serde(default, rename = "partnerPermissions")]
-    pub partner_permissions: Option<Vec<String>>,
+    pub partner_permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents remediation guidance to resolve compliance violation for AssuredWorkload
@@ -296,13 +299,13 @@ pub struct PartnerPermissions {
 pub struct Remediation {
     /// Values that can resolve the violation For example: for list org policy violations, this will either be the list of allowed or denied values
     #[serde(default, rename = "compliantValues")]
-    pub compliant_values: Option<Vec<String>>,
+    pub compliant_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Remediation instructions to resolve violations
     #[serde(default)]
-    pub instructions: Option<Instructions>,
+    pub instructions: ::core::option::Option<::std::boxed::Box<Instructions>>,
     /// Output only. Remediation type based on the type of org policy values violated // TODO: enum values: ["REMEDIATION_TYPE_UNSPECIFIED", "REMEDIATION_BOOLEAN_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_ALLOWED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_DENIED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_RESTRICT_CMEK_CRYPTO_KEY_PROJECTS_ORG_POLICY_VIOLATION", "REMEDIATION_RESOURCE_VIOLATION"]
     #[serde(default, rename = "remediationType")]
-    pub remediation_type: Option<String>,
+    pub remediation_type: ::core::option::Option<String>,
 }
 
 /// Represents the SKU a partner owns inside Google Cloud to sell to customers.
@@ -310,10 +313,10 @@ pub struct Remediation {
 pub struct Sku {
     /// Display name of the product identified by the SKU. A partner may want to show partner branded names for their offerings such as local sovereign cloud solutions.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Argentum product SKU, that is associated with the partner offerings to customers used by Syntro for billing purposes. SKUs can represent resold Google products or support services.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Details of resource Violation
@@ -321,34 +324,34 @@ pub struct Sku {
 pub struct Violation {
     /// Output only. Time of the event which triggered the Violation.
     #[serde(default, rename = "beginTime")]
-    pub begin_time: Option<String>,
+    pub begin_time: ::core::option::Option<String>,
     /// Output only. Category under which this violation is mapped. e.g. Location, Service Usage, Access, Encryption, etc.
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// Output only. Description for the Violation. e.g. OrgPolicy gcp.resourceLocations has non compliant value.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The folder_id of the violation
     #[serde(default, rename = "folderId")]
-    pub folder_id: Option<String>,
+    pub folder_id: ::core::option::Option<String>,
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/violations/{violation}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Immutable. Name of the OrgPolicy which was modified with non-compliant change and resulted this violation. Format: projects/{project_number}/policies/{constraint_name} folders/{folder_id}/policies/{constraint_name} organizations/{organization_id}/policies/{constraint_name}
     #[serde(default, rename = "nonCompliantOrgPolicy")]
-    pub non_compliant_org_policy: Option<String>,
+    pub non_compliant_org_policy: ::core::option::Option<String>,
     /// Output only. Compliance violation remediation
     #[serde(default)]
-    pub remediation: Option<Remediation>,
+    pub remediation: ::core::option::Option<::std::boxed::Box<Remediation>>,
     /// Output only. Time of the event which fixed the Violation. If the violation is ACTIVE this will be empty.
     #[serde(default, rename = "resolveTime")]
-    pub resolve_time: Option<String>,
+    pub resolve_time: ::core::option::Option<String>,
     /// Output only. State of the violation // TODO: enum values: ["STATE_UNSPECIFIED", "RESOLVED", "UNRESOLVED", "EXCEPTION"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The last time when the Violation record was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Contains metadata around the [Workload resource](https://cloud.google.com/assured-workloads/docs/reference/rest/Shared.Types/Workload) in the Assured Workloads API.
@@ -356,31 +359,32 @@ pub struct Violation {
 pub struct Workload {
     /// Output only. Time the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of container folder of the assured workload
     #[serde(default)]
-    pub folder: Option<String>,
+    pub folder: ::core::option::Option<String>,
     /// Output only. Folder id this workload is associated with
     #[serde(default, rename = "folderId")]
-    pub folder_id: Option<String>,
+    pub folder_id: ::core::option::Option<String>,
     /// Indicates whether a workload is fully onboarded.
     #[serde(default, rename = "isOnboarded")]
-    pub is_onboarded: Option<bool>,
+    pub is_onboarded: ::core::option::Option<bool>,
     /// The project id of the key management project for the workload
     #[serde(default, rename = "keyManagementProjectId")]
-    pub key_management_project_id: Option<String>,
+    pub key_management_project_id: ::core::option::Option<String>,
     /// The Google Cloud location of the workload
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Partner associated with this workload. // TODO: enum values: ["PARTNER_UNSPECIFIED", "PARTNER_LOCAL_CONTROLS_BY_S3NS", "PARTNER_SOVEREIGN_CONTROLS_BY_T_SYSTEMS", "PARTNER_SOVEREIGN_CONTROLS_BY_SIA_MINSAIT", "PARTNER_SOVEREIGN_CONTROLS_BY_PSN", "PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT", "PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM", "PARTNER_SPAIN_DATA_BOUNDARY_BY_TELEFONICA"]
     #[serde(default)]
-    pub partner: Option<String>,
+    pub partner: ::core::option::Option<String>,
     /// Container for workload onboarding steps.
     #[serde(default, rename = "workloadOnboardingState")]
-    pub workload_onboarding_state: Option<WorkloadOnboardingState>,
+    pub workload_onboarding_state:
+        ::core::option::Option<::std::boxed::Box<WorkloadOnboardingState>>,
 }
 
 /// Container for workload onboarding steps.
@@ -388,7 +392,8 @@ pub struct Workload {
 pub struct WorkloadOnboardingState {
     /// List of workload onboarding steps.
     #[serde(default, rename = "onboardingSteps")]
-    pub onboarding_steps: Option<Vec<WorkloadOnboardingStep>>,
+    pub onboarding_steps:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkloadOnboardingStep>>>,
 }
 
 /// Container for workload onboarding information.
@@ -396,14 +401,14 @@ pub struct WorkloadOnboardingState {
 pub struct WorkloadOnboardingStep {
     /// Output only. The completion state of the onboarding step. // TODO: enum values: ["COMPLETION_STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED", "NOT_APPLICABLE"]
     #[serde(default, rename = "completionState")]
-    pub completion_state: Option<String>,
+    pub completion_state: ::core::option::Option<String>,
     /// The completion time of the onboarding step.
     #[serde(default, rename = "completionTime")]
-    pub completion_time: Option<String>,
+    pub completion_time: ::core::option::Option<String>,
     /// The starting time of the onboarding step.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The onboarding step. // TODO: enum values: ["STEP_UNSPECIFIED", "EKM_PROVISIONED", "SIGNED_ACCESS_APPROVAL_CONFIGURED"]
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
 }

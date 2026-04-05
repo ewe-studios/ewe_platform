@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// (Restricted Access) Contains a signal helping apps differentiating between likely genuine and likely non-genuine user traffic.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountActivity {
     /// Required. Indicates the activity level of the account. // TODO: enum values: ["ACTIVITY_LEVEL_UNSPECIFIED", "UNEVALUATED", "UNUSUAL", "UNKNOWN", "TYPICAL_BASIC", "TYPICAL_STRONG"]
     #[serde(default, rename = "activityLevel")]
-    pub activity_level: Option<String>,
+    pub activity_level: ::core::option::Option<String>,
 }
 
 /// Contains the account information such as the licensing status for the user in the scope.
@@ -26,10 +26,10 @@ pub struct AccountActivity {
 pub struct AccountDetails {
     /// (Restricted Access) Details about the account activity for the user in the scope.
     #[serde(default, rename = "accountActivity")]
-    pub account_activity: Option<AccountActivity>,
+    pub account_activity: ::core::option::Option<::std::boxed::Box<AccountActivity>>,
     /// Required. Details about the licensing status of the user for the app in the scope. // TODO: enum values: ["UNKNOWN", "LICENSED", "UNLICENSED", "UNEVALUATED"]
     #[serde(default, rename = "appLicensingVerdict")]
-    pub app_licensing_verdict: Option<String>,
+    pub app_licensing_verdict: ::core::option::Option<String>,
 }
 
 /// Contains signals about others apps on the device which could be used to access or control the requesting app.
@@ -37,7 +37,7 @@ pub struct AccountDetails {
 pub struct AppAccessRiskVerdict {
     /// List of detected app types signalled for App Access Risk.
     #[serde(default, rename = "appsDetected")]
-    pub apps_detected: Option<Vec<String>>,
+    pub apps_detected: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Contains the application integrity information.
@@ -45,16 +45,16 @@ pub struct AppAccessRiskVerdict {
 pub struct AppIntegrity {
     /// Required. Details about the app recognition verdict // TODO: enum values: ["UNKNOWN", "PLAY_RECOGNIZED", "UNRECOGNIZED_VERSION", "UNEVALUATED"]
     #[serde(default, rename = "appRecognitionVerdict")]
-    pub app_recognition_verdict: Option<String>,
+    pub app_recognition_verdict: ::core::option::Option<String>,
     /// The SHA256 hash of the requesting app''s signing certificates (base64 web-safe encoded). Set iff app_recognition_verdict != UNEVALUATED.
     #[serde(default, rename = "certificateSha256Digest")]
-    pub certificate_sha256_digest: Option<Vec<String>>,
+    pub certificate_sha256_digest: ::core::option::Option<::std::vec::Vec<String>>,
     /// Package name of the application under attestation. Set iff app_recognition_verdict != UNEVALUATED.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Version code of the application. Set iff app_recognition_verdict != UNEVALUATED.
     #[serde(default, rename = "versionCode")]
-    pub version_code: Option<String>,
+    pub version_code: ::core::option::Option<String>,
 }
 
 /// Request to decode the integrity token.
@@ -62,7 +62,7 @@ pub struct AppIntegrity {
 pub struct DecodeIntegrityTokenRequest {
     /// Encoded integrity token.
     #[serde(default, rename = "integrityToken")]
-    pub integrity_token: Option<String>,
+    pub integrity_token: ::core::option::Option<String>,
 }
 
 /// Response containing the decoded integrity payload.
@@ -70,7 +70,7 @@ pub struct DecodeIntegrityTokenRequest {
 pub struct DecodeIntegrityTokenResponse {
     /// Plain token payload generated from the decoded integrity token.
     #[serde(default, rename = "tokenPayloadExternal")]
-    pub token_payload_external: Option<TokenPayloadExternal>,
+    pub token_payload_external: ::core::option::Option<::std::boxed::Box<TokenPayloadExternal>>,
 }
 
 /// Request to decode the PC integrity token.
@@ -78,7 +78,7 @@ pub struct DecodeIntegrityTokenResponse {
 pub struct DecodePcIntegrityTokenRequest {
     /// Encoded integrity token.
     #[serde(default, rename = "integrityToken")]
-    pub integrity_token: Option<String>,
+    pub integrity_token: ::core::option::Option<String>,
 }
 
 /// Response containing the decoded PC integrity payload.
@@ -86,7 +86,7 @@ pub struct DecodePcIntegrityTokenRequest {
 pub struct DecodePcIntegrityTokenResponse {
     /// Plain token payload generated from the decoded integrity token.
     #[serde(default, rename = "tokenPayloadExternal")]
-    pub token_payload_external: Option<PcTokenPayloadExternal>,
+    pub token_payload_external: ::core::option::Option<::std::boxed::Box<PcTokenPayloadExternal>>,
 }
 
 /// Contains information about the device for which the integrity token was generated, e.g. Android SDK version.
@@ -94,7 +94,7 @@ pub struct DecodePcIntegrityTokenResponse {
 pub struct DeviceAttributes {
     /// Android SDK version of the device, as defined in the public Android documentation: https://developer.android.com/reference/android/os/Build.VERSION_CODES. It won''t be set if a necessary requirement was missed. For example DeviceIntegrity did not meet the minimum bar.
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<i32>,
+    pub sdk_version: ::core::option::Option<i32>,
 }
 
 /// Contains the device attestation information.
@@ -102,19 +102,19 @@ pub struct DeviceAttributes {
 pub struct DeviceIntegrity {
     /// Attributes of the device where the integrity token was generated.
     #[serde(default, rename = "deviceAttributes")]
-    pub device_attributes: Option<DeviceAttributes>,
+    pub device_attributes: ::core::option::Option<::std::boxed::Box<DeviceAttributes>>,
     /// Details about the device recall bits set by the developer.
     #[serde(default, rename = "deviceRecall")]
-    pub device_recall: Option<DeviceRecall>,
+    pub device_recall: ::core::option::Option<::std::boxed::Box<DeviceRecall>>,
     /// Details about the integrity of the device the app is running on.
     #[serde(default, rename = "deviceRecognitionVerdict")]
-    pub device_recognition_verdict: Option<Vec<String>>,
+    pub device_recognition_verdict: ::core::option::Option<::std::vec::Vec<String>>,
     /// Contains legacy details about the integrity of the device the app is running on. Only for devices with Android version T or higher and only for apps opted in to the new verdicts. Only available during the transition period to the new verdicts system and will be removed afterwards.
     #[serde(default, rename = "legacyDeviceRecognitionVerdict")]
-    pub legacy_device_recognition_verdict: Option<Vec<String>>,
+    pub legacy_device_recognition_verdict: ::core::option::Option<::std::vec::Vec<String>>,
     /// Details about the device activity of the device the app is running on.
     #[serde(default, rename = "recentDeviceActivity")]
-    pub recent_device_activity: Option<RecentDeviceActivity>,
+    pub recent_device_activity: ::core::option::Option<::std::boxed::Box<RecentDeviceActivity>>,
 }
 
 /// Contains the recall bits per device set by the developer.
@@ -122,10 +122,10 @@ pub struct DeviceIntegrity {
 pub struct DeviceRecall {
     /// Required. Contains the recall bits values.
     #[serde(default)]
-    pub values: Option<Values>,
+    pub values: ::core::option::Option<::std::boxed::Box<Values>>,
     /// Required. Contains the recall bits write dates.
     #[serde(default, rename = "writeDates")]
-    pub write_dates: Option<WriteDates>,
+    pub write_dates: ::core::option::Option<::std::boxed::Box<WriteDates>>,
 }
 
 /// Contains information about the environment Play Integrity API runs in, e.g. Play Protect verdict.
@@ -133,10 +133,10 @@ pub struct DeviceRecall {
 pub struct EnvironmentDetails {
     /// The evaluation of the App Access Risk verdicts.
     #[serde(default, rename = "appAccessRiskVerdict")]
-    pub app_access_risk_verdict: Option<AppAccessRiskVerdict>,
+    pub app_access_risk_verdict: ::core::option::Option<::std::boxed::Box<AppAccessRiskVerdict>>,
     /// The evaluation of Play Protect verdict. // TODO: enum values: ["PLAY_PROTECT_VERDICT_UNSPECIFIED", "UNEVALUATED", "NO_ISSUES", "NO_DATA", "MEDIUM_RISK", "HIGH_RISK", "POSSIBLE_RISK"]
     #[serde(default, rename = "playProtectVerdict")]
-    pub play_protect_verdict: Option<String>,
+    pub play_protect_verdict: ::core::option::Option<String>,
 }
 
 /// Contains the account information such as the licensing status for the user in the scope.
@@ -144,7 +144,7 @@ pub struct EnvironmentDetails {
 pub struct PcAccountDetails {
     /// Required. Details about the licensing status of the user for the app in the scope. // TODO: enum values: ["UNKNOWN", "LICENSED", "UNLICENSED", "UNEVALUATED"]
     #[serde(default, rename = "appLicensingVerdict")]
-    pub app_licensing_verdict: Option<String>,
+    pub app_licensing_verdict: ::core::option::Option<String>,
 }
 
 /// Contains the device attestation information.
@@ -152,7 +152,7 @@ pub struct PcAccountDetails {
 pub struct PcDeviceIntegrity {
     /// Details about the integrity of the device the app is running on.
     #[serde(default, rename = "deviceRecognitionVerdict")]
-    pub device_recognition_verdict: Option<Vec<String>>,
+    pub device_recognition_verdict: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Contains the integrity request information.
@@ -160,13 +160,13 @@ pub struct PcDeviceIntegrity {
 pub struct PcRequestDetails {
     /// Request hash that was provided in the request.
     #[serde(default, rename = "requestHash")]
-    pub request_hash: Option<String>,
+    pub request_hash: ::core::option::Option<String>,
     /// Required. Application package name this attestation was requested for. Note: This field makes no guarantees or promises on the caller integrity.
     #[serde(default, rename = "requestPackageName")]
-    pub request_package_name: Option<String>,
+    pub request_package_name: ::core::option::Option<String>,
     /// Required. Timestamp, of the integrity application request.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// Contains additional information generated for testing responses.
@@ -174,7 +174,7 @@ pub struct PcRequestDetails {
 pub struct PcTestingDetails {
     /// Indicates that the information contained in this payload is a testing response that is statically overridden for a tester.
     #[serde(default, rename = "isTestingResponse")]
-    pub is_testing_response: Option<bool>,
+    pub is_testing_response: ::core::option::Option<bool>,
 }
 
 /// Contains PC device attestation details.
@@ -182,16 +182,16 @@ pub struct PcTestingDetails {
 pub struct PcTokenPayloadExternal {
     /// Details about the account information such as the licensing status.
     #[serde(default, rename = "accountDetails")]
-    pub account_details: Option<PcAccountDetails>,
+    pub account_details: ::core::option::Option<::std::boxed::Box<PcAccountDetails>>,
     /// Required. Details about the device integrity.
     #[serde(default, rename = "deviceIntegrity")]
-    pub device_integrity: Option<PcDeviceIntegrity>,
+    pub device_integrity: ::core::option::Option<::std::boxed::Box<PcDeviceIntegrity>>,
     /// Required. Details about the integrity request.
     #[serde(default, rename = "requestDetails")]
-    pub request_details: Option<PcRequestDetails>,
+    pub request_details: ::core::option::Option<::std::boxed::Box<PcRequestDetails>>,
     /// Indicates that this payload is generated for testing purposes and contains any additional data that is linked with testing status.
     #[serde(default, rename = "testingDetails")]
-    pub testing_details: Option<PcTestingDetails>,
+    pub testing_details: ::core::option::Option<::std::boxed::Box<PcTestingDetails>>,
 }
 
 /// Recent device activity can help developers identify devices that have exhibited hyperactive attestation activity, which could be a sign of an attack or token farming.
@@ -199,7 +199,7 @@ pub struct PcTokenPayloadExternal {
 pub struct RecentDeviceActivity {
     /// Required. Indicates the activity level of the device. // TODO: enum values: ["DEVICE_ACTIVITY_LEVEL_UNSPECIFIED", "UNEVALUATED", "LEVEL_1", "LEVEL_2", "LEVEL_3", "LEVEL_4"]
     #[serde(default, rename = "deviceActivityLevel")]
-    pub device_activity_level: Option<String>,
+    pub device_activity_level: ::core::option::Option<String>,
 }
 
 /// Contains the integrity request information.
@@ -207,16 +207,16 @@ pub struct RecentDeviceActivity {
 pub struct RequestDetails {
     /// Nonce that was provided in the request (which is base64 web-safe no-wrap).
     #[serde(default)]
-    pub nonce: Option<String>,
+    pub nonce: ::core::option::Option<String>,
     /// Request hash that was provided in the request.
     #[serde(default, rename = "requestHash")]
-    pub request_hash: Option<String>,
+    pub request_hash: ::core::option::Option<String>,
     /// Required. Application package name this attestation was requested for. Note: This field makes no guarantees or promises on the caller integrity. For details on application integrity, check application_integrity.
     #[serde(default, rename = "requestPackageName")]
-    pub request_package_name: Option<String>,
+    pub request_package_name: ::core::option::Option<String>,
     /// Required. Timestamp, in milliseconds, of the integrity application request.
     #[serde(default, rename = "timestampMillis")]
-    pub timestamp_millis: Option<String>,
+    pub timestamp_millis: ::core::option::Option<String>,
 }
 
 /// Contains additional information generated for testing responses.
@@ -224,7 +224,7 @@ pub struct RequestDetails {
 pub struct TestingDetails {
     /// Required. Indicates that the information contained in this payload is a testing response that is statically overridden for a tester.
     #[serde(default, rename = "isTestingResponse")]
-    pub is_testing_response: Option<bool>,
+    pub is_testing_response: ::core::option::Option<bool>,
 }
 
 /// Contains basic app information and integrity signals like device attestation and licensing details.
@@ -232,22 +232,22 @@ pub struct TestingDetails {
 pub struct TokenPayloadExternal {
     /// Required. Details about the Play Store account.
     #[serde(default, rename = "accountDetails")]
-    pub account_details: Option<AccountDetails>,
+    pub account_details: ::core::option::Option<::std::boxed::Box<AccountDetails>>,
     /// Required. Details about the application integrity.
     #[serde(default, rename = "appIntegrity")]
-    pub app_integrity: Option<AppIntegrity>,
+    pub app_integrity: ::core::option::Option<::std::boxed::Box<AppIntegrity>>,
     /// Required. Details about the device integrity.
     #[serde(default, rename = "deviceIntegrity")]
-    pub device_integrity: Option<DeviceIntegrity>,
+    pub device_integrity: ::core::option::Option<::std::boxed::Box<DeviceIntegrity>>,
     /// Details of the environment Play Integrity API runs in.
     #[serde(default, rename = "environmentDetails")]
-    pub environment_details: Option<EnvironmentDetails>,
+    pub environment_details: ::core::option::Option<::std::boxed::Box<EnvironmentDetails>>,
     /// Required. Details about the integrity request.
     #[serde(default, rename = "requestDetails")]
-    pub request_details: Option<RequestDetails>,
+    pub request_details: ::core::option::Option<::std::boxed::Box<RequestDetails>>,
     /// Indicates that this payload is generated for testing purposes and contains any additional data that is linked with testing status.
     #[serde(default, rename = "testingDetails")]
-    pub testing_details: Option<TestingDetails>,
+    pub testing_details: ::core::option::Option<::std::boxed::Box<TestingDetails>>,
 }
 
 /// Contains the recall bits values.
@@ -255,13 +255,13 @@ pub struct TokenPayloadExternal {
 pub struct Values {
     /// Required. First recall bit value.
     #[serde(default, rename = "bitFirst")]
-    pub bit_first: Option<bool>,
+    pub bit_first: ::core::option::Option<bool>,
     /// Required. Second recall bit value.
     #[serde(default, rename = "bitSecond")]
-    pub bit_second: Option<bool>,
+    pub bit_second: ::core::option::Option<bool>,
     /// Required. Third recall bit value.
     #[serde(default, rename = "bitThird")]
-    pub bit_third: Option<bool>,
+    pub bit_third: ::core::option::Option<bool>,
 }
 
 /// Contains the recall bits write dates.
@@ -269,13 +269,13 @@ pub struct Values {
 pub struct WriteDates {
     /// Optional. Write time in YYYYMM format (in UTC, e.g. 202402) for the first bit. Note that this value won''t be set if the first bit is false.
     #[serde(default, rename = "yyyymmFirst")]
-    pub yyyymm_first: Option<i32>,
+    pub yyyymm_first: ::core::option::Option<i32>,
     /// Optional. Write time in YYYYMM format (in UTC, e.g. 202402) for the second bit. Note that this value won''t be set if the second bit is false.
     #[serde(default, rename = "yyyymmSecond")]
-    pub yyyymm_second: Option<i32>,
+    pub yyyymm_second: ::core::option::Option<i32>,
     /// Optional. Write time in YYYYMM format (in UTC, e.g. 202402) for the third bit. Note that this value won''t be set if the third bit is false.
     #[serde(default, rename = "yyyymmThird")]
-    pub yyyymm_third: Option<i32>,
+    pub yyyymm_third: ::core::option::Option<i32>,
 }
 
 /// Request to write device recall bits.
@@ -283,8 +283,8 @@ pub struct WriteDates {
 pub struct WriteDeviceRecallRequest {
     /// Required. Integrity token obtained from calling Play Integrity API.
     #[serde(default, rename = "integrityToken")]
-    pub integrity_token: Option<String>,
+    pub integrity_token: ::core::option::Option<String>,
     /// Required. The new values for the device recall bits to be written.
     #[serde(default, rename = "newValues")]
-    pub new_values: Option<Values>,
+    pub new_values: ::core::option::Option<::std::boxed::Box<Values>>,
 }

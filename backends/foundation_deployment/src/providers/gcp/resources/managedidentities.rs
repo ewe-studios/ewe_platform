@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Request message for AttachTrust
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AttachTrustRequest {
     /// Required. The domain trust resource.
     #[serde(default)]
-    pub trust: Option<Trust>,
+    pub trust: ::core::option::Option<::std::boxed::Box<Trust>>,
 }
 
 /// Represents a Managed Microsoft Identities backup.
@@ -26,25 +26,25 @@ pub struct AttachTrustRequest {
 pub struct Backup {
     /// Output only. The time the backups was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Resource labels to represent user provided metadata.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The unique name of the Backup in the form of projects/{project_id}/locations/global/domains/{domain_name}/backups/{name}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "FAILED", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Additional information about the current status of this backup, if available.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Indicates whether it’s an on-demand backup or scheduled. // TODO: enum values: ["TYPE_UNSPECIFIED", "ON_DEMAND", "SCHEDULED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -52,13 +52,13 @@ pub struct Backup {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Certificate used to configure LDAPS.
@@ -66,19 +66,19 @@ pub struct Binding {
 pub struct Certificate {
     /// The certificate expire time.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The issuer of this certificate.
     #[serde(default, rename = "issuingCertificate")]
-    pub issuing_certificate: Option<Certificate>,
+    pub issuing_certificate: ::core::option::Option<::std::boxed::Box<Certificate>>,
     /// The certificate subject.
     #[serde(default)]
-    pub subject: Option<String>,
+    pub subject: ::core::option::Option<String>,
     /// The additional hostnames for the domain.
     #[serde(default, rename = "subjectAlternativeName")]
-    pub subject_alternative_name: Option<Vec<String>>,
+    pub subject_alternative_name: ::core::option::Option<::std::vec::Vec<String>>,
     /// The certificate thumbprint which uniquely identifies the certificate.
     #[serde(default)]
-    pub thumbprint: Option<String>,
+    pub thumbprint: ::core::option::Option<String>,
 }
 
 /// CheckMigrationPermissionResponse is the response message for CheckMigrationPermission method.
@@ -86,10 +86,11 @@ pub struct Certificate {
 pub struct CheckMigrationPermissionResponse {
     /// The state of SID filtering of all the domains which has trust established.
     #[serde(default, rename = "onpremDomains")]
-    pub onprem_domains: Option<Vec<OnPremDomainSIDDetails>>,
+    pub onprem_domains:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OnPremDomainSIDDetails>>>,
     /// The state of DomainMigration. // TODO: enum values: ["STATE_UNSPECIFIED", "DISABLED", "ENABLED", "NEEDS_MAINTENANCE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Time window specified for daily operations.
@@ -97,10 +98,10 @@ pub struct CheckMigrationPermissionResponse {
 pub struct DailyCycle {
     /// Output only. Duration of the time window, set by service producer.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Time within the day to start the operations.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -108,13 +109,13 @@ pub struct DailyCycle {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
@@ -122,13 +123,13 @@ pub struct Date {
 pub struct DenyMaintenancePeriod {
     /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Deny period start date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be the same or after the start.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Time in UTC when the Blackout period starts on start_date and ends on end_date. This can be: * Full time. * All zeros for 00:00:00 UTC
     #[serde(default)]
-    pub time: Option<TimeOfDay>,
+    pub time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Request message for DetachTrust
@@ -136,7 +137,7 @@ pub struct DenyMaintenancePeriod {
 pub struct DetachTrustRequest {
     /// Required. The domain trust resource to removed.
     #[serde(default)]
-    pub trust: Option<Trust>,
+    pub trust: ::core::option::Option<::std::boxed::Box<Trust>>,
 }
 
 /// Represents a managed Microsoft Active Directory domain. If the domain is being changed, it will be placed into the UPDATING state, which indicates that the resource is being reconciled. At this point, Get will reflect an intermediate state.
@@ -144,43 +145,43 @@ pub struct DetachTrustRequest {
 pub struct Domain {
     /// Optional. The name of delegated administrator account used to perform Active Directory operations. If not specified, setupadmin will be used.
     #[serde(default)]
-    pub admin: Option<String>,
+    pub admin: ::core::option::Option<String>,
     /// Optional. Configuration for audit logs. True if audit logs are enabled, else false. Default is audit logs disabled.
     #[serde(default, rename = "auditLogsEnabled")]
-    pub audit_logs_enabled: Option<bool>,
+    pub audit_logs_enabled: ::core::option::Option<bool>,
     /// Optional. The full names of the Google Compute Engine [networks](/compute/docs/networks-and-firewalls#networks) the domain instance is connected to. Networks can be added using UpdateDomain. The domain is only available on networks listed in authorized_networks. If CIDR subnets overlap between networks, domain creation will fail.
     #[serde(default, rename = "authorizedNetworks")]
-    pub authorized_networks: Option<Vec<String>>,
+    pub authorized_networks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The time the instance was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The fully-qualified domain name of the exposed domain used by clients to connect to the service. Similar to what would be chosen for an Active Directory set up on an internal network.
     #[serde(default)]
-    pub fqdn: Option<String>,
+    pub fqdn: ::core::option::Option<String>,
     /// Optional. Resource labels that can contain user-provided metadata.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Locations where domain needs to be provisioned. The locations can be specified according to https://cloud.google.com/compute/docs/regions-zones, such as us-west1 or us-east4. Each domain supports up to 4 locations, separated by commas. Each location will use a /26 block.
     #[serde(default)]
-    pub locations: Option<Vec<String>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The unique name of the domain using the form: projects/{project_id}/locations/global/domains/{domain_name}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The CIDR range of internal addresses that are reserved for this domain. Reserved networks must be /24 or larger. Ranges must be unique and non-overlapping with existing subnets in [Domain].[authorized_networks].
     #[serde(default, rename = "reservedIpRange")]
-    pub reserved_ip_range: Option<String>,
+    pub reserved_ip_range: ::core::option::Option<String>,
     /// Output only. The current state of this domain. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "DELETING", "REPAIRING", "PERFORMING_MAINTENANCE", "UNAVAILABLE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Additional information about the current status of this domain, if available.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. The current trusts associated with the domain.
     #[serde(default)]
-    pub trusts: Option<Vec<Trust>>,
+    pub trusts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Trust>>>,
     /// Output only. The last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// DomainJoinMachineRequest is the request message for DomainJoinMachine method
@@ -188,13 +189,13 @@ pub struct Domain {
 pub struct DomainJoinMachineRequest {
     /// Optional. force if True, forces domain join even if the computer account already exists.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Optional. OU name where the VM needs to be domain joined
     #[serde(default, rename = "ouName")]
-    pub ou_name: Option<String>,
+    pub ou_name: ::core::option::Option<String>,
     /// Required. Full instance id token of compute engine VM to verify instance identity. More about this: https://cloud.google.com/compute/docs/instances/verifying-instance-identity#request_signature
     #[serde(default, rename = "vmIdToken")]
-    pub vm_id_token: Option<String>,
+    pub vm_id_token: ::core::option::Option<String>,
 }
 
 /// DomainJoinMachineResponse is the response message for DomainJoinMachine method
@@ -202,7 +203,7 @@ pub struct DomainJoinMachineRequest {
 pub struct DomainJoinMachineResponse {
     /// Offline domain join blob as the response
     #[serde(default, rename = "domainJoinBlob")]
-    pub domain_join_blob: Option<String>,
+    pub domain_join_blob: ::core::option::Option<String>,
 }
 
 /// EnableMigrationRequest is the request message for EnableMigration method.
@@ -210,7 +211,8 @@ pub struct DomainJoinMachineResponse {
 pub struct EnableMigrationRequest {
     /// Required. List of the on-prem domains to be migrated.
     #[serde(default, rename = "migratingDomains")]
-    pub migrating_domains: Option<Vec<OnPremDomainDetails>>,
+    pub migrating_domains:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OnPremDomainDetails>>>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -218,16 +220,16 @@ pub struct EnableMigrationRequest {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// ExtendSchemaRequest is the request message for ExtendSchema method.
@@ -235,13 +237,13 @@ pub struct Expr {
 pub struct ExtendSchemaRequest {
     /// Required. Description for Schema Change.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// File uploaded as a byte stream input.
     #[serde(default, rename = "fileContents")]
-    pub file_contents: Option<String>,
+    pub file_contents: ::core::option::Option<String>,
     /// File stored in Cloud Storage bucket and represented in the form projects/{project_id}/buckets/{bucket_name}/objects/{object_name} File should be in the same project as the domain.
     #[serde(default, rename = "gcsPath")]
-    pub gcs_path: Option<String>,
+    pub gcs_path: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -249,22 +251,22 @@ pub struct ExtendSchemaRequest {
 pub struct GoogleCloudManagedidentitiesV1OpMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -272,22 +274,22 @@ pub struct GoogleCloudManagedidentitiesV1OpMetadata {
 pub struct GoogleCloudManagedidentitiesV1alpha1OpMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -295,22 +297,22 @@ pub struct GoogleCloudManagedidentitiesV1alpha1OpMetadata {
 pub struct GoogleCloudManagedidentitiesV1beta1OpMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Instance represents the interface for SLM services to actuate the state of control plane resources. Example Instance in JSON, where consumer-project-number=123456, producer-project-id=cloud-sql: json Instance: { "name": "projects/123456/locations/us-east1/instances/prod-instance", "create_time": { "seconds": 1526406431, }, "labels": { "env": "prod", "foo": "bar" }, "state": READY, "software_versions": { "software_update": "cloud-sql-09-28-2018", }, "maintenance_policy_names": { "UpdatePolicy": "projects/123456/locations/us-east1/maintenancePolicies/prod-update-policy", } "tenant_project_id": "cloud-sql-test-tenant", "producer_metadata": { "cloud-sql-tier": "basic", "cloud-sql-instance-size": "1G", }, "provisioned_resources": [ { "resource-type": "compute-instance", "resource-url": "https://www.googleapis.com/compute/v1/projects/cloud-sql/zones/us-east1-b/instances/vm-1", } ], "maintenance_schedules": { "csa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, }, "ncsa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, } }, "consumer_defined_name": "my-sql-instance1", }  LINT.IfChange
@@ -318,60 +320,66 @@ pub struct GoogleCloudManagedidentitiesV1beta1OpMetadata {
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1Instance {
     /// consumer_defined_name is the name of the instance set by the service consumers. Generally this is different from the name field which reperesents the system-assigned id of the instance which the service consumers do not recognize. This is a required field for tenants onboarding to Maintenance Window notifications (go/slm-rollout-maintenance-policies#prerequisites).
     #[serde(default, rename = "consumerDefinedName")]
-    pub consumer_defined_name: Option<String>,
+    pub consumer_defined_name: ::core::option::Option<String>,
     /// Optional. The consumer_project_number associated with this Apigee instance. This field is added specifically to support Apigee integration with SLM Rollout and UMM. It represents the numerical project ID of the GCP project that consumes this Apigee instance. It is used for SLM rollout notifications and UMM integration, enabling proper mapping to customer projects and log delivery for Apigee instances. This field complements consumer_project_id and may be used for specific Apigee scenarios where the numerical ID is required.
     #[serde(default, rename = "consumerProjectNumber")]
-    pub consumer_project_number: Option<String>,
+    pub consumer_project_number: ::core::option::Option<String>,
     /// Output only. Timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. The instance_type of this instance of format: projects/{project_number}/locations/{location_id}/instanceTypes/{instance_type_id}. Instance Type represents a high-level tier or SKU of the service that this instance belong to. When enabled(eg: Maintenance Rollout), Rollout uses ''instance_type'' along with ''software_versions'' to determine whether instance needs an update or not.
     #[serde(default, rename = "instanceType")]
-    pub instance_type: Option<String>,
+    pub instance_type: ::core::option::Option<String>,
     /// Optional. Resource labels to represent user provided metadata. Each label is a key-value pair, where both the key and the value are arbitrary strings provided by the user.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The MaintenancePolicies that have been attached to the instance. The key must be of the type name of the oneof policy name defined in MaintenancePolicy, and the referenced policy must define the same policy type. For details, please refer to go/mr-user-guide. Should not be set if maintenance_settings.maintenance_policies is set.
     #[serde(default, rename = "maintenancePolicyNames")]
-    pub maintenance_policy_names: Option<serde_json::Value>,
+    pub maintenance_policy_names: ::core::option::Option<serde_json::Value>,
     /// The MaintenanceSchedule contains the scheduling information of published maintenance schedule with same key as software_versions.
     #[serde(default, rename = "maintenanceSchedules")]
-    pub maintenance_schedules: Option<serde_json::Value>,
+    pub maintenance_schedules: ::core::option::Option<serde_json::Value>,
     /// Optional. The MaintenanceSettings associated with instance.
     #[serde(default, rename = "maintenanceSettings")]
-    pub maintenance_settings:
-        Option<GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings>,
+    pub maintenance_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings>,
+    >,
     /// Unique name of the resource. It uses the form: projects/{project_number}/locations/{location_id}/instances/{instance_id} Note: This name is passed, stored and logged across the rollout system. So use of consumer project_id or any other consumer PII in the name is strongly discouraged for wipeout (go/wipeout) compliance. See go/elysium/project_ids#storage-guidance for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. notification_parameter are information that service producers may like to include that is not relevant to Rollout. This parameter will only be passed to Gamma and Cloud Logging for notification/logging purpose.
     #[serde(default, rename = "notificationParameters")]
-    pub notification_parameters: Option<serde_json::Value>,
+    pub notification_parameters: ::core::option::Option<serde_json::Value>,
     /// Output only. Custom string attributes used primarily to expose producer-specific information in monitoring dashboards. See go/get-instance-metadata.
     #[serde(default, rename = "producerMetadata")]
-    pub producer_metadata: Option<serde_json::Value>,
+    pub producer_metadata: ::core::option::Option<serde_json::Value>,
     /// Output only. The list of data plane resources provisioned for this instance, e.g. compute VMs. See go/get-instance-metadata.
     #[serde(default, rename = "provisionedResources")]
-    pub provisioned_resources:
-        Option<Vec<GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource>>,
+    pub provisioned_resources: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource>,
+        >,
+    >,
     /// Link to the SLM instance template. Only populated when updating SLM instances via SSA''s Actuation service adaptor. Service producers with custom control plane (e.g. Cloud SQL) doesn''t need to populate this field. Instead they should use software_versions.
     #[serde(default, rename = "slmInstanceTemplate")]
-    pub slm_instance_template: Option<String>,
+    pub slm_instance_template: ::core::option::Option<String>,
     /// Output only. SLO metadata for instance classification in the Standardized dataplane SLO platform. See go/cloud-ssa-standard-slo for feature description.
     #[serde(default, rename = "sloMetadata")]
-    pub slo_metadata: Option<GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata>,
+    pub slo_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata>,
+    >,
     /// Software versions that are used to deploy this instance. This can be mutated by rollout services.
     #[serde(default, rename = "softwareVersions")]
-    pub software_versions: Option<serde_json::Value>,
+    pub software_versions: ::core::option::Option<serde_json::Value>,
     /// Output only. Current lifecycle state of the resource (e.g. if it''s being created or ready to use). // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "REPAIRING", "DELETING", "ERROR"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. ID of the associated GCP tenant project. See go/get-instance-metadata.
     #[serde(default, rename = "tenantProjectId")]
-    pub tenant_project_id: Option<String>,
+    pub tenant_project_id: ::core::option::Option<String>,
     /// Output only. Timestamp when the resource was last modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Maintenance schedule which is exposed to customer and potentially end user, indicating published upcoming future maintenance schedule
@@ -379,19 +387,19 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1Instance {
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSchedule {
     /// This field is deprecated, and will be always set to true since reschedule can happen multiple times now. This field should not be removed until all service producers remove this for their customers.
     #[serde(default, rename = "canReschedule")]
-    pub can_reschedule: Option<bool>,
+    pub can_reschedule: ::core::option::Option<bool>,
     /// The scheduled end time for the maintenance.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The rollout management policy this maintenance schedule is associated with. When doing reschedule update request, the reschedule should be against this given policy.
     #[serde(default, rename = "rolloutManagementPolicy")]
-    pub rollout_management_policy: Option<String>,
+    pub rollout_management_policy: ::core::option::Option<String>,
     /// schedule_deadline_time is the time deadline any schedule start time cannot go beyond, including reschedule. It''s normally the initial schedule start time plus maintenance window length (1 day or 1 week). Maintenance cannot be scheduled to start beyond this deadline.
     #[serde(default, rename = "scheduleDeadlineTime")]
-    pub schedule_deadline_time: Option<String>,
+    pub schedule_deadline_time: ::core::option::Option<String>,
     /// The scheduled start time for the maintenance.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
@@ -399,13 +407,13 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSchedule {
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
     /// Optional. Exclude instance from maintenance. When true, rollout service will not attempt maintenance on the instance. Rollout service will include the instance in reported rollout progress as not attempted.
     #[serde(default)]
-    pub exclude: Option<bool>,
+    pub exclude: ::core::option::Option<bool>,
     /// Optional. If the update call is triggered from rollback, set the value as true.
     #[serde(default, rename = "isRollback")]
-    pub is_rollback: Option<bool>,
+    pub is_rollback: ::core::option::Option<bool>,
     /// Optional. The MaintenancePolicies that have been attached to the instance. The key must be of the type name of the oneof policy name defined in MaintenancePolicy, and the embedded policy must define the same policy type. For details, please refer to go/mr-user-guide. Should not be set if maintenance_policy_names is set. If only the name is needed, then only populate MaintenancePolicy.name.
     #[serde(default, rename = "maintenancePolicies")]
-    pub maintenance_policies: Option<serde_json::Value>,
+    pub maintenance_policies: ::core::option::Option<serde_json::Value>,
 }
 
 /// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
@@ -413,14 +421,15 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
     /// The location of the node, if different from instance location.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The id of the node. This should be equal to SaasInstanceNode.node_id.
     #[serde(default, rename = "nodeId")]
-    pub node_id: Option<String>,
+    pub node_id: ::core::option::Option<String>,
     /// If present, this will override eligibility for the node coming from instance or exclusions for specified SLIs.
     #[serde(default, rename = "perSliEligibility")]
-    pub per_sli_eligibility:
-        Option<GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility>,
+    pub per_sli_eligibility: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility>,
+    >,
 }
 
 /// Contains notification related data.
@@ -428,7 +437,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter {
     /// Optional. Array of string values. e.g. instance''s replica information.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Describes provisioned dataplane resources.
@@ -436,10 +445,10 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter 
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
     /// Type of the resource. This can be either a GCP resource or a custom one (e.g. another cloud provider''s VM). For GCP compute resources use singular form of the names listed in GCP compute API documentation (https://cloud.google.com/compute/docs/reference/rest/v1/), prefixed with ''compute-'', for example: ''compute-instance'', ''compute-disk'', ''compute-autoscaler''.
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
     /// URL identifying the resource, e.g. "https://www.googleapis.com/compute/v1/projects/...)".
     #[serde(default, rename = "resourceUrl")]
-    pub resource_url: Option<String>,
+    pub resource_url: ::core::option::Option<String>,
 }
 
 /// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
@@ -447,10 +456,10 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
     /// Whether an instance is eligible or ineligible.
     #[serde(default)]
-    pub eligible: Option<bool>,
+    pub eligible: ::core::option::Option<bool>,
     /// User-defined reason for the current value of instance eligibility. Usually, this can be directly mapped to the internal state. An empty reason is allowed.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// SloMetadata contains resources required for proper SLO classification of the instance.
@@ -458,14 +467,19 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata {
     /// Optional. List of nodes. Some producers need to use per-node metadata to calculate SLO. This field allows such producers to publish per-node SLO meta data, which will be consumed by SSA Eligibility Exporter and published in the form of per node metric to Monarch.
     #[serde(default)]
-    pub nodes: Option<Vec<GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata>>,
+    pub nodes: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata>,
+        >,
+    >,
     /// Optional. Multiple per-instance SLI eligibilities which apply for individual SLIs.
     #[serde(default, rename = "perSliEligibility")]
-    pub per_sli_eligibility:
-        Option<GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility>,
+    pub per_sli_eligibility: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility>,
+    >,
     /// Name of the SLO tier the Instance belongs to. This name will be expected to match the tiers specified in the service SLO configuration. Field is mandatory and must not be empty.
     #[serde(default)]
-    pub tier: Option<String>,
+    pub tier: ::core::option::Option<String>,
 }
 
 /// LDAPSSettings represents the ldaps settings for domain resource. LDAP is the Lightweight Directory Access Protocol, defined in https://tools.ietf.org/html/rfc4511. The settings object configures LDAP over SSL/TLS, whether it is over port 636 or the StartTLS operation. If LDAPSSettings is being changed, it will be placed into the UPDATING state, which indicates that the resource is being reconciled. At this point, Get will reflect an intermediate state.
@@ -473,22 +487,22 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata {
 pub struct LDAPSSettings {
     /// Output only. The certificate used to configure LDAPS. Certificates can be chained with a maximum length of 15.
     #[serde(default)]
-    pub certificate: Option<Certificate>,
+    pub certificate: ::core::option::Option<::std::boxed::Box<Certificate>>,
     /// Input only. The password used to encrypt the uploaded PFX certificate.
     #[serde(default, rename = "certificatePassword")]
-    pub certificate_password: Option<String>,
+    pub certificate_password: ::core::option::Option<String>,
     /// Input only. The uploaded PKCS12-formatted certificate to configure LDAPS with. It will enable the domain controllers in this domain to accept LDAPS connections (either LDAP over SSL/TLS or the StartTLS operation). A valid certificate chain must form a valid x.509 certificate chain (or be comprised of a single self-signed certificate. It must be encrypted with either: 1) PBES2 + PBKDF2 + AES256 encryption and SHA256 PRF; or 2) pbeWithSHA1And3-KeyTripleDES-CBC Private key must be included for the leaf / single self-signed certificate. Note: For a fqdn your-example-domain.com, the wildcard fqdn is *.your-example-domain.com. Specifically the leaf certificate must have: - Either a blank subject or a subject with CN matching the wildcard fqdn. - Exactly two SANs - the fqdn and wildcard fqdn. - Encipherment and digital key signature key usages. - Server authentication extended key usage (OID=1.3.6.1.5.5.7.3.1) - Private key must be in one of the following formats: RSA, ECDSA, ED25519. - Private key must have appropriate key length: 2048 for RSA, 256 for ECDSA - Signature algorithm of the leaf certificate cannot be MD2, MD5 or SHA1.
     #[serde(default, rename = "certificatePfx")]
-    pub certificate_pfx: Option<String>,
+    pub certificate_pfx: ::core::option::Option<String>,
     /// The resource name of the LDAPS settings. Uses the form: projects/{project}/locations/{location}/domains/{domain}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of this LDAPS settings. // TODO: enum values: ["STATE_UNSPECIFIED", "UPDATING", "ACTIVE", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// ListBackupsResponse is the response message for ListBackups method.
@@ -496,13 +510,13 @@ pub struct LDAPSSettings {
 pub struct ListBackupsResponse {
     /// A list of Cloud AD backups in the domain.
     #[serde(default)]
-    pub backups: Option<Vec<Backup>>,
+    pub backups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Backup>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListDomains
@@ -510,13 +524,13 @@ pub struct ListBackupsResponse {
 pub struct ListDomainsResponse {
     /// A list of Managed Identities Service domains in the project.
     #[serde(default)]
-    pub domains: Option<Vec<Domain>>,
+    pub domains: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Domain>>>,
     /// A token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -524,10 +538,10 @@ pub struct ListDomainsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -535,13 +549,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ListPeeringsResponse is the response message for ListPeerings method.
@@ -549,13 +563,13 @@ pub struct ListOperationsResponse {
 pub struct ListPeeringsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of Managed Identities Service Peerings in the project.
     #[serde(default)]
-    pub peerings: Option<Vec<Peering>>,
+    pub peerings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Peering>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ListSqlIntegrationsResponse is the response message for ListSqlIntegrations method.
@@ -563,13 +577,14 @@ pub struct ListPeeringsResponse {
 pub struct ListSqlIntegrationsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of SQLIntegrations of a domain.
     #[serde(default, rename = "sqlIntegrations")]
-    pub sql_integrations: Option<Vec<SqlIntegration>>,
+    pub sql_integrations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlIntegration>>>,
     /// A list of locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -577,19 +592,19 @@ pub struct ListSqlIntegrationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Defines policies to service maintenance events.
@@ -597,25 +612,25 @@ pub struct Location {
 pub struct MaintenancePolicy {
     /// Output only. The time when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of what this policy is for. Create/Update methods return INVALID_ARGUMENT if the length is greater than 512.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Resource labels to represent user provided metadata. Each label is a key-value pair, where both the key and the value are arbitrary strings provided by the user.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. MaintenancePolicy name using the form: projects/{project_id}/locations/{location_id}/maintenancePolicies/{maintenance_policy_id} where {project_id} refers to a GCP consumer project ID, {location_id} refers to a GCP region/zone, {maintenance_policy_id} must be 1-63 characters long and match the regular expression [a-z0-9]([-a-z0-9]*[a-z0-9])?.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The state of the policy. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Maintenance policy applicable to instance update.
     #[serde(default, rename = "updatePolicy")]
-    pub update_policy: Option<UpdatePolicy>,
+    pub update_policy: ::core::option::Option<::std::boxed::Box<UpdatePolicy>>,
     /// Output only. The time when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// MaintenanceWindow definition.
@@ -623,10 +638,10 @@ pub struct MaintenancePolicy {
 pub struct MaintenanceWindow {
     /// Daily cycle.
     #[serde(default, rename = "dailyCycle")]
-    pub daily_cycle: Option<DailyCycle>,
+    pub daily_cycle: ::core::option::Option<::std::boxed::Box<DailyCycle>>,
     /// Weekly cycle.
     #[serde(default, rename = "weeklyCycle")]
-    pub weekly_cycle: Option<WeeklyCycle>,
+    pub weekly_cycle: ::core::option::Option<::std::boxed::Box<WeeklyCycle>>,
 }
 
 /// OnPremDomainDetails is the message which contains details of on-prem domain which is trusted and needs to be migrated.
@@ -634,10 +649,10 @@ pub struct MaintenanceWindow {
 pub struct OnPremDomainDetails {
     /// Optional. Option to disable SID filtering.
     #[serde(default, rename = "disableSidFiltering")]
-    pub disable_sid_filtering: Option<bool>,
+    pub disable_sid_filtering: ::core::option::Option<bool>,
     /// Required. FQDN of the on-prem domain being migrated.
     #[serde(default, rename = "domainName")]
-    pub domain_name: Option<String>,
+    pub domain_name: ::core::option::Option<String>,
 }
 
 /// OnPremDomainDetails is the message which contains details of on-prem domain which is trusted and needs to be migrated.
@@ -645,10 +660,10 @@ pub struct OnPremDomainDetails {
 pub struct OnPremDomainSIDDetails {
     /// FQDN of the on-prem domain being migrated.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Current SID filtering state. // TODO: enum values: ["SID_FILTERING_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "sidFilteringState")]
-    pub sid_filtering_state: Option<String>,
+    pub sid_filtering_state: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -656,19 +671,19 @@ pub struct OnPremDomainSIDDetails {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -676,25 +691,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents a Managed Service for Microsoft Active Directory Peering.
@@ -702,28 +717,28 @@ pub struct OperationMetadata {
 pub struct Peering {
     /// Required. The full names of the Google Compute Engine [networks](/compute/docs/networks-and-firewalls#networks) to which the instance is connected. Caller needs to make sure that CIDR subnets do not overlap between networks, else peering creation will fail.
     #[serde(default, rename = "authorizedNetwork")]
-    pub authorized_network: Option<String>,
+    pub authorized_network: ::core::option::Option<String>,
     /// Output only. The time the instance was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Full domain resource path for the Managed AD Domain involved in peering. The resource path should be in the form: projects/{project_id}/locations/global/domains/{domain_name}
     #[serde(default, rename = "domainResource")]
-    pub domain_resource: Option<String>,
+    pub domain_resource: ::core::option::Option<String>,
     /// Optional. Resource labels to represent user-provided metadata.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Unique name of the peering in this scope including projects and location using the form: projects/{project_id}/locations/global/peerings/{peering_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of this Peering. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "CONNECTED", "DISCONNECTED", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Additional information about the current status of this peering, if available.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -731,13 +746,13 @@ pub struct Peering {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Request message for ReconfigureTrust
@@ -745,10 +760,10 @@ pub struct Policy {
 pub struct ReconfigureTrustRequest {
     /// Required. The target DNS server IP addresses to resolve the remote domain involved in the trust.
     #[serde(default, rename = "targetDnsIpAddresses")]
-    pub target_dns_ip_addresses: Option<Vec<String>>,
+    pub target_dns_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The fully-qualified target domain name which will be in trust with current domain.
     #[serde(default, rename = "targetDomainName")]
-    pub target_domain_name: Option<String>,
+    pub target_domain_name: ::core::option::Option<String>,
 }
 
 /// Response message for ResetAdminPassword
@@ -756,7 +771,7 @@ pub struct ReconfigureTrustRequest {
 pub struct ResetAdminPasswordResponse {
     /// A random password. See admin for more information.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
 }
 
 /// RestoreDomainRequest is the request received by RestoreDomain rpc
@@ -764,7 +779,7 @@ pub struct ResetAdminPasswordResponse {
 pub struct RestoreDomainRequest {
     /// Required. ID of the backup to be restored
     #[serde(default, rename = "backupId")]
-    pub backup_id: Option<String>,
+    pub backup_id: ::core::option::Option<String>,
 }
 
 /// Configure the schedule.
@@ -772,13 +787,13 @@ pub struct RestoreDomainRequest {
 pub struct Schedule {
     /// Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
-    pub day: Option<String>,
+    pub day: ::core::option::Option<String>,
     /// Output only. Duration of the time window, set by service producer.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Time within the window to start the operations.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -786,7 +801,7 @@ pub struct Schedule {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// Represents the SQL instance integrated with Managed AD.
@@ -794,19 +809,19 @@ pub struct SetIamPolicyRequest {
 pub struct SqlIntegration {
     /// Output only. The time the SQL integration was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The unique name of the SQL integration in the form of projects/{project_id}/locations/global/domains/{domain_name}/sqlIntegrations/{sql_integration}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The full resource name of an integrated SQL instance
     #[serde(default, rename = "sqlInstance")]
-    pub sql_instance: Option<String>,
+    pub sql_instance: ::core::option::Option<String>,
     /// Output only. The current state of the SQL integration. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "READY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time the SQL integration was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -814,13 +829,13 @@ pub struct SqlIntegration {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -828,7 +843,7 @@ pub struct Status {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -836,7 +851,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -844,16 +859,16 @@ pub struct TestIamPermissionsResponse {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// Represents a relationship between two domains. This allows a controller in one domain to authenticate a user in another domain. If the trust is being changed, it will be placed into the UPDATING state, which indicates that the resource is being reconciled. At this point, Get will reflect an intermediate state.
@@ -861,37 +876,37 @@ pub struct TimeOfDay {
 pub struct Trust {
     /// Output only. The time the instance was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The last heartbeat time when the trust was known to be connected.
     #[serde(default, rename = "lastTrustHeartbeatTime")]
-    pub last_trust_heartbeat_time: Option<String>,
+    pub last_trust_heartbeat_time: ::core::option::Option<String>,
     /// Optional. The trust authentication type, which decides whether the trusted side has forest/domain wide access or selective access to an approved set of resources.
     #[serde(default, rename = "selectiveAuthentication")]
-    pub selective_authentication: Option<bool>,
+    pub selective_authentication: ::core::option::Option<bool>,
     /// Output only. The current state of the trust. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "UPDATING", "DELETING", "CONNECTED", "DISCONNECTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Additional information about the current state of the trust, if available.
     #[serde(default, rename = "stateDescription")]
-    pub state_description: Option<String>,
+    pub state_description: ::core::option::Option<String>,
     /// Required. The target DNS server IP addresses which can resolve the remote domain involved in the trust.
     #[serde(default, rename = "targetDnsIpAddresses")]
-    pub target_dns_ip_addresses: Option<Vec<String>>,
+    pub target_dns_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The fully qualified target domain name which will be in trust with the current domain.
     #[serde(default, rename = "targetDomainName")]
-    pub target_domain_name: Option<String>,
+    pub target_domain_name: ::core::option::Option<String>,
     /// Required. The trust direction, which decides if the current domain is trusted, trusting, or both. // TODO: enum values: ["TRUST_DIRECTION_UNSPECIFIED", "INBOUND", "OUTBOUND", "BIDIRECTIONAL"]
     #[serde(default, rename = "trustDirection")]
-    pub trust_direction: Option<String>,
+    pub trust_direction: ::core::option::Option<String>,
     /// Required. The trust secret used for the handshake with the target domain. This will not be stored.
     #[serde(default, rename = "trustHandshakeSecret")]
-    pub trust_handshake_secret: Option<String>,
+    pub trust_handshake_secret: ::core::option::Option<String>,
     /// Required. The type of trust represented by the trust resource. // TODO: enum values: ["TRUST_TYPE_UNSPECIFIED", "FOREST", "EXTERNAL"]
     #[serde(default, rename = "trustType")]
-    pub trust_type: Option<String>,
+    pub trust_type: ::core::option::Option<String>,
     /// Output only. The last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Maintenance policy applicable to instance updates.
@@ -899,13 +914,14 @@ pub struct Trust {
 pub struct UpdatePolicy {
     /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
     #[serde(default)]
-    pub channel: Option<String>,
+    pub channel: ::core::option::Option<String>,
     /// Deny Maintenance Period that is applied to resource to indicate when maintenance is forbidden. The protocol supports zero-to-many such periods, but the current SLM Rollout implementation only supports zero-to-one.
     #[serde(default, rename = "denyMaintenancePeriods")]
-    pub deny_maintenance_periods: Option<Vec<DenyMaintenancePeriod>>,
+    pub deny_maintenance_periods:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DenyMaintenancePeriod>>>,
     /// Optional. Maintenance window that is applied to resources covered by this policy.
     #[serde(default)]
-    pub window: Option<MaintenanceWindow>,
+    pub window: ::core::option::Option<::std::boxed::Box<MaintenanceWindow>>,
 }
 
 /// Request message for ValidateTrust
@@ -913,7 +929,7 @@ pub struct UpdatePolicy {
 pub struct ValidateTrustRequest {
     /// Required. The domain trust to validate trust state for.
     #[serde(default)]
-    pub trust: Option<Trust>,
+    pub trust: ::core::option::Option<::std::boxed::Box<Trust>>,
 }
 
 /// Time window specified for weekly operations.
@@ -921,5 +937,5 @@ pub struct ValidateTrustRequest {
 pub struct WeeklyCycle {
     /// User can specify multiple windows in a week. Minimum of 1 window.
     #[serde(default)]
-    pub schedule: Option<Vec<Schedule>>,
+    pub schedule: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Schedule>>>,
 }

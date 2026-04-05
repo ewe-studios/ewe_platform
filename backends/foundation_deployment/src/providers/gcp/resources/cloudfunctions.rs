@@ -10,18 +10,19 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    pub audit_log_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditLogConfig>>>,
     /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -29,10 +30,10 @@ pub struct AuditConfig {
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: Option<Vec<String>>,
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -40,55 +41,55 @@ pub struct AuditLogConfig {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Describes the Build step of the function that builds a container from the given source.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuildConfig {
     #[serde(default, rename = "automaticUpdatePolicy")]
-    pub automatic_update_policy: Option<serde_json::Value>,
+    pub automatic_update_policy: ::core::option::Option<serde_json::Value>,
     /// Output only. The Cloud Build name of the latest successful deployment of the function.
     #[serde(default)]
-    pub build: Option<String>,
+    pub build: ::core::option::Option<String>,
     /// Docker Registry to use for this deployment. This configuration is only applicable to 1st Gen functions, 2nd Gen functions can only use Artifact Registry. Deprecated: as of March 2025, CONTAINER_REGISTRY option is no longer available in response to Container Registry''s deprecation: https://cloud.google.com/artifact-registry/docs/transition/transition-from-gcr Please use Artifact Registry instead, which is the default choice. If unspecified, it defaults to ARTIFACT_REGISTRY. If docker_repository field is specified, this field should either be left unspecified or set to ARTIFACT_REGISTRY. // TODO: enum values: ["DOCKER_REGISTRY_UNSPECIFIED", "CONTAINER_REGISTRY", "ARTIFACT_REGISTRY"]
     #[serde(default, rename = "dockerRegistry")]
-    pub docker_registry: Option<String>,
+    pub docker_registry: ::core::option::Option<String>,
     /// Repository in Artifact Registry to which the function docker image will be pushed after it is built by Cloud Build. If specified by user, it is created and managed by user with a customer managed encryption key. Otherwise, GCF will create and use a repository named ''gcf-artifacts'' for every deployed region. It must match the pattern projects/{project}/locations/{location}/repositories/{repository}. Repository format must be ''DOCKER''.
     #[serde(default, rename = "dockerRepository")]
-    pub docker_repository: Option<String>,
+    pub docker_repository: ::core::option::Option<String>,
     /// The name of the function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified. For backward compatibility, if function with given name is not found, then the system will try to use function named "function". For Node.js this is name of a function exported by the module specified in source_location.
     #[serde(default, rename = "entryPoint")]
-    pub entry_point: Option<String>,
+    pub entry_point: ::core::option::Option<String>,
     /// User-provided build-time environment variables for the function
     #[serde(default, rename = "environmentVariables")]
-    pub environment_variables: Option<serde_json::Value>,
+    pub environment_variables: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "onDeployUpdatePolicy")]
-    pub on_deploy_update_policy: Option<OnDeployUpdatePolicy>,
+    pub on_deploy_update_policy: ::core::option::Option<::std::boxed::Box<OnDeployUpdatePolicy>>,
     /// The runtime in which to run the function. Required when deploying a new function, optional when updating an existing function. For a complete list of possible choices, see the [gcloud command reference](https://cloud.google.com/sdk/gcloud/reference/functions/deploy#--runtime).
     #[serde(default)]
-    pub runtime: Option<String>,
+    pub runtime: ::core::option::Option<String>,
     /// Service account to be used for building the container. The format of this field is projects/{projectId}/serviceAccounts/{serviceAccountEmail}.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// The location of the function source code.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
     /// Output only. A permanent fixed identifier for source.
     #[serde(default, rename = "sourceProvenance")]
-    pub source_provenance: Option<SourceProvenance>,
+    pub source_provenance: ::core::option::Option<::std::boxed::Box<SourceProvenance>>,
     /// An identifier for Firebase function sources. Disclaimer: This field is only supported for Firebase function deployments.
     #[serde(default, rename = "sourceToken")]
-    pub source_token: Option<String>,
+    pub source_token: ::core::option::Option<String>,
     /// Name of the Cloud Build Custom Worker Pool that should be used to build the function. The format of this field is projects/{project}/locations/{region}/workerPools/{workerPool} where {project} and {region} are the project id and region respectively where the worker pool is defined and {workerPool} is the short name of the worker pool. If the project id is not the same as the function, then the Cloud Functions Service Agent (service-@gcf-admin-robot.iam.gserviceaccount.com) must be granted the role Cloud Build Custom Workers Builder (roles/cloudbuild.customworkers.builder) in the project.
     #[serde(default, rename = "workerPool")]
-    pub worker_pool: Option<String>,
+    pub worker_pool: ::core::option::Option<String>,
 }
 
 /// Contains overrides related to the function''s build configuration.
@@ -96,7 +97,7 @@ pub struct BuildConfig {
 pub struct BuildConfigOverrides {
     /// Optional. Specifies the desired runtime for the new Cloud Run function. (e.g., "nodejs20", "python312"). Constraints: 1. This field CANNOT be used to change the runtime language (e.g., from NODEJS to PYTHON). The backend will enforce this. 2. This field can ONLY be used to upgrade the runtime version (e.g., nodejs18 to nodejs20). Downgrading the version is not permitted. The backend will validate the version change. If provided and valid, this overrides the runtime of the Gen1 function.
     #[serde(default)]
-    pub runtime: Option<String>,
+    pub runtime: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -104,13 +105,13 @@ pub struct BuildConfigOverrides {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// The Direct VPC network interface. This is mutually exclusive with VPC Connector.
@@ -118,13 +119,13 @@ pub struct Date {
 pub struct DirectVpcNetworkInterface {
     /// Optional. The name of the VPC network to which the function will be connected. Specify either a VPC network or a subnet, or both. If you specify only a network, the subnet uses the same name as the network.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. The name of the VPC subnetwork that the Cloud Function resource will get IPs from. Specify either a VPC network or a subnet, or both. If both network and subnetwork are specified, the given VPC subnetwork must belong to the given VPC network. If subnetwork is not specified, the subnetwork with the same name with the network will be used.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
     /// Optional. Network tags applied to this Cloud Function resource.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Filters events based on exact matches on the CloudEvents attributes.
@@ -132,13 +133,13 @@ pub struct DirectVpcNetworkInterface {
 pub struct EventFilter {
     /// Required. The name of a CloudEvents attribute.
     #[serde(default)]
-    pub attribute: Option<String>,
+    pub attribute: ::core::option::Option<String>,
     /// Optional. The operator used for matching the events with the value of the filter. If not specified, only events that have an exact key-value pair specified in the filter are matched. The only allowed value is match-path-pattern.
     #[serde(default)]
-    pub operator: Option<String>,
+    pub operator: ::core::option::Option<String>,
     /// Required. The value for the attribute.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Describes EventTrigger, used to request events to be sent from another service.
@@ -146,31 +147,31 @@ pub struct EventFilter {
 pub struct EventTrigger {
     /// Optional. The name of the channel associated with the trigger in projects/{project}/locations/{location}/channels/{channel} format. You must provide a channel to receive events from Eventarc SaaS partners.
     #[serde(default)]
-    pub channel: Option<String>,
+    pub channel: ::core::option::Option<String>,
     /// Criteria used to filter events.
     #[serde(default, rename = "eventFilters")]
-    pub event_filters: Option<Vec<EventFilter>>,
+    pub event_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventFilter>>>,
     /// Required. The type of event to observe. For example: google.cloud.audit.log.v1.written or google.cloud.pubsub.topic.v1.messagePublished.
     #[serde(default, rename = "eventType")]
-    pub event_type: Option<String>,
+    pub event_type: ::core::option::Option<String>,
     /// Optional. The name of a Pub/Sub topic in the same project that will be used as the transport topic for the event delivery. Format: projects/{project}/topics/{topic}. This is only valid for events of type google.cloud.pubsub.topic.v1.messagePublished. The topic provided here will not be deleted at function deletion.
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
     /// Optional. If unset, then defaults to ignoring failures (i.e. not retrying them). // TODO: enum values: ["RETRY_POLICY_UNSPECIFIED", "RETRY_POLICY_DO_NOT_RETRY", "RETRY_POLICY_RETRY"]
     #[serde(default, rename = "retryPolicy")]
-    pub retry_policy: Option<String>,
+    pub retry_policy: ::core::option::Option<String>,
     /// Optional. The hostname of the service that 1st Gen function should be observed. If no string is provided, the default service implementing the API will be used. For example, storage.googleapis.com is the default for all event types in the google.storage namespace. The field is only applicable to 1st Gen functions.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
     /// Optional. The email of the trigger''s service account. The service account must have permission to invoke Cloud Run services, the permission is run.routes.invoke. If empty, defaults to the Compute Engine default service account: {project_number}-compute@developer.gserviceaccount.com.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// Output only. The resource name of the Eventarc trigger. The format of this field is projects/{project}/locations/{region}/triggers/{trigger}.
     #[serde(default)]
-    pub trigger: Option<String>,
+    pub trigger: ::core::option::Option<String>,
     /// The region that the trigger will be in. The trigger will only receive events originating in this region. It can be the same region as the function, a different region or multi-region, or the global region. If not provided, defaults to the same region as the function.
     #[serde(default, rename = "triggerRegion")]
-    pub trigger_region: Option<String>,
+    pub trigger_region: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -178,16 +179,16 @@ pub struct EventTrigger {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Describes a Cloud Function that contains user computation executed in response to an event. It encapsulates function and trigger configurations.
@@ -195,52 +196,54 @@ pub struct Expr {
 pub struct Function {
     /// Describes the Build step of the function that builds a container from the given source.
     #[serde(default, rename = "buildConfig")]
-    pub build_config: Option<BuildConfig>,
+    pub build_config: ::core::option::Option<::std::boxed::Box<BuildConfig>>,
     /// Output only. The create timestamp of a Cloud Function. This is only applicable to 2nd Gen functions.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// User-provided description of a function.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Describe whether the function is 1st Gen or 2nd Gen. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "GEN_1", "GEN_2"]
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// An Eventarc trigger managed by Google Cloud Functions that fires events in response to a condition in another service.
     #[serde(default, rename = "eventTrigger")]
-    pub event_trigger: Option<EventTrigger>,
+    pub event_trigger: ::core::option::Option<::std::boxed::Box<EventTrigger>>,
     /// Resource name of a KMS crypto key (managed by the user) used to encrypt/decrypt function resources. It must match the pattern projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Labels associated with this Cloud Function.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// A user-defined name of the function. Function names must be unique globally and match pattern projects/*/locations/*/functions/*
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Describes the Service being deployed. Currently deploys services to Cloud Run (fully managed).
     #[serde(default, rename = "serviceConfig")]
-    pub service_config: Option<ServiceConfig>,
+    pub service_config: ::core::option::Option<::std::boxed::Box<ServiceConfig>>,
     /// Output only. State of the function. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "FAILED", "DEPLOYING", "DELETING", "UNKNOWN", "DETACHING", "DETACH_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. State Messages for this Cloud Function.
     #[serde(default, rename = "stateMessages")]
-    pub state_messages: Option<Vec<GoogleCloudFunctionsV2StateMessage>>,
+    pub state_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudFunctionsV2StateMessage>>,
+    >,
     /// Output only. The last update timestamp of a Cloud Function.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. UpgradeInfo for this Cloud Function
     #[serde(default, rename = "upgradeInfo")]
-    pub upgrade_info: Option<UpgradeInfo>,
+    pub upgrade_info: ::core::option::Option<::std::boxed::Box<UpgradeInfo>>,
     /// Output only. The deployed url for the function.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Response of GenerateDownloadUrl method.
@@ -248,7 +251,7 @@ pub struct Function {
 pub struct GenerateDownloadUrlResponse {
     /// The generated Google Cloud Storage signed URL that should be used for function source code download.
     #[serde(default, rename = "downloadUrl")]
-    pub download_url: Option<String>,
+    pub download_url: ::core::option::Option<String>,
 }
 
 /// Request of GenerateSourceUploadUrl method.
@@ -256,10 +259,10 @@ pub struct GenerateDownloadUrlResponse {
 pub struct GenerateUploadUrlRequest {
     /// The function environment the generated upload url will be used for. The upload url for 2nd Gen functions can also be used for 1st gen functions, but not vice versa. If not specified, 2nd generation-style upload URLs are generated. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "GEN_1", "GEN_2"]
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// Resource name of a KMS crypto key (managed by the user) used to encrypt/decrypt function source code objects in intermediate Cloud Storage buckets. When you generate an upload url and upload your source code, it gets copied to an intermediate Cloud Storage bucket. The source code is then copied to a versioned directory in the sources bucket in the consumer project during the function deployment. It must match the pattern projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}. The Google Cloud Functions service account (service-{project_number}@gcf-admin-robot.iam.gserviceaccount.com) must be granted the role ''Cloud KMS CryptoKey Encrypter/Decrypter (roles/cloudkms.cryptoKeyEncrypterDecrypter)'' on the Key/KeyRing/Project/Organization (least access preferred).
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// Response of GenerateSourceUploadUrl method.
@@ -267,10 +270,10 @@ pub struct GenerateUploadUrlRequest {
 pub struct GenerateUploadUrlResponse {
     /// The location of the source code in the upload bucket. Once the archive is uploaded using the upload_url use this field to set the function.build_config.source.storage_source during CreateFunction and UpdateFunction. Generation defaults to 0, as Cloud Storage provides a new generation only upon uploading a new object or version of an object.
     #[serde(default, rename = "storageSource")]
-    pub storage_source: Option<StorageSource>,
+    pub storage_source: ::core::option::Option<::std::boxed::Box<StorageSource>>,
     /// The generated Google Cloud Storage signed URL that should be used for a function source code upload. The uploaded file should be a zip archive which contains a function.
     #[serde(default, rename = "uploadUrl")]
-    pub upload_url: Option<String>,
+    pub upload_url: ::core::option::Option<String>,
 }
 
 /// Extra GCF specific location information.
@@ -278,7 +281,7 @@ pub struct GenerateUploadUrlResponse {
 pub struct GoogleCloudFunctionsV2LocationMetadata {
     /// The Cloud Function environments this location supports.
     #[serde(default)]
-    pub environments: Option<Vec<String>>,
+    pub environments: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -286,43 +289,44 @@ pub struct GoogleCloudFunctionsV2LocationMetadata {
 pub struct GoogleCloudFunctionsV2OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// The build name of the function for create and update operations.
     #[serde(default, rename = "buildName")]
-    pub build_name: Option<String>,
+    pub build_name: ::core::option::Option<String>,
     /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Whether a custom IAM role binding was detected during the upgrade.
     #[serde(default, rename = "customIamRoleDetected")]
-    pub custom_iam_role_detected: Option<bool>,
+    pub custom_iam_role_detected: ::core::option::Option<bool>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The operation type. // TODO: enum values: ["OPERATIONTYPE_UNSPECIFIED", "CREATE_FUNCTION", "UPDATE_FUNCTION", "DELETE_FUNCTION", "REDIRECT_FUNCTION_UPGRADE_TRAFFIC", "ROLLBACK_FUNCTION_UPGRADE_TRAFFIC", "SETUP_FUNCTION_UPGRADE_CONFIG", "ABORT_FUNCTION_UPGRADE", "COMMIT_FUNCTION_UPGRADE", "DETACH_FUNCTION", "COMMIT_FUNCTION_UPGRADE_AS_GEN2"]
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// The original request that started the operation.
     #[serde(default, rename = "requestResource")]
-    pub request_resource: Option<serde_json::Value>,
+    pub request_resource: ::core::option::Option<serde_json::Value>,
     /// An identifier for Firebase function sources. Disclaimer: This field is only supported for Firebase function deployments.
     #[serde(default, rename = "sourceToken")]
-    pub source_token: Option<String>,
+    pub source_token: ::core::option::Option<String>,
     /// Mechanism for reporting in-progress stages
     #[serde(default)]
-    pub stages: Option<Vec<GoogleCloudFunctionsV2Stage>>,
+    pub stages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudFunctionsV2Stage>>>,
     /// Human-readable status of the operation, if any.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Each Stage of the deployment process
@@ -330,22 +334,24 @@ pub struct GoogleCloudFunctionsV2OperationMetadata {
 pub struct GoogleCloudFunctionsV2Stage {
     /// Message describing the Stage
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Name of the Stage. This will be unique for each Stage. // TODO: enum values: ["NAME_UNSPECIFIED", "ARTIFACT_REGISTRY", "BUILD", "SERVICE", "TRIGGER", "SERVICE_ROLLBACK", "TRIGGER_ROLLBACK"]
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Resource of the Stage
     #[serde(default)]
-    pub resource: Option<String>,
+    pub resource: ::core::option::Option<String>,
     /// Link to the current Stage resource
     #[serde(default, rename = "resourceUri")]
-    pub resource_uri: Option<String>,
+    pub resource_uri: ::core::option::Option<String>,
     /// Current state of the Stage // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "COMPLETE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// State messages from the current Stage.
     #[serde(default, rename = "stateMessages")]
-    pub state_messages: Option<Vec<GoogleCloudFunctionsV2StateMessage>>,
+    pub state_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudFunctionsV2StateMessage>>,
+    >,
 }
 
 /// Informational messages about the state of the Cloud Function or Operation.
@@ -353,13 +359,13 @@ pub struct GoogleCloudFunctionsV2Stage {
 pub struct GoogleCloudFunctionsV2StateMessage {
     /// The message.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Severity of the state message. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// One-word CamelCase type of the state message.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Response for the ListFunctions method.
@@ -367,13 +373,13 @@ pub struct GoogleCloudFunctionsV2StateMessage {
 pub struct ListFunctionsResponse {
     /// The functions that match the request.
     #[serde(default)]
-    pub functions: Option<Vec<Function>>,
+    pub functions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Function>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached. The response does not include any functions from these locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -381,10 +387,10 @@ pub struct ListFunctionsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -392,13 +398,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for the ListRuntimes method.
@@ -406,7 +412,7 @@ pub struct ListOperationsResponse {
 pub struct ListRuntimesResponse {
     /// The runtimes that match the request.
     #[serde(default)]
-    pub runtimes: Option<Vec<Runtime>>,
+    pub runtimes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Runtime>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -414,19 +420,19 @@ pub struct ListRuntimesResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Security patches are only applied when a function is redeployed.
@@ -434,7 +440,7 @@ pub struct Location {
 pub struct OnDeployUpdatePolicy {
     /// Output only. contains the runtime version which was used during latest function deployment.
     #[serde(default, rename = "runtimeVersion")]
-    pub runtime_version: Option<String>,
+    pub runtime_version: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -442,19 +448,19 @@ pub struct OnDeployUpdatePolicy {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata describing an Operation
@@ -462,28 +468,28 @@ pub struct Operation {
 pub struct OperationMetadataV1 {
     /// The Cloud Build ID of the function created or updated by an API call. This field is only populated for Create and Update operations.
     #[serde(default, rename = "buildId")]
-    pub build_id: Option<String>,
+    pub build_id: ::core::option::Option<String>,
     /// The Cloud Build Name of the function deployment. This field is only populated for Create and Update operations. projects//locations//builds/.
     #[serde(default, rename = "buildName")]
-    pub build_name: Option<String>,
+    pub build_name: ::core::option::Option<String>,
     /// The original request that started the operation.
     #[serde(default)]
-    pub request: Option<serde_json::Value>,
+    pub request: ::core::option::Option<serde_json::Value>,
     /// An identifier for Firebase function sources. Disclaimer: This field is only supported for Firebase function deployments.
     #[serde(default, rename = "sourceToken")]
-    pub source_token: Option<String>,
+    pub source_token: ::core::option::Option<String>,
     /// Target of the operation - for example projects/project-1/locations/region-1/functions/function-1
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Type of operation. // TODO: enum values: ["OPERATION_UNSPECIFIED", "CREATE_FUNCTION", "UPDATE_FUNCTION", "DELETE_FUNCTION"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The last update timestamp of the operation.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Version id of the function created or updated by an API call. This field is only populated for Create and Update operations.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -491,16 +497,16 @@ pub struct OperationMetadataV1 {
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: Option<Vec<AuditConfig>>,
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditConfig>>>,
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Location of the source in a Google Cloud Source Repository.
@@ -508,22 +514,22 @@ pub struct Policy {
 pub struct RepoSource {
     /// Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
     #[serde(default, rename = "branchName")]
-    pub branch_name: Option<String>,
+    pub branch_name: ::core::option::Option<String>,
     /// Explicit commit SHA to build.
     #[serde(default, rename = "commitSha")]
-    pub commit_sha: Option<String>,
+    pub commit_sha: ::core::option::Option<String>,
     /// Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution. eg. helloworld (no leading slash allowed)
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// ID of the project that owns the Cloud Source Repository. If omitted, the project ID requesting the build is assumed.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Name of the Cloud Source Repository.
     #[serde(default, rename = "repoName")]
-    pub repo_name: Option<String>,
+    pub repo_name: ::core::option::Option<String>,
     /// Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
     #[serde(default, rename = "tagName")]
-    pub tag_name: Option<String>,
+    pub tag_name: ::core::option::Option<String>,
 }
 
 /// Describes a runtime and any special information (e.g., deprecation status) related to it.
@@ -531,25 +537,25 @@ pub struct RepoSource {
 pub struct Runtime {
     /// Decommission date for the runtime.
     #[serde(default, rename = "decommissionDate")]
-    pub decommission_date: Option<Date>,
+    pub decommission_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Deprecation date for the runtime.
     #[serde(default, rename = "deprecationDate")]
-    pub deprecation_date: Option<Date>,
+    pub deprecation_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The user facing name, eg ''Go 1.13'', ''Node.js 12'', etc.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The environment for the runtime. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "GEN_1", "GEN_2"]
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// The name of the runtime, e.g., ''go113'', ''nodejs12'', etc.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The stage of life this runtime is in, e.g., BETA, GA, etc. // TODO: enum values: ["RUNTIME_STAGE_UNSPECIFIED", "DEVELOPMENT", "ALPHA", "BETA", "GA", "DEPRECATED", "DECOMMISSIONED"]
     #[serde(default)]
-    pub stage: Option<String>,
+    pub stage: ::core::option::Option<String>,
     /// Warning messages, e.g., a deprecation warning.
     #[serde(default)]
-    pub warnings: Option<Vec<String>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration for a secret environment variable. It has the information necessary to fetch the secret value from secret manager and expose it as an environment variable.
@@ -557,16 +563,16 @@ pub struct Runtime {
 pub struct SecretEnvVar {
     /// Name of the environment variable.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Project identifier (preferably project number but can also be the project ID) of the project that contains the secret. If not set, it is assumed that the secret is in the same project as the function.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Name of the secret in secret manager (not the full resource name).
     #[serde(default)]
-    pub secret: Option<String>,
+    pub secret: ::core::option::Option<String>,
     /// Version of the secret (version number or the string ''latest''). It is recommended to use a numeric version for secret environment variables as any updates to the secret value is not reflected until new instances start.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Configuration for a single version.
@@ -574,10 +580,10 @@ pub struct SecretEnvVar {
 pub struct SecretVersion {
     /// Relative path of the file under the mount path where the secret value for this version will be fetched and made available. For example, setting the mount_path as ''/etc/secrets'' and path as secret_foo would mount the secret value file at /etc/secrets/secret_foo.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Version of the secret (version number or the string ''latest''). It is preferable to use latest version with secret volumes as secret value changes are reflected immediately.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Configuration for a secret volume. It has the information necessary to fetch the secret value from secret manager and make it available as files mounted at the requested paths within the application container.
@@ -585,16 +591,16 @@ pub struct SecretVersion {
 pub struct SecretVolume {
     /// The path within the container to mount the secret volume. For example, setting the mount_path as /etc/secrets would mount the secret value files under the /etc/secrets directory. This directory will also be completely shadowed and unavailable to mount any other secrets. Recommended mount path: /etc/secrets
     #[serde(default, rename = "mountPath")]
-    pub mount_path: Option<String>,
+    pub mount_path: ::core::option::Option<String>,
     /// Project identifier (preferably project number but can also be the project ID) of the project that contains the secret. If not set, it is assumed that the secret is in the same project as the function.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Name of the secret in secret manager (not the full resource name).
     #[serde(default)]
-    pub secret: Option<String>,
+    pub secret: ::core::option::Option<String>,
     /// List of secret versions to mount for this secret. If empty, the latest version of the secret will be made available in a file named after the secret under the mount point.
     #[serde(default)]
-    pub versions: Option<Vec<SecretVersion>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SecretVersion>>>,
 }
 
 /// Describes the Service being deployed. Currently Supported : Cloud Run (fully managed).
@@ -602,67 +608,69 @@ pub struct SecretVolume {
 pub struct ServiceConfig {
     /// Whether 100% of traffic is routed to the latest revision. On CreateFunction and UpdateFunction, when set to true, the revision being deployed will serve 100% of traffic, ignoring any traffic split settings, if any. On GetFunction, true will be returned if the latest revision is serving 100% of traffic.
     #[serde(default, rename = "allTrafficOnLatestRevision")]
-    pub all_traffic_on_latest_revision: Option<bool>,
+    pub all_traffic_on_latest_revision: ::core::option::Option<bool>,
     /// The number of CPUs used in a single container instance. Default value is calculated from available memory. Supports the same values as Cloud Run, see https://cloud.google.com/run/docs/reference/rest/v1/Container#resourcerequirements Example: "1" indicates 1 vCPU
     #[serde(default, rename = "availableCpu")]
-    pub available_cpu: Option<String>,
+    pub available_cpu: ::core::option::Option<String>,
     /// The amount of memory available for a function. Defaults to 256M. Supported units are k, M, G, Mi, Gi. If no unit is supplied the value is interpreted as bytes. See https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/apimachinery/pkg/api/resource/quantity.go a full description.
     #[serde(default, rename = "availableMemory")]
-    pub available_memory: Option<String>,
+    pub available_memory: ::core::option::Option<String>,
     /// Optional. The binary authorization policy to be checked when deploying the Cloud Run service.
     #[serde(default, rename = "binaryAuthorizationPolicy")]
-    pub binary_authorization_policy: Option<String>,
+    pub binary_authorization_policy: ::core::option::Option<String>,
     /// Optional. Egress settings for direct VPC. If not provided, it defaults to VPC_EGRESS_PRIVATE_RANGES_ONLY. // TODO: enum values: ["DIRECT_VPC_EGRESS_UNSPECIFIED", "VPC_EGRESS_PRIVATE_RANGES_ONLY", "VPC_EGRESS_ALL_TRAFFIC"]
     #[serde(default, rename = "directVpcEgress")]
-    pub direct_vpc_egress: Option<String>,
+    pub direct_vpc_egress: ::core::option::Option<String>,
     /// Optional. The Direct VPC network interface for the Cloud Function. Currently only a single Direct VPC is supported.
     #[serde(default, rename = "directVpcNetworkInterface")]
-    pub direct_vpc_network_interface: Option<Vec<DirectVpcNetworkInterface>>,
+    pub direct_vpc_network_interface:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DirectVpcNetworkInterface>>>,
     /// Environment variables that shall be available during function execution.
     #[serde(default, rename = "environmentVariables")]
-    pub environment_variables: Option<serde_json::Value>,
+    pub environment_variables: ::core::option::Option<serde_json::Value>,
     /// The ingress settings for the function, controlling what traffic can reach it. // TODO: enum values: ["INGRESS_SETTINGS_UNSPECIFIED", "ALLOW_ALL", "ALLOW_INTERNAL_ONLY", "ALLOW_INTERNAL_AND_GCLB"]
     #[serde(default, rename = "ingressSettings")]
-    pub ingress_settings: Option<String>,
+    pub ingress_settings: ::core::option::Option<String>,
     /// The limit on the maximum number of function instances that may coexist at a given time. In some cases, such as rapid traffic surges, Cloud Functions may, for a short period of time, create more instances than the specified max instances limit. If your function cannot tolerate this temporary behavior, you may want to factor in a safety margin and set a lower max instances value than your function can tolerate. See the [Max Instances](https://cloud.google.com/functions/docs/max-instances) Guide for more details.
     #[serde(default, rename = "maxInstanceCount")]
-    pub max_instance_count: Option<i32>,
+    pub max_instance_count: ::core::option::Option<i32>,
     /// Sets the maximum number of concurrent requests that each instance can receive. Defaults to 1.
     #[serde(default, rename = "maxInstanceRequestConcurrency")]
-    pub max_instance_request_concurrency: Option<i32>,
+    pub max_instance_request_concurrency: ::core::option::Option<i32>,
     /// The limit on the minimum number of function instances that may coexist at a given time. Function instances are kept in idle state for a short period after they finished executing the request to reduce cold start time for subsequent requests. Setting a minimum instance count will ensure that the given number of instances are kept running in idle state always. This can help with cold start times when jump in incoming request count occurs after the idle instance would have been stopped in the default case.
     #[serde(default, rename = "minInstanceCount")]
-    pub min_instance_count: Option<i32>,
+    pub min_instance_count: ::core::option::Option<i32>,
     /// Output only. The name of service revision.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
     /// Secret environment variables configuration.
     #[serde(default, rename = "secretEnvironmentVariables")]
-    pub secret_environment_variables: Option<Vec<SecretEnvVar>>,
+    pub secret_environment_variables:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SecretEnvVar>>>,
     /// Secret volumes configuration.
     #[serde(default, rename = "secretVolumes")]
-    pub secret_volumes: Option<Vec<SecretVolume>>,
+    pub secret_volumes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SecretVolume>>>,
     /// Security level configure whether the function only accepts https. This configuration is only applicable to 1st Gen functions with Http trigger. By default https is optional for 1st Gen functions; 2nd Gen functions are https ONLY. // TODO: enum values: ["SECURITY_LEVEL_UNSPECIFIED", "SECURE_ALWAYS", "SECURE_OPTIONAL"]
     #[serde(default, rename = "securityLevel")]
-    pub security_level: Option<String>,
+    pub security_level: ::core::option::Option<String>,
     /// Output only. Name of the service associated with a Function. The format of this field is projects/{project}/locations/{region}/services/{service}
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
     /// The email of the service''s service account. If empty, defaults to {project_number}-compute@developer.gserviceaccount.com.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// The function execution timeout. Execution is considered failed and can be terminated if the function is not completed at the end of the timeout period. Defaults to 60 seconds.
     #[serde(default, rename = "timeoutSeconds")]
-    pub timeout_seconds: Option<i32>,
+    pub timeout_seconds: ::core::option::Option<i32>,
     /// Output only. URI of the Service deployed.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// The Serverless VPC Access connector that this cloud function can connect to. The format of this field is projects/*/locations/*/connectors/*.
     #[serde(default, rename = "vpcConnector")]
-    pub vpc_connector: Option<String>,
+    pub vpc_connector: ::core::option::Option<String>,
     /// The egress settings for the connector, controlling what traffic is diverted through it. // TODO: enum values: ["VPC_CONNECTOR_EGRESS_SETTINGS_UNSPECIFIED", "PRIVATE_RANGES_ONLY", "ALL_TRAFFIC"]
     #[serde(default, rename = "vpcConnectorEgressSettings")]
-    pub vpc_connector_egress_settings: Option<String>,
+    pub vpc_connector_egress_settings: ::core::option::Option<String>,
 }
 
 /// Contains overrides related to the function''s service configuration.
@@ -670,7 +678,7 @@ pub struct ServiceConfig {
 pub struct ServiceConfigOverrides {
     /// Optional. Specifies the maximum number of instances for the new Cloud Run function. If provided, this overrides the max_instance_count setting of the Gen1 function.
     #[serde(default, rename = "maxInstanceCount")]
-    pub max_instance_count: Option<i32>,
+    pub max_instance_count: ::core::option::Option<i32>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -678,10 +686,10 @@ pub struct ServiceConfigOverrides {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
     /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Request for the SetupFunctionUpgradeConfig method.
@@ -689,13 +697,13 @@ pub struct SetIamPolicyRequest {
 pub struct SetupFunctionUpgradeConfigRequest {
     /// Optional. Specifies overrides for the build process.
     #[serde(default, rename = "buildConfigOverrides")]
-    pub build_config_overrides: Option<BuildConfigOverrides>,
+    pub build_config_overrides: ::core::option::Option<::std::boxed::Box<BuildConfigOverrides>>,
     /// Optional. Specifies overrides for the service configuration.
     #[serde(default, rename = "serviceConfigOverrides")]
-    pub service_config_overrides: Option<ServiceConfigOverrides>,
+    pub service_config_overrides: ::core::option::Option<::std::boxed::Box<ServiceConfigOverrides>>,
     /// Optional. The trigger''s service account. The service account must have permission to invoke Cloud Run services, the permission is run.routes.invoke. If empty, defaults to the Compute Engine default service account: {project_number}-compute@developer.gserviceaccount.com.
     #[serde(default, rename = "triggerServiceAccount")]
-    pub trigger_service_account: Option<String>,
+    pub trigger_service_account: ::core::option::Option<String>,
 }
 
 /// The location of the function source code.
@@ -703,13 +711,13 @@ pub struct SetupFunctionUpgradeConfigRequest {
 pub struct Source {
     /// If provided, get the source from GitHub repository. This option is valid only for GCF 1st Gen function. Example: https://github.com///blob//
     #[serde(default, rename = "gitUri")]
-    pub git_uri: Option<String>,
+    pub git_uri: ::core::option::Option<String>,
     /// If provided, get the source from this location in a Cloud Source Repository.
     #[serde(default, rename = "repoSource")]
-    pub repo_source: Option<RepoSource>,
+    pub repo_source: ::core::option::Option<::std::boxed::Box<RepoSource>>,
     /// If provided, get the source from this location in Google Cloud Storage.
     #[serde(default, rename = "storageSource")]
-    pub storage_source: Option<StorageSource>,
+    pub storage_source: ::core::option::Option<::std::boxed::Box<StorageSource>>,
 }
 
 /// Provenance of the source. Ways to find the original source, or verify that some source was used for this build.
@@ -717,13 +725,13 @@ pub struct Source {
 pub struct SourceProvenance {
     /// A copy of the build''s source.git_uri, if exists, with any commits resolved.
     #[serde(default, rename = "gitUri")]
-    pub git_uri: Option<String>,
+    pub git_uri: ::core::option::Option<String>,
     /// A copy of the build''s source.repo_source, if exists, with any revisions resolved.
     #[serde(default, rename = "resolvedRepoSource")]
-    pub resolved_repo_source: Option<RepoSource>,
+    pub resolved_repo_source: ::core::option::Option<::std::boxed::Box<RepoSource>>,
     /// A copy of the build''s source.storage_source, if exists, with any generations resolved.
     #[serde(default, rename = "resolvedStorageSource")]
-    pub resolved_storage_source: Option<StorageSource>,
+    pub resolved_storage_source: ::core::option::Option<::std::boxed::Box<StorageSource>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -731,13 +739,13 @@ pub struct SourceProvenance {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Location of the source in an archive file in Google Cloud Storage.
@@ -745,16 +753,16 @@ pub struct Status {
 pub struct StorageSource {
     /// Google Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Google Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
     #[serde(default)]
-    pub generation: Option<String>,
+    pub generation: ::core::option::Option<String>,
     /// Google Cloud Storage object containing the source. This object must be a gzipped archive file (.tar.gz) containing source to build.
     #[serde(default)]
-    pub object: Option<String>,
+    pub object: ::core::option::Option<String>,
     /// When the specified storage bucket is a 1st gen function uploard url bucket, this field should be set as the generated upload url for 1st gen deployment.
     #[serde(default, rename = "sourceUploadUrl")]
-    pub source_upload_url: Option<String>,
+    pub source_upload_url: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -762,7 +770,7 @@ pub struct StorageSource {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -770,7 +778,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Information related to: * A function''s eligibility for 1st Gen to 2nd Gen migration. * Current state of migration for function undergoing migration.
@@ -778,14 +786,14 @@ pub struct TestIamPermissionsResponse {
 pub struct UpgradeInfo {
     /// Describes the Build step of the function that builds a container to prepare for 2nd gen upgrade.
     #[serde(default, rename = "buildConfig")]
-    pub build_config: Option<BuildConfig>,
+    pub build_config: ::core::option::Option<::std::boxed::Box<BuildConfig>>,
     /// Describes the Event trigger which has been setup to prepare for 2nd gen upgrade.
     #[serde(default, rename = "eventTrigger")]
-    pub event_trigger: Option<EventTrigger>,
+    pub event_trigger: ::core::option::Option<::std::boxed::Box<EventTrigger>>,
     /// Describes the Cloud Run service which has been setup to prepare for 2nd gen upgrade.
     #[serde(default, rename = "serviceConfig")]
-    pub service_config: Option<ServiceConfig>,
+    pub service_config: ::core::option::Option<::std::boxed::Box<ServiceConfig>>,
     /// UpgradeState of the function // TODO: enum values: ["UPGRADE_STATE_UNSPECIFIED", "ELIGIBLE_FOR_2ND_GEN_UPGRADE", "INELIGIBLE_FOR_UPGRADE_UNTIL_REDEPLOYMENT", "UPGRADE_OPERATION_IN_PROGRESS", "SETUP_FUNCTION_UPGRADE_CONFIG_SUCCESSFUL", "SETUP_FUNCTION_UPGRADE_CONFIG_ERROR", "ABORT_FUNCTION_UPGRADE_ERROR", "REDIRECT_FUNCTION_UPGRADE_TRAFFIC_SUCCESSFUL", "REDIRECT_FUNCTION_UPGRADE_TRAFFIC_ERROR", "ROLLBACK_FUNCTION_UPGRADE_TRAFFIC_ERROR", "COMMIT_FUNCTION_UPGRADE_ERROR", "COMMIT_FUNCTION_UPGRADE_ERROR_ROLLBACK_SAFE", "COMMIT_FUNCTION_UPGRADE_AS_GEN2_SUCCESSFUL", "COMMIT_FUNCTION_UPGRADE_AS_GEN2_ERROR"]
     #[serde(default, rename = "upgradeState")]
-    pub upgrade_state: Option<String>,
+    pub upgrade_state: ::core::option::Option<String>,
 }

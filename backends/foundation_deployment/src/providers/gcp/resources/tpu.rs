@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A TPU accelerator configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceleratorConfig {
     /// Required. Topology of TPU in chips.
     #[serde(default)]
-    pub topology: Option<String>,
+    pub topology: ::core::option::Option<String>,
     /// Required. Type of TPU. // TODO: enum values: ["TYPE_UNSPECIFIED", "V2", "V3", "V4", "V5LITE_POD", "V5P", "V6E"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A accelerator type that a Node can be configured with.
@@ -29,13 +29,14 @@ pub struct AcceleratorConfig {
 pub struct AcceleratorType {
     /// The accelerator config.
     #[serde(default, rename = "acceleratorConfigs")]
-    pub accelerator_configs: Option<Vec<AcceleratorConfig>>,
+    pub accelerator_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AcceleratorConfig>>>,
     /// The resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The accelerator type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An access config attached to the TPU worker.
@@ -43,7 +44,7 @@ pub struct AcceleratorType {
 pub struct AccessConfig {
     /// Output only. An external IP address associated with the TPU worker.
     #[serde(default, rename = "externalIp")]
-    pub external_ip: Option<String>,
+    pub external_ip: ::core::option::Option<String>,
 }
 
 /// A node-attached disk resource. Next ID: 8;
@@ -51,10 +52,10 @@ pub struct AccessConfig {
 pub struct AttachedDisk {
     /// The mode in which to attach this disk. If not specified, the default is READ_WRITE mode. Only applicable to data_disks. // TODO: enum values: ["DISK_MODE_UNSPECIFIED", "READ_WRITE", "READ_ONLY"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Specifies the full path to an existing disk. For example: "projects/my-project/zones/us-central1-c/disks/my-disk".
     #[serde(default, rename = "sourceDisk")]
-    pub source_disk: Option<String>,
+    pub source_disk: ::core::option::Option<String>,
 }
 
 /// Sets the boot disk configuration for the TPU node.
@@ -62,7 +63,7 @@ pub struct AttachedDisk {
 pub struct BootDiskConfig {
     /// Optional. Customer encryption key for boot disk.
     #[serde(default, rename = "customerEncryptionKey")]
-    pub customer_encryption_key: Option<CustomerEncryptionKey>,
+    pub customer_encryption_key: ::core::option::Option<::std::boxed::Box<CustomerEncryptionKey>>,
 }
 
 /// Defines the customer encryption key for disk encryption.
@@ -70,7 +71,7 @@ pub struct BootDiskConfig {
 pub struct CustomerEncryptionKey {
     /// The name of the encryption key that is stored in Google Cloud KMS. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY The fully-qualifed key name may be returned for resource GET requests. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY/cryptoKeyVersions/1
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// Further data for the failed state.
@@ -78,7 +79,7 @@ pub struct CustomerEncryptionKey {
 pub struct FailedData {
     /// Output only. The error that caused the queued resource to enter the FAILED state.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// Response for GenerateServiceIdentity.
@@ -86,7 +87,7 @@ pub struct FailedData {
 pub struct GenerateServiceIdentityResponse {
     /// ServiceIdentity that was created or retrieved.
     #[serde(default)]
-    pub identity: Option<ServiceIdentity>,
+    pub identity: ::core::option::Option<::std::boxed::Box<ServiceIdentity>>,
 }
 
 /// Request for GetGuestAttributes.
@@ -94,10 +95,10 @@ pub struct GenerateServiceIdentityResponse {
 pub struct GetGuestAttributesRequest {
     /// The guest attributes path to be queried.
     #[serde(default, rename = "queryPath")]
-    pub query_path: Option<String>,
+    pub query_path: ::core::option::Option<String>,
     /// The 0-based worker ID. If it is empty, all workers'' GuestAttributes will be returned.
     #[serde(default, rename = "workerIds")]
-    pub worker_ids: Option<Vec<String>>,
+    pub worker_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for GetGuestAttributes.
@@ -105,7 +106,8 @@ pub struct GetGuestAttributesRequest {
 pub struct GetGuestAttributesResponse {
     /// The guest attributes for the TPU workers.
     #[serde(default, rename = "guestAttributes")]
-    pub guest_attributes: Option<Vec<GuestAttributes>>,
+    pub guest_attributes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GuestAttributes>>>,
 }
 
 /// Guaranteed tier definition.
@@ -113,7 +115,7 @@ pub struct GetGuestAttributesResponse {
 pub struct Guaranteed {
     /// Optional. Defines the minimum duration of the guarantee. If specified, the requested resources will only be provisioned if they can be allocated for at least the given duration.
     #[serde(default, rename = "minDuration")]
-    pub min_duration: Option<String>,
+    pub min_duration: ::core::option::Option<String>,
 }
 
 /// A guest attributes.
@@ -121,10 +123,10 @@ pub struct Guaranteed {
 pub struct GuestAttributes {
     /// The path to be queried. This can be the default namespace (''/'') or a nested namespace (''/\/'') or a specified key (''/\/\'')
     #[serde(default, rename = "queryPath")]
-    pub query_path: Option<String>,
+    pub query_path: ::core::option::Option<String>,
     /// The value of the requested queried path.
     #[serde(default, rename = "queryValue")]
-    pub query_value: Option<GuestAttributesValue>,
+    pub query_value: ::core::option::Option<::std::boxed::Box<GuestAttributesValue>>,
 }
 
 /// A guest attributes namespace/key/value entry.
@@ -132,13 +134,13 @@ pub struct GuestAttributes {
 pub struct GuestAttributesEntry {
     /// Key for the guest attribute entry.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Namespace for the guest attribute entry.
     #[serde(default)]
-    pub namespace: Option<String>,
+    pub namespace: ::core::option::Option<String>,
     /// Value for the guest attribute entry.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Array of guest attribute namespace/key/value tuples.
@@ -146,7 +148,7 @@ pub struct GuestAttributesEntry {
 pub struct GuestAttributesValue {
     /// The list of guest attributes entries.
     #[serde(default)]
-    pub items: Option<Vec<GuestAttributesEntry>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GuestAttributesEntry>>>,
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
@@ -154,10 +156,10 @@ pub struct GuestAttributesValue {
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Response for ListAcceleratorTypes.
@@ -165,13 +167,14 @@ pub struct Interval {
 pub struct ListAcceleratorTypesResponse {
     /// The listed nodes.
     #[serde(default, rename = "acceleratorTypes")]
-    pub accelerator_types: Option<Vec<AcceleratorType>>,
+    pub accelerator_types:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AcceleratorType>>>,
     /// The next page token or empty if none.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -179,10 +182,10 @@ pub struct ListAcceleratorTypesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for ListNodes.
@@ -190,13 +193,13 @@ pub struct ListLocationsResponse {
 pub struct ListNodesResponse {
     /// The next page token or empty if none.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The listed nodes.
     #[serde(default)]
-    pub nodes: Option<Vec<Node>>,
+    pub nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Node>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -204,13 +207,13 @@ pub struct ListNodesResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListQueuedResources.
@@ -218,13 +221,14 @@ pub struct ListOperationsResponse {
 pub struct ListQueuedResourcesResponse {
     /// The next page token or empty if none.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The listed queued resources.
     #[serde(default, rename = "queuedResources")]
-    pub queued_resources: Option<Vec<QueuedResource>>,
+    pub queued_resources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QueuedResource>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListRuntimeVersions.
@@ -232,13 +236,14 @@ pub struct ListQueuedResourcesResponse {
 pub struct ListRuntimeVersionsResponse {
     /// The next page token or empty if none.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The listed nodes.
     #[serde(default, rename = "runtimeVersions")]
-    pub runtime_versions: Option<Vec<RuntimeVersion>>,
+    pub runtime_versions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RuntimeVersion>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -246,19 +251,19 @@ pub struct ListRuntimeVersionsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Parameters to specify for multislice QueuedResource requests. This message must be populated in case of multislice requests instead of node_id.
@@ -266,10 +271,10 @@ pub struct Location {
 pub struct MultisliceParams {
     /// Required. Number of nodes with this spec. The system will attempt to provision "node_count" nodes as part of the request. This needs to be &gt; 1.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// Optional. Prefix of node_ids in case of multislice request. Should follow the ^[A-Za-z0-9_.~+%-]+$ regex format. If node_count = 3 and node_id_prefix = "np", node ids of nodes created will be "np-0", "np-1", "np-2". If this field is not provided we use queued_resource_id as the node_id_prefix.
     #[serde(default, rename = "nodeIdPrefix")]
-    pub node_id_prefix: Option<String>,
+    pub node_id_prefix: ::core::option::Option<String>,
 }
 
 /// Network related configurations.
@@ -277,19 +282,19 @@ pub struct MultisliceParams {
 pub struct NetworkConfig {
     /// Allows the TPU node to send and receive packets with non-matching destination or source IPs. This is required if you plan to use the TPU workers to forward routes.
     #[serde(default, rename = "canIpForward")]
-    pub can_ip_forward: Option<bool>,
+    pub can_ip_forward: ::core::option::Option<bool>,
     /// Indicates that external IP addresses would be associated with the TPU workers. If set to false, the specified subnetwork or network should have Private Google Access enabled.
     #[serde(default, rename = "enableExternalIps")]
-    pub enable_external_ips: Option<bool>,
+    pub enable_external_ips: ::core::option::Option<bool>,
     /// The name of the network for the TPU node. It must be a preexisting Google Compute Engine network. If none is provided, "default" will be used.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. Specifies networking queue count for TPU VM instance''s network interface.
     #[serde(default, rename = "queueCount")]
-    pub queue_count: Option<i32>,
+    pub queue_count: ::core::option::Option<i32>,
     /// The name of the subnetwork for the TPU node. It must be a preexisting Google Compute Engine subnetwork. If none is provided, "default" will be used.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
 }
 
 /// A network endpoint over which a TPU worker can be reached.
@@ -297,13 +302,13 @@ pub struct NetworkConfig {
 pub struct NetworkEndpoint {
     /// The access config for the TPU worker.
     #[serde(default, rename = "accessConfig")]
-    pub access_config: Option<AccessConfig>,
+    pub access_config: ::core::option::Option<::std::boxed::Box<AccessConfig>>,
     /// The internal IP address of this network endpoint.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// The port of this network endpoint.
     #[serde(default)]
-    pub port: Option<i32>,
+    pub port: ::core::option::Option<i32>,
 }
 
 /// A TPU instance.
@@ -311,85 +316,86 @@ pub struct NetworkEndpoint {
 pub struct Node {
     /// The AccleratorConfig for the TPU Node.
     #[serde(default, rename = "acceleratorConfig")]
-    pub accelerator_config: Option<AcceleratorConfig>,
+    pub accelerator_config: ::core::option::Option<::std::boxed::Box<AcceleratorConfig>>,
     /// Optional. The type of hardware accelerators associated with this node.
     #[serde(default, rename = "acceleratorType")]
-    pub accelerator_type: Option<String>,
+    pub accelerator_type: ::core::option::Option<String>,
     /// Output only. The API version that created this Node. // TODO: enum values: ["API_VERSION_UNSPECIFIED", "V1_ALPHA1", "V1", "V2_ALPHA1", "V2"]
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Optional. Boot disk configuration.
     #[serde(default, rename = "bootDiskConfig")]
-    pub boot_disk_config: Option<BootDiskConfig>,
+    pub boot_disk_config: ::core::option::Option<::std::boxed::Box<BootDiskConfig>>,
     /// The CIDR block that the TPU node will use when selecting an IP address. This CIDR block must be a /29 block; the Compute Engine networks API forbids a smaller block, and using a larger block would be wasteful (a node can only consume one IP address). Errors will occur if the CIDR block has already been used for a currently existing TPU node, the CIDR block conflicts with any subnetworks in the user''s provided network, or the provided network is peered with another network that is using that CIDR block.
     #[serde(default, rename = "cidrBlock")]
-    pub cidr_block: Option<String>,
+    pub cidr_block: ::core::option::Option<String>,
     /// Output only. The time when the node was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The additional data disks for the Node.
     #[serde(default, rename = "dataDisks")]
-    pub data_disks: Option<Vec<AttachedDisk>>,
+    pub data_disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AttachedDisk>>>,
     /// The user-supplied description of the TPU. Maximum of 512 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The health status of the TPU node. // TODO: enum values: ["HEALTH_UNSPECIFIED", "HEALTHY", "TIMEOUT", "UNHEALTHY_TENSORFLOW", "UNHEALTHY_MAINTENANCE"]
     #[serde(default)]
-    pub health: Option<String>,
+    pub health: ::core::option::Option<String>,
     /// Output only. If this field is populated, it contains a description of why the TPU Node is unhealthy.
     #[serde(default, rename = "healthDescription")]
-    pub health_description: Option<String>,
+    pub health_description: ::core::option::Option<String>,
     /// Output only. The unique identifier for the TPU Node.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Resource labels to represent user-provided metadata.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Custom metadata to apply to the TPU Node. Can set startup-script and shutdown-script
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Output only. Whether the Node belongs to a Multislice group.
     #[serde(default, rename = "multisliceNode")]
-    pub multislice_node: Option<bool>,
+    pub multislice_node: ::core::option::Option<bool>,
     /// Output only. Immutable. The name of the TPU.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Network configurations for the TPU node. network_config and network_configs are mutually exclusive, you can only specify one of them. If both are specified, an error will be returned.
     #[serde(default, rename = "networkConfig")]
-    pub network_config: Option<NetworkConfig>,
+    pub network_config: ::core::option::Option<::std::boxed::Box<NetworkConfig>>,
     /// Optional. Repeated network configurations for the TPU node. This field is used to specify multiple networks configs for the TPU node. network_config and network_configs are mutually exclusive, you can only specify one of them. If both are specified, an error will be returned.
     #[serde(default, rename = "networkConfigs")]
-    pub network_configs: Option<Vec<NetworkConfig>>,
+    pub network_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkConfig>>>,
     /// Output only. The network endpoints where TPU workers can be accessed and sent work. It is recommended that runtime clients of the node reach out to the 0th entry in this map first.
     #[serde(default, rename = "networkEndpoints")]
-    pub network_endpoints: Option<Vec<NetworkEndpoint>>,
+    pub network_endpoints:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkEndpoint>>>,
     /// Output only. The qualified name of the QueuedResource that requested this Node.
     #[serde(default, rename = "queuedResource")]
-    pub queued_resource: Option<String>,
+    pub queued_resource: ::core::option::Option<String>,
     /// Required. The runtime version running in the Node.
     #[serde(default, rename = "runtimeVersion")]
-    pub runtime_version: Option<String>,
+    pub runtime_version: ::core::option::Option<String>,
     /// The scheduling options for this node.
     #[serde(default, rename = "schedulingConfig")]
-    pub scheduling_config: Option<SchedulingConfig>,
+    pub scheduling_config: ::core::option::Option<::std::boxed::Box<SchedulingConfig>>,
     /// The Google Cloud Platform Service Account to be used by the TPU node VMs. If None is specified, the default compute service account will be used.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<ServiceAccount>,
+    pub service_account: ::core::option::Option<::std::boxed::Box<ServiceAccount>>,
     /// Shielded Instance options.
     #[serde(default, rename = "shieldedInstanceConfig")]
-    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
+    pub shielded_instance_config: ::core::option::Option<::std::boxed::Box<ShieldedInstanceConfig>>,
     /// Output only. The current state for the TPU Node. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "RESTARTING", "REIMAGING", "DELETING", "REPAIRING", "STOPPED", "STOPPING", "STARTING", "PREEMPTED", "TERMINATED", "HIDING", "HIDDEN", "UNHIDING", "UNKNOWN"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The Symptoms that have occurred to the TPU Node.
     #[serde(default)]
-    pub symptoms: Option<Vec<Symptom>>,
+    pub symptoms: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Symptom>>>,
     /// Tags to apply to the TPU Node. Tags are used to identify valid sources or targets for network firewalls.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Upcoming maintenance on this TPU node.
     #[serde(default, rename = "upcomingMaintenance")]
-    pub upcoming_maintenance: Option<UpcomingMaintenance>,
+    pub upcoming_maintenance: ::core::option::Option<::std::boxed::Box<UpcomingMaintenance>>,
 }
 
 /// Details of the TPU node(s) being requested. Users can request either a single node or multiple nodes. NodeSpec provides the specification for node(s) to be created.
@@ -397,16 +403,16 @@ pub struct Node {
 pub struct NodeSpec {
     /// Optional. Fields to specify in case of multislice request.
     #[serde(default, rename = "multisliceParams")]
-    pub multislice_params: Option<MultisliceParams>,
+    pub multislice_params: ::core::option::Option<::std::boxed::Box<MultisliceParams>>,
     /// Required. The node.
     #[serde(default)]
-    pub node: Option<Node>,
+    pub node: ::core::option::Option<::std::boxed::Box<Node>>,
     /// Optional. The unqualified resource name. Should follow the ^[A-Za-z0-9_.~+%-]+$ regex format. This is only specified when requesting a single node. In case of multislice requests, multislice_params must be populated instead.
     #[serde(default, rename = "nodeId")]
-    pub node_id: Option<String>,
+    pub node_id: ::core::option::Option<String>,
     /// Required. The parent resource name.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -414,19 +420,19 @@ pub struct NodeSpec {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata describing an Operation
@@ -434,25 +440,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// API version.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Specifies if cancellation was requested for the operation.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Human-readable status of the operation, if any.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Target of the operation - for example projects/project-1/connectivityTests/test-1
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// A QueuedResource represents a request for resources that will be placed in a queue and fulfilled when the necessary resources are available.
@@ -460,28 +466,28 @@ pub struct OperationMetadata {
 pub struct QueuedResource {
     /// Output only. The time when the QueuedResource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. The Guaranteed tier
     #[serde(default)]
-    pub guaranteed: Option<Guaranteed>,
+    pub guaranteed: ::core::option::Option<::std::boxed::Box<Guaranteed>>,
     /// Output only. Immutable. The name of the QueuedResource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The queueing policy of the QueuedRequest.
     #[serde(default, rename = "queueingPolicy")]
-    pub queueing_policy: Option<QueueingPolicy>,
+    pub queueing_policy: ::core::option::Option<::std::boxed::Box<QueueingPolicy>>,
     /// Optional. Name of the reservation in which the resource should be provisioned. Format: projects/{project}/locations/{zone}/reservations/{reservation}
     #[serde(default, rename = "reservationName")]
-    pub reservation_name: Option<String>,
+    pub reservation_name: ::core::option::Option<String>,
     /// Optional. The Spot tier.
     #[serde(default)]
-    pub spot: Option<serde_json::Value>,
+    pub spot: ::core::option::Option<serde_json::Value>,
     /// Output only. State of the QueuedResource request.
     #[serde(default)]
-    pub state: Option<QueuedResourceState>,
+    pub state: ::core::option::Option<::std::boxed::Box<QueuedResourceState>>,
     /// Optional. Defines a TPU resource.
     #[serde(default)]
-    pub tpu: Option<Tpu>,
+    pub tpu: ::core::option::Option<::std::boxed::Box<Tpu>>,
 }
 
 /// QueuedResourceState defines the details of the QueuedResource request.
@@ -489,34 +495,34 @@ pub struct QueuedResource {
 pub struct QueuedResourceState {
     /// Output only. Further data for the accepted state.
     #[serde(default, rename = "acceptedData")]
-    pub accepted_data: Option<serde_json::Value>,
+    pub accepted_data: ::core::option::Option<serde_json::Value>,
     /// Output only. Further data for the active state.
     #[serde(default, rename = "activeData")]
-    pub active_data: Option<serde_json::Value>,
+    pub active_data: ::core::option::Option<serde_json::Value>,
     /// Output only. Further data for the creating state.
     #[serde(default, rename = "creatingData")]
-    pub creating_data: Option<serde_json::Value>,
+    pub creating_data: ::core::option::Option<serde_json::Value>,
     /// Output only. Further data for the deleting state.
     #[serde(default, rename = "deletingData")]
-    pub deleting_data: Option<serde_json::Value>,
+    pub deleting_data: ::core::option::Option<serde_json::Value>,
     /// Output only. Further data for the failed state.
     #[serde(default, rename = "failedData")]
-    pub failed_data: Option<FailedData>,
+    pub failed_data: ::core::option::Option<::std::boxed::Box<FailedData>>,
     /// Output only. Further data for the provisioning state.
     #[serde(default, rename = "provisioningData")]
-    pub provisioning_data: Option<serde_json::Value>,
+    pub provisioning_data: ::core::option::Option<serde_json::Value>,
     /// Output only. State of the QueuedResource request. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACCEPTED", "PROVISIONING", "FAILED", "DELETING", "ACTIVE", "SUSPENDING", "SUSPENDED", "WAITING_FOR_RESOURCES"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The initiator of the QueuedResources''s current state. Used to indicate whether the SUSPENDING/SUSPENDED state was initiated by the user or the service. // TODO: enum values: ["STATE_INITIATOR_UNSPECIFIED", "USER", "SERVICE"]
     #[serde(default, rename = "stateInitiator")]
-    pub state_initiator: Option<String>,
+    pub state_initiator: ::core::option::Option<String>,
     /// Output only. Further data for the suspended state.
     #[serde(default, rename = "suspendedData")]
-    pub suspended_data: Option<serde_json::Value>,
+    pub suspended_data: ::core::option::Option<serde_json::Value>,
     /// Output only. Further data for the suspending state.
     #[serde(default, rename = "suspendingData")]
-    pub suspending_data: Option<serde_json::Value>,
+    pub suspending_data: ::core::option::Option<serde_json::Value>,
 }
 
 /// Defines the policy of the QueuedRequest.
@@ -524,19 +530,19 @@ pub struct QueuedResourceState {
 pub struct QueueingPolicy {
     /// Optional. A relative time after which resources may be created.
     #[serde(default, rename = "validAfterDuration")]
-    pub valid_after_duration: Option<String>,
+    pub valid_after_duration: ::core::option::Option<String>,
     /// Optional. An absolute time after which resources may be created.
     #[serde(default, rename = "validAfterTime")]
-    pub valid_after_time: Option<String>,
+    pub valid_after_time: ::core::option::Option<String>,
     /// Optional. An absolute time interval within which resources may be created.
     #[serde(default, rename = "validInterval")]
-    pub valid_interval: Option<Interval>,
+    pub valid_interval: ::core::option::Option<::std::boxed::Box<Interval>>,
     /// Optional. A relative time after which resources should not be created. If the request cannot be fulfilled by this time the request will be failed.
     #[serde(default, rename = "validUntilDuration")]
-    pub valid_until_duration: Option<String>,
+    pub valid_until_duration: ::core::option::Option<String>,
     /// Optional. An absolute time after which resources should not be created. If the request cannot be fulfilled by this time the request will be failed.
     #[serde(default, rename = "validUntilTime")]
-    pub valid_until_time: Option<String>,
+    pub valid_until_time: ::core::option::Option<String>,
 }
 
 /// A runtime version that a Node can be configured with.
@@ -544,10 +550,10 @@ pub struct QueueingPolicy {
 pub struct RuntimeVersion {
     /// The resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The runtime version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Sets the scheduling options for this node.
@@ -555,13 +561,13 @@ pub struct RuntimeVersion {
 pub struct SchedulingConfig {
     /// Defines whether the node is preemptible.
     #[serde(default)]
-    pub preemptible: Option<bool>,
+    pub preemptible: ::core::option::Option<bool>,
     /// Whether the node is created under a reservation.
     #[serde(default)]
-    pub reserved: Option<bool>,
+    pub reserved: ::core::option::Option<bool>,
     /// Optional. Defines whether the node is Spot VM.
     #[serde(default)]
-    pub spot: Option<bool>,
+    pub spot: ::core::option::Option<bool>,
 }
 
 /// A service account.
@@ -569,10 +575,10 @@ pub struct SchedulingConfig {
 pub struct ServiceAccount {
     /// Email address of the service account. If empty, default Compute service account will be used.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The list of scopes to be made available for this service account. If empty, access to all Cloud APIs will be allowed.
     #[serde(default)]
-    pub scope: Option<Vec<String>>,
+    pub scope: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The per-product per-project service identity for Cloud TPU service.
@@ -580,7 +586,7 @@ pub struct ServiceAccount {
 pub struct ServiceIdentity {
     /// The email address of the service identity.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// A set of Shielded Instance options.
@@ -588,7 +594,7 @@ pub struct ServiceIdentity {
 pub struct ShieldedInstanceConfig {
     /// Defines whether the instance has Secure Boot enabled.
     #[serde(default, rename = "enableSecureBoot")]
-    pub enable_secure_boot: Option<bool>,
+    pub enable_secure_boot: ::core::option::Option<bool>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -596,13 +602,13 @@ pub struct ShieldedInstanceConfig {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A Symptom instance.
@@ -610,16 +616,16 @@ pub struct Status {
 pub struct Symptom {
     /// Timestamp when the Symptom is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Detailed information of the current Symptom.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Type of the Symptom. // TODO: enum values: ["SYMPTOM_TYPE_UNSPECIFIED", "LOW_MEMORY", "OUT_OF_MEMORY", "EXECUTE_TIMED_OUT", "MESH_BUILD_FAIL", "HBM_OUT_OF_MEMORY", "PROJECT_ABUSE"]
     #[serde(default, rename = "symptomType")]
-    pub symptom_type: Option<String>,
+    pub symptom_type: ::core::option::Option<String>,
     /// A string used to uniquely distinguish a worker within a TPU node.
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// Details of the TPU resource(s) being requested.
@@ -627,7 +633,7 @@ pub struct Symptom {
 pub struct Tpu {
     /// Optional. The TPU node(s) being requested.
     #[serde(default, rename = "nodeSpec")]
-    pub node_spec: Option<Vec<NodeSpec>>,
+    pub node_spec: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NodeSpec>>>,
 }
 
 /// Upcoming Maintenance notification information.
@@ -635,20 +641,20 @@ pub struct Tpu {
 pub struct UpcomingMaintenance {
     /// Indicates if the maintenance can be customer triggered.
     #[serde(default, rename = "canReschedule")]
-    pub can_reschedule: Option<bool>,
+    pub can_reschedule: ::core::option::Option<bool>,
     /// The latest time for the planned maintenance window to start. This timestamp value is in RFC3339 text format.
     #[serde(default, rename = "latestWindowStartTime")]
-    pub latest_window_start_time: Option<String>,
+    pub latest_window_start_time: ::core::option::Option<String>,
     /// The status of the maintenance. // TODO: enum values: ["UNKNOWN", "PENDING", "ONGOING"]
     #[serde(default, rename = "maintenanceStatus")]
-    pub maintenance_status: Option<String>,
+    pub maintenance_status: ::core::option::Option<String>,
     /// Defines the type of maintenance. // TODO: enum values: ["UNKNOWN_TYPE", "SCHEDULED", "UNSCHEDULED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The time by which the maintenance disruption will be completed. This timestamp value is in RFC3339 text format.
     #[serde(default, rename = "windowEndTime")]
-    pub window_end_time: Option<String>,
+    pub window_end_time: ::core::option::Option<String>,
     /// The current start time of the maintenance window. This timestamp value is in RFC3339 text format.
     #[serde(default, rename = "windowStartTime")]
-    pub window_start_time: Option<String>,
+    pub window_start_time: ::core::option::Option<String>,
 }

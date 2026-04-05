@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Tokeninfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tokeninfo {
     /// Who is the intended audience for this token. In general the same as issued_to.
     #[serde(default)]
-    pub audience: Option<String>,
+    pub audience: ::core::option::Option<String>,
     /// The email address of the user. Present only if the email scope is present in the request.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The expiry time of the token, as number of seconds left until expiry.
     #[serde(default)]
-    pub expires_in: Option<i32>,
+    pub expires_in: ::core::option::Option<i32>,
     /// To whom was the token issued to. In general the same as audience.
     #[serde(default)]
-    pub issued_to: Option<String>,
+    pub issued_to: ::core::option::Option<String>,
     /// The space separated list of scopes granted to this token.
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// The obfuscated user id.
     #[serde(default)]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
     /// Boolean flag which is true if the email address is verified. Present only if the email scope is present in the request.
     #[serde(default)]
-    pub verified_email: Option<bool>,
+    pub verified_email: ::core::option::Option<bool>,
 }
 
 /// Userinfo resource type.
@@ -44,35 +44,35 @@ pub struct Tokeninfo {
 pub struct Userinfo {
     /// The user''s email address.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The user''s last name.
     #[serde(default)]
-    pub family_name: Option<String>,
+    pub family_name: ::core::option::Option<String>,
     /// The user''s gender.
     #[serde(default)]
-    pub gender: Option<String>,
+    pub gender: ::core::option::Option<String>,
     /// The user''s first name.
     #[serde(default)]
-    pub given_name: Option<String>,
+    pub given_name: ::core::option::Option<String>,
     /// The hosted domain e.g. example.com if the user is Google apps user.
     #[serde(default)]
-    pub hd: Option<String>,
+    pub hd: ::core::option::Option<String>,
     /// The obfuscated ID of the user.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// URL of the profile page.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// The user''s preferred locale.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The user''s full name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// URL of the user''s picture image.
     #[serde(default)]
-    pub picture: Option<String>,
+    pub picture: ::core::option::Option<String>,
     /// Boolean flag which is true if the email address is verified. Always verified because we only return the user''s primary email address.
     #[serde(default)]
-    pub verified_email: Option<bool>,
+    pub verified_email: ::core::option::Option<bool>,
 }

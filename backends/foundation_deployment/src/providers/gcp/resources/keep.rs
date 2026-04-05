@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An attachment to a note.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attachment {
     /// The MIME types (IANA media types) in which the attachment is available.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<Vec<String>>,
+    pub mime_type: ::core::option::Option<::std::vec::Vec<String>>,
     /// The resource name;
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The request to add one or more permissions on the note. Currently, only the WRITER role may be specified. If adding a permission fails, then the entire request fails and no changes are made.
@@ -29,7 +29,8 @@ pub struct Attachment {
 pub struct BatchCreatePermissionsRequest {
     /// The request message specifying the resources to create.
     #[serde(default)]
-    pub requests: Option<Vec<CreatePermissionRequest>>,
+    pub requests:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreatePermissionRequest>>>,
 }
 
 /// The response for creating permissions on a note.
@@ -37,7 +38,7 @@ pub struct BatchCreatePermissionsRequest {
 pub struct BatchCreatePermissionsResponse {
     /// Permissions created.
     #[serde(default)]
-    pub permissions: Option<Vec<Permission>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Permission>>>,
 }
 
 /// The request to remove one or more permissions from a note. A permission with the OWNER role can''t be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
@@ -45,7 +46,7 @@ pub struct BatchCreatePermissionsResponse {
 pub struct BatchDeletePermissionsRequest {
     /// Required. The names of the permissions to delete. Format: notes/{note}/permissions/{permission}
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The request to add a single permission on the note.
@@ -53,10 +54,10 @@ pub struct BatchDeletePermissionsRequest {
 pub struct CreatePermissionRequest {
     /// Required. The parent note where this permission will be created. Format: notes/{note}
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Required. The permission to create. One of Permission.email, User.email or Group.email must be supplied.
     #[serde(default)]
-    pub permission: Option<Permission>,
+    pub permission: ::core::option::Option<::std::boxed::Box<Permission>>,
 }
 
 /// Describes a single Group.
@@ -64,7 +65,7 @@ pub struct CreatePermissionRequest {
 pub struct Group {
     /// The group email.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// The list of items for a single list note.
@@ -72,7 +73,7 @@ pub struct Group {
 pub struct ListContent {
     /// The items in the list. The number of items must be less than 1,000.
     #[serde(default, rename = "listItems")]
-    pub list_items: Option<Vec<ListItem>>,
+    pub list_items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ListItem>>>,
 }
 
 /// A single list item in a note''s list.
@@ -80,13 +81,13 @@ pub struct ListContent {
 pub struct ListItem {
     /// Whether this item has been checked off or not.
     #[serde(default)]
-    pub checked: Option<bool>,
+    pub checked: ::core::option::Option<bool>,
     /// If set, list of list items nested under this list item. Only one level of nesting is allowed.
     #[serde(default, rename = "childListItems")]
-    pub child_list_items: Option<Vec<ListItem>>,
+    pub child_list_items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ListItem>>>,
     /// The text of this item. Length must be less than 1,000 characters.
     #[serde(default)]
-    pub text: Option<TextContent>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextContent>>,
 }
 
 /// The response when listing a page of notes.
@@ -94,10 +95,10 @@ pub struct ListItem {
 pub struct ListNotesResponse {
     /// Next page''s page_token field.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A page of notes.
     #[serde(default)]
-    pub notes: Option<Vec<Note>>,
+    pub notes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Note>>>,
 }
 
 /// A single note.
@@ -105,31 +106,31 @@ pub struct ListNotesResponse {
 pub struct Note {
     /// Output only. The attachments attached to this note.
     #[serde(default)]
-    pub attachments: Option<Vec<Attachment>>,
+    pub attachments: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Attachment>>>,
     /// The body of the note.
     #[serde(default)]
-    pub body: Option<Section>,
+    pub body: ::core::option::Option<::std::boxed::Box<Section>>,
     /// Output only. When this note was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The resource name of this note. See general note on identifiers in KeepService.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The list of permissions set on the note. Contains at least one entry for the note owner.
     #[serde(default)]
-    pub permissions: Option<Vec<Permission>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Permission>>>,
     /// The title of the note. Length must be less than 1,000 characters.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Output only. When this note was trashed. If trashed, the note is eventually deleted. If the note is not trashed, this field is not set (and the trashed field is false).
     #[serde(default, rename = "trashTime")]
-    pub trash_time: Option<String>,
+    pub trash_time: ::core::option::Option<String>,
     /// Output only. true if this note has been trashed. If trashed, the note is eventually deleted.
     #[serde(default)]
-    pub trashed: Option<bool>,
+    pub trashed: ::core::option::Option<bool>,
     /// Output only. When this note was last modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A single permission on the note. Associates a member with a role.
@@ -137,25 +138,25 @@ pub struct Note {
 pub struct Permission {
     /// Output only. Whether this member has been deleted. If the member is recovered, this value is set to false and the recovered member retains the role on the note.
     #[serde(default)]
-    pub deleted: Option<bool>,
+    pub deleted: ::core::option::Option<bool>,
     /// The email associated with the member. If set on create, the email field in the User or Group message must either be empty or match this field. On read, may be unset if the member does not have an associated email.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Output only. The Google Family to which this role applies.
     #[serde(default)]
-    pub family: Option<serde_json::Value>,
+    pub family: ::core::option::Option<serde_json::Value>,
     /// Output only. The group to which this role applies.
     #[serde(default)]
-    pub group: Option<Group>,
+    pub group: ::core::option::Option<::std::boxed::Box<Group>>,
     /// Output only. The resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The role granted by this permission. The role determines the entity’s ability to read, write, and share notes. // TODO: enum values: ["ROLE_UNSPECIFIED", "OWNER", "WRITER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// Output only. The user to whom this role applies.
     #[serde(default)]
-    pub user: Option<User>,
+    pub user: ::core::option::Option<::std::boxed::Box<User>>,
 }
 
 /// The content of the note.
@@ -163,10 +164,10 @@ pub struct Permission {
 pub struct Section {
     /// Used if this section''s content is a list.
     #[serde(default)]
-    pub list: Option<ListContent>,
+    pub list: ::core::option::Option<::std::boxed::Box<ListContent>>,
     /// Used if this section''s content is a block of text. The length of the text content must be less than 20,000 characters.
     #[serde(default)]
-    pub text: Option<TextContent>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextContent>>,
 }
 
 /// The block of text for a single text section or list item.
@@ -174,7 +175,7 @@ pub struct Section {
 pub struct TextContent {
     /// The text of the note. The limits on this vary with the specific field using this type.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Describes a single user.
@@ -182,5 +183,5 @@ pub struct TextContent {
 pub struct User {
     /// The user''s email.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }

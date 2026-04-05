@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The configuration of access to the Kafka cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessConfig {
     /// Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.
     #[serde(default, rename = "networkConfigs")]
-    pub network_configs: Option<Vec<NetworkConfig>>,
+    pub network_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkConfig>>>,
 }
 
 /// Represents the set of ACLs for a given Kafka Resource Pattern, which consists of resource_type, resource_name and pattern_type.
@@ -26,22 +26,22 @@ pub struct AccessConfig {
 pub struct Acl {
     /// Required. The ACL entries that apply to the resource pattern. The maximum number of allowed entries 100.
     #[serde(default, rename = "aclEntries")]
-    pub acl_entries: Option<Vec<AclEntry>>,
+    pub acl_entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AclEntry>>>,
     /// Optional. etag is used for concurrency control. An etag is returned in the response to GetAcl and CreateAcl. Callers are required to put that etag in the request to UpdateAcl to ensure that their change will be applied to the same version of the acl that exists in the Kafka Cluster. A terminal ''T'' character in the etag indicates that the AclEntries were truncated; more entries for the Acl exist on the Kafka Cluster, but can''t be returned in the Acl due to repeated field limits.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier. The name for the acl. Represents a single Resource Pattern. Structured like: projects/{project}/locations/{location}/clusters/{cluster}/acls/{acl_id} The structure of acl_id defines the Resource Pattern (resource_type, resource_name, pattern_type) of the acl. acl_id is structured like one of the following: For acls on the cluster: cluster For acls on a single resource within the cluster: topic/{resource_name} consumerGroup/{resource_name} transactionalId/{resource_name} For acls on all resources that match a prefix: topicPrefixed/{resource_name} consumerGroupPrefixed/{resource_name} transactionalIdPrefixed/{resource_name} For acls on all resources of a given type (i.e. the wildcard literal "*"): allTopics (represents topic/*) allConsumerGroups (represents consumerGroup/*) allTransactionalIds (represents transactionalId/*)
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The ACL pattern type derived from the name. One of: LITERAL, PREFIXED.
     #[serde(default, rename = "patternType")]
-    pub pattern_type: Option<String>,
+    pub pattern_type: ::core::option::Option<String>,
     /// Output only. The ACL resource name derived from the name. For cluster resource_type, this is always "kafka-cluster". Can be the wildcard literal "*".
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Output only. The ACL resource type derived from the name. One of: CLUSTER, TOPIC, GROUP, TRANSACTIONAL_ID.
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
 }
 
 /// Represents the access granted for a given Resource Pattern in an ACL.
@@ -49,16 +49,16 @@ pub struct Acl {
 pub struct AclEntry {
     /// Required. The host. Must be set to "*" for Managed Service for Apache Kafka.
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// Required. The operation type. Allowed values are (case insensitive): ALL, READ, WRITE, CREATE, DELETE, ALTER, DESCRIBE, CLUSTER_ACTION, DESCRIBE_CONFIGS, ALTER_CONFIGS, and IDEMPOTENT_WRITE. See https://kafka.apache.org/documentation/#operations_resources_and_protocols for valid combinations of resource_type and operation for different Kafka API requests.
     #[serde(default)]
-    pub operation: Option<String>,
+    pub operation: ::core::option::Option<String>,
     /// Required. The permission type. Accepted values are (case insensitive): ALLOW, DENY.
     #[serde(default, rename = "permissionType")]
-    pub permission_type: Option<String>,
+    pub permission_type: ::core::option::Option<String>,
     /// Required. The principal. Specified as Google Cloud account, with the Kafka StandardAuthorizer prefix "User:". For example: "User:test-kafka-client@test-project.iam.gserviceaccount.com". Can be the wildcard "User:*" to refer to all users.
     #[serde(default)]
-    pub principal: Option<String>,
+    pub principal: ::core::option::Option<String>,
 }
 
 /// Response for AddAclEntry.
@@ -66,10 +66,10 @@ pub struct AclEntry {
 pub struct AddAclEntryResponse {
     /// The updated acl.
     #[serde(default)]
-    pub acl: Option<Acl>,
+    pub acl: ::core::option::Option<::std::boxed::Box<Acl>>,
     /// Whether the acl was created as a result of adding the acl entry.
     #[serde(default, rename = "aclCreated")]
-    pub acl_created: Option<bool>,
+    pub acl_created: ::core::option::Option<bool>,
 }
 
 /// Details of a broker in the Kafka cluster.
@@ -77,13 +77,13 @@ pub struct AddAclEntryResponse {
 pub struct BrokerDetails {
     /// Output only. The index of the broker.
     #[serde(default, rename = "brokerIndex")]
-    pub broker_index: Option<String>,
+    pub broker_index: ::core::option::Option<String>,
     /// Output only. The node id of the broker.
     #[serde(default, rename = "nodeId")]
-    pub node_id: Option<String>,
+    pub node_id: ::core::option::Option<String>,
     /// Output only. The rack of the broker.
     #[serde(default)]
-    pub rack: Option<String>,
+    pub rack: ::core::option::Option<String>,
 }
 
 /// A capacity configuration of a Kafka cluster.
@@ -91,10 +91,10 @@ pub struct BrokerDetails {
 pub struct CapacityConfig {
     /// Required. The memory to provision for the cluster in bytes. The CPU:memory ratio (vCPU:GiB) must be between 1:1 and 1:8. Minimum: 3221225472 (3 GiB).
     #[serde(default, rename = "memoryBytes")]
-    pub memory_bytes: Option<String>,
+    pub memory_bytes: ::core::option::Option<String>,
     /// Required. The number of vCPUs to provision for the cluster. Minimum: 3.
     #[serde(default, rename = "vcpuCount")]
-    pub vcpu_count: Option<String>,
+    pub vcpu_count: ::core::option::Option<String>,
 }
 
 /// A configuration for the Google Certificate Authority Service.
@@ -102,7 +102,7 @@ pub struct CapacityConfig {
 pub struct CertificateAuthorityServiceConfig {
     /// Required. The name of the CA pool to pull CA certificates from. Structured like: projects/{project}/locations/{location}/caPools/{ca_pool}. The CA pool does not need to be in the same project or location as the Kafka cluster.
     #[serde(default, rename = "caPool")]
-    pub ca_pool: Option<String>,
+    pub ca_pool: ::core::option::Option<String>,
 }
 
 /// Request for CheckCompatibility.
@@ -110,16 +110,16 @@ pub struct CertificateAuthorityServiceConfig {
 pub struct CheckCompatibilityRequest {
     /// Optional. The schema references used by the schema.
     #[serde(default)]
-    pub references: Option<Vec<SchemaReference>>,
+    pub references: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchemaReference>>>,
     /// Required. The schema payload
     #[serde(default)]
-    pub schema: Option<String>,
+    pub schema: ::core::option::Option<String>,
     /// Optional. The schema type of the schema. // TODO: enum values: ["SCHEMA_TYPE_UNSPECIFIED", "AVRO", "JSON", "PROTOBUF"]
     #[serde(default, rename = "schemaType")]
-    pub schema_type: Option<String>,
+    pub schema_type: ::core::option::Option<String>,
     /// Optional. If true, the response will contain the compatibility check result with reasons for failed checks. The default is false.
     #[serde(default)]
-    pub verbose: Option<bool>,
+    pub verbose: ::core::option::Option<bool>,
 }
 
 /// Response for CheckCompatibility.
@@ -127,10 +127,10 @@ pub struct CheckCompatibilityRequest {
 pub struct CheckCompatibilityResponse {
     /// The compatibility check result. If true, the schema is compatible with the resource.
     #[serde(default)]
-    pub is_compatible: Option<bool>,
+    pub is_compatible: ::core::option::Option<bool>,
     /// Failure reasons if verbose = true.
     #[serde(default)]
-    pub messages: Option<Vec<String>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// An Apache Kafka cluster deployed in a location.
@@ -138,46 +138,46 @@ pub struct CheckCompatibilityResponse {
 pub struct Cluster {
     /// Output only. Only populated when FULL view is requested. Details of each broker in the cluster.
     #[serde(default, rename = "brokerDetails")]
-    pub broker_details: Option<Vec<BrokerDetails>>,
+    pub broker_details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BrokerDetails>>>,
     /// Required. Capacity configuration for the Kafka cluster.
     #[serde(default, rename = "capacityConfig")]
-    pub capacity_config: Option<CapacityConfig>,
+    pub capacity_config: ::core::option::Option<::std::boxed::Box<CapacityConfig>>,
     /// Output only. The time when the cluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Configuration properties for a Kafka cluster deployed to Google Cloud Platform.
     #[serde(default, rename = "gcpConfig")]
-    pub gcp_config: Option<GcpConfig>,
+    pub gcp_config: ::core::option::Option<::std::boxed::Box<GcpConfig>>,
     /// Output only. Only populated when FULL view is requested. The Kafka version of the cluster.
     #[serde(default, rename = "kafkaVersion")]
-    pub kafka_version: Option<String>,
+    pub kafka_version: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the cluster. Structured like: projects/{project_number}/locations/{location}/clusters/{cluster_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Rebalance configuration for the Kafka cluster.
     #[serde(default, rename = "rebalanceConfig")]
-    pub rebalance_config: Option<RebalanceConfig>,
+    pub rebalance_config: ::core::option::Option<::std::boxed::Box<RebalanceConfig>>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. The current state of the cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. TLS configuration for the Kafka cluster.
     #[serde(default, rename = "tlsConfig")]
-    pub tls_config: Option<TlsConfig>,
+    pub tls_config: ::core::option::Option<::std::boxed::Box<TlsConfig>>,
     /// Optional. UpdateOptions represents options that control how updates to the cluster are applied.
     #[serde(default, rename = "updateOptions")]
-    pub update_options: Option<UpdateOptions>,
+    pub update_options: ::core::option::Option<::std::boxed::Box<UpdateOptions>>,
     /// Output only. The time when the cluster was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The configuration of access to the Kafka Connect cluster.
@@ -185,7 +185,8 @@ pub struct Cluster {
 pub struct ConnectAccessConfig {
     /// Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka Connect cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.
     #[serde(default, rename = "networkConfigs")]
-    pub network_configs: Option<Vec<ConnectNetworkConfig>>,
+    pub network_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConnectNetworkConfig>>>,
 }
 
 /// An Apache Kafka Connect cluster deployed in a location.
@@ -193,37 +194,37 @@ pub struct ConnectAccessConfig {
 pub struct ConnectCluster {
     /// Required. Capacity configuration for the Kafka Connect cluster.
     #[serde(default, rename = "capacityConfig")]
-    pub capacity_config: Option<CapacityConfig>,
+    pub capacity_config: ::core::option::Option<::std::boxed::Box<CapacityConfig>>,
     /// Optional. Configurations for the worker that are overridden from the defaults. The key of the map is a Kafka Connect worker property name, for example: exactly.once.source.support.
     #[serde(default)]
-    pub config: Option<serde_json::Value>,
+    pub config: ::core::option::Option<serde_json::Value>,
     /// Output only. The time when the cluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.
     #[serde(default, rename = "gcpConfig")]
-    pub gcp_config: Option<ConnectGcpConfig>,
+    pub gcp_config: ::core::option::Option<::std::boxed::Box<ConnectGcpConfig>>,
     /// Required. Immutable. The name of the Kafka cluster this Kafka Connect cluster is attached to. Structured like: projects/{project}/locations/{location}/clusters/{cluster}
     #[serde(default, rename = "kafkaCluster")]
-    pub kafka_cluster: Option<String>,
+    pub kafka_cluster: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the Kafka Connect cluster. Structured like: projects/{project_number}/locations/{location}/connectClusters/{connect_cluster_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. The current state of the Kafka Connect cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "DETACHED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time when the cluster was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.
@@ -231,10 +232,10 @@ pub struct ConnectCluster {
 pub struct ConnectGcpConfig {
     /// Required. Access configuration for the Kafka Connect cluster.
     #[serde(default, rename = "accessConfig")]
-    pub access_config: Option<ConnectAccessConfig>,
+    pub access_config: ::core::option::Option<::std::boxed::Box<ConnectAccessConfig>>,
     /// Optional. Secrets to load into workers. Exact SecretVersions from Secret Manager must be provided -- aliases are not supported. Up to 32 secrets may be loaded into one cluster. Format: projects//secrets//versions/
     #[serde(default, rename = "secretPaths")]
-    pub secret_paths: Option<Vec<String>>,
+    pub secret_paths: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The configuration of a Virtual Private Cloud (VPC) network that can access the Kafka Connect cluster.
@@ -242,13 +243,13 @@ pub struct ConnectGcpConfig {
 pub struct ConnectNetworkConfig {
     /// Optional. Deprecated: Managed Kafka Connect clusters can now reach any endpoint accessible from the primary subnet without the need to define additional subnets. Please see https://cloud.google.com/managed-service-for-apache-kafka/docs/connect-cluster/create-connect-cluster#worker-subnet for more information.
     #[serde(default, rename = "additionalSubnets")]
-    pub additional_subnets: Option<Vec<String>>,
+    pub additional_subnets: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Additional DNS domain names from the subnet''s network to be made visible to the Connect Cluster. When using MirrorMaker2, it''s necessary to add the bootstrap address''s dns domain name of the target cluster to make it visible to the connector. For example: my-kafka-cluster.us-central1.managedkafka.my-project.cloud.goog
     #[serde(default, rename = "dnsDomainNames")]
-    pub dns_domain_names: Option<Vec<String>>,
+    pub dns_domain_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. VPC subnet to make available to the Kafka Connect cluster. Structured like: projects/{project}/regions/{region}/subnetworks/{subnet_id} It is used to create a Private Service Connect (PSC) interface for the Kafka Connect workers. It must be located in the same region as the Kafka Connect cluster. The CIDR range of the subnet must be within the IPv4 address ranges for private networks, as specified in RFC 1918. The primary subnet CIDR range must have a minimum size of /22 (1024 addresses).
     #[serde(default, rename = "primarySubnet")]
-    pub primary_subnet: Option<String>,
+    pub primary_subnet: ::core::option::Option<String>,
 }
 
 /// A Kafka Connect connector in a given ConnectCluster.
@@ -256,16 +257,16 @@ pub struct ConnectNetworkConfig {
 pub struct Connector {
     /// Optional. Connector config as keys/values. The keys of the map are connector property names, for example: connector.class, tasks.max, key.converter.
     #[serde(default)]
-    pub configs: Option<serde_json::Value>,
+    pub configs: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the connector. Structured like: projects/{project}/locations/{location}/connectClusters/{connect_cluster}/connectors/{connector}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of the connector. // TODO: enum values: ["STATE_UNSPECIFIED", "UNASSIGNED", "RUNNING", "PAUSED", "FAILED", "RESTARTING", "STOPPED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. Restarts the individual tasks of a Connector.
     #[serde(default, rename = "taskRestartPolicy")]
-    pub task_restart_policy: Option<TaskRetryPolicy>,
+    pub task_restart_policy: ::core::option::Option<::std::boxed::Box<TaskRetryPolicy>>,
 }
 
 /// A Kafka consumer group in a given cluster.
@@ -273,10 +274,10 @@ pub struct Connector {
 pub struct ConsumerGroup {
     /// Identifier. The name of the consumer group. The consumer_group segment is used when connecting directly to the cluster. Structured like: projects/{project}/locations/{location}/clusters/{cluster}/consumerGroups/{consumer_group}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Metadata for this consumer group for all topics it has metadata for. The key of the map is a topic name, structured like: projects/{project}/locations/{location}/clusters/{cluster}/topics/{topic}
     #[serde(default)]
-    pub topics: Option<serde_json::Value>,
+    pub topics: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for a consumer group corresponding to a specific partition.
@@ -284,10 +285,10 @@ pub struct ConsumerGroup {
 pub struct ConsumerPartitionMetadata {
     /// Optional. The associated metadata for this partition, or empty if it does not exist.
     #[serde(default)]
-    pub metadata: Option<String>,
+    pub metadata: ::core::option::Option<String>,
     /// Required. The current offset for this partition, or 0 if no offset has been committed.
     #[serde(default)]
-    pub offset: Option<String>,
+    pub offset: ::core::option::Option<String>,
 }
 
 /// Context represents an independent schema grouping in a schema registry instance.
@@ -295,10 +296,10 @@ pub struct ConsumerPartitionMetadata {
 pub struct Context {
     /// Identifier. The name of the context. Structured like: projects/{project}/locations/{location}/schemaRegistries/{schema_registry}/contexts/{context} The context name {context} can contain the following: * Up to 255 characters. * Allowed characters: letters (uppercase or lowercase), numbers, and the following special characters: ., -, _, +, %, and ~.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The subjects of the context.
     #[serde(default)]
-    pub subjects: Option<Vec<String>>,
+    pub subjects: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request to create a schema registry instance.
@@ -306,10 +307,10 @@ pub struct Context {
 pub struct CreateSchemaRegistryRequest {
     /// Required. The schema registry instance to create. The name field is ignored.
     #[serde(default, rename = "schemaRegistry")]
-    pub schema_registry: Option<SchemaRegistry>,
+    pub schema_registry: ::core::option::Option<::std::boxed::Box<SchemaRegistry>>,
     /// Required. The schema registry instance ID to use for this schema registry. The ID must contain only letters (a-z, A-Z), numbers (0-9), and underscores (-). The maximum length is 63 characters. The ID must not start with a number.
     #[serde(default, rename = "schemaRegistryId")]
-    pub schema_registry_id: Option<String>,
+    pub schema_registry_id: ::core::option::Option<String>,
 }
 
 /// Request for CreateVersion.
@@ -317,22 +318,22 @@ pub struct CreateSchemaRegistryRequest {
 pub struct CreateVersionRequest {
     /// Optional. The schema ID of the schema. If not specified, the schema ID will be generated by the server. If the schema ID is specified, it must not be used by an existing schema that is different from the schema to be created.
     #[serde(default)]
-    pub id: Option<i32>,
+    pub id: ::core::option::Option<i32>,
     /// Optional. If true, the schema will be normalized before being stored. The default is false.
     #[serde(default)]
-    pub normalize: Option<bool>,
+    pub normalize: ::core::option::Option<bool>,
     /// Optional. The schema references used by the schema.
     #[serde(default)]
-    pub references: Option<Vec<SchemaReference>>,
+    pub references: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchemaReference>>>,
     /// Required. The schema payload
     #[serde(default)]
-    pub schema: Option<String>,
+    pub schema: ::core::option::Option<String>,
     /// Optional. The type of the schema. It is optional. If not specified, the schema type will be AVRO. // TODO: enum values: ["SCHEMA_TYPE_UNSPECIFIED", "AVRO", "JSON", "PROTOBUF"]
     #[serde(default, rename = "schemaType")]
-    pub schema_type: Option<String>,
+    pub schema_type: ::core::option::Option<String>,
     /// Optional. The version to create. It is optional. If not specified, the version will be created with the max version ID of the subject increased by 1. If the version ID is specified, it will be used as the new version ID and must not be used by an existing version of the subject.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Response for CreateVersion.
@@ -340,7 +341,7 @@ pub struct CreateVersionRequest {
 pub struct CreateVersionResponse {
     /// The unique identifier of the schema created.
     #[serde(default)]
-    pub id: Option<i32>,
+    pub id: ::core::option::Option<i32>,
 }
 
 /// Configuration properties for a Kafka cluster deployed to Google Cloud Platform.
@@ -348,10 +349,10 @@ pub struct CreateVersionResponse {
 pub struct GcpConfig {
     /// Required. Access configuration for the Kafka cluster.
     #[serde(default, rename = "accessConfig")]
-    pub access_config: Option<AccessConfig>,
+    pub access_config: ::core::option::Option<::std::boxed::Box<AccessConfig>>,
     /// Optional. Immutable. The Cloud KMS Key name to use for encryption. The key must be located in the same region as the cluster and cannot be changed. Structured like: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
@@ -359,13 +360,13 @@ pub struct GcpConfig {
 pub struct HttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
-    pub content_type: Option<String>,
+    pub content_type: ::core::option::Option<String>,
     /// The HTTP request/response body as raw binary.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// Application specific response metadata. Must be set in the first response for streaming APIs.
     #[serde(default)]
-    pub extensions: Option<Vec<serde_json::Value>>,
+    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Response for ListAcls.
@@ -373,10 +374,10 @@ pub struct HttpBody {
 pub struct ListAclsResponse {
     /// The list of acls in the requested parent. The order of the acls is unspecified.
     #[serde(default)]
-    pub acls: Option<Vec<Acl>>,
+    pub acls: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Acl>>>,
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for ListClusters.
@@ -384,13 +385,13 @@ pub struct ListAclsResponse {
 pub struct ListClustersResponse {
     /// The list of Clusters in the requested parent.
     #[serde(default)]
-    pub clusters: Option<Vec<Cluster>>,
+    pub clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Cluster>>>,
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListConnectClusters.
@@ -398,13 +399,14 @@ pub struct ListClustersResponse {
 pub struct ListConnectClustersResponse {
     /// The list of Connect clusters in the requested parent.
     #[serde(default, rename = "connectClusters")]
-    pub connect_clusters: Option<Vec<ConnectCluster>>,
+    pub connect_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConnectCluster>>>,
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListConnectors.
@@ -412,10 +414,10 @@ pub struct ListConnectClustersResponse {
 pub struct ListConnectorsResponse {
     /// The list of connectors in the requested parent.
     #[serde(default)]
-    pub connectors: Option<Vec<Connector>>,
+    pub connectors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Connector>>>,
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for ListConsumerGroups.
@@ -423,10 +425,10 @@ pub struct ListConnectorsResponse {
 pub struct ListConsumerGroupsResponse {
     /// The list of consumer group in the requested parent. The order of the consumer groups is unspecified.
     #[serde(default, rename = "consumerGroups")]
-    pub consumer_groups: Option<Vec<ConsumerGroup>>,
+    pub consumer_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConsumerGroup>>>,
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -434,10 +436,10 @@ pub struct ListConsumerGroupsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -445,13 +447,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for ListSchemaRegistries.
@@ -459,7 +461,8 @@ pub struct ListOperationsResponse {
 pub struct ListSchemaRegistriesResponse {
     /// The schema registry instances.
     #[serde(default, rename = "schemaRegistries")]
-    pub schema_registries: Option<Vec<SchemaRegistry>>,
+    pub schema_registries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchemaRegistry>>>,
 }
 
 /// Response for ListTopics.
@@ -467,10 +470,10 @@ pub struct ListSchemaRegistriesResponse {
 pub struct ListTopicsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of topics in the requested parent. The order of the topics is unspecified.
     #[serde(default)]
-    pub topics: Option<Vec<Topic>>,
+    pub topics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Topic>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -478,19 +481,19 @@ pub struct ListTopicsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Request for LookupVersion.
@@ -498,19 +501,19 @@ pub struct Location {
 pub struct LookupVersionRequest {
     /// Optional. If true, soft-deleted versions will be included in lookup, no matter if the subject is active or soft-deleted. If false, soft-deleted versions will be excluded. The default is false.
     #[serde(default)]
-    pub deleted: Option<bool>,
+    pub deleted: ::core::option::Option<bool>,
     /// Optional. If true, the schema will be normalized before being looked up. The default is false.
     #[serde(default)]
-    pub normalize: Option<bool>,
+    pub normalize: ::core::option::Option<bool>,
     /// Optional. The schema references used by the schema.
     #[serde(default)]
-    pub references: Option<Vec<SchemaReference>>,
+    pub references: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchemaReference>>>,
     /// Required. The schema payload
     #[serde(default)]
-    pub schema: Option<String>,
+    pub schema: ::core::option::Option<String>,
     /// Optional. The schema type of the schema. // TODO: enum values: ["SCHEMA_TYPE_UNSPECIFIED", "AVRO", "JSON", "PROTOBUF"]
     #[serde(default, rename = "schemaType")]
-    pub schema_type: Option<String>,
+    pub schema_type: ::core::option::Option<String>,
 }
 
 /// The configuration of a Virtual Private Cloud (VPC) network that can access the Kafka cluster.
@@ -518,7 +521,7 @@ pub struct LookupVersionRequest {
 pub struct NetworkConfig {
     /// Required. Name of the VPC subnet in which to create Private Service Connect (PSC) endpoints for the Kafka brokers and bootstrap address. Structured like: projects/{project}/regions/{region}/subnetworks/{subnet_id} The subnet must be located in the same region as the Kafka cluster. The project may differ. Multiple subnets from the same parent network must not be specified.
     #[serde(default)]
-    pub subnet: Option<String>,
+    pub subnet: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -526,19 +529,19 @@ pub struct NetworkConfig {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -546,25 +549,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Defines rebalancing behavior of a Kafka cluster.
@@ -572,7 +575,7 @@ pub struct OperationMetadata {
 pub struct RebalanceConfig {
     /// Optional. The rebalance behavior for the cluster. When not specified, defaults to NO_REBALANCE. // TODO: enum values: ["MODE_UNSPECIFIED", "NO_REBALANCE", "AUTO_REBALANCE_ON_SCALE_UP"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
 }
 
 /// Response for RemoveAclEntry.
@@ -580,10 +583,10 @@ pub struct RebalanceConfig {
 pub struct RemoveAclEntryResponse {
     /// The updated acl. Returned if the removed acl entry was not the last entry in the acl.
     #[serde(default)]
-    pub acl: Option<Acl>,
+    pub acl: ::core::option::Option<::std::boxed::Box<Acl>>,
     /// Returned with value true if the removed acl entry was the last entry in the acl, resulting in acl deletion.
     #[serde(default, rename = "aclDeleted")]
-    pub acl_deleted: Option<bool>,
+    pub acl_deleted: ::core::option::Option<bool>,
 }
 
 /// Schema for a Kafka message.
@@ -591,13 +594,13 @@ pub struct RemoveAclEntryResponse {
 pub struct Schema {
     /// Optional. The schema references used by the schema.
     #[serde(default)]
-    pub references: Option<Vec<SchemaReference>>,
+    pub references: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchemaReference>>>,
     /// The schema payload.
     #[serde(default)]
-    pub schema: Option<String>,
+    pub schema: ::core::option::Option<String>,
     /// Optional. The schema type of the schema. // TODO: enum values: ["SCHEMA_TYPE_UNSPECIFIED", "AVRO", "JSON", "PROTOBUF"]
     #[serde(default, rename = "schemaType")]
-    pub schema_type: Option<String>,
+    pub schema_type: ::core::option::Option<String>,
 }
 
 /// SchemaConfig represents configuration for a schema registry or a specific subject.
@@ -605,13 +608,13 @@ pub struct Schema {
 pub struct SchemaConfig {
     /// Optional. The subject to which this subject is an alias of. Only applicable for subject config.
     #[serde(default)]
-    pub alias: Option<String>,
+    pub alias: ::core::option::Option<String>,
     /// Required. The compatibility type of the schema. The default value is BACKWARD. If unset in a SchemaSubject-level SchemaConfig, defaults to the global value. If unset in a SchemaRegistry-level SchemaConfig, reverts to the default value. // TODO: enum values: ["NONE", "BACKWARD", "BACKWARD_TRANSITIVE", "FORWARD", "FORWARD_TRANSITIVE", "FULL", "FULL_TRANSITIVE"]
     #[serde(default)]
-    pub compatibility: Option<String>,
+    pub compatibility: ::core::option::Option<String>,
     /// Optional. If true, the schema will be normalized before being stored or looked up. The default is false. If unset in a SchemaSubject-level SchemaConfig, the global value will be used. If unset in a SchemaRegistry-level SchemaConfig, reverts to the default value.
     #[serde(default)]
-    pub normalize: Option<bool>,
+    pub normalize: ::core::option::Option<bool>,
 }
 
 /// SchemaMode represents the mode of a schema registry or a specific subject. Four modes are supported: * NONE: deprecated. This was the default mode for a subject, but now the default is unset (which means use the global schema registry setting) * READONLY: The schema registry is in read-only mode. * READWRITE: The schema registry is in read-write mode, which allows limited write operations on the schema. * IMPORT: The schema registry is in import mode, which allows more editing operations on the schema for data importing purposes.
@@ -619,7 +622,7 @@ pub struct SchemaConfig {
 pub struct SchemaMode {
     /// Required. The mode type of a schema registry (READWRITE by default) or of a subject (unset by default, which means use the global schema registry setting). // TODO: enum values: ["NONE", "READONLY", "READWRITE", "IMPORT"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
 }
 
 /// SchemaReference is a reference to a schema.
@@ -627,13 +630,13 @@ pub struct SchemaMode {
 pub struct SchemaReference {
     /// Required. The name of the reference.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The subject of the reference.
     #[serde(default)]
-    pub subject: Option<String>,
+    pub subject: ::core::option::Option<String>,
     /// Required. The version of the reference.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// SchemaRegistry is a schema registry instance.
@@ -641,10 +644,10 @@ pub struct SchemaReference {
 pub struct SchemaRegistry {
     /// Output only. The contexts of the schema registry instance.
     #[serde(default)]
-    pub contexts: Option<Vec<String>>,
+    pub contexts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Identifier. The name of the schema registry instance. Structured like: projects/{project}/locations/{location}/schemaRegistries/{schema_registry} The instance name {schema_registry} can contain the following: * Up to 255 characters. * Letters (uppercase or lowercase), numbers, and underscores.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Version of a schema.
@@ -652,22 +655,22 @@ pub struct SchemaRegistry {
 pub struct SchemaVersion {
     /// Required. The schema ID.
     #[serde(default)]
-    pub id: Option<i32>,
+    pub id: ::core::option::Option<i32>,
     /// Optional. The schema references used by the schema.
     #[serde(default)]
-    pub references: Option<Vec<SchemaReference>>,
+    pub references: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchemaReference>>>,
     /// Required. The schema payload.
     #[serde(default)]
-    pub schema: Option<String>,
+    pub schema: ::core::option::Option<String>,
     /// Optional. The schema type of the schema. // TODO: enum values: ["SCHEMA_TYPE_UNSPECIFIED", "AVRO", "JSON", "PROTOBUF"]
     #[serde(default, rename = "schemaType")]
-    pub schema_type: Option<String>,
+    pub schema_type: ::core::option::Option<String>,
     /// Required. The subject of the version.
     #[serde(default)]
-    pub subject: Option<String>,
+    pub subject: ::core::option::Option<String>,
     /// Required. The version ID
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -675,13 +678,13 @@ pub struct SchemaVersion {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Task Retry Policy is implemented on a best-effort basis. The default policy retries tasks with a minimum_backoff of 60 seconds, and a maximum_backoff of 12 hours. You can disable the policy by setting the task_retry_disabled field to true. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. Note that the delay between consecutive task restarts may not always precisely match the configured settings. This can happen when the ConnectCluster is in rebalancing state or if the ConnectCluster is unresponsive etc. The default values for minimum and maximum backoffs are 60 seconds and 12 hours respectively.
@@ -689,13 +692,13 @@ pub struct Status {
 pub struct TaskRetryPolicy {
     /// Optional. The maximum amount of time to wait before retrying a failed task. This sets an upper bound for the backoff delay.
     #[serde(default, rename = "maximumBackoff")]
-    pub maximum_backoff: Option<String>,
+    pub maximum_backoff: ::core::option::Option<String>,
     /// Optional. The minimum amount of time to wait before retrying a failed task. This sets a lower bound for the backoff delay.
     #[serde(default, rename = "minimumBackoff")]
-    pub minimum_backoff: Option<String>,
+    pub minimum_backoff: ::core::option::Option<String>,
     /// Optional. If true, task retry is disabled.
     #[serde(default, rename = "taskRetryDisabled")]
-    pub task_retry_disabled: Option<bool>,
+    pub task_retry_disabled: ::core::option::Option<bool>,
 }
 
 /// The TLS configuration for the Kafka cluster.
@@ -703,10 +706,10 @@ pub struct TaskRetryPolicy {
 pub struct TlsConfig {
     /// Optional. A list of rules for mapping from SSL principal names to short names. These are applied in order by Kafka. Refer to the Apache Kafka documentation for ssl.principal.mapping.rules for the precise formatting details and syntax. Example: "RULE:^CN=(.*?),OU=ServiceUsers.*$/$1@example.com/,DEFAULT" This is a static Kafka broker configuration. Setting or modifying this field will trigger a rolling restart of the Kafka brokers to apply the change. An empty string means no rules are applied (Kafka default).
     #[serde(default, rename = "sslPrincipalMappingRules")]
-    pub ssl_principal_mapping_rules: Option<String>,
+    pub ssl_principal_mapping_rules: ::core::option::Option<String>,
     /// Optional. The configuration of the broker truststore. If specified, clients can use mTLS for authentication.
     #[serde(default, rename = "trustConfig")]
-    pub trust_config: Option<TrustConfig>,
+    pub trust_config: ::core::option::Option<::std::boxed::Box<TrustConfig>>,
 }
 
 /// A Kafka topic in a given cluster.
@@ -714,16 +717,16 @@ pub struct TlsConfig {
 pub struct Topic {
     /// Optional. Configurations for the topic that are overridden from the cluster defaults. The key of the map is a Kafka topic property name, for example: cleanup.policy, compression.type.
     #[serde(default)]
-    pub configs: Option<serde_json::Value>,
+    pub configs: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the topic. The topic segment is used when connecting directly to the cluster. Structured like: projects/{project}/locations/{location}/clusters/{cluster}/topics/{topic}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The number of partitions this topic has. The partition count can only be increased, not decreased. Please note that if partitions are increased for a topic that has a key, the partitioning logic or the ordering of the messages will be affected.
     #[serde(default, rename = "partitionCount")]
-    pub partition_count: Option<i32>,
+    pub partition_count: ::core::option::Option<i32>,
     /// Required. Immutable. The number of replicas of each partition. A replication factor of 3 is recommended for high availability.
     #[serde(default, rename = "replicationFactor")]
-    pub replication_factor: Option<i32>,
+    pub replication_factor: ::core::option::Option<i32>,
 }
 
 /// Sources of CA certificates to install in the broker''s truststore.
@@ -731,7 +734,9 @@ pub struct Topic {
 pub struct TrustConfig {
     /// Optional. Configuration for the Google Certificate Authority Service. Maximum 10.
     #[serde(default, rename = "casConfigs")]
-    pub cas_configs: Option<Vec<CertificateAuthorityServiceConfig>>,
+    pub cas_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CertificateAuthorityServiceConfig>>,
+    >,
 }
 
 /// UpdateOptions specifies options that influence how a cluster update is applied. These options control the behavior of the update process, rather than defining the desired end-state of a cluster.
@@ -739,7 +744,7 @@ pub struct TrustConfig {
 pub struct UpdateOptions {
     /// Optional. If true, allows an update operation that increases the total vCPU and/or memory allocation of the cluster to significantly decrease the per-broker vCPU and/or memory allocation. This can result in reduced performance and availability. By default, the update operation will fail if an upscale request results in a vCPU or memory allocation for the brokers that is smaller than 90% of the current broker size.
     #[serde(default, rename = "allowBrokerDownscaleOnClusterUpscale")]
-    pub allow_broker_downscale_on_cluster_upscale: Option<bool>,
+    pub allow_broker_downscale_on_cluster_upscale: ::core::option::Option<bool>,
 }
 
 /// Request for updating schema config. On a SchemaSubject-level SchemaConfig, an unset field will be removed from the SchemaConfig.
@@ -747,10 +752,10 @@ pub struct UpdateOptions {
 pub struct UpdateSchemaConfigRequest {
     /// Required. The compatibility type of the schemas. Cannot be unset for a SchemaRegistry-level SchemaConfig. If unset on a SchemaSubject-level SchemaConfig, removes the compatibility field for the SchemaConfig. // TODO: enum values: ["NONE", "BACKWARD", "BACKWARD_TRANSITIVE", "FORWARD", "FORWARD_TRANSITIVE", "FULL", "FULL_TRANSITIVE"]
     #[serde(default)]
-    pub compatibility: Option<String>,
+    pub compatibility: ::core::option::Option<String>,
     /// Optional. If true, the schema will be normalized before being stored or looked up. The default is false. Cannot be unset for a SchemaRegistry-level SchemaConfig. If unset on a SchemaSubject-level SchemaConfig, removes the normalize field for the SchemaConfig.
     #[serde(default)]
-    pub normalize: Option<bool>,
+    pub normalize: ::core::option::Option<bool>,
 }
 
 /// Request for updating schema registry or subject mode.
@@ -758,5 +763,5 @@ pub struct UpdateSchemaConfigRequest {
 pub struct UpdateSchemaModeRequest {
     /// Required. The mode type. // TODO: enum values: ["NONE", "READONLY", "READWRITE", "IMPORT"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
 }

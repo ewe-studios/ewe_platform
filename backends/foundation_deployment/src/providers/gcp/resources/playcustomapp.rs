@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// This resource represents a custom app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomApp {
     /// Default listing language in BCP 47 format.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Organizations to which the custom app should be made available. If the request contains any organizations, then the app will be restricted to only these organizations. To support the organization linked to the developer account, the organization ID should be provided explicitly together with other organizations. If no organizations are provided, then the app is only available to the organization linked to the developer account.
     #[serde(default)]
-    pub organizations: Option<Vec<Organization>>,
+    pub organizations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Organization>>>,
     /// Output only. Package name of the created Android app. Only present in the API response.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Title for the Android app.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Represents an organization that can access a custom app.
@@ -35,8 +35,8 @@ pub struct CustomApp {
 pub struct Organization {
     /// Required. ID of the organization.
     #[serde(default, rename = "organizationId")]
-    pub organization_id: Option<String>,
+    pub organization_id: ::core::option::Option<String>,
     /// Optional. A human-readable name of the organization, to help recognize the organization.
     #[serde(default, rename = "organizationName")]
-    pub organization_name: Option<String>,
+    pub organization_name: ::core::option::Option<String>,
 }

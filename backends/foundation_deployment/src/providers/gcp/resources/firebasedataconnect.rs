@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Client caching settings of a connector.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientCache {
     /// Optional. A field that, if true, means that responses served by this connector will include entityIds in GraphQL response extensions. This helps the client SDK cache responses in an improved way, known as "normalized caching", if caching is enabled on the client. Each entityId is a stable key based on primary key values. Therefore, this field should only be set to true if the primary keys of accessed tables do not contain sensitive information.
     #[serde(default, rename = "entityIdIncluded")]
-    pub entity_id_included: Option<bool>,
+    pub entity_id_included: ::core::option::Option<bool>,
     /// Optional. A field that, if true, enables stricter validation on the connector source code to make sure the operation response shapes are suitable for client-side caching. This can include additional errors and warnings. For example, using the same alias for different fields is disallowed, as it may cause conflicts or confusion with normalized caching. (This field is off by default for compatibility, but enabling it is highly recommended to catch common caching pitfalls.)
     #[serde(default, rename = "strictValidationEnabled")]
-    pub strict_validation_enabled: Option<bool>,
+    pub strict_validation_enabled: ::core::option::Option<bool>,
 }
 
 /// Settings for CloudSQL instance configuration.
@@ -29,7 +29,7 @@ pub struct ClientCache {
 pub struct CloudSqlInstance {
     /// Required. Name of the CloudSQL instance, in the format:  projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
 }
 
 /// Connector consists of a set of operations, i.e. queries and mutations.
@@ -37,37 +37,37 @@ pub struct CloudSqlInstance {
 pub struct Connector {
     /// Optional. Stores small amounts of arbitrary data.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Optional. The client cache settings of the connector.
     #[serde(default, rename = "clientCache")]
-    pub client_cache: Option<ClientCache>,
+    pub client_cache: ::core::option::Option<::std::boxed::Box<ClientCache>>,
     /// Output only. [Output only] Create time stamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Mutable human-readable name. 63 character limit.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. [AIP-154](https://google.aip.dev/154)
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The relative resource name of the connector, in the format:  projects/{project}/locations/{location}/services/{service}/connectors/{connector}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that if true, indicates that the system is working to compile and deploy the connector.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Required. The source files that comprise the connector.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. [Output only] Update time stamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Data Connect specific properties for a path under response.data.
@@ -75,16 +75,16 @@ pub struct Connector {
 pub struct DataConnectProperties {
     /// A single Entity ID. Set if the path points to a single entity.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// A list of Entity IDs. Set if the path points to an array of entities. An ID is present for each element of the array at the corresponding index.
     #[serde(default, rename = "entityIds")]
-    pub entity_ids: Option<Vec<String>>,
+    pub entity_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The server-suggested duration before data under path is considered stale.
     #[serde(default, rename = "maxAge")]
-    pub max_age: Option<String>,
+    pub max_age: ::core::option::Option<String>,
     /// The path under response.data where the rest of the fields apply. Each element may be a string (field name) or number (array index). The root of response.data is denoted by the empty list [].
     #[serde(default)]
-    pub path: Option<Vec<serde_json::Value>>,
+    pub path: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// A data source that backs Firebase Data Connect services.
@@ -92,10 +92,10 @@ pub struct DataConnectProperties {
 pub struct Datasource {
     /// HTTP GraphQL server webhook configurations.
     #[serde(default, rename = "httpGraphql")]
-    pub http_graphql: Option<HttpGraphql>,
+    pub http_graphql: ::core::option::Option<::std::boxed::Box<HttpGraphql>>,
     /// PostgreSQL configurations.
     #[serde(default)]
-    pub postgresql: Option<PostgreSql>,
+    pub postgresql: ::core::option::Option<::std::boxed::Box<PostgreSql>>,
 }
 
 /// The ExecuteMutation request to Firebase Data Connect.
@@ -103,10 +103,10 @@ pub struct Datasource {
 pub struct ExecuteMutationRequest {
     /// Required. The name of the GraphQL operation name. Required because all Connector operations must be named. See https://graphql.org/learn/queries/#operation-name.
     #[serde(default, rename = "operationName")]
-    pub operation_name: Option<String>,
+    pub operation_name: ::core::option::Option<String>,
     /// Optional. Values for GraphQL variables provided in this request.
     #[serde(default)]
-    pub variables: Option<serde_json::Value>,
+    pub variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// The ExecuteMutation response from Firebase Data Connect.
@@ -114,13 +114,13 @@ pub struct ExecuteMutationRequest {
 pub struct ExecuteMutationResponse {
     /// The result of executing the requested operation.
     #[serde(default)]
-    pub data: Option<serde_json::Value>,
+    pub data: ::core::option::Option<serde_json::Value>,
     /// Errors of this response.
     #[serde(default)]
-    pub errors: Option<Vec<GraphqlError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GraphqlError>>>,
     /// Additional response information.
     #[serde(default)]
-    pub extensions: Option<GraphqlResponseExtensions>,
+    pub extensions: ::core::option::Option<::std::boxed::Box<GraphqlResponseExtensions>>,
 }
 
 /// The ExecuteQuery request to Firebase Data Connect.
@@ -128,10 +128,10 @@ pub struct ExecuteMutationResponse {
 pub struct ExecuteQueryRequest {
     /// Required. The name of the GraphQL operation name. Required because all Connector operations must be named. See https://graphql.org/learn/queries/#operation-name.
     #[serde(default, rename = "operationName")]
-    pub operation_name: Option<String>,
+    pub operation_name: ::core::option::Option<String>,
     /// Optional. Values for GraphQL variables provided in this request.
     #[serde(default)]
-    pub variables: Option<serde_json::Value>,
+    pub variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// The ExecuteQuery response from Firebase Data Connect.
@@ -139,13 +139,13 @@ pub struct ExecuteQueryRequest {
 pub struct ExecuteQueryResponse {
     /// The result of executing the requested operation.
     #[serde(default)]
-    pub data: Option<serde_json::Value>,
+    pub data: ::core::option::Option<serde_json::Value>,
     /// Errors of this response.
     #[serde(default)]
-    pub errors: Option<Vec<GraphqlError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GraphqlError>>>,
     /// Additional response information.
     #[serde(default)]
-    pub extensions: Option<GraphqlResponseExtensions>,
+    pub extensions: ::core::option::Option<::std::boxed::Box<GraphqlResponseExtensions>>,
 }
 
 /// Individual files.
@@ -153,10 +153,10 @@ pub struct ExecuteQueryResponse {
 pub struct File {
     /// Required. The file''s textual content.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Required. The file name including folder path, if applicable. The path should be relative to a local workspace (e.g. dataconnect/(schema|connector)/*.gql) and not an absolute path (e.g. /absolute/path/(schema|connector)/*.gql).
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// GraphqlError conforms to the GraphQL error spec. https://spec.graphql.org/draft/#sec-Errors Firebase Data Connect API surfaces GraphqlError in various APIs: - Upon compile error, UpdateSchema and UpdateConnector return Code.Invalid_Argument with a list of GraphqlError in error details. - Upon query compile error, ExecuteGraphql, ExecuteGraphqlRead and IntrospectGraphql return Code.OK with a list of GraphqlError in response body. - Upon query execution error, ExecuteGraphql, ExecuteGraphqlRead, ExecuteMutation, ExecuteQuery, IntrospectGraphql, ImpersonateQuery and ImpersonateMutation all return Code.OK with a list of GraphqlError in response body.
@@ -164,16 +164,16 @@ pub struct File {
 pub struct GraphqlError {
     /// Additional error information.
     #[serde(default)]
-    pub extensions: Option<GraphqlErrorExtensions>,
+    pub extensions: ::core::option::Option<::std::boxed::Box<GraphqlErrorExtensions>>,
     /// The source locations where the error occurred. Locations should help developers and toolings identify the source of error quickly. Included in admin endpoints (ExecuteGraphql, ExecuteGraphqlRead, IntrospectGraphql, ImpersonateQuery, ImpersonateMutation, UpdateSchema and UpdateConnector) to reference the provided GraphQL GQL document. Omitted in ExecuteMutation and ExecuteQuery since the caller shouldn''t have access access the underlying GQL source.
     #[serde(default)]
-    pub locations: Option<Vec<SourceLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SourceLocation>>>,
     /// The detailed error message. The message should help developer understand the underlying problem without leaking internal data.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The result field which could not be populated due to error. Clients can use path to identify whether a null result is intentional or caused by a runtime error. It should be a list of string or index from the root of GraphQL query document.
     #[serde(default)]
-    pub path: Option<Vec<serde_json::Value>>,
+    pub path: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// GraphqlErrorExtensions contains additional information of GraphqlError.
@@ -181,19 +181,19 @@ pub struct GraphqlError {
 pub struct GraphqlErrorExtensions {
     /// Maps to canonical gRPC codes. If not specified, it represents Code.INTERNAL. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// More detailed error message to assist debugging. It contains application business logic that are inappropriate to leak publicly. In the emulator, Data Connect API always includes it to assist local development and debugging. In the backend, ConnectorService always hides it. GraphqlService without impersonation always include it. GraphqlService with impersonation includes it only if explicitly opted-in with include_debug_details in GraphqlRequestExtensions.
     #[serde(default, rename = "debugDetails")]
-    pub debug_details: Option<String>,
+    pub debug_details: ::core::option::Option<String>,
     /// The source file name where the error occurred. Included only for UpdateSchema and UpdateConnector, it corresponds to File.path of the provided Source.
     #[serde(default)]
-    pub file: Option<String>,
+    pub file: ::core::option::Option<String>,
     /// Warning level describes the severity and required action to suppress this warning when Firebase CLI run into it. // TODO: enum values: ["WARNING_LEVEL_UNKNOWN", "LOG_ONLY", "INTERACTIVE_ACK", "REQUIRE_ACK", "REQUIRE_FORCE"]
     #[serde(default, rename = "warningLevel")]
-    pub warning_level: Option<String>,
+    pub warning_level: ::core::option::Option<String>,
     /// Workarounds provide suggestions to address the compile errors or warnings.
     #[serde(default)]
-    pub workarounds: Option<Vec<Workaround>>,
+    pub workarounds: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Workaround>>>,
 }
 
 /// The GraphQL request to Firebase Data Connect. It strives to match the GraphQL over HTTP spec. https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md#post
@@ -201,16 +201,16 @@ pub struct GraphqlErrorExtensions {
 pub struct GraphqlRequest {
     /// Optional. Additional GraphQL request information.
     #[serde(default)]
-    pub extensions: Option<GraphqlRequestExtensions>,
+    pub extensions: ::core::option::Option<::std::boxed::Box<GraphqlRequestExtensions>>,
     /// Optional. The name of the GraphQL operation name. Required only if query contains multiple operations. See https://graphql.org/learn/queries/#operation-name.
     #[serde(default, rename = "operationName")]
-    pub operation_name: Option<String>,
+    pub operation_name: ::core::option::Option<String>,
     /// Required. The GraphQL query document source.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Optional. Values for GraphQL variables provided in this request.
     #[serde(default)]
-    pub variables: Option<serde_json::Value>,
+    pub variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// GraphqlRequestExtensions contains additional information of GraphqlRequest.
@@ -218,7 +218,7 @@ pub struct GraphqlRequest {
 pub struct GraphqlRequestExtensions {
     /// Optional. If set, impersonate a request with given Firebase Auth context and evaluate the auth policies on the operation. If omitted, bypass any defined auth policies.
     #[serde(default)]
-    pub impersonate: Option<Impersonation>,
+    pub impersonate: ::core::option::Option<::std::boxed::Box<Impersonation>>,
 }
 
 /// The GraphQL response from Firebase Data Connect. It strives to match the GraphQL over HTTP spec. Note: Firebase Data Connect always responds with Content-Type: application/json. https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md#body
@@ -226,13 +226,13 @@ pub struct GraphqlRequestExtensions {
 pub struct GraphqlResponse {
     /// The result of the execution of the requested operation. If an error was raised before execution begins, the data entry should not be present in the result. (a request error: https://spec.graphql.org/draft/#sec-Errors.Request-Errors) If an error was raised during the execution that prevented a valid response, the data entry in the response should be null. (a field error: https://spec.graphql.org/draft/#sec-Errors.Error-Result-Format)
     #[serde(default)]
-    pub data: Option<serde_json::Value>,
+    pub data: ::core::option::Option<serde_json::Value>,
     /// Errors of this response. If the data entry in the response is not present, the errors entry must be present. It conforms to https://spec.graphql.org/draft/#sec-Errors .
     #[serde(default)]
-    pub errors: Option<Vec<GraphqlError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GraphqlError>>>,
     /// Additional response information. It conforms to https://spec.graphql.org/draft/#sec-Extensions .
     #[serde(default)]
-    pub extensions: Option<GraphqlResponseExtensions>,
+    pub extensions: ::core::option::Option<::std::boxed::Box<GraphqlResponseExtensions>>,
 }
 
 /// GraphqlResponseExtensions contains additional information of GraphqlResponse or ExecuteQueryResponse.
@@ -240,7 +240,8 @@ pub struct GraphqlResponse {
 pub struct GraphqlResponseExtensions {
     /// Data Connect specific GraphQL extension, a list of paths and properties.
     #[serde(default, rename = "dataConnect")]
-    pub data_connect: Option<Vec<DataConnectProperties>>,
+    pub data_connect:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataConnectProperties>>>,
 }
 
 /// Settings for HTTP GraphQL server webhook.
@@ -248,10 +249,10 @@ pub struct GraphqlResponseExtensions {
 pub struct HttpGraphql {
     /// Optional. Timeout duration for the HTTP request.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
     /// Required. The endpoint of the HTTP GraphQL server.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Impersonate request to Firebase Data Connect.
@@ -259,13 +260,13 @@ pub struct HttpGraphql {
 pub struct ImpersonateRequest {
     /// Optional. Additional GraphQL request information.
     #[serde(default)]
-    pub extensions: Option<GraphqlRequestExtensions>,
+    pub extensions: ::core::option::Option<::std::boxed::Box<GraphqlRequestExtensions>>,
     /// Required. The name of the GraphQL operation name. Required because all Connector operations must be named. See https://graphql.org/learn/queries/#operation-name.
     #[serde(default, rename = "operationName")]
-    pub operation_name: Option<String>,
+    pub operation_name: ::core::option::Option<String>,
     /// Optional. Values for GraphQL variables provided in this request.
     #[serde(default)]
-    pub variables: Option<serde_json::Value>,
+    pub variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// Impersonation configures the Firebase Auth context to impersonate.
@@ -273,13 +274,13 @@ pub struct ImpersonateRequest {
 pub struct Impersonation {
     /// Evaluate the auth policy with a customized JWT auth token. Should follow the Firebase Auth token format. https://firebase.google.com/docs/rules/rules-and-auth For example: a verified user may have auth_claims of {"sub": , "email_verified": true}
     #[serde(default, rename = "authClaims")]
-    pub auth_claims: Option<serde_json::Value>,
+    pub auth_claims: ::core::option::Option<serde_json::Value>,
     /// Optional. If set, include debug details in GraphQL error extensions.
     #[serde(default, rename = "includeDebugDetails")]
-    pub include_debug_details: Option<bool>,
+    pub include_debug_details: ::core::option::Option<bool>,
     /// Evaluate the auth policy as an unauthenticated request. Can only be set to true.
     #[serde(default)]
-    pub unauthenticated: Option<bool>,
+    pub unauthenticated: ::core::option::Option<bool>,
 }
 
 /// Message for response to listing Connectors. By default, connectors.source will not be included in the response. To specify the fields included in the response, the response field mask can be provided by using the query parameter $fields or the header X-Goog-FieldMask.
@@ -287,13 +288,13 @@ pub struct Impersonation {
 pub struct ListConnectorsResponse {
     /// The list of Connectors.
     #[serde(default)]
-    pub connectors: Option<Vec<Connector>>,
+    pub connectors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Connector>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -301,10 +302,10 @@ pub struct ListConnectorsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -312,13 +313,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to listing Schemas. By default, schemas.source will not be included in the response. To specify the fields included in the response, the response field mask can be provided by using the query parameter $fields or the header X-Goog-FieldMask.
@@ -326,13 +327,13 @@ pub struct ListOperationsResponse {
 pub struct ListSchemasResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Schemas.
     #[serde(default)]
-    pub schemas: Option<Vec<Schema>>,
+    pub schemas: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Schema>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to listing Services.
@@ -340,13 +341,13 @@ pub struct ListSchemasResponse {
 pub struct ListServicesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Services.
     #[serde(default)]
-    pub services: Option<Vec<Service>>,
+    pub services: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Service>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -354,19 +355,19 @@ pub struct ListServicesResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -374,19 +375,19 @@ pub struct Location {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation. Note: This message is auto-generated by CCFE. CCFE''s storage, called Resource Metadata Store (RMS), holds metadata about long-running operations (i.e. OperationMetadata) and resources (i.e. ResourceMetadata). OperationMetadata documents the status of the operation. See [CCFE documentation for sidechannel data](https://g3doc.corp.google.com/cloud/control2/g3doc/dev/codelab_extras/sidechannel.md?cl=head#sidechannel-data) and yaqs/4289526912465764352.
@@ -394,25 +395,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Settings for PostgreSQL data source.
@@ -420,25 +421,25 @@ pub struct OperationMetadata {
 pub struct PostgreSql {
     /// Cloud SQL configurations.
     #[serde(default, rename = "cloudSql")]
-    pub cloud_sql: Option<CloudSqlInstance>,
+    pub cloud_sql: ::core::option::Option<::std::boxed::Box<CloudSqlInstance>>,
     /// Required. Name of the PostgreSQL database.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Output only. Ephemeral is true if this data connect service is served from temporary in-memory emulation of Postgres. While Cloud SQL is being provisioned, the data connect service provides the ephemeral service to help developers get started. Once the Cloud SQL is provisioned, Data Connect service will transfer its data on a best-effort basis to the Cloud SQL instance. WARNING: Ephemeral data sources will expire after 24 hour. The data will be lost if they aren''t transferred to the Cloud SQL instance. WARNING: When ephemeral=true, mutations to the database are not guaranteed to be durably persisted, even if an OK status code is returned. All or parts of the data may be lost or reverted to earlier versions.
     #[serde(default)]
-    pub ephemeral: Option<bool>,
+    pub ephemeral: ::core::option::Option<bool>,
     /// Optional. User-configured PostgreSQL schema. Defaults to "public" if not specified.
     #[serde(default)]
-    pub schema: Option<String>,
+    pub schema: ::core::option::Option<String>,
     /// Optional. Configure how to perform Postgresql schema migration. // TODO: enum values: ["SQL_SCHEMA_MIGRATION_UNSPECIFIED", "MIGRATE_COMPATIBLE"]
     #[serde(default, rename = "schemaMigration")]
-    pub schema_migration: Option<String>,
+    pub schema_migration: ::core::option::Option<String>,
     /// Optional. Configure how much Postgresql schema validation to perform. // TODO: enum values: ["SQL_SCHEMA_VALIDATION_UNSPECIFIED", "NONE", "STRICT", "COMPATIBLE"]
     #[serde(default, rename = "schemaValidation")]
-    pub schema_validation: Option<String>,
+    pub schema_validation: ::core::option::Option<String>,
     /// No Postgres data source is linked. If set, don''t allow database and schema_validation to be configured.
     #[serde(default)]
-    pub unlinked: Option<bool>,
+    pub unlinked: ::core::option::Option<bool>,
 }
 
 /// The application schema of a Firebase Data Connect service.
@@ -446,37 +447,37 @@ pub struct PostgreSql {
 pub struct Schema {
     /// Optional. Stores small amounts of arbitrary data.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. [Output only] Create time stamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The data sources linked in the schema.
     #[serde(default)]
-    pub datasources: Option<Vec<Datasource>>,
+    pub datasources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Datasource>>>,
     /// Optional. Mutable human-readable name. 63 character limit.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. [AIP-154](https://google.aip.dev/154)
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The relative resource name of the schema, in the format:  projects/{project}/locations/{location}/services/{service}/schemas/{schema}  Right now, the only supported schema is "main".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that if true, indicates that the system is working to compile and deploy the schema.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Required. The source files that comprise the application schema.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. [Output only] Update time stamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A Firebase Data Connect service.
@@ -484,31 +485,31 @@ pub struct Schema {
 pub struct Service {
     /// Optional. Stores small amounts of arbitrary data.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. [Output only] Create time stamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Mutable human-readable name. 63 character limit.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. [AIP-154](https://google.aip.dev/154)
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The relative resource name of the Firebase Data Connect service, in the format:  projects/{project}/locations/{location}/services/{service}  Note that the service ID is specific to Firebase Data Connect and does not correspond to any of the instance IDs of the underlying data source connections.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that if true, indicates that the system is working update the service.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. [Output only] Update time stamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Used to represent a set of source files.
@@ -516,7 +517,7 @@ pub struct Service {
 pub struct Source {
     /// Required. The files that comprise the source set.
     #[serde(default)]
-    pub files: Option<Vec<File>>,
+    pub files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<File>>>,
 }
 
 /// SourceLocation references a location in a GraphQL source.
@@ -524,10 +525,10 @@ pub struct Source {
 pub struct SourceLocation {
     /// Column number starting at 1.
     #[serde(default)]
-    pub column: Option<i32>,
+    pub column: ::core::option::Option<i32>,
     /// Line number starting at 1.
     #[serde(default)]
-    pub line: Option<i32>,
+    pub line: ::core::option::Option<i32>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -535,13 +536,13 @@ pub struct SourceLocation {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Workaround provides suggestions to address errors and warnings.
@@ -549,11 +550,11 @@ pub struct Status {
 pub struct Workaround {
     /// Description of this workaround.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Why would this workaround address the error and warning.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// A suggested code snippet to fix the error and warning.
     #[serde(default)]
-    pub replace: Option<String>,
+    pub replace: ::core::option::Option<String>,
 }

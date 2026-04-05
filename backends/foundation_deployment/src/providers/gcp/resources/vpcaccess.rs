@@ -10,45 +10,45 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Definition of a Serverless VPC Access connector.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Connector {
     /// Output only. List of projects using the connector.
     #[serde(default, rename = "connectedProjects")]
-    pub connected_projects: Option<Vec<String>>,
+    pub connected_projects: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The range of internal addresses that follows RFC 4632 notation. Example: 10.132.0.0/28.
     #[serde(default, rename = "ipCidrRange")]
-    pub ip_cidr_range: Option<String>,
+    pub ip_cidr_range: ::core::option::Option<String>,
     /// Machine type of VM Instance underlying connector. Default is e2-micro
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Maximum value of instances in autoscaling group underlying the connector.
     #[serde(default, rename = "maxInstances")]
-    pub max_instances: Option<i32>,
+    pub max_instances: ::core::option::Option<i32>,
     /// Maximum throughput of the connector in Mbps. Refers to the expected throughput when using an e2-micro machine type. Value must be a multiple of 100 from 300 through 1000. Must be higher than the value specified by --min-throughput. If both max-throughput and max-instances are provided, max-instances takes precedence over max-throughput. The use of max-throughput is discouraged in favor of max-instances.
     #[serde(default, rename = "maxThroughput")]
-    pub max_throughput: Option<i32>,
+    pub max_throughput: ::core::option::Option<i32>,
     /// Minimum value of instances in autoscaling group underlying the connector.
     #[serde(default, rename = "minInstances")]
-    pub min_instances: Option<i32>,
+    pub min_instances: ::core::option::Option<i32>,
     /// Minimum throughput of the connector in Mbps. Refers to the expected throughput when using an e2-micro machine type. Value must be a multiple of 100 from 200 through 900. Must be lower than the value specified by --max-throughput. If both min-throughput and min-instances are provided, min-instances takes precedence over min-throughput. The use of min-throughput is discouraged in favor of min-instances.
     #[serde(default, rename = "minThroughput")]
-    pub min_throughput: Option<i32>,
+    pub min_throughput: ::core::option::Option<i32>,
     /// The resource name in the format projects/*/locations/*/connectors/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Name of a VPC network.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. State of the VPC access connector. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "CREATING", "DELETING", "ERROR", "UPDATING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. The subnet in which to house the VPC Access Connector.
     #[serde(default)]
-    pub subnet: Option<Subnet>,
+    pub subnet: ::core::option::Option<::std::boxed::Box<Subnet>>,
 }
 
 /// Response for listing Serverless VPC Access connectors.
@@ -56,10 +56,10 @@ pub struct Connector {
 pub struct ListConnectorsResponse {
     /// List of Serverless VPC Access connectors.
     #[serde(default)]
-    pub connectors: Option<Vec<Connector>>,
+    pub connectors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Connector>>>,
     /// Continuation token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -67,10 +67,10 @@ pub struct ListConnectorsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -78,13 +78,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -92,19 +92,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -112,19 +112,19 @@ pub struct Location {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for google.longrunning.Operation.
@@ -132,16 +132,16 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. Time when the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time when the operation completed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Method that initiated the operation e.g. google.cloud.vpcaccess.v1.Connectors.CreateConnector.
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Output only. Name of the resource that this operation is acting on e.g. projects/my-project/locations/us-central1/connectors/v1.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
 }
 
 /// Metadata for google.longrunning.Operation.
@@ -149,16 +149,16 @@ pub struct OperationMetadata {
 pub struct OperationMetadataV1Alpha1 {
     /// Output only. Time when the operation completed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Time when the operation was created.
     #[serde(default, rename = "insertTime")]
-    pub insert_time: Option<String>,
+    pub insert_time: ::core::option::Option<String>,
     /// Output only. Method that initiated the operation e.g. google.cloud.vpcaccess.v1alpha1.Connectors.CreateConnector.
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Output only. Name of the resource that this operation is acting on e.g. projects/my-project/locations/us-central1/connectors/v1.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
 }
 
 /// Metadata for google.longrunning.Operation.
@@ -166,16 +166,16 @@ pub struct OperationMetadataV1Alpha1 {
 pub struct OperationMetadataV1Beta1 {
     /// Output only. Time when the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time when the operation completed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Method that initiated the operation e.g. google.cloud.vpcaccess.v1beta1.Connectors.CreateConnector.
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Output only. Name of the resource that this operation is acting on e.g. projects/my-project/locations/us-central1/connectors/v1.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -183,13 +183,13 @@ pub struct OperationMetadataV1Beta1 {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// The subnet in which to house the connector
@@ -197,8 +197,8 @@ pub struct Status {
 pub struct Subnet {
     /// Optional. Subnet name (relative, not fully qualified). E.g. if the full subnet selfLink is https://compute.googleapis.com/compute/v1/projects/{project}/regions/{region}/subnetworks/{subnetName} the correct input for this field would be {subnetName}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Project in which the subnet exists. If not set, this project is assumed to be the project for which the connector create request was issued.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }

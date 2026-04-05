@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BootDisk {
     /// Required. Immutable. Size of the disk in gigabytes. Must be at least 10GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<String>,
+    pub size_gb: ::core::option::Option<String>,
     /// Required. Immutable. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format projects/{project}/zones/{zone}/diskTypes/{disk_type}.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A reference to a [Google Cloud Storage](https://cloud.google.com/storage) bucket.
@@ -29,7 +29,7 @@ pub struct BootDisk {
 pub struct BucketReference {
     /// Output only. Name of the bucket.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
 }
 
 /// A collection of virtual machines and connected resources forming a high-performance computing cluster capable of running large-scale, tightly coupled workloads. A cluster combines a set a compute resources that perform computations, storage resources that contain inputs and store outputs, an orchestrator that is responsible for assigning jobs to compute resources, and network resources that connect everything together.
@@ -37,34 +37,34 @@ pub struct BucketReference {
 pub struct Cluster {
     /// Optional. Compute resources available to the cluster. Keys specify the ID of the compute resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default, rename = "computeResources")]
-    pub compute_resources: Option<serde_json::Value>,
+    pub compute_resources: ::core::option::Option<serde_json::Value>,
     /// Output only. Time that the cluster was originally created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-provided description of the cluster. Maximum of 2048 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. [Labels](https://cloud.google.com/compute/docs/labeling-resources) applied to the cluster. Labels can be used to organize clusters and to filter them in queries.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. [Relative resource name](https://google.aip.dev/122) of the cluster, in the format projects/{project}/locations/{location}/clusters/{cluster}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Network resources available to the cluster. Must contain at most one value. Keys specify the ID of the network resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default, rename = "networkResources")]
-    pub network_resources: Option<serde_json::Value>,
+    pub network_resources: ::core::option::Option<serde_json::Value>,
     /// Optional. Orchestrator that is responsible for scheduling and running jobs on the cluster.
     #[serde(default)]
-    pub orchestrator: Option<Orchestrator>,
+    pub orchestrator: ::core::option::Option<::std::boxed::Box<Orchestrator>>,
     /// Output only. Indicates whether changes to the cluster are currently in flight. If this is true, then the current state might not match the cluster''s intended state.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Optional. Storage resources available to the cluster. Keys specify the ID of the storage resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default, rename = "storageResources")]
-    pub storage_resources: Option<serde_json::Value>,
+    pub storage_resources: ::core::option::Option<serde_json::Value>,
     /// Output only. Time that the cluster was most recently updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Details about a Compute Engine [instance](https://cloud.google.com/compute/docs/instances).
@@ -72,7 +72,7 @@ pub struct Cluster {
 pub struct ComputeInstance {
     /// Output only. Name of the VM instance, in the format projects/{project}/zones/{zone}/instances/{instance}.
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
 }
 
 /// When set in a SlurmNodeSet, indicates that the nodeset should be backed by Compute Engine VM instances.
@@ -80,13 +80,13 @@ pub struct ComputeInstance {
 pub struct ComputeInstanceSlurmNodeSet {
     /// Optional. Boot disk for the compute instance
     #[serde(default, rename = "bootDisk")]
-    pub boot_disk: Option<BootDisk>,
+    pub boot_disk: ::core::option::Option<::std::boxed::Box<BootDisk>>,
     /// Optional. [Labels](https://cloud.google.com/compute/docs/labeling-resources) that should be applied to each VM instance in the nodeset.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. [Startup script](https://cloud.google.com/compute/docs/instances/startup-scripts/linux) to be run on each VM instance in the nodeset. Max 256KB.
     #[serde(default, rename = "startupScript")]
-    pub startup_script: Option<String>,
+    pub startup_script: ::core::option::Option<String>,
 }
 
 /// A resource defining how virtual machines and accelerators should be provisioned for the cluster.
@@ -94,7 +94,7 @@ pub struct ComputeInstanceSlurmNodeSet {
 pub struct ComputeResource {
     /// Required. Immutable. Configuration for this compute resource, which describes how it should be created at runtime.
     #[serde(default)]
-    pub config: Option<ComputeResourceConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<ComputeResourceConfig>>,
 }
 
 /// Describes how a compute resource should be created at runtime.
@@ -102,16 +102,19 @@ pub struct ComputeResource {
 pub struct ComputeResourceConfig {
     /// Optional. Immutable. If set, indicates that this resource should use flex-start VMs.
     #[serde(default, rename = "newFlexStartInstances")]
-    pub new_flex_start_instances: Option<NewFlexStartInstancesConfig>,
+    pub new_flex_start_instances:
+        ::core::option::Option<::std::boxed::Box<NewFlexStartInstancesConfig>>,
     /// Optional. Immutable. If set, indicates that this resource should use on-demand VMs.
     #[serde(default, rename = "newOnDemandInstances")]
-    pub new_on_demand_instances: Option<NewOnDemandInstancesConfig>,
+    pub new_on_demand_instances:
+        ::core::option::Option<::std::boxed::Box<NewOnDemandInstancesConfig>>,
     /// Optional. Immutable. If set, indicates that this resource should use reserved VMs.
     #[serde(default, rename = "newReservedInstances")]
-    pub new_reserved_instances: Option<NewReservedInstancesConfig>,
+    pub new_reserved_instances:
+        ::core::option::Option<::std::boxed::Box<NewReservedInstancesConfig>>,
     /// Optional. Immutable. If set, indicates that this resource should use spot VMs.
     #[serde(default, rename = "newSpotInstances")]
-    pub new_spot_instances: Option<NewSpotInstancesConfig>,
+    pub new_spot_instances: ::core::option::Option<::std::boxed::Box<NewSpotInstancesConfig>>,
 }
 
 /// When set in OperationStep, indicates that a new filestore instance should be created.
@@ -119,7 +122,7 @@ pub struct ComputeResourceConfig {
 pub struct CreateFilestoreInstance {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub filestore: Option<String>,
+    pub filestore: ::core::option::Option<String>,
 }
 
 /// When set in OperationStep, indicates that a new lustre instance should be created.
@@ -127,7 +130,7 @@ pub struct CreateFilestoreInstance {
 pub struct CreateLustreInstance {
     /// Output only. Name of the Managed Lustre instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub lustre: Option<String>,
+    pub lustre: ::core::option::Option<String>,
 }
 
 /// When set in OperationStep, indicates that a new network should be created.
@@ -135,7 +138,7 @@ pub struct CreateLustreInstance {
 pub struct CreateNetwork {
     /// Output only. Name of the network to create, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
 }
 
 /// When set in OperationStep, indicates that a nodeset should be created.
@@ -143,7 +146,7 @@ pub struct CreateNetwork {
 pub struct CreateNodeset {
     /// Output only. Name of the nodeset to create
     #[serde(default)]
-    pub nodesets: Option<Vec<String>>,
+    pub nodesets: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// When set in OperationStep, indicates that a partition should be created.
@@ -151,7 +154,7 @@ pub struct CreateNodeset {
 pub struct CreatePartition {
     /// Output only. Name of the partition to create
     #[serde(default)]
-    pub partitions: Option<Vec<String>>,
+    pub partitions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// When set in OperationStep, indicates that a new storage bucket should be created.
@@ -159,7 +162,7 @@ pub struct CreatePartition {
 pub struct CreateStorageBucket {
     /// Output only. Name of the bucket.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
 }
 
 /// When set in OperationStep, indicates that a Filestore instance should be deleted.
@@ -167,7 +170,7 @@ pub struct CreateStorageBucket {
 pub struct DeleteFilestoreInstance {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub filestore: Option<String>,
+    pub filestore: ::core::option::Option<String>,
 }
 
 /// When set in OperationStep, indicates that a Lustre instance should be deleted.
@@ -175,7 +178,7 @@ pub struct DeleteFilestoreInstance {
 pub struct DeleteLustreInstance {
     /// Output only. Name of the Managed Lustre instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub lustre: Option<String>,
+    pub lustre: ::core::option::Option<String>,
 }
 
 /// When set in OperationStep, indicates network deletion step with the resource name.
@@ -183,7 +186,7 @@ pub struct DeleteLustreInstance {
 pub struct DeleteNetwork {
     /// Output only. Name of the network to delete, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
 }
 
 /// When set in OperationStep, indicates that a nodeset should be deleted.
@@ -191,7 +194,7 @@ pub struct DeleteNetwork {
 pub struct DeleteNodeset {
     /// Output only. Name of the nodeset to delete
     #[serde(default)]
-    pub nodesets: Option<Vec<String>>,
+    pub nodesets: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// When set in OperationStep, indicates that a partition should be deleted.
@@ -199,7 +202,7 @@ pub struct DeleteNodeset {
 pub struct DeletePartition {
     /// Output only. Name of the partition to delete
     #[serde(default)]
-    pub partitions: Option<Vec<String>>,
+    pub partitions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// When set in OperationStep, indicates that Cloud Storage bucket should be deleted.
@@ -207,7 +210,7 @@ pub struct DeletePartition {
 pub struct DeleteStorageBucket {
     /// Output only. Name of the bucket.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
 }
 
 /// When set in a StorageResourceConfig, indicates that an existing [Google Cloud Storage](https://cloud.google.com/storage) bucket should be imported.
@@ -215,7 +218,7 @@ pub struct DeleteStorageBucket {
 pub struct ExistingBucketConfig {
     /// Required. Immutable. Name of the Cloud Storage bucket to import.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
 }
 
 /// When set in a StorageResourceConfig, indicates that an existing [Filestore](https://cloud.google.com/filestore) instance should be imported.
@@ -223,7 +226,7 @@ pub struct ExistingBucketConfig {
 pub struct ExistingFilestoreConfig {
     /// Required. Immutable. Name of the Filestore instance to import, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub filestore: Option<String>,
+    pub filestore: ::core::option::Option<String>,
 }
 
 /// When set in a StorageResourceConfig, indicates that an existing [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be imported.
@@ -231,7 +234,7 @@ pub struct ExistingFilestoreConfig {
 pub struct ExistingLustreConfig {
     /// Required. Immutable. Name of the Managed Lustre instance to import, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub lustre: Option<String>,
+    pub lustre: ::core::option::Option<String>,
 }
 
 /// When set in a NetworkResourceConfig, indicates that an existing network should be imported.
@@ -239,10 +242,10 @@ pub struct ExistingLustreConfig {
 pub struct ExistingNetworkConfig {
     /// Required. Immutable. Name of the network to import, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Required. Immutable. Particular subnetwork to use, in the format projects/{project}/regions/{region}/subnetworks/{subnetwork}.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
 }
 
 /// Message describing filestore configuration
@@ -250,10 +253,10 @@ pub struct ExistingNetworkConfig {
 pub struct FileShareConfig {
     /// Required. Size of the filestore in GB. Must be between 1024 and 102400, and must meet scalability requirements described at https://cloud.google.com/filestore/docs/service-tiers.
     #[serde(default, rename = "capacityGb")]
-    pub capacity_gb: Option<String>,
+    pub capacity_gb: ::core::option::Option<String>,
     /// Required. Filestore share location
     #[serde(default, rename = "fileShare")]
-    pub file_share: Option<String>,
+    pub file_share: ::core::option::Option<String>,
 }
 
 /// A reference to a [Filestore](https://cloud.google.com/filestore) instance.
@@ -261,7 +264,7 @@ pub struct FileShareConfig {
 pub struct FilestoreReference {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub filestore: Option<String>,
+    pub filestore: ::core::option::Option<String>,
 }
 
 /// Message describing Google Cloud Storage autoclass configuration
@@ -269,10 +272,10 @@ pub struct FilestoreReference {
 pub struct GcsAutoclassConfig {
     /// Required. Enables Auto-class feature.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Optional. Terminal storage class of the autoclass bucket // TODO: enum values: ["TERMINAL_STORAGE_CLASS_UNSPECIFIED"]
     #[serde(default, rename = "terminalStorageClass")]
-    pub terminal_storage_class: Option<String>,
+    pub terminal_storage_class: ::core::option::Option<String>,
 }
 
 /// Message describing Google Cloud Storage hierarchical namespace configuration
@@ -280,7 +283,7 @@ pub struct GcsAutoclassConfig {
 pub struct GcsHierarchicalNamespaceConfig {
     /// Required. Enables hierarchical namespace setup for the bucket.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Response message for ListClusters.
@@ -288,13 +291,13 @@ pub struct GcsHierarchicalNamespaceConfig {
 pub struct ListClustersResponse {
     /// Clusters in the specified location.
     #[serde(default)]
-    pub clusters: Option<Vec<Cluster>>,
+    pub clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Cluster>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is absent, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -302,10 +305,10 @@ pub struct ListClustersResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -313,13 +316,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -327,19 +330,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A reference to a [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance.
@@ -347,7 +350,7 @@ pub struct Location {
 pub struct LustreReference {
     /// Output only. Name of the Managed Lustre instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub lustre: Option<String>,
+    pub lustre: ::core::option::Option<String>,
 }
 
 /// A reference to a [VPC network](https://cloud.google.com/vpc/docs/vpc) in Google Compute Engine.
@@ -355,10 +358,10 @@ pub struct LustreReference {
 pub struct NetworkReference {
     /// Output only. Name of the network, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. Name of the particular subnetwork being used by the cluster, in the format projects/{project}/regions/{region}/subnetworks/{subnetwork}.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
 }
 
 /// A resource representing a network that connects the various components of a cluster together.
@@ -366,10 +369,10 @@ pub struct NetworkReference {
 pub struct NetworkResource {
     /// Immutable. Configuration for this network resource, which describes how it should be created or imported. This field only controls how the network resource is initially created or imported. Subsequent changes to the network resource should be made via the resource''s API and will not be reflected in the configuration.
     #[serde(default)]
-    pub config: Option<NetworkResourceConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<NetworkResourceConfig>>,
     /// Reference to a network in Google Compute Engine.
     #[serde(default)]
-    pub network: Option<NetworkReference>,
+    pub network: ::core::option::Option<::std::boxed::Box<NetworkReference>>,
 }
 
 /// Describes how a network resource should be initialized. Each network resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.
@@ -377,10 +380,10 @@ pub struct NetworkResource {
 pub struct NetworkResourceConfig {
     /// Optional. Immutable. If set, indicates that an existing network should be imported.
     #[serde(default, rename = "existingNetwork")]
-    pub existing_network: Option<ExistingNetworkConfig>,
+    pub existing_network: ::core::option::Option<::std::boxed::Box<ExistingNetworkConfig>>,
     /// Optional. Immutable. If set, indicates that a new network should be created.
     #[serde(default, rename = "newNetwork")]
-    pub new_network: Option<NewNetworkConfig>,
+    pub new_network: ::core::option::Option<::std::boxed::Box<NewNetworkConfig>>,
 }
 
 /// When set in a StorageResourceConfig, indicates that a new [Google Cloud Storage](https://cloud.google.com/storage) bucket should be created.
@@ -388,16 +391,17 @@ pub struct NetworkResourceConfig {
 pub struct NewBucketConfig {
     /// Optional. Immutable. If set, indicates that the bucket should use [Autoclass](https://cloud.google.com/storage/docs/autoclass).
     #[serde(default)]
-    pub autoclass: Option<GcsAutoclassConfig>,
+    pub autoclass: ::core::option::Option<::std::boxed::Box<GcsAutoclassConfig>>,
     /// Required. Immutable. Name of the Cloud Storage bucket to create.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Optional. Immutable. If set, indicates that the bucket should use [hierarchical namespaces](https://cloud.google.com/storage/docs/hns-overview).
     #[serde(default, rename = "hierarchicalNamespace")]
-    pub hierarchical_namespace: Option<GcsHierarchicalNamespaceConfig>,
+    pub hierarchical_namespace:
+        ::core::option::Option<::std::boxed::Box<GcsHierarchicalNamespaceConfig>>,
     /// Optional. Immutable. If set, uses the provided storage class as the bucket''s default storage class. // TODO: enum values: ["STORAGE_CLASS_UNSPECIFIED", "STANDARD", "NEARLINE", "COLDLINE", "ARCHIVE"]
     #[serde(default, rename = "storageClass")]
-    pub storage_class: Option<String>,
+    pub storage_class: ::core::option::Option<String>,
 }
 
 /// When set in a StorageResourceConfig, indicates that a new [Filestore](https://cloud.google.com/filestore) instance should be created.
@@ -405,19 +409,19 @@ pub struct NewBucketConfig {
 pub struct NewFilestoreConfig {
     /// Optional. Immutable. Description of the instance. Maximum of 2048 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Immutable. File system shares on the instance. Exactly one file share must be specified.
     #[serde(default, rename = "fileShares")]
-    pub file_shares: Option<Vec<FileShareConfig>>,
+    pub file_shares: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FileShareConfig>>>,
     /// Required. Immutable. Name of the Filestore instance to create, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub filestore: Option<String>,
+    pub filestore: ::core::option::Option<String>,
     /// Optional. Immutable. Access protocol to use for all file shares in the instance. Defaults to NFS V3 if not set. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "NFSV3", "NFSV41"]
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
     /// Required. Immutable. Service tier to use for the instance. // TODO: enum values: ["TIER_UNSPECIFIED", "ZONAL", "REGIONAL"]
     #[serde(default)]
-    pub tier: Option<String>,
+    pub tier: ::core::option::Option<String>,
 }
 
 /// When set in a ComputeResourceConfig, indicates that VM instances should be created using [Flex Start](https://cloud.google.com/compute/docs/instances/provisioning-models).
@@ -425,13 +429,13 @@ pub struct NewFilestoreConfig {
 pub struct NewFlexStartInstancesConfig {
     /// Required. Immutable. Name of the Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-resource) to use, e.g. n2-standard-2.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Required. Immutable. Specifies the time limit for created instances. Instances will be terminated at the end of this duration.
     #[serde(default, rename = "maxDuration")]
-    pub max_duration: Option<String>,
+    pub max_duration: ::core::option::Option<String>,
     /// Required. Immutable. Name of the zone in which VM instances should run, e.g., us-central1-a. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// When set in a StorageResourceConfig, indicates that a new [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be created.
@@ -439,16 +443,16 @@ pub struct NewFlexStartInstancesConfig {
 pub struct NewLustreConfig {
     /// Required. Immutable. Storage capacity of the instance in gibibytes (GiB). Allowed values are between 18000 and 7632000.
     #[serde(default, rename = "capacityGb")]
-    pub capacity_gb: Option<String>,
+    pub capacity_gb: ::core::option::Option<String>,
     /// Optional. Immutable. Description of the Managed Lustre instance. Maximum of 2048 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Immutable. Filesystem name for this instance. This name is used by client-side tools, including when mounting the instance. Must be 8 characters or less and can only contain letters and numbers.
     #[serde(default)]
-    pub filesystem: Option<String>,
+    pub filesystem: ::core::option::Option<String>,
     /// Required. Immutable. Name of the Managed Lustre instance to create, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub lustre: Option<String>,
+    pub lustre: ::core::option::Option<String>,
 }
 
 /// When set in a NetworkResourceConfig, indicates that a new network should be created.
@@ -456,10 +460,10 @@ pub struct NewLustreConfig {
 pub struct NewNetworkConfig {
     /// Optional. Immutable. Description of the network. Maximum of 2048 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Immutable. Name of the network to create, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
 }
 
 /// When set in a ComputeResourceConfig, indicates that on-demand (i.e., using the standard provisioning model) VM instances should be created.
@@ -467,10 +471,10 @@ pub struct NewNetworkConfig {
 pub struct NewOnDemandInstancesConfig {
     /// Required. Immutable. Name of the Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-resource) to use, e.g. n2-standard-2.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Required. Immutable. Name of the zone in which VM instances should run, e.g., us-central1-a. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// When set in a ComputeResourceConfig, indicates that VM instances should be created from a [reservation](https://cloud.google.com/compute/docs/instances/reservations-overview).
@@ -478,7 +482,7 @@ pub struct NewOnDemandInstancesConfig {
 pub struct NewReservedInstancesConfig {
     /// Optional. Immutable. Name of the reservation from which VM instances should be created, in the format projects/{project}/zones/{zone}/reservations/{reservation}.
     #[serde(default)]
-    pub reservation: Option<String>,
+    pub reservation: ::core::option::Option<String>,
 }
 
 /// When set in a ComputeResourceConfig, indicates that [spot VM](https://cloud.google.com/compute/docs/instances/spot) instances should be created.
@@ -486,13 +490,13 @@ pub struct NewReservedInstancesConfig {
 pub struct NewSpotInstancesConfig {
     /// Required. Immutable. Name of the Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-resource) to use, e.g. n2-standard-2.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Optional. Termination action for the instance. If not specified, Compute Engine sets the termination action to DELETE. // TODO: enum values: ["TERMINATION_ACTION_UNSPECIFIED", "STOP", "DELETE"]
     #[serde(default, rename = "terminationAction")]
-    pub termination_action: Option<String>,
+    pub termination_action: ::core::option::Option<String>,
     /// Required. Immutable. Name of the zone in which VM instances should run, e.g., us-central1-a. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -500,19 +504,19 @@ pub struct NewSpotInstancesConfig {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -520,25 +524,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Progress of the operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Message describing the progress of a cluster mutation long-running operation.
@@ -546,7 +550,7 @@ pub struct OperationMetadata {
 pub struct OperationProgress {
     /// Output only. Steps and status of the operation.
     #[serde(default)]
-    pub steps: Option<Vec<OperationStep>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperationStep>>>,
 }
 
 /// Message describing the status of a single step in a cluster mutation long-running operation.
@@ -554,76 +558,78 @@ pub struct OperationProgress {
 pub struct OperationStep {
     /// Output only. If set, indicates that cluster health check is part of the operation.
     #[serde(default, rename = "checkClusterHealth")]
-    pub check_cluster_health: Option<serde_json::Value>,
+    pub check_cluster_health: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that new Filestore instance creation is part of the operation.
     #[serde(default, rename = "createFilestoreInstance")]
-    pub create_filestore_instance: Option<CreateFilestoreInstance>,
+    pub create_filestore_instance:
+        ::core::option::Option<::std::boxed::Box<CreateFilestoreInstance>>,
     /// Output only. If set, indicates that new login node creation is part of the operation.
     #[serde(default, rename = "createLoginNode")]
-    pub create_login_node: Option<serde_json::Value>,
+    pub create_login_node: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that new Lustre instance creation is part of the operation.
     #[serde(default, rename = "createLustreInstance")]
-    pub create_lustre_instance: Option<CreateLustreInstance>,
+    pub create_lustre_instance: ::core::option::Option<::std::boxed::Box<CreateLustreInstance>>,
     /// Output only. If set, indicates that new network creation is part of the operation.
     #[serde(default, rename = "createNetwork")]
-    pub create_network: Option<CreateNetwork>,
+    pub create_network: ::core::option::Option<::std::boxed::Box<CreateNetwork>>,
     /// Output only. If set, indicates that new nodeset creation is part of the operation.
     #[serde(default, rename = "createNodeset")]
-    pub create_nodeset: Option<CreateNodeset>,
+    pub create_nodeset: ::core::option::Option<::std::boxed::Box<CreateNodeset>>,
     /// Output only. If set, indicates that orchestrator creation is part of the operation.
     #[serde(default, rename = "createOrchestrator")]
-    pub create_orchestrator: Option<serde_json::Value>,
+    pub create_orchestrator: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that new partition creation is part of the operation.
     #[serde(default, rename = "createPartition")]
-    pub create_partition: Option<CreatePartition>,
+    pub create_partition: ::core::option::Option<::std::boxed::Box<CreatePartition>>,
     /// Output only. If set, indicates that new private service access creation is part of the operation.
     #[serde(default, rename = "createPrivateServiceAccess")]
-    pub create_private_service_access: Option<serde_json::Value>,
+    pub create_private_service_access: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that new Cloud Storage bucket creation is part of the operation.
     #[serde(default, rename = "createStorageBucket")]
-    pub create_storage_bucket: Option<CreateStorageBucket>,
+    pub create_storage_bucket: ::core::option::Option<::std::boxed::Box<CreateStorageBucket>>,
     /// Output only. If set, indicates that Filestore instance deletion is part of the operation.
     #[serde(default, rename = "deleteFilestoreInstance")]
-    pub delete_filestore_instance: Option<DeleteFilestoreInstance>,
+    pub delete_filestore_instance:
+        ::core::option::Option<::std::boxed::Box<DeleteFilestoreInstance>>,
     /// Output only. If set, indicates that login node deletion is part of the operation.
     #[serde(default, rename = "deleteLoginNode")]
-    pub delete_login_node: Option<serde_json::Value>,
+    pub delete_login_node: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that Lustre instance deletion is part of the operation.
     #[serde(default, rename = "deleteLustreInstance")]
-    pub delete_lustre_instance: Option<DeleteLustreInstance>,
+    pub delete_lustre_instance: ::core::option::Option<::std::boxed::Box<DeleteLustreInstance>>,
     /// Output only. If set, indicates that network deletion is part of the operation.
     #[serde(default, rename = "deleteNetwork")]
-    pub delete_network: Option<DeleteNetwork>,
+    pub delete_network: ::core::option::Option<::std::boxed::Box<DeleteNetwork>>,
     /// Output only. If set, indicates that nodeset deletion is part of the operation.
     #[serde(default, rename = "deleteNodeset")]
-    pub delete_nodeset: Option<DeleteNodeset>,
+    pub delete_nodeset: ::core::option::Option<::std::boxed::Box<DeleteNodeset>>,
     /// Output only. If set, indicates that orchestrator deletion is part of the operation.
     #[serde(default, rename = "deleteOrchestrator")]
-    pub delete_orchestrator: Option<serde_json::Value>,
+    pub delete_orchestrator: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that partition deletion is part of the operation.
     #[serde(default, rename = "deletePartition")]
-    pub delete_partition: Option<DeletePartition>,
+    pub delete_partition: ::core::option::Option<::std::boxed::Box<DeletePartition>>,
     /// Output only. If set, indicates that private service access deletion is part of the operation.
     #[serde(default, rename = "deletePrivateServiceAccess")]
-    pub delete_private_service_access: Option<serde_json::Value>,
+    pub delete_private_service_access: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that Cloud Storage bucket deletion is part of the operation.
     #[serde(default, rename = "deleteStorageBucket")]
-    pub delete_storage_bucket: Option<DeleteStorageBucket>,
+    pub delete_storage_bucket: ::core::option::Option<::std::boxed::Box<DeleteStorageBucket>>,
     /// Output only. State of the operation step. // TODO: enum values: ["STATE_UNSPECIFIED", "WAITING", "IN_PROGRESS", "DONE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. If set, indicates that login node update is part of the operation.
     #[serde(default, rename = "updateLoginNode")]
-    pub update_login_node: Option<serde_json::Value>,
+    pub update_login_node: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that nodeset update is part of the operation.
     #[serde(default, rename = "updateNodeset")]
-    pub update_nodeset: Option<UpdateNodeset>,
+    pub update_nodeset: ::core::option::Option<::std::boxed::Box<UpdateNodeset>>,
     /// Output only. If set, indicates that an orchestrator update is part of the operation.
     #[serde(default, rename = "updateOrchestrator")]
-    pub update_orchestrator: Option<serde_json::Value>,
+    pub update_orchestrator: ::core::option::Option<serde_json::Value>,
     /// Output only. If set, indicates that partition update is part of the operation.
     #[serde(default, rename = "updatePartition")]
-    pub update_partition: Option<UpdatePartition>,
+    pub update_partition: ::core::option::Option<::std::boxed::Box<UpdatePartition>>,
 }
 
 /// The component responsible for scheduling and running workloads on the cluster as well as providing the user interface for interacting with the cluster at runtime.
@@ -631,7 +637,7 @@ pub struct OperationStep {
 pub struct Orchestrator {
     /// Optional. If set, indicates that the cluster should use Slurm as the orchestrator.
     #[serde(default)]
-    pub slurm: Option<SlurmOrchestrator>,
+    pub slurm: ::core::option::Option<::std::boxed::Box<SlurmOrchestrator>>,
 }
 
 /// Configuration for Slurm [login nodes](https://slurm.schedmd.com/quickstart_admin.html#login) in the cluster. Login nodes are Compute Engine VM instances that allow users to access the cluster over SSH.
@@ -639,34 +645,34 @@ pub struct Orchestrator {
 pub struct SlurmLoginNodes {
     /// Optional. Boot disk for the login node.
     #[serde(default, rename = "bootDisk")]
-    pub boot_disk: Option<BootDisk>,
+    pub boot_disk: ::core::option::Option<::std::boxed::Box<BootDisk>>,
     /// Required. Number of login node instances to create.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Optional. Whether [OS Login](https://cloud.google.com/compute/docs/oslogin) should be enabled on login node instances.
     #[serde(default, rename = "enableOsLogin")]
-    pub enable_os_login: Option<bool>,
+    pub enable_os_login: ::core::option::Option<bool>,
     /// Optional. Whether login node instances should be assigned [external IP addresses](https://cloud.google.com/compute/docs/ip-addresses#externaladdresses).
     #[serde(default, rename = "enablePublicIps")]
-    pub enable_public_ips: Option<bool>,
+    pub enable_public_ips: ::core::option::Option<bool>,
     /// Output only. Information about the login node instances that were created in Compute Engine.
     #[serde(default)]
-    pub instances: Option<Vec<ComputeInstance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComputeInstance>>>,
     /// Optional. [Labels](https://cloud.google.com/compute/docs/labeling-resources) that should be applied to each login node instance.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Name of the Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-resource) to use for login nodes, e.g. n2-standard-2.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Optional. [Startup script](https://cloud.google.com/compute/docs/instances/startup-scripts/linux) to be run on each login node instance. Max 256KB. The script must complete within the system-defined default timeout of 5 minutes. For tasks that require more time, consider running them in the background using methods such as & or nohup.
     #[serde(default, rename = "startupScript")]
-    pub startup_script: Option<String>,
+    pub startup_script: ::core::option::Option<String>,
     /// Optional. How storage resources should be mounted on each login node.
     #[serde(default, rename = "storageConfigs")]
-    pub storage_configs: Option<Vec<StorageConfig>>,
+    pub storage_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StorageConfig>>>,
     /// Required. Name of the zone in which login nodes should run, e.g., us-central1-a. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Configuration for Slurm nodesets in the cluster. Nodesets are groups of compute nodes used by Slurm that are responsible for running workloads submitted to the cluster.
@@ -674,22 +680,22 @@ pub struct SlurmLoginNodes {
 pub struct SlurmNodeSet {
     /// Optional. ID of the compute resource on which this nodeset will run. Must match a key in the cluster''s compute_resources.
     #[serde(default, rename = "computeId")]
-    pub compute_id: Option<String>,
+    pub compute_id: ::core::option::Option<String>,
     /// Optional. If set, indicates that the nodeset should be backed by Compute Engine instances.
     #[serde(default, rename = "computeInstance")]
-    pub compute_instance: Option<ComputeInstanceSlurmNodeSet>,
+    pub compute_instance: ::core::option::Option<::std::boxed::Box<ComputeInstanceSlurmNodeSet>>,
     /// Required. Identifier for the nodeset, which allows it to be referenced by partitions. Must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. Controls how many additional nodes a cluster can bring online to handle workloads. Set this value to enable dynamic node creation and limit the number of additional nodes the cluster can bring online. Leave empty if you do not want the cluster to create nodes dynamically, and instead rely only on static nodes.
     #[serde(default, rename = "maxDynamicNodeCount")]
-    pub max_dynamic_node_count: Option<String>,
+    pub max_dynamic_node_count: ::core::option::Option<String>,
     /// Optional. Number of nodes to be statically created for this nodeset. The cluster will attempt to ensure that at least this many nodes exist at all times.
     #[serde(default, rename = "staticNodeCount")]
-    pub static_node_count: Option<String>,
+    pub static_node_count: ::core::option::Option<String>,
     /// Optional. How storage resources should be mounted on each compute node.
     #[serde(default, rename = "storageConfigs")]
-    pub storage_configs: Option<Vec<StorageConfig>>,
+    pub storage_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StorageConfig>>>,
 }
 
 /// When set in Orchestrator, indicates that the cluster should use [Slurm](https://slurm.schedmd.com/) as the orchestrator.
@@ -697,22 +703,22 @@ pub struct SlurmNodeSet {
 pub struct SlurmOrchestrator {
     /// Optional. Default partition to use for submitted jobs that do not explicitly specify a partition. Required if and only if there is more than one partition, in which case it must match the id of one of the partitions.
     #[serde(default, rename = "defaultPartition")]
-    pub default_partition: Option<String>,
+    pub default_partition: ::core::option::Option<String>,
     /// Optional. Slurm [epilog scripts](https://slurm.schedmd.com/prolog_epilog.html), which will be executed by compute nodes whenever a node finishes running a job. Values must not be empty.
     #[serde(default, rename = "epilogBashScripts")]
-    pub epilog_bash_scripts: Option<Vec<String>>,
+    pub epilog_bash_scripts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Configuration for login nodes, which allow users to access the cluster over SSH.
     #[serde(default, rename = "loginNodes")]
-    pub login_nodes: Option<SlurmLoginNodes>,
+    pub login_nodes: ::core::option::Option<::std::boxed::Box<SlurmLoginNodes>>,
     /// Optional. Compute resource configuration for the Slurm nodesets in your cluster. If not specified, the cluster won''t create any nodes.
     #[serde(default, rename = "nodeSets")]
-    pub node_sets: Option<Vec<SlurmNodeSet>>,
+    pub node_sets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SlurmNodeSet>>>,
     /// Optional. Configuration for the Slurm partitions in your cluster. Each partition can contain one or more nodesets, and you can submit separate jobs on each partition. If you don''t specify at least one partition in your cluster, you can''t submit jobs to the cluster.
     #[serde(default)]
-    pub partitions: Option<Vec<SlurmPartition>>,
+    pub partitions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SlurmPartition>>>,
     /// Optional. Slurm [prolog scripts](https://slurm.schedmd.com/prolog_epilog.html), which will be executed by compute nodes before a node begins running a new job. Values must not be empty.
     #[serde(default, rename = "prologBashScripts")]
-    pub prolog_bash_scripts: Option<Vec<String>>,
+    pub prolog_bash_scripts: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration for Slurm partitions in the cluster. Partitions are groups of nodesets, and are how clients specify where their workloads should be run.
@@ -720,10 +726,10 @@ pub struct SlurmOrchestrator {
 pub struct SlurmPartition {
     /// Required. ID of the partition, which is how users will identify it. Must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. IDs of the nodesets that make up this partition. Values must match SlurmNodeSet.id.
     #[serde(default, rename = "nodeSetIds")]
-    pub node_set_ids: Option<Vec<String>>,
+    pub node_set_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -731,13 +737,13 @@ pub struct SlurmPartition {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Description of how a storage resource should be mounted on a VM instance.
@@ -745,10 +751,10 @@ pub struct Status {
 pub struct StorageConfig {
     /// Required. ID of the storage resource to mount, which must match a key in the cluster''s storage_resources.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. A directory inside the VM instance''s file system where the storage resource should be mounted (e.g., /mnt/share).
     #[serde(default, rename = "localMount")]
-    pub local_mount: Option<String>,
+    pub local_mount: ::core::option::Option<String>,
 }
 
 /// A resource representing a form of persistent storage that is accessible to compute resources in the cluster.
@@ -756,16 +762,16 @@ pub struct StorageConfig {
 pub struct StorageResource {
     /// Reference to a Google Cloud Storage bucket. Populated if and only if the storage resource was configured to use Google Cloud Storage.
     #[serde(default)]
-    pub bucket: Option<BucketReference>,
+    pub bucket: ::core::option::Option<::std::boxed::Box<BucketReference>>,
     /// Required. Immutable. Configuration for this storage resource, which describes how it should be created or imported. This field only controls how the storage resource is initially created or imported. Subsequent changes to the storage resource should be made via the resource''s API and will not be reflected in the configuration.
     #[serde(default)]
-    pub config: Option<StorageResourceConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<StorageResourceConfig>>,
     /// Reference to a Filestore instance. Populated if and only if the storage resource was configured to use Filestore.
     #[serde(default)]
-    pub filestore: Option<FilestoreReference>,
+    pub filestore: ::core::option::Option<::std::boxed::Box<FilestoreReference>>,
     /// Reference to a Managed Lustre instance. Populated if and only if the storage resource was configured to use Managed Lustre.
     #[serde(default)]
-    pub lustre: Option<LustreReference>,
+    pub lustre: ::core::option::Option<::std::boxed::Box<LustreReference>>,
 }
 
 /// Describes how a storage resource should be initialized. Each storage resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.
@@ -773,22 +779,22 @@ pub struct StorageResource {
 pub struct StorageResourceConfig {
     /// Optional. Immutable. If set, indicates that an existing Cloud Storage bucket should be imported.
     #[serde(default, rename = "existingBucket")]
-    pub existing_bucket: Option<ExistingBucketConfig>,
+    pub existing_bucket: ::core::option::Option<::std::boxed::Box<ExistingBucketConfig>>,
     /// Optional. Immutable. If set, indicates that an existing Filestore instance should be imported.
     #[serde(default, rename = "existingFilestore")]
-    pub existing_filestore: Option<ExistingFilestoreConfig>,
+    pub existing_filestore: ::core::option::Option<::std::boxed::Box<ExistingFilestoreConfig>>,
     /// Optional. Immutable. If set, indicates that an existing Managed Lustre instance should be imported.
     #[serde(default, rename = "existingLustre")]
-    pub existing_lustre: Option<ExistingLustreConfig>,
+    pub existing_lustre: ::core::option::Option<::std::boxed::Box<ExistingLustreConfig>>,
     /// Optional. Immutable. If set, indicates that a new Cloud Storage bucket should be created.
     #[serde(default, rename = "newBucket")]
-    pub new_bucket: Option<NewBucketConfig>,
+    pub new_bucket: ::core::option::Option<::std::boxed::Box<NewBucketConfig>>,
     /// Optional. Immutable. If set, indicates that a new Filestore instance should be created.
     #[serde(default, rename = "newFilestore")]
-    pub new_filestore: Option<NewFilestoreConfig>,
+    pub new_filestore: ::core::option::Option<::std::boxed::Box<NewFilestoreConfig>>,
     /// Optional. Immutable. If set, indicates that a new Managed Lustre instance should be created.
     #[serde(default, rename = "newLustre")]
-    pub new_lustre: Option<NewLustreConfig>,
+    pub new_lustre: ::core::option::Option<::std::boxed::Box<NewLustreConfig>>,
 }
 
 /// When set in OperationStep, indicates that a nodeset should be updated.
@@ -796,7 +802,7 @@ pub struct StorageResourceConfig {
 pub struct UpdateNodeset {
     /// Output only. Name of the nodeset to update
     #[serde(default)]
-    pub nodesets: Option<Vec<String>>,
+    pub nodesets: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// When set in OperationStep, indicates that a partition should be updated.
@@ -804,5 +810,5 @@ pub struct UpdateNodeset {
 pub struct UpdatePartition {
     /// Output only. Name of the partition to update
     #[serde(default)]
-    pub partitions: Option<Vec<String>>,
+    pub partitions: ::core::option::Option<::std::vec::Vec<String>>,
 }

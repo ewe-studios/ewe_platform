@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A site''s Ad Experience Report summary on a single platform.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlatformSummary {
     /// The site''s Ad Experience Report status on this platform. // TODO: enum values: ["UNKNOWN", "PASSING", "WARNING", "FAILING"]
     #[serde(default, rename = "betterAdsStatus")]
-    pub better_ads_status: Option<String>,
+    pub better_ads_status: ::core::option::Option<String>,
     /// The time at which [enforcement](https://support.google.com/webtools/answer/7308033) against the site began or will begin on this platform. Not set when the filter_status is OFF.
     #[serde(default, rename = "enforcementTime")]
-    pub enforcement_time: Option<String>,
+    pub enforcement_time: ::core::option::Option<String>,
     /// The site''s [enforcement status](https://support.google.com/webtools/answer/7308033) on this platform. // TODO: enum values: ["UNKNOWN", "ON", "OFF", "PAUSED", "PENDING"]
     #[serde(default, rename = "filterStatus")]
-    pub filter_status: Option<String>,
+    pub filter_status: ::core::option::Option<String>,
     /// The time at which the site''s status last changed on this platform.
     #[serde(default, rename = "lastChangeTime")]
-    pub last_change_time: Option<String>,
+    pub last_change_time: ::core::option::Option<String>,
     /// The site''s regions on this platform. No longer populated, because there is no longer any semantic difference between sites in different regions.
     #[serde(default)]
-    pub region: Option<Vec<String>>,
+    pub region: ::core::option::Option<::std::vec::Vec<String>>,
     /// A link to the full Ad Experience Report for the site on this platform.. Not set in ViolatingSitesResponse. Note that you must complete the [Search Console verification process](https://support.google.com/webmasters/answer/9008080) for the site before you can access the full report.
     #[serde(default, rename = "reportUrl")]
-    pub report_url: Option<String>,
+    pub report_url: ::core::option::Option<String>,
     /// Whether the site is currently under review on this platform.
     #[serde(default, rename = "underReview")]
-    pub under_review: Option<bool>,
+    pub under_review: ::core::option::Option<bool>,
 }
 
 /// Response message for GetSiteSummary.
@@ -44,13 +44,13 @@ pub struct PlatformSummary {
 pub struct SiteSummaryResponse {
     /// The site''s Ad Experience Report summary on desktop.
     #[serde(default, rename = "desktopSummary")]
-    pub desktop_summary: Option<PlatformSummary>,
+    pub desktop_summary: ::core::option::Option<::std::boxed::Box<PlatformSummary>>,
     /// The site''s Ad Experience Report summary on mobile.
     #[serde(default, rename = "mobileSummary")]
-    pub mobile_summary: Option<PlatformSummary>,
+    pub mobile_summary: ::core::option::Option<::std::boxed::Box<PlatformSummary>>,
     /// The name of the reviewed site, e.g. google.com.
     #[serde(default, rename = "reviewedSite")]
-    pub reviewed_site: Option<String>,
+    pub reviewed_site: ::core::option::Option<String>,
 }
 
 /// Response message for ListViolatingSites.
@@ -58,5 +58,6 @@ pub struct SiteSummaryResponse {
 pub struct ViolatingSitesResponse {
     /// The list of violating sites.
     #[serde(default, rename = "violatingSites")]
-    pub violating_sites: Option<Vec<SiteSummaryResponse>>,
+    pub violating_sites:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SiteSummaryResponse>>>,
 }

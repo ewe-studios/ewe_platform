@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An app''s App Attest configuration object. This configuration controls certain properties of the AppCheckToken returned by ExchangeAppAttestAttestation and ExchangeAppAttestAssertion, such as its ttl. Note that the Team ID registered with your app is used as part of the validation process. Please register it via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.iosApps/patch).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirebaseAppcheckV1AppAttestConfig {
     /// Required. The relative resource name of the App Attest configuration object, in the format:  projects/{project_number}/apps/{app_id}/appAttestConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Specifies the duration for which App Check tokens exchanged from App Attest artifacts will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.
     #[serde(default, rename = "tokenTtl")]
-    pub token_ttl: Option<String>,
+    pub token_ttl: ::core::option::Option<String>,
 }
 
 /// Encapsulates an *App Check token*, which are used to access backend services protected by App Check.
@@ -29,10 +29,10 @@ pub struct GoogleFirebaseAppcheckV1AppAttestConfig {
 pub struct GoogleFirebaseAppcheckV1AppCheckToken {
     /// The App Check token. App Check tokens are signed [JWTs](https://tools.ietf.org/html/rfc7519) containing claims that identify the attested app and GCP project. This token is used to access Google services protected by App Check. These tokens can also be [verified by your own custom backends](https://firebase.google.com/docs/app-check/custom-resource-backend) using the Firebase Admin SDK or third-party libraries.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// The duration from the time this token is minted until its expiration. This field is intended to ease client-side token management, since the client may have clock skew, but is still able to accurately measure a duration.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// Response message for the BatchGetAppAttestConfigs method.
@@ -40,7 +40,9 @@ pub struct GoogleFirebaseAppcheckV1AppCheckToken {
 pub struct GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse {
     /// AppAttestConfigs retrieved.
     #[serde(default)]
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1AppAttestConfig>>,
+    pub configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1AppAttestConfig>>,
+    >,
 }
 
 /// Response message for the BatchGetDeviceCheckConfigs method.
@@ -48,7 +50,9 @@ pub struct GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse {
 pub struct GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse {
     /// DeviceCheckConfigs retrieved.
     #[serde(default)]
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1DeviceCheckConfig>>,
+    pub configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1DeviceCheckConfig>>,
+    >,
 }
 
 /// Response message for the BatchGetPlayIntegrityConfigs method.
@@ -56,7 +60,9 @@ pub struct GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse {
 pub struct GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse {
     /// PlayIntegrityConfigs retrieved.
     #[serde(default)]
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1PlayIntegrityConfig>>,
+    pub configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1PlayIntegrityConfig>>,
+    >,
 }
 
 /// Response message for the BatchGetRecaptchaEnterpriseConfigs method.
@@ -64,7 +70,9 @@ pub struct GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse {
 pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse {
     /// RecaptchaEnterpriseConfigs retrieved.
     #[serde(default)]
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig>>,
+    pub configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig>>,
+    >,
 }
 
 /// Response message for the BatchGetRecaptchaV3Configs method.
@@ -72,7 +80,9 @@ pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse {
 pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse {
     /// RecaptchaV3Configs retrieved.
     #[serde(default)]
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1RecaptchaV3Config>>,
+    pub configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1RecaptchaV3Config>>,
+    >,
 }
 
 /// Response message for the BatchGetSafetyNetConfigs method.
@@ -80,7 +90,9 @@ pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse {
 pub struct GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse {
     /// SafetyNetConfigs retrieved.
     #[serde(default)]
-    pub configs: Option<Vec<GoogleFirebaseAppcheckV1SafetyNetConfig>>,
+    pub configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1SafetyNetConfig>>,
+    >,
 }
 
 /// Request message for the BatchUpdateResourcePolicies method.
@@ -88,10 +100,12 @@ pub struct GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse {
 pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesRequest {
     /// Required. The request messages specifying the ResourcePolicy objects to update. A maximum of 100 objects can be updated in a batch.
     #[serde(default)]
-    pub requests: Option<Vec<GoogleFirebaseAppcheckV1UpdateResourcePolicyRequest>>,
+    pub requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1UpdateResourcePolicyRequest>>,
+    >,
     /// Optional. A comma-separated list of names of fields in the ResourcePolicy objects to update. Example: enforcement_mode. If this field is present, the update_mask field in the UpdateResourcePolicyRequest messages must all match this field, or the entire batch fails and no updates will be committed.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Response message for the BatchUpdateResourcePolicies method.
@@ -99,7 +113,9 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesRequest {
 pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse {
     /// ResourcePolicy objects after the updates have been applied.
     #[serde(default, rename = "resourcePolicies")]
-    pub resource_policies: Option<Vec<GoogleFirebaseAppcheckV1ResourcePolicy>>,
+    pub resource_policies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1ResourcePolicy>>,
+    >,
 }
 
 /// Request message for the BatchUpdateServices method.
@@ -107,10 +123,12 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse {
 pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesRequest {
     /// Required. The request messages specifying the Services to update. A maximum of 100 objects can be updated in a batch.
     #[serde(default)]
-    pub requests: Option<Vec<GoogleFirebaseAppcheckV1UpdateServiceRequest>>,
+    pub requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1UpdateServiceRequest>>,
+    >,
     /// Optional. A comma-separated list of names of fields in the Services to update. Example: display_name. If the update_mask field is set in both this request and any of the UpdateServiceRequest messages, they must match or the entire batch fails and no updates will be committed.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Response message for the BatchUpdateServices method.
@@ -118,7 +136,8 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesRequest {
 pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesResponse {
     /// Service objects after the updates have been applied.
     #[serde(default)]
-    pub services: Option<Vec<GoogleFirebaseAppcheckV1Service>>,
+    pub services:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1Service>>>,
 }
 
 /// A *debug token* is a secret used during the development or integration testing of an app. It essentially allows the development or integration testing to bypass app attestation while still allowing App Check to enforce protection on supported production Firebase services.
@@ -126,16 +145,16 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesResponse {
 pub struct GoogleFirebaseAppcheckV1DebugToken {
     /// Required. A human readable display name used to identify this debug token.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The relative resource name of the debug token, in the format:  projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during an UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// Output only. Timestamp when this debug token was most recently updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An app''s DeviceCheck configuration object. This configuration is used by ExchangeDeviceCheckToken to validate device tokens issued to apps by DeviceCheck. It also controls certain properties of the returned AppCheckToken, such as its ttl. Note that the Team ID registered with your app is used as part of the validation process. Please register it via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.iosApps/patch).
@@ -143,19 +162,19 @@ pub struct GoogleFirebaseAppcheckV1DebugToken {
 pub struct GoogleFirebaseAppcheckV1DeviceCheckConfig {
     /// Required. The key identifier of a private key enabled with DeviceCheck, created in your Apple Developer account.
     #[serde(default, rename = "keyId")]
-    pub key_id: Option<String>,
+    pub key_id: ::core::option::Option<String>,
     /// Required. The relative resource name of the DeviceCheck configuration object, in the format:  projects/{project_number}/apps/{app_id}/deviceCheckConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Input only. The contents of the private key (.p8) file associated with the key specified by key_id. For security reasons, this field will never be populated in any response.
     #[serde(default, rename = "privateKey")]
-    pub private_key: Option<String>,
+    pub private_key: ::core::option::Option<String>,
     /// Output only. Whether the private_key field was previously set. Since we will never return the private_key field, this field is the only way to find out whether it was previously set.
     #[serde(default, rename = "privateKeySet")]
-    pub private_key_set: Option<bool>,
+    pub private_key_set: ::core::option::Option<bool>,
     /// Specifies the duration for which App Check tokens exchanged from DeviceCheck tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.
     #[serde(default, rename = "tokenTtl")]
-    pub token_ttl: Option<String>,
+    pub token_ttl: ::core::option::Option<String>,
 }
 
 /// Request message for the ExchangeAppAttestAssertion method.
@@ -163,16 +182,16 @@ pub struct GoogleFirebaseAppcheckV1DeviceCheckConfig {
 pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest {
     /// Required. The artifact returned by a previous call to ExchangeAppAttestAttestation.
     #[serde(default)]
-    pub artifact: Option<String>,
+    pub artifact: ::core::option::Option<String>,
     /// Required. The CBOR-encoded assertion returned by the client-side App Attest API.
     #[serde(default)]
-    pub assertion: Option<String>,
+    pub assertion: ::core::option::Option<String>,
     /// Required. A one-time challenge returned by an immediately prior call to GenerateAppAttestChallenge.
     #[serde(default)]
-    pub challenge: Option<String>,
+    pub challenge: ::core::option::Option<String>,
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
 }
 
 /// Request message for the ExchangeAppAttestAttestation method.
@@ -180,16 +199,16 @@ pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest {
     /// Required. The App Attest statement returned by the client-side App Attest API. This is a base64url encoded CBOR object in the JSON response.
     #[serde(default, rename = "attestationStatement")]
-    pub attestation_statement: Option<String>,
+    pub attestation_statement: ::core::option::Option<String>,
     /// Required. A one-time challenge returned by an immediately prior call to GenerateAppAttestChallenge.
     #[serde(default)]
-    pub challenge: Option<String>,
+    pub challenge: ::core::option::Option<String>,
     /// Required. The key ID generated by App Attest for the client app.
     #[serde(default, rename = "keyId")]
-    pub key_id: Option<String>,
+    pub key_id: ::core::option::Option<String>,
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
 }
 
 /// Response message for the ExchangeAppAttestAttestation method.
@@ -197,10 +216,11 @@ pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse {
     /// Encapsulates an App Check token.
     #[serde(default, rename = "appCheckToken")]
-    pub app_check_token: Option<GoogleFirebaseAppcheckV1AppCheckToken>,
+    pub app_check_token:
+        ::core::option::Option<::std::boxed::Box<GoogleFirebaseAppcheckV1AppCheckToken>>,
     /// An artifact that can be used in future calls to ExchangeAppAttestAssertion.
     #[serde(default)]
-    pub artifact: Option<String>,
+    pub artifact: ::core::option::Option<String>,
 }
 
 /// Request message for the ExchangeCustomToken method.
@@ -208,10 +228,10 @@ pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse {
 pub struct GoogleFirebaseAppcheckV1ExchangeCustomTokenRequest {
     /// Required. A custom token signed using your project''s Admin SDK service account credentials.
     #[serde(default, rename = "customToken")]
-    pub custom_token: Option<String>,
+    pub custom_token: ::core::option::Option<String>,
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
 }
 
 /// Request message for the ExchangeDebugToken method.
@@ -219,10 +239,10 @@ pub struct GoogleFirebaseAppcheckV1ExchangeCustomTokenRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest {
     /// Required. A debug token secret. This string must match a debug token secret previously created using CreateDebugToken.
     #[serde(default, rename = "debugToken")]
-    pub debug_token: Option<String>,
+    pub debug_token: ::core::option::Option<String>,
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
 }
 
 /// Request message for the ExchangeDeviceCheckToken method.
@@ -230,10 +250,10 @@ pub struct GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangeDeviceCheckTokenRequest {
     /// Required. The device_token as returned by Apple''s client-side [DeviceCheck API](https://developer.apple.com/documentation/devicecheck/dcdevice). This is the base64 encoded Data (Swift) or NSData (ObjC) object.
     #[serde(default, rename = "deviceToken")]
-    pub device_token: Option<String>,
+    pub device_token: ::core::option::Option<String>,
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
 }
 
 /// Request message for the ExchangePlayIntegrityToken method.
@@ -241,10 +261,10 @@ pub struct GoogleFirebaseAppcheckV1ExchangeDeviceCheckTokenRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangePlayIntegrityTokenRequest {
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
     /// Required. The [integrity verdict response token from Play Integrity](https://developer.android.com/google/play/integrity/verdict#decrypt-verify) issued to your app.
     #[serde(default, rename = "playIntegrityToken")]
-    pub play_integrity_token: Option<String>,
+    pub play_integrity_token: ::core::option::Option<String>,
 }
 
 /// Request message for the ExchangeRecaptchaEnterpriseToken method.
@@ -252,10 +272,10 @@ pub struct GoogleFirebaseAppcheckV1ExchangePlayIntegrityTokenRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaEnterpriseTokenRequest {
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
     /// Required. The reCAPTCHA token as returned by the [reCAPTCHA Enterprise JavaScript API](https://cloud.google.com/recaptcha-enterprise/docs/instrument-web-pages).
     #[serde(default, rename = "recaptchaEnterpriseToken")]
-    pub recaptcha_enterprise_token: Option<String>,
+    pub recaptcha_enterprise_token: ::core::option::Option<String>,
 }
 
 /// Request message for the ExchangeRecaptchaV3Token method.
@@ -263,10 +283,10 @@ pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaEnterpriseTokenRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaV3TokenRequest {
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
-    pub limited_use: Option<bool>,
+    pub limited_use: ::core::option::Option<bool>,
     /// Required. The reCAPTCHA token as returned by the [reCAPTCHA v3 JavaScript API](https://developers.google.com/recaptcha/docs/v3).
     #[serde(default, rename = "recaptchaV3Token")]
-    pub recaptcha_v3_token: Option<String>,
+    pub recaptcha_v3_token: ::core::option::Option<String>,
 }
 
 /// Request message for the ExchangeSafetyNetToken method.
@@ -274,7 +294,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaV3TokenRequest {
 pub struct GoogleFirebaseAppcheckV1ExchangeSafetyNetTokenRequest {
     /// Required. The [SafetyNet attestation response](https://developer.android.com/training/safetynet/attestation#request-attestation-step) issued to your app.
     #[serde(default, rename = "safetyNetToken")]
-    pub safety_net_token: Option<String>,
+    pub safety_net_token: ::core::option::Option<String>,
 }
 
 /// Response message for the GenerateAppAttestChallenge method.
@@ -282,10 +302,10 @@ pub struct GoogleFirebaseAppcheckV1ExchangeSafetyNetTokenRequest {
 pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse {
     /// A one-time use challenge for the client to pass to the App Attest API.
     #[serde(default)]
-    pub challenge: Option<String>,
+    pub challenge: ::core::option::Option<String>,
     /// The duration from the time this challenge is minted until its expiration. This field is intended to ease client-side token management, since the client may have clock skew, but is still able to accurately measure a duration.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// Response message for the GeneratePlayIntegrityChallenge method.
@@ -293,10 +313,10 @@ pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse {
 pub struct GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse {
     /// A one-time use [challenge](https://developer.android.com/google/play/integrity/verdict#protect-against-replay-attacks) for the client to pass to the Play Integrity API.
     #[serde(default)]
-    pub challenge: Option<String>,
+    pub challenge: ::core::option::Option<String>,
     /// The duration from the time this challenge is minted until its expiration. This field is intended to ease client-side token management, since the client may have clock skew, but is still able to accurately measure a duration.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// Response message for the ListDebugTokens method.
@@ -304,10 +324,12 @@ pub struct GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse {
 pub struct GoogleFirebaseAppcheckV1ListDebugTokensResponse {
     /// The DebugTokens retrieved.
     #[serde(default, rename = "debugTokens")]
-    pub debug_tokens: Option<Vec<GoogleFirebaseAppcheckV1DebugToken>>,
+    pub debug_tokens: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1DebugToken>>,
+    >,
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty or omitted, then this response is the last page of results. This token can be used in a subsequent call to ListDebugTokens to find the next group of DebugTokens. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for the ListResourcePolicies method.
@@ -315,10 +337,12 @@ pub struct GoogleFirebaseAppcheckV1ListDebugTokensResponse {
 pub struct GoogleFirebaseAppcheckV1ListResourcePoliciesResponse {
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty or omitted, then this response is the last page of results. This token can be used in a subsequent call to ListResourcePolicies to find the next group of ResourcePolicy objects. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The ResourcePolicy objects retrieved.
     #[serde(default, rename = "resourcePolicies")]
-    pub resource_policies: Option<Vec<GoogleFirebaseAppcheckV1ResourcePolicy>>,
+    pub resource_policies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1ResourcePolicy>>,
+    >,
 }
 
 /// Response message for the ListServices method.
@@ -326,10 +350,11 @@ pub struct GoogleFirebaseAppcheckV1ListResourcePoliciesResponse {
 pub struct GoogleFirebaseAppcheckV1ListServicesResponse {
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty or omitted, then this response is the last page of results. This token can be used in a subsequent call to ListServices to find the next group of Services. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The Services retrieved.
     #[serde(default)]
-    pub services: Option<Vec<GoogleFirebaseAppcheckV1Service>>,
+    pub services:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1Service>>>,
 }
 
 /// An app''s Play Integrity configuration object. This configuration controls certain properties of the AppCheckToken returned by ExchangePlayIntegrityToken, such as its ttl. Note that your registered SHA-256 certificate fingerprints are used to validate tokens issued by the Play Integrity API; please register them via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.androidApps.sha/create).
@@ -337,19 +362,25 @@ pub struct GoogleFirebaseAppcheckV1ListServicesResponse {
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfig {
     /// Specifies account requirements for Android devices running your app. These settings correspond to requirements on the [**account details** field](https://developer.android.com/google/play/integrity/verdicts#account-details-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. The default values for these settings work for most apps, and are recommended.
     #[serde(default, rename = "accountDetails")]
-    pub account_details: Option<GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails>,
+    pub account_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails>,
+    >,
     /// Specifies application integrity requirements for Android devices running your app. These settings correspond to requirements on the [**application integrity** field](https://developer.android.com/google/play/integrity/verdicts#application-integrity-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. The default values for these settings work for most apps, and are recommended.
     #[serde(default, rename = "appIntegrity")]
-    pub app_integrity: Option<GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity>,
+    pub app_integrity: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity>,
+    >,
     /// Specifies device integrity requirements for Android devices running your app. These settings correspond to requirements on the [**device integrity** field](https://developer.android.com/google/play/integrity/verdicts#device-integrity-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. Warning: There are also [conditional](https://developer.android.com/google/play/integrity/setup#conditional) as well as [optional](https://developer.android.com/google/play/integrity/setup#optional_device_information) responses that you can receive, but requires additional explicit opt-in from you. The App Check API is **not** responsible for any such opt-ins. The default values for these settings work for most apps, and are recommended.
     #[serde(default, rename = "deviceIntegrity")]
-    pub device_integrity: Option<GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity>,
+    pub device_integrity: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity>,
+    >,
     /// Required. The relative resource name of the Play Integrity configuration object, in the format:  projects/{project_number}/apps/{app_id}/playIntegrityConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Specifies the duration for which App Check tokens exchanged from Play Integrity tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.
     #[serde(default, rename = "tokenTtl")]
-    pub token_ttl: Option<String>,
+    pub token_ttl: ::core::option::Option<String>,
 }
 
 /// A settings object specifying account requirements for Android devices running your app. These settings correspond to requirements on the [**account details** field](https://developer.android.com/google/play/integrity/verdicts#account-details-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. The default values for these settings work for most apps, and are recommended.
@@ -357,7 +388,7 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfig {
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails {
     /// Specifies whether the caller must have received the [LICENSED verdict](https://developer.android.com/google/play/integrity/verdicts#account-details-field). For additional details about scenarios where your users will receive this LICENSED label, see [the default responses table](https://developer.android.com/google/play/integrity/setup#default). If set to true, apps without the LICENSED app licensing verdict will be rejected. If set to false, any app licensing verdict is allowed. The default value is false.
     #[serde(default, rename = "requireLicensed")]
-    pub require_licensed: Option<bool>,
+    pub require_licensed: ::core::option::Option<bool>,
 }
 
 /// A settings object specifying application integrity requirements for Android devices running your app. These settings correspond to requirements on the [**application integrity** field](https://developer.android.com/google/play/integrity/verdicts#application-integrity-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. The default values for these settings work for most apps, and are recommended.
@@ -365,7 +396,7 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails {
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity {
     /// Specifies whether your running app is allowed to have the UNRECOGNIZED_VERSION [app recognition verdict](https://developer.android.com/google/play/integrity/verdicts#application-integrity-field). Note that the app recognition verdict PLAY_RECOGNIZED is a strong, comprehensive integrity signal that takes into account various other signals, including conditional and optional device integrity responses that you have opted into. If your app is published off-Play, this field should be set to true to allow instances of your app installed from off-Play sources to function. If set to false, only PLAY_RECOGNIZED verdicts are allowed, and both UNRECOGNIZED_VERSION and UNEVALUATED will be rejected. If set to true, any app recognition verdict is allowed. The default value is false.
     #[serde(default, rename = "allowUnrecognizedVersion")]
-    pub allow_unrecognized_version: Option<bool>,
+    pub allow_unrecognized_version: ::core::option::Option<bool>,
 }
 
 /// A settings object specifying device integrity requirements for Android devices running your app. These settings correspond to requirements on the [**device integrity** field](https://developer.android.com/google/play/integrity/verdicts#device-integrity-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. Warning: There are also [conditional](https://developer.android.com/google/play/integrity/setup#conditional) as well as [optional](https://developer.android.com/google/play/integrity/setup#optional_device_information) responses that you can receive, but requires additional explicit opt-in from you. The App Check API is **not** responsible for any such opt-ins. The default values for these settings work for most apps, and are recommended.
@@ -373,7 +404,7 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity {
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity {
     /// Specifies the minimum device integrity level in order for the device to be considered valid. Any device with a device recognition verdict lower than this level will be rejected. If this is unspecified, the default level is NO_INTEGRITY. // TODO: enum values: ["DEVICE_RECOGNITION_LEVEL_UNSPECIFIED", "NO_INTEGRITY", "MEETS_BASIC_INTEGRITY", "MEETS_DEVICE_INTEGRITY", "MEETS_STRONG_INTEGRITY"]
     #[serde(default, rename = "minDeviceRecognitionLevel")]
-    pub min_device_recognition_level: Option<String>,
+    pub min_device_recognition_level: ::core::option::Option<String>,
 }
 
 /// A JWK as specified by [section 4 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-4) and [section 6.3.1 of RFC 7518](https://tools.ietf.org/html/rfc7518#section-6.3.1).
@@ -381,22 +412,22 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity {
 pub struct GoogleFirebaseAppcheckV1PublicJwk {
     /// See [section 4.4 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-4.4).
     #[serde(default)]
-    pub alg: Option<String>,
+    pub alg: ::core::option::Option<String>,
     /// See [section 6.3.1.2 of RFC 7518](https://tools.ietf.org/html/rfc7518#section-6.3.1.2).
     #[serde(default)]
-    pub e: Option<String>,
+    pub e: ::core::option::Option<String>,
     /// See [section 4.5 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-4.5).
     #[serde(default)]
-    pub kid: Option<String>,
+    pub kid: ::core::option::Option<String>,
     /// See [section 4.1 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-4.1).
     #[serde(default)]
-    pub kty: Option<String>,
+    pub kty: ::core::option::Option<String>,
     /// See [section 6.3.1.1 of RFC 7518](https://tools.ietf.org/html/rfc7518#section-6.3.1.1).
     #[serde(default)]
-    pub n: Option<String>,
+    pub n: ::core::option::Option<String>,
     /// See [section 4.2 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-4.2).
     #[serde(default, rename = "use")]
-    pub use_: Option<String>,
+    pub use_: ::core::option::Option<String>,
 }
 
 /// The currently active set of public keys that can be used to verify App Check tokens. This object is a JWK set as specified by [section 5 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-5). For security, the response **must not** be cached for longer than six hours.
@@ -404,7 +435,9 @@ pub struct GoogleFirebaseAppcheckV1PublicJwk {
 pub struct GoogleFirebaseAppcheckV1PublicJwkSet {
     /// The set of public keys. See [section 5.1 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-5).
     #[serde(default)]
-    pub keys: Option<Vec<GoogleFirebaseAppcheckV1PublicJwk>>,
+    pub keys: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseAppcheckV1PublicJwk>>,
+    >,
 }
 
 /// An app''s reCAPTCHA Enterprise configuration object. This configuration is used by ExchangeRecaptchaEnterpriseToken to validate reCAPTCHA tokens issued to apps by reCAPTCHA Enterprise. It also controls certain properties of the returned AppCheckToken, such as its ttl.
@@ -412,16 +445,18 @@ pub struct GoogleFirebaseAppcheckV1PublicJwkSet {
 pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig {
     /// Required. The relative resource name of the reCAPTCHA Enterprise configuration object, in the format:  projects/{project_number}/apps/{app_id}/recaptchaEnterpriseConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Specifies risk tolerance and requirements for your application. These settings correspond to requirements on the [**riskAnalysis**](https://cloud.google.com/recaptcha/docs/interpret-assessment-website#interpret_assessment) tuple in the assessment obtained from reCAPTCHA Enterprise. The default values for these settings work for most apps, and are recommended.
     #[serde(default, rename = "riskAnalysis")]
-    pub risk_analysis: Option<GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis>,
+    pub risk_analysis: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis>,
+    >,
     /// The score-based site key [created in reCAPTCHA Enterprise](https://cloud.google.com/recaptcha-enterprise/docs/create-key#creating_a_site_key) used to [invoke reCAPTCHA and generate the reCAPTCHA tokens](https://cloud.google.com/recaptcha-enterprise/docs/instrument-web-pages) for your application. Important: This is *not* the site_secret (as it is in reCAPTCHA v3), but rather your score-based reCAPTCHA Enterprise site key.
     #[serde(default, rename = "siteKey")]
-    pub site_key: Option<String>,
+    pub site_key: ::core::option::Option<String>,
     /// Specifies the duration for which App Check tokens exchanged from reCAPTCHA Enterprise tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.
     #[serde(default, rename = "tokenTtl")]
-    pub token_ttl: Option<String>,
+    pub token_ttl: ::core::option::Option<String>,
 }
 
 /// A settings object specifying risk tolerance and requirements for your application. These settings correspond to requirements on the [**riskAnalysis**](https://cloud.google.com/recaptcha/docs/interpret-assessment-website#interpret_assessment) tuple in the assessment obtained from reCAPTCHA Enterprise. The default values for these settings work for most apps, and are recommended.
@@ -429,7 +464,7 @@ pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig {
 pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis {
     /// Specifies a minimum score required for a reCAPTCHA token to be considered valid. If its score is greater than or equal to this value, it will be accepted; otherwise, it will be rejected. The value must be between 0.0 and 1.0. The default value is 0.5.
     #[serde(default, rename = "minValidScore")]
-    pub min_valid_score: Option<f32>,
+    pub min_valid_score: ::core::option::Option<f32>,
 }
 
 /// An app''s reCAPTCHA v3 configuration object. This configuration is used by ExchangeRecaptchaV3Token to validate reCAPTCHA tokens issued to apps by reCAPTCHA v3. It also controls certain properties of the returned AppCheckToken, such as its ttl.
@@ -437,19 +472,19 @@ pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis {
 pub struct GoogleFirebaseAppcheckV1RecaptchaV3Config {
     /// Specifies a minimum score required for a reCAPTCHA token to be considered valid. If its score is greater than or equal to this value, it will be accepted; otherwise, it will be rejected. The value must be between 0.0 and 1.0. The default value is 0.5.
     #[serde(default, rename = "minValidScore")]
-    pub min_valid_score: Option<f32>,
+    pub min_valid_score: ::core::option::Option<f32>,
     /// Required. The relative resource name of the reCAPTCHA v3 configuration object, in the format:  projects/{project_number}/apps/{app_id}/recaptchaV3Config
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Input only. The site secret used to identify your service for reCAPTCHA v3 verification. For security reasons, this field will never be populated in any response.
     #[serde(default, rename = "siteSecret")]
-    pub site_secret: Option<String>,
+    pub site_secret: ::core::option::Option<String>,
     /// Output only. Whether the site_secret field was previously set. Since we will never return the site_secret field, this field is the only way to find out whether it was previously set.
     #[serde(default, rename = "siteSecretSet")]
-    pub site_secret_set: Option<bool>,
+    pub site_secret_set: ::core::option::Option<bool>,
     /// Specifies the duration for which App Check tokens exchanged from reCAPTCHA tokens will be valid. If unset, a default value of 1 day is assumed. Must be between 30 minutes and 7 days, inclusive.
     #[serde(default, rename = "tokenTtl")]
-    pub token_ttl: Option<String>,
+    pub token_ttl: ::core::option::Option<String>,
 }
 
 /// App Check enforcement policy for a specific resource of a Google service supported by App Check. Note that this policy will override the service-level configuration.
@@ -457,19 +492,19 @@ pub struct GoogleFirebaseAppcheckV1RecaptchaV3Config {
 pub struct GoogleFirebaseAppcheckV1ResourcePolicy {
     /// Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service. // TODO: enum values: ["OFF", "UNENFORCED", "ENFORCED"]
     #[serde(default, rename = "enforcementMode")]
-    pub enforcement_mode: Option<String>,
+    pub enforcement_mode: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. This etag is strongly validated as defined by RFC 7232.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Required. Identifier. The relative name of the resource policy object, in the format:  projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id}  Note that the service_id element must be a supported service ID. Currently, the following service IDs are supported: * oauth2.googleapis.com (Google Identity for iOS) resource_policy_id is a system-generated UID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Service specific name of the resource object to which this policy applies, in the format: * **iOS OAuth clients** (Google Identity for iOS): //oauth2.googleapis.com/projects/{project_number}/oauthClients/{oauth_client_id} Note that the resource must belong to the service specified in the name and be from the same project as this policy, but the resource is allowed to be missing at the time of creation of this policy; in that case, we make a best-effort attempt at respecting this policy, but it may not have any effect until the resource is fully created.
     #[serde(default, rename = "targetResource")]
-    pub target_resource: Option<String>,
+    pub target_resource: ::core::option::Option<String>,
     /// Output only. Timestamp when this resource policy configuration object was most recently updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An app''s SafetyNet configuration object. This configuration controls certain properties of the AppCheckToken returned by ExchangeSafetyNetToken, such as its ttl. Note that your registered SHA-256 certificate fingerprints are used to validate tokens issued by SafetyNet; please register them via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.androidApps.sha/create).
@@ -477,10 +512,10 @@ pub struct GoogleFirebaseAppcheckV1ResourcePolicy {
 pub struct GoogleFirebaseAppcheckV1SafetyNetConfig {
     /// Required. The relative resource name of the SafetyNet configuration object, in the format:  projects/{project_number}/apps/{app_id}/safetyNetConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Specifies the duration for which App Check tokens exchanged from SafetyNet tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.
     #[serde(default, rename = "tokenTtl")]
-    pub token_ttl: Option<String>,
+    pub token_ttl: ::core::option::Option<String>,
 }
 
 /// The enforcement configuration for a Firebase service supported by App Check.
@@ -488,10 +523,10 @@ pub struct GoogleFirebaseAppcheckV1SafetyNetConfig {
 pub struct GoogleFirebaseAppcheckV1Service {
     /// Required. The App Check enforcement mode for this service. // TODO: enum values: ["OFF", "UNENFORCED", "ENFORCED"]
     #[serde(default, rename = "enforcementMode")]
-    pub enforcement_mode: Option<String>,
+    pub enforcement_mode: ::core::option::Option<String>,
     /// Required. The relative resource name of the service configuration object, in the format:  projects/{project_number}/services/{service_id}  Note that the service_id element must be a supported service ID. Currently, the following service IDs are supported: * firebasestorage.googleapis.com (Cloud Storage for Firebase) * firebasedatabase.googleapis.com (Firebase Realtime Database) * firestore.googleapis.com (Cloud Firestore) * oauth2.googleapis.com (Google Identity for iOS)
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Request message for the UpdateResourcePolicy method as well as an individual update message for the BatchUpdateResourcePolicies method.
@@ -499,10 +534,11 @@ pub struct GoogleFirebaseAppcheckV1Service {
 pub struct GoogleFirebaseAppcheckV1UpdateResourcePolicyRequest {
     /// Required. The ResourcePolicy to update. The ResourcePolicy''s name field is used to identify the ResourcePolicy to be updated, in the format:  projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id}  Note that the service_id element must be a supported service ID. Currently, the following service IDs are supported: * oauth2.googleapis.com (Google Identity for iOS)
     #[serde(default, rename = "resourcePolicy")]
-    pub resource_policy: Option<GoogleFirebaseAppcheckV1ResourcePolicy>,
+    pub resource_policy:
+        ::core::option::Option<::std::boxed::Box<GoogleFirebaseAppcheckV1ResourcePolicy>>,
     /// Required. A comma-separated list of names of fields in the ResourcePolicy to update. Example: enforcement_mode.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Request message for the UpdateService method as well as an individual update message for the BatchUpdateServices method.
@@ -510,8 +546,8 @@ pub struct GoogleFirebaseAppcheckV1UpdateResourcePolicyRequest {
 pub struct GoogleFirebaseAppcheckV1UpdateServiceRequest {
     /// Required. The Service to update. The Service''s name field is used to identify the Service to be updated, in the format:  projects/{project_number}/services/{service_id}  Note that the service_id element must be a supported service ID. Currently, the following service IDs are supported: * firebasestorage.googleapis.com (Cloud Storage for Firebase) * firebasedatabase.googleapis.com (Firebase Realtime Database) * firestore.googleapis.com (Cloud Firestore) * oauth2.googleapis.com (Google Identity for iOS)
     #[serde(default)]
-    pub service: Option<GoogleFirebaseAppcheckV1Service>,
+    pub service: ::core::option::Option<::std::boxed::Box<GoogleFirebaseAppcheckV1Service>>,
     /// Required. A comma-separated list of names of fields in the Service to update. Example: enforcement_mode.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }

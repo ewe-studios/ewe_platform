@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Information about the source of the task assignment (Document, Chat Space).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AssignmentInfo {
     /// Output only. Information about the Drive file where this task originates from. Currently, the Drive file can only be a document. This field is read-only.
     #[serde(default, rename = "driveResourceInfo")]
-    pub drive_resource_info: Option<DriveResourceInfo>,
+    pub drive_resource_info: ::core::option::Option<::std::boxed::Box<DriveResourceInfo>>,
     /// Output only. An absolute link to the original task in the surface of assignment (Docs, Chat spaces, etc.).
     #[serde(default, rename = "linkToTask")]
-    pub link_to_task: Option<String>,
+    pub link_to_task: ::core::option::Option<String>,
     /// Output only. Information about the Chat Space where this task originates from. This field is read-only.
     #[serde(default, rename = "spaceInfo")]
-    pub space_info: Option<SpaceInfo>,
+    pub space_info: ::core::option::Option<::std::boxed::Box<SpaceInfo>>,
     /// Output only. The type of surface this assigned task originates from. Currently limited to DOCUMENT or SPACE. // TODO: enum values: ["CONTEXT_TYPE_UNSPECIFIED", "GMAIL", "DOCUMENT", "SPACE"]
     #[serde(default, rename = "surfaceType")]
-    pub surface_type: Option<String>,
+    pub surface_type: ::core::option::Option<String>,
 }
 
 /// Information about the Drive resource where a task was assigned from (the document, sheet, etc.).
@@ -35,10 +35,10 @@ pub struct AssignmentInfo {
 pub struct DriveResourceInfo {
     /// Output only. Identifier of the file in the Drive API.
     #[serde(default, rename = "driveFileId")]
-    pub drive_file_id: Option<String>,
+    pub drive_file_id: ::core::option::Option<String>,
     /// Output only. Resource key required to access files shared via a shared link. Not required for all files. See also developers.google.com/drive/api/guides/resource-keys.
     #[serde(default, rename = "resourceKey")]
-    pub resource_key: Option<String>,
+    pub resource_key: ::core::option::Option<String>,
 }
 
 /// Information about the Chat Space where a task was assigned from.
@@ -46,7 +46,7 @@ pub struct DriveResourceInfo {
 pub struct SpaceInfo {
     /// Output only. The Chat space where this task originates from. The format is "spaces/{space}".
     #[serde(default)]
-    pub space: Option<String>,
+    pub space: ::core::option::Option<String>,
 }
 
 /// Task resource type.
@@ -54,55 +54,55 @@ pub struct SpaceInfo {
 pub struct Task {
     /// Output only. Context information for assigned tasks. A task can be assigned to a user, currently possible from surfaces like Docs and Chat Spaces. This field is populated for tasks assigned to the current user and identifies where the task was assigned from. This field is read-only.
     #[serde(default, rename = "assignmentInfo")]
-    pub assignment_info: Option<AssignmentInfo>,
+    pub assignment_info: ::core::option::Option<::std::boxed::Box<AssignmentInfo>>,
     /// Completion date of the task (as a RFC 3339 timestamp). This field is omitted if the task has not been completed.
     #[serde(default)]
-    pub completed: Option<String>,
+    pub completed: ::core::option::Option<String>,
     /// Flag indicating whether the task has been deleted. For assigned tasks this field is read-only. They can only be deleted by calling tasks.delete, in which case both the assigned task and the original task (in Docs or Chat Spaces) are deleted. To delete the assigned task only, navigate to the assignment surface and unassign the task from there. The default is False.
     #[serde(default)]
-    pub deleted: Option<bool>,
+    pub deleted: ::core::option::Option<bool>,
     /// Scheduled date for the task (as an RFC 3339 timestamp). Optional. This represents the day that the task should be done, or that the task is visible on the calendar grid. It doesn''t represent the deadline of the task. Only date information is recorded; the time portion of the timestamp is discarded when setting this field. It isn''t possible to read or write the time that a task is scheduled for using the API.
     #[serde(default)]
-    pub due: Option<String>,
+    pub due: ::core::option::Option<String>,
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Flag indicating whether the task is hidden. This is the case if the task had been marked completed when the task list was last cleared. The default is False. This field is read-only.
     #[serde(default)]
-    pub hidden: Option<bool>,
+    pub hidden: ::core::option::Option<bool>,
     /// Task identifier.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Type of the resource. This is always "tasks#task".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. Collection of links. This collection is read-only.
     #[serde(default)]
-    pub links: Option<Vec<serde_json::Value>>,
+    pub links: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// Notes describing the task. Tasks assigned from Google Docs cannot have notes. Optional. Maximum length allowed: 8192 characters.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// Output only. Parent task identifier. This field is omitted if it is a top-level task. Use the "move" method to move the task under a different parent or to the top level. A parent task can never be an assigned task (from Chat Spaces, Docs). This field is read-only.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Output only. String indicating the position of the task among its sibling tasks under the same parent task or at the top level. If this string is greater than another task''s corresponding position string according to lexicographical ordering, the task is positioned after the other task under the same parent task (or at the top level). Use the "move" method to move the task to another position.
     #[serde(default)]
-    pub position: Option<String>,
+    pub position: ::core::option::Option<String>,
     /// Output only. URL pointing to this task. Used to retrieve, update, or delete this task.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// Status of the task. This is either "needsAction" or "completed".
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Title of the task. Maximum length allowed: 1024 characters.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Output only. Last modification time of the task (as a RFC 3339 timestamp).
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
     /// Output only. An absolute link to the task in the Google Tasks Web UI.
     #[serde(default, rename = "webViewLink")]
-    pub web_view_link: Option<String>,
+    pub web_view_link: ::core::option::Option<String>,
 }
 
 /// TaskList resource type.
@@ -110,22 +110,22 @@ pub struct Task {
 pub struct TaskList {
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Task list identifier.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Type of the resource. This is always "tasks#taskList".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. URL pointing to this task list. Used to retrieve, update, or delete this task list.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// Title of the task list. Maximum length allowed: 1024 characters.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Output only. Last modification time of the task list (as a RFC 3339 timestamp).
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
 }
 
 /// TaskLists resource type.
@@ -133,16 +133,16 @@ pub struct TaskList {
 pub struct TaskLists {
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Collection of task lists.
     #[serde(default)]
-    pub items: Option<Vec<TaskList>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TaskList>>>,
     /// Type of the resource. This is always "tasks#taskLists".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token that can be used to request the next page of this result.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Tasks resource type.
@@ -150,14 +150,14 @@ pub struct TaskLists {
 pub struct Tasks {
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Collection of tasks.
     #[serde(default)]
-    pub items: Option<Vec<Task>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
     /// Type of the resource. This is always "tasks#tasks".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token used to access the next page of this result.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }

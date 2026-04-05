@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The list of detected Ad Technology Providers for this creative. Bids placed for inventory that will serve to EEA or UK users are expected to comply with GDPR requirements. You must ensure that the creatives used in such bids should contain only user consented ad technology providers as indicated in the bid request. Google reserves the right to filter non-compliant bids. User consented ad technology providers can be found in the [Google Protocol](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto) with the BidRequest.adslot.consented_providers_settings field, and can be found as an [OpenRTB extension](https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto) with the BidRequest.user.ext.consented_providers_settings and BidRequest.user.ext.consent fields. See https://support.google.com/authorizedbuyers/answer/9789378 for additional information about the Google TCF v2 integration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdTechnologyProviders {
     /// The detected IAB Global Vendor List (GVL) IDs for this creative. See the IAB Global Vendor List at https://vendor-list.consensu.org/v2/vendor-list.json for details about the vendors.
     #[serde(default, rename = "detectedGvlIds")]
-    pub detected_gvl_ids: Option<Vec<String>>,
+    pub detected_gvl_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The detected [Google Ad Tech Providers (ATP)](https://support.google.com/admanager/answer/9012903) for this creative. See https://storage.googleapis.com/adx-rtb-dictionaries/providers.csv for mapping of provider ID to provided name, a privacy policy URL, and a list of domains which can be attributed to the provider.
     #[serde(default, rename = "detectedProviderIds")]
-    pub detected_provider_ids: Option<Vec<String>>,
+    pub detected_provider_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Domains of detected unidentified ad technology providers (if any). You must ensure that the creatives used in bids placed for inventory that will serve to EEA or UK users does not contain unidentified ad technology providers. Google reserves the right to filter non-compliant bids.
     #[serde(default, rename = "unidentifiedProviderDomains")]
-    pub unidentified_provider_domains: Option<Vec<String>>,
+    pub unidentified_provider_domains: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request to start targeting the provided app IDs in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
@@ -32,10 +32,10 @@ pub struct AdTechnologyProviders {
 pub struct AddTargetedAppsRequest {
     /// A list of app IDs to target in the pretargeting configuration. These values will be added to the list of targeted app IDs in PretargetingConfig.appTargeting.mobileAppTargeting.values.
     #[serde(default, rename = "appIds")]
-    pub app_ids: Option<Vec<String>>,
+    pub app_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The targeting mode that should be applied to the list of app IDs. If there are existing targeted app IDs, must be equal to the existing PretargetingConfig.appTargeting.mobileAppTargeting.targetingMode or a 400 bad request error will be returned. // TODO: enum values: ["TARGETING_MODE_UNSPECIFIED", "INCLUSIVE", "EXCLUSIVE"]
     #[serde(default, rename = "targetingMode")]
-    pub targeting_mode: Option<String>,
+    pub targeting_mode: ::core::option::Option<String>,
 }
 
 /// A request to start targeting the provided publishers in a specific pretargeting configuration. The pretargeting configuration itself specifies how these publishers are targeted in PretargetingConfig.publisherTargeting.
@@ -43,10 +43,10 @@ pub struct AddTargetedAppsRequest {
 pub struct AddTargetedPublishersRequest {
     /// A list of publisher IDs to target in the pretargeting configuration. These values will be added to the list of targeted publisher IDs in PretargetingConfig.publisherTargeting.values. Publishers are identified by their publisher ID from ads.txt / app-ads.txt. See https://iabtechlab.com/ads-txt/ and https://iabtechlab.com/app-ads-txt/ for more details.
     #[serde(default, rename = "publisherIds")]
-    pub publisher_ids: Option<Vec<String>>,
+    pub publisher_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The targeting mode that should be applied to the list of publisher IDs. If are existing publisher IDs, must be equal to the existing PretargetingConfig.publisherTargeting.targetingMode or a 400 bad request error will be returned. // TODO: enum values: ["TARGETING_MODE_UNSPECIFIED", "INCLUSIVE", "EXCLUSIVE"]
     #[serde(default, rename = "targetingMode")]
-    pub targeting_mode: Option<String>,
+    pub targeting_mode: ::core::option::Option<String>,
 }
 
 /// A request to start targeting the provided sites in a specific pretargeting configuration. The pretargeting configuration itself specifies how these sites are targeted in PretargetingConfig.webTargeting.
@@ -54,10 +54,10 @@ pub struct AddTargetedPublishersRequest {
 pub struct AddTargetedSitesRequest {
     /// A list of site URLs to target in the pretargeting configuration. These values will be added to the list of targeted URLs in PretargetingConfig.webTargeting.values.
     #[serde(default)]
-    pub sites: Option<Vec<String>>,
+    pub sites: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The targeting mode that should be applied to the list of site URLs. If there are existing targeted sites, must be equal to the existing PretargetingConfig.webTargeting.targetingMode or a 400 bad request error will be returned. // TODO: enum values: ["TARGETING_MODE_UNSPECIFIED", "INCLUSIVE", "EXCLUSIVE"]
     #[serde(default, rename = "targetingMode")]
-    pub targeting_mode: Option<String>,
+    pub targeting_mode: ::core::option::Option<String>,
 }
 
 /// Detected advertiser and brand information.
@@ -65,16 +65,16 @@ pub struct AddTargetedSitesRequest {
 pub struct AdvertiserAndBrand {
     /// See https://storage.googleapis.com/adx-rtb-dictionaries/advertisers.txt for the list of possible values. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Advertiser name. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "advertiserName")]
-    pub advertiser_name: Option<String>,
+    pub advertiser_name: ::core::option::Option<String>,
     /// Detected brand ID or zero if no brand has been detected. See https://storage.googleapis.com/adx-rtb-dictionaries/brands.txt for the list of possible values. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "brandId")]
-    pub brand_id: Option<String>,
+    pub brand_id: ::core::option::Option<String>,
     /// Brand name. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "brandName")]
-    pub brand_name: Option<String>,
+    pub brand_name: ::core::option::Option<String>,
 }
 
 /// A subset of app inventory to target. Bid requests that match criteria in at least one of the specified dimensions will be sent.
@@ -82,10 +82,11 @@ pub struct AdvertiserAndBrand {
 pub struct AppTargeting {
     /// Lists of included and excluded mobile app categories as defined in https://developers.google.com/adwords/api/docs/appendix/mobileappcategories.csv.
     #[serde(default, rename = "mobileAppCategoryTargeting")]
-    pub mobile_app_category_targeting: Option<NumericTargetingDimension>,
+    pub mobile_app_category_targeting:
+        ::core::option::Option<::std::boxed::Box<NumericTargetingDimension>>,
     /// Targeted app IDs. App IDs can refer to those found in an app store or ones that are not published in an app store. A maximum of 30,000 app IDs can be targeted.
     #[serde(default, rename = "mobileAppTargeting")]
-    pub mobile_app_targeting: Option<StringTargetingDimension>,
+    pub mobile_app_targeting: ::core::option::Option<::std::boxed::Box<StringTargetingDimension>>,
 }
 
 /// A request to approve a batch of publisher connections.
@@ -93,7 +94,7 @@ pub struct AppTargeting {
 pub struct BatchApprovePublisherConnectionsRequest {
     /// Required. The names of the publishers with which connections will be approved. In the pattern bidders/{bidder}/publisherConnections/{publisher} where {bidder} is the account ID of the bidder, and {publisher} is the ads.txt/app-ads.txt publisher ID.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A response for the request to approve a batch of publisher connections.
@@ -101,7 +102,8 @@ pub struct BatchApprovePublisherConnectionsRequest {
 pub struct BatchApprovePublisherConnectionsResponse {
     /// The publisher connections that have been approved.
     #[serde(default, rename = "publisherConnections")]
-    pub publisher_connections: Option<Vec<PublisherConnection>>,
+    pub publisher_connections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PublisherConnection>>>,
 }
 
 /// A request to reject a batch of publisher connections.
@@ -109,7 +111,7 @@ pub struct BatchApprovePublisherConnectionsResponse {
 pub struct BatchRejectPublisherConnectionsRequest {
     /// Required. The names of the publishers with whom connection will be rejected. In the pattern bidders/{bidder}/publisherConnections/{publisher} where {bidder} is the account ID of the bidder, and {publisher} is the ads.txt/app-ads.txt publisher ID.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A response for the request to reject a batch of publisher connections.
@@ -117,7 +119,8 @@ pub struct BatchRejectPublisherConnectionsRequest {
 pub struct BatchRejectPublisherConnectionsResponse {
     /// The publisher connections that have been rejected.
     #[serde(default, rename = "publisherConnections")]
-    pub publisher_connections: Option<Vec<PublisherConnection>>,
+    pub publisher_connections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PublisherConnection>>>,
 }
 
 /// Bidder settings.
@@ -125,19 +128,19 @@ pub struct BatchRejectPublisherConnectionsResponse {
 pub struct Bidder {
     /// Output only. An option to bypass pretargeting for private auctions and preferred deals. When true, bid requests from these nonguaranteed deals will always be sent. When false, bid requests will be subject to regular pretargeting configurations. Programmatic Guaranteed deals will always be sent to the bidder, regardless of the value for this option. Auction packages are not impacted by this value and are subject to the regular pretargeting configurations.
     #[serde(default, rename = "bypassNonguaranteedDealsPretargeting")]
-    pub bypass_nonguaranteed_deals_pretargeting: Option<bool>,
+    pub bypass_nonguaranteed_deals_pretargeting: ::core::option::Option<bool>,
     /// Output only. The buyer''s network ID used for cookie matching. This ID corresponds to the google_nid parameter in the URL used in cookie match requests. Refer to https://developers.google.com/authorized-buyers/rtb/cookie-guide for further information.
     #[serde(default, rename = "cookieMatchingNetworkId")]
-    pub cookie_matching_network_id: Option<String>,
+    pub cookie_matching_network_id: ::core::option::Option<String>,
     /// Output only. The base URL used in cookie match requests. Refer to https://developers.google.com/authorized-buyers/rtb/cookie-guide for further information.
     #[serde(default, rename = "cookieMatchingUrl")]
-    pub cookie_matching_url: Option<String>,
+    pub cookie_matching_url: ::core::option::Option<String>,
     /// Output only. The billing ID for the deals pretargeting config. This billing ID is sent on the bid request for guaranteed and nonguaranteed deals matched in pretargeting.
     #[serde(default, rename = "dealsBillingId")]
-    pub deals_billing_id: Option<String>,
+    pub deals_billing_id: ::core::option::Option<String>,
     /// Output only. Name of the bidder resource that must follow the pattern bidders/{bidderAccountId}, where {bidderAccountId} is the account ID of the bidder whose information is to be received. One can get their account ID on the Authorized Buyers or Open Bidding UI, or by contacting their Google account manager.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// RTB Buyer account information.
@@ -145,22 +148,22 @@ pub struct Bidder {
 pub struct Buyer {
     /// Output only. The number of creatives that this buyer submitted through the API or bid with in the last 30 days. This is counted against the maximum number of active creatives.
     #[serde(default, rename = "activeCreativeCount")]
-    pub active_creative_count: Option<String>,
+    pub active_creative_count: ::core::option::Option<String>,
     /// Output only. The name of the bidder resource that is responsible for receiving bidding traffic for this account. The bidder name must follow the pattern bidders/{bidderAccountId}, where {bidderAccountId} is the account ID of the bidder receiving traffic for this buyer.
     #[serde(default)]
-    pub bidder: Option<String>,
+    pub bidder: ::core::option::Option<String>,
     /// Output only. A list of billing IDs associated with this account. These IDs appear on: 1. A bid request, to signal which buyers are eligible to bid on a given opportunity, and which pretargeting configurations were matched for each eligible buyer. 2. The bid response, to attribute a winning impression to a specific account for billing, reporting, policy and publisher block enforcement.
     #[serde(default, rename = "billingIds")]
-    pub billing_ids: Option<Vec<String>>,
+    pub billing_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The diplay name associated with this buyer account, as visible to sellers.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The maximum number of active creatives that this buyer can have.
     #[serde(default, rename = "maximumActiveCreativeCount")]
-    pub maximum_active_creative_count: Option<String>,
+    pub maximum_active_creative_count: ::core::option::Option<String>,
     /// Output only. Name of the buyer resource that must follow the pattern buyers/{buyerAccountId}, where {buyerAccountId} is the account ID of the buyer account whose information is to be received. One can get their account ID on the Authorized Buyers or Open Bidding UI, or by contacting their Google account manager.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A creative and its classification data.
@@ -168,67 +171,68 @@ pub struct Buyer {
 pub struct Creative {
     /// Output only. ID of the buyer account that this creative is owned by. Can be used to filter the response of the creatives.list method with equality and inequality check.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The link to AdChoices destination page. This is only supported for native ads.
     #[serde(default, rename = "adChoicesDestinationUrl")]
-    pub ad_choices_destination_url: Option<String>,
+    pub ad_choices_destination_url: ::core::option::Option<String>,
     /// The name of the company being advertised in the creative. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "advertiserName")]
-    pub advertiser_name: Option<String>,
+    pub advertiser_name: ::core::option::Option<String>,
     /// The agency ID for this creative.
     #[serde(default, rename = "agencyId")]
-    pub agency_id: Option<String>,
+    pub agency_id: ::core::option::Option<String>,
     /// Output only. The last update timestamp of the creative through the API.
     #[serde(default, rename = "apiUpdateTime")]
-    pub api_update_time: Option<String>,
+    pub api_update_time: ::core::option::Option<String>,
     /// Output only. The format of this creative. Can be used to filter the response of the creatives.list method. // TODO: enum values: ["CREATIVE_FORMAT_UNSPECIFIED", "HTML", "VIDEO", "NATIVE"]
     #[serde(default, rename = "creativeFormat")]
-    pub creative_format: Option<String>,
+    pub creative_format: ::core::option::Option<String>,
     /// Buyer-specific creative ID that references this creative in bid responses. This field is Ignored in update operations. Can be used to filter the response of the creatives.list method. The maximum length of the creative ID is 128 bytes.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// Output only. Top level status and detected attributes of a creative (for example domain, language, advertiser, product category, etc.) that affect whether (status) and where (context) a creative will be allowed to serve.
     #[serde(default, rename = "creativeServingDecision")]
-    pub creative_serving_decision: Option<CreativeServingDecision>,
+    pub creative_serving_decision:
+        ::core::option::Option<::std::boxed::Box<CreativeServingDecision>>,
     /// Output only. IDs of all of the deals with which this creative has been used in bidding. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "dealIds")]
-    pub deal_ids: Option<Vec<String>>,
+    pub deal_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// All declared attributes for the ads that may be shown from this creative. Can be used to filter the response of the creatives.list method. If the excluded_attribute field of a [bid request](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto") contains one of the attributes that were declared or detected for a given creative, and a bid is submitted with that creative, the bid will be filtered before the auction.
     #[serde(default, rename = "declaredAttributes")]
-    pub declared_attributes: Option<Vec<String>>,
+    pub declared_attributes: ::core::option::Option<::std::vec::Vec<String>>,
     /// The set of declared destination URLs for the creative. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "declaredClickThroughUrls")]
-    pub declared_click_through_urls: Option<Vec<String>>,
+    pub declared_click_through_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// All declared restricted categories for the ads that may be shown from this creative. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "declaredRestrictedCategories")]
-    pub declared_restricted_categories: Option<Vec<String>>,
+    pub declared_restricted_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// IDs for the declared ad technology vendors that may be used by this creative. See https://storage.googleapis.com/adx-rtb-dictionaries/vendors.txt for possible values. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "declaredVendorIds")]
-    pub declared_vendor_ids: Option<Vec<i32>>,
+    pub declared_vendor_ids: ::core::option::Option<::std::vec::Vec<i32>>,
     /// An HTML creative.
     #[serde(default)]
-    pub html: Option<HtmlContent>,
+    pub html: ::core::option::Option<::std::boxed::Box<HtmlContent>>,
     /// The set of URLs to be called to record an impression.
     #[serde(default, rename = "impressionTrackingUrls")]
-    pub impression_tracking_urls: Option<Vec<String>>,
+    pub impression_tracking_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Name of the creative. Follows the pattern buyers/{buyer}/creatives/{creative}, where {buyer} represents the account ID of the buyer who owns the creative, and {creative} is the buyer-specific creative ID that references this creative in the bid response.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A native creative.
     #[serde(default)]
-    pub native: Option<NativeContent>,
+    pub native: ::core::option::Option<::std::boxed::Box<NativeContent>>,
     /// Experimental field that can be used during the [FLEDGE Origin Trial](/authorized-buyers/rtb/fledge-origin-trial). The URL to fetch an interest group ad used in [TURTLEDOVE on-device auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#1-browsers-record-interest-groups"). This should be unique among all creatives for a given accountId. This URL should be the same as the URL returned by [generateBid()](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#32-on-device-bidding).
     #[serde(default, rename = "renderUrl")]
-    pub render_url: Option<String>,
+    pub render_url: ::core::option::Option<String>,
     /// All restricted categories for the ads that may be shown from this creative.
     #[serde(default, rename = "restrictedCategories")]
-    pub restricted_categories: Option<Vec<String>>,
+    pub restricted_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The version of the creative. Version for a new creative is 1 and it increments during subsequent creative updates.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
     /// A video creative.
     #[serde(default)]
-    pub video: Option<VideoContent>,
+    pub video: ::core::option::Option<::std::boxed::Box<VideoContent>>,
 }
 
 /// The dimensions of a creative. This applies to only HTML and Native creatives.
@@ -236,10 +240,10 @@ pub struct Creative {
 pub struct CreativeDimensions {
     /// The height of the creative in pixels.
     #[serde(default)]
-    pub height: Option<String>,
+    pub height: ::core::option::Option<String>,
     /// The width of the creative in pixels.
     #[serde(default)]
-    pub width: Option<String>,
+    pub width: ::core::option::Option<String>,
 }
 
 /// Top level status and detected attributes of a creative.
@@ -247,55 +251,56 @@ pub struct CreativeDimensions {
 pub struct CreativeServingDecision {
     /// The detected ad technology providers.
     #[serde(default, rename = "adTechnologyProviders")]
-    pub ad_technology_providers: Option<AdTechnologyProviders>,
+    pub ad_technology_providers: ::core::option::Option<::std::boxed::Box<AdTechnologyProviders>>,
     /// The policy compliance of this creative in China. When approved or disapproved, this applies to both deals and open auction in China. When pending review, this creative is allowed to serve for deals but not for open auction.
     #[serde(default, rename = "chinaPolicyCompliance")]
-    pub china_policy_compliance: Option<PolicyCompliance>,
+    pub china_policy_compliance: ::core::option::Option<::std::boxed::Box<PolicyCompliance>>,
     /// Policy compliance of this creative when bidding on Programmatic Guaranteed and Preferred Deals (outside of Russia and China).
     #[serde(default, rename = "dealsPolicyCompliance")]
-    pub deals_policy_compliance: Option<PolicyCompliance>,
+    pub deals_policy_compliance: ::core::option::Option<::std::boxed::Box<PolicyCompliance>>,
     /// Detected advertisers and brands.
     #[serde(default, rename = "detectedAdvertisers")]
-    pub detected_advertisers: Option<Vec<AdvertiserAndBrand>>,
+    pub detected_advertisers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdvertiserAndBrand>>>,
     /// Publisher-excludable attributes that were detected for this creative. Can be used to filter the response of the creatives.list method. If the excluded_attribute field of a [bid request](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto) contains one of the attributes that were declared or detected for a given creative, and a bid is submitted with that creative, the bid will be filtered before the auction.
     #[serde(default, rename = "detectedAttributes")]
-    pub detected_attributes: Option<Vec<String>>,
+    pub detected_attributes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. IDs of the detected categories. The taxonomy in which the categories are expressed is specified by the detected_categories_taxonomy field. Use this in conjunction with BidRequest.bcat to avoid bidding on impressions where a given ad category is blocked, or to troubleshoot filtered bids. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "detectedCategories")]
-    pub detected_categories: Option<Vec<String>>,
+    pub detected_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The taxonomy in which the detected_categories field is expressed. // TODO: enum values: ["AD_CATEGORY_TAXONOMY_UNSPECIFIED", "GOOGLE_AD_CATEGORY_TAXONOMY", "IAB_CONTENT_1_0"]
     #[serde(default, rename = "detectedCategoriesTaxonomy")]
-    pub detected_categories_taxonomy: Option<String>,
+    pub detected_categories_taxonomy: ::core::option::Option<String>,
     /// The set of detected destination URLs for the creative. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "detectedClickThroughUrls")]
-    pub detected_click_through_urls: Option<Vec<String>>,
+    pub detected_click_through_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// The detected domains for this creative.
     #[serde(default, rename = "detectedDomains")]
-    pub detected_domains: Option<Vec<String>>,
+    pub detected_domains: ::core::option::Option<::std::vec::Vec<String>>,
     /// The detected languages for this creative. The order is arbitrary. The codes are 2 or 5 characters and are documented at https://developers.google.com/adwords/api/docs/appendix/languagecodes. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: Option<Vec<String>>,
+    pub detected_languages: ::core::option::Option<::std::vec::Vec<String>>,
     /// Detected product categories, if any. See the ad-product-categories.txt file in the technical documentation for a list of IDs. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "detectedProductCategories")]
-    pub detected_product_categories: Option<Vec<i32>>,
+    pub detected_product_categories: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Detected sensitive categories, if any. Can be used to filter the response of the creatives.list method. See the ad-sensitive-categories.txt file in the technical documentation for a list of IDs. You should use these IDs along with the excluded-sensitive-category field in the bid request to filter your bids.
     #[serde(default, rename = "detectedSensitiveCategories")]
-    pub detected_sensitive_categories: Option<Vec<i32>>,
+    pub detected_sensitive_categories: ::core::option::Option<::std::vec::Vec<i32>>,
     /// IDs of the ad technology vendors that were detected to be used by this creative. See https://storage.googleapis.com/adx-rtb-dictionaries/vendors.txt for possible values. Can be used to filter the response of the creatives.list method. If the allowed_vendor_type field of a [bid request](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto) does not contain one of the vendor type IDs that were declared or detected for a given creative, and a bid is submitted with that creative, the bid will be filtered before the auction.
     #[serde(default, rename = "detectedVendorIds")]
-    pub detected_vendor_ids: Option<Vec<i32>>,
+    pub detected_vendor_ids: ::core::option::Option<::std::vec::Vec<i32>>,
     /// The last time the creative status was updated. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "lastStatusUpdate")]
-    pub last_status_update: Option<String>,
+    pub last_status_update: ::core::option::Option<String>,
     /// Policy compliance of this creative when bidding in open auction, private auction, or auction packages (outside of Russia and China).
     #[serde(default, rename = "networkPolicyCompliance")]
-    pub network_policy_compliance: Option<PolicyCompliance>,
+    pub network_policy_compliance: ::core::option::Option<::std::boxed::Box<PolicyCompliance>>,
     /// Policy compliance of this creative when bidding in Open Bidding (outside of Russia and China). For the list of platform policies, see: https://support.google.com/platformspolicy/answer/3013851.
     #[serde(default, rename = "platformPolicyCompliance")]
-    pub platform_policy_compliance: Option<PolicyCompliance>,
+    pub platform_policy_compliance: ::core::option::Option<::std::boxed::Box<PolicyCompliance>>,
     /// The policy compliance of this creative in Russia. When approved or disapproved, this applies to both deals and open auction in Russia. When pending review, this creative is allowed to serve for deals but not for open auction.
     #[serde(default, rename = "russiaPolicyCompliance")]
-    pub russia_policy_compliance: Option<PolicyCompliance>,
+    pub russia_policy_compliance: ::core::option::Option<::std::boxed::Box<PolicyCompliance>>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -303,13 +308,13 @@ pub struct CreativeServingDecision {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Evidence that the creative''s destination URL was not crawlable by Google.
@@ -317,13 +322,13 @@ pub struct Date {
 pub struct DestinationNotCrawlableEvidence {
     /// Approximate time of the crawl.
     #[serde(default, rename = "crawlTime")]
-    pub crawl_time: Option<String>,
+    pub crawl_time: ::core::option::Option<String>,
     /// Destination URL that was attempted to be crawled.
     #[serde(default, rename = "crawledUrl")]
-    pub crawled_url: Option<String>,
+    pub crawled_url: ::core::option::Option<String>,
     /// Reason of destination not crawlable. // TODO: enum values: ["REASON_UNSPECIFIED", "UNREACHABLE_ROBOTS", "TIMEOUT_ROBOTS", "ROBOTED_DENIED", "UNKNOWN"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Evidence of the creative''s destination URL not functioning properly or having been incorrectly set up.
@@ -331,28 +336,28 @@ pub struct DestinationNotCrawlableEvidence {
 pub struct DestinationNotWorkingEvidence {
     /// DNS lookup errors. // TODO: enum values: ["DNS_ERROR_UNSPECIFIED", "ERROR_DNS", "GOOGLE_CRAWLER_DNS_ISSUE"]
     #[serde(default, rename = "dnsError")]
-    pub dns_error: Option<String>,
+    pub dns_error: ::core::option::Option<String>,
     /// The full non-working URL.
     #[serde(default, rename = "expandedUrl")]
-    pub expanded_url: Option<String>,
+    pub expanded_url: ::core::option::Option<String>,
     /// HTTP error code (for example, 404 or 5xx)
     #[serde(default, rename = "httpError")]
-    pub http_error: Option<i32>,
+    pub http_error: ::core::option::Option<i32>,
     /// Page was crawled successfully, but was detected as either a page with no content or an error page. // TODO: enum values: ["INVALID_PAGE_UNSPECIFIED", "EMPTY_OR_ERROR_PAGE"]
     #[serde(default, rename = "invalidPage")]
-    pub invalid_page: Option<String>,
+    pub invalid_page: ::core::option::Option<String>,
     /// Approximate time when the ad destination was last checked.
     #[serde(default, rename = "lastCheckTime")]
-    pub last_check_time: Option<String>,
+    pub last_check_time: ::core::option::Option<String>,
     /// Platform of the non-working URL. // TODO: enum values: ["PLATFORM_UNSPECIFIED", "PERSONAL_COMPUTER", "ANDROID", "IOS"]
     #[serde(default)]
-    pub platform: Option<String>,
+    pub platform: ::core::option::Option<String>,
     /// HTTP redirect chain error. // TODO: enum values: ["REDIRECTION_ERROR_UNSPECIFIED", "TOO_MANY_REDIRECTS", "INVALID_REDIRECT", "EMPTY_REDIRECT", "REDIRECT_ERROR_UNKNOWN"]
     #[serde(default, rename = "redirectionError")]
-    pub redirection_error: Option<String>,
+    pub redirection_error: ::core::option::Option<String>,
     /// Rejected because of malformed URLs or invalid requests. // TODO: enum values: ["URL_REJECTED_UNSPECIFIED", "BAD_REQUEST", "MALFORMED_URL", "URL_REJECTED_UNKNOWN"]
     #[serde(default, rename = "urlRejected")]
-    pub url_rejected: Option<String>,
+    pub url_rejected: ::core::option::Option<String>,
 }
 
 /// The full landing page URL of the destination.
@@ -360,7 +365,7 @@ pub struct DestinationNotWorkingEvidence {
 pub struct DestinationUrlEvidence {
     /// The full landing page URL of the destination.
     #[serde(default, rename = "destinationUrl")]
-    pub destination_url: Option<String>,
+    pub destination_url: ::core::option::Option<String>,
 }
 
 /// Number of HTTP calls made by a creative, broken down by domain.
@@ -368,10 +373,11 @@ pub struct DestinationUrlEvidence {
 pub struct DomainCallEvidence {
     /// Breakdown of the most frequent domains called through HTTP by the creative.
     #[serde(default, rename = "topHttpCallDomains")]
-    pub top_http_call_domains: Option<Vec<DomainCalls>>,
+    pub top_http_call_domains:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DomainCalls>>>,
     /// The total number of HTTP calls made by the creative, including but not limited to the number of calls in the top_http_call_domains.
     #[serde(default, rename = "totalHttpCallCount")]
-    pub total_http_call_count: Option<i32>,
+    pub total_http_call_count: ::core::option::Option<i32>,
 }
 
 /// The number of HTTP calls made to the given domain.
@@ -379,10 +385,10 @@ pub struct DomainCallEvidence {
 pub struct DomainCalls {
     /// The domain name.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Number of HTTP calls made to the domain.
     #[serde(default, rename = "httpCallCount")]
-    pub http_call_count: Option<i32>,
+    pub http_call_count: ::core::option::Option<i32>,
 }
 
 /// Total download size and URL-level download size breakdown for resources in a creative.
@@ -390,10 +396,11 @@ pub struct DomainCalls {
 pub struct DownloadSizeEvidence {
     /// Download size broken down by URLs with the top download size.
     #[serde(default, rename = "topUrlDownloadSizeBreakdowns")]
-    pub top_url_download_size_breakdowns: Option<Vec<UrlDownloadSize>>,
+    pub top_url_download_size_breakdowns:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UrlDownloadSize>>>,
     /// Total download size (in kilobytes) for all the resources in the creative.
     #[serde(default, rename = "totalDownloadSizeKb")]
-    pub total_download_size_kb: Option<i32>,
+    pub total_download_size_kb: ::core::option::Option<i32>,
 }
 
 /// Bidder endpoint that receives bid requests.
@@ -401,19 +408,19 @@ pub struct DownloadSizeEvidence {
 pub struct Endpoint {
     /// The protocol that the bidder endpoint is using. // TODO: enum values: ["BID_PROTOCOL_UNSPECIFIED", "GOOGLE_RTB", "OPENRTB_JSON", "OPENRTB_PROTOBUF"]
     #[serde(default, rename = "bidProtocol")]
-    pub bid_protocol: Option<String>,
+    pub bid_protocol: ::core::option::Option<String>,
     /// The maximum number of queries per second allowed to be sent to this server.
     #[serde(default, rename = "maximumQps")]
-    pub maximum_qps: Option<String>,
+    pub maximum_qps: ::core::option::Option<String>,
     /// Output only. Name of the endpoint resource that must follow the pattern bidders/{bidderAccountId}/endpoints/{endpointId}, where {bidderAccountId} is the account ID of the bidder who operates this endpoint, and {endpointId} is a unique ID assigned by the server.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The trading location that bid requests should be sent from. See https://developers.google.com/authorized-buyers/rtb/peer-guide#trading-locations for further information. // TODO: enum values: ["TRADING_LOCATION_UNSPECIFIED", "US_WEST", "US_EAST", "EUROPE", "ASIA"]
     #[serde(default, rename = "tradingLocation")]
-    pub trading_location: Option<String>,
+    pub trading_location: ::core::option::Option<String>,
     /// Output only. The URL that bid requests should be sent to.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Response for a request to get remarketing tag.
@@ -421,7 +428,7 @@ pub struct Endpoint {
 pub struct GetRemarketingTagResponse {
     /// An HTML tag that can be placed on the advertiser''s page to add users to a user list. For more information and code samples on using snippets on your website, refer to [Tag your site for remarketing](https://support.google.com/google-ads/answer/2476688).
     #[serde(default)]
-    pub snippet: Option<String>,
+    pub snippet: ::core::option::Option<String>,
 }
 
 /// HTML content for a creative.
@@ -429,13 +436,13 @@ pub struct GetRemarketingTagResponse {
 pub struct HtmlContent {
     /// The height of the HTML snippet in pixels. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// The HTML snippet that displays the ad when inserted in the web page.
     #[serde(default)]
-    pub snippet: Option<String>,
+    pub snippet: ::core::option::Option<String>,
     /// The width of the HTML snippet in pixels. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// HTTP calls made by a creative that resulted in policy violations.
@@ -443,7 +450,7 @@ pub struct HtmlContent {
 pub struct HttpCallEvidence {
     /// URLs of HTTP calls made by the creative.
     #[serde(default)]
-    pub urls: Option<Vec<String>>,
+    pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Evidence for HTTP cookie-related policy violations.
@@ -451,10 +458,10 @@ pub struct HttpCallEvidence {
 pub struct HttpCookieEvidence {
     /// Names of cookies that violate Google policies. For TOO_MANY_COOKIES policy, this will be the cookie names of top domains with the largest number of cookies. For other policies, this will be all the cookie names that violate the policy.
     #[serde(default, rename = "cookieNames")]
-    pub cookie_names: Option<Vec<String>>,
+    pub cookie_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The largest number of cookies set by a creative. If this field is set, cookie_names above will be set to the cookie names of top domains with the largest number of cookies. This field will only be set for TOO_MANY_COOKIES policy.
     #[serde(default, rename = "maxCookieCount")]
-    pub max_cookie_count: Option<i32>,
+    pub max_cookie_count: ::core::option::Option<i32>,
 }
 
 /// An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.
@@ -462,13 +469,13 @@ pub struct HttpCookieEvidence {
 pub struct Image {
     /// Image height in pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// The URL of the image.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// Image width in pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// A response containing bidders.
@@ -476,10 +483,10 @@ pub struct Image {
 pub struct ListBiddersResponse {
     /// List of bidders.
     #[serde(default)]
-    pub bidders: Option<Vec<Bidder>>,
+    pub bidders: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Bidder>>>,
     /// A token which can be passed to a subsequent call to the ListBidders method to retrieve the next page of results in ListBiddersRequest.pageToken.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A response containing buyer account information.
@@ -487,10 +494,10 @@ pub struct ListBiddersResponse {
 pub struct ListBuyersResponse {
     /// List of buyers.
     #[serde(default)]
-    pub buyers: Option<Vec<Buyer>>,
+    pub buyers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Buyer>>>,
     /// A token which can be passed to a subsequent call to the ListBuyers method to retrieve the next page of results in ListBuyersRequest.pageToken.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A response for listing creatives.
@@ -498,10 +505,10 @@ pub struct ListBuyersResponse {
 pub struct ListCreativesResponse {
     /// The list of creatives.
     #[serde(default)]
-    pub creatives: Option<Vec<Creative>>,
+    pub creatives: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Creative>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListCreativesRequest.pageToken field in the subsequent call to the ListCreatives method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A response containing bidder endpoints.
@@ -509,10 +516,10 @@ pub struct ListCreativesResponse {
 pub struct ListEndpointsResponse {
     /// List of bidder endpoints.
     #[serde(default)]
-    pub endpoints: Option<Vec<Endpoint>>,
+    pub endpoints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Endpoint>>>,
     /// A token which can be passed to a subsequent call to the ListEndpoints method to retrieve the next page of results in ListEndpointsRequest.pageToken.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A response containing pretargeting configurations.
@@ -520,10 +527,11 @@ pub struct ListEndpointsResponse {
 pub struct ListPretargetingConfigsResponse {
     /// A token which can be passed to a subsequent call to the ListPretargetingConfigs method to retrieve the next page of results in ListPretargetingConfigsRequest.pageToken.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of pretargeting configurations.
     #[serde(default, rename = "pretargetingConfigs")]
-    pub pretargeting_configs: Option<Vec<PretargetingConfig>>,
+    pub pretargeting_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PretargetingConfig>>>,
 }
 
 /// A response to a request for listing publisher connections.
@@ -531,10 +539,11 @@ pub struct ListPretargetingConfigsResponse {
 pub struct ListPublisherConnectionsResponse {
     /// A token to retrieve the next page of results. Pass this value in the ListPublisherConnectionsRequest.pageToken field in the subsequent call to the ListPublisherConnections method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of publisher connections.
     #[serde(default, rename = "publisherConnections")]
-    pub publisher_connections: Option<Vec<PublisherConnection>>,
+    pub publisher_connections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PublisherConnection>>>,
 }
 
 /// The list user list response.
@@ -542,10 +551,10 @@ pub struct ListPublisherConnectionsResponse {
 pub struct ListUserListsResponse {
     /// The continuation page token to send back to the server in a subsequent request. Due to a currently known issue, it is recommended that the caller keep invoking the list method until the time a next page token is not returned, even if the result set is empty.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of user lists from the search.
     #[serde(default, rename = "userLists")]
-    pub user_lists: Option<Vec<UserList>>,
+    pub user_lists: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserList>>>,
 }
 
 /// Information about each media file in the VAST.
@@ -553,10 +562,10 @@ pub struct ListUserListsResponse {
 pub struct MediaFile {
     /// Bitrate of the video file, in Kbps. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
-    pub bitrate: Option<String>,
+    pub bitrate: ::core::option::Option<String>,
     /// The MIME type of this media file. Can be used to filter the response of the creatives.list method. // TODO: enum values: ["VIDEO_MIME_TYPE_UNSPECIFIED", "MIME_VIDEO_XFLV", "MIME_VIDEO_WEBM", "MIME_VIDEO_MP4", "MIME_VIDEO_OGG", "MIME_VIDEO_YT_HOSTED", "MIME_VIDEO_X_MS_WMV", "MIME_VIDEO_3GPP", "MIME_VIDEO_MOV", "MIME_APPLICATION_SWF", "MIME_APPLICATION_SURVEY", "MIME_APPLICATION_JAVASCRIPT", "MIME_APPLICATION_SILVERLIGHT", "MIME_APPLICATION_MPEGURL", "MIME_APPLICATION_MPEGDASH", "MIME_AUDIO_MP4A", "MIME_AUDIO_MP3", "MIME_AUDIO_OGG"]
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Native content for a creative.
@@ -564,43 +573,43 @@ pub struct MediaFile {
 pub struct NativeContent {
     /// The name of the advertiser or sponsor, to be displayed in the ad creative.
     #[serde(default, rename = "advertiserName")]
-    pub advertiser_name: Option<String>,
+    pub advertiser_name: ::core::option::Option<String>,
     /// The app icon, for app download ads.
     #[serde(default, rename = "appIcon")]
-    pub app_icon: Option<Image>,
+    pub app_icon: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A long description of the ad.
     #[serde(default)]
-    pub body: Option<String>,
+    pub body: ::core::option::Option<String>,
     /// A label for the button that the user is supposed to click.
     #[serde(default, rename = "callToAction")]
-    pub call_to_action: Option<String>,
+    pub call_to_action: ::core::option::Option<String>,
     /// The URL that the browser/SDK will load when the user clicks the ad.
     #[serde(default, rename = "clickLinkUrl")]
-    pub click_link_url: Option<String>,
+    pub click_link_url: ::core::option::Option<String>,
     /// The URL to use for click tracking.
     #[serde(default, rename = "clickTrackingUrl")]
-    pub click_tracking_url: Option<String>,
+    pub click_tracking_url: ::core::option::Option<String>,
     /// A short title for the ad.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// A large image.
     #[serde(default)]
-    pub image: Option<Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A smaller image, for the advertiser''s logo.
     #[serde(default)]
-    pub logo: Option<Image>,
+    pub logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The price of the promoted app including currency info.
     #[serde(default, rename = "priceDisplayText")]
-    pub price_display_text: Option<String>,
+    pub price_display_text: ::core::option::Option<String>,
     /// The app rating in the app store. Must be in the range [0-5].
     #[serde(default, rename = "starRating")]
-    pub star_rating: Option<f64>,
+    pub star_rating: ::core::option::Option<f64>,
     /// The URL to fetch a native video ad.
     #[serde(default, rename = "videoUrl")]
-    pub video_url: Option<String>,
+    pub video_url: ::core::option::Option<String>,
     /// The contents of a VAST document for a native video ad.
     #[serde(default, rename = "videoVastXml")]
-    pub video_vast_xml: Option<String>,
+    pub video_vast_xml: ::core::option::Option<String>,
 }
 
 /// Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.
@@ -608,10 +617,10 @@ pub struct NativeContent {
 pub struct NumericTargetingDimension {
     /// The IDs excluded in a config.
     #[serde(default, rename = "excludedIds")]
-    pub excluded_ids: Option<Vec<String>>,
+    pub excluded_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The IDs included in a config.
     #[serde(default, rename = "includedIds")]
-    pub included_ids: Option<Vec<String>>,
+    pub included_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Policy compliance of the creative for a transaction type or a region.
@@ -619,10 +628,10 @@ pub struct NumericTargetingDimension {
 pub struct PolicyCompliance {
     /// Serving status for the given transaction type (for example, open auction, deals) or region (for example, China, Russia). Can be used to filter the response of the creatives.list method. // TODO: enum values: ["STATUS_UNSPECIFIED", "PENDING_REVIEW", "DISAPPROVED", "APPROVED", "CERTIFICATE_REQUIRED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Topics related to the policy compliance for this transaction type (for example, open auction, deals) or region (for example, China, Russia). Topics may be present only if status is DISAPPROVED.
     #[serde(default)]
-    pub topics: Option<Vec<PolicyTopicEntry>>,
+    pub topics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PolicyTopicEntry>>>,
 }
 
 /// Each policy topic entry will represent a violation of a policy topic for a creative, with the policy topic information and optional evidence for the policy violation.
@@ -630,16 +639,16 @@ pub struct PolicyCompliance {
 pub struct PolicyTopicEntry {
     /// Pieces of evidence associated with this policy topic entry.
     #[serde(default)]
-    pub evidences: Option<Vec<PolicyTopicEvidence>>,
+    pub evidences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PolicyTopicEvidence>>>,
     /// URL of the help center article describing this policy topic.
     #[serde(default, rename = "helpCenterUrl")]
-    pub help_center_url: Option<String>,
+    pub help_center_url: ::core::option::Option<String>,
     /// Whether or not the policy topic is missing a certificate. Some policy topics require a certificate to unblock serving in some regions. For more information about creative certification, refer to: https://support.google.com/authorizedbuyers/answer/7450776
     #[serde(default, rename = "missingCertificate")]
-    pub missing_certificate: Option<bool>,
+    pub missing_certificate: ::core::option::Option<bool>,
     /// Policy topic this entry refers to. For example, "ALCOHOL", "TRADEMARKS_IN_AD_TEXT", or "DESTINATION_NOT_WORKING". The set of possible policy topics is not fixed for a particular API version and may change at any time. Can be used to filter the response of the creatives.list method
     #[serde(default, rename = "policyTopic")]
-    pub policy_topic: Option<String>,
+    pub policy_topic: ::core::option::Option<String>,
 }
 
 /// Evidence associated with a policy topic entry.
@@ -647,25 +656,27 @@ pub struct PolicyTopicEntry {
 pub struct PolicyTopicEvidence {
     /// The creative''s destination URL was not crawlable by Google.
     #[serde(default, rename = "destinationNotCrawlable")]
-    pub destination_not_crawlable: Option<DestinationNotCrawlableEvidence>,
+    pub destination_not_crawlable:
+        ::core::option::Option<::std::boxed::Box<DestinationNotCrawlableEvidence>>,
     /// The creative''s destination URL did not function properly or was incorrectly set up.
     #[serde(default, rename = "destinationNotWorking")]
-    pub destination_not_working: Option<DestinationNotWorkingEvidence>,
+    pub destination_not_working:
+        ::core::option::Option<::std::boxed::Box<DestinationNotWorkingEvidence>>,
     /// URL of the actual landing page.
     #[serde(default, rename = "destinationUrl")]
-    pub destination_url: Option<DestinationUrlEvidence>,
+    pub destination_url: ::core::option::Option<::std::boxed::Box<DestinationUrlEvidence>>,
     /// Number of HTTP calls made by the creative, broken down by domain.
     #[serde(default, rename = "domainCall")]
-    pub domain_call: Option<DomainCallEvidence>,
+    pub domain_call: ::core::option::Option<::std::boxed::Box<DomainCallEvidence>>,
     /// Total download size and URL-level download size breakdown for resources in a creative.
     #[serde(default, rename = "downloadSize")]
-    pub download_size: Option<DownloadSizeEvidence>,
+    pub download_size: ::core::option::Option<::std::boxed::Box<DownloadSizeEvidence>>,
     /// HTTP calls made by the creative that resulted in policy violations.
     #[serde(default, rename = "httpCall")]
-    pub http_call: Option<HttpCallEvidence>,
+    pub http_call: ::core::option::Option<::std::boxed::Box<HttpCallEvidence>>,
     /// Evidence for HTTP cookie-related policy violations.
     #[serde(default, rename = "httpCookie")]
-    pub http_cookie: Option<HttpCookieEvidence>,
+    pub http_cookie: ::core::option::Option<::std::boxed::Box<HttpCookieEvidence>>,
 }
 
 /// Pretargeting config: a set of targeting dimensions applied at the pretargeting stage of the RTB funnel. These control which inventory a bidder will receive bid requests for.
@@ -673,73 +684,74 @@ pub struct PolicyTopicEvidence {
 pub struct PretargetingConfig {
     /// Targeting modes included by this config. A bid request must allow all the specified targeting modes. An unset value allows all bid requests to be sent, regardless of which targeting modes they allow.
     #[serde(default, rename = "allowedUserTargetingModes")]
-    pub allowed_user_targeting_modes: Option<Vec<String>>,
+    pub allowed_user_targeting_modes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Targeting on a subset of app inventory. If APP is listed in targeted_environments, the specified targeting is applied. A maximum of 30,000 app IDs can be targeted. An unset value for targeting allows all app-based bid requests to be sent. Apps can either be targeting positively (bid requests will be sent only if the destination app is listed in the targeting dimension) or negatively (bid requests will be sent only if the destination app is not listed in the targeting dimension).
     #[serde(default, rename = "appTargeting")]
-    pub app_targeting: Option<AppTargeting>,
+    pub app_targeting: ::core::option::Option<::std::boxed::Box<AppTargeting>>,
     /// Output only. The identifier that corresponds to this pretargeting config that helps buyers track and attribute their spend across their own arbitrary divisions. If a bid request matches more than one config, the buyer chooses which billing_id to attribute each of their bids.
     #[serde(default, rename = "billingId")]
-    pub billing_id: Option<String>,
+    pub billing_id: ::core::option::Option<String>,
     /// The diplay name associated with this config. This name must be unique among all the pretargeting configs a bidder has.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The sensitive content category label IDs excluded in this config. Bid requests for inventory with any of the specified content label IDs will not be sent. Refer to this file https://storage.googleapis.com/adx-rtb-dictionaries/content-labels.txt for category IDs.
     #[serde(default, rename = "excludedContentLabelIds")]
-    pub excluded_content_label_ids: Option<Vec<String>>,
+    pub excluded_content_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The geos included or excluded in this config defined in https://storage.googleapis.com/adx-rtb-dictionaries/geo-table.csv
     #[serde(default, rename = "geoTargeting")]
-    pub geo_targeting: Option<NumericTargetingDimension>,
+    pub geo_targeting: ::core::option::Option<::std::boxed::Box<NumericTargetingDimension>>,
     /// Creative dimensions included by this config. Only bid requests eligible for at least one of the specified creative dimensions will be sent. An unset value allows all bid requests to be sent, regardless of creative dimension.
     #[serde(default, rename = "includedCreativeDimensions")]
-    pub included_creative_dimensions: Option<Vec<CreativeDimensions>>,
+    pub included_creative_dimensions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeDimensions>>>,
     /// Environments that are being included. Bid requests will not be sent for a given environment if it is not included. Further restrictions can be applied to included environments to target only a subset of its inventory. An unset value includes all environments.
     #[serde(default, rename = "includedEnvironments")]
-    pub included_environments: Option<Vec<String>>,
+    pub included_environments: ::core::option::Option<::std::vec::Vec<String>>,
     /// Creative formats included by this config. Only bid requests eligible for at least one of the specified creative formats will be sent. An unset value will allow all bid requests to be sent, regardless of format.
     #[serde(default, rename = "includedFormats")]
-    pub included_formats: Option<Vec<String>>,
+    pub included_formats: ::core::option::Option<::std::vec::Vec<String>>,
     /// The languages included in this config, represented by their language code. See https://developers.google.com/adwords/api/docs/appendix/languagecodes.
     #[serde(default, rename = "includedLanguages")]
-    pub included_languages: Option<Vec<String>>,
+    pub included_languages: ::core::option::Option<::std::vec::Vec<String>>,
     /// The mobile operating systems included in this config as defined in https://storage.googleapis.com/adx-rtb-dictionaries/mobile-os.csv
     #[serde(default, rename = "includedMobileOperatingSystemIds")]
-    pub included_mobile_operating_system_ids: Option<Vec<String>>,
+    pub included_mobile_operating_system_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The platforms included by this config. Bid requests for devices with the specified platform types will be sent. An unset value allows all bid requests to be sent, regardless of platform.
     #[serde(default, rename = "includedPlatforms")]
-    pub included_platforms: Option<Vec<String>>,
+    pub included_platforms: ::core::option::Option<::std::vec::Vec<String>>,
     /// User identifier types included in this config. At least one of the user identifier types specified in this list must be available for the bid request to be sent.
     #[serde(default, rename = "includedUserIdTypes")]
-    pub included_user_id_types: Option<Vec<String>>,
+    pub included_user_id_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// The interstitial targeting specified for this config. The unset value will allow bid requests to be sent regardless of whether they are for interstitials or not. // TODO: enum values: ["INTERSTITIAL_TARGETING_UNSPECIFIED", "ONLY_INTERSTITIAL_REQUESTS", "ONLY_NON_INTERSTITIAL_REQUESTS"]
     #[serde(default, rename = "interstitialTargeting")]
-    pub interstitial_targeting: Option<String>,
+    pub interstitial_targeting: ::core::option::Option<String>,
     /// Output only. Existing included or excluded geos that are invalid. Previously targeted geos may become invalid due to privacy restrictions.
     #[serde(default, rename = "invalidGeoIds")]
-    pub invalid_geo_ids: Option<Vec<String>>,
+    pub invalid_geo_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The maximum QPS threshold for this config. The bidder should receive no more than this number of bid requests matching this config per second across all their bidding endpoints among all trading locations. Further information available at https://developers.google.com/authorized-buyers/rtb/peer-guide
     #[serde(default, rename = "maximumQps")]
-    pub maximum_qps: Option<String>,
+    pub maximum_qps: ::core::option::Option<String>,
     /// The targeted minimum viewability decile, ranging in values [0, 10]. A value of 5 means that the config will only match adslots for which we predict at least 50% viewability. Values &gt; 10 will be rounded down to 10. An unset value or a value of 0 indicates that bid requests will be sent regardless of viewability.
     #[serde(default, rename = "minimumViewabilityDecile")]
-    pub minimum_viewability_decile: Option<i32>,
+    pub minimum_viewability_decile: ::core::option::Option<i32>,
     /// Output only. Name of the pretargeting config that must follow the pattern bidders/{bidder_account_id}/pretargetingConfigs/{config_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Targeting on a subset of publisher inventory. Publishers can either be targeted positively (bid requests will be sent only if the publisher is listed in the targeting dimension) or negatively (bid requests will be sent only if the publisher is not listed in the targeting dimension). A maximum of 10,000 publisher IDs can be targeted. Publisher IDs are found in [ads.txt](https://iabtechlab.com/ads-txt/) / [app-ads.txt](https://iabtechlab.com/app-ads-txt/) and in bid requests in the BidRequest.publisher_id field on the [Google RTB protocol](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto) or the BidRequest.site.publisher.id / BidRequest.app.publisher.id field on the [OpenRTB protocol](https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto). Publisher IDs will be returned in the order that they were entered.
     #[serde(default, rename = "publisherTargeting")]
-    pub publisher_targeting: Option<StringTargetingDimension>,
+    pub publisher_targeting: ::core::option::Option<::std::boxed::Box<StringTargetingDimension>>,
     /// Output only. The state of this pretargeting config. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "SUSPENDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The remarketing lists included or excluded in this config as defined in UserList.
     #[serde(default, rename = "userListTargeting")]
-    pub user_list_targeting: Option<NumericTargetingDimension>,
+    pub user_list_targeting: ::core::option::Option<::std::boxed::Box<NumericTargetingDimension>>,
     /// The verticals included or excluded in this config as defined in https://developers.google.com/authorized-buyers/rtb/downloads/publisher-verticals
     #[serde(default, rename = "verticalTargeting")]
-    pub vertical_targeting: Option<NumericTargetingDimension>,
+    pub vertical_targeting: ::core::option::Option<::std::boxed::Box<NumericTargetingDimension>>,
     /// Targeting on a subset of site inventory. If WEB is listed in included_environments, the specified targeting is applied. A maximum of 50,000 site URLs can be targeted. An unset value for targeting allows all web-based bid requests to be sent. Sites can either be targeting positively (bid requests will be sent only if the destination site is listed in the targeting dimension) or negatively (bid requests will be sent only if the destination site is not listed in the pretargeting config).
     #[serde(default, rename = "webTargeting")]
-    pub web_targeting: Option<StringTargetingDimension>,
+    pub web_targeting: ::core::option::Option<::std::boxed::Box<StringTargetingDimension>>,
 }
 
 /// An Open Bidding exchange''s connection to a publisher. This is initiated by the publisher for the bidder to review. If approved by the bidder, this means that the bidder agrees to receive bid requests from the publisher.
@@ -747,19 +759,19 @@ pub struct PretargetingConfig {
 pub struct PublisherConnection {
     /// Whether the publisher has been approved by the bidder. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "REJECTED", "APPROVED"]
     #[serde(default, rename = "biddingState")]
-    pub bidding_state: Option<String>,
+    pub bidding_state: ::core::option::Option<String>,
     /// Output only. The time at which the publisher initiated a connection with the bidder (irrespective of if or when the bidder approves it). This is subsequently updated if the publisher revokes and re-initiates the connection.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Publisher display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Name of the publisher connection. This follows the pattern bidders/{bidder}/publisherConnections/{publisher}, where {bidder} represents the account ID of the bidder, and {publisher} is the ads.txt/app-ads.txt publisher ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Whether the publisher is an Ad Manager or AdMob publisher. // TODO: enum values: ["PUBLISHER_PLATFORM_UNSPECIFIED", "GOOGLE_AD_MANAGER", "ADMOB"]
     #[serde(default, rename = "publisherPlatform")]
-    pub publisher_platform: Option<String>,
+    pub publisher_platform: ::core::option::Option<String>,
 }
 
 /// A request to stop targeting the provided apps in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
@@ -767,7 +779,7 @@ pub struct PublisherConnection {
 pub struct RemoveTargetedAppsRequest {
     /// A list of app IDs to stop targeting in the pretargeting configuration. These values will be removed from the list of targeted app IDs in PretargetingConfig.appTargeting.mobileAppTargeting.values.
     #[serde(default, rename = "appIds")]
-    pub app_ids: Option<Vec<String>>,
+    pub app_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request to stop targeting publishers in a specific configuration. The pretargeting configuration itself specifies how these publishers are targeted in PretargetingConfig.publisherTargeting.
@@ -775,7 +787,7 @@ pub struct RemoveTargetedAppsRequest {
 pub struct RemoveTargetedPublishersRequest {
     /// A list of publisher IDs to stop targeting in the pretargeting configuration. These values will be removed from the list of targeted publisher IDs in PretargetingConfig.publisherTargeting.values. Publishers are identified by their publisher ID from ads.txt / app-ads.txt. See https://iabtechlab.com/ads-txt/ and https://iabtechlab.com/app-ads-txt/ for more details.
     #[serde(default, rename = "publisherIds")]
-    pub publisher_ids: Option<Vec<String>>,
+    pub publisher_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request to stop targeting sites in a specific pretargeting configuration. The pretargeting configuration itself specifies how these sites are targeted in PretargetingConfig.webTargeting.
@@ -783,7 +795,7 @@ pub struct RemoveTargetedPublishersRequest {
 pub struct RemoveTargetedSitesRequest {
     /// A list of site URLs to stop targeting in the pretargeting configuration. These values will be removed from the list of targeted URLs in PretargetingConfig.webTargeting.values.
     #[serde(default)]
-    pub sites: Option<Vec<String>>,
+    pub sites: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Generic targeting with string values used in app, website and publisher targeting.
@@ -791,10 +803,10 @@ pub struct RemoveTargetedSitesRequest {
 pub struct StringTargetingDimension {
     /// How the items in this list should be targeted. // TODO: enum values: ["TARGETING_MODE_UNSPECIFIED", "INCLUSIVE", "EXCLUSIVE"]
     #[serde(default, rename = "targetingMode")]
-    pub targeting_mode: Option<String>,
+    pub targeting_mode: ::core::option::Option<String>,
     /// The values specified.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The URL-level breakdown for the download size.
@@ -802,10 +814,10 @@ pub struct StringTargetingDimension {
 pub struct UrlDownloadSize {
     /// Download size of the URL in kilobytes.
     #[serde(default, rename = "downloadSizeKb")]
-    pub download_size_kb: Option<i32>,
+    pub download_size_kb: ::core::option::Option<i32>,
     /// The normalized URL with query parameters and fragment removed.
     #[serde(default, rename = "normalizedUrl")]
-    pub normalized_url: Option<String>,
+    pub normalized_url: ::core::option::Option<String>,
 }
 
 /// Deprecated. This will be removed in October 2023. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Represents the URL restriction (for the URL captured by the pixel callback) for a user list.
@@ -813,16 +825,16 @@ pub struct UrlDownloadSize {
 pub struct UrlRestriction {
     /// End date (if specified) of the URL restriction. End date should be later than the start date for the date range to be valid.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The restriction type for the specified URL. // TODO: enum values: ["RESTRICTION_TYPE_UNSPECIFIED", "CONTAINS", "EQUALS", "STARTS_WITH", "ENDS_WITH", "DOES_NOT_EQUAL", "DOES_NOT_CONTAIN", "DOES_NOT_START_WITH", "DOES_NOT_END_WITH"]
     #[serde(default, rename = "restrictionType")]
-    pub restriction_type: Option<String>,
+    pub restriction_type: ::core::option::Option<String>,
     /// Start date (if specified) of the URL restriction.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Required. The URL to use for applying the restriction on the user list.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Represents an Authorized Buyers user list. Authorized Buyers can create/update/list user lists. Once a user list is created in the system, Authorized Buyers can add users to the user list using the bulk uploader API. Alternatively, users can be added by hosting a tag on the advertiser''s page.
@@ -830,22 +842,22 @@ pub struct UrlRestriction {
 pub struct UserList {
     /// The description for the user list.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Display name of the user list. This must be unique across all user lists for a given account.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The number of days a user''s cookie stays on the user list. The field must be between 0 and 540 inclusive.
     #[serde(default, rename = "membershipDurationDays")]
-    pub membership_duration_days: Option<String>,
+    pub membership_duration_days: ::core::option::Option<String>,
     /// Output only. Name of the user list that must follow the pattern buyers/{buyer}/userLists/{user_list}, where {buyer} represents the account ID of the buyer who owns the user list. For a bidder accessing user lists on behalf of a child seat buyer, {buyer} represents the account ID of the child seat buyer. {user_list} is an int64 identifier assigned by Google to uniquely identify a user list.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The status of the user list. A new user list starts out as open. // TODO: enum values: ["STATUS_UNSPECIFIED", "OPEN", "CLOSED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Required. Deprecated. This will be removed in October 2023. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api The URL restriction for the user list.
     #[serde(default, rename = "urlRestriction")]
-    pub url_restriction: Option<UrlRestriction>,
+    pub url_restriction: ::core::option::Option<::std::boxed::Box<UrlRestriction>>,
 }
 
 /// Video content for a creative.
@@ -853,13 +865,13 @@ pub struct UserList {
 pub struct VideoContent {
     /// Output only. Video metadata.
     #[serde(default, rename = "videoMetadata")]
-    pub video_metadata: Option<VideoMetadata>,
+    pub video_metadata: ::core::option::Option<::std::boxed::Box<VideoMetadata>>,
     /// The URL to fetch a video ad. The URL should return an XML response that conforms to the VAST 2.0, 3.0 or 4.x standard.
     #[serde(default, rename = "videoUrl")]
-    pub video_url: Option<String>,
+    pub video_url: ::core::option::Option<String>,
     /// The contents of a VAST document for a video ad. This document should conform to the VAST 2.0, 3.0, or 4.x standard.
     #[serde(default, rename = "videoVastXml")]
-    pub video_vast_xml: Option<String>,
+    pub video_vast_xml: ::core::option::Option<String>,
 }
 
 /// Video metadata for a creative.
@@ -867,22 +879,22 @@ pub struct VideoContent {
 pub struct VideoMetadata {
     /// The duration of the ad. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Is this a valid VAST ad? Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "isValidVast")]
-    pub is_valid_vast: Option<bool>,
+    pub is_valid_vast: ::core::option::Option<bool>,
     /// Is this a VPAID ad? Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "isVpaid")]
-    pub is_vpaid: Option<bool>,
+    pub is_vpaid: ::core::option::Option<bool>,
     /// The list of all media files declared in the VAST. If there are multiple VASTs in a wrapper chain, this includes the media files from the deepest one in the chain.
     #[serde(default, rename = "mediaFiles")]
-    pub media_files: Option<Vec<MediaFile>>,
+    pub media_files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MediaFile>>>,
     /// The minimum duration that the user has to watch before being able to skip this ad. If the field is not set, the ad is not skippable. If the field is set, the ad is skippable. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "skipOffset")]
-    pub skip_offset: Option<String>,
+    pub skip_offset: ::core::option::Option<String>,
     /// The maximum VAST version across all wrapped VAST documents. Can be used to filter the response of the creatives.list method. // TODO: enum values: ["VAST_VERSION_UNSPECIFIED", "VAST_VERSION_1_0", "VAST_VERSION_2_0", "VAST_VERSION_3_0", "VAST_VERSION_4_0"]
     #[serde(default, rename = "vastVersion")]
-    pub vast_version: Option<String>,
+    pub vast_version: ::core::option::Option<String>,
 }
 
 /// A response for the request to receive push notification when a bidder''s creatives change status.
@@ -890,8 +902,8 @@ pub struct VideoMetadata {
 pub struct WatchCreativesResponse {
     /// The Pub/Sub subscription that can be used to pull creative status notifications. This would be of the format projects/{project_id}/subscriptions/{subscription_id}. Subscription is created with pull delivery. All service accounts belonging to the bidder will have read access to this subscription. Subscriptions that are inactive for more than 90 days will be disabled. Use watchCreatives to re-enable the subscription.
     #[serde(default)]
-    pub subscription: Option<String>,
+    pub subscription: ::core::option::Option<String>,
     /// The Pub/Sub topic that will be used to publish creative serving status notifications. This would be of the format projects/{project_id}/topics/{topic_id}.
     #[serde(default)]
-    pub topic: Option<String>,
+    pub topic: ::core::option::Option<String>,
 }

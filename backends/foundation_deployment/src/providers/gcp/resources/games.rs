@@ -10,51 +10,51 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An achievement definition object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AchievementDefinition {
     /// The type of the achievement. // TODO: enum values: ["STANDARD", "INCREMENTAL"]
     #[serde(default, rename = "achievementType")]
-    pub achievement_type: Option<String>,
+    pub achievement_type: ::core::option::Option<String>,
     /// The description of the achievement.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Experience points which will be earned when unlocking this achievement.
     #[serde(default, rename = "experiencePoints")]
-    pub experience_points: Option<String>,
+    pub experience_points: ::core::option::Option<String>,
     /// The total steps for an incremental achievement as a string.
     #[serde(default, rename = "formattedTotalSteps")]
-    pub formatted_total_steps: Option<String>,
+    pub formatted_total_steps: ::core::option::Option<String>,
     /// The ID of the achievement.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The initial state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
     #[serde(default, rename = "initialState")]
-    pub initial_state: Option<String>,
+    pub initial_state: ::core::option::Option<String>,
     /// Indicates whether the revealed icon image being returned is a default image, or is provided by the game.
     #[serde(default, rename = "isRevealedIconUrlDefault")]
-    pub is_revealed_icon_url_default: Option<bool>,
+    pub is_revealed_icon_url_default: ::core::option::Option<bool>,
     /// Indicates whether the unlocked icon image being returned is a default image, or is game-provided.
     #[serde(default, rename = "isUnlockedIconUrlDefault")]
-    pub is_unlocked_icon_url_default: Option<bool>,
+    pub is_unlocked_icon_url_default: ::core::option::Option<bool>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementDefinition.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the achievement.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The image URL for the revealed achievement icon.
     #[serde(default, rename = "revealedIconUrl")]
-    pub revealed_icon_url: Option<String>,
+    pub revealed_icon_url: ::core::option::Option<String>,
     /// The total steps for an incremental achievement.
     #[serde(default, rename = "totalSteps")]
-    pub total_steps: Option<i32>,
+    pub total_steps: ::core::option::Option<i32>,
     /// The image URL for the unlocked achievement icon.
     #[serde(default, rename = "unlockedIconUrl")]
-    pub unlocked_icon_url: Option<String>,
+    pub unlocked_icon_url: ::core::option::Option<String>,
 }
 
 /// A list of achievement definition objects.
@@ -62,13 +62,13 @@ pub struct AchievementDefinition {
 pub struct AchievementDefinitionsListResponse {
     /// The achievement definitions.
     #[serde(default)]
-    pub items: Option<Vec<AchievementDefinition>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AchievementDefinition>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementDefinitionsListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token corresponding to the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// An achievement increment response
@@ -76,13 +76,13 @@ pub struct AchievementDefinitionsListResponse {
 pub struct AchievementIncrementResponse {
     /// The current steps recorded for this incremental achievement.
     #[serde(default, rename = "currentSteps")]
-    pub current_steps: Option<i32>,
+    pub current_steps: ::core::option::Option<i32>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementIncrementResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether the current steps for the achievement has reached the number of steps required to unlock.
     #[serde(default, rename = "newlyUnlocked")]
-    pub newly_unlocked: Option<bool>,
+    pub newly_unlocked: ::core::option::Option<bool>,
 }
 
 /// An achievement reveal response
@@ -90,10 +90,10 @@ pub struct AchievementIncrementResponse {
 pub struct AchievementRevealResponse {
     /// The current state of the achievement for which a reveal was attempted. This might be UNLOCKED if the achievement was already unlocked. // TODO: enum values: ["REVEALED", "UNLOCKED"]
     #[serde(default, rename = "currentState")]
-    pub current_state: Option<String>,
+    pub current_state: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementRevealResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// An achievement set steps at least response.
@@ -101,13 +101,13 @@ pub struct AchievementRevealResponse {
 pub struct AchievementSetStepsAtLeastResponse {
     /// The current steps recorded for this incremental achievement.
     #[serde(default, rename = "currentSteps")]
-    pub current_steps: Option<i32>,
+    pub current_steps: ::core::option::Option<i32>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementSetStepsAtLeastResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether the current steps for the achievement has reached the number of steps required to unlock.
     #[serde(default, rename = "newlyUnlocked")]
-    pub newly_unlocked: Option<bool>,
+    pub newly_unlocked: ::core::option::Option<bool>,
 }
 
 /// An achievement unlock response
@@ -115,10 +115,10 @@ pub struct AchievementSetStepsAtLeastResponse {
 pub struct AchievementUnlockResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUnlockResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether this achievement was newly unlocked (that is, whether the unlock request for the achievement was the first for the player).
     #[serde(default, rename = "newlyUnlocked")]
-    pub newly_unlocked: Option<bool>,
+    pub newly_unlocked: ::core::option::Option<bool>,
 }
 
 /// A list of achievement update requests.
@@ -126,10 +126,11 @@ pub struct AchievementUnlockResponse {
 pub struct AchievementUpdateMultipleRequest {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateMultipleRequest.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The individual achievement update requests.
     #[serde(default)]
-    pub updates: Option<Vec<AchievementUpdateRequest>>,
+    pub updates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AchievementUpdateRequest>>>,
 }
 
 /// Response message for UpdateMultipleAchievements rpc.
@@ -137,10 +138,11 @@ pub struct AchievementUpdateMultipleRequest {
 pub struct AchievementUpdateMultipleResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateMultipleResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The updated state of the achievements.
     #[serde(default, rename = "updatedAchievements")]
-    pub updated_achievements: Option<Vec<AchievementUpdateResponse>>,
+    pub updated_achievements:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AchievementUpdateResponse>>>,
 }
 
 /// A request to update an achievement.
@@ -148,19 +150,20 @@ pub struct AchievementUpdateMultipleResponse {
 pub struct AchievementUpdateRequest {
     /// The achievement this update is being applied to.
     #[serde(default, rename = "achievementId")]
-    pub achievement_id: Option<String>,
+    pub achievement_id: ::core::option::Option<String>,
     /// The payload if an update of type INCREMENT was requested for the achievement.
     #[serde(default, rename = "incrementPayload")]
-    pub increment_payload: Option<GamesAchievementIncrement>,
+    pub increment_payload: ::core::option::Option<::std::boxed::Box<GamesAchievementIncrement>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateRequest.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The payload if an update of type SET_STEPS_AT_LEAST was requested for the achievement.
     #[serde(default, rename = "setStepsAtLeastPayload")]
-    pub set_steps_at_least_payload: Option<GamesAchievementSetStepsAtLeast>,
+    pub set_steps_at_least_payload:
+        ::core::option::Option<::std::boxed::Box<GamesAchievementSetStepsAtLeast>>,
     /// The type of update being applied. // TODO: enum values: ["REVEAL", "UNLOCK", "INCREMENT", "SET_STEPS_AT_LEAST"]
     #[serde(default, rename = "updateType")]
-    pub update_type: Option<String>,
+    pub update_type: ::core::option::Option<String>,
 }
 
 /// An updated achievement.
@@ -168,22 +171,22 @@ pub struct AchievementUpdateRequest {
 pub struct AchievementUpdateResponse {
     /// The achievement this update is was applied to.
     #[serde(default, rename = "achievementId")]
-    pub achievement_id: Option<String>,
+    pub achievement_id: ::core::option::Option<String>,
     /// The current state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
     #[serde(default, rename = "currentState")]
-    pub current_state: Option<String>,
+    pub current_state: ::core::option::Option<String>,
     /// The current steps recorded for this achievement if it is incremental.
     #[serde(default, rename = "currentSteps")]
-    pub current_steps: Option<i32>,
+    pub current_steps: ::core::option::Option<i32>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether this achievement was newly unlocked (that is, whether the unlock request for the achievement was the first for the player).
     #[serde(default, rename = "newlyUnlocked")]
-    pub newly_unlocked: Option<bool>,
+    pub newly_unlocked: ::core::option::Option<bool>,
     /// Whether the requested updates actually affected the achievement.
     #[serde(default, rename = "updateOccurred")]
-    pub update_occurred: Option<bool>,
+    pub update_occurred: ::core::option::Option<bool>,
 }
 
 /// The Application resource.
@@ -191,43 +194,43 @@ pub struct AchievementUpdateResponse {
 pub struct Application {
     /// The number of achievements visible to the currently authenticated player.
     #[serde(default)]
-    pub achievement_count: Option<i32>,
+    pub achievement_count: ::core::option::Option<i32>,
     /// The assets of the application.
     #[serde(default)]
-    pub assets: Option<Vec<ImageAsset>>,
+    pub assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageAsset>>>,
     /// The author of the application.
     #[serde(default)]
-    pub author: Option<String>,
+    pub author: ::core::option::Option<String>,
     /// The category of the application.
     #[serde(default)]
-    pub category: Option<ApplicationCategory>,
+    pub category: ::core::option::Option<::std::boxed::Box<ApplicationCategory>>,
     /// The description of the application.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A list of features that have been enabled for the application.
     #[serde(default, rename = "enabledFeatures")]
-    pub enabled_features: Option<Vec<String>>,
+    pub enabled_features: ::core::option::Option<::std::vec::Vec<String>>,
     /// The ID of the application.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The instances of the application.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#application.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The last updated timestamp of the application.
     #[serde(default, rename = "lastUpdatedTimestamp")]
-    pub last_updated_timestamp: Option<String>,
+    pub last_updated_timestamp: ::core::option::Option<String>,
     /// The number of leaderboards visible to the currently authenticated player.
     #[serde(default)]
-    pub leaderboard_count: Option<i32>,
+    pub leaderboard_count: ::core::option::Option<i32>,
     /// The name of the application.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A hint to the client UI for what color to use as an app-themed color. The color is given as an RGB triplet (e.g. "E0E0E0").
     #[serde(default, rename = "themeColor")]
-    pub theme_color: Option<String>,
+    pub theme_color: ::core::option::Option<String>,
 }
 
 /// An application category object.
@@ -235,13 +238,13 @@ pub struct Application {
 pub struct ApplicationCategory {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#applicationCategory.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The primary category.
     #[serde(default)]
-    pub primary: Option<String>,
+    pub primary: ::core::option::Option<String>,
     /// The secondary category.
     #[serde(default)]
-    pub secondary: Option<String>,
+    pub secondary: ::core::option::Option<String>,
 }
 
 /// Primary scoped player identifier for an application.
@@ -249,10 +252,10 @@ pub struct ApplicationCategory {
 pub struct ApplicationPlayerId {
     /// The application that this player identifier is for.
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// The player identifier for the application.
     #[serde(default, rename = "playerId")]
-    pub player_id: Option<String>,
+    pub player_id: ::core::option::Option<String>,
 }
 
 /// A third party application verification response resource.
@@ -260,13 +263,13 @@ pub struct ApplicationPlayerId {
 pub struct ApplicationVerifyResponse {
     /// An alternate ID that was once used for the player that was issued the auth token used in this request. (This field is not normally populated.)
     #[serde(default)]
-    pub alternate_player_id: Option<String>,
+    pub alternate_player_id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#applicationVerifyResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The ID of the player that was issued the auth token used in this request.
     #[serde(default)]
-    pub player_id: Option<String>,
+    pub player_id: ::core::option::Option<String>,
 }
 
 /// Data related to individual game categories.
@@ -274,13 +277,13 @@ pub struct ApplicationVerifyResponse {
 pub struct Category {
     /// The category name.
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// Experience points earned in this category.
     #[serde(default, rename = "experiencePoints")]
-    pub experience_points: Option<String>,
+    pub experience_points: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#category.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// A third party list metagame categories response.
@@ -288,13 +291,13 @@ pub struct Category {
 pub struct CategoryListResponse {
     /// The list of categories with usage data.
     #[serde(default)]
-    pub items: Option<Vec<Category>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Category>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#categoryListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token corresponding to the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Container for a URL end point of the requested type.
@@ -302,7 +305,7 @@ pub struct CategoryListResponse {
 pub struct EndPoint {
     /// A URL suitable for loading in a web browser for the requested endpoint.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A batch update failure resource.
@@ -310,13 +313,13 @@ pub struct EndPoint {
 pub struct EventBatchRecordFailure {
     /// The cause for the update failure. // TODO: enum values: ["TOO_LARGE", "TIME_PERIOD_EXPIRED", "TIME_PERIOD_SHORT", "TIME_PERIOD_LONG", "ALREADY_UPDATED", "RECORD_RATE_HIGH"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventBatchRecordFailure.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The time range which was rejected; empty for a request-wide failure.
     #[serde(default)]
-    pub range: Option<EventPeriodRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<EventPeriodRange>>,
 }
 
 /// An event child relationship resource.
@@ -324,10 +327,10 @@ pub struct EventBatchRecordFailure {
 pub struct EventChild {
     /// The ID of the child event.
     #[serde(default, rename = "childId")]
-    pub child_id: Option<String>,
+    pub child_id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventChild.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// An event definition resource.
@@ -335,28 +338,28 @@ pub struct EventChild {
 pub struct EventDefinition {
     /// A list of events that are a child of this event.
     #[serde(default, rename = "childEvents")]
-    pub child_events: Option<Vec<EventChild>>,
+    pub child_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventChild>>>,
     /// Description of what this event represents.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The name to display for the event.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The ID of the event.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The base URL for the image that represents the event.
     #[serde(default, rename = "imageUrl")]
-    pub image_url: Option<String>,
+    pub image_url: ::core::option::Option<String>,
     /// Indicates whether the icon image being returned is a default image, or is game-provided.
     #[serde(default, rename = "isDefaultImageUrl")]
-    pub is_default_image_url: Option<bool>,
+    pub is_default_image_url: ::core::option::Option<bool>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventDefinition.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The visibility of event being tracked in this definition. // TODO: enum values: ["REVEALED", "HIDDEN"]
     #[serde(default)]
-    pub visibility: Option<String>,
+    pub visibility: ::core::option::Option<String>,
 }
 
 /// A ListDefinitions response.
@@ -364,13 +367,13 @@ pub struct EventDefinition {
 pub struct EventDefinitionListResponse {
     /// The event definitions.
     #[serde(default)]
-    pub items: Option<Vec<EventDefinition>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventDefinition>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventDefinitionListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// An event period time range.
@@ -378,13 +381,13 @@ pub struct EventDefinitionListResponse {
 pub struct EventPeriodRange {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodRange.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The time when this update period ends, in millis, since 1970 UTC (Unix Epoch).
     #[serde(default, rename = "periodEndMillis")]
-    pub period_end_millis: Option<String>,
+    pub period_end_millis: ::core::option::Option<String>,
     /// The time when this update period begins, in millis, since 1970 UTC (Unix Epoch).
     #[serde(default, rename = "periodStartMillis")]
-    pub period_start_millis: Option<String>,
+    pub period_start_millis: ::core::option::Option<String>,
 }
 
 /// An event period update resource.
@@ -392,13 +395,13 @@ pub struct EventPeriodRange {
 pub struct EventPeriodUpdate {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodUpdate.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The time period being covered by this update.
     #[serde(default, rename = "timePeriod")]
-    pub time_period: Option<EventPeriodRange>,
+    pub time_period: ::core::option::Option<::std::boxed::Box<EventPeriodRange>>,
     /// The updates being made for this time period.
     #[serde(default)]
-    pub updates: Option<Vec<EventUpdateRequest>>,
+    pub updates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventUpdateRequest>>>,
 }
 
 /// An event update failure resource.
@@ -406,13 +409,13 @@ pub struct EventPeriodUpdate {
 pub struct EventRecordFailure {
     /// The ID of the event that was not updated.
     #[serde(default, rename = "eventId")]
-    pub event_id: Option<String>,
+    pub event_id: ::core::option::Option<String>,
     /// The cause for the update failure. // TODO: enum values: ["NOT_FOUND", "INVALID_UPDATE_VALUE"]
     #[serde(default, rename = "failureCause")]
-    pub failure_cause: Option<String>,
+    pub failure_cause: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventRecordFailure.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// An event period update resource.
@@ -420,16 +423,16 @@ pub struct EventRecordFailure {
 pub struct EventRecordRequest {
     /// The current time when this update was sent, in milliseconds, since 1970 UTC (Unix Epoch).
     #[serde(default, rename = "currentTimeMillis")]
-    pub current_time_millis: Option<String>,
+    pub current_time_millis: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventRecordRequest.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The request ID used to identify this attempt to record events.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// A list of the time period updates being made in this request.
     #[serde(default, rename = "timePeriods")]
-    pub time_periods: Option<Vec<EventPeriodUpdate>>,
+    pub time_periods: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventPeriodUpdate>>>,
 }
 
 /// An event period update resource.
@@ -437,13 +440,13 @@ pub struct EventRecordRequest {
 pub struct EventUpdateRequest {
     /// The ID of the event being modified in this update.
     #[serde(default, rename = "definitionId")]
-    pub definition_id: Option<String>,
+    pub definition_id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventUpdateRequest.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The number of times this event occurred in this time period.
     #[serde(default, rename = "updateCount")]
-    pub update_count: Option<String>,
+    pub update_count: ::core::option::Option<String>,
 }
 
 /// An event period update resource.
@@ -451,16 +454,18 @@ pub struct EventUpdateRequest {
 pub struct EventUpdateResponse {
     /// Any batch-wide failures which occurred applying updates.
     #[serde(default, rename = "batchFailures")]
-    pub batch_failures: Option<Vec<EventBatchRecordFailure>>,
+    pub batch_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventBatchRecordFailure>>>,
     /// Any failures updating a particular event.
     #[serde(default, rename = "eventFailures")]
-    pub event_failures: Option<Vec<EventRecordFailure>>,
+    pub event_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventRecordFailure>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventUpdateResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The current status of any updated events
     #[serde(default, rename = "playerEvents")]
-    pub player_events: Option<Vec<PlayerEvent>>,
+    pub player_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerEvent>>>,
 }
 
 /// Recall tokens for a game.
@@ -468,10 +473,10 @@ pub struct EventUpdateResponse {
 pub struct GamePlayerToken {
     /// The application that this player identifier is for.
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// Recall token data.
     #[serde(default, rename = "recallToken")]
-    pub recall_token: Option<RecallToken>,
+    pub recall_token: ::core::option::Option<::std::boxed::Box<RecallToken>>,
 }
 
 /// The payload to request to increment an achievement.
@@ -479,13 +484,13 @@ pub struct GamePlayerToken {
 pub struct GamesAchievementIncrement {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementIncrement.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The requestId associated with an increment to an achievement.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// The number of steps to be incremented.
     #[serde(default)]
-    pub steps: Option<i32>,
+    pub steps: ::core::option::Option<i32>,
 }
 
 /// The payload to request to increment an achievement.
@@ -493,10 +498,10 @@ pub struct GamesAchievementIncrement {
 pub struct GamesAchievementSetStepsAtLeast {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementSetStepsAtLeast.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The minimum number of steps for the achievement to be set to.
     #[serde(default)]
-    pub steps: Option<i32>,
+    pub steps: ::core::option::Option<i32>,
 }
 
 /// Response for the GeneratePlayGroupingApiToken RPC.
@@ -504,7 +509,7 @@ pub struct GamesAchievementSetStepsAtLeast {
 pub struct GeneratePlayGroupingApiTokenResponse {
     /// Token for accessing the Play Grouping API.
     #[serde(default)]
-    pub token: Option<PlayGroupingApiToken>,
+    pub token: ::core::option::Option<::std::boxed::Box<PlayGroupingApiToken>>,
 }
 
 /// Response for the GenerateRecallPlayGroupingApiToken RPC.
@@ -512,7 +517,7 @@ pub struct GeneratePlayGroupingApiTokenResponse {
 pub struct GenerateRecallPlayGroupingApiTokenResponse {
     /// Token for accessing the Play Grouping API.
     #[serde(default)]
-    pub token: Option<PlayGroupingApiToken>,
+    pub token: ::core::option::Option<::std::boxed::Box<PlayGroupingApiToken>>,
 }
 
 /// Response message for GetMultipleApplicationPlayerIds rpc.
@@ -520,7 +525,7 @@ pub struct GenerateRecallPlayGroupingApiTokenResponse {
 pub struct GetMultipleApplicationPlayerIdsResponse {
     /// Output only. The requested applications along with the scoped ids for tha player, if that player has an id for the application. If not, the application is not included in the response.
     #[serde(default, rename = "playerIds")]
-    pub player_ids: Option<Vec<ApplicationPlayerId>>,
+    pub player_ids: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApplicationPlayerId>>>,
 }
 
 /// An image asset object.
@@ -528,19 +533,19 @@ pub struct GetMultipleApplicationPlayerIdsResponse {
 pub struct ImageAsset {
     /// The height of the asset.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#imageAsset.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the asset.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The URL of the asset.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// The width of the asset.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// The Instance resource.
@@ -548,31 +553,31 @@ pub struct ImageAsset {
 pub struct Instance {
     /// URI which shows where a user can acquire this instance.
     #[serde(default, rename = "acquisitionUri")]
-    pub acquisition_uri: Option<String>,
+    pub acquisition_uri: ::core::option::Option<String>,
     /// Platform dependent details for Android.
     #[serde(default, rename = "androidInstance")]
-    pub android_instance: Option<InstanceAndroidDetails>,
+    pub android_instance: ::core::option::Option<::std::boxed::Box<InstanceAndroidDetails>>,
     /// Platform dependent details for iOS.
     #[serde(default, rename = "iosInstance")]
-    pub ios_instance: Option<InstanceIosDetails>,
+    pub ios_instance: ::core::option::Option<::std::boxed::Box<InstanceIosDetails>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#instance.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Localized display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The platform type. // TODO: enum values: ["ANDROID", "IOS", "WEB_APP"]
     #[serde(default, rename = "platformType")]
-    pub platform_type: Option<String>,
+    pub platform_type: ::core::option::Option<String>,
     /// Flag to show if this game instance supports realtime play.
     #[serde(default, rename = "realtimePlay")]
-    pub realtime_play: Option<bool>,
+    pub realtime_play: ::core::option::Option<bool>,
     /// Flag to show if this game instance supports turn based play.
     #[serde(default, rename = "turnBasedPlay")]
-    pub turn_based_play: Option<bool>,
+    pub turn_based_play: ::core::option::Option<bool>,
     /// Platform dependent details for Web.
     #[serde(default, rename = "webInstance")]
-    pub web_instance: Option<InstanceWebDetails>,
+    pub web_instance: ::core::option::Option<::std::boxed::Box<InstanceWebDetails>>,
 }
 
 /// The Android instance details resource.
@@ -580,16 +585,16 @@ pub struct Instance {
 pub struct InstanceAndroidDetails {
     /// Flag indicating whether the anti-piracy check is enabled.
     #[serde(default, rename = "enablePiracyCheck")]
-    pub enable_piracy_check: Option<bool>,
+    pub enable_piracy_check: ::core::option::Option<bool>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceAndroidDetails.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Android package name which maps to Google Play URL.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Indicates that this instance is the default for new installations.
     #[serde(default)]
-    pub preferred: Option<bool>,
+    pub preferred: ::core::option::Option<bool>,
 }
 
 /// The iOS details resource.
@@ -597,25 +602,25 @@ pub struct InstanceAndroidDetails {
 pub struct InstanceIosDetails {
     /// Bundle identifier.
     #[serde(default, rename = "bundleIdentifier")]
-    pub bundle_identifier: Option<String>,
+    pub bundle_identifier: ::core::option::Option<String>,
     /// iTunes App ID.
     #[serde(default, rename = "itunesAppId")]
-    pub itunes_app_id: Option<String>,
+    pub itunes_app_id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceIosDetails.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Indicates that this instance is the default for new installations on iPad devices.
     #[serde(default, rename = "preferredForIpad")]
-    pub preferred_for_ipad: Option<bool>,
+    pub preferred_for_ipad: ::core::option::Option<bool>,
     /// Indicates that this instance is the default for new installations on iPhone devices.
     #[serde(default, rename = "preferredForIphone")]
-    pub preferred_for_iphone: Option<bool>,
+    pub preferred_for_iphone: ::core::option::Option<bool>,
     /// Flag to indicate if this instance supports iPad.
     #[serde(default, rename = "supportIpad")]
-    pub support_ipad: Option<bool>,
+    pub support_ipad: ::core::option::Option<bool>,
     /// Flag to indicate if this instance supports iPhone.
     #[serde(default, rename = "supportIphone")]
-    pub support_iphone: Option<bool>,
+    pub support_iphone: ::core::option::Option<bool>,
 }
 
 /// The Web details resource.
@@ -623,13 +628,13 @@ pub struct InstanceIosDetails {
 pub struct InstanceWebDetails {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceWebDetails.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Launch URL for the game.
     #[serde(default, rename = "launchUrl")]
-    pub launch_url: Option<String>,
+    pub launch_url: ::core::option::Option<String>,
     /// Indicates that this instance is the default for new installations.
     #[serde(default)]
-    pub preferred: Option<bool>,
+    pub preferred: ::core::option::Option<bool>,
 }
 
 /// The Leaderboard resource.
@@ -637,22 +642,22 @@ pub struct InstanceWebDetails {
 pub struct Leaderboard {
     /// The icon for the leaderboard.
     #[serde(default, rename = "iconUrl")]
-    pub icon_url: Option<String>,
+    pub icon_url: ::core::option::Option<String>,
     /// The leaderboard ID.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Indicates whether the icon image being returned is a default image, or is game-provided.
     #[serde(default, rename = "isIconUrlDefault")]
-    pub is_icon_url_default: Option<bool>,
+    pub is_icon_url_default: ::core::option::Option<bool>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboard.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the leaderboard.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// How scores are ordered. // TODO: enum values: ["LARGER_IS_BETTER", "SMALLER_IS_BETTER"]
     #[serde(default)]
-    pub order: Option<String>,
+    pub order: ::core::option::Option<String>,
 }
 
 /// The Leaderboard Entry resource.
@@ -660,31 +665,31 @@ pub struct Leaderboard {
 pub struct LeaderboardEntry {
     /// The localized string for the numerical value of this score.
     #[serde(default, rename = "formattedScore")]
-    pub formatted_score: Option<String>,
+    pub formatted_score: ::core::option::Option<String>,
     /// The localized string for the rank of this score for this leaderboard.
     #[serde(default, rename = "formattedScoreRank")]
-    pub formatted_score_rank: Option<String>,
+    pub formatted_score_rank: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardEntry.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The player who holds this score.
     #[serde(default)]
-    pub player: Option<Player>,
+    pub player: ::core::option::Option<::std::boxed::Box<Player>>,
     /// The rank of this score for this leaderboard.
     #[serde(default, rename = "scoreRank")]
-    pub score_rank: Option<String>,
+    pub score_rank: ::core::option::Option<String>,
     /// Additional information about the score. Values must contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
     #[serde(default, rename = "scoreTag")]
-    pub score_tag: Option<String>,
+    pub score_tag: ::core::option::Option<String>,
     /// The numerical value of this score.
     #[serde(default, rename = "scoreValue")]
-    pub score_value: Option<String>,
+    pub score_value: ::core::option::Option<String>,
     /// The time span of this high score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
     #[serde(default, rename = "timeSpan")]
-    pub time_span: Option<String>,
+    pub time_span: ::core::option::Option<String>,
     /// The timestamp at which this score was recorded, in milliseconds since the epoch in UTC.
     #[serde(default, rename = "writeTimestampMillis")]
-    pub write_timestamp_millis: Option<String>,
+    pub write_timestamp_millis: ::core::option::Option<String>,
 }
 
 /// A list of leaderboard objects.
@@ -692,13 +697,13 @@ pub struct LeaderboardEntry {
 pub struct LeaderboardListResponse {
     /// The leaderboards.
     #[serde(default)]
-    pub items: Option<Vec<Leaderboard>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Leaderboard>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token corresponding to the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A score rank in a leaderboard.
@@ -706,19 +711,19 @@ pub struct LeaderboardListResponse {
 pub struct LeaderboardScoreRank {
     /// The number of scores in the leaderboard as a string.
     #[serde(default, rename = "formattedNumScores")]
-    pub formatted_num_scores: Option<String>,
+    pub formatted_num_scores: ::core::option::Option<String>,
     /// The rank in the leaderboard as a string.
     #[serde(default, rename = "formattedRank")]
-    pub formatted_rank: Option<String>,
+    pub formatted_rank: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardScoreRank.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The number of scores in the leaderboard.
     #[serde(default, rename = "numScores")]
-    pub num_scores: Option<String>,
+    pub num_scores: ::core::option::Option<String>,
     /// The rank in the leaderboard.
     #[serde(default)]
-    pub rank: Option<String>,
+    pub rank: ::core::option::Option<String>,
 }
 
 /// A ListScores response.
@@ -726,22 +731,22 @@ pub struct LeaderboardScoreRank {
 pub struct LeaderboardScores {
     /// The scores in the leaderboard.
     #[serde(default)]
-    pub items: Option<Vec<LeaderboardEntry>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LeaderboardEntry>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#leaderboardScores.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The total number of scores in the leaderboard.
     #[serde(default, rename = "numScores")]
-    pub num_scores: Option<String>,
+    pub num_scores: ::core::option::Option<String>,
     /// The score of the requesting player on the leaderboard. The player''s score may appear both here and in the list of scores above. If you are viewing a public leaderboard and the player is not sharing their gameplay information publicly, the scoreRankand formattedScoreRank values will not be present.
     #[serde(default, rename = "playerScore")]
-    pub player_score: Option<LeaderboardEntry>,
+    pub player_score: ::core::option::Option<::std::boxed::Box<LeaderboardEntry>>,
     /// The pagination token for the previous page of results.
     #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: Option<String>,
+    pub prev_page_token: ::core::option::Option<String>,
 }
 
 /// Request to link an in-game account with a PGS principal (encoded in the session id).
@@ -749,25 +754,25 @@ pub struct LeaderboardScores {
 pub struct LinkPersonaRequest {
     /// Required. Cardinality constraint to observe when linking a persona to a player in the scope of a game. // TODO: enum values: ["ONE_PERSONA_TO_ONE_PLAYER"]
     #[serde(default, rename = "cardinalityConstraint")]
-    pub cardinality_constraint: Option<String>,
+    pub cardinality_constraint: ::core::option::Option<String>,
     /// Required. Resolution policy to apply when the linking of a persona to a player would result in violating the specified cardinality constraint. // TODO: enum values: ["KEEP_EXISTING_LINKS", "CREATE_NEW_LINK"]
     #[serde(default, rename = "conflictingLinksResolutionPolicy")]
-    pub conflicting_links_resolution_policy: Option<String>,
+    pub conflicting_links_resolution_policy: ::core::option::Option<String>,
     /// Input only. Optional expiration time.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Required. Stable identifier of the in-game account. Please refrain from re-using the same persona for different games.
     #[serde(default)]
-    pub persona: Option<String>,
+    pub persona: ::core::option::Option<String>,
     /// Required. Opaque server-generated string that encodes all the necessary information to identify the PGS player / Google user and application.
     #[serde(default, rename = "sessionId")]
-    pub session_id: Option<String>,
+    pub session_id: ::core::option::Option<String>,
     /// Required. Value of the token to create. Opaque to Play Games and assumed to be non-stable (encrypted with key rotation).
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// Input only. Optional time-to-live.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// Outcome of a persona linking attempt.
@@ -775,7 +780,7 @@ pub struct LinkPersonaRequest {
 pub struct LinkPersonaResponse {
     /// Output only. State of a persona linking attempt. // TODO: enum values: ["LINK_CREATED", "PERSONA_OR_PLAYER_ALREADY_LINKED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The metagame config resource
@@ -783,13 +788,13 @@ pub struct LinkPersonaResponse {
 pub struct MetagameConfig {
     /// Current version of the metagame configuration data. When this data is updated, the version number will be increased by one.
     #[serde(default, rename = "currentVersion")]
-    pub current_version: Option<i32>,
+    pub current_version: ::core::option::Option<i32>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#metagameConfig.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The list of player levels.
     #[serde(default, rename = "playerLevels")]
-    pub player_levels: Option<Vec<PlayerLevel>>,
+    pub player_levels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerLevel>>>,
 }
 
 /// Token data returned from GeneratePlayGroupingApiToken RPC.
@@ -797,7 +802,7 @@ pub struct MetagameConfig {
 pub struct PlayGroupingApiToken {
     /// Value of the token.
     #[serde(default, rename = "tokenValue")]
-    pub token_value: Option<String>,
+    pub token_value: ::core::option::Option<String>,
 }
 
 /// A Player resource.
@@ -805,43 +810,43 @@ pub struct PlayGroupingApiToken {
 pub struct Player {
     /// The base URL for the image that represents the player.
     #[serde(default, rename = "avatarImageUrl")]
-    pub avatar_image_url: Option<String>,
+    pub avatar_image_url: ::core::option::Option<String>,
     /// The url to the landscape mode player banner image.
     #[serde(default, rename = "bannerUrlLandscape")]
-    pub banner_url_landscape: Option<String>,
+    pub banner_url_landscape: ::core::option::Option<String>,
     /// The url to the portrait mode player banner image.
     #[serde(default, rename = "bannerUrlPortrait")]
-    pub banner_url_portrait: Option<String>,
+    pub banner_url_portrait: ::core::option::Option<String>,
     /// The name to display for the player.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// An object to represent Play Game experience information for the player.
     #[serde(default, rename = "experienceInfo")]
-    pub experience_info: Option<PlayerExperienceInfo>,
+    pub experience_info: ::core::option::Option<::std::boxed::Box<PlayerExperienceInfo>>,
     /// The friend status of the given player, relative to the requester. This is unset if the player is not sharing their friends list with the game. // TODO: enum values: ["NO_RELATIONSHIP", "FRIEND"]
     #[serde(default, rename = "friendStatus")]
-    pub friend_status: Option<String>,
+    pub friend_status: ::core::option::Option<String>,
     /// Per-application unique player identifier.
     #[serde(default, rename = "gamePlayerId")]
-    pub game_player_id: Option<String>,
+    pub game_player_id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#player
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// A representation of the individual components of the name.
     #[serde(default)]
-    pub name: Option<serde_json::Value>,
+    pub name: ::core::option::Option<serde_json::Value>,
     /// The player ID that was used for this player the first time they signed into the game in question. This is only populated for calls to player.get for the requesting player, only if the player ID has subsequently changed, and only to clients that support remapping player IDs.
     #[serde(default, rename = "originalPlayerId")]
-    pub original_player_id: Option<String>,
+    pub original_player_id: ::core::option::Option<String>,
     /// The ID of the player.
     #[serde(default, rename = "playerId")]
-    pub player_id: Option<String>,
+    pub player_id: ::core::option::Option<String>,
     /// The player''s profile settings. Controls whether or not the player''s profile is visible to other players.
     #[serde(default, rename = "profileSettings")]
-    pub profile_settings: Option<ProfileSettings>,
+    pub profile_settings: ::core::option::Option<::std::boxed::Box<ProfileSettings>>,
     /// The player''s title rewarded for their game activities.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// An achievement object.
@@ -849,25 +854,25 @@ pub struct Player {
 pub struct PlayerAchievement {
     /// The state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
     #[serde(default, rename = "achievementState")]
-    pub achievement_state: Option<String>,
+    pub achievement_state: ::core::option::Option<String>,
     /// The current steps for an incremental achievement.
     #[serde(default, rename = "currentSteps")]
-    pub current_steps: Option<i32>,
+    pub current_steps: ::core::option::Option<i32>,
     /// Experience points earned for the achievement. This field is absent for achievements that have not yet been unlocked and 0 for achievements that have been unlocked by testers but that are unpublished.
     #[serde(default, rename = "experiencePoints")]
-    pub experience_points: Option<String>,
+    pub experience_points: ::core::option::Option<String>,
     /// The current steps for an incremental achievement as a string.
     #[serde(default, rename = "formattedCurrentStepsString")]
-    pub formatted_current_steps_string: Option<String>,
+    pub formatted_current_steps_string: ::core::option::Option<String>,
     /// The ID of the achievement.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerAchievement.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The timestamp of the last modification to this achievement''s state.
     #[serde(default, rename = "lastUpdatedTimestamp")]
-    pub last_updated_timestamp: Option<String>,
+    pub last_updated_timestamp: ::core::option::Option<String>,
 }
 
 /// A list of achievement objects.
@@ -875,13 +880,13 @@ pub struct PlayerAchievement {
 pub struct PlayerAchievementListResponse {
     /// The achievements.
     #[serde(default)]
-    pub items: Option<Vec<PlayerAchievement>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerAchievement>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerAchievementListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token corresponding to the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// An event status resource.
@@ -889,19 +894,19 @@ pub struct PlayerAchievementListResponse {
 pub struct PlayerEvent {
     /// The ID of the event definition.
     #[serde(default, rename = "definitionId")]
-    pub definition_id: Option<String>,
+    pub definition_id: ::core::option::Option<String>,
     /// The current number of times this event has occurred, as a string. The formatting of this string depends on the configuration of your event in the Play Games Developer Console.
     #[serde(default, rename = "formattedNumEvents")]
-    pub formatted_num_events: Option<String>,
+    pub formatted_num_events: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerEvent.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The current number of times this event has occurred.
     #[serde(default, rename = "numEvents")]
-    pub num_events: Option<String>,
+    pub num_events: ::core::option::Option<String>,
     /// The ID of the player.
     #[serde(default, rename = "playerId")]
-    pub player_id: Option<String>,
+    pub player_id: ::core::option::Option<String>,
 }
 
 /// A ListByPlayer response.
@@ -909,13 +914,13 @@ pub struct PlayerEvent {
 pub struct PlayerEventListResponse {
     /// The player events.
     #[serde(default)]
-    pub items: Option<Vec<PlayerEvent>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerEvent>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerEventListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// 1P/3P metadata about the player''s experience.
@@ -923,19 +928,19 @@ pub struct PlayerEventListResponse {
 pub struct PlayerExperienceInfo {
     /// The current number of experience points for the player.
     #[serde(default, rename = "currentExperiencePoints")]
-    pub current_experience_points: Option<String>,
+    pub current_experience_points: ::core::option::Option<String>,
     /// The current level of the player.
     #[serde(default, rename = "currentLevel")]
-    pub current_level: Option<PlayerLevel>,
+    pub current_level: ::core::option::Option<::std::boxed::Box<PlayerLevel>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerExperienceInfo.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The timestamp when the player was leveled up, in millis since Unix epoch UTC.
     #[serde(default, rename = "lastLevelUpTimestampMillis")]
-    pub last_level_up_timestamp_millis: Option<String>,
+    pub last_level_up_timestamp_millis: ::core::option::Option<String>,
     /// The next level of the player. If the current level is the maximum level, this should be same as the current level.
     #[serde(default, rename = "nextLevel")]
-    pub next_level: Option<PlayerLevel>,
+    pub next_level: ::core::option::Option<::std::boxed::Box<PlayerLevel>>,
 }
 
 /// A player leaderboard score object.
@@ -943,34 +948,34 @@ pub struct PlayerExperienceInfo {
 pub struct PlayerLeaderboardScore {
     /// The rank of the score in the friends collection for this leaderboard.
     #[serde(default, rename = "friendsRank")]
-    pub friends_rank: Option<LeaderboardScoreRank>,
+    pub friends_rank: ::core::option::Option<::std::boxed::Box<LeaderboardScoreRank>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLeaderboardScore.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The ID of the leaderboard this score is in.
     #[serde(default)]
-    pub leaderboard_id: Option<String>,
+    pub leaderboard_id: ::core::option::Option<String>,
     /// The public rank of the score in this leaderboard. This object will not be present if the user is not sharing their scores publicly.
     #[serde(default, rename = "publicRank")]
-    pub public_rank: Option<LeaderboardScoreRank>,
+    pub public_rank: ::core::option::Option<::std::boxed::Box<LeaderboardScoreRank>>,
     /// The formatted value of this score.
     #[serde(default, rename = "scoreString")]
-    pub score_string: Option<String>,
+    pub score_string: ::core::option::Option<String>,
     /// Additional information about the score. Values must contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
     #[serde(default, rename = "scoreTag")]
-    pub score_tag: Option<String>,
+    pub score_tag: ::core::option::Option<String>,
     /// The numerical value of this score.
     #[serde(default, rename = "scoreValue")]
-    pub score_value: Option<String>,
+    pub score_value: ::core::option::Option<String>,
     /// The social rank of the score in this leaderboard.
     #[serde(default, rename = "socialRank")]
-    pub social_rank: Option<LeaderboardScoreRank>,
+    pub social_rank: ::core::option::Option<::std::boxed::Box<LeaderboardScoreRank>>,
     /// The time span of this score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
     #[serde(default, rename = "timeSpan")]
-    pub time_span: Option<String>,
+    pub time_span: ::core::option::Option<String>,
     /// The timestamp at which this score was recorded, in milliseconds since the epoch in UTC.
     #[serde(default, rename = "writeTimestamp")]
-    pub write_timestamp: Option<String>,
+    pub write_timestamp: ::core::option::Option<String>,
 }
 
 /// A list of player leaderboard scores.
@@ -978,16 +983,16 @@ pub struct PlayerLeaderboardScore {
 pub struct PlayerLeaderboardScoreListResponse {
     /// The leaderboard scores.
     #[serde(default)]
-    pub items: Option<Vec<PlayerLeaderboardScore>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerLeaderboardScore>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLeaderboardScoreListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The Player resources for the owner of this score.
     #[serde(default)]
-    pub player: Option<Player>,
+    pub player: ::core::option::Option<::std::boxed::Box<Player>>,
 }
 
 /// 1P/3P metadata about a user''s level.
@@ -995,16 +1000,16 @@ pub struct PlayerLeaderboardScoreListResponse {
 pub struct PlayerLevel {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLevel.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The level for the user.
     #[serde(default)]
-    pub level: Option<i32>,
+    pub level: ::core::option::Option<i32>,
     /// The maximum experience points for this level.
     #[serde(default, rename = "maxExperiencePoints")]
-    pub max_experience_points: Option<String>,
+    pub max_experience_points: ::core::option::Option<String>,
     /// The minimum experience points for this level.
     #[serde(default, rename = "minExperiencePoints")]
-    pub min_experience_points: Option<String>,
+    pub min_experience_points: ::core::option::Option<String>,
 }
 
 /// A third party player list response.
@@ -1012,13 +1017,13 @@ pub struct PlayerLevel {
 pub struct PlayerListResponse {
     /// The players.
     #[serde(default)]
-    pub items: Option<Vec<Player>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Player>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token corresponding to the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A player score.
@@ -1026,19 +1031,19 @@ pub struct PlayerListResponse {
 pub struct PlayerScore {
     /// The formatted score for this player score.
     #[serde(default, rename = "formattedScore")]
-    pub formatted_score: Option<String>,
+    pub formatted_score: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScore.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The numerical value for this player score.
     #[serde(default)]
-    pub score: Option<String>,
+    pub score: ::core::option::Option<String>,
     /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
     #[serde(default, rename = "scoreTag")]
-    pub score_tag: Option<String>,
+    pub score_tag: ::core::option::Option<String>,
     /// The time span for this player score. // TODO: enum values: ["ALL_TIME", "WEEKLY", "DAILY"]
     #[serde(default, rename = "timeSpan")]
-    pub time_span: Option<String>,
+    pub time_span: ::core::option::Option<String>,
 }
 
 /// A list of score submission statuses.
@@ -1046,10 +1051,11 @@ pub struct PlayerScore {
 pub struct PlayerScoreListResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScoreListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The score submissions statuses.
     #[serde(default, rename = "submittedScores")]
-    pub submitted_scores: Option<Vec<PlayerScoreResponse>>,
+    pub submitted_scores:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerScoreResponse>>>,
 }
 
 /// A list of leaderboard entry resources.
@@ -1057,22 +1063,22 @@ pub struct PlayerScoreListResponse {
 pub struct PlayerScoreResponse {
     /// The time spans where the submitted score is better than the existing score for that time span.
     #[serde(default, rename = "beatenScoreTimeSpans")]
-    pub beaten_score_time_spans: Option<Vec<String>>,
+    pub beaten_score_time_spans: ::core::option::Option<::std::vec::Vec<String>>,
     /// The formatted value of the submitted score.
     #[serde(default, rename = "formattedScore")]
-    pub formatted_score: Option<String>,
+    pub formatted_score: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScoreResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The leaderboard ID that this score was submitted to.
     #[serde(default, rename = "leaderboardId")]
-    pub leaderboard_id: Option<String>,
+    pub leaderboard_id: ::core::option::Option<String>,
     /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
     #[serde(default, rename = "scoreTag")]
-    pub score_tag: Option<String>,
+    pub score_tag: ::core::option::Option<String>,
     /// The scores in time spans that have not been beaten. As an example, the submitted score may be better than the player''s DAILY score, but not better than the player''s scores for the WEEKLY or ALL_TIME time spans.
     #[serde(default, rename = "unbeatenScores")]
-    pub unbeaten_scores: Option<Vec<PlayerScore>>,
+    pub unbeaten_scores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerScore>>>,
 }
 
 /// A list of score submission requests.
@@ -1080,10 +1086,10 @@ pub struct PlayerScoreResponse {
 pub struct PlayerScoreSubmissionList {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScoreSubmissionList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The score submissions.
     #[serde(default)]
-    pub scores: Option<Vec<ScoreSubmission>>,
+    pub scores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ScoreSubmission>>>,
 }
 
 /// Profile settings
@@ -1091,13 +1097,13 @@ pub struct PlayerScoreSubmissionList {
 pub struct ProfileSettings {
     /// TODO: enum values: ["VISIBLE", "REQUEST_REQUIRED", "UNAVAILABLE"]
     #[serde(default, rename = "friendsListVisibility")]
-    pub friends_list_visibility: Option<String>,
+    pub friends_list_visibility: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#profileSettings.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether the player''s profile is visible to the currently signed in player.
     #[serde(default, rename = "profileVisible")]
-    pub profile_visible: Option<bool>,
+    pub profile_visible: ::core::option::Option<bool>,
 }
 
 /// Recall token data returned from RetrievePlayerTokens RPC
@@ -1105,13 +1111,13 @@ pub struct ProfileSettings {
 pub struct RecallToken {
     /// Optional. Optional expiration time of the token
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Required. Whether the persona identified by the token is linked to multiple PGS Players
     #[serde(default, rename = "multiPlayerPersona")]
-    pub multi_player_persona: Option<bool>,
+    pub multi_player_persona: ::core::option::Option<bool>,
     /// Required. Value of the Recall token as it is provided by the client via LinkPersona RPC
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// Request to remove all Recall tokens associated with a persona for an app.
@@ -1119,7 +1125,7 @@ pub struct RecallToken {
 pub struct ResetPersonaRequest {
     /// Value of the ''persona'' field as it was provided by the client in LinkPersona RPC
     #[serde(default)]
-    pub persona: Option<String>,
+    pub persona: ::core::option::Option<String>,
 }
 
 /// Response for the ResetPersona RPC
@@ -1127,7 +1133,7 @@ pub struct ResetPersonaRequest {
 pub struct ResetPersonaResponse {
     /// Required. Whether any tokens were unlinked as a result of this request.
     #[serde(default)]
-    pub unlinked: Option<bool>,
+    pub unlinked: ::core::option::Option<bool>,
 }
 
 /// Recall token data returned from for the RetrieveDeveloperGamesLastPlayerToken RPC
@@ -1135,7 +1141,7 @@ pub struct ResetPersonaResponse {
 pub struct RetrieveDeveloperGamesLastPlayerTokenResponse {
     /// The recall token associated with the requested PGS Player principal. It can be unset if there is no recall token associated with the requested principal.
     #[serde(default, rename = "gamePlayerToken")]
-    pub game_player_token: Option<GamePlayerToken>,
+    pub game_player_token: ::core::option::Option<::std::boxed::Box<GamePlayerToken>>,
 }
 
 /// A list of recall token data returned from the RetrieveGamesPlayerTokens RPC
@@ -1143,7 +1149,8 @@ pub struct RetrieveDeveloperGamesLastPlayerTokenResponse {
 pub struct RetrieveGamesPlayerTokensResponse {
     /// The requested applications along with the recall tokens for the player. If the player does not have recall tokens for an application, that application is not included in the response.
     #[serde(default, rename = "gamePlayerTokens")]
-    pub game_player_tokens: Option<Vec<GamePlayerToken>>,
+    pub game_player_tokens:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GamePlayerToken>>>,
 }
 
 /// Response for the RetrievePlayerTokens RPC
@@ -1151,7 +1158,7 @@ pub struct RetrieveGamesPlayerTokensResponse {
 pub struct RetrievePlayerTokensResponse {
     /// Required. Recall tokens associated with the requested PGS Player principal
     #[serde(default)]
-    pub tokens: Option<Vec<RecallToken>>,
+    pub tokens: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RecallToken>>>,
 }
 
 /// A third party checking a revision response.
@@ -1159,13 +1166,13 @@ pub struct RetrievePlayerTokensResponse {
 pub struct RevisionCheckResponse {
     /// The version of the API this client revision should use when calling API methods.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#revisionCheckResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The result of the revision check. // TODO: enum values: ["OK", "DEPRECATED", "INVALID"]
     #[serde(default, rename = "revisionStatus")]
-    pub revision_status: Option<String>,
+    pub revision_status: ::core::option::Option<String>,
 }
 
 /// Scoped player identifiers.
@@ -1173,10 +1180,10 @@ pub struct RevisionCheckResponse {
 pub struct ScopedPlayerIds {
     /// Identifier of the player across all games of the given developer. Every player has the same developer_player_key in all games of one developer. Developer player key changes for the game if the game is transferred to another developer. Note that game_player_id will stay unchanged.
     #[serde(default, rename = "developerPlayerKey")]
-    pub developer_player_key: Option<String>,
+    pub developer_player_key: ::core::option::Option<String>,
     /// Game-scoped player identifier. This is the same id that is returned in GetPlayer game_player_id field.
     #[serde(default, rename = "gamePlayerId")]
-    pub game_player_id: Option<String>,
+    pub game_player_id: ::core::option::Option<String>,
 }
 
 /// A request to submit a score to leaderboards.
@@ -1184,19 +1191,19 @@ pub struct ScopedPlayerIds {
 pub struct ScoreSubmission {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#scoreSubmission.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The leaderboard this score is being submitted to.
     #[serde(default, rename = "leaderboardId")]
-    pub leaderboard_id: Option<String>,
+    pub leaderboard_id: ::core::option::Option<String>,
     /// The new score being submitted.
     #[serde(default)]
-    pub score: Option<String>,
+    pub score: ::core::option::Option<String>,
     /// Additional information about this score. Values will contain no more than 64 URI-safe characters as defined by section 2.3 of RFC 3986.
     #[serde(default, rename = "scoreTag")]
-    pub score_tag: Option<String>,
+    pub score_tag: ::core::option::Option<String>,
     /// Signature Values will contain URI-safe characters as defined by section 2.3 of RFC 3986.
     #[serde(default)]
-    pub signature: Option<String>,
+    pub signature: ::core::option::Option<String>,
 }
 
 /// An snapshot object.
@@ -1204,37 +1211,37 @@ pub struct ScoreSubmission {
 pub struct Snapshot {
     /// The cover image of this snapshot. May be absent if there is no image.
     #[serde(default, rename = "coverImage")]
-    pub cover_image: Option<SnapshotImage>,
+    pub cover_image: ::core::option::Option<::std::boxed::Box<SnapshotImage>>,
     /// The description of this snapshot.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The ID of the file underlying this snapshot in the Drive API. Only present if the snapshot is a view on a Drive file and the file is owned by the caller.
     #[serde(default, rename = "driveId")]
-    pub drive_id: Option<String>,
+    pub drive_id: ::core::option::Option<String>,
     /// The duration associated with this snapshot, in millis.
     #[serde(default, rename = "durationMillis")]
-    pub duration_millis: Option<String>,
+    pub duration_millis: ::core::option::Option<String>,
     /// The ID of the snapshot.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#snapshot.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The timestamp (in millis since Unix epoch) of the last modification to this snapshot.
     #[serde(default, rename = "lastModifiedMillis")]
-    pub last_modified_millis: Option<String>,
+    pub last_modified_millis: ::core::option::Option<String>,
     /// The progress value (64-bit integer set by developer) associated with this snapshot.
     #[serde(default, rename = "progressValue")]
-    pub progress_value: Option<String>,
+    pub progress_value: ::core::option::Option<String>,
     /// The title of this snapshot.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The type of this snapshot. // TODO: enum values: ["SAVE_GAME"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The unique name provided when the snapshot was created.
     #[serde(default, rename = "uniqueName")]
-    pub unique_name: Option<String>,
+    pub unique_name: ::core::option::Option<String>,
 }
 
 /// An image of a snapshot.
@@ -1242,19 +1249,19 @@ pub struct Snapshot {
 pub struct SnapshotImage {
     /// The height of the image.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#snapshotImage.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The MIME type of the image.
     #[serde(default)]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// The URL of the image. This URL may be invalidated at any time and should not be cached.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// The width of the image.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// A third party list snapshots response.
@@ -1262,13 +1269,13 @@ pub struct SnapshotImage {
 pub struct SnapshotListResponse {
     /// The snapshots.
     #[serde(default)]
-    pub items: Option<Vec<Snapshot>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Snapshot>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#snapshotListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token corresponding to the next page of results. If there are no more results, the token is omitted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A third party stats resource.
@@ -1276,37 +1283,37 @@ pub struct SnapshotListResponse {
 pub struct StatsResponse {
     /// Average session length in minutes of the player. E.g., 1, 30, 60, ... . Not populated if there is not enough information.
     #[serde(default)]
-    pub avg_session_length_minutes: Option<f32>,
+    pub avg_session_length_minutes: ::core::option::Option<f32>,
     /// The probability of the player not returning to play the game in the next day. E.g., 0, 0.1, 0.5, ..., 1.0. Not populated if there is not enough information.
     #[serde(default)]
-    pub churn_probability: Option<f32>,
+    pub churn_probability: ::core::option::Option<f32>,
     /// Number of days since the player last played this game. E.g., 0, 1, 5, 10, ... . Not populated if there is not enough information.
     #[serde(default)]
-    pub days_since_last_played: Option<i32>,
+    pub days_since_last_played: ::core::option::Option<i32>,
     /// The probability of the player going to spend beyond a threshold amount of money. E.g., 0, 0.25, 0.50, 0.75. Not populated if there is not enough information.
     #[serde(default)]
-    pub high_spender_probability: Option<f32>,
+    pub high_spender_probability: ::core::option::Option<f32>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#statsResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Number of in-app purchases made by the player in this game. E.g., 0, 1, 5, 10, ... . Not populated if there is not enough information.
     #[serde(default)]
-    pub num_purchases: Option<i32>,
+    pub num_purchases: ::core::option::Option<i32>,
     /// The approximate number of sessions of the player within the last 28 days, where a session begins when the player is connected to Play Games Services and ends when they are disconnected. E.g., 0, 1, 5, 10, ... . Not populated if there is not enough information.
     #[serde(default)]
-    pub num_sessions: Option<i32>,
+    pub num_sessions: ::core::option::Option<i32>,
     /// The approximation of the sessions percentile of the player within the last 30 days, where a session begins when the player is connected to Play Games Services and ends when they are disconnected. E.g., 0, 0.25, 0.5, 0.75. Not populated if there is not enough information.
     #[serde(default)]
-    pub num_sessions_percentile: Option<f32>,
+    pub num_sessions_percentile: ::core::option::Option<f32>,
     /// The approximate spend percentile of the player in this game. E.g., 0, 0.25, 0.5, 0.75. Not populated if there is not enough information.
     #[serde(default)]
-    pub spend_percentile: Option<f32>,
+    pub spend_percentile: ::core::option::Option<f32>,
     /// The probability of the player going to spend the game in the next seven days. E.g., 0, 0.25, 0.50, 0.75. Not populated if there is not enough information.
     #[serde(default)]
-    pub spend_probability: Option<f32>,
+    pub spend_probability: ::core::option::Option<f32>,
     /// The predicted amount of money that the player going to spend in the next 28 days. E.g., 1, 30, 60, ... . Not populated if there is not enough information.
     #[serde(default)]
-    pub total_spend_next_28_days: Option<f32>,
+    pub total_spend_next_28_days: ::core::option::Option<f32>,
 }
 
 /// Request to remove a Recall token linking PGS principal and an in-game account
@@ -1314,13 +1321,13 @@ pub struct StatsResponse {
 pub struct UnlinkPersonaRequest {
     /// Value of the ''persona'' field as it was provided by the client in LinkPersona RPC
     #[serde(default)]
-    pub persona: Option<String>,
+    pub persona: ::core::option::Option<String>,
     /// Required. Opaque server-generated string that encodes all the necessary information to identify the PGS player / Google user and application.
     #[serde(default, rename = "sessionId")]
-    pub session_id: Option<String>,
+    pub session_id: ::core::option::Option<String>,
     /// Value of the Recall token as it was provided by the client in LinkPersona RPC
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// Response for the UnlinkPersona RPC
@@ -1328,5 +1335,5 @@ pub struct UnlinkPersonaRequest {
 pub struct UnlinkPersonaResponse {
     /// Required. Whether a Recall token specified by the request was deleted. Can be ''false'' when there were no Recall tokens satisfied the criteria from the request.
     #[serde(default)]
-    pub unlinked: Option<bool>,
+    pub unlinked: ::core::option::Option<bool>,
 }

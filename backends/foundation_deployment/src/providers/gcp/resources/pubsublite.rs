@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The throughput capacity configuration for each partition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Capacity {
     /// Publish throughput capacity per partition in MiB/s. Must be &gt;= 4 and &lt;= 16.
     #[serde(default, rename = "publishMibPerSec")]
-    pub publish_mib_per_sec: Option<i32>,
+    pub publish_mib_per_sec: ::core::option::Option<i32>,
     /// Subscribe throughput capacity per partition in MiB/s. Must be &gt;= 4 and &lt;= 32.
     #[serde(default, rename = "subscribeMibPerSec")]
-    pub subscribe_mib_per_sec: Option<i32>,
+    pub subscribe_mib_per_sec: ::core::option::Option<i32>,
 }
 
 /// Request for CommitCursor.
@@ -29,10 +29,10 @@ pub struct Capacity {
 pub struct CommitCursorRequest {
     /// The new value for the committed cursor.
     #[serde(default)]
-    pub cursor: Option<Cursor>,
+    pub cursor: ::core::option::Option<::std::boxed::Box<Cursor>>,
     /// The partition for which to update the cursor. Partitions are zero indexed, so partition must be in the range [0, topic.num_partitions).
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
 }
 
 /// Compute the current head cursor for a partition.
@@ -40,7 +40,7 @@ pub struct CommitCursorRequest {
 pub struct ComputeHeadCursorRequest {
     /// Required. The partition for which we should compute the head cursor.
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
 }
 
 /// Response containing the head cursor for the requested topic and partition.
@@ -48,7 +48,7 @@ pub struct ComputeHeadCursorRequest {
 pub struct ComputeHeadCursorResponse {
     /// The head cursor.
     #[serde(default, rename = "headCursor")]
-    pub head_cursor: Option<Cursor>,
+    pub head_cursor: ::core::option::Option<::std::boxed::Box<Cursor>>,
 }
 
 /// Compute statistics about a range of messages in a given topic and partition.
@@ -56,13 +56,13 @@ pub struct ComputeHeadCursorResponse {
 pub struct ComputeMessageStatsRequest {
     /// The exclusive end of the range. The range is empty if end_cursor &lt;= start_cursor. Specifying a start_cursor before the first message and an end_cursor after the last message will retrieve all messages.
     #[serde(default, rename = "endCursor")]
-    pub end_cursor: Option<Cursor>,
+    pub end_cursor: ::core::option::Option<::std::boxed::Box<Cursor>>,
     /// Required. The partition for which we should compute message stats.
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
     /// The inclusive start of the range.
     #[serde(default, rename = "startCursor")]
-    pub start_cursor: Option<Cursor>,
+    pub start_cursor: ::core::option::Option<::std::boxed::Box<Cursor>>,
 }
 
 /// Response containing stats for messages in the requested topic and partition.
@@ -70,16 +70,16 @@ pub struct ComputeMessageStatsRequest {
 pub struct ComputeMessageStatsResponse {
     /// The number of quota bytes accounted to these messages.
     #[serde(default, rename = "messageBytes")]
-    pub message_bytes: Option<String>,
+    pub message_bytes: ::core::option::Option<String>,
     /// The count of messages.
     #[serde(default, rename = "messageCount")]
-    pub message_count: Option<String>,
+    pub message_count: ::core::option::Option<String>,
     /// The minimum event timestamp across these messages. For the purposes of this computation, if a message does not have an event time, we use the publish time. The timestamp will be unset if there are no messages.
     #[serde(default, rename = "minimumEventTime")]
-    pub minimum_event_time: Option<String>,
+    pub minimum_event_time: ::core::option::Option<String>,
     /// The minimum publish timestamp across these messages. Note that publish timestamps within a partition are not guaranteed to be non-decreasing. The timestamp will be unset if there are no messages.
     #[serde(default, rename = "minimumPublishTime")]
-    pub minimum_publish_time: Option<String>,
+    pub minimum_publish_time: ::core::option::Option<String>,
 }
 
 /// Compute the corresponding cursor for a publish or event time in a topic partition.
@@ -87,10 +87,10 @@ pub struct ComputeMessageStatsResponse {
 pub struct ComputeTimeCursorRequest {
     /// Required. The partition for which we should compute the cursor.
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
     /// Required. The target publish or event time. Specifying a future time will return an unset cursor.
     #[serde(default)]
-    pub target: Option<TimeTarget>,
+    pub target: ::core::option::Option<::std::boxed::Box<TimeTarget>>,
 }
 
 /// Response containing the cursor corresponding to a publish or event time in a topic partition.
@@ -98,7 +98,7 @@ pub struct ComputeTimeCursorRequest {
 pub struct ComputeTimeCursorResponse {
     /// If present, the cursor references the first message with time greater than or equal to the specified target time. If such a message cannot be found, the cursor will be unset (i.e. cursor is not present).
     #[serde(default)]
-    pub cursor: Option<Cursor>,
+    pub cursor: ::core::option::Option<::std::boxed::Box<Cursor>>,
 }
 
 /// A cursor that describes the position of a message within a topic partition.
@@ -106,7 +106,7 @@ pub struct ComputeTimeCursorResponse {
 pub struct Cursor {
     /// The offset of a message within a topic partition. Must be greater than or equal 0.
     #[serde(default)]
-    pub offset: Option<String>,
+    pub offset: ::core::option::Option<String>,
 }
 
 /// The settings for a subscription''s message delivery.
@@ -114,7 +114,7 @@ pub struct Cursor {
 pub struct DeliveryConfig {
     /// The DeliveryRequirement for this subscription. // TODO: enum values: ["DELIVERY_REQUIREMENT_UNSPECIFIED", "DELIVER_IMMEDIATELY", "DELIVER_AFTER_STORED"]
     #[serde(default, rename = "deliveryRequirement")]
-    pub delivery_requirement: Option<String>,
+    pub delivery_requirement: ::core::option::Option<String>,
 }
 
 /// Configuration for a Pub/Sub Lite subscription that writes messages to a destination. User subscriber clients must not connect to this subscription.
@@ -122,16 +122,16 @@ pub struct DeliveryConfig {
 pub struct ExportConfig {
     /// Output only. The current state of the export, which may be different to the desired state due to errors. This field is output only. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "PERMISSION_DENIED", "NOT_FOUND"]
     #[serde(default, rename = "currentState")]
-    pub current_state: Option<String>,
+    pub current_state: ::core::option::Option<String>,
     /// Optional. The name of an optional Pub/Sub Lite topic to publish messages that can not be exported to the destination. For example, the message can not be published to the Pub/Sub service because it does not satisfy the constraints documented at https://cloud.google.com/pubsub/docs/publisher. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}. Must be within the same project and location as the subscription. The topic may be changed or removed.
     #[serde(default, rename = "deadLetterTopic")]
-    pub dead_letter_topic: Option<String>,
+    pub dead_letter_topic: ::core::option::Option<String>,
     /// The desired state of this export. Setting this to values other than ACTIVE and PAUSED will result in an error. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "PERMISSION_DENIED", "NOT_FOUND"]
     #[serde(default, rename = "desiredState")]
-    pub desired_state: Option<String>,
+    pub desired_state: ::core::option::Option<String>,
     /// Messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a Pub/Sub topic.
     #[serde(default, rename = "pubsubConfig")]
-    pub pubsub_config: Option<PubSubConfig>,
+    pub pubsub_config: ::core::option::Option<::std::boxed::Box<PubSubConfig>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -139,13 +139,13 @@ pub struct ExportConfig {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListPartitionCursors
@@ -153,10 +153,11 @@ pub struct ListOperationsResponse {
 pub struct ListPartitionCursorsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The partition cursors from this request.
     #[serde(default, rename = "partitionCursors")]
-    pub partition_cursors: Option<Vec<PartitionCursor>>,
+    pub partition_cursors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PartitionCursor>>>,
 }
 
 /// Response for ListReservationTopics.
@@ -164,10 +165,10 @@ pub struct ListPartitionCursorsResponse {
 pub struct ListReservationTopicsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The names of topics attached to the reservation. The order of the topics is unspecified.
     #[serde(default)]
-    pub topics: Option<Vec<String>>,
+    pub topics: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListReservations.
@@ -175,10 +176,10 @@ pub struct ListReservationTopicsResponse {
 pub struct ListReservationsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of reservation in the requested parent. The order of the reservations is unspecified.
     #[serde(default)]
-    pub reservations: Option<Vec<Reservation>>,
+    pub reservations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Reservation>>>,
 }
 
 /// Response for ListSubscriptions.
@@ -186,10 +187,10 @@ pub struct ListReservationsResponse {
 pub struct ListSubscriptionsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of subscriptions in the requested parent. The order of the subscriptions is unspecified.
     #[serde(default)]
-    pub subscriptions: Option<Vec<Subscription>>,
+    pub subscriptions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Subscription>>>,
 }
 
 /// Response for ListTopicSubscriptions.
@@ -197,10 +198,10 @@ pub struct ListSubscriptionsResponse {
 pub struct ListTopicSubscriptionsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The names of subscriptions attached to the topic. The order of the subscriptions is unspecified.
     #[serde(default)]
-    pub subscriptions: Option<Vec<String>>,
+    pub subscriptions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListTopics.
@@ -208,10 +209,10 @@ pub struct ListTopicSubscriptionsResponse {
 pub struct ListTopicsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of topic in the requested parent. The order of the topics is unspecified.
     #[serde(default)]
-    pub topics: Option<Vec<Topic>>,
+    pub topics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Topic>>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -219,19 +220,19 @@ pub struct ListTopicsResponse {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for long running operations.
@@ -239,16 +240,16 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running. Not set if the operation has not completed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Resource path for the target of the operation. For example, targets of seeks are subscription resources, structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// The settings for a topic''s partitions.
@@ -256,13 +257,13 @@ pub struct OperationMetadata {
 pub struct PartitionConfig {
     /// The capacity configuration.
     #[serde(default)]
-    pub capacity: Option<Capacity>,
+    pub capacity: ::core::option::Option<::std::boxed::Box<Capacity>>,
     /// The number of partitions in the topic. Must be at least 1. Once a topic has been created the number of partitions can be increased but not decreased. Message ordering is not guaranteed across a topic resize. For more information see https://cloud.google.com/pubsub/lite/docs/topics#scaling_capacity
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// DEPRECATED: Use capacity instead which can express a superset of configurations. Every partition in the topic is allocated throughput equivalent to scale times the standard partition throughput (4 MiB/s). This is also reflected in the cost of this topic; a topic with scale of 2 and count of 10 is charged for 20 partitions. This value must be in the range [1,4].
     #[serde(default)]
-    pub scale: Option<i32>,
+    pub scale: ::core::option::Option<i32>,
 }
 
 /// A pair of a Cursor and the partition it is for.
@@ -270,10 +271,10 @@ pub struct PartitionConfig {
 pub struct PartitionCursor {
     /// The value of the cursor.
     #[serde(default)]
-    pub cursor: Option<Cursor>,
+    pub cursor: ::core::option::Option<::std::boxed::Box<Cursor>>,
     /// The partition this is for.
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
 }
 
 /// Configuration for exporting to a Pub/Sub topic.
@@ -281,7 +282,7 @@ pub struct PartitionCursor {
 pub struct PubSubConfig {
     /// The name of the Pub/Sub topic. Structured like: projects/{project_number}/topics/{topic_id}. The topic may be changed.
     #[serde(default)]
-    pub topic: Option<String>,
+    pub topic: ::core::option::Option<String>,
 }
 
 /// Metadata about a reservation resource.
@@ -289,10 +290,10 @@ pub struct PubSubConfig {
 pub struct Reservation {
     /// The name of the reservation. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The reserved throughput capacity. Every unit of throughput capacity is equivalent to 1 MiB/s of published messages or 2 MiB/s of subscribed messages. Any topics which are declared as using capacity from a Reservation will consume resources from this reservation instead of being charged individually.
     #[serde(default, rename = "throughputCapacity")]
-    pub throughput_capacity: Option<String>,
+    pub throughput_capacity: ::core::option::Option<String>,
 }
 
 /// The settings for this topic''s Reservation usage.
@@ -300,7 +301,7 @@ pub struct Reservation {
 pub struct ReservationConfig {
     /// The Reservation to use for this topic''s throughput capacity. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}
     #[serde(default, rename = "throughputReservation")]
-    pub throughput_reservation: Option<String>,
+    pub throughput_reservation: ::core::option::Option<String>,
 }
 
 /// The settings for a topic''s message retention.
@@ -308,10 +309,10 @@ pub struct ReservationConfig {
 pub struct RetentionConfig {
     /// The provisioned storage, in bytes, per partition. If the number of bytes stored in any of the topic''s partitions grows beyond this value, older messages will be dropped to make room for newer ones, regardless of the value of period.
     #[serde(default, rename = "perPartitionBytes")]
-    pub per_partition_bytes: Option<String>,
+    pub per_partition_bytes: ::core::option::Option<String>,
     /// How long a published message is retained. If unset, messages will be retained as long as the bytes retained for each partition is below per_partition_bytes.
     #[serde(default)]
-    pub period: Option<String>,
+    pub period: ::core::option::Option<String>,
 }
 
 /// Request for SeekSubscription.
@@ -319,10 +320,10 @@ pub struct RetentionConfig {
 pub struct SeekSubscriptionRequest {
     /// Seek to a named position with respect to the message backlog. // TODO: enum values: ["NAMED_TARGET_UNSPECIFIED", "TAIL", "HEAD"]
     #[serde(default, rename = "namedTarget")]
-    pub named_target: Option<String>,
+    pub named_target: ::core::option::Option<String>,
     /// Seek to the first message whose publish or event time is greater than or equal to the specified query time. If no such message can be located, will seek to the end of the message backlog.
     #[serde(default, rename = "timeTarget")]
-    pub time_target: Option<TimeTarget>,
+    pub time_target: ::core::option::Option<::std::boxed::Box<TimeTarget>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -330,13 +331,13 @@ pub struct SeekSubscriptionRequest {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Metadata about a subscription resource.
@@ -344,16 +345,16 @@ pub struct Status {
 pub struct Subscription {
     /// The settings for this subscription''s message delivery.
     #[serde(default, rename = "deliveryConfig")]
-    pub delivery_config: Option<DeliveryConfig>,
+    pub delivery_config: ::core::option::Option<::std::boxed::Box<DeliveryConfig>>,
     /// If present, messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a destination.
     #[serde(default, rename = "exportConfig")]
-    pub export_config: Option<ExportConfig>,
+    pub export_config: ::core::option::Option<::std::boxed::Box<ExportConfig>>,
     /// The name of the subscription. Structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The name of the topic this subscription is attached to. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}
     #[serde(default)]
-    pub topic: Option<String>,
+    pub topic: ::core::option::Option<String>,
 }
 
 /// A target publish or event time. Can be used for seeking to or retrieving the corresponding cursor.
@@ -361,10 +362,10 @@ pub struct Subscription {
 pub struct TimeTarget {
     /// Request the cursor of the first message with event time greater than or equal to event_time. If messages are missing an event time, the publish time is used as a fallback. As event times are user supplied, subsequent messages may have event times less than event_time and should be filtered by the client, if necessary.
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<String>,
+    pub event_time: ::core::option::Option<String>,
     /// Request the cursor of the first message with publish time greater than or equal to publish_time. All messages thereafter are guaranteed to have publish times &gt;= publish_time.
     #[serde(default, rename = "publishTime")]
-    pub publish_time: Option<String>,
+    pub publish_time: ::core::option::Option<String>,
 }
 
 /// Metadata about a topic resource.
@@ -372,16 +373,16 @@ pub struct TimeTarget {
 pub struct Topic {
     /// The name of the topic. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The settings for this topic''s partitions.
     #[serde(default, rename = "partitionConfig")]
-    pub partition_config: Option<PartitionConfig>,
+    pub partition_config: ::core::option::Option<::std::boxed::Box<PartitionConfig>>,
     /// The settings for this topic''s Reservation usage.
     #[serde(default, rename = "reservationConfig")]
-    pub reservation_config: Option<ReservationConfig>,
+    pub reservation_config: ::core::option::Option<::std::boxed::Box<ReservationConfig>>,
     /// The settings for this topic''s message retention.
     #[serde(default, rename = "retentionConfig")]
-    pub retention_config: Option<RetentionConfig>,
+    pub retention_config: ::core::option::Option<::std::boxed::Box<RetentionConfig>>,
 }
 
 /// Response for GetTopicPartitions.
@@ -389,5 +390,5 @@ pub struct Topic {
 pub struct TopicPartitions {
     /// The number of partitions in the topic.
     #[serde(default, rename = "partitionCount")]
-    pub partition_count: Option<String>,
+    pub partition_count: ::core::option::Option<String>,
 }

@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Adds a new banded range to the spreadsheet.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddBandingRequest {
     /// The banded range to add. The bandedRangeId field is optional; if one is not set, an id will be randomly generated. (It is an error to specify the ID of a range that already exists.)
     #[serde(default, rename = "bandedRange")]
-    pub banded_range: Option<BandedRange>,
+    pub banded_range: ::core::option::Option<::std::boxed::Box<BandedRange>>,
 }
 
 /// The result of adding a banded range.
@@ -26,7 +26,7 @@ pub struct AddBandingRequest {
 pub struct AddBandingResponse {
     /// The banded range that was added.
     #[serde(default, rename = "bandedRange")]
-    pub banded_range: Option<BandedRange>,
+    pub banded_range: ::core::option::Option<::std::boxed::Box<BandedRange>>,
 }
 
 /// Adds a chart to a sheet in the spreadsheet.
@@ -34,7 +34,7 @@ pub struct AddBandingResponse {
 pub struct AddChartRequest {
     /// The chart that should be added to the spreadsheet, including the position where it should be placed. The chartId field is optional; if one is not set, an id will be randomly generated. (It is an error to specify the ID of an embedded object that already exists.)
     #[serde(default)]
-    pub chart: Option<EmbeddedChart>,
+    pub chart: ::core::option::Option<::std::boxed::Box<EmbeddedChart>>,
 }
 
 /// The result of adding a chart to a spreadsheet.
@@ -42,7 +42,7 @@ pub struct AddChartRequest {
 pub struct AddChartResponse {
     /// The newly added chart.
     #[serde(default)]
-    pub chart: Option<EmbeddedChart>,
+    pub chart: ::core::option::Option<::std::boxed::Box<EmbeddedChart>>,
 }
 
 /// Adds a new conditional format rule at the given index. All subsequent rules'' indexes are incremented.
@@ -50,10 +50,10 @@ pub struct AddChartResponse {
 pub struct AddConditionalFormatRuleRequest {
     /// The zero-based index where the rule should be inserted.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// The rule to add.
     #[serde(default)]
-    pub rule: Option<ConditionalFormatRule>,
+    pub rule: ::core::option::Option<::std::boxed::Box<ConditionalFormatRule>>,
 }
 
 /// Adds a data source. After the data source is added successfully, an associated DATA_SOURCE sheet is created and an execution is triggered to refresh the sheet to read data from the data source. The request requires an additional bigquery.readonly OAuth scope if you are adding a BigQuery data source.
@@ -61,7 +61,7 @@ pub struct AddConditionalFormatRuleRequest {
 pub struct AddDataSourceRequest {
     /// The data source to add.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<DataSource>,
+    pub data_source: ::core::option::Option<::std::boxed::Box<DataSource>>,
 }
 
 /// The result of adding a data source.
@@ -69,10 +69,10 @@ pub struct AddDataSourceRequest {
 pub struct AddDataSourceResponse {
     /// The data execution status.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// The data source that was created.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<DataSource>,
+    pub data_source: ::core::option::Option<::std::boxed::Box<DataSource>>,
 }
 
 /// Creates a group over the specified range. If the requested range is a superset of the range of an existing group G, then the depth of G is incremented and this new group G'' has the depth of that group. For example, a group [C:D, depth 1] + [B:E] results in groups [B:E, depth 1] and [C:D, depth 2]. If the requested range is a subset of the range of an existing group G, then the depth of the new group G'' becomes one greater than the depth of G. For example, a group [B:E, depth 1] + [C:D] results in groups [B:E, depth 1] and [C:D, depth 2]. If the requested range starts before and ends within, or starts within and ends after, the range of an existing group G, then the range of the existing group G becomes the union of the ranges, and the new group G'' has depth one greater than the depth of G and range as the intersection of the ranges. For example, a group [B:D, depth 1] + [C:E] results in groups [B:E, depth 1] and [C:D, depth 2].
@@ -80,7 +80,7 @@ pub struct AddDataSourceResponse {
 pub struct AddDimensionGroupRequest {
     /// The range over which to create a group.
     #[serde(default)]
-    pub range: Option<DimensionRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// The result of adding a group.
@@ -88,7 +88,8 @@ pub struct AddDimensionGroupRequest {
 pub struct AddDimensionGroupResponse {
     /// All groups of a dimension after adding a group to that dimension.
     #[serde(default, rename = "dimensionGroups")]
-    pub dimension_groups: Option<Vec<DimensionGroup>>,
+    pub dimension_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionGroup>>>,
 }
 
 /// Adds a filter view.
@@ -96,7 +97,7 @@ pub struct AddDimensionGroupResponse {
 pub struct AddFilterViewRequest {
     /// The filter to add. The filterViewId field is optional. If one is not set, an ID will be randomly generated. (It is an error to specify the ID of a filter that already exists.)
     #[serde(default)]
-    pub filter: Option<FilterView>,
+    pub filter: ::core::option::Option<::std::boxed::Box<FilterView>>,
 }
 
 /// The result of adding a filter view.
@@ -104,7 +105,7 @@ pub struct AddFilterViewRequest {
 pub struct AddFilterViewResponse {
     /// The newly added filter view.
     #[serde(default)]
-    pub filter: Option<FilterView>,
+    pub filter: ::core::option::Option<::std::boxed::Box<FilterView>>,
 }
 
 /// Adds a named range to the spreadsheet.
@@ -112,7 +113,7 @@ pub struct AddFilterViewResponse {
 pub struct AddNamedRangeRequest {
     /// The named range to add. The namedRangeId field is optional; if one is not set, an id will be randomly generated. (It is an error to specify the ID of a range that already exists.)
     #[serde(default, rename = "namedRange")]
-    pub named_range: Option<NamedRange>,
+    pub named_range: ::core::option::Option<::std::boxed::Box<NamedRange>>,
 }
 
 /// The result of adding a named range.
@@ -120,7 +121,7 @@ pub struct AddNamedRangeRequest {
 pub struct AddNamedRangeResponse {
     /// The named range to add.
     #[serde(default, rename = "namedRange")]
-    pub named_range: Option<NamedRange>,
+    pub named_range: ::core::option::Option<::std::boxed::Box<NamedRange>>,
 }
 
 /// Adds a new protected range.
@@ -128,7 +129,7 @@ pub struct AddNamedRangeResponse {
 pub struct AddProtectedRangeRequest {
     /// The protected range to be added. The protectedRangeId field is optional; if one is not set, an id will be randomly generated. (It is an error to specify the ID of a range that already exists.)
     #[serde(default, rename = "protectedRange")]
-    pub protected_range: Option<ProtectedRange>,
+    pub protected_range: ::core::option::Option<::std::boxed::Box<ProtectedRange>>,
 }
 
 /// The result of adding a new protected range.
@@ -136,7 +137,7 @@ pub struct AddProtectedRangeRequest {
 pub struct AddProtectedRangeResponse {
     /// The newly added protected range.
     #[serde(default, rename = "protectedRange")]
-    pub protected_range: Option<ProtectedRange>,
+    pub protected_range: ::core::option::Option<::std::boxed::Box<ProtectedRange>>,
 }
 
 /// Adds a new sheet. When a sheet is added at a given index, all subsequent sheets'' indexes are incremented. To add an object sheet, use AddChartRequest instead and specify EmbeddedObjectPosition.sheetId or EmbeddedObjectPosition.newSheet.
@@ -144,7 +145,7 @@ pub struct AddProtectedRangeResponse {
 pub struct AddSheetRequest {
     /// The properties the new sheet should have. All properties are optional. The sheetId field is optional; if one is not set, an id will be randomly generated. (It is an error to specify the ID of a sheet that already exists.)
     #[serde(default)]
-    pub properties: Option<SheetProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<SheetProperties>>,
 }
 
 /// The result of adding a sheet.
@@ -152,7 +153,7 @@ pub struct AddSheetRequest {
 pub struct AddSheetResponse {
     /// The properties of the newly added sheet.
     #[serde(default)]
-    pub properties: Option<SheetProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<SheetProperties>>,
 }
 
 /// Adds a slicer to a sheet in the spreadsheet.
@@ -160,7 +161,7 @@ pub struct AddSheetResponse {
 pub struct AddSlicerRequest {
     /// The slicer that should be added to the spreadsheet, including the position where it should be placed. The slicerId field is optional; if one is not set, an id will be randomly generated. (It is an error to specify the ID of a slicer that already exists.)
     #[serde(default)]
-    pub slicer: Option<Slicer>,
+    pub slicer: ::core::option::Option<::std::boxed::Box<Slicer>>,
 }
 
 /// The result of adding a slicer to a spreadsheet.
@@ -168,7 +169,7 @@ pub struct AddSlicerRequest {
 pub struct AddSlicerResponse {
     /// The newly added slicer.
     #[serde(default)]
-    pub slicer: Option<Slicer>,
+    pub slicer: ::core::option::Option<::std::boxed::Box<Slicer>>,
 }
 
 /// Adds a new table to the spreadsheet.
@@ -176,7 +177,7 @@ pub struct AddSlicerResponse {
 pub struct AddTableRequest {
     /// Required. The table to add.
     #[serde(default)]
-    pub table: Option<Table>,
+    pub table: ::core::option::Option<::std::boxed::Box<Table>>,
 }
 
 /// The result of adding a table.
@@ -184,7 +185,7 @@ pub struct AddTableRequest {
 pub struct AddTableResponse {
     /// Output only. The table that was added.
     #[serde(default)]
-    pub table: Option<Table>,
+    pub table: ::core::option::Option<::std::boxed::Box<Table>>,
 }
 
 /// Adds new cells after the last row with data in a sheet, inserting new rows into the sheet if necessary.
@@ -192,16 +193,16 @@ pub struct AddTableResponse {
 pub struct AppendCellsRequest {
     /// The fields of CellData that should be updated. At least one field must be specified. The root is the CellData; ''row.values.'' should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The data to append.
     #[serde(default)]
-    pub rows: Option<Vec<RowData>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RowData>>>,
     /// The sheet ID to append the data to.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
     /// The ID of the table to append data to. The data will be only appended to the table body. This field also takes precedence over the sheet_id field.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// Appends rows or columns to the end of a sheet.
@@ -209,13 +210,13 @@ pub struct AppendCellsRequest {
 pub struct AppendDimensionRequest {
     /// Whether rows or columns should be appended. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
     /// The number of rows or columns to append.
     #[serde(default)]
-    pub length: Option<i32>,
+    pub length: ::core::option::Option<i32>,
     /// The sheet to append rows or columns to.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// The response when updating a range of values in a spreadsheet.
@@ -223,13 +224,13 @@ pub struct AppendDimensionRequest {
 pub struct AppendValuesResponse {
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The range (in A1 notation) of the table that values are being appended to (before the values were appended). Empty if no table was found.
     #[serde(default, rename = "tableRange")]
-    pub table_range: Option<String>,
+    pub table_range: ::core::option::Option<String>,
     /// Information about the updates that were applied.
     #[serde(default)]
-    pub updates: Option<UpdateValuesResponse>,
+    pub updates: ::core::option::Option<::std::boxed::Box<UpdateValuesResponse>>,
 }
 
 /// Fills in more data based on existing data.
@@ -237,13 +238,13 @@ pub struct AppendValuesResponse {
 pub struct AutoFillRequest {
     /// The range to autofill. This will examine the range and detect the location that has data and automatically fill that data in to the rest of the range.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The source and destination areas to autofill. This explicitly lists the source of the autofill and where to extend that data.
     #[serde(default, rename = "sourceAndDestination")]
-    pub source_and_destination: Option<SourceAndDestination>,
+    pub source_and_destination: ::core::option::Option<::std::boxed::Box<SourceAndDestination>>,
     /// True if we should generate data with the "alternate" series. This differs based on the type and amount of source data.
     #[serde(default, rename = "useAlternateSeries")]
-    pub use_alternate_series: Option<bool>,
+    pub use_alternate_series: ::core::option::Option<bool>,
 }
 
 /// Automatically resizes one or more dimensions based on the contents of the cells in that dimension.
@@ -251,10 +252,11 @@ pub struct AutoFillRequest {
 pub struct AutoResizeDimensionsRequest {
     /// The dimensions on a data source sheet to automatically resize.
     #[serde(default, rename = "dataSourceSheetDimensions")]
-    pub data_source_sheet_dimensions: Option<DataSourceSheetDimensionRange>,
+    pub data_source_sheet_dimensions:
+        ::core::option::Option<::std::boxed::Box<DataSourceSheetDimensionRange>>,
     /// The dimensions to automatically resize.
     #[serde(default)]
-    pub dimensions: Option<DimensionRange>,
+    pub dimensions: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// A banded (alternating colors) range in a sheet.
@@ -262,19 +264,19 @@ pub struct AutoResizeDimensionsRequest {
 pub struct BandedRange {
     /// The ID of the banded range. If unset, refer to banded_range_reference.
     #[serde(default, rename = "bandedRangeId")]
-    pub banded_range_id: Option<i32>,
+    pub banded_range_id: ::core::option::Option<i32>,
     /// Output only. The reference of the banded range, used to identify the ID that is not supported by the banded_range_id.
     #[serde(default, rename = "bandedRangeReference")]
-    pub banded_range_reference: Option<String>,
+    pub banded_range_reference: ::core::option::Option<String>,
     /// Properties for column bands. These properties are applied on a column- by-column basis throughout all the columns in the range. At least one of row_properties or column_properties must be specified.
     #[serde(default, rename = "columnProperties")]
-    pub column_properties: Option<BandingProperties>,
+    pub column_properties: ::core::option::Option<::std::boxed::Box<BandingProperties>>,
     /// The range over which these properties are applied.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// Properties for row bands. These properties are applied on a row-by-row basis throughout all the rows in the range. At least one of row_properties or column_properties must be specified.
     #[serde(default, rename = "rowProperties")]
-    pub row_properties: Option<BandingProperties>,
+    pub row_properties: ::core::option::Option<::std::boxed::Box<BandingProperties>>,
 }
 
 /// Properties referring a single dimension (either row or column). If both BandedRange.row_properties and BandedRange.column_properties are set, the fill colors are applied to cells according to the following rules: * header_color and footer_color take priority over band colors. * first_band_color takes priority over second_band_color. * row_properties takes priority over column_properties. For example, the first row color takes priority over the first column color, but the first column color takes priority over the second row color. Similarly, the row header takes priority over the column header in the top left cell, but the column header takes priority over the first row color if the row header is not set.
@@ -282,28 +284,28 @@ pub struct BandedRange {
 pub struct BandingProperties {
     /// The first color that is alternating. (Required) Deprecated: Use first_band_color_style.
     #[serde(default, rename = "firstBandColor")]
-    pub first_band_color: Option<Color>,
+    pub first_band_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The first color that is alternating. (Required) If first_band_color is also set, this field takes precedence.
     #[serde(default, rename = "firstBandColorStyle")]
-    pub first_band_color_style: Option<ColorStyle>,
+    pub first_band_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The color of the last row or column. If this field is not set, the last row or column is filled with either first_band_color or second_band_color, depending on the color of the previous row or column. Deprecated: Use footer_color_style.
     #[serde(default, rename = "footerColor")]
-    pub footer_color: Option<Color>,
+    pub footer_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the last row or column. If this field is not set, the last row or column is filled with either first_band_color or second_band_color, depending on the color of the previous row or column. If footer_color is also set, this field takes precedence.
     #[serde(default, rename = "footerColorStyle")]
-    pub footer_color_style: Option<ColorStyle>,
+    pub footer_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The color of the first row or column. If this field is set, the first row or column is filled with this color and the colors alternate between first_band_color and second_band_color starting from the second row or column. Otherwise, the first row or column is filled with first_band_color and the colors proceed to alternate as they normally would. Deprecated: Use header_color_style.
     #[serde(default, rename = "headerColor")]
-    pub header_color: Option<Color>,
+    pub header_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the first row or column. If this field is set, the first row or column is filled with this color and the colors alternate between first_band_color and second_band_color starting from the second row or column. Otherwise, the first row or column is filled with first_band_color and the colors proceed to alternate as they normally would. If header_color is also set, this field takes precedence.
     #[serde(default, rename = "headerColorStyle")]
-    pub header_color_style: Option<ColorStyle>,
+    pub header_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The second color that is alternating. (Required) Deprecated: Use second_band_color_style.
     #[serde(default, rename = "secondBandColor")]
-    pub second_band_color: Option<Color>,
+    pub second_band_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The second color that is alternating. (Required) If second_band_color is also set, this field takes precedence.
     #[serde(default, rename = "secondBandColorStyle")]
-    pub second_band_color_style: Option<ColorStyle>,
+    pub second_band_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
 }
 
 /// Formatting options for baseline value.
@@ -311,28 +313,28 @@ pub struct BandingProperties {
 pub struct BaselineValueFormat {
     /// The comparison type of key value with baseline value. // TODO: enum values: ["COMPARISON_TYPE_UNDEFINED", "ABSOLUTE_DIFFERENCE", "PERCENTAGE_DIFFERENCE"]
     #[serde(default, rename = "comparisonType")]
-    pub comparison_type: Option<String>,
+    pub comparison_type: ::core::option::Option<String>,
     /// Description which is appended after the baseline value. This field is optional.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Color to be used, in case baseline value represents a negative change for key value. This field is optional. Deprecated: Use negative_color_style.
     #[serde(default, rename = "negativeColor")]
-    pub negative_color: Option<Color>,
+    pub negative_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// Color to be used, in case baseline value represents a negative change for key value. This field is optional. If negative_color is also set, this field takes precedence.
     #[serde(default, rename = "negativeColorStyle")]
-    pub negative_color_style: Option<ColorStyle>,
+    pub negative_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// Specifies the horizontal text positioning of baseline value. This field is optional. If not specified, default positioning is used.
     #[serde(default)]
-    pub position: Option<TextPosition>,
+    pub position: ::core::option::Option<::std::boxed::Box<TextPosition>>,
     /// Color to be used, in case baseline value represents a positive change for key value. This field is optional. Deprecated: Use positive_color_style.
     #[serde(default, rename = "positiveColor")]
-    pub positive_color: Option<Color>,
+    pub positive_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// Color to be used, in case baseline value represents a positive change for key value. This field is optional. If positive_color is also set, this field takes precedence.
     #[serde(default, rename = "positiveColorStyle")]
-    pub positive_color_style: Option<ColorStyle>,
+    pub positive_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// Text formatting options for baseline value. The link field is not supported.
     #[serde(default, rename = "textFormat")]
-    pub text_format: Option<TextFormat>,
+    pub text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
 }
 
 /// An axis of the chart. A chart may not have more than one axis per axis position.
@@ -340,19 +342,19 @@ pub struct BaselineValueFormat {
 pub struct BasicChartAxis {
     /// The format of the title. Only valid if the axis is not associated with the domain. The link field is not supported.
     #[serde(default)]
-    pub format: Option<TextFormat>,
+    pub format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The position of this axis. // TODO: enum values: ["BASIC_CHART_AXIS_POSITION_UNSPECIFIED", "BOTTOM_AXIS", "LEFT_AXIS", "RIGHT_AXIS"]
     #[serde(default)]
-    pub position: Option<String>,
+    pub position: ::core::option::Option<String>,
     /// The title of this axis. If set, this overrides any title inferred from headers of the data.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The axis title text position.
     #[serde(default, rename = "titleTextPosition")]
-    pub title_text_position: Option<TextPosition>,
+    pub title_text_position: ::core::option::Option<::std::boxed::Box<TextPosition>>,
     /// The view window options for this axis.
     #[serde(default, rename = "viewWindowOptions")]
-    pub view_window_options: Option<ChartAxisViewWindowOptions>,
+    pub view_window_options: ::core::option::Option<::std::boxed::Box<ChartAxisViewWindowOptions>>,
 }
 
 /// The domain of a chart. For example, if charting stock prices over time, this would be the date.
@@ -360,10 +362,10 @@ pub struct BasicChartAxis {
 pub struct BasicChartDomain {
     /// The data of the domain. For example, if charting stock prices over time, this is the data representing the dates.
     #[serde(default)]
-    pub domain: Option<ChartData>,
+    pub domain: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// True to reverse the order of the domain values (horizontal axis).
     #[serde(default)]
-    pub reversed: Option<bool>,
+    pub reversed: ::core::option::Option<bool>,
 }
 
 /// A single series of data in a chart. For example, if charting stock prices over time, multiple series may exist, one for the "Open Price", "High Price", "Low Price" and "Close Price".
@@ -371,31 +373,33 @@ pub struct BasicChartDomain {
 pub struct BasicChartSeries {
     /// The color for elements (such as bars, lines, and points) associated with this series. If empty, a default color is used. Deprecated: Use color_style.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color for elements (such as bars, lines, and points) associated with this series. If empty, a default color is used. If color is also set, this field takes precedence.
     #[serde(default, rename = "colorStyle")]
-    pub color_style: Option<ColorStyle>,
+    pub color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// Information about the data labels for this series.
     #[serde(default, rename = "dataLabel")]
-    pub data_label: Option<DataLabel>,
+    pub data_label: ::core::option::Option<::std::boxed::Box<DataLabel>>,
     /// The line style of this series. Valid only if the chartType is AREA, LINE, or SCATTER. COMBO charts are also supported if the series chart type is AREA or LINE.
     #[serde(default, rename = "lineStyle")]
-    pub line_style: Option<LineStyle>,
+    pub line_style: ::core::option::Option<::std::boxed::Box<LineStyle>>,
     /// The style for points associated with this series. Valid only if the chartType is AREA, LINE, or SCATTER. COMBO charts are also supported if the series chart type is AREA, LINE, or SCATTER. If empty, a default point style is used.
     #[serde(default, rename = "pointStyle")]
-    pub point_style: Option<PointStyle>,
+    pub point_style: ::core::option::Option<::std::boxed::Box<PointStyle>>,
     /// The data being visualized in this chart series.
     #[serde(default)]
-    pub series: Option<ChartData>,
+    pub series: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// Style override settings for series data points.
     #[serde(default, rename = "styleOverrides")]
-    pub style_overrides: Option<Vec<BasicSeriesDataPointStyleOverride>>,
+    pub style_overrides: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<BasicSeriesDataPointStyleOverride>>,
+    >,
     /// The minor axis that will specify the range of values for this series. For example, if charting stocks over time, the "Volume" series may want to be pinned to the right with the prices pinned to the left, because the scale of trading volume is different than the scale of prices. It is an error to specify an axis that isn''t a valid minor axis for the chart''s type. // TODO: enum values: ["BASIC_CHART_AXIS_POSITION_UNSPECIFIED", "BOTTOM_AXIS", "LEFT_AXIS", "RIGHT_AXIS"]
     #[serde(default, rename = "targetAxis")]
-    pub target_axis: Option<String>,
+    pub target_axis: ::core::option::Option<String>,
     /// The type of this series. Valid only if the chartType is COMBO. Different types will change the way the series is visualized. Only LINE, AREA, and COLUMN are supported. // TODO: enum values: ["BASIC_CHART_TYPE_UNSPECIFIED", "BAR", "LINE", "AREA", "COLUMN", "SCATTER", "COMBO", "STEPPED_AREA"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The specification for a basic chart. See BasicChartType for the list of charts this supports.
@@ -403,40 +407,40 @@ pub struct BasicChartSeries {
 pub struct BasicChartSpec {
     /// The axis on the chart.
     #[serde(default)]
-    pub axis: Option<Vec<BasicChartAxis>>,
+    pub axis: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BasicChartAxis>>>,
     /// The type of the chart. // TODO: enum values: ["BASIC_CHART_TYPE_UNSPECIFIED", "BAR", "LINE", "AREA", "COLUMN", "SCATTER", "COMBO", "STEPPED_AREA"]
     #[serde(default, rename = "chartType")]
-    pub chart_type: Option<String>,
+    pub chart_type: ::core::option::Option<String>,
     /// The behavior of tooltips and data highlighting when hovering on data and chart area. // TODO: enum values: ["BASIC_CHART_COMPARE_MODE_UNSPECIFIED", "DATUM", "CATEGORY"]
     #[serde(default, rename = "compareMode")]
-    pub compare_mode: Option<String>,
+    pub compare_mode: ::core::option::Option<String>,
     /// The domain of data this is charting. Only a single domain is supported.
     #[serde(default)]
-    pub domains: Option<Vec<BasicChartDomain>>,
+    pub domains: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BasicChartDomain>>>,
     /// The number of rows or columns in the data that are "headers". If not set, Google Sheets will guess how many rows are headers based on the data. (Note that BasicChartAxis.title may override the axis title inferred from the header values.)
     #[serde(default, rename = "headerCount")]
-    pub header_count: Option<i32>,
+    pub header_count: ::core::option::Option<i32>,
     /// If some values in a series are missing, gaps may appear in the chart (e.g, segments of lines in a line chart will be missing). To eliminate these gaps set this to true. Applies to Line, Area, and Combo charts.
     #[serde(default, rename = "interpolateNulls")]
-    pub interpolate_nulls: Option<bool>,
+    pub interpolate_nulls: ::core::option::Option<bool>,
     /// The position of the chart legend. // TODO: enum values: ["BASIC_CHART_LEGEND_POSITION_UNSPECIFIED", "BOTTOM_LEGEND", "LEFT_LEGEND", "RIGHT_LEGEND", "TOP_LEGEND", "NO_LEGEND"]
     #[serde(default, rename = "legendPosition")]
-    pub legend_position: Option<String>,
+    pub legend_position: ::core::option::Option<String>,
     /// Gets whether all lines should be rendered smooth or straight by default. Applies to Line charts.
     #[serde(default, rename = "lineSmoothing")]
-    pub line_smoothing: Option<bool>,
+    pub line_smoothing: ::core::option::Option<bool>,
     /// The data this chart is visualizing.
     #[serde(default)]
-    pub series: Option<Vec<BasicChartSeries>>,
+    pub series: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BasicChartSeries>>>,
     /// The stacked type for charts that support vertical stacking. Applies to Area, Bar, Column, Combo, and Stepped Area charts. // TODO: enum values: ["BASIC_CHART_STACKED_TYPE_UNSPECIFIED", "NOT_STACKED", "STACKED", "PERCENT_STACKED"]
     #[serde(default, rename = "stackedType")]
-    pub stacked_type: Option<String>,
+    pub stacked_type: ::core::option::Option<String>,
     /// True to make the chart 3D. Applies to Bar and Column charts.
     #[serde(default, rename = "threeDimensional")]
-    pub three_dimensional: Option<bool>,
+    pub three_dimensional: ::core::option::Option<bool>,
     /// Controls whether to display additional data labels on stacked charts which sum the total value of all stacked values at each value along the domain axis. These data labels can only be set when chart_type is one of AREA, BAR, COLUMN, COMBO or STEPPED_AREA and stacked_type is either STACKED or PERCENT_STACKED. In addition, for COMBO, this will only be supported if there is only one type of stackable series type or one type has more series than the others and each of the other types have no more than one series. For example, if a chart has two stacked bar series and one area series, the total data labels will be supported. If it has three bar series and two area series, total data labels are not allowed. Neither CUSTOM nor placement can be set on the total_data_label.
     #[serde(default, rename = "totalDataLabel")]
-    pub total_data_label: Option<DataLabel>,
+    pub total_data_label: ::core::option::Option<::std::boxed::Box<DataLabel>>,
 }
 
 /// The default filter associated with a sheet. For more information, see [Manage data visibility with filters](https://developers.google.com/workspace/sheets/api/guides/filters).
@@ -444,19 +448,19 @@ pub struct BasicChartSpec {
 pub struct BasicFilter {
     /// The criteria for showing/hiding values per column. The map''s key is the column index, and the value is the criteria for that column. This field is deprecated in favor of filter_specs.
     #[serde(default)]
-    pub criteria: Option<serde_json::Value>,
+    pub criteria: ::core::option::Option<serde_json::Value>,
     /// The filter criteria per column. Both criteria and filter_specs are populated in responses. If both fields are specified in an update request, this field takes precedence.
     #[serde(default, rename = "filterSpecs")]
-    pub filter_specs: Option<Vec<FilterSpec>>,
+    pub filter_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterSpec>>>,
     /// The range the filter covers.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The sort order per column. Later specifications are used when values are equal in the earlier specifications.
     #[serde(default, rename = "sortSpecs")]
-    pub sort_specs: Option<Vec<SortSpec>>,
+    pub sort_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SortSpec>>>,
     /// The table this filter is backed by, if any. When writing, only one of range or table_id may be set.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// Style override settings for a single series data point.
@@ -464,16 +468,16 @@ pub struct BasicFilter {
 pub struct BasicSeriesDataPointStyleOverride {
     /// Color of the series data point. If empty, the series default is used. Deprecated: Use color_style.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// Color of the series data point. If empty, the series default is used. If color is also set, this field takes precedence.
     #[serde(default, rename = "colorStyle")]
-    pub color_style: Option<ColorStyle>,
+    pub color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The zero-based index of the series data point.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// Point style of the series data point. Valid only if the chartType is AREA, LINE, or SCATTER. COMBO charts are also supported if the series chart type is AREA, LINE, or SCATTER. If empty, the series default is used.
     #[serde(default, rename = "pointStyle")]
-    pub point_style: Option<PointStyle>,
+    pub point_style: ::core::option::Option<::std::boxed::Box<PointStyle>>,
 }
 
 /// The request for clearing more than one range selected by a DataFilter in a spreadsheet.
@@ -481,7 +485,7 @@ pub struct BasicSeriesDataPointStyleOverride {
 pub struct BatchClearValuesByDataFilterRequest {
     /// The DataFilters used to determine which ranges to clear.
     #[serde(default, rename = "dataFilters")]
-    pub data_filters: Option<Vec<DataFilter>>,
+    pub data_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilter>>>,
 }
 
 /// The response when clearing a range of values selected with DataFilters in a spreadsheet.
@@ -489,10 +493,10 @@ pub struct BatchClearValuesByDataFilterRequest {
 pub struct BatchClearValuesByDataFilterResponse {
     /// The ranges that were cleared, in [A1 notation](https://developers.google.com/workspace/sheets/api/guides/concepts#cell). If the requests are for an unbounded range or a range larger than the bounds of the sheet, this is the actual ranges that were cleared, bounded to the sheet''s limits.
     #[serde(default, rename = "clearedRanges")]
-    pub cleared_ranges: Option<Vec<String>>,
+    pub cleared_ranges: ::core::option::Option<::std::vec::Vec<String>>,
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
 }
 
 /// The request for clearing more than one range of values in a spreadsheet.
@@ -500,7 +504,7 @@ pub struct BatchClearValuesByDataFilterResponse {
 pub struct BatchClearValuesRequest {
     /// The ranges to clear, in [A1 notation or R1C1 notation](https://developers.google.com/workspace/sheets/api/guides/concepts#cell).
     #[serde(default)]
-    pub ranges: Option<Vec<String>>,
+    pub ranges: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response when clearing a range of values in a spreadsheet.
@@ -508,10 +512,10 @@ pub struct BatchClearValuesRequest {
 pub struct BatchClearValuesResponse {
     /// The ranges that were cleared, in A1 notation. If the requests are for an unbounded range or a range larger than the bounds of the sheet, this is the actual ranges that were cleared, bounded to the sheet''s limits.
     #[serde(default, rename = "clearedRanges")]
-    pub cleared_ranges: Option<Vec<String>>,
+    pub cleared_ranges: ::core::option::Option<::std::vec::Vec<String>>,
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
 }
 
 /// The request for retrieving a range of values in a spreadsheet selected by a set of DataFilters.
@@ -519,16 +523,16 @@ pub struct BatchClearValuesResponse {
 pub struct BatchGetValuesByDataFilterRequest {
     /// The data filters used to match the ranges of values to retrieve. Ranges that match any of the specified data filters are included in the response.
     #[serde(default, rename = "dataFilters")]
-    pub data_filters: Option<Vec<DataFilter>>,
+    pub data_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilter>>>,
     /// How dates, times, and durations should be represented in the output. This is ignored if value_render_option is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER. // TODO: enum values: ["SERIAL_NUMBER", "FORMATTED_STRING"]
     #[serde(default, rename = "dateTimeRenderOption")]
-    pub date_time_render_option: Option<String>,
+    pub date_time_render_option: ::core::option::Option<String>,
     /// The major dimension that results should use. For example, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then a request that selects that range and sets majorDimension=ROWS returns [[1,2],[3,4]], whereas a request that sets majorDimension=COLUMNS returns [[1,3],[2,4]]. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default, rename = "majorDimension")]
-    pub major_dimension: Option<String>,
+    pub major_dimension: ::core::option::Option<String>,
     /// How values should be represented in the output. The default render option is FORMATTED_VALUE. // TODO: enum values: ["FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"]
     #[serde(default, rename = "valueRenderOption")]
-    pub value_render_option: Option<String>,
+    pub value_render_option: ::core::option::Option<String>,
 }
 
 /// The response when retrieving more than one range of values in a spreadsheet selected by DataFilters.
@@ -536,10 +540,10 @@ pub struct BatchGetValuesByDataFilterRequest {
 pub struct BatchGetValuesByDataFilterResponse {
     /// The ID of the spreadsheet the data was retrieved from.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The requested values with the list of data filters that matched them.
     #[serde(default, rename = "valueRanges")]
-    pub value_ranges: Option<Vec<MatchedValueRange>>,
+    pub value_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MatchedValueRange>>>,
 }
 
 /// The response when retrieving more than one range of values in a spreadsheet.
@@ -547,10 +551,10 @@ pub struct BatchGetValuesByDataFilterResponse {
 pub struct BatchGetValuesResponse {
     /// The ID of the spreadsheet the data was retrieved from.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The requested values. The order of the ValueRanges is the same as the order of the requested ranges.
     #[serde(default, rename = "valueRanges")]
-    pub value_ranges: Option<Vec<ValueRange>>,
+    pub value_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueRange>>>,
 }
 
 /// The request for updating any aspect of a spreadsheet.
@@ -558,16 +562,16 @@ pub struct BatchGetValuesResponse {
 pub struct BatchUpdateSpreadsheetRequest {
     /// Determines if the update response should include the spreadsheet resource.
     #[serde(default, rename = "includeSpreadsheetInResponse")]
-    pub include_spreadsheet_in_response: Option<bool>,
+    pub include_spreadsheet_in_response: ::core::option::Option<bool>,
     /// A list of updates to apply to the spreadsheet. Requests will be applied in the order they are specified. If any request is not valid, no requests will be applied.
     #[serde(default)]
-    pub requests: Option<Vec<Request>>,
+    pub requests: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Request>>>,
     /// True if grid data should be returned. Meaningful only if include_spreadsheet_in_response is ''true''. This parameter is ignored if a field mask was set in the request.
     #[serde(default, rename = "responseIncludeGridData")]
-    pub response_include_grid_data: Option<bool>,
+    pub response_include_grid_data: ::core::option::Option<bool>,
     /// Limits the ranges included in the response spreadsheet. Meaningful only if include_spreadsheet_in_response is ''true''.
     #[serde(default, rename = "responseRanges")]
-    pub response_ranges: Option<Vec<String>>,
+    pub response_ranges: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The reply for batch updating a spreadsheet.
@@ -575,13 +579,13 @@ pub struct BatchUpdateSpreadsheetRequest {
 pub struct BatchUpdateSpreadsheetResponse {
     /// The reply of the updates. This maps 1:1 with the updates, although replies to some requests may be empty.
     #[serde(default)]
-    pub replies: Option<Vec<Response>>,
+    pub replies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Response>>>,
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The spreadsheet after updates were applied. This is only set if BatchUpdateSpreadsheetRequest.include_spreadsheet_in_response is true.
     #[serde(default, rename = "updatedSpreadsheet")]
-    pub updated_spreadsheet: Option<Spreadsheet>,
+    pub updated_spreadsheet: ::core::option::Option<::std::boxed::Box<Spreadsheet>>,
 }
 
 /// The request for updating more than one range of values in a spreadsheet.
@@ -589,19 +593,19 @@ pub struct BatchUpdateSpreadsheetResponse {
 pub struct BatchUpdateValuesByDataFilterRequest {
     /// The new values to apply to the spreadsheet. If more than one range is matched by the specified DataFilter the specified values are applied to all of those ranges.
     #[serde(default)]
-    pub data: Option<Vec<DataFilterValueRange>>,
+    pub data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilterValueRange>>>,
     /// Determines if the update response should include the values of the cells that were updated. By default, responses do not include the updated values. The updatedData field within each of the BatchUpdateValuesResponse.responses contains the updated values. If the range to write was larger than the range actually written, the response includes all values in the requested range (excluding trailing empty rows and columns).
     #[serde(default, rename = "includeValuesInResponse")]
-    pub include_values_in_response: Option<bool>,
+    pub include_values_in_response: ::core::option::Option<bool>,
     /// Determines how dates, times, and durations in the response should be rendered. This is ignored if response_value_render_option is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER. // TODO: enum values: ["SERIAL_NUMBER", "FORMATTED_STRING"]
     #[serde(default, rename = "responseDateTimeRenderOption")]
-    pub response_date_time_render_option: Option<String>,
+    pub response_date_time_render_option: ::core::option::Option<String>,
     /// Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE. // TODO: enum values: ["FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"]
     #[serde(default, rename = "responseValueRenderOption")]
-    pub response_value_render_option: Option<String>,
+    pub response_value_render_option: ::core::option::Option<String>,
     /// How the input data should be interpreted. // TODO: enum values: ["INPUT_VALUE_OPTION_UNSPECIFIED", "RAW", "USER_ENTERED"]
     #[serde(default, rename = "valueInputOption")]
-    pub value_input_option: Option<String>,
+    pub value_input_option: ::core::option::Option<String>,
 }
 
 /// The response when updating a range of values in a spreadsheet.
@@ -609,22 +613,24 @@ pub struct BatchUpdateValuesByDataFilterRequest {
 pub struct BatchUpdateValuesByDataFilterResponse {
     /// The response for each range updated.
     #[serde(default)]
-    pub responses: Option<Vec<UpdateValuesByDataFilterResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<UpdateValuesByDataFilterResponse>>,
+    >,
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The total number of cells updated.
     #[serde(default, rename = "totalUpdatedCells")]
-    pub total_updated_cells: Option<i32>,
+    pub total_updated_cells: ::core::option::Option<i32>,
     /// The total number of columns where at least one cell in the column was updated.
     #[serde(default, rename = "totalUpdatedColumns")]
-    pub total_updated_columns: Option<i32>,
+    pub total_updated_columns: ::core::option::Option<i32>,
     /// The total number of rows where at least one cell in the row was updated.
     #[serde(default, rename = "totalUpdatedRows")]
-    pub total_updated_rows: Option<i32>,
+    pub total_updated_rows: ::core::option::Option<i32>,
     /// The total number of sheets where at least one cell in the sheet was updated.
     #[serde(default, rename = "totalUpdatedSheets")]
-    pub total_updated_sheets: Option<i32>,
+    pub total_updated_sheets: ::core::option::Option<i32>,
 }
 
 /// The request for updating more than one range of values in a spreadsheet.
@@ -632,19 +638,19 @@ pub struct BatchUpdateValuesByDataFilterResponse {
 pub struct BatchUpdateValuesRequest {
     /// The new values to apply to the spreadsheet.
     #[serde(default)]
-    pub data: Option<Vec<ValueRange>>,
+    pub data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueRange>>>,
     /// Determines if the update response should include the values of the cells that were updated. By default, responses do not include the updated values. The updatedData field within each of the BatchUpdateValuesResponse.responses contains the updated values. If the range to write was larger than the range actually written, the response includes all values in the requested range (excluding trailing empty rows and columns).
     #[serde(default, rename = "includeValuesInResponse")]
-    pub include_values_in_response: Option<bool>,
+    pub include_values_in_response: ::core::option::Option<bool>,
     /// Determines how dates, times, and durations in the response should be rendered. This is ignored if response_value_render_option is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER. // TODO: enum values: ["SERIAL_NUMBER", "FORMATTED_STRING"]
     #[serde(default, rename = "responseDateTimeRenderOption")]
-    pub response_date_time_render_option: Option<String>,
+    pub response_date_time_render_option: ::core::option::Option<String>,
     /// Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE. // TODO: enum values: ["FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"]
     #[serde(default, rename = "responseValueRenderOption")]
-    pub response_value_render_option: Option<String>,
+    pub response_value_render_option: ::core::option::Option<String>,
     /// How the input data should be interpreted. // TODO: enum values: ["INPUT_VALUE_OPTION_UNSPECIFIED", "RAW", "USER_ENTERED"]
     #[serde(default, rename = "valueInputOption")]
-    pub value_input_option: Option<String>,
+    pub value_input_option: ::core::option::Option<String>,
 }
 
 /// The response when updating a range of values in a spreadsheet.
@@ -652,22 +658,22 @@ pub struct BatchUpdateValuesRequest {
 pub struct BatchUpdateValuesResponse {
     /// One UpdateValuesResponse per requested range, in the same order as the requests appeared.
     #[serde(default)]
-    pub responses: Option<Vec<UpdateValuesResponse>>,
+    pub responses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpdateValuesResponse>>>,
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The total number of cells updated.
     #[serde(default, rename = "totalUpdatedCells")]
-    pub total_updated_cells: Option<i32>,
+    pub total_updated_cells: ::core::option::Option<i32>,
     /// The total number of columns where at least one cell in the column was updated.
     #[serde(default, rename = "totalUpdatedColumns")]
-    pub total_updated_columns: Option<i32>,
+    pub total_updated_columns: ::core::option::Option<i32>,
     /// The total number of rows where at least one cell in the row was updated.
     #[serde(default, rename = "totalUpdatedRows")]
-    pub total_updated_rows: Option<i32>,
+    pub total_updated_rows: ::core::option::Option<i32>,
     /// The total number of sheets where at least one cell in the sheet was updated.
     #[serde(default, rename = "totalUpdatedSheets")]
-    pub total_updated_sheets: Option<i32>,
+    pub total_updated_sheets: ::core::option::Option<i32>,
 }
 
 /// The specification of a BigQuery data source that''s connected to a sheet.
@@ -675,13 +681,13 @@ pub struct BatchUpdateValuesResponse {
 pub struct BigQueryDataSourceSpec {
     /// The ID of a BigQuery enabled Google Cloud project with a billing account attached. For any queries executed against the data source, the project is charged.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// A BigQueryQuerySpec.
     #[serde(default, rename = "querySpec")]
-    pub query_spec: Option<BigQueryQuerySpec>,
+    pub query_spec: ::core::option::Option<::std::boxed::Box<BigQueryQuerySpec>>,
     /// A BigQueryTableSpec.
     #[serde(default, rename = "tableSpec")]
-    pub table_spec: Option<BigQueryTableSpec>,
+    pub table_spec: ::core::option::Option<::std::boxed::Box<BigQueryTableSpec>>,
 }
 
 /// Specifies a custom BigQuery query.
@@ -689,7 +695,7 @@ pub struct BigQueryDataSourceSpec {
 pub struct BigQueryQuerySpec {
     /// The raw query string.
     #[serde(default, rename = "rawQuery")]
-    pub raw_query: Option<String>,
+    pub raw_query: ::core::option::Option<String>,
 }
 
 /// Specifies a BigQuery table definition. Only [native tables](https://cloud.google.com/bigquery/docs/tables-intro) are allowed.
@@ -697,13 +703,13 @@ pub struct BigQueryQuerySpec {
 pub struct BigQueryTableSpec {
     /// The BigQuery dataset id.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     /// The BigQuery table id.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
     /// The ID of a BigQuery project the table belongs to. If not specified, the project_id is assumed.
     #[serde(default, rename = "tableProjectId")]
-    pub table_project_id: Option<String>,
+    pub table_project_id: ::core::option::Option<String>,
 }
 
 /// A condition that can evaluate to true or false. BooleanConditions are used by conditional formatting, data validation, and the criteria in filters.
@@ -711,10 +717,10 @@ pub struct BigQueryTableSpec {
 pub struct BooleanCondition {
     /// The type of condition. // TODO: enum values: ["CONDITION_TYPE_UNSPECIFIED", "NUMBER_GREATER", "NUMBER_GREATER_THAN_EQ", "NUMBER_LESS", "NUMBER_LESS_THAN_EQ", "NUMBER_EQ", "NUMBER_NOT_EQ", "NUMBER_BETWEEN", "NUMBER_NOT_BETWEEN", "TEXT_CONTAINS", "TEXT_NOT_CONTAINS", "TEXT_STARTS_WITH", "TEXT_ENDS_WITH", "TEXT_EQ", "TEXT_IS_EMAIL", "TEXT_IS_URL", "DATE_EQ", "DATE_BEFORE", "DATE_AFTER", "DATE_ON_OR_BEFORE", "DATE_ON_OR_AFTER", "DATE_BETWEEN", "DATE_NOT_BETWEEN", "DATE_IS_VALID", "ONE_OF_RANGE", "ONE_OF_LIST", "BLANK", "NOT_BLANK", "CUSTOM_FORMULA", "BOOLEAN", "TEXT_NOT_EQ", "DATE_NOT_EQ", "FILTER_EXPRESSION"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The values of the condition. The number of supported values depends on the condition type. Some support zero values, others one or two values, and ConditionType.ONE_OF_LIST supports an arbitrary number of values.
     #[serde(default)]
-    pub values: Option<Vec<ConditionValue>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConditionValue>>>,
 }
 
 /// A rule that may or may not match, depending on the condition.
@@ -722,10 +728,10 @@ pub struct BooleanCondition {
 pub struct BooleanRule {
     /// The condition of the rule. If the condition evaluates to true, the format is applied.
     #[serde(default)]
-    pub condition: Option<BooleanCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<BooleanCondition>>,
     /// The format to apply. Conditional formatting can only apply a subset of formatting: bold, italic, strikethrough, foreground color and, background color.
     #[serde(default)]
-    pub format: Option<CellFormat>,
+    pub format: ::core::option::Option<::std::boxed::Box<CellFormat>>,
 }
 
 /// A border along a cell.
@@ -733,16 +739,16 @@ pub struct BooleanRule {
 pub struct Border {
     /// The color of the border. Deprecated: Use color_style.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the border. If color is also set, this field takes precedence.
     #[serde(default, rename = "colorStyle")]
-    pub color_style: Option<ColorStyle>,
+    pub color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The style of the border. // TODO: enum values: ["STYLE_UNSPECIFIED", "DOTTED", "DASHED", "SOLID", "SOLID_MEDIUM", "SOLID_THICK", "NONE", "DOUBLE"]
     #[serde(default)]
-    pub style: Option<String>,
+    pub style: ::core::option::Option<String>,
     /// The width of the border, in pixels. Deprecated; the width is determined by the "style" field.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// The borders of the cell.
@@ -750,16 +756,16 @@ pub struct Border {
 pub struct Borders {
     /// The bottom border of the cell.
     #[serde(default)]
-    pub bottom: Option<Border>,
+    pub bottom: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The left border of the cell.
     #[serde(default)]
-    pub left: Option<Border>,
+    pub left: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The right border of the cell.
     #[serde(default)]
-    pub right: Option<Border>,
+    pub right: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The top border of the cell.
     #[serde(default)]
-    pub top: Option<Border>,
+    pub top: ::core::option::Option<::std::boxed::Box<Border>>,
 }
 
 /// A bubble chart.
@@ -767,40 +773,40 @@ pub struct Borders {
 pub struct BubbleChartSpec {
     /// The bubble border color. Deprecated: Use bubble_border_color_style.
     #[serde(default, rename = "bubbleBorderColor")]
-    pub bubble_border_color: Option<Color>,
+    pub bubble_border_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The bubble border color. If bubble_border_color is also set, this field takes precedence.
     #[serde(default, rename = "bubbleBorderColorStyle")]
-    pub bubble_border_color_style: Option<ColorStyle>,
+    pub bubble_border_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The data containing the bubble labels. These do not need to be unique.
     #[serde(default, rename = "bubbleLabels")]
-    pub bubble_labels: Option<ChartData>,
+    pub bubble_labels: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The max radius size of the bubbles, in pixels. If specified, the field must be a positive value.
     #[serde(default, rename = "bubbleMaxRadiusSize")]
-    pub bubble_max_radius_size: Option<i32>,
+    pub bubble_max_radius_size: ::core::option::Option<i32>,
     /// The minimum radius size of the bubbles, in pixels. If specific, the field must be a positive value.
     #[serde(default, rename = "bubbleMinRadiusSize")]
-    pub bubble_min_radius_size: Option<i32>,
+    pub bubble_min_radius_size: ::core::option::Option<i32>,
     /// The opacity of the bubbles between 0 and 1.0. 0 is fully transparent and 1 is fully opaque.
     #[serde(default, rename = "bubbleOpacity")]
-    pub bubble_opacity: Option<f32>,
+    pub bubble_opacity: ::core::option::Option<f32>,
     /// The data containing the bubble sizes. Bubble sizes are used to draw the bubbles at different sizes relative to each other. If specified, group_ids must also be specified. This field is optional.
     #[serde(default, rename = "bubbleSizes")]
-    pub bubble_sizes: Option<ChartData>,
+    pub bubble_sizes: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The format of the text inside the bubbles. Strikethrough, underline, and link are not supported.
     #[serde(default, rename = "bubbleTextStyle")]
-    pub bubble_text_style: Option<TextFormat>,
+    pub bubble_text_style: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The data containing the bubble x-values. These values locate the bubbles in the chart horizontally.
     #[serde(default)]
-    pub domain: Option<ChartData>,
+    pub domain: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The data containing the bubble group IDs. All bubbles with the same group ID are drawn in the same color. If bubble_sizes is specified then this field must also be specified but may contain blank values. This field is optional.
     #[serde(default, rename = "groupIds")]
-    pub group_ids: Option<ChartData>,
+    pub group_ids: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// Where the legend of the chart should be drawn. // TODO: enum values: ["BUBBLE_CHART_LEGEND_POSITION_UNSPECIFIED", "BOTTOM_LEGEND", "LEFT_LEGEND", "RIGHT_LEGEND", "TOP_LEGEND", "NO_LEGEND", "INSIDE_LEGEND"]
     #[serde(default, rename = "legendPosition")]
-    pub legend_position: Option<String>,
+    pub legend_position: ::core::option::Option<String>,
     /// The data containing the bubble y-values. These values locate the bubbles in the chart vertically.
     #[serde(default)]
-    pub series: Option<ChartData>,
+    pub series: ::core::option::Option<::std::boxed::Box<ChartData>>,
 }
 
 /// Cancels one or multiple refreshes of data source objects in the spreadsheet by the specified references. The request requires an additional bigquery.readonly OAuth scope if you are cancelling a refresh on a BigQuery data source.
@@ -808,13 +814,13 @@ pub struct BubbleChartSpec {
 pub struct CancelDataSourceRefreshRequest {
     /// Reference to a DataSource. If specified, cancels all associated data source object refreshes for this data source.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Cancels all existing data source object refreshes for all data sources in the spreadsheet.
     #[serde(default, rename = "isAll")]
-    pub is_all: Option<bool>,
+    pub is_all: ::core::option::Option<bool>,
     /// References to data source objects whose refreshes are to be cancelled.
     #[serde(default)]
-    pub references: Option<DataSourceObjectReferences>,
+    pub references: ::core::option::Option<::std::boxed::Box<DataSourceObjectReferences>>,
 }
 
 /// The response from cancelling one or multiple data source object refreshes.
@@ -822,7 +828,8 @@ pub struct CancelDataSourceRefreshRequest {
 pub struct CancelDataSourceRefreshResponse {
     /// The cancellation statuses of refreshes of all data source objects specified in the request. If is_all is specified, the field contains only those in failure status. Refreshing and canceling refresh the same data source object is also not allowed in the same batchUpdate.
     #[serde(default)]
-    pub statuses: Option<Vec<CancelDataSourceRefreshStatus>>,
+    pub statuses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CancelDataSourceRefreshStatus>>>,
 }
 
 /// The status of cancelling a single data source object refresh.
@@ -830,10 +837,11 @@ pub struct CancelDataSourceRefreshResponse {
 pub struct CancelDataSourceRefreshStatus {
     /// Reference to the data source object whose refresh is being cancelled.
     #[serde(default)]
-    pub reference: Option<DataSourceObjectReference>,
+    pub reference: ::core::option::Option<::std::boxed::Box<DataSourceObjectReference>>,
     /// The cancellation status.
     #[serde(default, rename = "refreshCancellationStatus")]
-    pub refresh_cancellation_status: Option<RefreshCancellationStatus>,
+    pub refresh_cancellation_status:
+        ::core::option::Option<::std::boxed::Box<RefreshCancellationStatus>>,
 }
 
 /// A candlestick chart.
@@ -841,10 +849,10 @@ pub struct CancelDataSourceRefreshStatus {
 pub struct CandlestickChartSpec {
     /// The Candlestick chart data. Only one CandlestickData is supported.
     #[serde(default)]
-    pub data: Option<Vec<CandlestickData>>,
+    pub data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CandlestickData>>>,
     /// The domain data (horizontal axis) for the candlestick chart. String data will be treated as discrete labels, other data will be treated as continuous values.
     #[serde(default)]
-    pub domain: Option<CandlestickDomain>,
+    pub domain: ::core::option::Option<::std::boxed::Box<CandlestickDomain>>,
 }
 
 /// The Candlestick chart data, each containing the low, open, close, and high values for a series.
@@ -852,16 +860,16 @@ pub struct CandlestickChartSpec {
 pub struct CandlestickData {
     /// The range data (vertical axis) for the close/final value for each candle. This is the top of the candle body. If greater than the open value the candle will be filled. Otherwise the candle will be hollow.
     #[serde(default, rename = "closeSeries")]
-    pub close_series: Option<CandlestickSeries>,
+    pub close_series: ::core::option::Option<::std::boxed::Box<CandlestickSeries>>,
     /// The range data (vertical axis) for the high/maximum value for each candle. This is the top of the candle''s center line.
     #[serde(default, rename = "highSeries")]
-    pub high_series: Option<CandlestickSeries>,
+    pub high_series: ::core::option::Option<::std::boxed::Box<CandlestickSeries>>,
     /// The range data (vertical axis) for the low/minimum value for each candle. This is the bottom of the candle''s center line.
     #[serde(default, rename = "lowSeries")]
-    pub low_series: Option<CandlestickSeries>,
+    pub low_series: ::core::option::Option<::std::boxed::Box<CandlestickSeries>>,
     /// The range data (vertical axis) for the open/initial value for each candle. This is the bottom of the candle body. If less than the close value the candle will be filled. Otherwise the candle will be hollow.
     #[serde(default, rename = "openSeries")]
-    pub open_series: Option<CandlestickSeries>,
+    pub open_series: ::core::option::Option<::std::boxed::Box<CandlestickSeries>>,
 }
 
 /// The domain of a CandlestickChart.
@@ -869,10 +877,10 @@ pub struct CandlestickData {
 pub struct CandlestickDomain {
     /// The data of the CandlestickDomain.
     #[serde(default)]
-    pub data: Option<ChartData>,
+    pub data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// True to reverse the order of the domain values (horizontal axis).
     #[serde(default)]
-    pub reversed: Option<bool>,
+    pub reversed: ::core::option::Option<bool>,
 }
 
 /// The series of a CandlestickData.
@@ -880,7 +888,7 @@ pub struct CandlestickDomain {
 pub struct CandlestickSeries {
     /// The data of the CandlestickSeries.
     #[serde(default)]
-    pub data: Option<ChartData>,
+    pub data: ::core::option::Option<::std::boxed::Box<ChartData>>,
 }
 
 /// Data about a specific cell.
@@ -888,43 +896,43 @@ pub struct CandlestickSeries {
 pub struct CellData {
     /// Optional. Runs of chips applied to subsections of the cell. Properties of a run start at a specific index in the text and continue until the next run. When reading, all chipped and non-chipped runs are included. Non-chipped runs will have an empty Chip. When writing, only runs with chips are included. Runs containing chips are of length 1 and are represented in the user-entered text by an “@” placeholder symbol. New runs will overwrite any prior runs. Writing a new user_entered_value will erase previous runs.
     #[serde(default, rename = "chipRuns")]
-    pub chip_runs: Option<Vec<ChipRun>>,
+    pub chip_runs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ChipRun>>>,
     /// Output only. Information about a data source formula on the cell. The field is set if user_entered_value is a formula referencing some DATA_SOURCE sheet, e.g. =SUM(DataSheet!Column).
     #[serde(default, rename = "dataSourceFormula")]
-    pub data_source_formula: Option<DataSourceFormula>,
+    pub data_source_formula: ::core::option::Option<::std::boxed::Box<DataSourceFormula>>,
     /// A data source table anchored at this cell. The size of data source table itself is computed dynamically based on its configuration. Only the first cell of the data source table contains the data source table definition. The other cells will contain the display values of the data source table result in their effective_value fields.
     #[serde(default, rename = "dataSourceTable")]
-    pub data_source_table: Option<DataSourceTable>,
+    pub data_source_table: ::core::option::Option<::std::boxed::Box<DataSourceTable>>,
     /// A data validation rule on the cell, if any. When writing, the new data validation rule will overwrite any prior rule.
     #[serde(default, rename = "dataValidation")]
-    pub data_validation: Option<DataValidationRule>,
+    pub data_validation: ::core::option::Option<::std::boxed::Box<DataValidationRule>>,
     /// The effective format being used by the cell. This includes the results of applying any conditional formatting and, if the cell contains a formula, the computed number format. If the effective format is the default format, effective format will not be written. This field is read-only.
     #[serde(default, rename = "effectiveFormat")]
-    pub effective_format: Option<CellFormat>,
+    pub effective_format: ::core::option::Option<::std::boxed::Box<CellFormat>>,
     /// The effective value of the cell. For cells with formulas, this is the calculated value. For cells with literals, this is the same as the user_entered_value. This field is read-only.
     #[serde(default, rename = "effectiveValue")]
-    pub effective_value: Option<ExtendedValue>,
+    pub effective_value: ::core::option::Option<::std::boxed::Box<ExtendedValue>>,
     /// The formatted value of the cell. This is the value as it''s shown to the user. This field is read-only.
     #[serde(default, rename = "formattedValue")]
-    pub formatted_value: Option<String>,
+    pub formatted_value: ::core::option::Option<String>,
     /// A hyperlink this cell points to, if any. If the cell contains multiple hyperlinks, this field will be empty. This field is read-only. To set it, use a =HYPERLINK formula in the userEnteredValue.formulaValue field. A cell-level link can also be set from the userEnteredFormat.textFormat field. Alternatively, set a hyperlink in the textFormatRun.format.link field that spans the entire cell.
     #[serde(default)]
-    pub hyperlink: Option<String>,
+    pub hyperlink: ::core::option::Option<String>,
     /// Any note on the cell.
     #[serde(default)]
-    pub note: Option<String>,
+    pub note: ::core::option::Option<String>,
     /// A pivot table anchored at this cell. The size of pivot table itself is computed dynamically based on its data, grouping, filters, values, etc. Only the top-left cell of the pivot table contains the pivot table definition. The other cells will contain the calculated values of the results of the pivot in their effective_value fields.
     #[serde(default, rename = "pivotTable")]
-    pub pivot_table: Option<PivotTable>,
+    pub pivot_table: ::core::option::Option<::std::boxed::Box<PivotTable>>,
     /// Runs of rich text applied to subsections of the cell. Runs are only valid on user entered strings, not formulas, bools, or numbers. Properties of a run start at a specific index in the text and continue until the next run. Runs will inherit the properties of the cell unless explicitly changed. When writing, the new runs will overwrite any prior runs. When writing a new user_entered_value, previous runs are erased.
     #[serde(default, rename = "textFormatRuns")]
-    pub text_format_runs: Option<Vec<TextFormatRun>>,
+    pub text_format_runs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextFormatRun>>>,
     /// The format the user entered for the cell. When writing, the new format will be merged with the existing format.
     #[serde(default, rename = "userEnteredFormat")]
-    pub user_entered_format: Option<CellFormat>,
+    pub user_entered_format: ::core::option::Option<::std::boxed::Box<CellFormat>>,
     /// The value the user entered in the cell. e.g., 1234, ''Hello'', or =NOW() Note: Dates, Times and DateTimes are represented as doubles in serial number format.
     #[serde(default, rename = "userEnteredValue")]
-    pub user_entered_value: Option<ExtendedValue>,
+    pub user_entered_value: ::core::option::Option<::std::boxed::Box<ExtendedValue>>,
 }
 
 /// The format of a cell.
@@ -932,40 +940,40 @@ pub struct CellData {
 pub struct CellFormat {
     /// The background color of the cell. Deprecated: Use background_color_style.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: Option<Color>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color of the cell. If background_color is also set, this field takes precedence.
     #[serde(default, rename = "backgroundColorStyle")]
-    pub background_color_style: Option<ColorStyle>,
+    pub background_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The borders of the cell.
     #[serde(default)]
-    pub borders: Option<Borders>,
+    pub borders: ::core::option::Option<::std::boxed::Box<Borders>>,
     /// The horizontal alignment of the value in the cell. // TODO: enum values: ["HORIZONTAL_ALIGN_UNSPECIFIED", "LEFT", "CENTER", "RIGHT"]
     #[serde(default, rename = "horizontalAlignment")]
-    pub horizontal_alignment: Option<String>,
+    pub horizontal_alignment: ::core::option::Option<String>,
     /// If one exists, how a hyperlink should be displayed in the cell. // TODO: enum values: ["HYPERLINK_DISPLAY_TYPE_UNSPECIFIED", "LINKED", "PLAIN_TEXT"]
     #[serde(default, rename = "hyperlinkDisplayType")]
-    pub hyperlink_display_type: Option<String>,
+    pub hyperlink_display_type: ::core::option::Option<String>,
     /// A format describing how number values should be represented to the user.
     #[serde(default, rename = "numberFormat")]
-    pub number_format: Option<NumberFormat>,
+    pub number_format: ::core::option::Option<::std::boxed::Box<NumberFormat>>,
     /// The padding of the cell.
     #[serde(default)]
-    pub padding: Option<Padding>,
+    pub padding: ::core::option::Option<::std::boxed::Box<Padding>>,
     /// The direction of the text in the cell. // TODO: enum values: ["TEXT_DIRECTION_UNSPECIFIED", "LEFT_TO_RIGHT", "RIGHT_TO_LEFT"]
     #[serde(default, rename = "textDirection")]
-    pub text_direction: Option<String>,
+    pub text_direction: ::core::option::Option<String>,
     /// The format of the text in the cell (unless overridden by a format run). Setting a cell-level link here clears the cell''s existing links. Setting the link field in a TextFormatRun takes precedence over the cell-level link.
     #[serde(default, rename = "textFormat")]
-    pub text_format: Option<TextFormat>,
+    pub text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The rotation applied to text in the cell.
     #[serde(default, rename = "textRotation")]
-    pub text_rotation: Option<TextRotation>,
+    pub text_rotation: ::core::option::Option<::std::boxed::Box<TextRotation>>,
     /// The vertical alignment of the value in the cell. // TODO: enum values: ["VERTICAL_ALIGN_UNSPECIFIED", "TOP", "MIDDLE", "BOTTOM"]
     #[serde(default, rename = "verticalAlignment")]
-    pub vertical_alignment: Option<String>,
+    pub vertical_alignment: ::core::option::Option<String>,
     /// The wrap strategy for the value in the cell. // TODO: enum values: ["WRAP_STRATEGY_UNSPECIFIED", "OVERFLOW_CELL", "LEGACY_WRAP", "CLIP", "WRAP"]
     #[serde(default, rename = "wrapStrategy")]
-    pub wrap_strategy: Option<String>,
+    pub wrap_strategy: ::core::option::Option<String>,
 }
 
 /// The options that define a "view window" for a chart (such as the visible values in an axis).
@@ -973,13 +981,13 @@ pub struct CellFormat {
 pub struct ChartAxisViewWindowOptions {
     /// The maximum numeric value to be shown in this view window. If unset, will automatically determine a maximum value that looks good for the data.
     #[serde(default, rename = "viewWindowMax")]
-    pub view_window_max: Option<f64>,
+    pub view_window_max: ::core::option::Option<f64>,
     /// The minimum numeric value to be shown in this view window. If unset, will automatically determine a minimum value that looks good for the data.
     #[serde(default, rename = "viewWindowMin")]
-    pub view_window_min: Option<f64>,
+    pub view_window_min: ::core::option::Option<f64>,
     /// The view window''s mode. // TODO: enum values: ["DEFAULT_VIEW_WINDOW_MODE", "VIEW_WINDOW_MODE_UNSUPPORTED", "EXPLICIT", "PRETTY"]
     #[serde(default, rename = "viewWindowMode")]
-    pub view_window_mode: Option<String>,
+    pub view_window_mode: ::core::option::Option<String>,
 }
 
 /// Custom number formatting options for chart attributes.
@@ -987,10 +995,10 @@ pub struct ChartAxisViewWindowOptions {
 pub struct ChartCustomNumberFormatOptions {
     /// Custom prefix to be prepended to the chart attribute. This field is optional.
     #[serde(default)]
-    pub prefix: Option<String>,
+    pub prefix: ::core::option::Option<String>,
     /// Custom suffix to be appended to the chart attribute. This field is optional.
     #[serde(default)]
-    pub suffix: Option<String>,
+    pub suffix: ::core::option::Option<String>,
 }
 
 /// The data included in a domain or series.
@@ -998,16 +1006,16 @@ pub struct ChartCustomNumberFormatOptions {
 pub struct ChartData {
     /// The aggregation type for the series of a data source chart. Only supported for data source charts. // TODO: enum values: ["CHART_AGGREGATE_TYPE_UNSPECIFIED", "AVERAGE", "COUNT", "MAX", "MEDIAN", "MIN", "SUM"]
     #[serde(default, rename = "aggregateType")]
-    pub aggregate_type: Option<String>,
+    pub aggregate_type: ::core::option::Option<String>,
     /// The reference to the data source column that the data reads from.
     #[serde(default, rename = "columnReference")]
-    pub column_reference: Option<DataSourceColumnReference>,
+    pub column_reference: ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
     /// The rule to group the data by if the ChartData backs the domain of a data source chart. Only supported for data source charts.
     #[serde(default, rename = "groupRule")]
-    pub group_rule: Option<ChartGroupRule>,
+    pub group_rule: ::core::option::Option<::std::boxed::Box<ChartGroupRule>>,
     /// The source ranges of the data.
     #[serde(default, rename = "sourceRange")]
-    pub source_range: Option<ChartSourceRange>,
+    pub source_range: ::core::option::Option<::std::boxed::Box<ChartSourceRange>>,
 }
 
 /// Allows you to organize the date-time values in a source data column into buckets based on selected parts of their date or time values.
@@ -1015,7 +1023,7 @@ pub struct ChartData {
 pub struct ChartDateTimeRule {
     /// The type of date-time grouping to apply. // TODO: enum values: ["CHART_DATE_TIME_RULE_TYPE_UNSPECIFIED", "SECOND", "MINUTE", "HOUR", "HOUR_MINUTE", "HOUR_MINUTE_AMPM", "DAY_OF_WEEK", "DAY_OF_YEAR", "DAY_OF_MONTH", "DAY_MONTH", "MONTH", "QUARTER", "YEAR", "YEAR_MONTH", "YEAR_QUARTER", "YEAR_MONTH_DAY"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An optional setting on the ChartData of the domain of a data source chart that defines buckets for the values in the domain rather than breaking out each individual value. For example, when plotting a data source chart, you can specify a histogram rule on the domain (it should only contain numeric values), grouping its values into buckets. Any values of a chart series that fall into the same bucket are aggregated based on the aggregate_type.
@@ -1023,10 +1031,10 @@ pub struct ChartDateTimeRule {
 pub struct ChartGroupRule {
     /// A ChartDateTimeRule.
     #[serde(default, rename = "dateTimeRule")]
-    pub date_time_rule: Option<ChartDateTimeRule>,
+    pub date_time_rule: ::core::option::Option<::std::boxed::Box<ChartDateTimeRule>>,
     /// A ChartHistogramRule
     #[serde(default, rename = "histogramRule")]
-    pub histogram_rule: Option<ChartHistogramRule>,
+    pub histogram_rule: ::core::option::Option<::std::boxed::Box<ChartHistogramRule>>,
 }
 
 /// Allows you to organize numeric values in a source data column into buckets of constant size.
@@ -1034,13 +1042,13 @@ pub struct ChartGroupRule {
 pub struct ChartHistogramRule {
     /// The size of the buckets that are created. Must be positive.
     #[serde(default, rename = "intervalSize")]
-    pub interval_size: Option<f64>,
+    pub interval_size: ::core::option::Option<f64>,
     /// The maximum value at which items are placed into buckets. Values greater than the maximum are grouped into a single bucket. If omitted, it is determined by the maximum item value.
     #[serde(default, rename = "maxValue")]
-    pub max_value: Option<f64>,
+    pub max_value: ::core::option::Option<f64>,
     /// The minimum value at which items are placed into buckets. Values that are less than the minimum are grouped into a single bucket. If omitted, it is determined by the minimum item value.
     #[serde(default, rename = "minValue")]
-    pub min_value: Option<f64>,
+    pub min_value: ::core::option::Option<f64>,
 }
 
 /// Source ranges for a chart.
@@ -1048,7 +1056,7 @@ pub struct ChartHistogramRule {
 pub struct ChartSourceRange {
     /// The ranges of data for a series or domain. Exactly one dimension must have a length of 1, and all sources in the list must have the same dimension with length 1. The domain (if it exists) & all series must have the same number of source ranges. If using more than one source range, then the source range at a given offset must be in order and contiguous across the domain and series. For example, these are valid configurations: domain sources: A1:A5 series1 sources: B1:B5 series2 sources: D6:D10 domain sources: A1:A5, C10:C12 series1 sources: B1:B5, D10:D12 series2 sources: C1:C5, E10:E12
     #[serde(default)]
-    pub sources: Option<Vec<GridRange>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GridRange>>>,
 }
 
 /// The specifications of a chart.
@@ -1056,76 +1064,77 @@ pub struct ChartSourceRange {
 pub struct ChartSpec {
     /// The alternative text that describes the chart. This is often used for accessibility.
     #[serde(default, rename = "altText")]
-    pub alt_text: Option<String>,
+    pub alt_text: ::core::option::Option<String>,
     /// The background color of the entire chart. Not applicable to Org charts. Deprecated: Use background_color_style.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: Option<Color>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color of the entire chart. Not applicable to Org charts. If background_color is also set, this field takes precedence.
     #[serde(default, rename = "backgroundColorStyle")]
-    pub background_color_style: Option<ColorStyle>,
+    pub background_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// A basic chart specification, can be one of many kinds of charts. See BasicChartType for the list of all charts this supports.
     #[serde(default, rename = "basicChart")]
-    pub basic_chart: Option<BasicChartSpec>,
+    pub basic_chart: ::core::option::Option<::std::boxed::Box<BasicChartSpec>>,
     /// A bubble chart specification.
     #[serde(default, rename = "bubbleChart")]
-    pub bubble_chart: Option<BubbleChartSpec>,
+    pub bubble_chart: ::core::option::Option<::std::boxed::Box<BubbleChartSpec>>,
     /// A candlestick chart specification.
     #[serde(default, rename = "candlestickChart")]
-    pub candlestick_chart: Option<CandlestickChartSpec>,
+    pub candlestick_chart: ::core::option::Option<::std::boxed::Box<CandlestickChartSpec>>,
     /// If present, the field contains data source chart specific properties.
     #[serde(default, rename = "dataSourceChartProperties")]
-    pub data_source_chart_properties: Option<DataSourceChartProperties>,
+    pub data_source_chart_properties:
+        ::core::option::Option<::std::boxed::Box<DataSourceChartProperties>>,
     /// The filters applied to the source data of the chart. Only supported for data source charts.
     #[serde(default, rename = "filterSpecs")]
-    pub filter_specs: Option<Vec<FilterSpec>>,
+    pub filter_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterSpec>>>,
     /// The name of the font to use by default for all chart text (e.g. title, axis labels, legend). If a font is specified for a specific part of the chart it will override this font name.
     #[serde(default, rename = "fontName")]
-    pub font_name: Option<String>,
+    pub font_name: ::core::option::Option<String>,
     /// Determines how the charts will use hidden rows or columns. // TODO: enum values: ["CHART_HIDDEN_DIMENSION_STRATEGY_UNSPECIFIED", "SKIP_HIDDEN_ROWS_AND_COLUMNS", "SKIP_HIDDEN_ROWS", "SKIP_HIDDEN_COLUMNS", "SHOW_ALL"]
     #[serde(default, rename = "hiddenDimensionStrategy")]
-    pub hidden_dimension_strategy: Option<String>,
+    pub hidden_dimension_strategy: ::core::option::Option<String>,
     /// A histogram chart specification.
     #[serde(default, rename = "histogramChart")]
-    pub histogram_chart: Option<HistogramChartSpec>,
+    pub histogram_chart: ::core::option::Option<::std::boxed::Box<HistogramChartSpec>>,
     /// True to make a chart fill the entire space in which it''s rendered with minimum padding. False to use the default padding. (Not applicable to Geo and Org charts.)
     #[serde(default)]
-    pub maximized: Option<bool>,
+    pub maximized: ::core::option::Option<bool>,
     /// An org chart specification.
     #[serde(default, rename = "orgChart")]
-    pub org_chart: Option<OrgChartSpec>,
+    pub org_chart: ::core::option::Option<::std::boxed::Box<OrgChartSpec>>,
     /// A pie chart specification.
     #[serde(default, rename = "pieChart")]
-    pub pie_chart: Option<PieChartSpec>,
+    pub pie_chart: ::core::option::Option<::std::boxed::Box<PieChartSpec>>,
     /// A scorecard chart specification.
     #[serde(default, rename = "scorecardChart")]
-    pub scorecard_chart: Option<ScorecardChartSpec>,
+    pub scorecard_chart: ::core::option::Option<::std::boxed::Box<ScorecardChartSpec>>,
     /// The order to sort the chart data by. Only a single sort spec is supported. Only supported for data source charts.
     #[serde(default, rename = "sortSpecs")]
-    pub sort_specs: Option<Vec<SortSpec>>,
+    pub sort_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SortSpec>>>,
     /// The subtitle of the chart.
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     /// The subtitle text format. Strikethrough, underline, and link are not supported.
     #[serde(default, rename = "subtitleTextFormat")]
-    pub subtitle_text_format: Option<TextFormat>,
+    pub subtitle_text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The subtitle text position. This field is optional.
     #[serde(default, rename = "subtitleTextPosition")]
-    pub subtitle_text_position: Option<TextPosition>,
+    pub subtitle_text_position: ::core::option::Option<::std::boxed::Box<TextPosition>>,
     /// The title of the chart.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The title text format. Strikethrough, underline, and link are not supported.
     #[serde(default, rename = "titleTextFormat")]
-    pub title_text_format: Option<TextFormat>,
+    pub title_text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The title text position. This field is optional.
     #[serde(default, rename = "titleTextPosition")]
-    pub title_text_position: Option<TextPosition>,
+    pub title_text_position: ::core::option::Option<::std::boxed::Box<TextPosition>>,
     /// A treemap chart specification.
     #[serde(default, rename = "treemapChart")]
-    pub treemap_chart: Option<TreemapChartSpec>,
+    pub treemap_chart: ::core::option::Option<::std::boxed::Box<TreemapChartSpec>>,
     /// A waterfall chart specification.
     #[serde(default, rename = "waterfallChart")]
-    pub waterfall_chart: Option<WaterfallChartSpec>,
+    pub waterfall_chart: ::core::option::Option<::std::boxed::Box<WaterfallChartSpec>>,
 }
 
 /// The Smart Chip.
@@ -1133,10 +1142,10 @@ pub struct ChartSpec {
 pub struct Chip {
     /// Properties of a linked person.
     #[serde(default, rename = "personProperties")]
-    pub person_properties: Option<PersonProperties>,
+    pub person_properties: ::core::option::Option<::std::boxed::Box<PersonProperties>>,
     /// Properties of a rich link.
     #[serde(default, rename = "richLinkProperties")]
-    pub rich_link_properties: Option<RichLinkProperties>,
+    pub rich_link_properties: ::core::option::Option<::std::boxed::Box<RichLinkProperties>>,
 }
 
 /// The run of a chip. The chip continues until the start index of the next run.
@@ -1144,10 +1153,10 @@ pub struct Chip {
 pub struct ChipRun {
     /// Optional. The chip of this run.
     #[serde(default)]
-    pub chip: Option<Chip>,
+    pub chip: ::core::option::Option<::std::boxed::Box<Chip>>,
     /// Required. The zero-based character index where this run starts, in UTF-16 code units.
     #[serde(default, rename = "startIndex")]
-    pub start_index: Option<i32>,
+    pub start_index: ::core::option::Option<i32>,
 }
 
 /// Clears the basic filter, if any exists on the sheet.
@@ -1155,7 +1164,7 @@ pub struct ChipRun {
 pub struct ClearBasicFilterRequest {
     /// The sheet ID on which the basic filter should be cleared.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// The response when clearing a range of values in a spreadsheet.
@@ -1163,10 +1172,10 @@ pub struct ClearBasicFilterRequest {
 pub struct ClearValuesResponse {
     /// The range (in A1 notation) that was cleared. (If the request was for an unbounded range or a range larger than the bounds of the sheet, this will be the actual range that was cleared, bounded to the sheet''s limits.)
     #[serde(default, rename = "clearedRange")]
-    pub cleared_range: Option<String>,
+    pub cleared_range: ::core::option::Option<String>,
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
@@ -1174,16 +1183,16 @@ pub struct ClearValuesResponse {
 pub struct Color {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
-    pub alpha: Option<f32>,
+    pub alpha: ::core::option::Option<f32>,
     /// The amount of blue in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub blue: Option<f32>,
+    pub blue: ::core::option::Option<f32>,
     /// The amount of green in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub green: Option<f32>,
+    pub green: ::core::option::Option<f32>,
     /// The amount of red in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub red: Option<f32>,
+    pub red: ::core::option::Option<f32>,
 }
 
 /// A color value.
@@ -1191,10 +1200,10 @@ pub struct Color {
 pub struct ColorStyle {
     /// RGB color. The [alpha](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/other#Color.FIELDS.alpha) value in the [Color](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/other#color) object isn''t generally supported.
     #[serde(default, rename = "rgbColor")]
-    pub rgb_color: Option<Color>,
+    pub rgb_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// Theme color. // TODO: enum values: ["THEME_COLOR_TYPE_UNSPECIFIED", "TEXT", "BACKGROUND", "ACCENT1", "ACCENT2", "ACCENT3", "ACCENT4", "ACCENT5", "ACCENT6", "LINK"]
     #[serde(default, rename = "themeColor")]
-    pub theme_color: Option<String>,
+    pub theme_color: ::core::option::Option<String>,
 }
 
 /// The value of the condition.
@@ -1202,10 +1211,10 @@ pub struct ColorStyle {
 pub struct ConditionValue {
     /// A relative date (based on the current date). Valid only if the type is DATE_BEFORE, DATE_AFTER, DATE_ON_OR_BEFORE or DATE_ON_OR_AFTER. Relative dates are not supported in data validation. They are supported only in conditional formatting and conditional filters. // TODO: enum values: ["RELATIVE_DATE_UNSPECIFIED", "PAST_YEAR", "PAST_MONTH", "PAST_WEEK", "YESTERDAY", "TODAY", "TOMORROW"]
     #[serde(default, rename = "relativeDate")]
-    pub relative_date: Option<String>,
+    pub relative_date: ::core::option::Option<String>,
     /// A value the condition is based on. The value is parsed as if the user typed into a cell. Formulas are supported (and must begin with an = or a ''+'').
     #[serde(default, rename = "userEnteredValue")]
-    pub user_entered_value: Option<String>,
+    pub user_entered_value: ::core::option::Option<String>,
 }
 
 /// A rule describing a conditional format.
@@ -1213,13 +1222,13 @@ pub struct ConditionValue {
 pub struct ConditionalFormatRule {
     /// The formatting is either "on" or "off" according to the rule.
     #[serde(default, rename = "booleanRule")]
-    pub boolean_rule: Option<BooleanRule>,
+    pub boolean_rule: ::core::option::Option<::std::boxed::Box<BooleanRule>>,
     /// The formatting will vary based on the gradients in the rule.
     #[serde(default, rename = "gradientRule")]
-    pub gradient_rule: Option<GradientRule>,
+    pub gradient_rule: ::core::option::Option<::std::boxed::Box<GradientRule>>,
     /// The ranges that are formatted if the condition is true. All the ranges must be on the same grid.
     #[serde(default)]
-    pub ranges: Option<Vec<GridRange>>,
+    pub ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GridRange>>>,
 }
 
 /// Copies data from the source to the destination.
@@ -1227,16 +1236,16 @@ pub struct ConditionalFormatRule {
 pub struct CopyPasteRequest {
     /// The location to paste to. If the range covers a span that''s a multiple of the source''s height or width, then the data will be repeated to fill in the destination range. If the range is smaller than the source range, the entire source data will still be copied (beyond the end of the destination range).
     #[serde(default)]
-    pub destination: Option<GridRange>,
+    pub destination: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// How that data should be oriented when pasting. // TODO: enum values: ["NORMAL", "TRANSPOSE"]
     #[serde(default, rename = "pasteOrientation")]
-    pub paste_orientation: Option<String>,
+    pub paste_orientation: ::core::option::Option<String>,
     /// What kind of data to paste. // TODO: enum values: ["PASTE_NORMAL", "PASTE_VALUES", "PASTE_FORMAT", "PASTE_NO_BORDERS", "PASTE_FORMULA", "PASTE_DATA_VALIDATION", "PASTE_CONDITIONAL_FORMATTING"]
     #[serde(default, rename = "pasteType")]
-    pub paste_type: Option<String>,
+    pub paste_type: ::core::option::Option<String>,
     /// The source range to copy.
     #[serde(default)]
-    pub source: Option<GridRange>,
+    pub source: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// The request to copy a sheet across spreadsheets.
@@ -1244,7 +1253,7 @@ pub struct CopyPasteRequest {
 pub struct CopySheetToAnotherSpreadsheetRequest {
     /// The ID of the spreadsheet to copy the sheet to.
     #[serde(default, rename = "destinationSpreadsheetId")]
-    pub destination_spreadsheet_id: Option<String>,
+    pub destination_spreadsheet_id: ::core::option::Option<String>,
 }
 
 /// A request to create developer metadata.
@@ -1252,7 +1261,7 @@ pub struct CopySheetToAnotherSpreadsheetRequest {
 pub struct CreateDeveloperMetadataRequest {
     /// The developer metadata to create.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<DeveloperMetadata>,
+    pub developer_metadata: ::core::option::Option<::std::boxed::Box<DeveloperMetadata>>,
 }
 
 /// The response from creating developer metadata.
@@ -1260,7 +1269,7 @@ pub struct CreateDeveloperMetadataRequest {
 pub struct CreateDeveloperMetadataResponse {
     /// The developer metadata that was created.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<DeveloperMetadata>,
+    pub developer_metadata: ::core::option::Option<::std::boxed::Box<DeveloperMetadata>>,
 }
 
 /// Moves data from the source to the destination.
@@ -1268,13 +1277,13 @@ pub struct CreateDeveloperMetadataResponse {
 pub struct CutPasteRequest {
     /// The top-left coordinate where the data should be pasted.
     #[serde(default)]
-    pub destination: Option<GridCoordinate>,
+    pub destination: ::core::option::Option<::std::boxed::Box<GridCoordinate>>,
     /// What kind of data to paste. All the source data will be cut, regardless of what is pasted. // TODO: enum values: ["PASTE_NORMAL", "PASTE_VALUES", "PASTE_FORMAT", "PASTE_NO_BORDERS", "PASTE_FORMULA", "PASTE_DATA_VALIDATION", "PASTE_CONDITIONAL_FORMATTING"]
     #[serde(default, rename = "pasteType")]
-    pub paste_type: Option<String>,
+    pub paste_type: ::core::option::Option<String>,
     /// The source data to cut.
     #[serde(default)]
-    pub source: Option<GridRange>,
+    pub source: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// The data execution status. A data execution is created to sync a data source object with the latest data from a DataSource. It is usually scheduled to run at background, you can check its state to tell if an execution completes There are several scenarios where a data execution is triggered to run: * Adding a data source creates an associated data source sheet as well as a data execution to sync the data from the data source to the sheet. * Updating a data source creates a data execution to refresh the associated data source sheet similarly. * You can send refresh request to explicitly refresh one or multiple data source objects.
@@ -1282,16 +1291,16 @@ pub struct CutPasteRequest {
 pub struct DataExecutionStatus {
     /// The error code. // TODO: enum values: ["DATA_EXECUTION_ERROR_CODE_UNSPECIFIED", "TIMED_OUT", "TOO_MANY_ROWS", "TOO_MANY_COLUMNS", "TOO_MANY_CELLS", "ENGINE", "PARAMETER_INVALID", "UNSUPPORTED_DATA_TYPE", "DUPLICATE_COLUMN_NAMES", "INTERRUPTED", "CONCURRENT_QUERY", "OTHER", "TOO_MANY_CHARS_PER_CELL", "DATA_NOT_FOUND", "PERMISSION_DENIED", "MISSING_COLUMN_ALIAS", "OBJECT_NOT_FOUND", "OBJECT_IN_ERROR_STATE", "OBJECT_SPEC_INVALID", "DATA_EXECUTION_CANCELLED"]
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
     /// The error message, which may be empty.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// Gets the time the data last successfully refreshed.
     #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: Option<String>,
+    pub last_refresh_time: ::core::option::Option<String>,
     /// The state of the data execution. // TODO: enum values: ["DATA_EXECUTION_STATE_UNSPECIFIED", "NOT_STARTED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Filter that describes what data should be selected or returned from a request. For more information, see [Read, write, and search metadata](https://developers.google.com/workspace/sheets/api/guides/metadata).
@@ -1299,13 +1308,14 @@ pub struct DataExecutionStatus {
 pub struct DataFilter {
     /// Selects data that matches the specified A1 range.
     #[serde(default, rename = "a1Range")]
-    pub a1_range: Option<String>,
+    pub a1_range: ::core::option::Option<String>,
     /// Selects data associated with the developer metadata matching the criteria described by this DeveloperMetadataLookup.
     #[serde(default, rename = "developerMetadataLookup")]
-    pub developer_metadata_lookup: Option<DeveloperMetadataLookup>,
+    pub developer_metadata_lookup:
+        ::core::option::Option<::std::boxed::Box<DeveloperMetadataLookup>>,
     /// Selects data that matches the range described by the GridRange.
     #[serde(default, rename = "gridRange")]
-    pub grid_range: Option<GridRange>,
+    pub grid_range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// A range of values whose location is specified by a DataFilter.
@@ -1313,13 +1323,13 @@ pub struct DataFilter {
 pub struct DataFilterValueRange {
     /// The data filter describing the location of the values in the spreadsheet.
     #[serde(default, rename = "dataFilter")]
-    pub data_filter: Option<DataFilter>,
+    pub data_filter: ::core::option::Option<::std::boxed::Box<DataFilter>>,
     /// The major dimension of the values. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default, rename = "majorDimension")]
-    pub major_dimension: Option<String>,
+    pub major_dimension: ::core::option::Option<String>,
     /// The data to be written. If the provided values exceed any of the ranges matched by the data filter then the request fails. If the provided values are less than the matched ranges only the specified values are written, existing values in the matched ranges remain unaffected.
     #[serde(default)]
-    pub values: Option<Vec<Vec<serde_json::Value>>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
 }
 
 /// Settings for one set of data labels. Data labels are annotations that appear next to a set of data, such as the points on a line chart, and provide additional information about what the data represents, such as a text representation of the value behind that point on the graph.
@@ -1327,16 +1337,16 @@ pub struct DataFilterValueRange {
 pub struct DataLabel {
     /// Data to use for custom labels. Only used if type is set to CUSTOM. This data must be the same length as the series or other element this data label is applied to. In addition, if the series is split into multiple source ranges, this source data must come from the next column in the source data. For example, if the series is B2:B4,E6:E8 then this data must come from C2:C4,F6:F8.
     #[serde(default, rename = "customLabelData")]
-    pub custom_label_data: Option<ChartData>,
+    pub custom_label_data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The placement of the data label relative to the labeled data. // TODO: enum values: ["DATA_LABEL_PLACEMENT_UNSPECIFIED", "CENTER", "LEFT", "RIGHT", "ABOVE", "BELOW", "INSIDE_END", "INSIDE_BASE", "OUTSIDE_END"]
     #[serde(default)]
-    pub placement: Option<String>,
+    pub placement: ::core::option::Option<String>,
     /// The text format used for the data label. The link field is not supported.
     #[serde(default, rename = "textFormat")]
-    pub text_format: Option<TextFormat>,
+    pub text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The type of the data label. // TODO: enum values: ["DATA_LABEL_TYPE_UNSPECIFIED", "NONE", "DATA", "CUSTOM"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about an external data source in the spreadsheet.
@@ -1344,16 +1354,17 @@ pub struct DataLabel {
 pub struct DataSource {
     /// All calculated columns in the data source.
     #[serde(default, rename = "calculatedColumns")]
-    pub calculated_columns: Option<Vec<DataSourceColumn>>,
+    pub calculated_columns:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceColumn>>>,
     /// The spreadsheet-scoped unique ID that identifies the data source. Example: 1080547365.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// The ID of the Sheet connected with the data source. The field cannot be changed once set. When creating a data source, an associated DATA_SOURCE sheet is also created, if the field is not specified, the ID of the created sheet will be randomly generated.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
     /// The DataSourceSpec for the data source connected with this spreadsheet.
     #[serde(default)]
-    pub spec: Option<DataSourceSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<DataSourceSpec>>,
 }
 
 /// Properties of a data source chart.
@@ -1361,10 +1372,10 @@ pub struct DataSource {
 pub struct DataSourceChartProperties {
     /// Output only. The data execution status.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// ID of the data source that the chart is associated with.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
 }
 
 /// A column in a data source.
@@ -1372,10 +1383,10 @@ pub struct DataSourceChartProperties {
 pub struct DataSourceColumn {
     /// The formula of the calculated column.
     #[serde(default)]
-    pub formula: Option<String>,
+    pub formula: ::core::option::Option<String>,
     /// The column reference.
     #[serde(default)]
-    pub reference: Option<DataSourceColumnReference>,
+    pub reference: ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
 }
 
 /// An unique identifier that references a data source column.
@@ -1383,7 +1394,7 @@ pub struct DataSourceColumn {
 pub struct DataSourceColumnReference {
     /// The display name of the column. It should be unique within a data source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A data source formula.
@@ -1391,10 +1402,10 @@ pub struct DataSourceColumnReference {
 pub struct DataSourceFormula {
     /// Output only. The data execution status.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// The ID of the data source the formula is associated with.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
 }
 
 /// Reference to a data source object.
@@ -1402,19 +1413,20 @@ pub struct DataSourceFormula {
 pub struct DataSourceObjectReference {
     /// References to a data source chart.
     #[serde(default, rename = "chartId")]
-    pub chart_id: Option<i32>,
+    pub chart_id: ::core::option::Option<i32>,
     /// References to a cell containing DataSourceFormula.
     #[serde(default, rename = "dataSourceFormulaCell")]
-    pub data_source_formula_cell: Option<GridCoordinate>,
+    pub data_source_formula_cell: ::core::option::Option<::std::boxed::Box<GridCoordinate>>,
     /// References to a data source PivotTable anchored at the cell.
     #[serde(default, rename = "dataSourcePivotTableAnchorCell")]
-    pub data_source_pivot_table_anchor_cell: Option<GridCoordinate>,
+    pub data_source_pivot_table_anchor_cell:
+        ::core::option::Option<::std::boxed::Box<GridCoordinate>>,
     /// References to a DataSourceTable anchored at the cell.
     #[serde(default, rename = "dataSourceTableAnchorCell")]
-    pub data_source_table_anchor_cell: Option<GridCoordinate>,
+    pub data_source_table_anchor_cell: ::core::option::Option<::std::boxed::Box<GridCoordinate>>,
     /// References to a DATA_SOURCE sheet.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<String>,
+    pub sheet_id: ::core::option::Option<String>,
 }
 
 /// A list of references to data source objects.
@@ -1422,7 +1434,8 @@ pub struct DataSourceObjectReference {
 pub struct DataSourceObjectReferences {
     /// The references.
     #[serde(default)]
-    pub references: Option<Vec<DataSourceObjectReference>>,
+    pub references:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceObjectReference>>>,
 }
 
 /// A parameter in a data source''s query. The parameter allows the user to pass in values from the spreadsheet into a query.
@@ -1430,13 +1443,13 @@ pub struct DataSourceObjectReferences {
 pub struct DataSourceParameter {
     /// Named parameter. Must be a legitimate identifier for the DataSource that supports it. For example, [BigQuery identifier](https://cloud.google.com/bigquery/docs/reference/standard-sql/lexical#identifiers).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// ID of a NamedRange. Its size must be 1x1.
     #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: Option<String>,
+    pub named_range_id: ::core::option::Option<String>,
     /// A range that contains the value of the parameter. Its size must be 1x1.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// A schedule for data to refresh every day in a given time interval.
@@ -1444,7 +1457,7 @@ pub struct DataSourceParameter {
 pub struct DataSourceRefreshDailySchedule {
     /// The start time of a time interval in which a data source refresh is scheduled. Only hours part is used. The time interval size defaults to that in the Sheets editor.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// A monthly schedule for data to refresh on specific days in the month in a given time interval.
@@ -1452,10 +1465,10 @@ pub struct DataSourceRefreshDailySchedule {
 pub struct DataSourceRefreshMonthlySchedule {
     /// Days of the month to refresh. Only 1-28 are supported, mapping to the 1st to the 28th day. At least one day must be specified.
     #[serde(default, rename = "daysOfMonth")]
-    pub days_of_month: Option<Vec<i32>>,
+    pub days_of_month: ::core::option::Option<::std::vec::Vec<i32>>,
     /// The start time of a time interval in which a data source refresh is scheduled. Only hours part is used. The time interval size defaults to that in the Sheets editor.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Schedule for refreshing the data source. Data sources in the spreadsheet are refreshed within a time interval. You can specify the start time by clicking the Scheduled Refresh button in the Sheets editor, but the interval is fixed at 4 hours. For example, if you specify a start time of 8 AM , the refresh will take place between 8 AM and 12 PM every day.
@@ -1463,22 +1476,23 @@ pub struct DataSourceRefreshMonthlySchedule {
 pub struct DataSourceRefreshSchedule {
     /// Daily refresh schedule.
     #[serde(default, rename = "dailySchedule")]
-    pub daily_schedule: Option<DataSourceRefreshDailySchedule>,
+    pub daily_schedule: ::core::option::Option<::std::boxed::Box<DataSourceRefreshDailySchedule>>,
     /// True if the refresh schedule is enabled, or false otherwise.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Monthly refresh schedule.
     #[serde(default, rename = "monthlySchedule")]
-    pub monthly_schedule: Option<DataSourceRefreshMonthlySchedule>,
+    pub monthly_schedule:
+        ::core::option::Option<::std::boxed::Box<DataSourceRefreshMonthlySchedule>>,
     /// Output only. The time interval of the next run.
     #[serde(default, rename = "nextRun")]
-    pub next_run: Option<Interval>,
+    pub next_run: ::core::option::Option<::std::boxed::Box<Interval>>,
     /// The scope of the refresh. Must be ALL_DATA_SOURCES. // TODO: enum values: ["DATA_SOURCE_REFRESH_SCOPE_UNSPECIFIED", "ALL_DATA_SOURCES"]
     #[serde(default, rename = "refreshScope")]
-    pub refresh_scope: Option<String>,
+    pub refresh_scope: ::core::option::Option<String>,
     /// Weekly refresh schedule.
     #[serde(default, rename = "weeklySchedule")]
-    pub weekly_schedule: Option<DataSourceRefreshWeeklySchedule>,
+    pub weekly_schedule: ::core::option::Option<::std::boxed::Box<DataSourceRefreshWeeklySchedule>>,
 }
 
 /// A weekly schedule for data to refresh on specific days in a given time interval.
@@ -1486,10 +1500,10 @@ pub struct DataSourceRefreshSchedule {
 pub struct DataSourceRefreshWeeklySchedule {
     /// Days of the week to refresh. At least one day must be specified.
     #[serde(default, rename = "daysOfWeek")]
-    pub days_of_week: Option<Vec<String>>,
+    pub days_of_week: ::core::option::Option<::std::vec::Vec<String>>,
     /// The start time of a time interval in which a data source refresh is scheduled. Only hours part is used. The time interval size defaults to that in the Sheets editor.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// A range along a single dimension on a DATA_SOURCE sheet.
@@ -1497,10 +1511,11 @@ pub struct DataSourceRefreshWeeklySchedule {
 pub struct DataSourceSheetDimensionRange {
     /// The columns on the data source sheet.
     #[serde(default, rename = "columnReferences")]
-    pub column_references: Option<Vec<DataSourceColumnReference>>,
+    pub column_references:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceColumnReference>>>,
     /// The ID of the data source sheet the range is on.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// Additional properties of a DATA_SOURCE sheet.
@@ -1508,13 +1523,13 @@ pub struct DataSourceSheetDimensionRange {
 pub struct DataSourceSheetProperties {
     /// The columns displayed on the sheet, corresponding to the values in RowData.
     #[serde(default)]
-    pub columns: Option<Vec<DataSourceColumn>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceColumn>>>,
     /// The data execution status.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// ID of the DataSource the sheet is connected to.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
 }
 
 /// This specifies the details of the data source. For example, for BigQuery, this specifies information about the BigQuery source.
@@ -1522,13 +1537,13 @@ pub struct DataSourceSheetProperties {
 pub struct DataSourceSpec {
     /// A BigQueryDataSourceSpec.
     #[serde(default, rename = "bigQuery")]
-    pub big_query: Option<BigQueryDataSourceSpec>,
+    pub big_query: ::core::option::Option<::std::boxed::Box<BigQueryDataSourceSpec>>,
     /// A LookerDatasourceSpec.
     #[serde(default)]
-    pub looker: Option<LookerDataSourceSpec>,
+    pub looker: ::core::option::Option<::std::boxed::Box<LookerDataSourceSpec>>,
     /// The parameters of the data source, used when querying the data source.
     #[serde(default)]
-    pub parameters: Option<Vec<DataSourceParameter>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceParameter>>>,
 }
 
 /// A data source table, which allows the user to import a static table of data from the DataSource into Sheets. This is also known as "Extract" in the Sheets editor.
@@ -1536,25 +1551,26 @@ pub struct DataSourceSpec {
 pub struct DataSourceTable {
     /// The type to select columns for the data source table. Defaults to SELECTED. // TODO: enum values: ["DATA_SOURCE_TABLE_COLUMN_SELECTION_TYPE_UNSPECIFIED", "SELECTED", "SYNC_ALL"]
     #[serde(default, rename = "columnSelectionType")]
-    pub column_selection_type: Option<String>,
+    pub column_selection_type: ::core::option::Option<String>,
     /// Columns selected for the data source table. The column_selection_type must be SELECTED.
     #[serde(default)]
-    pub columns: Option<Vec<DataSourceColumnReference>>,
+    pub columns:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceColumnReference>>>,
     /// Output only. The data execution status.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// The ID of the data source the data source table is associated with.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Filter specifications in the data source table.
     #[serde(default, rename = "filterSpecs")]
-    pub filter_specs: Option<Vec<FilterSpec>>,
+    pub filter_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterSpec>>>,
     /// The limit of rows to return. If not set, a default limit is applied. Please refer to the Sheets editor for the default and max limit.
     #[serde(default, rename = "rowLimit")]
-    pub row_limit: Option<i32>,
+    pub row_limit: ::core::option::Option<i32>,
     /// Sort specifications in the data source table. The result of the data source table is sorted based on the sort specifications in order.
     #[serde(default, rename = "sortSpecs")]
-    pub sort_specs: Option<Vec<SortSpec>>,
+    pub sort_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SortSpec>>>,
 }
 
 /// A data validation rule.
@@ -1562,16 +1578,16 @@ pub struct DataSourceTable {
 pub struct DataValidationRule {
     /// The condition that data in the cell must match.
     #[serde(default)]
-    pub condition: Option<BooleanCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<BooleanCondition>>,
     /// A message to show the user when adding data to the cell.
     #[serde(default, rename = "inputMessage")]
-    pub input_message: Option<String>,
+    pub input_message: ::core::option::Option<String>,
     /// True if the UI should be customized based on the kind of condition. If true, "List" conditions will show a dropdown.
     #[serde(default, rename = "showCustomUi")]
-    pub show_custom_ui: Option<bool>,
+    pub show_custom_ui: ::core::option::Option<bool>,
     /// True if invalid data should be rejected.
     #[serde(default)]
-    pub strict: Option<bool>,
+    pub strict: ::core::option::Option<bool>,
 }
 
 /// Allows you to organize the date-time values in a source data column into buckets based on selected parts of their date or time values. For example, consider a pivot table showing sales transactions by date: +----------+--------------+ | Date | SUM of Sales | +----------+--------------+ | 1/1/2017 | $621.14 | | 2/3/2017 | $708.84 | | 5/8/2017 | $326.84 | ... +----------+--------------+ Applying a date-time group rule with a DateTimeRuleType of YEAR_MONTH results in the following pivot table. +--------------+--------------+ | Grouped Date | SUM of Sales | +--------------+--------------+ | 2017-Jan | $53,731.78 | | 2017-Feb | $83,475.32 | | 2017-Mar | $94,385.05 | ... +--------------+--------------+
@@ -1579,7 +1595,7 @@ pub struct DataValidationRule {
 pub struct DateTimeRule {
     /// The type of date-time grouping to apply. // TODO: enum values: ["DATE_TIME_RULE_TYPE_UNSPECIFIED", "SECOND", "MINUTE", "HOUR", "HOUR_MINUTE", "HOUR_MINUTE_AMPM", "DAY_OF_WEEK", "DAY_OF_YEAR", "DAY_OF_MONTH", "DAY_MONTH", "MONTH", "QUARTER", "YEAR", "YEAR_MONTH", "YEAR_QUARTER", "YEAR_MONTH_DAY"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Removes the banded range with the given ID from the spreadsheet.
@@ -1587,7 +1603,7 @@ pub struct DateTimeRule {
 pub struct DeleteBandingRequest {
     /// The ID of the banded range to delete.
     #[serde(default, rename = "bandedRangeId")]
-    pub banded_range_id: Option<i32>,
+    pub banded_range_id: ::core::option::Option<i32>,
 }
 
 /// Deletes a conditional format rule at the given index. All subsequent rules'' indexes are decremented.
@@ -1595,10 +1611,10 @@ pub struct DeleteBandingRequest {
 pub struct DeleteConditionalFormatRuleRequest {
     /// The zero-based index of the rule to be deleted.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// The sheet the rule is being deleted from.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// The result of deleting a conditional format rule.
@@ -1606,7 +1622,7 @@ pub struct DeleteConditionalFormatRuleRequest {
 pub struct DeleteConditionalFormatRuleResponse {
     /// The rule that was deleted.
     #[serde(default)]
-    pub rule: Option<ConditionalFormatRule>,
+    pub rule: ::core::option::Option<::std::boxed::Box<ConditionalFormatRule>>,
 }
 
 /// Deletes a data source. The request also deletes the associated data source sheet, and unlinks all associated data source objects.
@@ -1614,7 +1630,7 @@ pub struct DeleteConditionalFormatRuleResponse {
 pub struct DeleteDataSourceRequest {
     /// The ID of the data source to delete.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
 }
 
 /// A request to delete developer metadata.
@@ -1622,7 +1638,7 @@ pub struct DeleteDataSourceRequest {
 pub struct DeleteDeveloperMetadataRequest {
     /// The data filter describing the criteria used to select which developer metadata entry to delete.
     #[serde(default, rename = "dataFilter")]
-    pub data_filter: Option<DataFilter>,
+    pub data_filter: ::core::option::Option<::std::boxed::Box<DataFilter>>,
 }
 
 /// The response from deleting developer metadata.
@@ -1630,7 +1646,8 @@ pub struct DeleteDeveloperMetadataRequest {
 pub struct DeleteDeveloperMetadataResponse {
     /// The metadata that was deleted.
     #[serde(default, rename = "deletedDeveloperMetadata")]
-    pub deleted_developer_metadata: Option<Vec<DeveloperMetadata>>,
+    pub deleted_developer_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeveloperMetadata>>>,
 }
 
 /// Deletes a group over the specified range by decrementing the depth of the dimensions in the range. For example, assume the sheet has a depth-1 group over B:E and a depth-2 group over C:D. Deleting a group over D:E leaves the sheet with a depth-1 group over B:D and a depth-2 group over C:C.
@@ -1638,7 +1655,7 @@ pub struct DeleteDeveloperMetadataResponse {
 pub struct DeleteDimensionGroupRequest {
     /// The range of the group to be deleted.
     #[serde(default)]
-    pub range: Option<DimensionRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// The result of deleting a group.
@@ -1646,7 +1663,8 @@ pub struct DeleteDimensionGroupRequest {
 pub struct DeleteDimensionGroupResponse {
     /// All groups of a dimension after deleting a group from that dimension.
     #[serde(default, rename = "dimensionGroups")]
-    pub dimension_groups: Option<Vec<DimensionGroup>>,
+    pub dimension_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionGroup>>>,
 }
 
 ///  Deletes the dimensions from the sheet.
@@ -1654,7 +1672,7 @@ pub struct DeleteDimensionGroupResponse {
 pub struct DeleteDimensionRequest {
     /// The dimensions to delete from the sheet.
     #[serde(default)]
-    pub range: Option<DimensionRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// Removes rows within this range that contain values in the specified columns that are duplicates of values in any previous row. Rows with identical values but different letter cases, formatting, or formulas are considered to be duplicates. This request also removes duplicate rows hidden from view (for example, due to a filter). When removing duplicates, the first instance of each duplicate row scanning from the top downwards is kept in the resulting range. Content outside of the specified range isn''t removed, and rows considered duplicates do not have to be adjacent to each other in the range.
@@ -1662,10 +1680,11 @@ pub struct DeleteDimensionRequest {
 pub struct DeleteDuplicatesRequest {
     /// The columns in the range to analyze for duplicate values. If no columns are selected then all columns are analyzed for duplicates.
     #[serde(default, rename = "comparisonColumns")]
-    pub comparison_columns: Option<Vec<DimensionRange>>,
+    pub comparison_columns:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionRange>>>,
     /// The range to remove duplicates rows from.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// The result of removing duplicates in a range.
@@ -1673,7 +1692,7 @@ pub struct DeleteDuplicatesRequest {
 pub struct DeleteDuplicatesResponse {
     /// The number of duplicate rows removed.
     #[serde(default, rename = "duplicatesRemovedCount")]
-    pub duplicates_removed_count: Option<i32>,
+    pub duplicates_removed_count: ::core::option::Option<i32>,
 }
 
 /// Deletes the embedded object with the given ID.
@@ -1681,7 +1700,7 @@ pub struct DeleteDuplicatesResponse {
 pub struct DeleteEmbeddedObjectRequest {
     /// The ID of the embedded object to delete.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<i32>,
+    pub object_id: ::core::option::Option<i32>,
 }
 
 /// Deletes a particular filter view.
@@ -1689,7 +1708,7 @@ pub struct DeleteEmbeddedObjectRequest {
 pub struct DeleteFilterViewRequest {
     /// The ID of the filter to delete.
     #[serde(default, rename = "filterId")]
-    pub filter_id: Option<i32>,
+    pub filter_id: ::core::option::Option<i32>,
 }
 
 /// Removes the named range with the given ID from the spreadsheet.
@@ -1697,7 +1716,7 @@ pub struct DeleteFilterViewRequest {
 pub struct DeleteNamedRangeRequest {
     /// The ID of the named range to delete.
     #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: Option<String>,
+    pub named_range_id: ::core::option::Option<String>,
 }
 
 /// Deletes the protected range with the given ID.
@@ -1705,7 +1724,7 @@ pub struct DeleteNamedRangeRequest {
 pub struct DeleteProtectedRangeRequest {
     /// The ID of the protected range to delete.
     #[serde(default, rename = "protectedRangeId")]
-    pub protected_range_id: Option<i32>,
+    pub protected_range_id: ::core::option::Option<i32>,
 }
 
 /// Deletes a range of cells, shifting other cells into the deleted area.
@@ -1713,10 +1732,10 @@ pub struct DeleteProtectedRangeRequest {
 pub struct DeleteRangeRequest {
     /// The range of cells to delete.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The dimension from which deleted cells will be replaced with. If ROWS, existing cells will be shifted upward to replace the deleted cells. If COLUMNS, existing cells will be shifted left to replace the deleted cells. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default, rename = "shiftDimension")]
-    pub shift_dimension: Option<String>,
+    pub shift_dimension: ::core::option::Option<String>,
 }
 
 /// Deletes the requested sheet.
@@ -1724,7 +1743,7 @@ pub struct DeleteRangeRequest {
 pub struct DeleteSheetRequest {
     /// The ID of the sheet to delete. If the sheet is of DATA_SOURCE type, the associated DataSource is also deleted.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// Removes the table with the given ID from the spreadsheet.
@@ -1732,7 +1751,7 @@ pub struct DeleteSheetRequest {
 pub struct DeleteTableRequest {
     /// The ID of the table to delete.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// Developer metadata associated with a location or object in a spreadsheet. For more information, see [Read, write, and search metadata](https://developers.google.com/workspace/sheets/api/guides/metadata). Developer metadata may be used to associate arbitrary data with various parts of a spreadsheet and it will remain associated at those locations as they move around and the spreadsheet is edited. For example, if developer metadata is associated with row 5 and another row is then subsequently inserted above row 5, that original metadata is still associated with the row it was first associated with (what is now row 6). If the associated object is deleted then its metadata is deleted too.
@@ -1740,19 +1759,19 @@ pub struct DeleteTableRequest {
 pub struct DeveloperMetadata {
     /// The location where the metadata is associated.
     #[serde(default)]
-    pub location: Option<DeveloperMetadataLocation>,
+    pub location: ::core::option::Option<::std::boxed::Box<DeveloperMetadataLocation>>,
     /// The spreadsheet-scoped unique ID that identifies the metadata. IDs may be specified when metadata is created, otherwise one will be randomly generated and assigned. Must be positive.
     #[serde(default, rename = "metadataId")]
-    pub metadata_id: Option<i32>,
+    pub metadata_id: ::core::option::Option<i32>,
     /// The metadata key. There may be multiple metadata in a spreadsheet with the same key. Developer metadata must always have a key specified.
     #[serde(default, rename = "metadataKey")]
-    pub metadata_key: Option<String>,
+    pub metadata_key: ::core::option::Option<String>,
     /// Data associated with the metadata''s key.
     #[serde(default, rename = "metadataValue")]
-    pub metadata_value: Option<String>,
+    pub metadata_value: ::core::option::Option<String>,
     /// The metadata visibility. Developer metadata must always have visibility specified. // TODO: enum values: ["DEVELOPER_METADATA_VISIBILITY_UNSPECIFIED", "DOCUMENT", "PROJECT"]
     #[serde(default)]
-    pub visibility: Option<String>,
+    pub visibility: ::core::option::Option<String>,
 }
 
 /// A location where metadata may be associated in a spreadsheet.
@@ -1760,16 +1779,16 @@ pub struct DeveloperMetadata {
 pub struct DeveloperMetadataLocation {
     /// Represents the row or column when metadata is associated with a dimension. The specified DimensionRange must represent a single row or column. It cannot be unbounded or span multiple rows or columns.
     #[serde(default, rename = "dimensionRange")]
-    pub dimension_range: Option<DimensionRange>,
+    pub dimension_range: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
     /// The type of location this object represents. This field is read-only. // TODO: enum values: ["DEVELOPER_METADATA_LOCATION_TYPE_UNSPECIFIED", "ROW", "COLUMN", "SHEET", "SPREADSHEET"]
     #[serde(default, rename = "locationType")]
-    pub location_type: Option<String>,
+    pub location_type: ::core::option::Option<String>,
     /// The ID of the sheet when metadata is associated with an entire sheet.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
     /// True when metadata is associated with an entire spreadsheet.
     #[serde(default)]
-    pub spreadsheet: Option<bool>,
+    pub spreadsheet: ::core::option::Option<bool>,
 }
 
 /// Selects DeveloperMetadata that matches all of the specified fields. For example, if only a metadata ID is specified this considers the DeveloperMetadata with that particular unique ID. If a metadata key is specified, this considers all developer metadata with that key. If a key, visibility, and location type are all specified, this considers all developer metadata with that key and visibility that are associated with a location of that type. In general, this selects all DeveloperMetadata that match the intersection of all the specified fields; any field or combination of fields may be specified.
@@ -1777,25 +1796,25 @@ pub struct DeveloperMetadataLocation {
 pub struct DeveloperMetadataLookup {
     /// Determines how this lookup matches the location. If this field is specified as EXACT, only developer metadata associated on the exact location specified is matched. If this field is specified to INTERSECTING, developer metadata associated on intersecting locations is also matched. If left unspecified, this field assumes a default value of INTERSECTING. If this field is specified, a metadataLocation must also be specified. // TODO: enum values: ["DEVELOPER_METADATA_LOCATION_MATCHING_STRATEGY_UNSPECIFIED", "EXACT_LOCATION", "INTERSECTING_LOCATION"]
     #[serde(default, rename = "locationMatchingStrategy")]
-    pub location_matching_strategy: Option<String>,
+    pub location_matching_strategy: ::core::option::Option<String>,
     /// Limits the selected developer metadata to those entries which are associated with locations of the specified type. For example, when this field is specified as ROW this lookup only considers developer metadata associated on rows. If the field is left unspecified, all location types are considered. This field cannot be specified as SPREADSHEET when the locationMatchingStrategy is specified as INTERSECTING or when the metadataLocation is specified as a non-spreadsheet location. Spreadsheet metadata cannot intersect any other developer metadata location. This field also must be left unspecified when the locationMatchingStrategy is specified as EXACT. // TODO: enum values: ["DEVELOPER_METADATA_LOCATION_TYPE_UNSPECIFIED", "ROW", "COLUMN", "SHEET", "SPREADSHEET"]
     #[serde(default, rename = "locationType")]
-    pub location_type: Option<String>,
+    pub location_type: ::core::option::Option<String>,
     /// Limits the selected developer metadata to that which has a matching DeveloperMetadata.metadata_id.
     #[serde(default, rename = "metadataId")]
-    pub metadata_id: Option<i32>,
+    pub metadata_id: ::core::option::Option<i32>,
     /// Limits the selected developer metadata to that which has a matching DeveloperMetadata.metadata_key.
     #[serde(default, rename = "metadataKey")]
-    pub metadata_key: Option<String>,
+    pub metadata_key: ::core::option::Option<String>,
     /// Limits the selected developer metadata to those entries associated with the specified location. This field either matches exact locations or all intersecting locations according the specified locationMatchingStrategy.
     #[serde(default, rename = "metadataLocation")]
-    pub metadata_location: Option<DeveloperMetadataLocation>,
+    pub metadata_location: ::core::option::Option<::std::boxed::Box<DeveloperMetadataLocation>>,
     /// Limits the selected developer metadata to that which has a matching DeveloperMetadata.metadata_value.
     #[serde(default, rename = "metadataValue")]
-    pub metadata_value: Option<String>,
+    pub metadata_value: ::core::option::Option<String>,
     /// Limits the selected developer metadata to that which has a matching DeveloperMetadata.visibility. If left unspecified, all developer metadata visible to the requesting project is considered. // TODO: enum values: ["DEVELOPER_METADATA_VISIBILITY_UNSPECIFIED", "DOCUMENT", "PROJECT"]
     #[serde(default)]
-    pub visibility: Option<String>,
+    pub visibility: ::core::option::Option<String>,
 }
 
 /// A group over an interval of rows or columns on a sheet, which can contain or be contained within other groups. A group can be collapsed or expanded as a unit on the sheet.
@@ -1803,13 +1822,13 @@ pub struct DeveloperMetadataLookup {
 pub struct DimensionGroup {
     /// This field is true if this group is collapsed. A collapsed group remains collapsed if an overlapping group at a shallower depth is expanded. A true value does not imply that all dimensions within the group are hidden, since a dimension''s visibility can change independently from this group property. However, when this property is updated, all dimensions within it are set to hidden if this field is true, or set to visible if this field is false.
     #[serde(default)]
-    pub collapsed: Option<bool>,
+    pub collapsed: ::core::option::Option<bool>,
     /// The depth of the group, representing how many groups have a range that wholly contains the range of this group.
     #[serde(default)]
-    pub depth: Option<i32>,
+    pub depth: ::core::option::Option<i32>,
     /// The range over which this group exists.
     #[serde(default)]
-    pub range: Option<DimensionRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// Properties about a dimension.
@@ -1817,19 +1836,21 @@ pub struct DimensionGroup {
 pub struct DimensionProperties {
     /// Output only. If set, this is a column in a data source sheet.
     #[serde(default, rename = "dataSourceColumnReference")]
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    pub data_source_column_reference:
+        ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
     /// The developer metadata associated with a single row or column.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    pub developer_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeveloperMetadata>>>,
     /// True if this dimension is being filtered. This field is read-only.
     #[serde(default, rename = "hiddenByFilter")]
-    pub hidden_by_filter: Option<bool>,
+    pub hidden_by_filter: ::core::option::Option<bool>,
     /// True if this dimension is explicitly hidden.
     #[serde(default, rename = "hiddenByUser")]
-    pub hidden_by_user: Option<bool>,
+    pub hidden_by_user: ::core::option::Option<bool>,
     /// The height (if a row) or width (if a column) of the dimension in pixels.
     #[serde(default, rename = "pixelSize")]
-    pub pixel_size: Option<i32>,
+    pub pixel_size: ::core::option::Option<i32>,
 }
 
 /// A range along a single dimension on a sheet. All indexes are zero-based. Indexes are half open: the start index is inclusive and the end index is exclusive. Missing indexes indicate the range is unbounded on that side.
@@ -1837,16 +1858,16 @@ pub struct DimensionProperties {
 pub struct DimensionRange {
     /// The dimension of the span. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
     /// The end (exclusive) of the span, or not set if unbounded.
     #[serde(default, rename = "endIndex")]
-    pub end_index: Option<i32>,
+    pub end_index: ::core::option::Option<i32>,
     /// The sheet this span is on.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
     /// The start (inclusive) of the span, or not set if unbounded.
     #[serde(default, rename = "startIndex")]
-    pub start_index: Option<i32>,
+    pub start_index: ::core::option::Option<i32>,
 }
 
 /// Duplicates a particular filter view.
@@ -1854,7 +1875,7 @@ pub struct DimensionRange {
 pub struct DuplicateFilterViewRequest {
     /// The ID of the filter being duplicated.
     #[serde(default, rename = "filterId")]
-    pub filter_id: Option<i32>,
+    pub filter_id: ::core::option::Option<i32>,
 }
 
 /// The result of a filter view being duplicated.
@@ -1862,7 +1883,7 @@ pub struct DuplicateFilterViewRequest {
 pub struct DuplicateFilterViewResponse {
     /// The newly created filter.
     #[serde(default)]
-    pub filter: Option<FilterView>,
+    pub filter: ::core::option::Option<::std::boxed::Box<FilterView>>,
 }
 
 /// Duplicates the contents of a sheet.
@@ -1870,16 +1891,16 @@ pub struct DuplicateFilterViewResponse {
 pub struct DuplicateSheetRequest {
     /// The zero-based index where the new sheet should be inserted. The index of all sheets after this are incremented.
     #[serde(default, rename = "insertSheetIndex")]
-    pub insert_sheet_index: Option<i32>,
+    pub insert_sheet_index: ::core::option::Option<i32>,
     /// If set, the ID of the new sheet. If not set, an ID is chosen. If set, the ID must not conflict with any existing sheet ID. If set, it must be non-negative.
     #[serde(default, rename = "newSheetId")]
-    pub new_sheet_id: Option<i32>,
+    pub new_sheet_id: ::core::option::Option<i32>,
     /// The name of the new sheet. If empty, a new name is chosen for you.
     #[serde(default, rename = "newSheetName")]
-    pub new_sheet_name: Option<String>,
+    pub new_sheet_name: ::core::option::Option<String>,
     /// The sheet to duplicate. If the source sheet is of DATA_SOURCE type, its backing DataSource is also duplicated and associated with the new copy of the sheet. No data execution is triggered, the grid data of this sheet is also copied over but only available after the batch request completes.
     #[serde(default, rename = "sourceSheetId")]
-    pub source_sheet_id: Option<i32>,
+    pub source_sheet_id: ::core::option::Option<i32>,
 }
 
 /// The result of duplicating a sheet.
@@ -1887,7 +1908,7 @@ pub struct DuplicateSheetRequest {
 pub struct DuplicateSheetResponse {
     /// The properties of the duplicate sheet.
     #[serde(default)]
-    pub properties: Option<SheetProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<SheetProperties>>,
 }
 
 /// The editors of a protected range.
@@ -1895,13 +1916,13 @@ pub struct DuplicateSheetResponse {
 pub struct Editors {
     /// True if anyone in the document''s domain has edit access to the protected range. Domain protection is only supported on documents within a domain.
     #[serde(default, rename = "domainUsersCanEdit")]
-    pub domain_users_can_edit: Option<bool>,
+    pub domain_users_can_edit: ::core::option::Option<bool>,
     /// The email addresses of groups with edit access to the protected range.
     #[serde(default)]
-    pub groups: Option<Vec<String>>,
+    pub groups: ::core::option::Option<::std::vec::Vec<String>>,
     /// The email addresses of users with edit access to the protected range.
     #[serde(default)]
-    pub users: Option<Vec<String>>,
+    pub users: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A chart embedded in a sheet.
@@ -1909,16 +1930,16 @@ pub struct Editors {
 pub struct EmbeddedChart {
     /// The border of the chart.
     #[serde(default)]
-    pub border: Option<EmbeddedObjectBorder>,
+    pub border: ::core::option::Option<::std::boxed::Box<EmbeddedObjectBorder>>,
     /// The ID of the chart.
     #[serde(default, rename = "chartId")]
-    pub chart_id: Option<i32>,
+    pub chart_id: ::core::option::Option<i32>,
     /// The position of the chart.
     #[serde(default)]
-    pub position: Option<EmbeddedObjectPosition>,
+    pub position: ::core::option::Option<::std::boxed::Box<EmbeddedObjectPosition>>,
     /// The specification of the chart.
     #[serde(default)]
-    pub spec: Option<ChartSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<ChartSpec>>,
 }
 
 /// A border along an embedded object.
@@ -1926,10 +1947,10 @@ pub struct EmbeddedChart {
 pub struct EmbeddedObjectBorder {
     /// The color of the border. Deprecated: Use color_style.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the border. If color is also set, this field takes precedence.
     #[serde(default, rename = "colorStyle")]
-    pub color_style: Option<ColorStyle>,
+    pub color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
 }
 
 /// The position of an embedded object such as a chart.
@@ -1937,13 +1958,13 @@ pub struct EmbeddedObjectBorder {
 pub struct EmbeddedObjectPosition {
     /// If true, the embedded object is put on a new sheet whose ID is chosen for you. Used only when writing.
     #[serde(default, rename = "newSheet")]
-    pub new_sheet: Option<bool>,
+    pub new_sheet: ::core::option::Option<bool>,
     /// The position at which the object is overlaid on top of a grid.
     #[serde(default, rename = "overlayPosition")]
-    pub overlay_position: Option<OverlayPosition>,
+    pub overlay_position: ::core::option::Option<::std::boxed::Box<OverlayPosition>>,
     /// The sheet this is on. Set only if the embedded object is on its own sheet. Must be non-negative.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// An error in a cell.
@@ -1951,10 +1972,10 @@ pub struct EmbeddedObjectPosition {
 pub struct ErrorValue {
     /// A message with more information about the error (in the spreadsheet''s locale).
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The type of error. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "ERROR", "NULL_VALUE", "DIVIDE_BY_ZERO", "VALUE", "REF", "NAME", "NUM", "N_A", "LOADING"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The kinds of value that a cell in a spreadsheet can have.
@@ -1962,19 +1983,19 @@ pub struct ErrorValue {
 pub struct ExtendedValue {
     /// Represents a boolean value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Represents an error. This field is read-only.
     #[serde(default, rename = "errorValue")]
-    pub error_value: Option<ErrorValue>,
+    pub error_value: ::core::option::Option<::std::boxed::Box<ErrorValue>>,
     /// Represents a formula.
     #[serde(default, rename = "formulaValue")]
-    pub formula_value: Option<String>,
+    pub formula_value: ::core::option::Option<String>,
     /// Represents a double value. Note: Dates, Times and DateTimes are represented as doubles in SERIAL_NUMBER format.
     #[serde(default, rename = "numberValue")]
-    pub number_value: Option<f64>,
+    pub number_value: ::core::option::Option<f64>,
     /// Represents a string value. Leading single quotes are not included. For example, if the user typed ''123 into the UI, this would be represented as a stringValue of "123".
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// Criteria for showing or hiding rows in a filter or filter view.
@@ -1982,22 +2003,22 @@ pub struct ExtendedValue {
 pub struct FilterCriteria {
     /// A condition that must be true for values to be shown. (This does not override hidden_values -- if a value is listed there, it will still be hidden.)
     #[serde(default)]
-    pub condition: Option<BooleanCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<BooleanCondition>>,
     /// Values that should be hidden.
     #[serde(default, rename = "hiddenValues")]
-    pub hidden_values: Option<Vec<String>>,
+    pub hidden_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// The background fill color to filter by; only cells with this fill color are shown. Mutually exclusive with visible_foreground_color. Deprecated: Use visible_background_color_style.
     #[serde(default, rename = "visibleBackgroundColor")]
-    pub visible_background_color: Option<Color>,
+    pub visible_background_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background fill color to filter by; only cells with this fill color are shown. This field is mutually exclusive with visible_foreground_color, and must be set to an RGB-type color. If visible_background_color is also set, this field takes precedence.
     #[serde(default, rename = "visibleBackgroundColorStyle")]
-    pub visible_background_color_style: Option<ColorStyle>,
+    pub visible_background_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The foreground color to filter by; only cells with this foreground color are shown. Mutually exclusive with visible_background_color. Deprecated: Use visible_foreground_color_style.
     #[serde(default, rename = "visibleForegroundColor")]
-    pub visible_foreground_color: Option<Color>,
+    pub visible_foreground_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The foreground color to filter by; only cells with this foreground color are shown. This field is mutually exclusive with visible_background_color, and must be set to an RGB-type color. If visible_foreground_color is also set, this field takes precedence.
     #[serde(default, rename = "visibleForegroundColorStyle")]
-    pub visible_foreground_color_style: Option<ColorStyle>,
+    pub visible_foreground_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
 }
 
 /// The filter criteria associated with a specific column.
@@ -2005,13 +2026,14 @@ pub struct FilterCriteria {
 pub struct FilterSpec {
     /// The zero-based column index.
     #[serde(default, rename = "columnIndex")]
-    pub column_index: Option<i32>,
+    pub column_index: ::core::option::Option<i32>,
     /// Reference to a data source column.
     #[serde(default, rename = "dataSourceColumnReference")]
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    pub data_source_column_reference:
+        ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
     /// The criteria for the column.
     #[serde(default, rename = "filterCriteria")]
-    pub filter_criteria: Option<FilterCriteria>,
+    pub filter_criteria: ::core::option::Option<::std::boxed::Box<FilterCriteria>>,
 }
 
 /// A filter view. For more information, see [Manage data visibility with filters](https://developers.google.com/workspace/sheets/api/guides/filters).
@@ -2019,28 +2041,28 @@ pub struct FilterSpec {
 pub struct FilterView {
     /// The criteria for showing/hiding values per column. The map''s key is the column index, and the value is the criteria for that column. This field is deprecated in favor of filter_specs.
     #[serde(default)]
-    pub criteria: Option<serde_json::Value>,
+    pub criteria: ::core::option::Option<serde_json::Value>,
     /// The filter criteria for showing or hiding values per column. Both criteria and filter_specs are populated in responses. If both fields are specified in an update request, this field takes precedence.
     #[serde(default, rename = "filterSpecs")]
-    pub filter_specs: Option<Vec<FilterSpec>>,
+    pub filter_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterSpec>>>,
     /// The ID of the filter view.
     #[serde(default, rename = "filterViewId")]
-    pub filter_view_id: Option<i32>,
+    pub filter_view_id: ::core::option::Option<i32>,
     /// The named range this filter view is backed by, if any. When writing, only one of range, named_range_id, or table_id may be set.
     #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: Option<String>,
+    pub named_range_id: ::core::option::Option<String>,
     /// The range this filter view covers. When writing, only one of range, named_range_id, or table_id may be set.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The sort order per column. Later specifications are used when values are equal in the earlier specifications.
     #[serde(default, rename = "sortSpecs")]
-    pub sort_specs: Option<Vec<SortSpec>>,
+    pub sort_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SortSpec>>>,
     /// The table this filter view is backed by, if any. When writing, only one of range, named_range_id, or table_id may be set.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
     /// The name of the filter view.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Finds and replaces data in cells over a range, sheet, or all sheets.
@@ -2048,31 +2070,31 @@ pub struct FilterView {
 pub struct FindReplaceRequest {
     /// True to find/replace over all sheets.
     #[serde(default, rename = "allSheets")]
-    pub all_sheets: Option<bool>,
+    pub all_sheets: ::core::option::Option<bool>,
     /// The value to search.
     #[serde(default)]
-    pub find: Option<String>,
+    pub find: ::core::option::Option<String>,
     /// True if the search should include cells with formulas. False to skip cells with formulas.
     #[serde(default, rename = "includeFormulas")]
-    pub include_formulas: Option<bool>,
+    pub include_formulas: ::core::option::Option<bool>,
     /// True if the search is case sensitive.
     #[serde(default, rename = "matchCase")]
-    pub match_case: Option<bool>,
+    pub match_case: ::core::option::Option<bool>,
     /// True if the find value should match the entire cell.
     #[serde(default, rename = "matchEntireCell")]
-    pub match_entire_cell: Option<bool>,
+    pub match_entire_cell: ::core::option::Option<bool>,
     /// The range to find/replace over.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The value to use as the replacement.
     #[serde(default)]
-    pub replacement: Option<String>,
+    pub replacement: ::core::option::Option<String>,
     /// True if the find value is a regex. The regular expression and replacement should follow Java regex rules at https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html. The replacement string is allowed to refer to capturing groups. For example, if one cell has the contents "Google Sheets" and another has "Google Docs", then searching for "o.* (.*)" with a replacement of "$1 Rocks" would change the contents of the cells to "GSheets Rocks" and "GDocs Rocks" respectively.
     #[serde(default, rename = "searchByRegex")]
-    pub search_by_regex: Option<bool>,
+    pub search_by_regex: ::core::option::Option<bool>,
     /// The sheet to find/replace over.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// The result of the find/replace.
@@ -2080,19 +2102,19 @@ pub struct FindReplaceRequest {
 pub struct FindReplaceResponse {
     /// The number of formula cells changed.
     #[serde(default, rename = "formulasChanged")]
-    pub formulas_changed: Option<i32>,
+    pub formulas_changed: ::core::option::Option<i32>,
     /// The number of occurrences (possibly multiple within a cell) changed. For example, if replacing "e" with "o" in "Google Sheets", this would be "3" because "Google Sheets" -&gt; "Googlo Shoots".
     #[serde(default, rename = "occurrencesChanged")]
-    pub occurrences_changed: Option<i32>,
+    pub occurrences_changed: ::core::option::Option<i32>,
     /// The number of rows changed.
     #[serde(default, rename = "rowsChanged")]
-    pub rows_changed: Option<i32>,
+    pub rows_changed: ::core::option::Option<i32>,
     /// The number of sheets changed.
     #[serde(default, rename = "sheetsChanged")]
-    pub sheets_changed: Option<i32>,
+    pub sheets_changed: ::core::option::Option<i32>,
     /// The number of non-formula cells changed.
     #[serde(default, rename = "valuesChanged")]
-    pub values_changed: Option<i32>,
+    pub values_changed: ::core::option::Option<i32>,
 }
 
 /// The request for retrieving a Spreadsheet.
@@ -2100,13 +2122,13 @@ pub struct FindReplaceResponse {
 pub struct GetSpreadsheetByDataFilterRequest {
     /// The DataFilters used to select which ranges to retrieve from the spreadsheet.
     #[serde(default, rename = "dataFilters")]
-    pub data_filters: Option<Vec<DataFilter>>,
+    pub data_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilter>>>,
     /// True if tables should be excluded in the banded ranges. False if not set.
     #[serde(default, rename = "excludeTablesInBandedRanges")]
-    pub exclude_tables_in_banded_ranges: Option<bool>,
+    pub exclude_tables_in_banded_ranges: ::core::option::Option<bool>,
     /// True if grid data should be returned. This parameter is ignored if a field mask was set in the request.
     #[serde(default, rename = "includeGridData")]
-    pub include_grid_data: Option<bool>,
+    pub include_grid_data: ::core::option::Option<bool>,
 }
 
 /// A rule that applies a gradient color scale format, based on the interpolation points listed. The format of a cell will vary based on its contents as compared to the values of the interpolation points.
@@ -2114,13 +2136,13 @@ pub struct GetSpreadsheetByDataFilterRequest {
 pub struct GradientRule {
     /// The final interpolation point.
     #[serde(default)]
-    pub maxpoint: Option<InterpolationPoint>,
+    pub maxpoint: ::core::option::Option<::std::boxed::Box<InterpolationPoint>>,
     /// An optional midway interpolation point.
     #[serde(default)]
-    pub midpoint: Option<InterpolationPoint>,
+    pub midpoint: ::core::option::Option<::std::boxed::Box<InterpolationPoint>>,
     /// The starting interpolation point.
     #[serde(default)]
-    pub minpoint: Option<InterpolationPoint>,
+    pub minpoint: ::core::option::Option<::std::boxed::Box<InterpolationPoint>>,
 }
 
 /// A coordinate in a sheet. All indexes are zero-based.
@@ -2128,13 +2150,13 @@ pub struct GradientRule {
 pub struct GridCoordinate {
     /// The column index of the coordinate.
     #[serde(default, rename = "columnIndex")]
-    pub column_index: Option<i32>,
+    pub column_index: ::core::option::Option<i32>,
     /// The row index of the coordinate.
     #[serde(default, rename = "rowIndex")]
-    pub row_index: Option<i32>,
+    pub row_index: ::core::option::Option<i32>,
     /// The sheet this coordinate is on.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// Data in the grid, as well as metadata about the dimensions.
@@ -2142,19 +2164,21 @@ pub struct GridCoordinate {
 pub struct GridData {
     /// Metadata about the requested columns in the grid, starting with the column in start_column.
     #[serde(default, rename = "columnMetadata")]
-    pub column_metadata: Option<Vec<DimensionProperties>>,
+    pub column_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionProperties>>>,
     /// The data in the grid, one entry per row, starting with the row in startRow. The values in RowData will correspond to columns starting at start_column.
     #[serde(default, rename = "rowData")]
-    pub row_data: Option<Vec<RowData>>,
+    pub row_data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RowData>>>,
     /// Metadata about the requested rows in the grid, starting with the row in start_row.
     #[serde(default, rename = "rowMetadata")]
-    pub row_metadata: Option<Vec<DimensionProperties>>,
+    pub row_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionProperties>>>,
     /// The first column this GridData refers to, zero-based.
     #[serde(default, rename = "startColumn")]
-    pub start_column: Option<i32>,
+    pub start_column: ::core::option::Option<i32>,
     /// The first row this GridData refers to, zero-based.
     #[serde(default, rename = "startRow")]
-    pub start_row: Option<i32>,
+    pub start_row: ::core::option::Option<i32>,
 }
 
 /// Properties of a grid.
@@ -2162,25 +2186,25 @@ pub struct GridData {
 pub struct GridProperties {
     /// The number of columns in the grid.
     #[serde(default, rename = "columnCount")]
-    pub column_count: Option<i32>,
+    pub column_count: ::core::option::Option<i32>,
     /// True if the column grouping control toggle is shown after the group.
     #[serde(default, rename = "columnGroupControlAfter")]
-    pub column_group_control_after: Option<bool>,
+    pub column_group_control_after: ::core::option::Option<bool>,
     /// The number of columns that are frozen in the grid.
     #[serde(default, rename = "frozenColumnCount")]
-    pub frozen_column_count: Option<i32>,
+    pub frozen_column_count: ::core::option::Option<i32>,
     /// The number of rows that are frozen in the grid.
     #[serde(default, rename = "frozenRowCount")]
-    pub frozen_row_count: Option<i32>,
+    pub frozen_row_count: ::core::option::Option<i32>,
     /// True if the grid isn''t showing gridlines in the UI.
     #[serde(default, rename = "hideGridlines")]
-    pub hide_gridlines: Option<bool>,
+    pub hide_gridlines: ::core::option::Option<bool>,
     /// The number of rows in the grid.
     #[serde(default, rename = "rowCount")]
-    pub row_count: Option<i32>,
+    pub row_count: ::core::option::Option<i32>,
     /// True if the row grouping control toggle is shown after the group.
     #[serde(default, rename = "rowGroupControlAfter")]
-    pub row_group_control_after: Option<bool>,
+    pub row_group_control_after: ::core::option::Option<bool>,
 }
 
 /// A range on a sheet. All indexes are zero-based. Indexes are half open, i.e. the start index is inclusive and the end index is exclusive -- [start_index, end_index). Missing indexes indicate the range is unbounded on that side. For example, if "Sheet1" is sheet ID 123456, then: Sheet1!A1:A1 == sheet_id: 123456, start_row_index: 0, end_row_index: 1, start_column_index: 0, end_column_index: 1 Sheet1!A3:B4 == sheet_id: 123456, start_row_index: 2, end_row_index: 4, start_column_index: 0, end_column_index: 2 Sheet1!A:B == sheet_id: 123456, start_column_index: 0, end_column_index: 2 Sheet1!A5:B == sheet_id: 123456, start_row_index: 4, start_column_index: 0, end_column_index: 2 Sheet1 == sheet_id: 123456 The start index must always be less than or equal to the end index. If the start index equals the end index, then the range is empty. Empty ranges are typically not meaningful and are usually rendered in the UI as #REF!.
@@ -2188,19 +2212,19 @@ pub struct GridProperties {
 pub struct GridRange {
     /// The end column (exclusive) of the range, or not set if unbounded.
     #[serde(default, rename = "endColumnIndex")]
-    pub end_column_index: Option<i32>,
+    pub end_column_index: ::core::option::Option<i32>,
     /// The end row (exclusive) of the range, or not set if unbounded.
     #[serde(default, rename = "endRowIndex")]
-    pub end_row_index: Option<i32>,
+    pub end_row_index: ::core::option::Option<i32>,
     /// The sheet this range is on.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
     /// The start column (inclusive) of the range, or not set if unbounded.
     #[serde(default, rename = "startColumnIndex")]
-    pub start_column_index: Option<i32>,
+    pub start_column_index: ::core::option::Option<i32>,
     /// The start row (inclusive) of the range, or not set if unbounded.
     #[serde(default, rename = "startRowIndex")]
-    pub start_row_index: Option<i32>,
+    pub start_row_index: ::core::option::Option<i32>,
 }
 
 /// A histogram chart. A histogram chart groups data items into bins, displaying each bin as a column of stacked items. Histograms are used to display the distribution of a dataset. Each column of items represents a range into which those items fall. The number of bins can be chosen automatically or specified explicitly.
@@ -2208,19 +2232,19 @@ pub struct GridRange {
 pub struct HistogramChartSpec {
     /// By default the bucket size (the range of values stacked in a single column) is chosen automatically, but it may be overridden here. E.g., A bucket size of 1.5 results in buckets from 0 - 1.5, 1.5 - 3.0, etc. Cannot be negative. This field is optional.
     #[serde(default, rename = "bucketSize")]
-    pub bucket_size: Option<f64>,
+    pub bucket_size: ::core::option::Option<f64>,
     /// The position of the chart legend. // TODO: enum values: ["HISTOGRAM_CHART_LEGEND_POSITION_UNSPECIFIED", "BOTTOM_LEGEND", "LEFT_LEGEND", "RIGHT_LEGEND", "TOP_LEGEND", "NO_LEGEND", "INSIDE_LEGEND"]
     #[serde(default, rename = "legendPosition")]
-    pub legend_position: Option<String>,
+    pub legend_position: ::core::option::Option<String>,
     /// The outlier percentile is used to ensure that outliers do not adversely affect the calculation of bucket sizes. For example, setting an outlier percentile of 0.05 indicates that the top and bottom 5% of values when calculating buckets. The values are still included in the chart, they will be added to the first or last buckets instead of their own buckets. Must be between 0.0 and 0.5.
     #[serde(default, rename = "outlierPercentile")]
-    pub outlier_percentile: Option<f64>,
+    pub outlier_percentile: ::core::option::Option<f64>,
     /// The series for a histogram may be either a single series of values to be bucketed or multiple series, each of the same length, containing the name of the series followed by the values to be bucketed for that series.
     #[serde(default)]
-    pub series: Option<Vec<HistogramSeries>>,
+    pub series: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HistogramSeries>>>,
     /// Whether horizontal divider lines should be displayed between items in each column.
     #[serde(default, rename = "showItemDividers")]
-    pub show_item_dividers: Option<bool>,
+    pub show_item_dividers: ::core::option::Option<bool>,
 }
 
 /// Allows you to organize the numeric values in a source data column into buckets of a constant size. All values from HistogramRule.start to HistogramRule.end are placed into groups of size HistogramRule.interval. In addition, all values below HistogramRule.start are placed in one group, and all values above HistogramRule.end are placed in another. Only HistogramRule.interval is required, though if HistogramRule.start and HistogramRule.end are both provided, HistogramRule.start must be less than HistogramRule.end. For example, a pivot table showing average purchase amount by age that has 50+ rows: +-----+-------------------+ | Age | AVERAGE of Amount | +-----+-------------------+ | 16 | $27.13 | | 17 | $5.24 | | 18 | $20.15 | ... +-----+-------------------+ could be turned into a pivot table that looks like the one below by applying a histogram group rule with a HistogramRule.start of 25, an HistogramRule.interval of 20, and an HistogramRule.end of 65. +-------------+-------------------+ | Grouped Age | AVERAGE of Amount | +-------------+-------------------+ | &lt; 25 | $19.34 | | 25-45 | $31.43 | | 45-65 | $35.87 | | &gt; 65 | $27.55 | +-------------+-------------------+ | Grand Total | $29.12 | +-------------+-------------------+
@@ -2228,13 +2252,13 @@ pub struct HistogramChartSpec {
 pub struct HistogramRule {
     /// The maximum value at which items are placed into buckets of constant size. Values above end are lumped into a single bucket. This field is optional.
     #[serde(default)]
-    pub end: Option<f64>,
+    pub end: ::core::option::Option<f64>,
     /// The size of the buckets that are created. Must be positive.
     #[serde(default)]
-    pub interval: Option<f64>,
+    pub interval: ::core::option::Option<f64>,
     /// The minimum value at which items are placed into buckets of constant size. Values below start are lumped into a single bucket. This field is optional.
     #[serde(default)]
-    pub start: Option<f64>,
+    pub start: ::core::option::Option<f64>,
 }
 
 /// A histogram series containing the series color and data.
@@ -2242,13 +2266,13 @@ pub struct HistogramRule {
 pub struct HistogramSeries {
     /// The color of the column representing this series in each bucket. This field is optional. Deprecated: Use bar_color_style.
     #[serde(default, rename = "barColor")]
-    pub bar_color: Option<Color>,
+    pub bar_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the column representing this series in each bucket. This field is optional. If bar_color is also set, this field takes precedence.
     #[serde(default, rename = "barColorStyle")]
-    pub bar_color_style: Option<ColorStyle>,
+    pub bar_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The data for this histogram series.
     #[serde(default)]
-    pub data: Option<ChartData>,
+    pub data: ::core::option::Option<::std::boxed::Box<ChartData>>,
 }
 
 /// Inserts rows or columns in a sheet at a particular index.
@@ -2256,10 +2280,10 @@ pub struct HistogramSeries {
 pub struct InsertDimensionRequest {
     /// Whether dimension properties should be extended from the dimensions before or after the newly inserted dimensions. True to inherit from the dimensions before (in which case the start index must be greater than 0), and false to inherit from the dimensions after. For example, if row index 0 has red background and row index 1 has a green background, then inserting 2 rows at index 1 can inherit either the green or red background. If inheritFromBefore is true, the two new rows will be red (because the row before the insertion point was red), whereas if inheritFromBefore is false, the two new rows will be green (because the row after the insertion point was green).
     #[serde(default, rename = "inheritFromBefore")]
-    pub inherit_from_before: Option<bool>,
+    pub inherit_from_before: ::core::option::Option<bool>,
     /// The dimensions to insert. Both the start and end indexes must be bounded.
     #[serde(default)]
-    pub range: Option<DimensionRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// Inserts cells into a range, shifting the existing cells over or down.
@@ -2267,10 +2291,10 @@ pub struct InsertDimensionRequest {
 pub struct InsertRangeRequest {
     /// The range to insert new cells into. The range is constrained to the current sheet boundaries.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The dimension which will be shifted when inserting cells. If ROWS, existing cells will be shifted down. If COLUMNS, existing cells will be shifted right. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default, rename = "shiftDimension")]
-    pub shift_dimension: Option<String>,
+    pub shift_dimension: ::core::option::Option<String>,
 }
 
 /// A single interpolation point on a gradient conditional format. These pin the gradient color scale according to the color, type and value chosen.
@@ -2278,16 +2302,16 @@ pub struct InsertRangeRequest {
 pub struct InterpolationPoint {
     /// The color this interpolation point should use. Deprecated: Use color_style.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color this interpolation point should use. If color is also set, this field takes precedence.
     #[serde(default, rename = "colorStyle")]
-    pub color_style: Option<ColorStyle>,
+    pub color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// How the value should be interpreted. // TODO: enum values: ["INTERPOLATION_POINT_TYPE_UNSPECIFIED", "MIN", "MAX", "NUMBER", "PERCENT", "PERCENTILE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The value this interpolation point uses. May be a formula. Unused if type is MIN or MAX.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
@@ -2295,10 +2319,10 @@ pub struct InterpolationPoint {
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Settings to control how circular dependencies are resolved with iterative calculation.
@@ -2306,10 +2330,10 @@ pub struct Interval {
 pub struct IterativeCalculationSettings {
     /// When iterative calculation is enabled and successive results differ by less than this threshold value, the calculation rounds stop.
     #[serde(default, rename = "convergenceThreshold")]
-    pub convergence_threshold: Option<f64>,
+    pub convergence_threshold: ::core::option::Option<f64>,
     /// When iterative calculation is enabled, the maximum number of calculation rounds to perform.
     #[serde(default, rename = "maxIterations")]
-    pub max_iterations: Option<i32>,
+    pub max_iterations: ::core::option::Option<i32>,
 }
 
 /// Formatting options for key value.
@@ -2317,10 +2341,10 @@ pub struct IterativeCalculationSettings {
 pub struct KeyValueFormat {
     /// Specifies the horizontal text positioning of key value. This field is optional. If not specified, default positioning is used.
     #[serde(default)]
-    pub position: Option<TextPosition>,
+    pub position: ::core::option::Option<::std::boxed::Box<TextPosition>>,
     /// Text formatting options for key value. The link field is not supported.
     #[serde(default, rename = "textFormat")]
-    pub text_format: Option<TextFormat>,
+    pub text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
 }
 
 /// Properties that describe the style of a line.
@@ -2328,10 +2352,10 @@ pub struct KeyValueFormat {
 pub struct LineStyle {
     /// The dash type of the line. // TODO: enum values: ["LINE_DASH_TYPE_UNSPECIFIED", "INVISIBLE", "CUSTOM", "SOLID", "DOTTED", "MEDIUM_DASHED", "MEDIUM_DASHED_DOTTED", "LONG_DASHED", "LONG_DASHED_DOTTED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The thickness of the line, in px.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// An external or local reference.
@@ -2339,7 +2363,7 @@ pub struct LineStyle {
 pub struct Link {
     /// The link identifier.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The specification of a Looker data source.
@@ -2347,13 +2371,13 @@ pub struct Link {
 pub struct LookerDataSourceSpec {
     /// Name of a Looker model explore.
     #[serde(default)]
-    pub explore: Option<String>,
+    pub explore: ::core::option::Option<String>,
     /// A Looker instance URL.
     #[serde(default, rename = "instanceUri")]
-    pub instance_uri: Option<String>,
+    pub instance_uri: ::core::option::Option<String>,
     /// Name of a Looker model.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Allows you to manually organize the values in a source data column into buckets with names of your choosing. For example, a pivot table that aggregates population by state: +-------+-------------------+ | State | SUM of Population | +-------+-------------------+ | AK | 0.7 | | AL | 4.8 | | AR | 2.9 | ... +-------+-------------------+ could be turned into a pivot table that aggregates population by time zone by providing a list of groups (for example, groupName = ''Central'', items = [''AL'', ''AR'', ''IA'', ...]) to a manual group rule. Note that a similar effect could be achieved by adding a time zone column to the source data and adjusting the pivot table. +-----------+-------------------+ | Time Zone | SUM of Population | +-----------+-------------------+ | Central | 106.3 | | Eastern | 151.9 | | Mountain | 17.4 | ... +-----------+-------------------+
@@ -2361,7 +2385,7 @@ pub struct LookerDataSourceSpec {
 pub struct ManualRule {
     /// The list of group names and the corresponding items from the source data that map to each group name.
     #[serde(default)]
-    pub groups: Option<Vec<ManualRuleGroup>>,
+    pub groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManualRuleGroup>>>,
 }
 
 /// A group name and a list of items from the source data that should be placed in the group with this name.
@@ -2369,10 +2393,10 @@ pub struct ManualRule {
 pub struct ManualRuleGroup {
     /// The group name, which must be a string. Each group in a given ManualRule must have a unique group name.
     #[serde(default, rename = "groupName")]
-    pub group_name: Option<ExtendedValue>,
+    pub group_name: ::core::option::Option<::std::boxed::Box<ExtendedValue>>,
     /// The items in the source data that should be placed into this group. Each item may be a string, number, or boolean. Items may appear in at most one group within a given ManualRule. Items that do not appear in any group will appear on their own.
     #[serde(default)]
-    pub items: Option<Vec<ExtendedValue>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExtendedValue>>>,
 }
 
 /// A developer metadata entry and the data filters specified in the original request that matched it.
@@ -2380,10 +2404,10 @@ pub struct ManualRuleGroup {
 pub struct MatchedDeveloperMetadata {
     /// All filters matching the returned developer metadata.
     #[serde(default, rename = "dataFilters")]
-    pub data_filters: Option<Vec<DataFilter>>,
+    pub data_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilter>>>,
     /// The developer metadata matching the specified filters.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<DeveloperMetadata>,
+    pub developer_metadata: ::core::option::Option<::std::boxed::Box<DeveloperMetadata>>,
 }
 
 /// A value range that was matched by one or more data filers.
@@ -2391,10 +2415,10 @@ pub struct MatchedDeveloperMetadata {
 pub struct MatchedValueRange {
     /// The DataFilters from the request that matched the range of values.
     #[serde(default, rename = "dataFilters")]
-    pub data_filters: Option<Vec<DataFilter>>,
+    pub data_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilter>>>,
     /// The values matched by the DataFilter.
     #[serde(default, rename = "valueRange")]
-    pub value_range: Option<ValueRange>,
+    pub value_range: ::core::option::Option<::std::boxed::Box<ValueRange>>,
 }
 
 /// Merges all cells in the range.
@@ -2402,10 +2426,10 @@ pub struct MatchedValueRange {
 pub struct MergeCellsRequest {
     /// How the cells should be merged. // TODO: enum values: ["MERGE_ALL", "MERGE_COLUMNS", "MERGE_ROWS"]
     #[serde(default, rename = "mergeType")]
-    pub merge_type: Option<String>,
+    pub merge_type: ::core::option::Option<String>,
     /// The range of cells to merge.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// Moves one or more rows or columns.
@@ -2413,10 +2437,10 @@ pub struct MergeCellsRequest {
 pub struct MoveDimensionRequest {
     /// The zero-based start index of where to move the source data to, based on the coordinates *before* the source data is removed from the grid. Existing data will be shifted down or right (depending on the dimension) to make room for the moved dimensions. The source dimensions are removed from the grid, so the the data may end up in a different index than specified. For example, given A1..A5 of 0, 1, 2, 3, 4 and wanting to move "1" and "2" to between "3" and "4", the source would be ROWS [1..3),and the destination index would be "4" (the zero-based index of row 5). The end result would be A1..A5 of 0, 3, 1, 2, 4.
     #[serde(default, rename = "destinationIndex")]
-    pub destination_index: Option<i32>,
+    pub destination_index: ::core::option::Option<i32>,
     /// The source dimensions to move.
     #[serde(default)]
-    pub source: Option<DimensionRange>,
+    pub source: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// A named range.
@@ -2424,13 +2448,13 @@ pub struct MoveDimensionRequest {
 pub struct NamedRange {
     /// The name of the named range.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The ID of the named range.
     #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: Option<String>,
+    pub named_range_id: ::core::option::Option<String>,
     /// The range this represents.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// The number format of a cell.
@@ -2438,10 +2462,10 @@ pub struct NamedRange {
 pub struct NumberFormat {
     /// Pattern string used for formatting. If not set, a default pattern based on the spreadsheet''s locale will be used if necessary for the given type. See the [Date and Number Formats guide](https://developers.google.com/workspace/sheets/api/guides/formats) for more information about the supported patterns.
     #[serde(default)]
-    pub pattern: Option<String>,
+    pub pattern: ::core::option::Option<String>,
     /// The type of the number format. When writing, this field must be set. // TODO: enum values: ["NUMBER_FORMAT_TYPE_UNSPECIFIED", "TEXT", "NUMBER", "PERCENT", "CURRENCY", "DATE", "TIME", "DATE_TIME", "SCIENTIFIC"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An org chart. Org charts require a unique set of labels in labels and may optionally include parent_labels and tooltips. parent_labels contain, for each node, the label identifying the parent node. tooltips contain, for each node, an optional tooltip. For example, to describe an OrgChart with Alice as the CEO, Bob as the President (reporting to Alice) and Cathy as VP of Sales (also reporting to Alice), have labels contain "Alice", "Bob", "Cathy", parent_labels contain "", "Alice", "Alice" and tooltips contain "CEO", "President", "VP Sales".
@@ -2449,28 +2473,28 @@ pub struct NumberFormat {
 pub struct OrgChartSpec {
     /// The data containing the labels for all the nodes in the chart. Labels must be unique.
     #[serde(default)]
-    pub labels: Option<ChartData>,
+    pub labels: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The color of the org chart nodes. Deprecated: Use node_color_style.
     #[serde(default, rename = "nodeColor")]
-    pub node_color: Option<Color>,
+    pub node_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the org chart nodes. If node_color is also set, this field takes precedence.
     #[serde(default, rename = "nodeColorStyle")]
-    pub node_color_style: Option<ColorStyle>,
+    pub node_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The size of the org chart nodes. // TODO: enum values: ["ORG_CHART_LABEL_SIZE_UNSPECIFIED", "SMALL", "MEDIUM", "LARGE"]
     #[serde(default, rename = "nodeSize")]
-    pub node_size: Option<String>,
+    pub node_size: ::core::option::Option<String>,
     /// The data containing the label of the parent for the corresponding node. A blank value indicates that the node has no parent and is a top-level node. This field is optional.
     #[serde(default, rename = "parentLabels")]
-    pub parent_labels: Option<ChartData>,
+    pub parent_labels: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The color of the selected org chart nodes. Deprecated: Use selected_node_color_style.
     #[serde(default, rename = "selectedNodeColor")]
-    pub selected_node_color: Option<Color>,
+    pub selected_node_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the selected org chart nodes. If selected_node_color is also set, this field takes precedence.
     #[serde(default, rename = "selectedNodeColorStyle")]
-    pub selected_node_color_style: Option<ColorStyle>,
+    pub selected_node_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The data containing the tooltip for the corresponding node. A blank value results in no tooltip being displayed for the node. This field is optional.
     #[serde(default)]
-    pub tooltips: Option<ChartData>,
+    pub tooltips: ::core::option::Option<::std::boxed::Box<ChartData>>,
 }
 
 /// The location an object is overlaid on top of a grid.
@@ -2478,19 +2502,19 @@ pub struct OrgChartSpec {
 pub struct OverlayPosition {
     /// The cell the object is anchored to.
     #[serde(default, rename = "anchorCell")]
-    pub anchor_cell: Option<GridCoordinate>,
+    pub anchor_cell: ::core::option::Option<::std::boxed::Box<GridCoordinate>>,
     /// The height of the object, in pixels. Defaults to 371.
     #[serde(default, rename = "heightPixels")]
-    pub height_pixels: Option<i32>,
+    pub height_pixels: ::core::option::Option<i32>,
     /// The horizontal offset, in pixels, that the object is offset from the anchor cell.
     #[serde(default, rename = "offsetXPixels")]
-    pub offset_x_pixels: Option<i32>,
+    pub offset_x_pixels: ::core::option::Option<i32>,
     /// The vertical offset, in pixels, that the object is offset from the anchor cell.
     #[serde(default, rename = "offsetYPixels")]
-    pub offset_y_pixels: Option<i32>,
+    pub offset_y_pixels: ::core::option::Option<i32>,
     /// The width of the object, in pixels. Defaults to 600.
     #[serde(default, rename = "widthPixels")]
-    pub width_pixels: Option<i32>,
+    pub width_pixels: ::core::option::Option<i32>,
 }
 
 /// The amount of padding around the cell, in pixels. When updating padding, every field must be specified.
@@ -2498,16 +2522,16 @@ pub struct OverlayPosition {
 pub struct Padding {
     /// The bottom padding of the cell.
     #[serde(default)]
-    pub bottom: Option<i32>,
+    pub bottom: ::core::option::Option<i32>,
     /// The left padding of the cell.
     #[serde(default)]
-    pub left: Option<i32>,
+    pub left: ::core::option::Option<i32>,
     /// The right padding of the cell.
     #[serde(default)]
-    pub right: Option<i32>,
+    pub right: ::core::option::Option<i32>,
     /// The top padding of the cell.
     #[serde(default)]
-    pub top: Option<i32>,
+    pub top: ::core::option::Option<i32>,
 }
 
 /// Inserts data into the spreadsheet starting at the specified coordinate.
@@ -2515,19 +2539,19 @@ pub struct Padding {
 pub struct PasteDataRequest {
     /// The coordinate at which the data should start being inserted.
     #[serde(default)]
-    pub coordinate: Option<GridCoordinate>,
+    pub coordinate: ::core::option::Option<::std::boxed::Box<GridCoordinate>>,
     /// The data to insert.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// The delimiter in the data.
     #[serde(default)]
-    pub delimiter: Option<String>,
+    pub delimiter: ::core::option::Option<String>,
     /// True if the data is HTML.
     #[serde(default)]
-    pub html: Option<bool>,
+    pub html: ::core::option::Option<bool>,
     /// How the data should be pasted. // TODO: enum values: ["PASTE_NORMAL", "PASTE_VALUES", "PASTE_FORMAT", "PASTE_NO_BORDERS", "PASTE_FORMULA", "PASTE_DATA_VALIDATION", "PASTE_CONDITIONAL_FORMATTING"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Properties specific to a linked person.
@@ -2535,10 +2559,10 @@ pub struct PasteDataRequest {
 pub struct PersonProperties {
     /// Optional. The display format of the person chip. If not set, the default display format is used. // TODO: enum values: ["DISPLAY_FORMAT_UNSPECIFIED", "DEFAULT", "LAST_NAME_COMMA_FIRST_NAME", "EMAIL"]
     #[serde(default, rename = "displayFormat")]
-    pub display_format: Option<String>,
+    pub display_format: ::core::option::Option<String>,
     /// Required. The email address linked to this person. This field is always present.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// A pie chart.
@@ -2546,19 +2570,19 @@ pub struct PersonProperties {
 pub struct PieChartSpec {
     /// The data that covers the domain of the pie chart.
     #[serde(default)]
-    pub domain: Option<ChartData>,
+    pub domain: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// Where the legend of the pie chart should be drawn. // TODO: enum values: ["PIE_CHART_LEGEND_POSITION_UNSPECIFIED", "BOTTOM_LEGEND", "LEFT_LEGEND", "RIGHT_LEGEND", "TOP_LEGEND", "NO_LEGEND", "LABELED_LEGEND"]
     #[serde(default, rename = "legendPosition")]
-    pub legend_position: Option<String>,
+    pub legend_position: ::core::option::Option<String>,
     /// The size of the hole in the pie chart.
     #[serde(default, rename = "pieHole")]
-    pub pie_hole: Option<f64>,
+    pub pie_hole: ::core::option::Option<f64>,
     /// The data that covers the one and only series of the pie chart.
     #[serde(default)]
-    pub series: Option<ChartData>,
+    pub series: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// True if the pie is three dimensional.
     #[serde(default, rename = "threeDimensional")]
-    pub three_dimensional: Option<bool>,
+    pub three_dimensional: ::core::option::Option<bool>,
 }
 
 /// Criteria for showing/hiding rows in a pivot table.
@@ -2566,13 +2590,13 @@ pub struct PieChartSpec {
 pub struct PivotFilterCriteria {
     /// A condition that must be true for values to be shown. (visibleValues does not override this -- even if a value is listed there, it is still hidden if it does not meet the condition.) Condition values that refer to ranges in A1-notation are evaluated relative to the pivot table sheet. References are treated absolutely, so are not filled down the pivot table. For example, a condition value of =A1 on "Pivot Table 1" is treated as ''Pivot Table 1''!$A$1. The source data of the pivot table can be referenced by column header name. For example, if the source data has columns named "Revenue" and "Cost" and a condition is applied to the "Revenue" column with type NUMBER_GREATER and value =Cost, then only columns where "Revenue" &gt; "Cost" are included.
     #[serde(default)]
-    pub condition: Option<BooleanCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<BooleanCondition>>,
     /// Whether values are visible by default. If true, the visible_values are ignored, all values that meet condition (if specified) are shown. If false, values that are both in visible_values and meet condition are shown.
     #[serde(default, rename = "visibleByDefault")]
-    pub visible_by_default: Option<bool>,
+    pub visible_by_default: ::core::option::Option<bool>,
     /// Values that should be included. Values not listed here are excluded.
     #[serde(default, rename = "visibleValues")]
-    pub visible_values: Option<Vec<String>>,
+    pub visible_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The pivot table filter criteria associated with a specific source column offset.
@@ -2580,13 +2604,14 @@ pub struct PivotFilterCriteria {
 pub struct PivotFilterSpec {
     /// The zero-based column offset of the source range.
     #[serde(default, rename = "columnOffsetIndex")]
-    pub column_offset_index: Option<i32>,
+    pub column_offset_index: ::core::option::Option<i32>,
     /// The reference to the data source column.
     #[serde(default, rename = "dataSourceColumnReference")]
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    pub data_source_column_reference:
+        ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
     /// The criteria for the column.
     #[serde(default, rename = "filterCriteria")]
-    pub filter_criteria: Option<PivotFilterCriteria>,
+    pub filter_criteria: ::core::option::Option<::std::boxed::Box<PivotFilterCriteria>>,
 }
 
 /// A single grouping (either row or column) in a pivot table.
@@ -2594,34 +2619,36 @@ pub struct PivotFilterSpec {
 pub struct PivotGroup {
     /// The reference to the data source column this grouping is based on.
     #[serde(default, rename = "dataSourceColumnReference")]
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    pub data_source_column_reference:
+        ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
     /// The count limit on rows or columns to apply to this pivot group.
     #[serde(default, rename = "groupLimit")]
-    pub group_limit: Option<PivotGroupLimit>,
+    pub group_limit: ::core::option::Option<::std::boxed::Box<PivotGroupLimit>>,
     /// The group rule to apply to this row/column group.
     #[serde(default, rename = "groupRule")]
-    pub group_rule: Option<PivotGroupRule>,
+    pub group_rule: ::core::option::Option<::std::boxed::Box<PivotGroupRule>>,
     /// The labels to use for the row/column groups which can be customized. For example, in the following pivot table, the row label is Region (which could be renamed to State) and the column label is Product (which could be renamed Item). Pivot tables created before December 2017 do not have header labels. If you''d like to add header labels to an existing pivot table, please delete the existing pivot table and then create a new pivot table with same parameters. +--------------+---------+-------+ | SUM of Units | Product | | | Region | Pen | Paper | +--------------+---------+-------+ | New York | 345 | 98 | | Oregon | 234 | 123 | | Tennessee | 531 | 415 | +--------------+---------+-------+ | Grand Total | 1110 | 636 | +--------------+---------+-------+
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// True if the headings in this pivot group should be repeated. This is only valid for row groupings and is ignored by columns. By default, we minimize repetition of headings by not showing higher level headings where they are the same. For example, even though the third row below corresponds to "Q1 Mar", "Q1" is not shown because it is redundant with previous rows. Setting repeat_headings to true would cause "Q1" to be repeated for "Feb" and "Mar". +--------------+ | Q1 | Jan | | | Feb | | | Mar | +--------+-----+ | Q1 Total | +--------------+
     #[serde(default, rename = "repeatHeadings")]
-    pub repeat_headings: Option<bool>,
+    pub repeat_headings: ::core::option::Option<bool>,
     /// True if the pivot table should include the totals for this grouping.
     #[serde(default, rename = "showTotals")]
-    pub show_totals: Option<bool>,
+    pub show_totals: ::core::option::Option<bool>,
     /// The order the values in this group should be sorted. // TODO: enum values: ["SORT_ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
     #[serde(default, rename = "sortOrder")]
-    pub sort_order: Option<String>,
+    pub sort_order: ::core::option::Option<String>,
     /// The column offset of the source range that this grouping is based on. For example, if the source was C10:E15, a sourceColumnOffset of 0 means this group refers to column C, whereas the offset 1 would refer to column D.
     #[serde(default, rename = "sourceColumnOffset")]
-    pub source_column_offset: Option<i32>,
+    pub source_column_offset: ::core::option::Option<i32>,
     /// The bucket of the opposite pivot group to sort by. If not specified, sorting is alphabetical by this group''s values.
     #[serde(default, rename = "valueBucket")]
-    pub value_bucket: Option<PivotGroupSortValueBucket>,
+    pub value_bucket: ::core::option::Option<::std::boxed::Box<PivotGroupSortValueBucket>>,
     /// Metadata about values in the grouping.
     #[serde(default, rename = "valueMetadata")]
-    pub value_metadata: Option<Vec<PivotGroupValueMetadata>>,
+    pub value_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PivotGroupValueMetadata>>>,
 }
 
 /// The count limit on rows or columns in the pivot group.
@@ -2629,10 +2656,10 @@ pub struct PivotGroup {
 pub struct PivotGroupLimit {
     /// The order in which the group limit is applied to the pivot table. Pivot group limits are applied from lower to higher order number. Order numbers are normalized to consecutive integers from 0. For write request, to fully customize the applying orders, all pivot group limits should have this field set with an unique number. Otherwise, the order is determined by the index in the PivotTable.rows list and then the PivotTable.columns list.
     #[serde(default, rename = "applyOrder")]
-    pub apply_order: Option<i32>,
+    pub apply_order: ::core::option::Option<i32>,
     /// The count limit.
     #[serde(default, rename = "countLimit")]
-    pub count_limit: Option<i32>,
+    pub count_limit: ::core::option::Option<i32>,
 }
 
 /// An optional setting on a PivotGroup that defines buckets for the values in the source data column rather than breaking out each individual value. Only one PivotGroup with a group rule may be added for each column in the source data, though on any given column you may add both a PivotGroup that has a rule and a PivotGroup that does not.
@@ -2640,13 +2667,13 @@ pub struct PivotGroupLimit {
 pub struct PivotGroupRule {
     /// A DateTimeRule.
     #[serde(default, rename = "dateTimeRule")]
-    pub date_time_rule: Option<DateTimeRule>,
+    pub date_time_rule: ::core::option::Option<::std::boxed::Box<DateTimeRule>>,
     /// A HistogramRule.
     #[serde(default, rename = "histogramRule")]
-    pub histogram_rule: Option<HistogramRule>,
+    pub histogram_rule: ::core::option::Option<::std::boxed::Box<HistogramRule>>,
     /// A ManualRule.
     #[serde(default, rename = "manualRule")]
-    pub manual_rule: Option<ManualRule>,
+    pub manual_rule: ::core::option::Option<::std::boxed::Box<ManualRule>>,
 }
 
 /// Information about which values in a pivot group should be used for sorting.
@@ -2654,10 +2681,10 @@ pub struct PivotGroupRule {
 pub struct PivotGroupSortValueBucket {
     /// Determines the bucket from which values are chosen to sort. For example, in a pivot table with one row group & two column groups, the row group can list up to two values. The first value corresponds to a value within the first column group, and the second value corresponds to a value in the second column group. If no values are listed, this would indicate that the row should be sorted according to the "Grand Total" over the column groups. If a single value is listed, this would correspond to using the "Total" of that bucket.
     #[serde(default)]
-    pub buckets: Option<Vec<ExtendedValue>>,
+    pub buckets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExtendedValue>>>,
     /// The offset in the PivotTable.values list which the values in this grouping should be sorted by.
     #[serde(default, rename = "valuesIndex")]
-    pub values_index: Option<i32>,
+    pub values_index: ::core::option::Option<i32>,
 }
 
 /// Metadata about a value in a pivot grouping.
@@ -2665,10 +2692,10 @@ pub struct PivotGroupSortValueBucket {
 pub struct PivotGroupValueMetadata {
     /// True if the data corresponding to the value is collapsed.
     #[serde(default)]
-    pub collapsed: Option<bool>,
+    pub collapsed: ::core::option::Option<bool>,
     /// The calculated value the metadata corresponds to. (Note that formulaValue is not valid, because the values will be calculated.)
     #[serde(default)]
-    pub value: Option<ExtendedValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<ExtendedValue>>,
 }
 
 /// A pivot table.
@@ -2676,31 +2703,31 @@ pub struct PivotGroupValueMetadata {
 pub struct PivotTable {
     /// Each column grouping in the pivot table.
     #[serde(default)]
-    pub columns: Option<Vec<PivotGroup>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PivotGroup>>>,
     /// An optional mapping of filters per source column offset. The filters are applied before aggregating data into the pivot table. The map''s key is the column offset of the source range that you want to filter, and the value is the criteria for that column. For example, if the source was C10:E15, a key of 0 will have the filter for column C, whereas the key 1 is for column D. This field is deprecated in favor of filter_specs.
     #[serde(default)]
-    pub criteria: Option<serde_json::Value>,
+    pub criteria: ::core::option::Option<serde_json::Value>,
     /// Output only. The data execution status for data source pivot tables.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// The ID of the data source the pivot table is reading data from.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// The filters applied to the source columns before aggregating data for the pivot table. Both criteria and filter_specs are populated in responses. If both fields are specified in an update request, this field takes precedence.
     #[serde(default, rename = "filterSpecs")]
-    pub filter_specs: Option<Vec<PivotFilterSpec>>,
+    pub filter_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PivotFilterSpec>>>,
     /// Each row grouping in the pivot table.
     #[serde(default)]
-    pub rows: Option<Vec<PivotGroup>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PivotGroup>>>,
     /// The range the pivot table is reading data from.
     #[serde(default)]
-    pub source: Option<GridRange>,
+    pub source: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// Whether values should be listed horizontally (as columns) or vertically (as rows). // TODO: enum values: ["HORIZONTAL", "VERTICAL"]
     #[serde(default, rename = "valueLayout")]
-    pub value_layout: Option<String>,
+    pub value_layout: ::core::option::Option<String>,
     /// A list of values to include in the pivot table.
     #[serde(default)]
-    pub values: Option<Vec<PivotValue>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PivotValue>>>,
 }
 
 /// The definition of how a value in a pivot table should be calculated.
@@ -2708,22 +2735,23 @@ pub struct PivotTable {
 pub struct PivotValue {
     /// If specified, indicates that pivot values should be displayed as the result of a calculation with another pivot value. For example, if calculated_display_type is specified as PERCENT_OF_GRAND_TOTAL, all the pivot values are displayed as the percentage of the grand total. In the Sheets editor, this is referred to as "Show As" in the value section of a pivot table. // TODO: enum values: ["PIVOT_VALUE_CALCULATED_DISPLAY_TYPE_UNSPECIFIED", "PERCENT_OF_ROW_TOTAL", "PERCENT_OF_COLUMN_TOTAL", "PERCENT_OF_GRAND_TOTAL"]
     #[serde(default, rename = "calculatedDisplayType")]
-    pub calculated_display_type: Option<String>,
+    pub calculated_display_type: ::core::option::Option<String>,
     /// The reference to the data source column that this value reads from.
     #[serde(default, rename = "dataSourceColumnReference")]
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    pub data_source_column_reference:
+        ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
     /// A custom formula to calculate the value. The formula must start with an = character.
     #[serde(default)]
-    pub formula: Option<String>,
+    pub formula: ::core::option::Option<String>,
     /// A name to use for the value.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The column offset of the source range that this value reads from. For example, if the source was C10:E15, a sourceColumnOffset of 0 means this value refers to column C, whereas the offset 1 would refer to column D.
     #[serde(default, rename = "sourceColumnOffset")]
-    pub source_column_offset: Option<i32>,
+    pub source_column_offset: ::core::option::Option<i32>,
     /// A function to summarize the value. If formula is set, the only supported values are SUM and CUSTOM. If sourceColumnOffset is set, then CUSTOM is not supported. // TODO: enum values: ["PIVOT_STANDARD_VALUE_FUNCTION_UNSPECIFIED", "SUM", "COUNTA", "COUNT", "COUNTUNIQUE", "AVERAGE", "MAX", "MIN", "MEDIAN", "PRODUCT", "STDEV", "STDEVP", "VAR", "VARP", "CUSTOM", "NONE"]
     #[serde(default, rename = "summarizeFunction")]
-    pub summarize_function: Option<String>,
+    pub summarize_function: ::core::option::Option<String>,
 }
 
 /// The style of a point on the chart.
@@ -2731,10 +2759,10 @@ pub struct PivotValue {
 pub struct PointStyle {
     /// The point shape. If empty or unspecified, a default shape is used. // TODO: enum values: ["POINT_SHAPE_UNSPECIFIED", "CIRCLE", "DIAMOND", "HEXAGON", "PENTAGON", "SQUARE", "STAR", "TRIANGLE", "X_MARK"]
     #[serde(default)]
-    pub shape: Option<String>,
+    pub shape: ::core::option::Option<String>,
     /// The point size. If empty, a default size is used.
     #[serde(default)]
-    pub size: Option<f64>,
+    pub size: ::core::option::Option<f64>,
 }
 
 /// A protected range.
@@ -2742,31 +2770,31 @@ pub struct PointStyle {
 pub struct ProtectedRange {
     /// The description of this protected range.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The users and groups with edit access to the protected range. This field is only visible to users with edit access to the protected range and the document. Editors are not supported with warning_only protection.
     #[serde(default)]
-    pub editors: Option<Editors>,
+    pub editors: ::core::option::Option<::std::boxed::Box<Editors>>,
     /// The named range this protected range is backed by, if any. When writing, only one of range or named_range_id or table_id may be set.
     #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: Option<String>,
+    pub named_range_id: ::core::option::Option<String>,
     /// The ID of the protected range. This field is read-only.
     #[serde(default, rename = "protectedRangeId")]
-    pub protected_range_id: Option<i32>,
+    pub protected_range_id: ::core::option::Option<i32>,
     /// The range that is being protected. The range may be fully unbounded, in which case this is considered a protected sheet. When writing, only one of range or named_range_id or table_id may be set.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// True if the user who requested this protected range can edit the protected area. This field is read-only.
     #[serde(default, rename = "requestingUserCanEdit")]
-    pub requesting_user_can_edit: Option<bool>,
+    pub requesting_user_can_edit: ::core::option::Option<bool>,
     /// The table this protected range is backed by, if any. When writing, only one of range or named_range_id or table_id may be set.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
     /// The list of unprotected ranges within a protected sheet. Unprotected ranges are only supported on protected sheets.
     #[serde(default, rename = "unprotectedRanges")]
-    pub unprotected_ranges: Option<Vec<GridRange>>,
+    pub unprotected_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GridRange>>>,
     /// True if this protected range will show a warning when editing. Warning-based protection means that every user can edit data in the protected range, except editing will prompt a warning asking the user to confirm the edit. When writing: if this field is true, then editors are ignored. Additionally, if this field is changed from true to false and the editors field is not set (nor included in the field mask), then the editors will be set to all the editors in the document.
     #[serde(default, rename = "warningOnly")]
-    pub warning_only: Option<bool>,
+    pub warning_only: ::core::option::Option<bool>,
 }
 
 /// Randomizes the order of the rows in a range.
@@ -2774,7 +2802,7 @@ pub struct ProtectedRange {
 pub struct RandomizeRangeRequest {
     /// The range to randomize.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// The status of a refresh cancellation. You can send a cancel request to explicitly cancel one or multiple data source object refreshes.
@@ -2782,10 +2810,10 @@ pub struct RandomizeRangeRequest {
 pub struct RefreshCancellationStatus {
     /// The error code. // TODO: enum values: ["REFRESH_CANCELLATION_ERROR_CODE_UNSPECIFIED", "EXECUTION_NOT_FOUND", "CANCEL_PERMISSION_DENIED", "QUERY_EXECUTION_COMPLETED", "CONCURRENT_CANCELLATION", "CANCEL_OTHER_ERROR"]
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
     /// The state of a call to cancel a refresh in Sheets. // TODO: enum values: ["REFRESH_CANCELLATION_STATE_UNSPECIFIED", "CANCEL_SUCCEEDED", "CANCEL_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The execution status of refreshing one data source object.
@@ -2793,10 +2821,10 @@ pub struct RefreshCancellationStatus {
 pub struct RefreshDataSourceObjectExecutionStatus {
     /// The data execution status.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// Reference to a data source object being refreshed.
     #[serde(default)]
-    pub reference: Option<DataSourceObjectReference>,
+    pub reference: ::core::option::Option<::std::boxed::Box<DataSourceObjectReference>>,
 }
 
 /// Refreshes one or multiple data source objects in the spreadsheet by the specified references. The request requires an additional bigquery.readonly OAuth scope if you are refreshing a BigQuery data source. If there are multiple refresh requests referencing the same data source objects in one batch, only the last refresh request is processed, and all those requests will have the same response accordingly.
@@ -2804,16 +2832,16 @@ pub struct RefreshDataSourceObjectExecutionStatus {
 pub struct RefreshDataSourceRequest {
     /// Reference to a DataSource. If specified, refreshes all associated data source objects for the data source.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Refreshes the data source objects regardless of the current state. If not set and a referenced data source object was in error state, the refresh will fail immediately.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Refreshes all existing data source objects in the spreadsheet.
     #[serde(default, rename = "isAll")]
-    pub is_all: Option<bool>,
+    pub is_all: ::core::option::Option<bool>,
     /// References to data source objects to refresh.
     #[serde(default)]
-    pub references: Option<DataSourceObjectReferences>,
+    pub references: ::core::option::Option<::std::boxed::Box<DataSourceObjectReferences>>,
 }
 
 /// The response from refreshing one or multiple data source objects.
@@ -2821,7 +2849,9 @@ pub struct RefreshDataSourceRequest {
 pub struct RefreshDataSourceResponse {
     /// All the refresh status for the data source object references specified in the request. If is_all is specified, the field contains only those in failure status.
     #[serde(default)]
-    pub statuses: Option<Vec<RefreshDataSourceObjectExecutionStatus>>,
+    pub statuses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<RefreshDataSourceObjectExecutionStatus>>,
+    >,
 }
 
 /// Updates all cells in the range to the values in the given Cell object. Only the fields listed in the fields field are updated; others are unchanged. If writing a cell with a formula, the formula''s ranges will automatically increment for each field in the range. For example, if writing a cell with formula =A1 into range B2:C4, B2 would be =A1, B3 would be =A2, B4 would be =A3, C2 would be =B1, C3 would be =B2, C4 would be =B3. To keep the formula''s ranges static, use the $ indicator. For example, use the formula =$A$1 to prevent both the row and the column from incrementing.
@@ -2829,13 +2859,13 @@ pub struct RefreshDataSourceResponse {
 pub struct RepeatCellRequest {
     /// The data to write.
     #[serde(default)]
-    pub cell: Option<CellData>,
+    pub cell: ::core::option::Option<::std::boxed::Box<CellData>>,
     /// The fields that should be updated. At least one field must be specified. The root cell is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The range to repeat the cell in.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// A single kind of update to apply to a spreadsheet.
@@ -2843,211 +2873,230 @@ pub struct RepeatCellRequest {
 pub struct Request {
     /// Adds a new banded range
     #[serde(default, rename = "addBanding")]
-    pub add_banding: Option<AddBandingRequest>,
+    pub add_banding: ::core::option::Option<::std::boxed::Box<AddBandingRequest>>,
     /// Adds a chart.
     #[serde(default, rename = "addChart")]
-    pub add_chart: Option<AddChartRequest>,
+    pub add_chart: ::core::option::Option<::std::boxed::Box<AddChartRequest>>,
     /// Adds a new conditional format rule.
     #[serde(default, rename = "addConditionalFormatRule")]
-    pub add_conditional_format_rule: Option<AddConditionalFormatRuleRequest>,
+    pub add_conditional_format_rule:
+        ::core::option::Option<::std::boxed::Box<AddConditionalFormatRuleRequest>>,
     /// Adds a data source.
     #[serde(default, rename = "addDataSource")]
-    pub add_data_source: Option<AddDataSourceRequest>,
+    pub add_data_source: ::core::option::Option<::std::boxed::Box<AddDataSourceRequest>>,
     /// Creates a group over the specified range.
     #[serde(default, rename = "addDimensionGroup")]
-    pub add_dimension_group: Option<AddDimensionGroupRequest>,
+    pub add_dimension_group: ::core::option::Option<::std::boxed::Box<AddDimensionGroupRequest>>,
     /// Adds a filter view.
     #[serde(default, rename = "addFilterView")]
-    pub add_filter_view: Option<AddFilterViewRequest>,
+    pub add_filter_view: ::core::option::Option<::std::boxed::Box<AddFilterViewRequest>>,
     /// Adds a named range.
     #[serde(default, rename = "addNamedRange")]
-    pub add_named_range: Option<AddNamedRangeRequest>,
+    pub add_named_range: ::core::option::Option<::std::boxed::Box<AddNamedRangeRequest>>,
     /// Adds a protected range.
     #[serde(default, rename = "addProtectedRange")]
-    pub add_protected_range: Option<AddProtectedRangeRequest>,
+    pub add_protected_range: ::core::option::Option<::std::boxed::Box<AddProtectedRangeRequest>>,
     /// Adds a sheet.
     #[serde(default, rename = "addSheet")]
-    pub add_sheet: Option<AddSheetRequest>,
+    pub add_sheet: ::core::option::Option<::std::boxed::Box<AddSheetRequest>>,
     /// Adds a slicer.
     #[serde(default, rename = "addSlicer")]
-    pub add_slicer: Option<AddSlicerRequest>,
+    pub add_slicer: ::core::option::Option<::std::boxed::Box<AddSlicerRequest>>,
     /// Adds a table.
     #[serde(default, rename = "addTable")]
-    pub add_table: Option<AddTableRequest>,
+    pub add_table: ::core::option::Option<::std::boxed::Box<AddTableRequest>>,
     /// Appends cells after the last row with data in a sheet.
     #[serde(default, rename = "appendCells")]
-    pub append_cells: Option<AppendCellsRequest>,
+    pub append_cells: ::core::option::Option<::std::boxed::Box<AppendCellsRequest>>,
     /// Appends dimensions to the end of a sheet.
     #[serde(default, rename = "appendDimension")]
-    pub append_dimension: Option<AppendDimensionRequest>,
+    pub append_dimension: ::core::option::Option<::std::boxed::Box<AppendDimensionRequest>>,
     /// Automatically fills in more data based on existing data.
     #[serde(default, rename = "autoFill")]
-    pub auto_fill: Option<AutoFillRequest>,
+    pub auto_fill: ::core::option::Option<::std::boxed::Box<AutoFillRequest>>,
     /// Automatically resizes one or more dimensions based on the contents of the cells in that dimension.
     #[serde(default, rename = "autoResizeDimensions")]
-    pub auto_resize_dimensions: Option<AutoResizeDimensionsRequest>,
+    pub auto_resize_dimensions:
+        ::core::option::Option<::std::boxed::Box<AutoResizeDimensionsRequest>>,
     /// Cancels refreshes of one or multiple data sources and associated dbobjects.
     #[serde(default, rename = "cancelDataSourceRefresh")]
-    pub cancel_data_source_refresh: Option<CancelDataSourceRefreshRequest>,
+    pub cancel_data_source_refresh:
+        ::core::option::Option<::std::boxed::Box<CancelDataSourceRefreshRequest>>,
     /// Clears the basic filter on a sheet.
     #[serde(default, rename = "clearBasicFilter")]
-    pub clear_basic_filter: Option<ClearBasicFilterRequest>,
+    pub clear_basic_filter: ::core::option::Option<::std::boxed::Box<ClearBasicFilterRequest>>,
     /// Copies data from one area and pastes it to another.
     #[serde(default, rename = "copyPaste")]
-    pub copy_paste: Option<CopyPasteRequest>,
+    pub copy_paste: ::core::option::Option<::std::boxed::Box<CopyPasteRequest>>,
     /// Creates new developer metadata
     #[serde(default, rename = "createDeveloperMetadata")]
-    pub create_developer_metadata: Option<CreateDeveloperMetadataRequest>,
+    pub create_developer_metadata:
+        ::core::option::Option<::std::boxed::Box<CreateDeveloperMetadataRequest>>,
     /// Cuts data from one area and pastes it to another.
     #[serde(default, rename = "cutPaste")]
-    pub cut_paste: Option<CutPasteRequest>,
+    pub cut_paste: ::core::option::Option<::std::boxed::Box<CutPasteRequest>>,
     /// Removes a banded range
     #[serde(default, rename = "deleteBanding")]
-    pub delete_banding: Option<DeleteBandingRequest>,
+    pub delete_banding: ::core::option::Option<::std::boxed::Box<DeleteBandingRequest>>,
     /// Deletes an existing conditional format rule.
     #[serde(default, rename = "deleteConditionalFormatRule")]
-    pub delete_conditional_format_rule: Option<DeleteConditionalFormatRuleRequest>,
+    pub delete_conditional_format_rule:
+        ::core::option::Option<::std::boxed::Box<DeleteConditionalFormatRuleRequest>>,
     /// Deletes a data source.
     #[serde(default, rename = "deleteDataSource")]
-    pub delete_data_source: Option<DeleteDataSourceRequest>,
+    pub delete_data_source: ::core::option::Option<::std::boxed::Box<DeleteDataSourceRequest>>,
     /// Deletes developer metadata
     #[serde(default, rename = "deleteDeveloperMetadata")]
-    pub delete_developer_metadata: Option<DeleteDeveloperMetadataRequest>,
+    pub delete_developer_metadata:
+        ::core::option::Option<::std::boxed::Box<DeleteDeveloperMetadataRequest>>,
     /// Deletes rows or columns in a sheet.
     #[serde(default, rename = "deleteDimension")]
-    pub delete_dimension: Option<DeleteDimensionRequest>,
+    pub delete_dimension: ::core::option::Option<::std::boxed::Box<DeleteDimensionRequest>>,
     /// Deletes a group over the specified range.
     #[serde(default, rename = "deleteDimensionGroup")]
-    pub delete_dimension_group: Option<DeleteDimensionGroupRequest>,
+    pub delete_dimension_group:
+        ::core::option::Option<::std::boxed::Box<DeleteDimensionGroupRequest>>,
     /// Removes rows containing duplicate values in specified columns of a cell range.
     #[serde(default, rename = "deleteDuplicates")]
-    pub delete_duplicates: Option<DeleteDuplicatesRequest>,
+    pub delete_duplicates: ::core::option::Option<::std::boxed::Box<DeleteDuplicatesRequest>>,
     /// Deletes an embedded object (e.g, chart, image) in a sheet.
     #[serde(default, rename = "deleteEmbeddedObject")]
-    pub delete_embedded_object: Option<DeleteEmbeddedObjectRequest>,
+    pub delete_embedded_object:
+        ::core::option::Option<::std::boxed::Box<DeleteEmbeddedObjectRequest>>,
     /// Deletes a filter view from a sheet.
     #[serde(default, rename = "deleteFilterView")]
-    pub delete_filter_view: Option<DeleteFilterViewRequest>,
+    pub delete_filter_view: ::core::option::Option<::std::boxed::Box<DeleteFilterViewRequest>>,
     /// Deletes a named range.
     #[serde(default, rename = "deleteNamedRange")]
-    pub delete_named_range: Option<DeleteNamedRangeRequest>,
+    pub delete_named_range: ::core::option::Option<::std::boxed::Box<DeleteNamedRangeRequest>>,
     /// Deletes a protected range.
     #[serde(default, rename = "deleteProtectedRange")]
-    pub delete_protected_range: Option<DeleteProtectedRangeRequest>,
+    pub delete_protected_range:
+        ::core::option::Option<::std::boxed::Box<DeleteProtectedRangeRequest>>,
     /// Deletes a range of cells from a sheet, shifting the remaining cells.
     #[serde(default, rename = "deleteRange")]
-    pub delete_range: Option<DeleteRangeRequest>,
+    pub delete_range: ::core::option::Option<::std::boxed::Box<DeleteRangeRequest>>,
     /// Deletes a sheet.
     #[serde(default, rename = "deleteSheet")]
-    pub delete_sheet: Option<DeleteSheetRequest>,
+    pub delete_sheet: ::core::option::Option<::std::boxed::Box<DeleteSheetRequest>>,
     /// A request for deleting a table.
     #[serde(default, rename = "deleteTable")]
-    pub delete_table: Option<DeleteTableRequest>,
+    pub delete_table: ::core::option::Option<::std::boxed::Box<DeleteTableRequest>>,
     /// Duplicates a filter view.
     #[serde(default, rename = "duplicateFilterView")]
-    pub duplicate_filter_view: Option<DuplicateFilterViewRequest>,
+    pub duplicate_filter_view:
+        ::core::option::Option<::std::boxed::Box<DuplicateFilterViewRequest>>,
     /// Duplicates a sheet.
     #[serde(default, rename = "duplicateSheet")]
-    pub duplicate_sheet: Option<DuplicateSheetRequest>,
+    pub duplicate_sheet: ::core::option::Option<::std::boxed::Box<DuplicateSheetRequest>>,
     /// Finds and replaces occurrences of some text with other text.
     #[serde(default, rename = "findReplace")]
-    pub find_replace: Option<FindReplaceRequest>,
+    pub find_replace: ::core::option::Option<::std::boxed::Box<FindReplaceRequest>>,
     /// Inserts new rows or columns in a sheet.
     #[serde(default, rename = "insertDimension")]
-    pub insert_dimension: Option<InsertDimensionRequest>,
+    pub insert_dimension: ::core::option::Option<::std::boxed::Box<InsertDimensionRequest>>,
     /// Inserts new cells in a sheet, shifting the existing cells.
     #[serde(default, rename = "insertRange")]
-    pub insert_range: Option<InsertRangeRequest>,
+    pub insert_range: ::core::option::Option<::std::boxed::Box<InsertRangeRequest>>,
     /// Merges cells together.
     #[serde(default, rename = "mergeCells")]
-    pub merge_cells: Option<MergeCellsRequest>,
+    pub merge_cells: ::core::option::Option<::std::boxed::Box<MergeCellsRequest>>,
     /// Moves rows or columns to another location in a sheet.
     #[serde(default, rename = "moveDimension")]
-    pub move_dimension: Option<MoveDimensionRequest>,
+    pub move_dimension: ::core::option::Option<::std::boxed::Box<MoveDimensionRequest>>,
     /// Pastes data (HTML or delimited) into a sheet.
     #[serde(default, rename = "pasteData")]
-    pub paste_data: Option<PasteDataRequest>,
+    pub paste_data: ::core::option::Option<::std::boxed::Box<PasteDataRequest>>,
     /// Randomizes the order of the rows in a range.
     #[serde(default, rename = "randomizeRange")]
-    pub randomize_range: Option<RandomizeRangeRequest>,
+    pub randomize_range: ::core::option::Option<::std::boxed::Box<RandomizeRangeRequest>>,
     /// Refreshes one or multiple data sources and associated dbobjects.
     #[serde(default, rename = "refreshDataSource")]
-    pub refresh_data_source: Option<RefreshDataSourceRequest>,
+    pub refresh_data_source: ::core::option::Option<::std::boxed::Box<RefreshDataSourceRequest>>,
     /// Repeats a single cell across a range.
     #[serde(default, rename = "repeatCell")]
-    pub repeat_cell: Option<RepeatCellRequest>,
+    pub repeat_cell: ::core::option::Option<::std::boxed::Box<RepeatCellRequest>>,
     /// Sets the basic filter on a sheet.
     #[serde(default, rename = "setBasicFilter")]
-    pub set_basic_filter: Option<SetBasicFilterRequest>,
+    pub set_basic_filter: ::core::option::Option<::std::boxed::Box<SetBasicFilterRequest>>,
     /// Sets data validation for one or more cells.
     #[serde(default, rename = "setDataValidation")]
-    pub set_data_validation: Option<SetDataValidationRequest>,
+    pub set_data_validation: ::core::option::Option<::std::boxed::Box<SetDataValidationRequest>>,
     /// Sorts data in a range.
     #[serde(default, rename = "sortRange")]
-    pub sort_range: Option<SortRangeRequest>,
+    pub sort_range: ::core::option::Option<::std::boxed::Box<SortRangeRequest>>,
     /// Converts a column of text into many columns of text.
     #[serde(default, rename = "textToColumns")]
-    pub text_to_columns: Option<TextToColumnsRequest>,
+    pub text_to_columns: ::core::option::Option<::std::boxed::Box<TextToColumnsRequest>>,
     /// Trims cells of whitespace (such as spaces, tabs, or new lines).
     #[serde(default, rename = "trimWhitespace")]
-    pub trim_whitespace: Option<TrimWhitespaceRequest>,
+    pub trim_whitespace: ::core::option::Option<::std::boxed::Box<TrimWhitespaceRequest>>,
     /// Unmerges merged cells.
     #[serde(default, rename = "unmergeCells")]
-    pub unmerge_cells: Option<UnmergeCellsRequest>,
+    pub unmerge_cells: ::core::option::Option<::std::boxed::Box<UnmergeCellsRequest>>,
     /// Updates a banded range
     #[serde(default, rename = "updateBanding")]
-    pub update_banding: Option<UpdateBandingRequest>,
+    pub update_banding: ::core::option::Option<::std::boxed::Box<UpdateBandingRequest>>,
     /// Updates the borders in a range of cells.
     #[serde(default, rename = "updateBorders")]
-    pub update_borders: Option<UpdateBordersRequest>,
+    pub update_borders: ::core::option::Option<::std::boxed::Box<UpdateBordersRequest>>,
     /// Updates many cells at once.
     #[serde(default, rename = "updateCells")]
-    pub update_cells: Option<UpdateCellsRequest>,
+    pub update_cells: ::core::option::Option<::std::boxed::Box<UpdateCellsRequest>>,
     /// Updates a chart''s specifications.
     #[serde(default, rename = "updateChartSpec")]
-    pub update_chart_spec: Option<UpdateChartSpecRequest>,
+    pub update_chart_spec: ::core::option::Option<::std::boxed::Box<UpdateChartSpecRequest>>,
     /// Updates an existing conditional format rule.
     #[serde(default, rename = "updateConditionalFormatRule")]
-    pub update_conditional_format_rule: Option<UpdateConditionalFormatRuleRequest>,
+    pub update_conditional_format_rule:
+        ::core::option::Option<::std::boxed::Box<UpdateConditionalFormatRuleRequest>>,
     /// Updates a data source.
     #[serde(default, rename = "updateDataSource")]
-    pub update_data_source: Option<UpdateDataSourceRequest>,
+    pub update_data_source: ::core::option::Option<::std::boxed::Box<UpdateDataSourceRequest>>,
     /// Updates an existing developer metadata entry
     #[serde(default, rename = "updateDeveloperMetadata")]
-    pub update_developer_metadata: Option<UpdateDeveloperMetadataRequest>,
+    pub update_developer_metadata:
+        ::core::option::Option<::std::boxed::Box<UpdateDeveloperMetadataRequest>>,
     /// Updates the state of the specified group.
     #[serde(default, rename = "updateDimensionGroup")]
-    pub update_dimension_group: Option<UpdateDimensionGroupRequest>,
+    pub update_dimension_group:
+        ::core::option::Option<::std::boxed::Box<UpdateDimensionGroupRequest>>,
     /// Updates dimensions'' properties.
     #[serde(default, rename = "updateDimensionProperties")]
-    pub update_dimension_properties: Option<UpdateDimensionPropertiesRequest>,
+    pub update_dimension_properties:
+        ::core::option::Option<::std::boxed::Box<UpdateDimensionPropertiesRequest>>,
     /// Updates an embedded object''s border.
     #[serde(default, rename = "updateEmbeddedObjectBorder")]
-    pub update_embedded_object_border: Option<UpdateEmbeddedObjectBorderRequest>,
+    pub update_embedded_object_border:
+        ::core::option::Option<::std::boxed::Box<UpdateEmbeddedObjectBorderRequest>>,
     /// Updates an embedded object''s (e.g. chart, image) position.
     #[serde(default, rename = "updateEmbeddedObjectPosition")]
-    pub update_embedded_object_position: Option<UpdateEmbeddedObjectPositionRequest>,
+    pub update_embedded_object_position:
+        ::core::option::Option<::std::boxed::Box<UpdateEmbeddedObjectPositionRequest>>,
     /// Updates the properties of a filter view.
     #[serde(default, rename = "updateFilterView")]
-    pub update_filter_view: Option<UpdateFilterViewRequest>,
+    pub update_filter_view: ::core::option::Option<::std::boxed::Box<UpdateFilterViewRequest>>,
     /// Updates a named range.
     #[serde(default, rename = "updateNamedRange")]
-    pub update_named_range: Option<UpdateNamedRangeRequest>,
+    pub update_named_range: ::core::option::Option<::std::boxed::Box<UpdateNamedRangeRequest>>,
     /// Updates a protected range.
     #[serde(default, rename = "updateProtectedRange")]
-    pub update_protected_range: Option<UpdateProtectedRangeRequest>,
+    pub update_protected_range:
+        ::core::option::Option<::std::boxed::Box<UpdateProtectedRangeRequest>>,
     /// Updates a sheet''s properties.
     #[serde(default, rename = "updateSheetProperties")]
-    pub update_sheet_properties: Option<UpdateSheetPropertiesRequest>,
+    pub update_sheet_properties:
+        ::core::option::Option<::std::boxed::Box<UpdateSheetPropertiesRequest>>,
     /// Updates a slicer''s specifications.
     #[serde(default, rename = "updateSlicerSpec")]
-    pub update_slicer_spec: Option<UpdateSlicerSpecRequest>,
+    pub update_slicer_spec: ::core::option::Option<::std::boxed::Box<UpdateSlicerSpecRequest>>,
     /// Updates the spreadsheet''s properties.
     #[serde(default, rename = "updateSpreadsheetProperties")]
-    pub update_spreadsheet_properties: Option<UpdateSpreadsheetPropertiesRequest>,
+    pub update_spreadsheet_properties:
+        ::core::option::Option<::std::boxed::Box<UpdateSpreadsheetPropertiesRequest>>,
     /// Updates a table.
     #[serde(default, rename = "updateTable")]
-    pub update_table: Option<UpdateTableRequest>,
+    pub update_table: ::core::option::Option<::std::boxed::Box<UpdateTableRequest>>,
 }
 
 /// A single response from an update.
@@ -3055,79 +3104,88 @@ pub struct Request {
 pub struct Response {
     /// A reply from adding a banded range.
     #[serde(default, rename = "addBanding")]
-    pub add_banding: Option<AddBandingResponse>,
+    pub add_banding: ::core::option::Option<::std::boxed::Box<AddBandingResponse>>,
     /// A reply from adding a chart.
     #[serde(default, rename = "addChart")]
-    pub add_chart: Option<AddChartResponse>,
+    pub add_chart: ::core::option::Option<::std::boxed::Box<AddChartResponse>>,
     /// A reply from adding a data source.
     #[serde(default, rename = "addDataSource")]
-    pub add_data_source: Option<AddDataSourceResponse>,
+    pub add_data_source: ::core::option::Option<::std::boxed::Box<AddDataSourceResponse>>,
     /// A reply from adding a dimension group.
     #[serde(default, rename = "addDimensionGroup")]
-    pub add_dimension_group: Option<AddDimensionGroupResponse>,
+    pub add_dimension_group: ::core::option::Option<::std::boxed::Box<AddDimensionGroupResponse>>,
     /// A reply from adding a filter view.
     #[serde(default, rename = "addFilterView")]
-    pub add_filter_view: Option<AddFilterViewResponse>,
+    pub add_filter_view: ::core::option::Option<::std::boxed::Box<AddFilterViewResponse>>,
     /// A reply from adding a named range.
     #[serde(default, rename = "addNamedRange")]
-    pub add_named_range: Option<AddNamedRangeResponse>,
+    pub add_named_range: ::core::option::Option<::std::boxed::Box<AddNamedRangeResponse>>,
     /// A reply from adding a protected range.
     #[serde(default, rename = "addProtectedRange")]
-    pub add_protected_range: Option<AddProtectedRangeResponse>,
+    pub add_protected_range: ::core::option::Option<::std::boxed::Box<AddProtectedRangeResponse>>,
     /// A reply from adding a sheet.
     #[serde(default, rename = "addSheet")]
-    pub add_sheet: Option<AddSheetResponse>,
+    pub add_sheet: ::core::option::Option<::std::boxed::Box<AddSheetResponse>>,
     /// A reply from adding a slicer.
     #[serde(default, rename = "addSlicer")]
-    pub add_slicer: Option<AddSlicerResponse>,
+    pub add_slicer: ::core::option::Option<::std::boxed::Box<AddSlicerResponse>>,
     /// A reply from adding a table.
     #[serde(default, rename = "addTable")]
-    pub add_table: Option<AddTableResponse>,
+    pub add_table: ::core::option::Option<::std::boxed::Box<AddTableResponse>>,
     /// A reply from cancelling data source object refreshes.
     #[serde(default, rename = "cancelDataSourceRefresh")]
-    pub cancel_data_source_refresh: Option<CancelDataSourceRefreshResponse>,
+    pub cancel_data_source_refresh:
+        ::core::option::Option<::std::boxed::Box<CancelDataSourceRefreshResponse>>,
     /// A reply from creating a developer metadata entry.
     #[serde(default, rename = "createDeveloperMetadata")]
-    pub create_developer_metadata: Option<CreateDeveloperMetadataResponse>,
+    pub create_developer_metadata:
+        ::core::option::Option<::std::boxed::Box<CreateDeveloperMetadataResponse>>,
     /// A reply from deleting a conditional format rule.
     #[serde(default, rename = "deleteConditionalFormatRule")]
-    pub delete_conditional_format_rule: Option<DeleteConditionalFormatRuleResponse>,
+    pub delete_conditional_format_rule:
+        ::core::option::Option<::std::boxed::Box<DeleteConditionalFormatRuleResponse>>,
     /// A reply from deleting a developer metadata entry.
     #[serde(default, rename = "deleteDeveloperMetadata")]
-    pub delete_developer_metadata: Option<DeleteDeveloperMetadataResponse>,
+    pub delete_developer_metadata:
+        ::core::option::Option<::std::boxed::Box<DeleteDeveloperMetadataResponse>>,
     /// A reply from deleting a dimension group.
     #[serde(default, rename = "deleteDimensionGroup")]
-    pub delete_dimension_group: Option<DeleteDimensionGroupResponse>,
+    pub delete_dimension_group:
+        ::core::option::Option<::std::boxed::Box<DeleteDimensionGroupResponse>>,
     /// A reply from removing rows containing duplicate values.
     #[serde(default, rename = "deleteDuplicates")]
-    pub delete_duplicates: Option<DeleteDuplicatesResponse>,
+    pub delete_duplicates: ::core::option::Option<::std::boxed::Box<DeleteDuplicatesResponse>>,
     /// A reply from duplicating a filter view.
     #[serde(default, rename = "duplicateFilterView")]
-    pub duplicate_filter_view: Option<DuplicateFilterViewResponse>,
+    pub duplicate_filter_view:
+        ::core::option::Option<::std::boxed::Box<DuplicateFilterViewResponse>>,
     /// A reply from duplicating a sheet.
     #[serde(default, rename = "duplicateSheet")]
-    pub duplicate_sheet: Option<DuplicateSheetResponse>,
+    pub duplicate_sheet: ::core::option::Option<::std::boxed::Box<DuplicateSheetResponse>>,
     /// A reply from doing a find/replace.
     #[serde(default, rename = "findReplace")]
-    pub find_replace: Option<FindReplaceResponse>,
+    pub find_replace: ::core::option::Option<::std::boxed::Box<FindReplaceResponse>>,
     /// A reply from refreshing data source objects.
     #[serde(default, rename = "refreshDataSource")]
-    pub refresh_data_source: Option<RefreshDataSourceResponse>,
+    pub refresh_data_source: ::core::option::Option<::std::boxed::Box<RefreshDataSourceResponse>>,
     /// A reply from trimming whitespace.
     #[serde(default, rename = "trimWhitespace")]
-    pub trim_whitespace: Option<TrimWhitespaceResponse>,
+    pub trim_whitespace: ::core::option::Option<::std::boxed::Box<TrimWhitespaceResponse>>,
     /// A reply from updating a conditional format rule.
     #[serde(default, rename = "updateConditionalFormatRule")]
-    pub update_conditional_format_rule: Option<UpdateConditionalFormatRuleResponse>,
+    pub update_conditional_format_rule:
+        ::core::option::Option<::std::boxed::Box<UpdateConditionalFormatRuleResponse>>,
     /// A reply from updating a data source.
     #[serde(default, rename = "updateDataSource")]
-    pub update_data_source: Option<UpdateDataSourceResponse>,
+    pub update_data_source: ::core::option::Option<::std::boxed::Box<UpdateDataSourceResponse>>,
     /// A reply from updating a developer metadata entry.
     #[serde(default, rename = "updateDeveloperMetadata")]
-    pub update_developer_metadata: Option<UpdateDeveloperMetadataResponse>,
+    pub update_developer_metadata:
+        ::core::option::Option<::std::boxed::Box<UpdateDeveloperMetadataResponse>>,
     /// A reply from updating an embedded object''s position.
     #[serde(default, rename = "updateEmbeddedObjectPosition")]
-    pub update_embedded_object_position: Option<UpdateEmbeddedObjectPositionResponse>,
+    pub update_embedded_object_position:
+        ::core::option::Option<::std::boxed::Box<UpdateEmbeddedObjectPositionResponse>>,
 }
 
 /// Properties of a link to a Google resource (such as a file in Drive, a YouTube video, a Maps address, or a Calendar event). Only Drive files can be written as chips. All other rich link types are read only. URIs cannot exceed 2000 bytes when writing. NOTE: Writing Drive file chips requires at least one of the drive.file, drive.readonly, or drive OAuth scopes.
@@ -3135,10 +3193,10 @@ pub struct Response {
 pub struct RichLinkProperties {
     /// Output only. The [MIME type](https://developers.google.com/drive/api/v3/mime-types) of the link, if there''s one (for example, when it''s a file in Drive).
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Required. The URI to the link. This is always present.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Data about each cell in a row.
@@ -3146,7 +3204,7 @@ pub struct RichLinkProperties {
 pub struct RowData {
     /// The values in the row, one per column.
     #[serde(default)]
-    pub values: Option<Vec<CellData>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CellData>>>,
 }
 
 /// A scorecard chart. Scorecard charts are used to highlight key performance indicators, known as KPIs, on the spreadsheet. A scorecard chart can represent things like total sales, average cost, or a top selling item. You can specify a single data value, or aggregate over a range of data. Percentage or absolute difference from a baseline value can be highlighted, like changes over time.
@@ -3154,28 +3212,29 @@ pub struct RowData {
 pub struct ScorecardChartSpec {
     /// The aggregation type for key and baseline chart data in scorecard chart. This field is not supported for data source charts. Use the ChartData.aggregateType field of the key_value_data or baseline_value_data instead for data source charts. This field is optional. // TODO: enum values: ["CHART_AGGREGATE_TYPE_UNSPECIFIED", "AVERAGE", "COUNT", "MAX", "MEDIAN", "MIN", "SUM"]
     #[serde(default, rename = "aggregateType")]
-    pub aggregate_type: Option<String>,
+    pub aggregate_type: ::core::option::Option<String>,
     /// The data for scorecard baseline value. This field is optional.
     #[serde(default, rename = "baselineValueData")]
-    pub baseline_value_data: Option<ChartData>,
+    pub baseline_value_data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// Formatting options for baseline value. This field is needed only if baseline_value_data is specified.
     #[serde(default, rename = "baselineValueFormat")]
-    pub baseline_value_format: Option<BaselineValueFormat>,
+    pub baseline_value_format: ::core::option::Option<::std::boxed::Box<BaselineValueFormat>>,
     /// Custom formatting options for numeric key/baseline values in scorecard chart. This field is used only when number_format_source is set to CUSTOM. This field is optional.
     #[serde(default, rename = "customFormatOptions")]
-    pub custom_format_options: Option<ChartCustomNumberFormatOptions>,
+    pub custom_format_options:
+        ::core::option::Option<::std::boxed::Box<ChartCustomNumberFormatOptions>>,
     /// The data for scorecard key value.
     #[serde(default, rename = "keyValueData")]
-    pub key_value_data: Option<ChartData>,
+    pub key_value_data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// Formatting options for key value.
     #[serde(default, rename = "keyValueFormat")]
-    pub key_value_format: Option<KeyValueFormat>,
+    pub key_value_format: ::core::option::Option<::std::boxed::Box<KeyValueFormat>>,
     /// The number format source used in the scorecard chart. This field is optional. // TODO: enum values: ["CHART_NUMBER_FORMAT_SOURCE_UNDEFINED", "FROM_DATA", "CUSTOM"]
     #[serde(default, rename = "numberFormatSource")]
-    pub number_format_source: Option<String>,
+    pub number_format_source: ::core::option::Option<String>,
     /// Value to scale scorecard key and baseline value. For example, a factor of 10 can be used to divide all values in the chart by 10. This field is optional.
     #[serde(default, rename = "scaleFactor")]
-    pub scale_factor: Option<f64>,
+    pub scale_factor: ::core::option::Option<f64>,
 }
 
 /// A request to retrieve all developer metadata matching the set of specified criteria.
@@ -3183,7 +3242,7 @@ pub struct ScorecardChartSpec {
 pub struct SearchDeveloperMetadataRequest {
     /// The data filters describing the criteria used to determine which DeveloperMetadata entries to return. DeveloperMetadata matching any of the specified filters are included in the response.
     #[serde(default, rename = "dataFilters")]
-    pub data_filters: Option<Vec<DataFilter>>,
+    pub data_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilter>>>,
 }
 
 /// A reply to a developer metadata search request.
@@ -3191,7 +3250,8 @@ pub struct SearchDeveloperMetadataRequest {
 pub struct SearchDeveloperMetadataResponse {
     /// The metadata matching the criteria of the search request.
     #[serde(default, rename = "matchedDeveloperMetadata")]
-    pub matched_developer_metadata: Option<Vec<MatchedDeveloperMetadata>>,
+    pub matched_developer_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MatchedDeveloperMetadata>>>,
 }
 
 /// Sets the basic filter associated with a sheet.
@@ -3199,7 +3259,7 @@ pub struct SearchDeveloperMetadataResponse {
 pub struct SetBasicFilterRequest {
     /// The filter to set.
     #[serde(default)]
-    pub filter: Option<BasicFilter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<BasicFilter>>,
 }
 
 /// Sets a data validation rule to every cell in the range. To clear validation in a range, call this with no rule specified.
@@ -3207,13 +3267,13 @@ pub struct SetBasicFilterRequest {
 pub struct SetDataValidationRequest {
     /// Optional. If true, the data validation rule will be applied to the filtered rows as well.
     #[serde(default, rename = "filteredRowsIncluded")]
-    pub filtered_rows_included: Option<bool>,
+    pub filtered_rows_included: ::core::option::Option<bool>,
     /// The range the data validation rule should apply to.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The data validation rule to set on each cell in the range, or empty to clear the data validation in the range.
     #[serde(default)]
-    pub rule: Option<DataValidationRule>,
+    pub rule: ::core::option::Option<::std::boxed::Box<DataValidationRule>>,
 }
 
 /// A sheet in a spreadsheet.
@@ -3221,46 +3281,49 @@ pub struct SetDataValidationRequest {
 pub struct Sheet {
     /// The banded (alternating colors) ranges on this sheet.
     #[serde(default, rename = "bandedRanges")]
-    pub banded_ranges: Option<Vec<BandedRange>>,
+    pub banded_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BandedRange>>>,
     /// The filter on this sheet, if any.
     #[serde(default, rename = "basicFilter")]
-    pub basic_filter: Option<BasicFilter>,
+    pub basic_filter: ::core::option::Option<::std::boxed::Box<BasicFilter>>,
     /// The specifications of every chart on this sheet.
     #[serde(default)]
-    pub charts: Option<Vec<EmbeddedChart>>,
+    pub charts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EmbeddedChart>>>,
     /// All column groups on this sheet, ordered by increasing range start index, then by group depth.
     #[serde(default, rename = "columnGroups")]
-    pub column_groups: Option<Vec<DimensionGroup>>,
+    pub column_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionGroup>>>,
     /// The conditional format rules in this sheet.
     #[serde(default, rename = "conditionalFormats")]
-    pub conditional_formats: Option<Vec<ConditionalFormatRule>>,
+    pub conditional_formats:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConditionalFormatRule>>>,
     /// Data in the grid, if this is a grid sheet. The number of GridData objects returned is dependent on the number of ranges requested on this sheet. For example, if this is representing Sheet1, and the spreadsheet was requested with ranges Sheet1!A1:C10 and Sheet1!D15:E20, then the first GridData will have a startRow/startColumn of 0, while the second one will have startRow 14 (zero-based row 15), and startColumn 3 (zero-based column D). For a DATA_SOURCE sheet, you can not request a specific range, the GridData contains all the values.
     #[serde(default)]
-    pub data: Option<Vec<GridData>>,
+    pub data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GridData>>>,
     /// The developer metadata associated with a sheet.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    pub developer_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeveloperMetadata>>>,
     /// The filter views in this sheet.
     #[serde(default, rename = "filterViews")]
-    pub filter_views: Option<Vec<FilterView>>,
+    pub filter_views: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterView>>>,
     /// The ranges that are merged together.
     #[serde(default)]
-    pub merges: Option<Vec<GridRange>>,
+    pub merges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GridRange>>>,
     /// The properties of the sheet.
     #[serde(default)]
-    pub properties: Option<SheetProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<SheetProperties>>,
     /// The protected ranges in this sheet.
     #[serde(default, rename = "protectedRanges")]
-    pub protected_ranges: Option<Vec<ProtectedRange>>,
+    pub protected_ranges:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProtectedRange>>>,
     /// All row groups on this sheet, ordered by increasing range start index, then by group depth.
     #[serde(default, rename = "rowGroups")]
-    pub row_groups: Option<Vec<DimensionGroup>>,
+    pub row_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DimensionGroup>>>,
     /// The slicers on this sheet.
     #[serde(default)]
-    pub slicers: Option<Vec<Slicer>>,
+    pub slicers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Slicer>>>,
     /// The tables on this sheet.
     #[serde(default)]
-    pub tables: Option<Vec<Table>>,
+    pub tables: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Table>>>,
 }
 
 /// Properties of a sheet.
@@ -3268,34 +3331,35 @@ pub struct Sheet {
 pub struct SheetProperties {
     /// Output only. If present, the field contains DATA_SOURCE sheet specific properties.
     #[serde(default, rename = "dataSourceSheetProperties")]
-    pub data_source_sheet_properties: Option<DataSourceSheetProperties>,
+    pub data_source_sheet_properties:
+        ::core::option::Option<::std::boxed::Box<DataSourceSheetProperties>>,
     /// Additional properties of the sheet if this sheet is a grid. (If the sheet is an object sheet, containing a chart or image, then this field will be absent.) When writing it is an error to set any grid properties on non-grid sheets. If this sheet is a DATA_SOURCE sheet, this field is output only but contains the properties that reflect how a data source sheet is rendered in the UI, e.g. row_count.
     #[serde(default, rename = "gridProperties")]
-    pub grid_properties: Option<GridProperties>,
+    pub grid_properties: ::core::option::Option<::std::boxed::Box<GridProperties>>,
     /// True if the sheet is hidden in the UI, false if it''s visible.
     #[serde(default)]
-    pub hidden: Option<bool>,
+    pub hidden: ::core::option::Option<bool>,
     /// The index of the sheet within the spreadsheet. When adding or updating sheet properties, if this field is excluded then the sheet is added or moved to the end of the sheet list. When updating sheet indices or inserting sheets, movement is considered in "before the move" indexes. For example, if there were three sheets (S1, S2, S3) in order to move S1 ahead of S2 the index would have to be set to 2. A sheet index update request is ignored if the requested index is identical to the sheets current index or if the requested new index is equal to the current sheet index + 1.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// True if the sheet is an RTL sheet instead of an LTR sheet.
     #[serde(default, rename = "rightToLeft")]
-    pub right_to_left: Option<bool>,
+    pub right_to_left: ::core::option::Option<bool>,
     /// The ID of the sheet. Must be non-negative. This field cannot be changed once set.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
     /// The type of sheet. Defaults to GRID. This field cannot be changed once set. // TODO: enum values: ["SHEET_TYPE_UNSPECIFIED", "GRID", "OBJECT", "DATA_SOURCE"]
     #[serde(default, rename = "sheetType")]
-    pub sheet_type: Option<String>,
+    pub sheet_type: ::core::option::Option<String>,
     /// The color of the tab in the UI. Deprecated: Use tab_color_style.
     #[serde(default, rename = "tabColor")]
-    pub tab_color: Option<Color>,
+    pub tab_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the tab in the UI. If tab_color is also set, this field takes precedence.
     #[serde(default, rename = "tabColorStyle")]
-    pub tab_color_style: Option<ColorStyle>,
+    pub tab_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The name of the sheet.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A slicer in a sheet.
@@ -3303,13 +3367,13 @@ pub struct SheetProperties {
 pub struct Slicer {
     /// The position of the slicer. Note that slicer can be positioned only on existing sheet. Also, width and height of slicer can be automatically adjusted to keep it within permitted limits.
     #[serde(default)]
-    pub position: Option<EmbeddedObjectPosition>,
+    pub position: ::core::option::Option<::std::boxed::Box<EmbeddedObjectPosition>>,
     /// The ID of the slicer.
     #[serde(default, rename = "slicerId")]
-    pub slicer_id: Option<i32>,
+    pub slicer_id: ::core::option::Option<i32>,
     /// The specification of the slicer.
     #[serde(default)]
-    pub spec: Option<SlicerSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<SlicerSpec>>,
 }
 
 /// The specifications of a slicer.
@@ -3317,31 +3381,31 @@ pub struct Slicer {
 pub struct SlicerSpec {
     /// True if the filter should apply to pivot tables. If not set, default to True.
     #[serde(default, rename = "applyToPivotTables")]
-    pub apply_to_pivot_tables: Option<bool>,
+    pub apply_to_pivot_tables: ::core::option::Option<bool>,
     /// The background color of the slicer. Deprecated: Use background_color_style.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: Option<Color>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color of the slicer. If background_color is also set, this field takes precedence.
     #[serde(default, rename = "backgroundColorStyle")]
-    pub background_color_style: Option<ColorStyle>,
+    pub background_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The zero-based column index in the data table on which the filter is applied to.
     #[serde(default, rename = "columnIndex")]
-    pub column_index: Option<i32>,
+    pub column_index: ::core::option::Option<i32>,
     /// The data range of the slicer.
     #[serde(default, rename = "dataRange")]
-    pub data_range: Option<GridRange>,
+    pub data_range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The filtering criteria of the slicer.
     #[serde(default, rename = "filterCriteria")]
-    pub filter_criteria: Option<FilterCriteria>,
+    pub filter_criteria: ::core::option::Option<::std::boxed::Box<FilterCriteria>>,
     /// The horizontal alignment of title in the slicer. If unspecified, defaults to LEFT // TODO: enum values: ["HORIZONTAL_ALIGN_UNSPECIFIED", "LEFT", "CENTER", "RIGHT"]
     #[serde(default, rename = "horizontalAlignment")]
-    pub horizontal_alignment: Option<String>,
+    pub horizontal_alignment: ::core::option::Option<String>,
     /// The text format of title in the slicer. The link field is not supported.
     #[serde(default, rename = "textFormat")]
-    pub text_format: Option<TextFormat>,
+    pub text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The title of the slicer.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Sorts data in rows based on a sort order per column.
@@ -3349,10 +3413,10 @@ pub struct SlicerSpec {
 pub struct SortRangeRequest {
     /// The range to sort.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The sort order per column. Later specifications are used when values are equal in the earlier specifications.
     #[serde(default, rename = "sortSpecs")]
-    pub sort_specs: Option<Vec<SortSpec>>,
+    pub sort_specs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SortSpec>>>,
 }
 
 /// A sort order associated with a specific column or row.
@@ -3360,25 +3424,26 @@ pub struct SortRangeRequest {
 pub struct SortSpec {
     /// The background fill color to sort by; cells with this fill color are sorted to the top. Mutually exclusive with foreground_color. Deprecated: Use background_color_style.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: Option<Color>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background fill color to sort by; cells with this fill color are sorted to the top. Mutually exclusive with foreground_color, and must be an RGB-type color. If background_color is also set, this field takes precedence.
     #[serde(default, rename = "backgroundColorStyle")]
-    pub background_color_style: Option<ColorStyle>,
+    pub background_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// Reference to a data source column.
     #[serde(default, rename = "dataSourceColumnReference")]
-    pub data_source_column_reference: Option<DataSourceColumnReference>,
+    pub data_source_column_reference:
+        ::core::option::Option<::std::boxed::Box<DataSourceColumnReference>>,
     /// The dimension the sort should be applied to.
     #[serde(default, rename = "dimensionIndex")]
-    pub dimension_index: Option<i32>,
+    pub dimension_index: ::core::option::Option<i32>,
     /// The foreground color to sort by; cells with this foreground color are sorted to the top. Mutually exclusive with background_color. Deprecated: Use foreground_color_style.
     #[serde(default, rename = "foregroundColor")]
-    pub foreground_color: Option<Color>,
+    pub foreground_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The foreground color to sort by; cells with this foreground color are sorted to the top. Mutually exclusive with background_color, and must be an RGB-type color. If foreground_color is also set, this field takes precedence.
     #[serde(default, rename = "foregroundColorStyle")]
-    pub foreground_color_style: Option<ColorStyle>,
+    pub foreground_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The order data should be sorted. // TODO: enum values: ["SORT_ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
     #[serde(default, rename = "sortOrder")]
-    pub sort_order: Option<String>,
+    pub sort_order: ::core::option::Option<String>,
 }
 
 /// A combination of a source range and how to extend that source.
@@ -3386,13 +3451,13 @@ pub struct SortSpec {
 pub struct SourceAndDestination {
     /// The dimension that data should be filled into. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
     /// The number of rows or columns that data should be filled into. Positive numbers expand beyond the last row or last column of the source. Negative numbers expand before the first row or first column of the source.
     #[serde(default, rename = "fillLength")]
-    pub fill_length: Option<i32>,
+    pub fill_length: ::core::option::Option<i32>,
     /// The location of the data to use as the source of the autofill.
     #[serde(default)]
-    pub source: Option<GridRange>,
+    pub source: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// Resource that represents a spreadsheet.
@@ -3400,28 +3465,30 @@ pub struct SourceAndDestination {
 pub struct Spreadsheet {
     /// Output only. A list of data source refresh schedules.
     #[serde(default, rename = "dataSourceSchedules")]
-    pub data_source_schedules: Option<Vec<DataSourceRefreshSchedule>>,
+    pub data_source_schedules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceRefreshSchedule>>>,
     /// A list of external data sources connected with the spreadsheet.
     #[serde(default, rename = "dataSources")]
-    pub data_sources: Option<Vec<DataSource>>,
+    pub data_sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSource>>>,
     /// The developer metadata associated with a spreadsheet.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    pub developer_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeveloperMetadata>>>,
     /// The named ranges defined in a spreadsheet.
     #[serde(default, rename = "namedRanges")]
-    pub named_ranges: Option<Vec<NamedRange>>,
+    pub named_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NamedRange>>>,
     /// Overall properties of a spreadsheet.
     #[serde(default)]
-    pub properties: Option<SpreadsheetProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<SpreadsheetProperties>>,
     /// The sheets that are part of a spreadsheet.
     #[serde(default)]
-    pub sheets: Option<Vec<Sheet>>,
+    pub sheets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Sheet>>>,
     /// The ID of the spreadsheet. This field is read-only.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The url of the spreadsheet. This field is read-only.
     #[serde(default, rename = "spreadsheetUrl")]
-    pub spreadsheet_url: Option<String>,
+    pub spreadsheet_url: ::core::option::Option<String>,
 }
 
 /// Properties of a spreadsheet.
@@ -3429,28 +3496,29 @@ pub struct Spreadsheet {
 pub struct SpreadsheetProperties {
     /// The amount of time to wait before volatile functions are recalculated. // TODO: enum values: ["RECALCULATION_INTERVAL_UNSPECIFIED", "ON_CHANGE", "MINUTE", "HOUR"]
     #[serde(default, rename = "autoRecalc")]
-    pub auto_recalc: Option<String>,
+    pub auto_recalc: ::core::option::Option<String>,
     /// The default format of all cells in the spreadsheet. CellData.effectiveFormat will not be set if the cell''s format is equal to this default format. This field is read-only.
     #[serde(default, rename = "defaultFormat")]
-    pub default_format: Option<CellFormat>,
+    pub default_format: ::core::option::Option<::std::boxed::Box<CellFormat>>,
     /// Whether to allow external URL access for image and import functions. Read only when true. When false, you can set to true. This value will be bypassed and always return true if the admin has enabled the [allowlisting feature](https://support.google.com/a?p=url_allowlist).
     #[serde(default, rename = "importFunctionsExternalUrlAccessAllowed")]
-    pub import_functions_external_url_access_allowed: Option<bool>,
+    pub import_functions_external_url_access_allowed: ::core::option::Option<bool>,
     /// Determines whether and how circular references are resolved with iterative calculation. Absence of this field means that circular references result in calculation errors.
     #[serde(default, rename = "iterativeCalculationSettings")]
-    pub iterative_calculation_settings: Option<IterativeCalculationSettings>,
+    pub iterative_calculation_settings:
+        ::core::option::Option<::std::boxed::Box<IterativeCalculationSettings>>,
     /// The locale of the spreadsheet in one of the following formats: * an ISO 639-1 language code such as en * an ISO 639-2 language code such as fil, if no 639-1 code exists * a combination of the ISO language code and country code, such as en_US Note: when updating this field, not all locales/languages are supported.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// Theme applied to the spreadsheet.
     #[serde(default, rename = "spreadsheetTheme")]
-    pub spreadsheet_theme: Option<SpreadsheetTheme>,
+    pub spreadsheet_theme: ::core::option::Option<::std::boxed::Box<SpreadsheetTheme>>,
     /// The time zone of the spreadsheet, in CLDR format such as America/New_York. If the time zone isn''t recognized, this may be a custom time zone such as GMT-07:00.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// The title of the spreadsheet.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Represents spreadsheet theme
@@ -3458,10 +3526,10 @@ pub struct SpreadsheetProperties {
 pub struct SpreadsheetTheme {
     /// Name of the primary font family.
     #[serde(default, rename = "primaryFontFamily")]
-    pub primary_font_family: Option<String>,
+    pub primary_font_family: ::core::option::Option<String>,
     /// The spreadsheet theme color pairs. To update you must provide all theme color pairs.
     #[serde(default, rename = "themeColors")]
-    pub theme_colors: Option<Vec<ThemeColorPair>>,
+    pub theme_colors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThemeColorPair>>>,
 }
 
 /// A table.
@@ -3469,19 +3537,20 @@ pub struct SpreadsheetTheme {
 pub struct Table {
     /// The table column properties.
     #[serde(default, rename = "columnProperties")]
-    pub column_properties: Option<Vec<TableColumnProperties>>,
+    pub column_properties:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TableColumnProperties>>>,
     /// The table name. This is unique to all tables in the same spreadsheet.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The table range.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The table rows properties.
     #[serde(default, rename = "rowsProperties")]
-    pub rows_properties: Option<TableRowsProperties>,
+    pub rows_properties: ::core::option::Option<::std::boxed::Box<TableRowsProperties>>,
     /// The id of the table.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// A data validation rule for a column in a table.
@@ -3489,7 +3558,7 @@ pub struct Table {
 pub struct TableColumnDataValidationRule {
     /// The condition that data in the cell must match. Valid only if the [BooleanCondition.type] is ONE_OF_LIST.
     #[serde(default)]
-    pub condition: Option<BooleanCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<BooleanCondition>>,
 }
 
 /// The table column.
@@ -3497,16 +3566,17 @@ pub struct TableColumnDataValidationRule {
 pub struct TableColumnProperties {
     /// The 0-based column index. This index is relative to its position in the table and is not necessarily the same as the column index in the sheet.
     #[serde(default, rename = "columnIndex")]
-    pub column_index: Option<i32>,
+    pub column_index: ::core::option::Option<i32>,
     /// The column name.
     #[serde(default, rename = "columnName")]
-    pub column_name: Option<String>,
+    pub column_name: ::core::option::Option<String>,
     /// The column type. // TODO: enum values: ["COLUMN_TYPE_UNSPECIFIED", "DOUBLE", "CURRENCY", "PERCENT", "DATE", "TIME", "DATE_TIME", "TEXT", "BOOLEAN", "DROPDOWN", "FILES_CHIP", "PEOPLE_CHIP", "FINANCE_CHIP", "PLACE_CHIP", "RATINGS_CHIP"]
     #[serde(default, rename = "columnType")]
-    pub column_type: Option<String>,
+    pub column_type: ::core::option::Option<String>,
     /// The column data validation rule. Only set for dropdown column type.
     #[serde(default, rename = "dataValidationRule")]
-    pub data_validation_rule: Option<TableColumnDataValidationRule>,
+    pub data_validation_rule:
+        ::core::option::Option<::std::boxed::Box<TableColumnDataValidationRule>>,
 }
 
 /// The table row properties.
@@ -3514,16 +3584,16 @@ pub struct TableColumnProperties {
 pub struct TableRowsProperties {
     /// The first color that is alternating. If this field is set, the first banded row is filled with the specified color. Otherwise, the first banded row is filled with a default color.
     #[serde(default, rename = "firstBandColorStyle")]
-    pub first_band_color_style: Option<ColorStyle>,
+    pub first_band_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The color of the last row. If this field is not set a footer is not added, the last row is filled with either first_band_color_style or second_band_color_style, depending on the color of the previous row. If updating an existing table without a footer to have a footer, the range will be expanded by 1 row. If updating an existing table with a footer and removing a footer, the range will be shrunk by 1 row.
     #[serde(default, rename = "footerColorStyle")]
-    pub footer_color_style: Option<ColorStyle>,
+    pub footer_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The color of the header row. If this field is set, the header row is filled with the specified color. Otherwise, the header row is filled with a default color.
     #[serde(default, rename = "headerColorStyle")]
-    pub header_color_style: Option<ColorStyle>,
+    pub header_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The second color that is alternating. If this field is set, the second banded row is filled with the specified color. Otherwise, the second banded row is filled with a default color.
     #[serde(default, rename = "secondBandColorStyle")]
-    pub second_band_color_style: Option<ColorStyle>,
+    pub second_band_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
 }
 
 /// The format of a run of text in a cell. Absent values indicate that the field isn''t specified.
@@ -3531,31 +3601,31 @@ pub struct TableRowsProperties {
 pub struct TextFormat {
     /// True if the text is bold.
     #[serde(default)]
-    pub bold: Option<bool>,
+    pub bold: ::core::option::Option<bool>,
     /// The font family.
     #[serde(default, rename = "fontFamily")]
-    pub font_family: Option<String>,
+    pub font_family: ::core::option::Option<String>,
     /// The size of the font.
     #[serde(default, rename = "fontSize")]
-    pub font_size: Option<i32>,
+    pub font_size: ::core::option::Option<i32>,
     /// The foreground color of the text. Deprecated: Use foreground_color_style.
     #[serde(default, rename = "foregroundColor")]
-    pub foreground_color: Option<Color>,
+    pub foreground_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The foreground color of the text. If foreground_color is also set, this field takes precedence.
     #[serde(default, rename = "foregroundColorStyle")]
-    pub foreground_color_style: Option<ColorStyle>,
+    pub foreground_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// True if the text is italicized.
     #[serde(default)]
-    pub italic: Option<bool>,
+    pub italic: ::core::option::Option<bool>,
     /// The link destination of the text, if any. Setting the link field in a TextFormatRun will clear the cell''s existing links or a cell-level link set in the same request. When a link is set, the text foreground color will be set to the default link color and the text will be underlined. If these fields are modified in the same request, those values will be used instead of the link defaults.
     #[serde(default)]
-    pub link: Option<Link>,
+    pub link: ::core::option::Option<::std::boxed::Box<Link>>,
     /// True if the text has a strikethrough.
     #[serde(default)]
-    pub strikethrough: Option<bool>,
+    pub strikethrough: ::core::option::Option<bool>,
     /// True if the text is underlined.
     #[serde(default)]
-    pub underline: Option<bool>,
+    pub underline: ::core::option::Option<bool>,
 }
 
 /// A run of a text format. The format of this run continues until the start index of the next run. When updating, all fields must be set.
@@ -3563,10 +3633,10 @@ pub struct TextFormat {
 pub struct TextFormatRun {
     /// The format of this run. Absent values inherit the cell''s format.
     #[serde(default)]
-    pub format: Option<TextFormat>,
+    pub format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
     /// The zero-based character index where this run starts, in UTF-16 code units.
     #[serde(default, rename = "startIndex")]
-    pub start_index: Option<i32>,
+    pub start_index: ::core::option::Option<i32>,
 }
 
 /// Position settings for text.
@@ -3574,7 +3644,7 @@ pub struct TextFormatRun {
 pub struct TextPosition {
     /// Horizontal alignment setting for the piece of text. // TODO: enum values: ["HORIZONTAL_ALIGN_UNSPECIFIED", "LEFT", "CENTER", "RIGHT"]
     #[serde(default, rename = "horizontalAlignment")]
-    pub horizontal_alignment: Option<String>,
+    pub horizontal_alignment: ::core::option::Option<String>,
 }
 
 /// The rotation applied to text in a cell.
@@ -3582,10 +3652,10 @@ pub struct TextPosition {
 pub struct TextRotation {
     /// The angle between the standard orientation and the desired orientation. Measured in degrees. Valid values are between -90 and 90. Positive angles are angled upwards, negative are angled downwards. Note: For LTR text direction positive angles are in the counterclockwise direction, whereas for RTL they are in the clockwise direction
     #[serde(default)]
-    pub angle: Option<i32>,
+    pub angle: ::core::option::Option<i32>,
     /// If true, text reads top to bottom, but the orientation of individual characters is unchanged. For example: | V | | e | | r | | t | | i | | c | | a | | l |
     #[serde(default)]
-    pub vertical: Option<bool>,
+    pub vertical: ::core::option::Option<bool>,
 }
 
 /// Splits a column of text into multiple columns, based on a delimiter in each cell.
@@ -3593,13 +3663,13 @@ pub struct TextRotation {
 pub struct TextToColumnsRequest {
     /// The delimiter to use. Used only if delimiterType is CUSTOM.
     #[serde(default)]
-    pub delimiter: Option<String>,
+    pub delimiter: ::core::option::Option<String>,
     /// The delimiter type to use. // TODO: enum values: ["DELIMITER_TYPE_UNSPECIFIED", "COMMA", "SEMICOLON", "PERIOD", "SPACE", "CUSTOM", "AUTODETECT"]
     #[serde(default, rename = "delimiterType")]
-    pub delimiter_type: Option<String>,
+    pub delimiter_type: ::core::option::Option<String>,
     /// The source data range. This must span exactly one column.
     #[serde(default)]
-    pub source: Option<GridRange>,
+    pub source: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// A pair mapping a spreadsheet theme color type to the concrete color it represents.
@@ -3607,10 +3677,10 @@ pub struct TextToColumnsRequest {
 pub struct ThemeColorPair {
     /// The concrete color corresponding to the theme color type.
     #[serde(default)]
-    pub color: Option<ColorStyle>,
+    pub color: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The type of the spreadsheet theme color. // TODO: enum values: ["THEME_COLOR_TYPE_UNSPECIFIED", "TEXT", "BACKGROUND", "ACCENT1", "ACCENT2", "ACCENT3", "ACCENT4", "ACCENT5", "ACCENT6", "LINK"]
     #[serde(default, rename = "colorType")]
-    pub color_type: Option<String>,
+    pub color_type: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -3618,16 +3688,16 @@ pub struct ThemeColorPair {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// A color scale for a treemap chart.
@@ -3635,28 +3705,28 @@ pub struct TimeOfDay {
 pub struct TreemapChartColorScale {
     /// The background color for cells with a color value greater than or equal to maxValue. Defaults to #109618 if not specified. Deprecated: Use max_value_color_style.
     #[serde(default, rename = "maxValueColor")]
-    pub max_value_color: Option<Color>,
+    pub max_value_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color for cells with a color value greater than or equal to maxValue. Defaults to #109618 if not specified. If max_value_color is also set, this field takes precedence.
     #[serde(default, rename = "maxValueColorStyle")]
-    pub max_value_color_style: Option<ColorStyle>,
+    pub max_value_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The background color for cells with a color value at the midpoint between minValue and maxValue. Defaults to #efe6dc if not specified. Deprecated: Use mid_value_color_style.
     #[serde(default, rename = "midValueColor")]
-    pub mid_value_color: Option<Color>,
+    pub mid_value_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color for cells with a color value at the midpoint between minValue and maxValue. Defaults to #efe6dc if not specified. If mid_value_color is also set, this field takes precedence.
     #[serde(default, rename = "midValueColorStyle")]
-    pub mid_value_color_style: Option<ColorStyle>,
+    pub mid_value_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The background color for cells with a color value less than or equal to minValue. Defaults to #dc3912 if not specified. Deprecated: Use min_value_color_style.
     #[serde(default, rename = "minValueColor")]
-    pub min_value_color: Option<Color>,
+    pub min_value_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color for cells with a color value less than or equal to minValue. Defaults to #dc3912 if not specified. If min_value_color is also set, this field takes precedence.
     #[serde(default, rename = "minValueColorStyle")]
-    pub min_value_color_style: Option<ColorStyle>,
+    pub min_value_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The background color for cells that have no color data associated with them. Defaults to #000000 if not specified. Deprecated: Use no_data_color_style.
     #[serde(default, rename = "noDataColor")]
-    pub no_data_color: Option<Color>,
+    pub no_data_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color for cells that have no color data associated with them. Defaults to #000000 if not specified. If no_data_color is also set, this field takes precedence.
     #[serde(default, rename = "noDataColorStyle")]
-    pub no_data_color_style: Option<ColorStyle>,
+    pub no_data_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
 }
 
 /// A Treemap chart.
@@ -3664,43 +3734,43 @@ pub struct TreemapChartColorScale {
 pub struct TreemapChartSpec {
     /// The data that determines the background color of each treemap data cell. This field is optional. If not specified, size_data is used to determine background colors. If specified, the data is expected to be numeric. color_scale will determine how the values in this data map to data cell background colors.
     #[serde(default, rename = "colorData")]
-    pub color_data: Option<ChartData>,
+    pub color_data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The color scale for data cells in the treemap chart. Data cells are assigned colors based on their color values. These color values come from color_data, or from size_data if color_data is not specified. Cells with color values less than or equal to min_value will have minValueColor as their background color. Cells with color values greater than or equal to max_value will have maxValueColor as their background color. Cells with color values between min_value and max_value will have background colors on a gradient between minValueColor and maxValueColor, the midpoint of the gradient being midValueColor. Cells with missing or non-numeric color values will have noDataColor as their background color.
     #[serde(default, rename = "colorScale")]
-    pub color_scale: Option<TreemapChartColorScale>,
+    pub color_scale: ::core::option::Option<::std::boxed::Box<TreemapChartColorScale>>,
     /// The background color for header cells. Deprecated: Use header_color_style.
     #[serde(default, rename = "headerColor")]
-    pub header_color: Option<Color>,
+    pub header_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The background color for header cells. If header_color is also set, this field takes precedence.
     #[serde(default, rename = "headerColorStyle")]
-    pub header_color_style: Option<ColorStyle>,
+    pub header_color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// True to hide tooltips.
     #[serde(default, rename = "hideTooltips")]
-    pub hide_tooltips: Option<bool>,
+    pub hide_tooltips: ::core::option::Option<bool>,
     /// The number of additional data levels beyond the labeled levels to be shown on the treemap chart. These levels are not interactive and are shown without their labels. Defaults to 0 if not specified.
     #[serde(default, rename = "hintedLevels")]
-    pub hinted_levels: Option<i32>,
+    pub hinted_levels: ::core::option::Option<i32>,
     /// The data that contains the treemap cell labels.
     #[serde(default)]
-    pub labels: Option<ChartData>,
+    pub labels: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The number of data levels to show on the treemap chart. These levels are interactive and are shown with their labels. Defaults to 2 if not specified.
     #[serde(default)]
-    pub levels: Option<i32>,
+    pub levels: ::core::option::Option<i32>,
     /// The maximum possible data value. Cells with values greater than this will have the same color as cells with this value. If not specified, defaults to the actual maximum value from color_data, or the maximum value from size_data if color_data is not specified.
     #[serde(default, rename = "maxValue")]
-    pub max_value: Option<f64>,
+    pub max_value: ::core::option::Option<f64>,
     /// The minimum possible data value. Cells with values less than this will have the same color as cells with this value. If not specified, defaults to the actual minimum value from color_data, or the minimum value from size_data if color_data is not specified.
     #[serde(default, rename = "minValue")]
-    pub min_value: Option<f64>,
+    pub min_value: ::core::option::Option<f64>,
     /// The data the contains the treemap cells'' parent labels.
     #[serde(default, rename = "parentLabels")]
-    pub parent_labels: Option<ChartData>,
+    pub parent_labels: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The data that determines the size of each treemap data cell. This data is expected to be numeric. The cells corresponding to non-numeric or missing data will not be rendered. If color_data is not specified, this data is used to determine data cell background colors as well.
     #[serde(default, rename = "sizeData")]
-    pub size_data: Option<ChartData>,
+    pub size_data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// The text format for all labels on the chart. The link field is not supported.
     #[serde(default, rename = "textFormat")]
-    pub text_format: Option<TextFormat>,
+    pub text_format: ::core::option::Option<::std::boxed::Box<TextFormat>>,
 }
 
 /// Trims the whitespace (such as spaces, tabs, or new lines) in every cell in the specified range. This request removes all whitespace from the start and end of each cell''s text, and reduces any subsequence of remaining whitespace characters to a single space. If the resulting trimmed text starts with a ''+'' or ''='' character, the text remains as a string value and isn''t interpreted as a formula.
@@ -3708,7 +3778,7 @@ pub struct TreemapChartSpec {
 pub struct TrimWhitespaceRequest {
     /// The range whose cells to trim.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// The result of trimming whitespace in cells.
@@ -3716,7 +3786,7 @@ pub struct TrimWhitespaceRequest {
 pub struct TrimWhitespaceResponse {
     /// The number of cells that were trimmed of whitespace.
     #[serde(default, rename = "cellsChangedCount")]
-    pub cells_changed_count: Option<i32>,
+    pub cells_changed_count: ::core::option::Option<i32>,
 }
 
 /// Unmerges cells in the given range.
@@ -3724,7 +3794,7 @@ pub struct TrimWhitespaceResponse {
 pub struct UnmergeCellsRequest {
     /// The range within which all cells should be unmerged. If the range spans multiple merges, all will be unmerged. The range must not partially span any merge.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
 }
 
 /// Updates properties of the supplied banded range.
@@ -3732,10 +3802,10 @@ pub struct UnmergeCellsRequest {
 pub struct UpdateBandingRequest {
     /// The banded range to update with the new properties.
     #[serde(default, rename = "bandedRange")]
-    pub banded_range: Option<BandedRange>,
+    pub banded_range: ::core::option::Option<::std::boxed::Box<BandedRange>>,
     /// The fields that should be updated. At least one field must be specified. The root bandedRange is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
 }
 
 /// Updates the borders of a range. If a field is not set in the request, that means the border remains as-is. For example, with two subsequent UpdateBordersRequest: 1. range: A1:A5 { top: RED, bottom: WHITE } 2. range: A1:A5 { left: BLUE } That would result in A1:A5 having a borders of { top: RED, bottom: WHITE, left: BLUE }. If you want to clear a border, explicitly set the style to NONE.
@@ -3743,25 +3813,25 @@ pub struct UpdateBandingRequest {
 pub struct UpdateBordersRequest {
     /// The border to put at the bottom of the range.
     #[serde(default)]
-    pub bottom: Option<Border>,
+    pub bottom: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The horizontal border to put within the range.
     #[serde(default, rename = "innerHorizontal")]
-    pub inner_horizontal: Option<Border>,
+    pub inner_horizontal: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The vertical border to put within the range.
     #[serde(default, rename = "innerVertical")]
-    pub inner_vertical: Option<Border>,
+    pub inner_vertical: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The border to put at the left of the range.
     #[serde(default)]
-    pub left: Option<Border>,
+    pub left: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The range whose borders should be updated.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The border to put at the right of the range.
     #[serde(default)]
-    pub right: Option<Border>,
+    pub right: ::core::option::Option<::std::boxed::Box<Border>>,
     /// The border to put at the top of the range.
     #[serde(default)]
-    pub top: Option<Border>,
+    pub top: ::core::option::Option<::std::boxed::Box<Border>>,
 }
 
 /// Updates all cells in a range with new data.
@@ -3769,16 +3839,16 @@ pub struct UpdateBordersRequest {
 pub struct UpdateCellsRequest {
     /// The fields of CellData that should be updated. At least one field must be specified. The root is the CellData; ''row.values.'' should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The range to write data to. If the data in rows does not cover the entire requested range, the fields matching those set in fields will be cleared.
     #[serde(default)]
-    pub range: Option<GridRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<GridRange>>,
     /// The data to write.
     #[serde(default)]
-    pub rows: Option<Vec<RowData>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RowData>>>,
     /// The coordinate to start writing data at. Any number of rows and columns (including a different number of columns per row) may be written.
     #[serde(default)]
-    pub start: Option<GridCoordinate>,
+    pub start: ::core::option::Option<::std::boxed::Box<GridCoordinate>>,
 }
 
 /// Updates a chart''s specifications. (This does not move or resize a chart. To move or resize a chart, use UpdateEmbeddedObjectPositionRequest.)
@@ -3786,10 +3856,10 @@ pub struct UpdateCellsRequest {
 pub struct UpdateChartSpecRequest {
     /// The ID of the chart to update.
     #[serde(default, rename = "chartId")]
-    pub chart_id: Option<i32>,
+    pub chart_id: ::core::option::Option<i32>,
     /// The specification to apply to the chart.
     #[serde(default)]
-    pub spec: Option<ChartSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<ChartSpec>>,
 }
 
 /// Updates a conditional format rule at the given index, or moves a conditional format rule to another index.
@@ -3797,16 +3867,16 @@ pub struct UpdateChartSpecRequest {
 pub struct UpdateConditionalFormatRuleRequest {
     /// The zero-based index of the rule that should be replaced or moved.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// The zero-based new index the rule should end up at.
     #[serde(default, rename = "newIndex")]
-    pub new_index: Option<i32>,
+    pub new_index: ::core::option::Option<i32>,
     /// The rule that should replace the rule at the given index.
     #[serde(default)]
-    pub rule: Option<ConditionalFormatRule>,
+    pub rule: ::core::option::Option<::std::boxed::Box<ConditionalFormatRule>>,
     /// The sheet of the rule to move. Required if new_index is set, unused otherwise.
     #[serde(default, rename = "sheetId")]
-    pub sheet_id: Option<i32>,
+    pub sheet_id: ::core::option::Option<i32>,
 }
 
 /// The result of updating a conditional format rule.
@@ -3814,16 +3884,16 @@ pub struct UpdateConditionalFormatRuleRequest {
 pub struct UpdateConditionalFormatRuleResponse {
     /// The index of the new rule.
     #[serde(default, rename = "newIndex")]
-    pub new_index: Option<i32>,
+    pub new_index: ::core::option::Option<i32>,
     /// The new rule that replaced the old rule (if replacing), or the rule that was moved (if moved)
     #[serde(default, rename = "newRule")]
-    pub new_rule: Option<ConditionalFormatRule>,
+    pub new_rule: ::core::option::Option<::std::boxed::Box<ConditionalFormatRule>>,
     /// The old index of the rule. Not set if a rule was replaced (because it is the same as new_index).
     #[serde(default, rename = "oldIndex")]
-    pub old_index: Option<i32>,
+    pub old_index: ::core::option::Option<i32>,
     /// The old (deleted) rule. Not set if a rule was moved (because it is the same as new_rule).
     #[serde(default, rename = "oldRule")]
-    pub old_rule: Option<ConditionalFormatRule>,
+    pub old_rule: ::core::option::Option<::std::boxed::Box<ConditionalFormatRule>>,
 }
 
 /// Updates a data source. After the data source is updated successfully, an execution is triggered to refresh the associated DATA_SOURCE sheet to read data from the updated data source. The request requires an additional bigquery.readonly OAuth scope if you are updating a BigQuery data source.
@@ -3831,10 +3901,10 @@ pub struct UpdateConditionalFormatRuleResponse {
 pub struct UpdateDataSourceRequest {
     /// The data source to update.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<DataSource>,
+    pub data_source: ::core::option::Option<::std::boxed::Box<DataSource>>,
     /// The fields that should be updated. At least one field must be specified. The root dataSource is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
 }
 
 /// The response from updating data source.
@@ -3842,10 +3912,10 @@ pub struct UpdateDataSourceRequest {
 pub struct UpdateDataSourceResponse {
     /// The data execution status.
     #[serde(default, rename = "dataExecutionStatus")]
-    pub data_execution_status: Option<DataExecutionStatus>,
+    pub data_execution_status: ::core::option::Option<::std::boxed::Box<DataExecutionStatus>>,
     /// The updated data source.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<DataSource>,
+    pub data_source: ::core::option::Option<::std::boxed::Box<DataSource>>,
 }
 
 /// A request to update properties of developer metadata. Updates the properties of the developer metadata selected by the filters to the values provided in the DeveloperMetadata resource. Callers must specify the properties they wish to update in the fields parameter, as well as specify at least one DataFilter matching the metadata they wish to update.
@@ -3853,13 +3923,13 @@ pub struct UpdateDataSourceResponse {
 pub struct UpdateDeveloperMetadataRequest {
     /// The filters matching the developer metadata entries to update.
     #[serde(default, rename = "dataFilters")]
-    pub data_filters: Option<Vec<DataFilter>>,
+    pub data_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataFilter>>>,
     /// The value that all metadata matched by the data filters will be updated to.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<DeveloperMetadata>,
+    pub developer_metadata: ::core::option::Option<::std::boxed::Box<DeveloperMetadata>>,
     /// The fields that should be updated. At least one field must be specified. The root developerMetadata is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
 }
 
 /// The response from updating developer metadata.
@@ -3867,7 +3937,8 @@ pub struct UpdateDeveloperMetadataRequest {
 pub struct UpdateDeveloperMetadataResponse {
     /// The updated developer metadata.
     #[serde(default, rename = "developerMetadata")]
-    pub developer_metadata: Option<Vec<DeveloperMetadata>>,
+    pub developer_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DeveloperMetadata>>>,
 }
 
 /// Updates the state of the specified group.
@@ -3875,10 +3946,10 @@ pub struct UpdateDeveloperMetadataResponse {
 pub struct UpdateDimensionGroupRequest {
     /// The group whose state should be updated. The range and depth of the group should specify a valid group on the sheet, and all other fields updated.
     #[serde(default, rename = "dimensionGroup")]
-    pub dimension_group: Option<DimensionGroup>,
+    pub dimension_group: ::core::option::Option<::std::boxed::Box<DimensionGroup>>,
     /// The fields that should be updated. At least one field must be specified. The root dimensionGroup is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
 }
 
 /// Updates properties of dimensions within the specified range.
@@ -3886,16 +3957,17 @@ pub struct UpdateDimensionGroupRequest {
 pub struct UpdateDimensionPropertiesRequest {
     /// The columns on a data source sheet to update.
     #[serde(default, rename = "dataSourceSheetRange")]
-    pub data_source_sheet_range: Option<DataSourceSheetDimensionRange>,
+    pub data_source_sheet_range:
+        ::core::option::Option<::std::boxed::Box<DataSourceSheetDimensionRange>>,
     /// The fields that should be updated. At least one field must be specified. The root properties is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// Properties to update.
     #[serde(default)]
-    pub properties: Option<DimensionProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<DimensionProperties>>,
     /// The rows or columns to update.
     #[serde(default)]
-    pub range: Option<DimensionRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<DimensionRange>>,
 }
 
 /// Updates an embedded object''s border property.
@@ -3903,13 +3975,13 @@ pub struct UpdateDimensionPropertiesRequest {
 pub struct UpdateEmbeddedObjectBorderRequest {
     /// The border that applies to the embedded object.
     #[serde(default)]
-    pub border: Option<EmbeddedObjectBorder>,
+    pub border: ::core::option::Option<::std::boxed::Box<EmbeddedObjectBorder>>,
     /// The fields that should be updated. At least one field must be specified. The root border is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The ID of the embedded object to update.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<i32>,
+    pub object_id: ::core::option::Option<i32>,
 }
 
 /// Update an embedded object''s position (such as a moving or resizing a chart or image).
@@ -3917,13 +3989,13 @@ pub struct UpdateEmbeddedObjectBorderRequest {
 pub struct UpdateEmbeddedObjectPositionRequest {
     /// The fields of OverlayPosition that should be updated when setting a new position. Used only if newPosition.overlayPosition is set, in which case at least one field must be specified. The root newPosition.overlayPosition is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// An explicit position to move the embedded object to. If newPosition.sheetId is set, a new sheet with that ID will be created. If newPosition.newSheet is set to true, a new sheet will be created with an ID that will be chosen for you.
     #[serde(default, rename = "newPosition")]
-    pub new_position: Option<EmbeddedObjectPosition>,
+    pub new_position: ::core::option::Option<::std::boxed::Box<EmbeddedObjectPosition>>,
     /// The ID of the object to moved.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<i32>,
+    pub object_id: ::core::option::Option<i32>,
 }
 
 /// The result of updating an embedded object''s position.
@@ -3931,7 +4003,7 @@ pub struct UpdateEmbeddedObjectPositionRequest {
 pub struct UpdateEmbeddedObjectPositionResponse {
     /// The new position of the embedded object.
     #[serde(default)]
-    pub position: Option<EmbeddedObjectPosition>,
+    pub position: ::core::option::Option<::std::boxed::Box<EmbeddedObjectPosition>>,
 }
 
 /// Updates properties of the filter view.
@@ -3939,10 +4011,10 @@ pub struct UpdateEmbeddedObjectPositionResponse {
 pub struct UpdateFilterViewRequest {
     /// The fields that should be updated. At least one field must be specified. The root filter is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The new properties of the filter view.
     #[serde(default)]
-    pub filter: Option<FilterView>,
+    pub filter: ::core::option::Option<::std::boxed::Box<FilterView>>,
 }
 
 /// Updates properties of the named range with the specified namedRangeId.
@@ -3950,10 +4022,10 @@ pub struct UpdateFilterViewRequest {
 pub struct UpdateNamedRangeRequest {
     /// The fields that should be updated. At least one field must be specified. The root namedRange is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The named range to update with the new properties.
     #[serde(default, rename = "namedRange")]
-    pub named_range: Option<NamedRange>,
+    pub named_range: ::core::option::Option<::std::boxed::Box<NamedRange>>,
 }
 
 /// Updates an existing protected range with the specified protectedRangeId.
@@ -3961,10 +4033,10 @@ pub struct UpdateNamedRangeRequest {
 pub struct UpdateProtectedRangeRequest {
     /// The fields that should be updated. At least one field must be specified. The root protectedRange is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The protected range to update with the new properties.
     #[serde(default, rename = "protectedRange")]
-    pub protected_range: Option<ProtectedRange>,
+    pub protected_range: ::core::option::Option<::std::boxed::Box<ProtectedRange>>,
 }
 
 /// Updates properties of the sheet with the specified sheetId.
@@ -3972,10 +4044,10 @@ pub struct UpdateProtectedRangeRequest {
 pub struct UpdateSheetPropertiesRequest {
     /// The fields that should be updated. At least one field must be specified. The root properties is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The properties to update.
     #[serde(default)]
-    pub properties: Option<SheetProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<SheetProperties>>,
 }
 
 /// Updates a slicer''s specifications. (This does not move or resize a slicer. To move or resize a slicer use UpdateEmbeddedObjectPositionRequest.
@@ -3983,13 +4055,13 @@ pub struct UpdateSheetPropertiesRequest {
 pub struct UpdateSlicerSpecRequest {
     /// The fields that should be updated. At least one field must be specified. The root SlicerSpec is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The id of the slicer to update.
     #[serde(default, rename = "slicerId")]
-    pub slicer_id: Option<i32>,
+    pub slicer_id: ::core::option::Option<i32>,
     /// The specification to apply to the slicer.
     #[serde(default)]
-    pub spec: Option<SlicerSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<SlicerSpec>>,
 }
 
 /// Updates properties of a spreadsheet.
@@ -3997,10 +4069,10 @@ pub struct UpdateSlicerSpecRequest {
 pub struct UpdateSpreadsheetPropertiesRequest {
     /// The fields that should be updated. At least one field must be specified. The root ''properties'' is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// The properties to update.
     #[serde(default)]
-    pub properties: Option<SpreadsheetProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<SpreadsheetProperties>>,
 }
 
 /// Updates a table in the spreadsheet.
@@ -4008,10 +4080,10 @@ pub struct UpdateSpreadsheetPropertiesRequest {
 pub struct UpdateTableRequest {
     /// Required. The fields that should be updated. At least one field must be specified. The root table is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
-    pub fields: Option<String>,
+    pub fields: ::core::option::Option<String>,
     /// Required. The table to update.
     #[serde(default)]
-    pub table: Option<Table>,
+    pub table: ::core::option::Option<::std::boxed::Box<Table>>,
 }
 
 /// The response when updating a range of values by a data filter in a spreadsheet.
@@ -4019,22 +4091,22 @@ pub struct UpdateTableRequest {
 pub struct UpdateValuesByDataFilterResponse {
     /// The data filter that selected the range that was updated.
     #[serde(default, rename = "dataFilter")]
-    pub data_filter: Option<DataFilter>,
+    pub data_filter: ::core::option::Option<::std::boxed::Box<DataFilter>>,
     /// The number of cells updated.
     #[serde(default, rename = "updatedCells")]
-    pub updated_cells: Option<i32>,
+    pub updated_cells: ::core::option::Option<i32>,
     /// The number of columns where at least one cell in the column was updated.
     #[serde(default, rename = "updatedColumns")]
-    pub updated_columns: Option<i32>,
+    pub updated_columns: ::core::option::Option<i32>,
     /// The values of the cells in the range matched by the dataFilter after all updates were applied. This is only included if the request''s includeValuesInResponse field was true.
     #[serde(default, rename = "updatedData")]
-    pub updated_data: Option<ValueRange>,
+    pub updated_data: ::core::option::Option<::std::boxed::Box<ValueRange>>,
     /// The range (in [A1 notation](https://developers.google.com/workspace/sheets/api/guides/concepts#cell)) that updates were applied to.
     #[serde(default, rename = "updatedRange")]
-    pub updated_range: Option<String>,
+    pub updated_range: ::core::option::Option<String>,
     /// The number of rows where at least one cell in the row was updated.
     #[serde(default, rename = "updatedRows")]
-    pub updated_rows: Option<i32>,
+    pub updated_rows: ::core::option::Option<i32>,
 }
 
 /// The response when updating a range of values in a spreadsheet.
@@ -4042,22 +4114,22 @@ pub struct UpdateValuesByDataFilterResponse {
 pub struct UpdateValuesResponse {
     /// The spreadsheet the updates were applied to.
     #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    pub spreadsheet_id: ::core::option::Option<String>,
     /// The number of cells updated.
     #[serde(default, rename = "updatedCells")]
-    pub updated_cells: Option<i32>,
+    pub updated_cells: ::core::option::Option<i32>,
     /// The number of columns where at least one cell in the column was updated.
     #[serde(default, rename = "updatedColumns")]
-    pub updated_columns: Option<i32>,
+    pub updated_columns: ::core::option::Option<i32>,
     /// The values of the cells after updates were applied. This is only included if the request''s includeValuesInResponse field was true.
     #[serde(default, rename = "updatedData")]
-    pub updated_data: Option<ValueRange>,
+    pub updated_data: ::core::option::Option<::std::boxed::Box<ValueRange>>,
     /// The range (in A1 notation) that updates were applied to.
     #[serde(default, rename = "updatedRange")]
-    pub updated_range: Option<String>,
+    pub updated_range: ::core::option::Option<String>,
     /// The number of rows where at least one cell in the row was updated.
     #[serde(default, rename = "updatedRows")]
-    pub updated_rows: Option<i32>,
+    pub updated_rows: ::core::option::Option<i32>,
 }
 
 /// Data within a range of the spreadsheet.
@@ -4065,13 +4137,13 @@ pub struct UpdateValuesResponse {
 pub struct ValueRange {
     /// The major dimension of the values. For output, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then requesting range=A1:B2,majorDimension=ROWS will return [[1,2],[3,4]], whereas requesting range=A1:B2,majorDimension=COLUMNS will return [[1,3],[2,4]]. For input, with range=A1:B2,majorDimension=ROWS then [[1,2],[3,4]] will set A1=1,B1=2,A2=3,B2=4. With range=A1:B2,majorDimension=COLUMNS then [[1,2],[3,4]] will set A1=1,B1=3,A2=2,B2=4. When writing, if this field is not set, it defaults to ROWS. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "ROWS", "COLUMNS"]
     #[serde(default, rename = "majorDimension")]
-    pub major_dimension: Option<String>,
+    pub major_dimension: ::core::option::Option<String>,
     /// The range the values cover, in [A1 notation](https://developers.google.com/workspace/sheets/api/guides/concepts#cell). For output, this range indicates the entire requested range, even though the values will exclude trailing rows and columns. When appending values, this field represents the range to search for a table, after which values will be appended.
     #[serde(default)]
-    pub range: Option<String>,
+    pub range: ::core::option::Option<String>,
     /// The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell. For output, empty trailing rows and columns will not be included. For input, supported value types are: bool, string, and double. Null values will be skipped. To set a cell to an empty value, set the string value to an empty string.
     #[serde(default)]
-    pub values: Option<Vec<Vec<serde_json::Value>>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
 }
 
 /// Styles for a waterfall chart column.
@@ -4079,13 +4151,13 @@ pub struct ValueRange {
 pub struct WaterfallChartColumnStyle {
     /// The color of the column. Deprecated: Use color_style.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The color of the column. If color is also set, this field takes precedence.
     #[serde(default, rename = "colorStyle")]
-    pub color_style: Option<ColorStyle>,
+    pub color_style: ::core::option::Option<::std::boxed::Box<ColorStyle>>,
     /// The label of the column''s legend.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
 }
 
 /// A custom subtotal column for a waterfall chart series.
@@ -4093,13 +4165,13 @@ pub struct WaterfallChartColumnStyle {
 pub struct WaterfallChartCustomSubtotal {
     /// True if the data point at subtotal_index is the subtotal. If false, the subtotal will be computed and appear after the data point.
     #[serde(default, rename = "dataIsSubtotal")]
-    pub data_is_subtotal: Option<bool>,
+    pub data_is_subtotal: ::core::option::Option<bool>,
     /// A label for the subtotal column.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The zero-based index of a data point within the series. If data_is_subtotal is true, the data point at this index is the subtotal. Otherwise, the subtotal appears after the data point with this index. A series can have multiple subtotals at arbitrary indices, but subtotals do not affect the indices of the data points. For example, if a series has three data points, their indices will always be 0, 1, and 2, regardless of how many subtotals exist on the series or what data points they are associated with.
     #[serde(default, rename = "subtotalIndex")]
-    pub subtotal_index: Option<i32>,
+    pub subtotal_index: ::core::option::Option<i32>,
 }
 
 /// The domain of a waterfall chart.
@@ -4107,10 +4179,10 @@ pub struct WaterfallChartCustomSubtotal {
 pub struct WaterfallChartDomain {
     /// The data of the WaterfallChartDomain.
     #[serde(default)]
-    pub data: Option<ChartData>,
+    pub data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// True to reverse the order of the domain values (horizontal axis).
     #[serde(default)]
-    pub reversed: Option<bool>,
+    pub reversed: ::core::option::Option<bool>,
 }
 
 /// A single series of data for a waterfall chart.
@@ -4118,25 +4190,29 @@ pub struct WaterfallChartDomain {
 pub struct WaterfallChartSeries {
     /// Custom subtotal columns appearing in this series. The order in which subtotals are defined is not significant. Only one subtotal may be defined for each data point.
     #[serde(default, rename = "customSubtotals")]
-    pub custom_subtotals: Option<Vec<WaterfallChartCustomSubtotal>>,
+    pub custom_subtotals:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WaterfallChartCustomSubtotal>>>,
     /// The data being visualized in this series.
     #[serde(default)]
-    pub data: Option<ChartData>,
+    pub data: ::core::option::Option<::std::boxed::Box<ChartData>>,
     /// Information about the data labels for this series.
     #[serde(default, rename = "dataLabel")]
-    pub data_label: Option<DataLabel>,
+    pub data_label: ::core::option::Option<::std::boxed::Box<DataLabel>>,
     /// True to hide the subtotal column from the end of the series. By default, a subtotal column will appear at the end of each series. Setting this field to true will hide that subtotal column for this series.
     #[serde(default, rename = "hideTrailingSubtotal")]
-    pub hide_trailing_subtotal: Option<bool>,
+    pub hide_trailing_subtotal: ::core::option::Option<bool>,
     /// Styles for all columns in this series with negative values.
     #[serde(default, rename = "negativeColumnsStyle")]
-    pub negative_columns_style: Option<WaterfallChartColumnStyle>,
+    pub negative_columns_style:
+        ::core::option::Option<::std::boxed::Box<WaterfallChartColumnStyle>>,
     /// Styles for all columns in this series with positive values.
     #[serde(default, rename = "positiveColumnsStyle")]
-    pub positive_columns_style: Option<WaterfallChartColumnStyle>,
+    pub positive_columns_style:
+        ::core::option::Option<::std::boxed::Box<WaterfallChartColumnStyle>>,
     /// Styles for all subtotal columns in this series.
     #[serde(default, rename = "subtotalColumnsStyle")]
-    pub subtotal_columns_style: Option<WaterfallChartColumnStyle>,
+    pub subtotal_columns_style:
+        ::core::option::Option<::std::boxed::Box<WaterfallChartColumnStyle>>,
 }
 
 /// A waterfall chart.
@@ -4144,23 +4220,23 @@ pub struct WaterfallChartSeries {
 pub struct WaterfallChartSpec {
     /// The line style for the connector lines.
     #[serde(default, rename = "connectorLineStyle")]
-    pub connector_line_style: Option<LineStyle>,
+    pub connector_line_style: ::core::option::Option<::std::boxed::Box<LineStyle>>,
     /// The domain data (horizontal axis) for the waterfall chart.
     #[serde(default)]
-    pub domain: Option<WaterfallChartDomain>,
+    pub domain: ::core::option::Option<::std::boxed::Box<WaterfallChartDomain>>,
     /// True to interpret the first value as a total.
     #[serde(default, rename = "firstValueIsTotal")]
-    pub first_value_is_total: Option<bool>,
+    pub first_value_is_total: ::core::option::Option<bool>,
     /// True to hide connector lines between columns.
     #[serde(default, rename = "hideConnectorLines")]
-    pub hide_connector_lines: Option<bool>,
+    pub hide_connector_lines: ::core::option::Option<bool>,
     /// The data this waterfall chart is visualizing.
     #[serde(default)]
-    pub series: Option<Vec<WaterfallChartSeries>>,
+    pub series: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WaterfallChartSeries>>>,
     /// The stacked type. // TODO: enum values: ["WATERFALL_STACKED_TYPE_UNSPECIFIED", "STACKED", "SEQUENTIAL"]
     #[serde(default, rename = "stackedType")]
-    pub stacked_type: Option<String>,
+    pub stacked_type: ::core::option::Option<String>,
     /// Controls whether to display additional data labels on stacked charts which sum the total value of all stacked values at each value along the domain axis. stacked_type must be STACKED and neither CUSTOM nor placement can be set on the total_data_label.
     #[serde(default, rename = "totalDataLabel")]
-    pub total_data_label: Option<DataLabel>,
+    pub total_data_label: ::core::option::Option<::std::boxed::Box<DataLabel>>,
 }

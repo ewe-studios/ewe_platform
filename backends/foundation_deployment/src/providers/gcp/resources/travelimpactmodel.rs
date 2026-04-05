@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Input definition for the ComputeFlightEmissions request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComputeFlightEmissionsRequest {
     /// Required. Direct flights to return emission estimates for.
     #[serde(default)]
-    pub flights: Option<Vec<Flight>>,
+    pub flights: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Flight>>>,
 }
 
 /// Output definition for the ComputeFlightEmissions response.
@@ -26,10 +26,11 @@ pub struct ComputeFlightEmissionsRequest {
 pub struct ComputeFlightEmissionsResponse {
     /// List of flight legs with emission estimates.
     #[serde(default, rename = "flightEmissions")]
-    pub flight_emissions: Option<Vec<FlightWithEmissions>>,
+    pub flight_emissions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FlightWithEmissions>>>,
     /// The model version under which emission estimates for all flights in this response were computed.
     #[serde(default, rename = "modelVersion")]
-    pub model_version: Option<ModelVersion>,
+    pub model_version: ::core::option::Option<::std::boxed::Box<ModelVersion>>,
 }
 
 /// A list of flight segments to request the Scope 3 emissions for.
@@ -37,10 +38,10 @@ pub struct ComputeFlightEmissionsResponse {
 pub struct ComputeScope3FlightEmissionsRequest {
     /// Required. Flights to return emission estimates for.
     #[serde(default)]
-    pub flights: Option<Vec<Scope3FlightSegment>>,
+    pub flights: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Scope3FlightSegment>>>,
     /// Optional. The model version under which emission estimates for all flights in this request were computed.
     #[serde(default, rename = "modelVersion")]
-    pub model_version: Option<ModelVersion>,
+    pub model_version: ::core::option::Option<::std::boxed::Box<ModelVersion>>,
 }
 
 /// A list of flights with Scope 3 emission estimates.
@@ -48,10 +49,11 @@ pub struct ComputeScope3FlightEmissionsRequest {
 pub struct ComputeScope3FlightEmissionsResponse {
     /// List of flight segments with emission estimates.
     #[serde(default, rename = "flightEmissions")]
-    pub flight_emissions: Option<Vec<Scope3FlightEmissions>>,
+    pub flight_emissions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Scope3FlightEmissions>>>,
     /// The model version under which emission estimates for all flights in this response were computed.
     #[serde(default, rename = "modelVersion")]
-    pub model_version: Option<ModelVersion>,
+    pub model_version: ::core::option::Option<::std::boxed::Box<ModelVersion>>,
 }
 
 /// A list of pair of airports (markets) to request the typical emissions for.
@@ -59,7 +61,7 @@ pub struct ComputeScope3FlightEmissionsResponse {
 pub struct ComputeTypicalFlightEmissionsRequest {
     /// Required. Request the typical flight emissions estimates for this market pair. A maximum of 1000 markets can be requested.
     #[serde(default)]
-    pub markets: Option<Vec<Market>>,
+    pub markets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Market>>>,
 }
 
 /// The response includes the emissions but also the model version.
@@ -67,10 +69,11 @@ pub struct ComputeTypicalFlightEmissionsRequest {
 pub struct ComputeTypicalFlightEmissionsResponse {
     /// The model version under which typical flight emission estimates for all flights in this response were computed.
     #[serde(default, rename = "modelVersion")]
-    pub model_version: Option<ModelVersion>,
+    pub model_version: ::core::option::Option<::std::boxed::Box<ModelVersion>>,
     /// Market''s Typical Flight Emissions requested.
     #[serde(default, rename = "typicalFlightEmissions")]
-    pub typical_flight_emissions: Option<Vec<TypicalFlightEmissions>>,
+    pub typical_flight_emissions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TypicalFlightEmissions>>>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -78,13 +81,13 @@ pub struct ComputeTypicalFlightEmissionsResponse {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Metadata about the EASA Flight Emissions Label.
@@ -92,16 +95,16 @@ pub struct Date {
 pub struct EasaLabelMetadata {
     /// The date when the label expires. The label can be displayed until the end of this date.
     #[serde(default, rename = "labelExpiryDate")]
-    pub label_expiry_date: Option<Date>,
+    pub label_expiry_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The date when the label was issued.
     #[serde(default, rename = "labelIssueDate")]
-    pub label_issue_date: Option<Date>,
+    pub label_issue_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Version of the label.
     #[serde(default, rename = "labelVersion")]
-    pub label_version: Option<String>,
+    pub label_version: ::core::option::Option<String>,
     /// Sustainable Aviation Fuel (SAF) emissions discount percentage applied to the label. It is a percentage as a decimal. The values are in the interval [0,1]. For example, 0.0021 means 0.21%. This discount and reduction in emissions are reported by the EASA label but they are not included in the CO2e estimates distributed by this API.
     #[serde(default, rename = "safDiscountPercentage")]
-    pub saf_discount_percentage: Option<f64>,
+    pub saf_discount_percentage: ::core::option::Option<f64>,
 }
 
 /// Grouped emissions per seating class results.
@@ -109,16 +112,16 @@ pub struct EasaLabelMetadata {
 pub struct EmissionsGramsPerPax {
     /// Emissions for one passenger in business class in grams. This field is always computed and populated, regardless of whether the aircraft has business class seats or not.
     #[serde(default)]
-    pub business: Option<i32>,
+    pub business: ::core::option::Option<i32>,
     /// Emissions for one passenger in economy class in grams. This field is always computed and populated, regardless of whether the aircraft has economy class seats or not.
     #[serde(default)]
-    pub economy: Option<i32>,
+    pub economy: ::core::option::Option<i32>,
     /// Emissions for one passenger in first class in grams. This field is always computed and populated, regardless of whether the aircraft has first class seats or not.
     #[serde(default)]
-    pub first: Option<i32>,
+    pub first: ::core::option::Option<i32>,
     /// Emissions for one passenger in premium economy class in grams. This field is always computed and populated, regardless of whether the aircraft has premium economy class seats or not.
     #[serde(default, rename = "premiumEconomy")]
-    pub premium_economy: Option<i32>,
+    pub premium_economy: ::core::option::Option<i32>,
 }
 
 /// All details related to a single request item for a direct flight emission estimates.
@@ -126,19 +129,19 @@ pub struct EmissionsGramsPerPax {
 pub struct Flight {
     /// Required. Date of the flight in the time zone of the origin airport. Must be a date in the present or future.
     #[serde(default, rename = "departureDate")]
-    pub departure_date: Option<Date>,
+    pub departure_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Required. IATA airport code for flight destination, e.g. "JFK".
     #[serde(default)]
-    pub destination: Option<String>,
+    pub destination: ::core::option::Option<String>,
     /// Required. Flight number, e.g. 324.
     #[serde(default, rename = "flightNumber")]
-    pub flight_number: Option<i32>,
+    pub flight_number: ::core::option::Option<i32>,
     /// Required. IATA carrier code, e.g. "AA".
     #[serde(default, rename = "operatingCarrierCode")]
-    pub operating_carrier_code: Option<String>,
+    pub operating_carrier_code: ::core::option::Option<String>,
     /// Required. IATA airport code for flight origin, e.g. "LHR".
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
 }
 
 /// Direct flight with emission estimates.
@@ -146,19 +149,19 @@ pub struct Flight {
 pub struct FlightWithEmissions {
     /// Optional. The significance of contrails warming impact compared to the total CO2e emissions impact. // TODO: enum values: ["CONTRAILS_IMPACT_UNSPECIFIED", "CONTRAILS_IMPACT_NEGLIGIBLE", "CONTRAILS_IMPACT_MODERATE", "CONTRAILS_IMPACT_SEVERE"]
     #[serde(default, rename = "contrailsImpactBucket")]
-    pub contrails_impact_bucket: Option<String>,
+    pub contrails_impact_bucket: ::core::option::Option<String>,
     /// Optional. Metadata about the EASA Flight Emissions Label. Only set when the emissions data source is EASA.
     #[serde(default, rename = "easaLabelMetadata")]
-    pub easa_label_metadata: Option<EasaLabelMetadata>,
+    pub easa_label_metadata: ::core::option::Option<::std::boxed::Box<EasaLabelMetadata>>,
     /// Optional. Per-passenger emission estimate numbers. Will not be present if emissions could not be computed. For the list of reasons why emissions could not be computed, see ComputeFlightEmissions.
     #[serde(default, rename = "emissionsGramsPerPax")]
-    pub emissions_grams_per_pax: Option<EmissionsGramsPerPax>,
+    pub emissions_grams_per_pax: ::core::option::Option<::std::boxed::Box<EmissionsGramsPerPax>>,
     /// Identifier. Matches the flight identifiers in the request. Note: all IATA codes are capitalized.
     #[serde(default)]
-    pub flight: Option<Flight>,
+    pub flight: ::core::option::Option<::std::boxed::Box<Flight>>,
     /// Optional. The source of the emissions data. // TODO: enum values: ["SOURCE_UNSPECIFIED", "TIM", "EASA"]
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// A pair of airports.
@@ -166,10 +169,10 @@ pub struct FlightWithEmissions {
 pub struct Market {
     /// Required. IATA airport code for flight destination, e.g. "JFK".
     #[serde(default)]
-    pub destination: Option<String>,
+    pub destination: ::core::option::Option<String>,
     /// Required. IATA airport code for flight origin, e.g. "LHR".
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
 }
 
 /// Travel Impact Model version. For more information about the model versioning see [GitHub](https://github.com/google/travel-impact-model/#versioning).
@@ -177,16 +180,16 @@ pub struct Market {
 pub struct ModelVersion {
     /// Dated versions: Model datasets are recreated with refreshed input data but no change to the algorithms regularly.
     #[serde(default)]
-    pub dated: Option<String>,
+    pub dated: ::core::option::Option<String>,
     /// Major versions: Major changes to methodology (e.g. adding new data sources to the model that lead to major output changes). Such changes will be infrequent and announced well in advance. Might involve API version changes, which will respect [Google Cloud API guidelines](https://cloud.google.com/endpoints/docs/openapi/versioning-an-api#backwards-incompatible)
     #[serde(default)]
-    pub major: Option<i32>,
+    pub major: ::core::option::Option<i32>,
     /// Minor versions: Changes to the model that, while being consistent across schema versions, change the model parameters or implementation.
     #[serde(default)]
-    pub minor: Option<i32>,
+    pub minor: ::core::option::Option<i32>,
     /// Patch versions: Implementation changes meant to address bugs or inaccuracies in the model implementation.
     #[serde(default)]
-    pub patch: Option<i32>,
+    pub patch: ::core::option::Option<i32>,
 }
 
 /// Scope 3 flight with emission estimates.
@@ -194,19 +197,19 @@ pub struct ModelVersion {
 pub struct Scope3FlightEmissions {
     /// Identifier. Matches the flight identifiers in the request.
     #[serde(default)]
-    pub flight: Option<Scope3FlightSegment>,
+    pub flight: ::core::option::Option<::std::boxed::Box<Scope3FlightSegment>>,
     /// Optional. The source of the emissions data. // TODO: enum values: ["SCOPE3_DATA_TYPE_UNSPECIFIED", "TIM_EMISSIONS", "TYPICAL_FLIGHT_EMISSIONS", "DISTANCE_BASED_EMISSIONS"]
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Optional. Tank-to-wake flight emissions per passenger based on the requested info.
     #[serde(default, rename = "ttwEmissionsGramsPerPax")]
-    pub ttw_emissions_grams_per_pax: Option<String>,
+    pub ttw_emissions_grams_per_pax: ::core::option::Option<String>,
     /// Optional. Well-to-tank flight emissions per passenger based on the requested info.
     #[serde(default, rename = "wttEmissionsGramsPerPax")]
-    pub wtt_emissions_grams_per_pax: Option<String>,
+    pub wtt_emissions_grams_per_pax: ::core::option::Option<String>,
     /// Optional. Total flight emissions (sum of well-to-tank and tank-to-wake) per passenger based on the requested info. This is the total emissions and unless you have specific reasons for using TTW or WTT emissions, you should use this number.
     #[serde(default, rename = "wtwEmissionsGramsPerPax")]
-    pub wtw_emissions_grams_per_pax: Option<String>,
+    pub wtw_emissions_grams_per_pax: ::core::option::Option<String>,
 }
 
 /// Flight parameters with which the Scope 3 emissions are fetched.
@@ -214,25 +217,25 @@ pub struct Scope3FlightEmissions {
 pub struct Scope3FlightSegment {
     /// Required. The cabin class of the flight. // TODO: enum values: ["CABIN_CLASS_UNSPECIFIED", "ECONOMY", "PREMIUM_ECONOMY", "BUSINESS", "FIRST"]
     #[serde(default, rename = "cabinClass")]
-    pub cabin_class: Option<String>,
+    pub cabin_class: ::core::option::Option<String>,
     /// Optional. 2-character [IATA carrier code](https://www.iata.org/en/publications/directories/code-search/), e.g. KE. This is required if specific flight matching is desired. Otherwise, this is unused for typical flight and distance-based emissions models. This could be both operating and marketing carrier code (i.e. codeshare is covered).
     #[serde(default, rename = "carrierCode")]
-    pub carrier_code: Option<String>,
+    pub carrier_code: ::core::option::Option<String>,
     /// Required. Date of the flight in the time zone of the origin airport. Only year is required for typical flight and distance-based emissions models (month and day values are ignored and therefore, can be either omitted, set to 0, or set to a valid date for those cases). Correspondingly, if a specific date is not provided for TIM emissions, we will fallback to typical flight (or distance-based) emissions.
     #[serde(default, rename = "departureDate")]
-    pub departure_date: Option<Date>,
+    pub departure_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Optional. 3-character [IATA airport code](https://www.iata.org/en/publications/directories/code-search/) for flight destination, e.g. ICN. This is used to match specific flight if provided alongside origin, carrier, and flight number. If there is no match, we will first try to match the flight to a typical flight between the provided origin and destination airports. Otherwise, we will use the distance-based emissions model if the flight distance is provided.
     #[serde(default)]
-    pub destination: Option<String>,
+    pub destination: ::core::option::Option<String>,
     /// Optional. Distance in kilometers, e.g. 2423, from [1, 2.5e16) km. This is used to match a flight to distance-based emissions when origin and destination are not provided or there are no matching typical flights.
     #[serde(default, rename = "distanceKm")]
-    pub distance_km: Option<String>,
+    pub distance_km: ::core::option::Option<String>,
     /// Optional. Up to 4-digit [flight number](https://en.wikipedia.org/wiki/Flight_number), e.g. 71, from [1, 9999]. This is first used to match a specific flight if a flight number is specified alongside origin, destination, and carrier. If a flight number is not specified, we will first try to match the flight to a typical flight between the provided origin and destination airports. If that fails and/or origin & destination are not provided, we will use the distance-based emissions model based on the flight distance provided.
     #[serde(default, rename = "flightNumber")]
-    pub flight_number: Option<i32>,
+    pub flight_number: ::core::option::Option<i32>,
     /// Optional. 3-character [IATA airport code](https://www.iata.org/en/publications/directories/code-search/) for flight origin, e.g. YVR. This is used to match specific flight if provided alongside destination, carrier, and flight number. If there is no match, we will first try to match the flight to a typical flight between the provided origin and destination airports. Otherwise, we will use the distance-based emissions model if the flight distance is provided.
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
 }
 
 /// Typical flight emission estimates for a certain market
@@ -240,8 +243,8 @@ pub struct Scope3FlightSegment {
 pub struct TypicalFlightEmissions {
     /// Optional. Typical flight emissions per passenger for requested market. Will not be present if a typical emissions could not be computed. For the list of reasons why typical flight emissions could not be computed, see [GitHub](https://github.com/google/travel-impact-model/blob/main/projects/typical_flight_emissions.md#step-7-validate-dataset).
     #[serde(default, rename = "emissionsGramsPerPax")]
-    pub emissions_grams_per_pax: Option<EmissionsGramsPerPax>,
+    pub emissions_grams_per_pax: ::core::option::Option<::std::boxed::Box<EmissionsGramsPerPax>>,
     /// Identifier. Matches the flight identifiers in the request. Note: all IATA codes are capitalized.
     #[serde(default)]
-    pub market: Option<Market>,
+    pub market: ::core::option::Option<::std::boxed::Box<Market>>,
 }

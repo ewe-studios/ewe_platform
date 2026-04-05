@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An absolute date range, specified by its start date and end date. The supported range of dates begins 30 days before today and ends today. Validity checked upon filter set creation. If a filter set with an absolute date range is run at a later date more than 30 days after start_date, it will fail.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AbsoluteDateRange {
     /// The end date of the range (inclusive). Must be within the 30 days leading up to current date, and must be equal to or after start_date.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The start date of the range (inclusive). Must be within the 30 days leading up to current date, and must be equal to or before end_date.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
 }
 
 /// Request to accept a proposal.
@@ -29,7 +29,7 @@ pub struct AbsoluteDateRange {
 pub struct AcceptProposalRequest {
     /// The last known client revision number of the proposal.
     #[serde(default, rename = "proposalRevision")]
-    pub proposal_revision: Option<String>,
+    pub proposal_revision: ::core::option::Option<String>,
 }
 
 /// Represents size of a single ad slot, or a creative.
@@ -37,13 +37,13 @@ pub struct AcceptProposalRequest {
 pub struct AdSize {
     /// The height of the ad slot in pixels. This field will be present only when size type is PIXEL.
     #[serde(default)]
-    pub height: Option<String>,
+    pub height: ::core::option::Option<String>,
     /// The size type of the ad slot. // TODO: enum values: ["SIZE_TYPE_UNSPECIFIED", "PIXEL", "INTERSTITIAL", "NATIVE", "FLUID"]
     #[serde(default, rename = "sizeType")]
-    pub size_type: Option<String>,
+    pub size_type: ::core::option::Option<String>,
     /// The width of the ad slot in pixels. This field will be present only when size type is PIXEL.
     #[serde(default)]
-    pub width: Option<String>,
+    pub width: ::core::option::Option<String>,
 }
 
 /// Detected ad technology provider information.
@@ -51,10 +51,10 @@ pub struct AdSize {
 pub struct AdTechnologyProviders {
     /// The detected ad technology provider IDs for this creative. See https://storage.googleapis.com/adx-rtb-dictionaries/providers.csv for mapping of provider ID to provided name, a privacy policy URL, and a list of domains which can be attributed to the provider. If the creative contains provider IDs that are outside of those listed in the BidRequest.adslot.consented_providers_settings.consented_providers field on the (Google bid protocol)[https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto] and the BidRequest.user.ext.consented_providers_settings.consented_providers field on the (OpenRTB protocol)[https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto], and a bid is submitted with that creative for an impression that will serve to an EEA user, the bid will be filtered before the auction.
     #[serde(default, rename = "detectedProviderIds")]
-    pub detected_provider_ids: Option<Vec<String>>,
+    pub detected_provider_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Whether the creative contains an unidentified ad technology provider. If true for a given creative, any bid submitted with that creative for an impression that will serve to an EEA user will be filtered before the auction.
     #[serde(default, rename = "hasUnidentifiedProvider")]
-    pub has_unidentified_provider: Option<bool>,
+    pub has_unidentified_provider: ::core::option::Option<bool>,
 }
 
 /// A request for associating a deal and a creative.
@@ -62,7 +62,7 @@ pub struct AdTechnologyProviders {
 pub struct AddDealAssociationRequest {
     /// The association between a creative and a deal that should be added.
     #[serde(default)]
-    pub association: Option<CreativeDealAssociation>,
+    pub association: ::core::option::Option<::std::boxed::Box<CreativeDealAssociation>>,
 }
 
 /// Request message for adding a note to a given proposal.
@@ -70,7 +70,7 @@ pub struct AddDealAssociationRequest {
 pub struct AddNoteRequest {
     /// Details of the note to add.
     #[serde(default)]
-    pub note: Option<Note>,
+    pub note: ::core::option::Option<::std::boxed::Box<Note>>,
 }
 
 /// Output only. The app type the restriction applies to for mobile device.
@@ -78,7 +78,7 @@ pub struct AddNoteRequest {
 pub struct AppContext {
     /// The app types this restriction applies to.
     #[serde(default, rename = "appTypes")]
-    pub app_types: Option<Vec<String>>,
+    pub app_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Output only. The auction type the restriction applies to.
@@ -86,7 +86,7 @@ pub struct AppContext {
 pub struct AuctionContext {
     /// The auction types this restriction applies to.
     #[serde(default, rename = "auctionTypes")]
-    pub auction_types: Option<Vec<String>>,
+    pub auction_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The set of metrics that are measured in numbers of bids, representing how many bids with the specified dimension values were considered eligible at each stage of the bidding funnel;
@@ -94,28 +94,28 @@ pub struct AuctionContext {
 pub struct BidMetricsRow {
     /// The number of bids that Ad Exchange received from the buyer.
     #[serde(default)]
-    pub bids: Option<MetricValue>,
+    pub bids: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of bids that were permitted to compete in the auction.
     #[serde(default, rename = "bidsInAuction")]
-    pub bids_in_auction: Option<MetricValue>,
+    pub bids_in_auction: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of bids for which the buyer was billed. Also called valid impressions as invalid impressions are not billed.
     #[serde(default, rename = "billedImpressions")]
-    pub billed_impressions: Option<MetricValue>,
+    pub billed_impressions: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of bids that won the auction.
     #[serde(default, rename = "impressionsWon")]
-    pub impressions_won: Option<MetricValue>,
+    pub impressions_won: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of bids for which the corresponding impression was measurable for viewability (as defined by Active View).
     #[serde(default, rename = "measurableImpressions")]
-    pub measurable_impressions: Option<MetricValue>,
+    pub measurable_impressions: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of bids that won the auction and also won the mediation waterfall (if any).
     #[serde(default, rename = "reachedQueries")]
-    pub reached_queries: Option<MetricValue>,
+    pub reached_queries: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
     /// The number of bids for which the corresponding impression was viewable (as defined by Active View).
     #[serde(default, rename = "viewableImpressions")]
-    pub viewable_impressions: Option<MetricValue>,
+    pub viewable_impressions: ::core::option::Option<::std::boxed::Box<MetricValue>>,
 }
 
 /// The number of impressions with the specified dimension values that were considered to have no applicable bids, as described by the specified status.
@@ -123,13 +123,13 @@ pub struct BidMetricsRow {
 pub struct BidResponseWithoutBidsStatusRow {
     /// The number of impressions for which there was a bid response with the specified status.
     #[serde(default, rename = "impressionCount")]
-    pub impression_count: Option<MetricValue>,
+    pub impression_count: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
     /// The status specifying why the bid responses were considered to have no applicable bids. // TODO: enum values: ["STATUS_UNSPECIFIED", "RESPONSES_WITHOUT_BIDS", "RESPONSES_WITHOUT_BIDS_FOR_ACCOUNT", "RESPONSES_WITHOUT_BIDS_FOR_DEAL"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Represents a buyer of inventory. Each buyer is identified by a unique Authorized Buyers account ID.
@@ -137,7 +137,7 @@ pub struct BidResponseWithoutBidsStatusRow {
 pub struct Buyer {
     /// Authorized Buyers account ID of the buyer.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
 }
 
 /// The number of impressions with the specified dimension values where the corresponding bid request or bid response was not successful, as described by the specified callout status.
@@ -145,13 +145,13 @@ pub struct Buyer {
 pub struct CalloutStatusRow {
     /// The ID of the callout status. See [callout-status-codes](https://developers.google.com/authorized-buyers/rtb/downloads/callout-status-codes).
     #[serde(default, rename = "calloutStatusId")]
-    pub callout_status_id: Option<i32>,
+    pub callout_status_id: ::core::option::Option<i32>,
     /// The number of impressions for which there was a bid request or bid response with the specified callout status.
     #[serde(default, rename = "impressionCount")]
-    pub impression_count: Option<MetricValue>,
+    pub impression_count: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
 }
 
 /// A client resource represents a client buyer—an agency, a brand, or an advertiser customer of the sponsor buyer. Users associated with the client buyer have restricted access to the Marketplace and certain other sections of the Authorized Buyers UI based on the role granted to the client buyer. All fields are required unless otherwise specified.
@@ -159,31 +159,31 @@ pub struct CalloutStatusRow {
 pub struct Client {
     /// The globally-unique numerical ID of the client. The value of this field is ignored in create and update operations.
     #[serde(default, rename = "clientAccountId")]
-    pub client_account_id: Option<String>,
+    pub client_account_id: ::core::option::Option<String>,
     /// Name used to represent this client to publishers. You may have multiple clients that map to the same entity, but for each client the combination of clientName and entity must be unique. You can specify this field as empty. Maximum length of 255 characters is allowed.
     #[serde(default, rename = "clientName")]
-    pub client_name: Option<String>,
+    pub client_name: ::core::option::Option<String>,
     /// Numerical identifier of the client entity. The entity can be an advertiser, a brand, or an agency. This identifier is unique among all the entities with the same type. The value of this field is ignored if the entity type is not provided. A list of all known advertisers with their identifiers is available in the [advertisers.txt](https://storage.googleapis.com/adx-rtb-dictionaries/advertisers.txt) file. A list of all known brands with their identifiers is available in the [brands.txt](https://storage.googleapis.com/adx-rtb-dictionaries/brands.txt) file. A list of all known agencies with their identifiers is available in the [agencies.txt](https://storage.googleapis.com/adx-rtb-dictionaries/agencies.txt) file.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// The name of the entity. This field is automatically fetched based on the type and ID. The value of this field is ignored in create and update operations.
     #[serde(default, rename = "entityName")]
-    pub entity_name: Option<String>,
+    pub entity_name: ::core::option::Option<String>,
     /// An optional field for specifying the type of the client entity: ADVERTISER, BRAND, or AGENCY. // TODO: enum values: ["ENTITY_TYPE_UNSPECIFIED", "ADVERTISER", "BRAND", "AGENCY", "ENTITY_TYPE_UNCLASSIFIED"]
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     /// Optional arbitrary unique identifier of this client buyer from the standpoint of its Ad Exchange sponsor buyer. This field can be used to associate a client buyer with the identifier in the namespace of its sponsor buyer, lookup client buyers by that identifier and verify whether an Ad Exchange counterpart of a given client buyer already exists. If present, must be unique among all the client buyers for its Ad Exchange sponsor buyer.
     #[serde(default, rename = "partnerClientId")]
-    pub partner_client_id: Option<String>,
+    pub partner_client_id: ::core::option::Option<String>,
     /// The role which is assigned to the client buyer. Each role implies a set of permissions granted to the client. Must be one of CLIENT_DEAL_VIEWER, CLIENT_DEAL_NEGOTIATOR or CLIENT_DEAL_APPROVER. // TODO: enum values: ["CLIENT_ROLE_UNSPECIFIED", "CLIENT_DEAL_VIEWER", "CLIENT_DEAL_NEGOTIATOR", "CLIENT_DEAL_APPROVER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// The status of the client buyer. // TODO: enum values: ["CLIENT_STATUS_UNSPECIFIED", "DISABLED", "ACTIVE"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Whether the client buyer will be visible to sellers.
     #[serde(default, rename = "visibleToSeller")]
-    pub visible_to_seller: Option<bool>,
+    pub visible_to_seller: ::core::option::Option<bool>,
 }
 
 /// A client user is created under a client buyer and has restricted access to the Marketplace and certain other sections of the Authorized Buyers UI based on the role granted to the associated client buyer. The only way a new client user can be created is through accepting an email invitation (see the accounts.clients.invitations.create method). All fields are required unless otherwise specified.
@@ -191,16 +191,16 @@ pub struct Client {
 pub struct ClientUser {
     /// Numerical account ID of the client buyer with which the user is associated; the buyer must be a client of the current sponsor buyer. The value of this field is ignored in an update operation.
     #[serde(default, rename = "clientAccountId")]
-    pub client_account_id: Option<String>,
+    pub client_account_id: ::core::option::Option<String>,
     /// User''s email address. The value of this field is ignored in an update operation.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The status of the client user. // TODO: enum values: ["USER_STATUS_UNSPECIFIED", "PENDING", "ACTIVE", "DISABLED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// The unique numerical ID of the client user that has accepted an invitation. The value of this field is ignored in an update operation.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// An invitation for a new client user to get access to the Authorized Buyers UI. All fields are required unless otherwise specified.
@@ -208,13 +208,13 @@ pub struct ClientUser {
 pub struct ClientUserInvitation {
     /// Numerical account ID of the client buyer that the invited user is associated with. The value of this field is ignored in create operations.
     #[serde(default, rename = "clientAccountId")]
-    pub client_account_id: Option<String>,
+    pub client_account_id: ::core::option::Option<String>,
     /// The email address to which the invitation is sent. Email addresses should be unique among all client users under each sponsor buyer.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The unique numerical ID of the invitation that is sent to the user. The value of this field is ignored in create operations.
     #[serde(default, rename = "invitationId")]
-    pub invitation_id: Option<String>,
+    pub invitation_id: ::core::option::Option<String>,
 }
 
 /// Contains information on how a buyer or seller can be reached.
@@ -222,10 +222,10 @@ pub struct ClientUserInvitation {
 pub struct ContactInformation {
     /// Email address for the contact.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The name of the contact.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Output only. Shows any corrections that were applied to this creative.
@@ -233,13 +233,13 @@ pub struct ContactInformation {
 pub struct Correction {
     /// The contexts for the correction.
     #[serde(default)]
-    pub contexts: Option<Vec<ServingContext>>,
+    pub contexts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServingContext>>>,
     /// Additional details about what was corrected.
     #[serde(default)]
-    pub details: Option<Vec<String>>,
+    pub details: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of correction that was applied to the creative. // TODO: enum values: ["CORRECTION_TYPE_UNSPECIFIED", "VENDOR_IDS_ADDED", "SSL_ATTRIBUTE_REMOVED", "FLASH_FREE_ATTRIBUTE_REMOVED", "FLASH_FREE_ATTRIBUTE_ADDED", "REQUIRED_ATTRIBUTE_ADDED", "REQUIRED_VENDOR_ADDED", "SSL_ATTRIBUTE_ADDED", "IN_BANNER_VIDEO_ATTRIBUTE_ADDED", "MRAID_ATTRIBUTE_ADDED", "FLASH_ATTRIBUTE_REMOVED", "VIDEO_IN_SNIPPET_ATTRIBUTE_ADDED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A creative and its classification data.
@@ -247,82 +247,83 @@ pub struct Correction {
 pub struct Creative {
     /// The account that this creative belongs to. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The link to AdChoices destination page.
     #[serde(default, rename = "adChoicesDestinationUrl")]
-    pub ad_choices_destination_url: Option<String>,
+    pub ad_choices_destination_url: ::core::option::Option<String>,
     /// Output only. The detected ad technology providers.
     #[serde(default, rename = "adTechnologyProviders")]
-    pub ad_technology_providers: Option<AdTechnologyProviders>,
+    pub ad_technology_providers: ::core::option::Option<::std::boxed::Box<AdTechnologyProviders>>,
     /// The name of the company being advertised in the creative.
     #[serde(default, rename = "advertiserName")]
-    pub advertiser_name: Option<String>,
+    pub advertiser_name: ::core::option::Option<String>,
     /// The agency ID for this creative.
     #[serde(default, rename = "agencyId")]
-    pub agency_id: Option<String>,
+    pub agency_id: ::core::option::Option<String>,
     /// Output only. The last update timestamp of the creative through the API.
     #[serde(default, rename = "apiUpdateTime")]
-    pub api_update_time: Option<String>,
+    pub api_update_time: ::core::option::Option<String>,
     /// All attributes for the ads that may be shown from this creative. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
-    pub attributes: Option<Vec<String>>,
+    pub attributes: ::core::option::Option<::std::vec::Vec<String>>,
     /// The set of destination URLs for the creative.
     #[serde(default, rename = "clickThroughUrls")]
-    pub click_through_urls: Option<Vec<String>>,
+    pub click_through_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Shows any corrections that were applied to this creative.
     #[serde(default)]
-    pub corrections: Option<Vec<Correction>>,
+    pub corrections: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Correction>>>,
     /// The buyer-defined creative ID of this creative. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// Output only. The top-level deals status of this creative. If disapproved, an entry for ''auctionType=DIRECT_DEALS'' (or ''ALL'') in serving_restrictions will also exist. Note that this may be nuanced with other contextual restrictions, in which case, it may be preferable to read from serving_restrictions directly. Can be used to filter the response of the creatives.list method. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_CHECKED", "CONDITIONALLY_APPROVED", "APPROVED", "DISAPPROVED", "PENDING_REVIEW", "STATUS_TYPE_UNSPECIFIED"]
     #[serde(default, rename = "dealsStatus")]
-    pub deals_status: Option<String>,
+    pub deals_status: ::core::option::Option<String>,
     /// The set of declared destination URLs for the creative.
     #[serde(default, rename = "declaredClickThroughUrls")]
-    pub declared_click_through_urls: Option<Vec<String>>,
+    pub declared_click_through_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Detected advertiser IDs, if any.
     #[serde(default, rename = "detectedAdvertiserIds")]
-    pub detected_advertiser_ids: Option<Vec<String>>,
+    pub detected_advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The detected domains for this creative.
     #[serde(default, rename = "detectedDomains")]
-    pub detected_domains: Option<Vec<String>>,
+    pub detected_domains: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The detected languages for this creative. The order is arbitrary. The codes are 2 or 5 characters and are documented at https://developers.google.com/adwords/api/docs/appendix/languagecodes.
     #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: Option<Vec<String>>,
+    pub detected_languages: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Detected product categories, if any. See the ad-product-categories.txt file in the technical documentation for a list of IDs.
     #[serde(default, rename = "detectedProductCategories")]
-    pub detected_product_categories: Option<Vec<i32>>,
+    pub detected_product_categories: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Output only. Detected sensitive categories, if any. See the ad-sensitive-categories.txt file in the technical documentation for a list of IDs. You should use these IDs along with the excluded-sensitive-category field in the bid request to filter your bids.
     #[serde(default, rename = "detectedSensitiveCategories")]
-    pub detected_sensitive_categories: Option<Vec<i32>>,
+    pub detected_sensitive_categories: ::core::option::Option<::std::vec::Vec<i32>>,
     /// An HTML creative.
     #[serde(default)]
-    pub html: Option<HtmlContent>,
+    pub html: ::core::option::Option<::std::boxed::Box<HtmlContent>>,
     /// The set of URLs to be called to record an impression.
     #[serde(default, rename = "impressionTrackingUrls")]
-    pub impression_tracking_urls: Option<Vec<String>>,
+    pub impression_tracking_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// A native creative.
     #[serde(default)]
-    pub native: Option<NativeContent>,
+    pub native: ::core::option::Option<::std::boxed::Box<NativeContent>>,
     /// Output only. The top-level open auction status of this creative. If disapproved, an entry for ''auctionType = OPEN_AUCTION'' (or ''ALL'') in serving_restrictions will also exist. Note that this may be nuanced with other contextual restrictions, in which case, it may be preferable to read from serving_restrictions directly. Can be used to filter the response of the creatives.list method. // TODO: enum values: ["STATUS_UNSPECIFIED", "NOT_CHECKED", "CONDITIONALLY_APPROVED", "APPROVED", "DISAPPROVED", "PENDING_REVIEW", "STATUS_TYPE_UNSPECIFIED"]
     #[serde(default, rename = "openAuctionStatus")]
-    pub open_auction_status: Option<String>,
+    pub open_auction_status: ::core::option::Option<String>,
     /// All restricted categories for the ads that may be shown from this creative.
     #[serde(default, rename = "restrictedCategories")]
-    pub restricted_categories: Option<Vec<String>>,
+    pub restricted_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The granular status of this ad in specific contexts. A context here relates to where something ultimately serves (for example, a physical location, a platform, an HTTPS versus HTTP request, or the type of auction).
     #[serde(default, rename = "servingRestrictions")]
-    pub serving_restrictions: Option<Vec<ServingRestriction>>,
+    pub serving_restrictions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServingRestriction>>>,
     /// All vendor IDs for the ads that may be shown from this creative. See https://storage.googleapis.com/adx-rtb-dictionaries/vendors.txt for possible values.
     #[serde(default, rename = "vendorIds")]
-    pub vendor_ids: Option<Vec<i32>>,
+    pub vendor_ids: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Output only. The version of this creative.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
     /// A video creative.
     #[serde(default)]
-    pub video: Option<VideoContent>,
+    pub video: ::core::option::Option<::std::boxed::Box<VideoContent>>,
 }
 
 /// The association between a creative and a deal.
@@ -330,13 +331,13 @@ pub struct Creative {
 pub struct CreativeDealAssociation {
     /// The account the creative belongs to.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The ID of the creative associated with the deal.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// The externalDealId for the deal associated with the creative.
     #[serde(default, rename = "dealsId")]
-    pub deals_id: Option<String>,
+    pub deals_id: ::core::option::Option<String>,
 }
 
 /// Represents creative restrictions associated to Programmatic Guaranteed/ Preferred Deal in Ad Manager. This doesn''t apply to Private Auction and AdX Preferred Deals.
@@ -344,12 +345,13 @@ pub struct CreativeDealAssociation {
 pub struct CreativeRestrictions {
     /// The format of the environment that the creatives will be displayed in. // TODO: enum values: ["CREATIVE_FORMAT_UNSPECIFIED", "DISPLAY", "VIDEO"]
     #[serde(default, rename = "creativeFormat")]
-    pub creative_format: Option<String>,
+    pub creative_format: ::core::option::Option<String>,
     #[serde(default, rename = "creativeSpecifications")]
-    pub creative_specifications: Option<Vec<CreativeSpecification>>,
+    pub creative_specifications:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeSpecification>>>,
     /// Skippable video ads allow viewers to skip ads after 5 seconds. // TODO: enum values: ["SKIPPABLE_AD_TYPE_UNSPECIFIED", "SKIPPABLE", "INSTREAM_SELECT", "NOT_SKIPPABLE"]
     #[serde(default, rename = "skippableAdType")]
-    pub skippable_ad_type: Option<String>,
+    pub skippable_ad_type: ::core::option::Option<String>,
 }
 
 /// Specifies the size of the creative.
@@ -357,22 +359,22 @@ pub struct CreativeRestrictions {
 pub struct CreativeSize {
     /// What formats are allowed by the publisher. If this repeated field is empty then all formats are allowed. For example, if this field contains AllowedFormatType.AUDIO then the publisher only allows an audio ad (without any video).
     #[serde(default, rename = "allowedFormats")]
-    pub allowed_formats: Option<Vec<String>>,
+    pub allowed_formats: ::core::option::Option<::std::vec::Vec<String>>,
     /// For video creatives specifies the sizes of companion ads (if present). Companion sizes may be filled in only when creative_size_type = VIDEO
     #[serde(default, rename = "companionSizes")]
-    pub companion_sizes: Option<Vec<Size>>,
+    pub companion_sizes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Size>>>,
     /// The creative size type. // TODO: enum values: ["CREATIVE_SIZE_TYPE_UNSPECIFIED", "REGULAR", "INTERSTITIAL", "VIDEO", "NATIVE"]
     #[serde(default, rename = "creativeSizeType")]
-    pub creative_size_type: Option<String>,
+    pub creative_size_type: ::core::option::Option<String>,
     /// Output only. The native template for this creative. It will have a value only if creative_size_type = CreativeSizeType.NATIVE. // TODO: enum values: ["UNKNOWN_NATIVE_TEMPLATE", "NATIVE_CONTENT_AD", "NATIVE_APP_INSTALL_AD", "NATIVE_VIDEO_CONTENT_AD", "NATIVE_VIDEO_APP_INSTALL_AD"]
     #[serde(default, rename = "nativeTemplate")]
-    pub native_template: Option<String>,
+    pub native_template: ::core::option::Option<String>,
     /// For regular or video creative size type, specifies the size of the creative
     #[serde(default)]
-    pub size: Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// The type of skippable ad for this creative. It will have a value only if creative_size_type = CreativeSizeType.VIDEO. // TODO: enum values: ["SKIPPABLE_AD_TYPE_UNSPECIFIED", "GENERIC", "INSTREAM_SELECT", "NOT_SKIPPABLE"]
     #[serde(default, rename = "skippableAdType")]
-    pub skippable_ad_type: Option<String>,
+    pub skippable_ad_type: ::core::option::Option<String>,
 }
 
 /// Represents information for a creative that is associated with a Programmatic Guaranteed/Preferred Deal in Ad Manager.
@@ -380,10 +382,11 @@ pub struct CreativeSize {
 pub struct CreativeSpecification {
     /// Companion sizes may be filled in only when this is a video creative.
     #[serde(default, rename = "creativeCompanionSizes")]
-    pub creative_companion_sizes: Option<Vec<AdSize>>,
+    pub creative_companion_sizes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdSize>>>,
     /// The size of the creative.
     #[serde(default, rename = "creativeSize")]
-    pub creative_size: Option<AdSize>,
+    pub creative_size: ::core::option::Option<::std::boxed::Box<AdSize>>,
 }
 
 /// The number of bids with the specified dimension values that did not win the auction (either were filtered pre-auction or lost the auction), as described by the specified creative status.
@@ -391,13 +394,13 @@ pub struct CreativeSpecification {
 pub struct CreativeStatusRow {
     /// The number of bids with the specified status.
     #[serde(default, rename = "bidCount")]
-    pub bid_count: Option<MetricValue>,
+    pub bid_count: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The ID of the creative status. See [creative-status-codes](https://developers.google.com/authorized-buyers/rtb/downloads/creative-status-codes).
     #[serde(default, rename = "creativeStatusId")]
-    pub creative_status_id: Option<i32>,
+    pub creative_status_id: ::core::option::Option<i32>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
 }
 
 /// Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.
@@ -405,10 +408,10 @@ pub struct CreativeStatusRow {
 pub struct CriteriaTargeting {
     /// A list of numeric IDs to be excluded.
     #[serde(default, rename = "excludedCriteriaIds")]
-    pub excluded_criteria_ids: Option<Vec<String>>,
+    pub excluded_criteria_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of numeric IDs to be included.
     #[serde(default, rename = "targetedCriteriaIds")]
-    pub targeted_criteria_ids: Option<Vec<String>>,
+    pub targeted_criteria_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -416,13 +419,13 @@ pub struct CriteriaTargeting {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Daypart targeting message that specifies if the ad can be shown only during certain parts of a day/week.
@@ -430,13 +433,13 @@ pub struct Date {
 pub struct DayPart {
     /// The day of the week to target. If unspecified, applicable to all days. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: Option<String>,
+    pub day_of_week: ::core::option::Option<String>,
     /// The ending time of the day for the ad to show (minute level granularity). The end time is exclusive. This field is not available for filtering in PQL queries.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<TimeOfDay>,
+    pub end_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
     /// The starting time of day for the ad to show (minute level granularity). The start time is inclusive. This field is not available for filtering in PQL queries.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Specifies the day part targeting criteria.
@@ -444,10 +447,10 @@ pub struct DayPart {
 pub struct DayPartTargeting {
     /// A list of day part targeting criterion.
     #[serde(default, rename = "dayParts")]
-    pub day_parts: Option<Vec<DayPart>>,
+    pub day_parts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DayPart>>>,
     /// The timezone to use for interpreting the day part targeting. // TODO: enum values: ["TIME_ZONE_SOURCE_UNSPECIFIED", "PUBLISHER", "USER"]
     #[serde(default, rename = "timeZoneType")]
-    pub time_zone_type: Option<String>,
+    pub time_zone_type: ::core::option::Option<String>,
 }
 
 /// A deal represents a segment of inventory for displaying ads on. A proposal can contain multiple deals. A deal contains the terms and targeting information that is used for serving.
@@ -455,79 +458,81 @@ pub struct DayPartTargeting {
 pub struct Deal {
     /// Proposed flight end time of the deal. This will generally be stored in a granularity of a second. A value is not required for Private Auction deals or Preferred Deals.
     #[serde(default, rename = "availableEndTime")]
-    pub available_end_time: Option<String>,
+    pub available_end_time: ::core::option::Option<String>,
     /// Optional. Proposed flight start time of the deal. This will generally be stored in the granularity of one second since deal serving starts at seconds boundary. Any time specified with more granularity (for example, in milliseconds) will be truncated towards the start of time in seconds.
     #[serde(default, rename = "availableStartTime")]
-    pub available_start_time: Option<String>,
+    pub available_start_time: ::core::option::Option<String>,
     /// Buyer private data (hidden from seller).
     #[serde(default, rename = "buyerPrivateData")]
-    pub buyer_private_data: Option<PrivateData>,
+    pub buyer_private_data: ::core::option::Option<::std::boxed::Box<PrivateData>>,
     /// The product ID from which this deal was created. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.
     #[serde(default, rename = "createProductId")]
-    pub create_product_id: Option<String>,
+    pub create_product_id: ::core::option::Option<String>,
     /// Optional. Revision number of the product that the deal was created from. If present on create, and the server product_revision has advanced since the passed-in create_product_revision, an ABORTED error will be returned. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.
     #[serde(default, rename = "createProductRevision")]
-    pub create_product_revision: Option<String>,
+    pub create_product_revision: ::core::option::Option<String>,
     /// Output only. The time of the deal creation.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Specifies the creative pre-approval policy. // TODO: enum values: ["CREATIVE_PRE_APPROVAL_POLICY_UNSPECIFIED", "SELLER_PRE_APPROVAL_REQUIRED", "SELLER_PRE_APPROVAL_NOT_REQUIRED"]
     #[serde(default, rename = "creativePreApprovalPolicy")]
-    pub creative_pre_approval_policy: Option<String>,
+    pub creative_pre_approval_policy: ::core::option::Option<String>,
     /// Output only. Restricitions about the creatives associated with the deal (for example, size) This is available for Programmatic Guaranteed/Preferred Deals in Ad Manager.
     #[serde(default, rename = "creativeRestrictions")]
-    pub creative_restrictions: Option<CreativeRestrictions>,
+    pub creative_restrictions: ::core::option::Option<::std::boxed::Box<CreativeRestrictions>>,
     /// Output only. Specifies whether the creative is safeFrame compatible. // TODO: enum values: ["CREATIVE_SAFE_FRAME_COMPATIBILITY_UNSPECIFIED", "COMPATIBLE", "INCOMPATIBLE"]
     #[serde(default, rename = "creativeSafeFrameCompatibility")]
-    pub creative_safe_frame_compatibility: Option<String>,
+    pub creative_safe_frame_compatibility: ::core::option::Option<String>,
     /// Output only. A unique deal ID for the deal (server-assigned).
     #[serde(default, rename = "dealId")]
-    pub deal_id: Option<String>,
+    pub deal_id: ::core::option::Option<String>,
     /// Output only. Metadata about the serving status of this deal.
     #[serde(default, rename = "dealServingMetadata")]
-    pub deal_serving_metadata: Option<DealServingMetadata>,
+    pub deal_serving_metadata: ::core::option::Option<::std::boxed::Box<DealServingMetadata>>,
     /// The negotiable terms of the deal.
     #[serde(default, rename = "dealTerms")]
-    pub deal_terms: Option<DealTerms>,
+    pub deal_terms: ::core::option::Option<::std::boxed::Box<DealTerms>>,
     /// The set of fields around delivery control that are interesting for a buyer to see but are non-negotiable. These are set by the publisher.
     #[serde(default, rename = "deliveryControl")]
-    pub delivery_control: Option<DeliveryControl>,
+    pub delivery_control: ::core::option::Option<::std::boxed::Box<DeliveryControl>>,
     /// Description for the deal terms.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The name of the deal.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The external deal ID assigned to this deal once the deal is finalized. This is the deal ID that shows up in serving/reporting etc.
     #[serde(default, rename = "externalDealId")]
-    pub external_deal_id: Option<String>,
+    pub external_deal_id: ::core::option::Option<String>,
     /// Output only. True, if the buyside inventory setup is complete for this deal.
     #[serde(default, rename = "isSetupComplete")]
-    pub is_setup_complete: Option<bool>,
+    pub is_setup_complete: ::core::option::Option<bool>,
     /// Output only. Specifies the creative source for programmatic deals. PUBLISHER means creative is provided by seller and ADVERTISER means creative is provided by buyer. // TODO: enum values: ["PROGRAMMATIC_CREATIVE_SOURCE_UNSPECIFIED", "ADVERTISER", "PUBLISHER"]
     #[serde(default, rename = "programmaticCreativeSource")]
-    pub programmatic_creative_source: Option<String>,
+    pub programmatic_creative_source: ::core::option::Option<String>,
     /// Output only. ID of the proposal that this deal is part of.
     #[serde(default, rename = "proposalId")]
-    pub proposal_id: Option<String>,
+    pub proposal_id: ::core::option::Option<String>,
     /// Output only. Seller contact information for the deal.
     #[serde(default, rename = "sellerContacts")]
-    pub seller_contacts: Option<Vec<ContactInformation>>,
+    pub seller_contacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContactInformation>>>,
     /// The syndication product associated with the deal. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error. // TODO: enum values: ["SYNDICATION_PRODUCT_UNSPECIFIED", "CONTENT", "MOBILE", "VIDEO", "GAMES"]
     #[serde(default, rename = "syndicationProduct")]
-    pub syndication_product: Option<String>,
+    pub syndication_product: ::core::option::Option<String>,
     /// Output only. Specifies the subset of inventory targeted by the deal.
     #[serde(default)]
-    pub targeting: Option<MarketplaceTargeting>,
+    pub targeting: ::core::option::Option<::std::boxed::Box<MarketplaceTargeting>>,
     /// The shared targeting visible to buyers and sellers. Each shared targeting entity is AND''d together.
     #[serde(default, rename = "targetingCriterion")]
-    pub targeting_criterion: Option<Vec<TargetingCriteria>>,
+    pub targeting_criterion:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetingCriteria>>>,
     /// Output only. The time when the deal was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The web property code for the seller copied over from the product.
     #[serde(default, rename = "webPropertyCode")]
-    pub web_property_code: Option<String>,
+    pub web_property_code: ::core::option::Option<String>,
 }
 
 /// Tracks which parties (if any) have paused a deal. The deal is considered paused if either hasBuyerPaused or hasSellPaused is true.
@@ -535,19 +540,19 @@ pub struct Deal {
 pub struct DealPauseStatus {
     /// The buyer''s reason for pausing, if the buyer paused the deal.
     #[serde(default, rename = "buyerPauseReason")]
-    pub buyer_pause_reason: Option<String>,
+    pub buyer_pause_reason: ::core::option::Option<String>,
     /// The role of the person who first paused this deal. // TODO: enum values: ["BUYER_SELLER_ROLE_UNSPECIFIED", "BUYER", "SELLER"]
     #[serde(default, rename = "firstPausedBy")]
-    pub first_paused_by: Option<String>,
+    pub first_paused_by: ::core::option::Option<String>,
     /// True, if the buyer has paused the deal unilaterally.
     #[serde(default, rename = "hasBuyerPaused")]
-    pub has_buyer_paused: Option<bool>,
+    pub has_buyer_paused: ::core::option::Option<bool>,
     /// True, if the seller has paused the deal unilaterally.
     #[serde(default, rename = "hasSellerPaused")]
-    pub has_seller_paused: Option<bool>,
+    pub has_seller_paused: ::core::option::Option<bool>,
     /// The seller''s reason for pausing, if the seller paused the deal.
     #[serde(default, rename = "sellerPauseReason")]
-    pub seller_pause_reason: Option<String>,
+    pub seller_pause_reason: ::core::option::Option<String>,
 }
 
 /// Message captures metadata about the serving status of a deal.
@@ -555,7 +560,7 @@ pub struct DealPauseStatus {
 pub struct DealServingMetadata {
     /// Output only. Tracks which parties (if any) have paused a deal.
     #[serde(default, rename = "dealPauseStatus")]
-    pub deal_pause_status: Option<DealPauseStatus>,
+    pub deal_pause_status: ::core::option::Option<::std::boxed::Box<DealPauseStatus>>,
 }
 
 /// The deal terms specify the details of a Product/deal. They specify things like price per buyer, the type of pricing model (for example, fixed price, auction) and expected impressions from the publisher.
@@ -563,28 +568,31 @@ pub struct DealServingMetadata {
 pub struct DealTerms {
     /// Visibility of the URL in bid requests. (default: BRANDED) // TODO: enum values: ["BRANDING_TYPE_UNSPECIFIED", "BRANDED", "SEMI_TRANSPARENT"]
     #[serde(default, rename = "brandingType")]
-    pub branding_type: Option<String>,
+    pub branding_type: ::core::option::Option<String>,
     /// Publisher provided description for the terms.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Non-binding estimate of the estimated gross spend for this deal. Can be set by buyer or seller.
     #[serde(default, rename = "estimatedGrossSpend")]
-    pub estimated_gross_spend: Option<Price>,
+    pub estimated_gross_spend: ::core::option::Option<::std::boxed::Box<Price>>,
     /// Non-binding estimate of the impressions served per day. Can be set by buyer or seller.
     #[serde(default, rename = "estimatedImpressionsPerDay")]
-    pub estimated_impressions_per_day: Option<String>,
+    pub estimated_impressions_per_day: ::core::option::Option<String>,
     /// The terms for guaranteed fixed price deals.
     #[serde(default, rename = "guaranteedFixedPriceTerms")]
-    pub guaranteed_fixed_price_terms: Option<GuaranteedFixedPriceTerms>,
+    pub guaranteed_fixed_price_terms:
+        ::core::option::Option<::std::boxed::Box<GuaranteedFixedPriceTerms>>,
     /// The terms for non-guaranteed auction deals.
     #[serde(default, rename = "nonGuaranteedAuctionTerms")]
-    pub non_guaranteed_auction_terms: Option<NonGuaranteedAuctionTerms>,
+    pub non_guaranteed_auction_terms:
+        ::core::option::Option<::std::boxed::Box<NonGuaranteedAuctionTerms>>,
     /// The terms for non-guaranteed fixed price deals.
     #[serde(default, rename = "nonGuaranteedFixedPriceTerms")]
-    pub non_guaranteed_fixed_price_terms: Option<NonGuaranteedFixedPriceTerms>,
+    pub non_guaranteed_fixed_price_terms:
+        ::core::option::Option<::std::boxed::Box<NonGuaranteedFixedPriceTerms>>,
     /// The time zone name. For deals with Cost Per Day billing, defines the time zone used to mark the boundaries of a day. It should be an IANA TZ name, such as "America/Los_Angeles". For more information, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
     #[serde(default, rename = "sellerTimeZone")]
-    pub seller_time_zone: Option<String>,
+    pub seller_time_zone: ::core::option::Option<String>,
 }
 
 /// Message contains details about how the deals will be paced.
@@ -592,13 +600,13 @@ pub struct DealTerms {
 pub struct DeliveryControl {
     /// Output only. Specified the creative blocking levels to be applied. // TODO: enum values: ["CREATIVE_BLOCKING_LEVEL_UNSPECIFIED", "PUBLISHER_BLOCKING_RULES", "ADX_POLICY_BLOCKING_ONLY"]
     #[serde(default, rename = "creativeBlockingLevel")]
-    pub creative_blocking_level: Option<String>,
+    pub creative_blocking_level: ::core::option::Option<String>,
     /// Output only. Specifies how the impression delivery will be paced. // TODO: enum values: ["DELIVERY_RATE_TYPE_UNSPECIFIED", "EVENLY", "FRONT_LOADED", "AS_FAST_AS_POSSIBLE"]
     #[serde(default, rename = "deliveryRateType")]
-    pub delivery_rate_type: Option<String>,
+    pub delivery_rate_type: ::core::option::Option<String>,
     /// Output only. Specifies any frequency caps.
     #[serde(default, rename = "frequencyCaps")]
-    pub frequency_caps: Option<Vec<FrequencyCap>>,
+    pub frequency_caps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FrequencyCap>>>,
 }
 
 /// Output only. The reason and details for a disapproval.
@@ -606,10 +614,10 @@ pub struct DeliveryControl {
 pub struct Disapproval {
     /// Additional details about the reason for disapproval.
     #[serde(default)]
-    pub details: Option<Vec<String>>,
+    pub details: ::core::option::Option<::std::vec::Vec<String>>,
     /// The categorized reason for disapproval. // TODO: enum values: ["LENGTH_OF_IMAGE_ANIMATION", "BROKEN_URL", "MEDIA_NOT_FUNCTIONAL", "INVALID_FOURTH_PARTY_CALL", "INCORRECT_REMARKETING_DECLARATION", "LANDING_PAGE_ERROR", "AD_SIZE_DOES_NOT_MATCH_AD_SLOT", "NO_BORDER", "FOURTH_PARTY_BROWSER_COOKIES", "LSO_OBJECTS", "BLANK_CREATIVE", "DESTINATION_URLS_UNDECLARED", "PROBLEM_WITH_CLICK_MACRO", "INCORRECT_AD_TECHNOLOGY_DECLARATION", "INCORRECT_DESTINATION_URL_DECLARATION", "EXPANDABLE_INCORRECT_DIRECTION", "EXPANDABLE_DIRECTION_NOT_SUPPORTED", "EXPANDABLE_INVALID_VENDOR", "EXPANDABLE_FUNCTIONALITY", "VIDEO_INVALID_VENDOR", "VIDEO_UNSUPPORTED_LENGTH", "VIDEO_UNSUPPORTED_FORMAT", "VIDEO_FUNCTIONALITY", "LANDING_PAGE_DISABLED", "MALWARE_SUSPECTED", "ADULT_IMAGE_OR_VIDEO", "INACCURATE_AD_TEXT", "COUNTERFEIT_DESIGNER_GOODS", "POP_UP", "INVALID_RTB_PROTOCOL_USAGE", "RAW_IP_ADDRESS_IN_SNIPPET", "UNACCEPTABLE_CONTENT_SOFTWARE", "UNAUTHORIZED_COOKIE_ON_GOOGLE_DOMAIN", "UNDECLARED_FLASH_OBJECTS", "INVALID_SSL_DECLARATION", "DIRECT_DOWNLOAD_IN_AD", "MAXIMUM_DOWNLOAD_SIZE_EXCEEDED", "DESTINATION_URL_SITE_NOT_CRAWLABLE", "BAD_URL_LEGAL_DISAPPROVAL", "PHARMA_GAMBLING_ALCOHOL_NOT_ALLOWED", "DYNAMIC_DNS_AT_DESTINATION_URL", "POOR_IMAGE_OR_VIDEO_QUALITY", "UNACCEPTABLE_IMAGE_CONTENT", "INCORRECT_IMAGE_LAYOUT", "IRRELEVANT_IMAGE_OR_VIDEO", "DESTINATION_SITE_DOES_NOT_ALLOW_GOING_BACK", "MISLEADING_CLAIMS_IN_AD", "RESTRICTED_PRODUCTS", "UNACCEPTABLE_CONTENT", "AUTOMATED_AD_CLICKING", "INVALID_URL_PROTOCOL", "UNDECLARED_RESTRICTED_CONTENT", "INVALID_REMARKETING_LIST_USAGE", "DESTINATION_SITE_NOT_CRAWLABLE_ROBOTS_TXT", "CLICK_TO_DOWNLOAD_NOT_AN_APP", "INACCURATE_REVIEW_EXTENSION", "SEXUALLY_EXPLICIT_CONTENT", "GAINING_AN_UNFAIR_ADVANTAGE", "GAMING_THE_GOOGLE_NETWORK", "DANGEROUS_PRODUCTS_KNIVES", "DANGEROUS_PRODUCTS_EXPLOSIVES", "DANGEROUS_PRODUCTS_GUNS", "DANGEROUS_PRODUCTS_DRUGS", "DANGEROUS_PRODUCTS_TOBACCO", "DANGEROUS_PRODUCTS_WEAPONS", "UNCLEAR_OR_IRRELEVANT_AD", "PROFESSIONAL_STANDARDS", "DYSFUNCTIONAL_PROMOTION", "INVALID_INTEREST_BASED_AD", "MISUSE_OF_PERSONAL_INFORMATION", "OMISSION_OF_RELEVANT_INFORMATION", "UNAVAILABLE_PROMOTIONS", "MISLEADING_PROMOTIONS", "INAPPROPRIATE_CONTENT", "SENSITIVE_EVENTS", "SHOCKING_CONTENT", "ENABLING_DISHONEST_BEHAVIOR", "TECHNICAL_REQUIREMENTS", "RESTRICTED_POLITICAL_CONTENT", "UNSUPPORTED_CONTENT", "INVALID_BIDDING_METHOD", "VIDEO_TOO_LONG", "VIOLATES_JAPANESE_PHARMACY_LAW", "UNACCREDITED_PET_PHARMACY", "ABORTION", "CONTRACEPTIVES", "NEED_CERTIFICATES_TO_ADVERTISE_IN_CHINA", "KCDSP_REGISTRATION", "NOT_FAMILY_SAFE", "CLINICAL_TRIAL_RECRUITMENT", "MAXIMUM_NUMBER_OF_HTTP_CALLS_EXCEEDED", "MAXIMUM_NUMBER_OF_COOKIES_EXCEEDED", "PERSONAL_LOANS", "UNSUPPORTED_FLASH_CONTENT", "MISUSE_BY_OMID_SCRIPT", "NON_WHITELISTED_OMID_VENDOR", "DESTINATION_EXPERIENCE", "UNSUPPORTED_LANGUAGE", "NON_SSL_COMPLIANT", "TEMPORARY_PAUSE", "BAIL_BONDS", "EXPERIMENTAL_MEDICAL_TREATMENT"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// A set of filters that is applied to a request for data. Within a filter set, an AND operation is performed across the filters represented by each field. An OR operation is performed across the filters represented by the multiple values of a repeated field, for example, "format=VIDEO AND deal_id=12 AND (seller_network_id=34 OR seller_network_id=56)".
@@ -617,46 +625,46 @@ pub struct Disapproval {
 pub struct FilterSet {
     /// An absolute date range, defined by a start date and an end date. Interpreted relative to Pacific time zone.
     #[serde(default, rename = "absoluteDateRange")]
-    pub absolute_date_range: Option<AbsoluteDateRange>,
+    pub absolute_date_range: ::core::option::Option<::std::boxed::Box<AbsoluteDateRange>>,
     /// The set of dimensions along which to break down the response; may be empty. If multiple dimensions are requested, the breakdown is along the Cartesian product of the requested dimensions.
     #[serde(default, rename = "breakdownDimensions")]
-    pub breakdown_dimensions: Option<Vec<String>>,
+    pub breakdown_dimensions: ::core::option::Option<::std::vec::Vec<String>>,
     /// The ID of the creative on which to filter; optional. This field may be set only for a filter set that accesses account-level troubleshooting data, for example, one whose name matches the bidders/*/accounts/*/filterSets/* pattern.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// The ID of the deal on which to filter; optional. This field may be set only for a filter set that accesses account-level troubleshooting data, for example, one whose name matches the bidders/*/accounts/*/filterSets/* pattern.
     #[serde(default, rename = "dealId")]
-    pub deal_id: Option<String>,
+    pub deal_id: ::core::option::Option<String>,
     /// The environment on which to filter; optional. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "WEB", "APP"]
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// Creative format bidded on or allowed to bid on, can be empty. // TODO: enum values: ["FORMAT_UNSPECIFIED", "NATIVE_DISPLAY", "NATIVE_VIDEO", "NON_NATIVE_DISPLAY", "NON_NATIVE_VIDEO"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Creative formats bidded on or allowed to bid on, can be empty. Although this field is a list, it can only be populated with a single item. A HTTP 400 bad request error will be returned in the response if you specify multiple items.
     #[serde(default)]
-    pub formats: Option<Vec<String>>,
+    pub formats: ::core::option::Option<::std::vec::Vec<String>>,
     /// A user-defined name of the filter set. Filter set names must be unique globally and match one of the patterns: - bidders/*/filterSets/* (for accessing bidder-level troubleshooting data) - bidders/*/accounts/*/filterSets/* (for accessing account-level troubleshooting data) This field is required in create operations.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The list of platforms on which to filter; may be empty. The filters represented by multiple platforms are ORed together (for example, if non-empty, results must match any one of the platforms).
     #[serde(default)]
-    pub platforms: Option<Vec<String>>,
+    pub platforms: ::core::option::Option<::std::vec::Vec<String>>,
     /// For Open Bidding partners only. The list of publisher identifiers on which to filter; may be empty. The filters represented by multiple publisher identifiers are ORed together.
     #[serde(default, rename = "publisherIdentifiers")]
-    pub publisher_identifiers: Option<Vec<String>>,
+    pub publisher_identifiers: ::core::option::Option<::std::vec::Vec<String>>,
     /// An open-ended realtime time range, defined by the aggregation start timestamp.
     #[serde(default, rename = "realtimeTimeRange")]
-    pub realtime_time_range: Option<RealtimeTimeRange>,
+    pub realtime_time_range: ::core::option::Option<::std::boxed::Box<RealtimeTimeRange>>,
     /// A relative date range, defined by an offset from today and a duration. Interpreted relative to Pacific time zone.
     #[serde(default, rename = "relativeDateRange")]
-    pub relative_date_range: Option<RelativeDateRange>,
+    pub relative_date_range: ::core::option::Option<::std::boxed::Box<RelativeDateRange>>,
     /// For Authorized Buyers only. The list of IDs of the seller (publisher) networks on which to filter; may be empty. The filters represented by multiple seller network IDs are ORed together (for example, if non-empty, results must match any one of the publisher networks). See [seller-network-ids](https://developers.google.com/authorized-buyers/rtb/downloads/seller-network-ids) file for the set of existing seller network IDs.
     #[serde(default, rename = "sellerNetworkIds")]
-    pub seller_network_ids: Option<Vec<i32>>,
+    pub seller_network_ids: ::core::option::Option<::std::vec::Vec<i32>>,
     /// The granularity of time intervals if a time series breakdown is preferred; optional. // TODO: enum values: ["TIME_SERIES_GRANULARITY_UNSPECIFIED", "HOURLY", "DAILY"]
     #[serde(default, rename = "timeSeriesGranularity")]
-    pub time_series_granularity: Option<String>,
+    pub time_series_granularity: ::core::option::Option<String>,
 }
 
 /// The number of filtered bids with the specified dimension values that have the specified creative.
@@ -664,13 +672,13 @@ pub struct FilterSet {
 pub struct FilteredBidCreativeRow {
     /// The number of bids with the specified creative.
     #[serde(default, rename = "bidCount")]
-    pub bid_count: Option<MetricValue>,
+    pub bid_count: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The ID of the creative.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
 }
 
 /// The number of filtered bids with the specified dimension values, among those filtered due to the requested filtering reason (for example, creative status), that have the specified detail.
@@ -678,16 +686,16 @@ pub struct FilteredBidCreativeRow {
 pub struct FilteredBidDetailRow {
     /// The number of bids with the specified detail.
     #[serde(default, rename = "bidCount")]
-    pub bid_count: Option<MetricValue>,
+    pub bid_count: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The ID of the detail, can be numeric or text. The associated value can be looked up in the dictionary file corresponding to the DetailType in the response message.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// Note: this field will be deprecated, use "detail" field instead. When "detail" field represents an integer value, this field is populated as the same integer value "detail" field represents, otherwise this field will be 0. The ID of the detail. The associated value can be looked up in the dictionary file corresponding to the DetailType in the response message.
     #[serde(default, rename = "detailId")]
-    pub detail_id: Option<i32>,
+    pub detail_id: ::core::option::Option<i32>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
 }
 
 /// Represents a list of targeted and excluded mobile application IDs that publishers own. Mobile application IDs are from App Store and Google Play Store. Android App ID, for example, com.google.android.apps.maps, can be found in Google Play Store URL. iOS App ID (which is a number) can be found at the end of iTunes store URL. First party mobile applications is either included or excluded.
@@ -695,10 +703,10 @@ pub struct FilteredBidDetailRow {
 pub struct FirstPartyMobileApplicationTargeting {
     /// A list of application IDs to be excluded.
     #[serde(default, rename = "excludedAppIds")]
-    pub excluded_app_ids: Option<Vec<String>>,
+    pub excluded_app_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of application IDs to be included.
     #[serde(default, rename = "targetedAppIds")]
-    pub targeted_app_ids: Option<Vec<String>>,
+    pub targeted_app_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Frequency cap.
@@ -706,13 +714,13 @@ pub struct FirstPartyMobileApplicationTargeting {
 pub struct FrequencyCap {
     /// The maximum number of impressions that can be served to a user within the specified time period.
     #[serde(default, rename = "maxImpressions")]
-    pub max_impressions: Option<i32>,
+    pub max_impressions: ::core::option::Option<i32>,
     /// The amount of time, in the units specified by time_unit_type. Defines the amount of time over which impressions per user are counted and capped.
     #[serde(default, rename = "numTimeUnits")]
-    pub num_time_units: Option<i32>,
+    pub num_time_units: ::core::option::Option<i32>,
     /// The time unit. Along with num_time_units defines the amount of time over which impressions per user are counted and capped. // TODO: enum values: ["TIME_UNIT_TYPE_UNSPECIFIED", "MINUTE", "HOUR", "DAY", "WEEK", "MONTH", "LIFETIME", "POD", "STREAM"]
     #[serde(default, rename = "timeUnitType")]
-    pub time_unit_type: Option<String>,
+    pub time_unit_type: ::core::option::Option<String>,
 }
 
 /// Terms for Programmatic Guaranteed Deals.
@@ -720,25 +728,25 @@ pub struct FrequencyCap {
 pub struct GuaranteedFixedPriceTerms {
     /// Fixed price for the specified buyer.
     #[serde(default, rename = "fixedPrices")]
-    pub fixed_prices: Option<Vec<PricePerBuyer>>,
+    pub fixed_prices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PricePerBuyer>>>,
     /// Guaranteed impressions as a percentage. This is the percentage of guaranteed looks that the buyer is guaranteeing to buy.
     #[serde(default, rename = "guaranteedImpressions")]
-    pub guaranteed_impressions: Option<String>,
+    pub guaranteed_impressions: ::core::option::Option<String>,
     /// Count of guaranteed looks. Required for deal, optional for product. For CPD deals, buyer changes to guaranteed_looks will be ignored.
     #[serde(default, rename = "guaranteedLooks")]
-    pub guaranteed_looks: Option<String>,
+    pub guaranteed_looks: ::core::option::Option<String>,
     /// The lifetime impression cap for CPM sponsorship deals. The deal will stop serving when the cap is reached.
     #[serde(default, rename = "impressionCap")]
-    pub impression_cap: Option<String>,
+    pub impression_cap: ::core::option::Option<String>,
     /// Daily minimum looks for CPD deal types. For CPD deals, buyer should negotiate on this field instead of guaranteed_looks.
     #[serde(default, rename = "minimumDailyLooks")]
-    pub minimum_daily_looks: Option<String>,
+    pub minimum_daily_looks: ::core::option::Option<String>,
     /// For sponsorship deals, this is the percentage of the seller''s eligible impressions that the deal will serve until the cap is reached.
     #[serde(default, rename = "percentShareOfVoice")]
-    pub percent_share_of_voice: Option<String>,
+    pub percent_share_of_voice: ::core::option::Option<String>,
     /// The reservation type for a Programmatic Guaranteed deal. This indicates whether the number of impressions is fixed, or a percent of available impressions. If not specified, the default reservation type is STANDARD. // TODO: enum values: ["RESERVATION_TYPE_UNSPECIFIED", "STANDARD", "SPONSORSHIP"]
     #[serde(default, rename = "reservationType")]
-    pub reservation_type: Option<String>,
+    pub reservation_type: ::core::option::Option<String>,
 }
 
 /// HTML content for a creative.
@@ -746,13 +754,13 @@ pub struct GuaranteedFixedPriceTerms {
 pub struct HtmlContent {
     /// The height of the HTML snippet in pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// The HTML snippet that displays the ad when inserted in the web page.
     #[serde(default)]
-    pub snippet: Option<String>,
+    pub snippet: ::core::option::Option<String>,
     /// The width of the HTML snippet in pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.
@@ -760,13 +768,13 @@ pub struct HtmlContent {
 pub struct Image {
     /// Image height in pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// The URL of the image.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// Image width in pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// The set of metrics that are measured in numbers of impressions, representing how many impressions with the specified dimension values were considered eligible at each stage of the bidding funnel.
@@ -774,22 +782,22 @@ pub struct Image {
 pub struct ImpressionMetricsRow {
     /// The number of impressions available to the buyer on Ad Exchange. In some cases this value may be unavailable.
     #[serde(default, rename = "availableImpressions")]
-    pub available_impressions: Option<MetricValue>,
+    pub available_impressions: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of impressions for which Ad Exchange sent the buyer a bid request.
     #[serde(default, rename = "bidRequests")]
-    pub bid_requests: Option<MetricValue>,
+    pub bid_requests: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of impressions that match the buyer''s inventory pretargeting.
     #[serde(default, rename = "inventoryMatches")]
-    pub inventory_matches: Option<MetricValue>,
+    pub inventory_matches: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The number of impressions for which Ad Exchange received a response from the buyer that contained at least one applicable bid.
     #[serde(default, rename = "responsesWithBids")]
-    pub responses_with_bids: Option<MetricValue>,
+    pub responses_with_bids: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
     /// The number of impressions for which the buyer successfully sent a response to Ad Exchange.
     #[serde(default, rename = "successfulResponses")]
-    pub successful_responses: Option<MetricValue>,
+    pub successful_responses: ::core::option::Option<::std::boxed::Box<MetricValue>>,
 }
 
 /// Represents the size of an ad unit that can be targeted on an ad request. It only applies to Private Auction, AdX Preferred Deals and Auction Packages. This targeting does not apply to Programmatic Guaranteed and Preferred Deals in Ad Manager.
@@ -797,10 +805,12 @@ pub struct ImpressionMetricsRow {
 pub struct InventorySizeTargeting {
     /// A list of inventory sizes to be excluded.
     #[serde(default, rename = "excludedInventorySizes")]
-    pub excluded_inventory_sizes: Option<Vec<AdSize>>,
+    pub excluded_inventory_sizes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdSize>>>,
     /// A list of inventory sizes to be included.
     #[serde(default, rename = "targetedInventorySizes")]
-    pub targeted_inventory_sizes: Option<Vec<AdSize>>,
+    pub targeted_inventory_sizes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdSize>>>,
 }
 
 /// Response message for listing the metrics that are measured in number of bids.
@@ -808,10 +818,10 @@ pub struct InventorySizeTargeting {
 pub struct ListBidMetricsResponse {
     /// List of rows, each containing a set of bid metrics.
     #[serde(default, rename = "bidMetricsRows")]
-    pub bid_metrics_rows: Option<Vec<BidMetricsRow>>,
+    pub bid_metrics_rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BidMetricsRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListBidMetricsRequest.pageToken field in the subsequent call to the bidMetrics.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all reasons that bid responses resulted in an error.
@@ -819,10 +829,11 @@ pub struct ListBidMetricsResponse {
 pub struct ListBidResponseErrorsResponse {
     /// List of rows, with counts of bid responses aggregated by callout status.
     #[serde(default, rename = "calloutStatusRows")]
-    pub callout_status_rows: Option<Vec<CalloutStatusRow>>,
+    pub callout_status_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CalloutStatusRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListBidResponseErrorsRequest.pageToken field in the subsequent call to the bidResponseErrors.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all reasons that bid responses were considered to have no applicable bids.
@@ -830,10 +841,11 @@ pub struct ListBidResponseErrorsResponse {
 pub struct ListBidResponsesWithoutBidsResponse {
     /// List of rows, with counts of bid responses without bids aggregated by status.
     #[serde(default, rename = "bidResponseWithoutBidsStatusRows")]
-    pub bid_response_without_bids_status_rows: Option<Vec<BidResponseWithoutBidsStatusRow>>,
+    pub bid_response_without_bids_status_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BidResponseWithoutBidsStatusRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListBidResponsesWithoutBidsRequest.pageToken field in the subsequent call to the bidResponsesWithoutBids.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListClientUserInvitationsResponse resource type.
@@ -841,10 +853,11 @@ pub struct ListBidResponsesWithoutBidsResponse {
 pub struct ListClientUserInvitationsResponse {
     /// The returned list of client users.
     #[serde(default)]
-    pub invitations: Option<Vec<ClientUserInvitation>>,
+    pub invitations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClientUserInvitation>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListClientUserInvitationsRequest.pageToken field in the subsequent call to the clients.invitations.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListClientUsersResponse resource type.
@@ -852,10 +865,10 @@ pub struct ListClientUserInvitationsResponse {
 pub struct ListClientUsersResponse {
     /// A token to retrieve the next page of results. Pass this value in the ListClientUsersRequest.pageToken field in the subsequent call to the clients.invitations.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The returned list of client users.
     #[serde(default)]
-    pub users: Option<Vec<ClientUser>>,
+    pub users: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClientUser>>>,
 }
 
 /// ListClientsResponse resource type.
@@ -863,10 +876,10 @@ pub struct ListClientUsersResponse {
 pub struct ListClientsResponse {
     /// The returned list of clients.
     #[serde(default)]
-    pub clients: Option<Vec<Client>>,
+    pub clients: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Client>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListClientsRequest.pageToken field in the subsequent call to the accounts.clients.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all creatives associated with a given filtered bid reason.
@@ -874,10 +887,11 @@ pub struct ListClientsResponse {
 pub struct ListCreativeStatusBreakdownByCreativeResponse {
     /// List of rows, with counts of bids with a given creative status aggregated by creative.
     #[serde(default, rename = "filteredBidCreativeRows")]
-    pub filtered_bid_creative_rows: Option<Vec<FilteredBidCreativeRow>>,
+    pub filtered_bid_creative_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilteredBidCreativeRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListCreativeStatusBreakdownByCreativeRequest.pageToken field in the subsequent call to the filteredBids.creatives.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all details associated with a given filtered bid reason.
@@ -885,13 +899,14 @@ pub struct ListCreativeStatusBreakdownByCreativeResponse {
 pub struct ListCreativeStatusBreakdownByDetailResponse {
     /// The type of detail that the detail IDs represent. // TODO: enum values: ["DETAIL_TYPE_UNSPECIFIED", "CREATIVE_ATTRIBUTE", "VENDOR", "SENSITIVE_CATEGORY", "PRODUCT_CATEGORY", "DISAPPROVAL_REASON", "POLICY_TOPIC", "ATP_VENDOR", "VENDOR_DOMAIN", "GVL_ID"]
     #[serde(default, rename = "detailType")]
-    pub detail_type: Option<String>,
+    pub detail_type: ::core::option::Option<String>,
     /// List of rows, with counts of bids with a given creative status aggregated by detail.
     #[serde(default, rename = "filteredBidDetailRows")]
-    pub filtered_bid_detail_rows: Option<Vec<FilteredBidDetailRow>>,
+    pub filtered_bid_detail_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilteredBidDetailRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListCreativeStatusBreakdownByDetailRequest.pageToken field in the subsequent call to the filteredBids.details.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A response for listing creatives.
@@ -899,10 +914,10 @@ pub struct ListCreativeStatusBreakdownByDetailResponse {
 pub struct ListCreativesResponse {
     /// The list of creatives.
     #[serde(default)]
-    pub creatives: Option<Vec<Creative>>,
+    pub creatives: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Creative>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListCreativesRequest.page_token field in the subsequent call to ListCreatives method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A response for listing creative and deal associations
@@ -910,10 +925,11 @@ pub struct ListCreativesResponse {
 pub struct ListDealAssociationsResponse {
     /// The list of associations.
     #[serde(default)]
-    pub associations: Option<Vec<CreativeDealAssociation>>,
+    pub associations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeDealAssociation>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListDealAssociationsRequest.page_token field in the subsequent call to ''ListDealAssociation'' method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing filter sets.
@@ -921,10 +937,10 @@ pub struct ListDealAssociationsResponse {
 pub struct ListFilterSetsResponse {
     /// The filter sets belonging to the buyer.
     #[serde(default, rename = "filterSets")]
-    pub filter_sets: Option<Vec<FilterSet>>,
+    pub filter_sets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterSet>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListFilterSetsRequest.pageToken field in the subsequent call to the accounts.filterSets.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all reasons that bid requests were filtered and not sent to the buyer.
@@ -932,10 +948,11 @@ pub struct ListFilterSetsResponse {
 pub struct ListFilteredBidRequestsResponse {
     /// List of rows, with counts of filtered bid requests aggregated by callout status.
     #[serde(default, rename = "calloutStatusRows")]
-    pub callout_status_rows: Option<Vec<CalloutStatusRow>>,
+    pub callout_status_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CalloutStatusRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListFilteredBidRequestsRequest.pageToken field in the subsequent call to the filteredBidRequests.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all reasons that bids were filtered from the auction.
@@ -943,10 +960,11 @@ pub struct ListFilteredBidRequestsResponse {
 pub struct ListFilteredBidsResponse {
     /// List of rows, with counts of filtered bids aggregated by filtering reason (for example, creative status).
     #[serde(default, rename = "creativeStatusRows")]
-    pub creative_status_rows: Option<Vec<CreativeStatusRow>>,
+    pub creative_status_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeStatusRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListFilteredBidsRequest.pageToken field in the subsequent call to the filteredBids.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing the metrics that are measured in number of impressions.
@@ -954,10 +972,11 @@ pub struct ListFilteredBidsResponse {
 pub struct ListImpressionMetricsResponse {
     /// List of rows, each containing a set of impression metrics.
     #[serde(default, rename = "impressionMetricsRows")]
-    pub impression_metrics_rows: Option<Vec<ImpressionMetricsRow>>,
+    pub impression_metrics_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImpressionMetricsRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListImpressionMetricsRequest.pageToken field in the subsequent call to the impressionMetrics.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all reasons that bids lost in the auction.
@@ -965,10 +984,11 @@ pub struct ListImpressionMetricsResponse {
 pub struct ListLosingBidsResponse {
     /// List of rows, with counts of losing bids aggregated by loss reason (for example, creative status).
     #[serde(default, rename = "creativeStatusRows")]
-    pub creative_status_rows: Option<Vec<CreativeStatusRow>>,
+    pub creative_status_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeStatusRow>>>,
     /// A token to retrieve the next page of results. Pass this value in the ListLosingBidsRequest.pageToken field in the subsequent call to the losingBids.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing all reasons for which a buyer was not billed for a winning bid.
@@ -976,10 +996,11 @@ pub struct ListLosingBidsResponse {
 pub struct ListNonBillableWinningBidsResponse {
     /// A token to retrieve the next page of results. Pass this value in the ListNonBillableWinningBidsRequest.pageToken field in the subsequent call to the nonBillableWinningBids.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of rows, with counts of bids not billed aggregated by reason.
     #[serde(default, rename = "nonBillableWinningBidStatusRows")]
-    pub non_billable_winning_bid_status_rows: Option<Vec<NonBillableWinningBidStatusRow>>,
+    pub non_billable_winning_bid_status_rows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NonBillableWinningBidStatusRow>>>,
 }
 
 /// Response message for listing products visible to the buyer.
@@ -987,10 +1008,10 @@ pub struct ListNonBillableWinningBidsResponse {
 pub struct ListProductsResponse {
     /// List pagination support.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of matching products at their head revision number.
     #[serde(default)]
-    pub products: Option<Vec<Product>>,
+    pub products: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Product>>>,
 }
 
 /// Response message for listing proposals.
@@ -998,10 +1019,10 @@ pub struct ListProductsResponse {
 pub struct ListProposalsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of proposals.
     #[serde(default)]
-    pub proposals: Option<Vec<Proposal>>,
+    pub proposals: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Proposal>>>,
 }
 
 /// Response message for profiles visible to the buyer.
@@ -1009,10 +1030,11 @@ pub struct ListProposalsResponse {
 pub struct ListPublisherProfilesResponse {
     /// List pagination support
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of matching publisher profiles.
     #[serde(default, rename = "publisherProfiles")]
-    pub publisher_profiles: Option<Vec<PublisherProfile>>,
+    pub publisher_profiles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PublisherProfile>>>,
 }
 
 /// Output only. The Geo criteria the restriction applies to.
@@ -1020,7 +1042,7 @@ pub struct ListPublisherProfilesResponse {
 pub struct LocationContext {
     /// IDs representing the geo location for this context. Refer to the [geo-table.csv](https://storage.googleapis.com/adx-rtb-dictionaries/geo-table.csv) file for different geo criteria IDs.
     #[serde(default, rename = "geoCriteriaIds")]
-    pub geo_criteria_ids: Option<Vec<i32>>,
+    pub geo_criteria_ids: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// Targeting represents different criteria that can be used by advertisers to target ad inventory. For example, they can choose to target ad requests only if the user is in the US. Multiple types of targeting are always applied as a logical AND, unless noted otherwise.
@@ -1028,19 +1050,19 @@ pub struct LocationContext {
 pub struct MarketplaceTargeting {
     /// Geo criteria IDs to be included/excluded.
     #[serde(default, rename = "geoTargeting")]
-    pub geo_targeting: Option<CriteriaTargeting>,
+    pub geo_targeting: ::core::option::Option<::std::boxed::Box<CriteriaTargeting>>,
     /// Inventory sizes to be included/excluded.
     #[serde(default, rename = "inventorySizeTargeting")]
-    pub inventory_size_targeting: Option<InventorySizeTargeting>,
+    pub inventory_size_targeting: ::core::option::Option<::std::boxed::Box<InventorySizeTargeting>>,
     /// Placement targeting information, for example, URL, mobile applications.
     #[serde(default, rename = "placementTargeting")]
-    pub placement_targeting: Option<PlacementTargeting>,
+    pub placement_targeting: ::core::option::Option<::std::boxed::Box<PlacementTargeting>>,
     /// Technology targeting information, for example, operating system, device category.
     #[serde(default, rename = "technologyTargeting")]
-    pub technology_targeting: Option<TechnologyTargeting>,
+    pub technology_targeting: ::core::option::Option<::std::boxed::Box<TechnologyTargeting>>,
     /// Video targeting information.
     #[serde(default, rename = "videoTargeting")]
-    pub video_targeting: Option<VideoTargeting>,
+    pub video_targeting: ::core::option::Option<::std::boxed::Box<VideoTargeting>>,
 }
 
 /// A metric value, with an expected value and a variance; represents a count that may be either exact or estimated (for example, when sampled).
@@ -1048,10 +1070,10 @@ pub struct MarketplaceTargeting {
 pub struct MetricValue {
     /// The expected value of the metric.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
     /// The variance (for example, square of the standard deviation) of the metric value. If value is exact, variance is 0. Can be used to calculate margin of error as a percentage of value, using the following formula, where Z is the standard constant that depends on the preferred size of the confidence interval (for example, for 90% confidence interval, use Z = 1.645): marginOfError = 100 * Z * sqrt(variance) / value
     #[serde(default)]
-    pub variance: Option<String>,
+    pub variance: ::core::option::Option<String>,
 }
 
 /// Mobile application targeting settings.
@@ -1059,7 +1081,8 @@ pub struct MetricValue {
 pub struct MobileApplicationTargeting {
     /// Publisher owned apps to be targeted or excluded by the publisher to display the ads in.
     #[serde(default, rename = "firstPartyTargeting")]
-    pub first_party_targeting: Option<FirstPartyMobileApplicationTargeting>,
+    pub first_party_targeting:
+        ::core::option::Option<::std::boxed::Box<FirstPartyMobileApplicationTargeting>>,
 }
 
 /// Represents an amount of money with its currency type.
@@ -1067,13 +1090,13 @@ pub struct MobileApplicationTargeting {
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
-    pub units: Option<String>,
+    pub units: ::core::option::Option<String>,
 }
 
 /// Native content for a creative.
@@ -1081,43 +1104,43 @@ pub struct Money {
 pub struct NativeContent {
     /// The name of the advertiser or sponsor, to be displayed in the ad creative.
     #[serde(default, rename = "advertiserName")]
-    pub advertiser_name: Option<String>,
+    pub advertiser_name: ::core::option::Option<String>,
     /// The app icon, for app download ads.
     #[serde(default, rename = "appIcon")]
-    pub app_icon: Option<Image>,
+    pub app_icon: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A long description of the ad.
     #[serde(default)]
-    pub body: Option<String>,
+    pub body: ::core::option::Option<String>,
     /// A label for the button that the user is supposed to click.
     #[serde(default, rename = "callToAction")]
-    pub call_to_action: Option<String>,
+    pub call_to_action: ::core::option::Option<String>,
     /// The URL that the browser/SDK will load when the user clicks the ad.
     #[serde(default, rename = "clickLinkUrl")]
-    pub click_link_url: Option<String>,
+    pub click_link_url: ::core::option::Option<String>,
     /// The URL to use for click tracking.
     #[serde(default, rename = "clickTrackingUrl")]
-    pub click_tracking_url: Option<String>,
+    pub click_tracking_url: ::core::option::Option<String>,
     /// A short title for the ad.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// A large image.
     #[serde(default)]
-    pub image: Option<Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A smaller image, for the advertiser''s logo.
     #[serde(default)]
-    pub logo: Option<Image>,
+    pub logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The price of the promoted app including currency info.
     #[serde(default, rename = "priceDisplayText")]
-    pub price_display_text: Option<String>,
+    pub price_display_text: ::core::option::Option<String>,
     /// The app rating in the app store. Must be in the range [0-5].
     #[serde(default, rename = "starRating")]
-    pub star_rating: Option<f64>,
+    pub star_rating: ::core::option::Option<f64>,
     /// The URL to the app store to purchase/download the promoted app.
     #[serde(default, rename = "storeUrl")]
-    pub store_url: Option<String>,
+    pub store_url: ::core::option::Option<String>,
     /// The URL to fetch a native video ad.
     #[serde(default, rename = "videoUrl")]
-    pub video_url: Option<String>,
+    pub video_url: ::core::option::Option<String>,
 }
 
 /// The number of winning bids with the specified dimension values for which the buyer was not billed, as described by the specified status.
@@ -1125,13 +1148,13 @@ pub struct NativeContent {
 pub struct NonBillableWinningBidStatusRow {
     /// The number of bids with the specified status.
     #[serde(default, rename = "bidCount")]
-    pub bid_count: Option<MetricValue>,
+    pub bid_count: ::core::option::Option<::std::boxed::Box<MetricValue>>,
     /// The values of all dimensions associated with metric values in this row.
     #[serde(default, rename = "rowDimensions")]
-    pub row_dimensions: Option<RowDimensions>,
+    pub row_dimensions: ::core::option::Option<::std::boxed::Box<RowDimensions>>,
     /// The status specifying why the winning bids were not billed. // TODO: enum values: ["STATUS_UNSPECIFIED", "AD_NOT_RENDERED", "INVALID_IMPRESSION", "FATAL_VAST_ERROR", "LOST_IN_MEDIATION", "OVERDELIVERED_IMPRESSION"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Terms for Private Auctions. Note that Private Auctions can be created only by the seller, but they can be returned in a get or list request.
@@ -1139,10 +1162,11 @@ pub struct NonBillableWinningBidStatusRow {
 pub struct NonGuaranteedAuctionTerms {
     /// True if open auction buyers are allowed to compete with invited buyers in this private auction.
     #[serde(default, rename = "autoOptimizePrivateAuction")]
-    pub auto_optimize_private_auction: Option<bool>,
+    pub auto_optimize_private_auction: ::core::option::Option<bool>,
     /// Reserve price for the specified buyer.
     #[serde(default, rename = "reservePricesPerBuyer")]
-    pub reserve_prices_per_buyer: Option<Vec<PricePerBuyer>>,
+    pub reserve_prices_per_buyer:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PricePerBuyer>>>,
 }
 
 /// Terms for Preferred Deals.
@@ -1150,7 +1174,7 @@ pub struct NonGuaranteedAuctionTerms {
 pub struct NonGuaranteedFixedPriceTerms {
     /// Fixed price for the specified buyer.
     #[serde(default, rename = "fixedPrices")]
-    pub fixed_prices: Option<Vec<PricePerBuyer>>,
+    pub fixed_prices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PricePerBuyer>>>,
 }
 
 /// A proposal may be associated to several notes.
@@ -1158,19 +1182,19 @@ pub struct NonGuaranteedFixedPriceTerms {
 pub struct Note {
     /// Output only. The timestamp for when this note was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The role of the person (buyer/seller) creating the note. // TODO: enum values: ["BUYER_SELLER_ROLE_UNSPECIFIED", "BUYER", "SELLER"]
     #[serde(default, rename = "creatorRole")]
-    pub creator_role: Option<String>,
+    pub creator_role: ::core::option::Option<String>,
     /// The actual note to attach. (max-length: 1024 unicode code units) Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.
     #[serde(default)]
-    pub note: Option<String>,
+    pub note: ::core::option::Option<String>,
     /// Output only. The unique ID for the note.
     #[serde(default, rename = "noteId")]
-    pub note_id: Option<String>,
+    pub note_id: ::core::option::Option<String>,
     /// Output only. The revision number of the proposal when the note is created.
     #[serde(default, rename = "proposalRevision")]
-    pub proposal_revision: Option<String>,
+    pub proposal_revision: ::core::option::Option<String>,
 }
 
 /// Represents targeting information for operating systems.
@@ -1178,10 +1202,11 @@ pub struct Note {
 pub struct OperatingSystemTargeting {
     /// IDs of operating systems to be included/excluded.
     #[serde(default, rename = "operatingSystemCriteria")]
-    pub operating_system_criteria: Option<CriteriaTargeting>,
+    pub operating_system_criteria: ::core::option::Option<::std::boxed::Box<CriteriaTargeting>>,
     /// IDs of operating system versions to be included/excluded.
     #[serde(default, rename = "operatingSystemVersionCriteria")]
-    pub operating_system_version_criteria: Option<CriteriaTargeting>,
+    pub operating_system_version_criteria:
+        ::core::option::Option<::std::boxed::Box<CriteriaTargeting>>,
 }
 
 /// Request message to pause serving for finalized deals.
@@ -1189,10 +1214,10 @@ pub struct OperatingSystemTargeting {
 pub struct PauseProposalDealsRequest {
     /// The external_deal_id''s of the deals to be paused. If empty, all the deals in the proposal will be paused.
     #[serde(default, rename = "externalDealIds")]
-    pub external_deal_ids: Option<Vec<String>>,
+    pub external_deal_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The reason why the deals are being paused. This human readable message will be displayed in the seller''s UI. (Max length: 1000 unicode code units.)
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Request message to pause serving for an already-finalized proposal.
@@ -1200,7 +1225,7 @@ pub struct PauseProposalDealsRequest {
 pub struct PauseProposalRequest {
     /// The reason why the proposal is being paused. This human readable message will be displayed in the seller''s UI. (Max length: 1000 unicode code units.)
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Represents targeting about where the ads can appear, for example, certain sites or mobile applications. Different placement targeting types will be logically OR''ed.
@@ -1208,10 +1233,11 @@ pub struct PauseProposalRequest {
 pub struct PlacementTargeting {
     /// Mobile application targeting information in a deal. This doesn''t apply to Auction Packages.
     #[serde(default, rename = "mobileApplicationTargeting")]
-    pub mobile_application_targeting: Option<MobileApplicationTargeting>,
+    pub mobile_application_targeting:
+        ::core::option::Option<::std::boxed::Box<MobileApplicationTargeting>>,
     /// URLs to be included/excluded.
     #[serde(default, rename = "urlTargeting")]
-    pub url_targeting: Option<UrlTargeting>,
+    pub url_targeting: ::core::option::Option<::std::boxed::Box<UrlTargeting>>,
 }
 
 /// Output only. The type of platform the restriction applies to.
@@ -1219,7 +1245,7 @@ pub struct PlacementTargeting {
 pub struct PlatformContext {
     /// The platforms this restriction applies to.
     #[serde(default)]
-    pub platforms: Option<Vec<String>>,
+    pub platforms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a price and a pricing type for a product / deal.
@@ -1227,10 +1253,10 @@ pub struct PlatformContext {
 pub struct Price {
     /// The actual price with currency specified.
     #[serde(default)]
-    pub amount: Option<Money>,
+    pub amount: ::core::option::Option<::std::boxed::Box<Money>>,
     /// The pricing type for the deal/product. (default: CPM) // TODO: enum values: ["PRICING_TYPE_UNSPECIFIED", "COST_PER_MILLE", "COST_PER_DAY"]
     #[serde(default, rename = "pricingType")]
-    pub pricing_type: Option<String>,
+    pub pricing_type: ::core::option::Option<String>,
 }
 
 /// Used to specify pricing rules for buyers/advertisers. Each PricePerBuyer in a product can become 0 or 1 deals. To check if there is a PricePerBuyer for a particular buyer or buyer/advertiser pair, we look for the most specific matching rule - we first look for a rule matching the buyer and advertiser, next a rule with the buyer but an empty advertiser list, and otherwise look for a matching rule where no buyer is set.
@@ -1238,13 +1264,13 @@ pub struct Price {
 pub struct PricePerBuyer {
     /// The list of advertisers for this price when associated with this buyer. If empty, all advertisers with this buyer pay this price.
     #[serde(default, rename = "advertiserIds")]
-    pub advertiser_ids: Option<Vec<String>>,
+    pub advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The buyer who will pay this price. If unset, all buyers can pay this price (if the advertisers match, and there''s no more specific rule matching the buyer).
     #[serde(default)]
-    pub buyer: Option<Buyer>,
+    pub buyer: ::core::option::Option<::std::boxed::Box<Buyer>>,
     /// The specified price.
     #[serde(default)]
-    pub price: Option<Price>,
+    pub price: ::core::option::Option<::std::boxed::Box<Price>>,
 }
 
 /// Buyers are allowed to store certain types of private data in a proposal/deal.
@@ -1252,7 +1278,7 @@ pub struct PricePerBuyer {
 pub struct PrivateData {
     /// A buyer or seller specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).
     #[serde(default, rename = "referenceId")]
-    pub reference_id: Option<String>,
+    pub reference_id: ::core::option::Option<String>,
 }
 
 /// A product is a segment of inventory that a seller wants to sell. It is associated with certain terms and targeting information which helps the buyer know more about the inventory.
@@ -1260,49 +1286,51 @@ pub struct PrivateData {
 pub struct Product {
     /// The proposed end time for the deal. The field will be truncated to the order of seconds during serving.
     #[serde(default, rename = "availableEndTime")]
-    pub available_end_time: Option<String>,
+    pub available_end_time: ::core::option::Option<String>,
     /// Inventory availability dates. The start time will be truncated to seconds during serving. Thus, a field specified as 3:23:34.456 (HH:mm:ss.SSS) will be truncated to 3:23:34 when serving.
     #[serde(default, rename = "availableStartTime")]
-    pub available_start_time: Option<String>,
+    pub available_start_time: ::core::option::Option<String>,
     /// Creation time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional contact information for the creator of this product.
     #[serde(default, rename = "creatorContacts")]
-    pub creator_contacts: Option<Vec<ContactInformation>>,
+    pub creator_contacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContactInformation>>>,
     /// The display name for this product as set by the seller.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// If the creator has already signed off on the product, then the buyer can finalize the deal by accepting the product as is. When copying to a proposal, if any of the terms are changed, then auto_finalize is automatically set to false.
     #[serde(default, rename = "hasCreatorSignedOff")]
-    pub has_creator_signed_off: Option<bool>,
+    pub has_creator_signed_off: ::core::option::Option<bool>,
     /// The unique ID for the product.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// The revision number of the product (auto-assigned by Marketplace).
     #[serde(default, rename = "productRevision")]
-    pub product_revision: Option<String>,
+    pub product_revision: ::core::option::Option<String>,
     /// An ID which can be used by the Publisher Profile API to get more information about the seller that created this product.
     #[serde(default, rename = "publisherProfileId")]
-    pub publisher_profile_id: Option<String>,
+    pub publisher_profile_id: ::core::option::Option<String>,
     /// Information about the seller that created this product.
     #[serde(default)]
-    pub seller: Option<Seller>,
+    pub seller: ::core::option::Option<::std::boxed::Box<Seller>>,
     /// The syndication product associated with the deal. // TODO: enum values: ["SYNDICATION_PRODUCT_UNSPECIFIED", "CONTENT", "MOBILE", "VIDEO", "GAMES"]
     #[serde(default, rename = "syndicationProduct")]
-    pub syndication_product: Option<String>,
+    pub syndication_product: ::core::option::Option<String>,
     /// Targeting that is shared between the buyer and the seller. Each targeting criterion has a specified key and for each key there is a list of inclusion value or exclusion values.
     #[serde(default, rename = "targetingCriterion")]
-    pub targeting_criterion: Option<Vec<TargetingCriteria>>,
+    pub targeting_criterion:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetingCriteria>>>,
     /// The negotiable terms of the deal.
     #[serde(default)]
-    pub terms: Option<DealTerms>,
+    pub terms: ::core::option::Option<::std::boxed::Box<DealTerms>>,
     /// Time of last update.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The web-property code for the seller. This needs to be copied as is when adding a new deal to a proposal.
     #[serde(default, rename = "webPropertyCode")]
-    pub web_property_code: Option<String>,
+    pub web_property_code: ::core::option::Option<String>,
 }
 
 /// Represents a proposal in the Marketplace. A proposal is the unit of negotiation between a seller and a buyer and contains deals which are served. Note: You can''t update, create, or otherwise modify Private Auction deals through the API. Fields are updatable unless noted otherwise.
@@ -1310,61 +1338,63 @@ pub struct Product {
 pub struct Proposal {
     /// Output only. Reference to the buyer that will get billed for this proposal.
     #[serde(default, rename = "billedBuyer")]
-    pub billed_buyer: Option<Buyer>,
+    pub billed_buyer: ::core::option::Option<::std::boxed::Box<Buyer>>,
     /// Reference to the buyer on the proposal. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.
     #[serde(default)]
-    pub buyer: Option<Buyer>,
+    pub buyer: ::core::option::Option<::std::boxed::Box<Buyer>>,
     /// Contact information for the buyer.
     #[serde(default, rename = "buyerContacts")]
-    pub buyer_contacts: Option<Vec<ContactInformation>>,
+    pub buyer_contacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContactInformation>>>,
     /// Private data for buyer. (hidden from seller).
     #[serde(default, rename = "buyerPrivateData")]
-    pub buyer_private_data: Option<PrivateData>,
+    pub buyer_private_data: ::core::option::Option<::std::boxed::Box<PrivateData>>,
     /// The deals associated with this proposal. For Private Auction proposals (whose deals have NonGuaranteedAuctionTerms), there will only be one deal.
     #[serde(default)]
-    pub deals: Option<Vec<Deal>>,
+    pub deals: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Deal>>>,
     /// The name for the proposal.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. True if the proposal is being renegotiated.
     #[serde(default, rename = "isRenegotiating")]
-    pub is_renegotiating: Option<bool>,
+    pub is_renegotiating: ::core::option::Option<bool>,
     /// Output only. True, if the buyside inventory setup is complete for this proposal.
     #[serde(default, rename = "isSetupComplete")]
-    pub is_setup_complete: Option<bool>,
+    pub is_setup_complete: ::core::option::Option<bool>,
     /// Output only. The role of the last user that either updated the proposal or left a comment. // TODO: enum values: ["BUYER_SELLER_ROLE_UNSPECIFIED", "BUYER", "SELLER"]
     #[serde(default, rename = "lastUpdaterOrCommentorRole")]
-    pub last_updater_or_commentor_role: Option<String>,
+    pub last_updater_or_commentor_role: ::core::option::Option<String>,
     /// Output only. The notes associated with this proposal.
     #[serde(default)]
-    pub notes: Option<Vec<Note>>,
+    pub notes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Note>>>,
     /// Output only. Indicates whether the buyer/seller created the proposal. // TODO: enum values: ["BUYER_SELLER_ROLE_UNSPECIFIED", "BUYER", "SELLER"]
     #[serde(default, rename = "originatorRole")]
-    pub originator_role: Option<String>,
+    pub originator_role: ::core::option::Option<String>,
     /// Output only. Private auction ID if this proposal is a private auction proposal.
     #[serde(default, rename = "privateAuctionId")]
-    pub private_auction_id: Option<String>,
+    pub private_auction_id: ::core::option::Option<String>,
     /// Output only. The unique ID of the proposal.
     #[serde(default, rename = "proposalId")]
-    pub proposal_id: Option<String>,
+    pub proposal_id: ::core::option::Option<String>,
     /// Output only. The revision number for the proposal. Each update to the proposal or the deal causes the proposal revision number to auto-increment. The buyer keeps track of the last revision number they know of and pass it in when making an update. If the head revision number on the server has since incremented, then an ABORTED error is returned during the update operation to let the buyer know that a subsequent update was made.
     #[serde(default, rename = "proposalRevision")]
-    pub proposal_revision: Option<String>,
+    pub proposal_revision: ::core::option::Option<String>,
     /// Output only. The current state of the proposal. // TODO: enum values: ["PROPOSAL_STATE_UNSPECIFIED", "PROPOSED", "BUYER_ACCEPTED", "SELLER_ACCEPTED", "CANCELED", "FINALIZED"]
     #[serde(default, rename = "proposalState")]
-    pub proposal_state: Option<String>,
+    pub proposal_state: ::core::option::Option<String>,
     /// Reference to the seller on the proposal. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.
     #[serde(default)]
-    pub seller: Option<Seller>,
+    pub seller: ::core::option::Option<::std::boxed::Box<Seller>>,
     /// Output only. Contact information for the seller.
     #[serde(default, rename = "sellerContacts")]
-    pub seller_contacts: Option<Vec<ContactInformation>>,
+    pub seller_contacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContactInformation>>>,
     /// Output only. The terms and conditions set by the publisher for this proposal.
     #[serde(default, rename = "termsAndConditions")]
-    pub terms_and_conditions: Option<String>,
+    pub terms_and_conditions: ::core::option::Option<String>,
     /// Output only. The time when the proposal was last revised.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Represents a publisher profile (https://support.google.com/admanager/answer/6035806) in Marketplace. All fields are read only. All string fields are free-form text entered by the publisher unless noted otherwise.
@@ -1372,55 +1402,57 @@ pub struct Proposal {
 pub struct PublisherProfile {
     /// Description on the publisher''s audience.
     #[serde(default, rename = "audienceDescription")]
-    pub audience_description: Option<String>,
+    pub audience_description: ::core::option::Option<String>,
     /// Statement explaining what''s unique about publisher''s business, and why buyers should partner with the publisher.
     #[serde(default, rename = "buyerPitchStatement")]
-    pub buyer_pitch_statement: Option<String>,
+    pub buyer_pitch_statement: ::core::option::Option<String>,
     /// Contact information for direct reservation deals. This is free text entered by the publisher and may include information like names, phone numbers and email addresses.
     #[serde(default, rename = "directDealsContact")]
-    pub direct_deals_contact: Option<String>,
+    pub direct_deals_contact: ::core::option::Option<String>,
     /// Name of the publisher profile.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The list of domains represented in this publisher profile. Empty if this is a parent profile. These are top private domains, meaning that these will not contain a string like "photos.google.co.uk/123", but will instead contain "google.co.uk".
     #[serde(default)]
-    pub domains: Option<Vec<String>>,
+    pub domains: ::core::option::Option<::std::vec::Vec<String>>,
     /// URL to publisher''s Google+ page.
     #[serde(default, rename = "googlePlusUrl")]
-    pub google_plus_url: Option<String>,
+    pub google_plus_url: ::core::option::Option<String>,
     /// Indicates if this profile is the parent profile of the seller. A parent profile represents all the inventory from the seller, as opposed to child profile that is created to brand a portion of inventory. One seller should have only one parent publisher profile, and can have multiple child profiles. Publisher profiles for the same seller will have same value of field google.ads.adexchange.buyer.v2beta1.PublisherProfile.seller. See https://support.google.com/admanager/answer/6035806 for details.
     #[serde(default, rename = "isParent")]
-    pub is_parent: Option<bool>,
+    pub is_parent: ::core::option::Option<bool>,
     /// A Google public URL to the logo for this publisher profile. The logo is stored as a PNG, JPG, or GIF image.
     #[serde(default, rename = "logoUrl")]
-    pub logo_url: Option<String>,
+    pub logo_url: ::core::option::Option<String>,
     /// URL to additional marketing and sales materials.
     #[serde(default, rename = "mediaKitUrl")]
-    pub media_kit_url: Option<String>,
+    pub media_kit_url: ::core::option::Option<String>,
     /// The list of apps represented in this publisher profile. Empty if this is a parent profile.
     #[serde(default, rename = "mobileApps")]
-    pub mobile_apps: Option<Vec<PublisherProfileMobileApplication>>,
+    pub mobile_apps: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<PublisherProfileMobileApplication>>,
+    >,
     /// Overview of the publisher.
     #[serde(default)]
-    pub overview: Option<String>,
+    pub overview: ::core::option::Option<String>,
     /// Contact information for programmatic deals. This is free text entered by the publisher and may include information like names, phone numbers and email addresses.
     #[serde(default, rename = "programmaticDealsContact")]
-    pub programmatic_deals_contact: Option<String>,
+    pub programmatic_deals_contact: ::core::option::Option<String>,
     /// Unique ID for publisher profile.
     #[serde(default, rename = "publisherProfileId")]
-    pub publisher_profile_id: Option<String>,
+    pub publisher_profile_id: ::core::option::Option<String>,
     /// URL to a publisher rate card.
     #[serde(default, rename = "rateCardInfoUrl")]
-    pub rate_card_info_url: Option<String>,
+    pub rate_card_info_url: ::core::option::Option<String>,
     /// URL to a sample content page.
     #[serde(default, rename = "samplePageUrl")]
-    pub sample_page_url: Option<String>,
+    pub sample_page_url: ::core::option::Option<String>,
     /// Seller of the publisher profile.
     #[serde(default)]
-    pub seller: Option<Seller>,
+    pub seller: ::core::option::Option<::std::boxed::Box<Seller>>,
     /// Up to three key metrics and rankings. Max 100 characters each. For example "#1 Mobile News Site for 20 Straight Months".
     #[serde(default, rename = "topHeadlines")]
-    pub top_headlines: Option<Vec<String>>,
+    pub top_headlines: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A mobile application that contains a external app ID, name, and app store.
@@ -1428,13 +1460,13 @@ pub struct PublisherProfile {
 pub struct PublisherProfileMobileApplication {
     /// The app store the app belongs to. // TODO: enum values: ["APP_STORE_TYPE_UNSPECIFIED", "APPLE_ITUNES", "GOOGLE_PLAY", "ROKU", "AMAZON_FIRETV", "PLAYSTATION", "XBOX", "SAMSUNG_TV", "AMAZON", "OPPO", "SAMSUNG", "VIVO", "XIAOMI", "LG_TV"]
     #[serde(default, rename = "appStore")]
-    pub app_store: Option<String>,
+    pub app_store: ::core::option::Option<String>,
     /// The external ID for the app from its app store.
     #[serde(default, rename = "externalAppId")]
-    pub external_app_id: Option<String>,
+    pub external_app_id: ::core::option::Option<String>,
     /// The name of the app.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An open-ended realtime time range specified by the start timestamp. For filter sets that specify a realtime time range RTB metrics continue to be aggregated throughout the lifetime of the filter set.
@@ -1442,7 +1474,7 @@ pub struct PublisherProfileMobileApplication {
 pub struct RealtimeTimeRange {
     /// The start timestamp of the real-time RTB metrics aggregation.
     #[serde(default, rename = "startTimestamp")]
-    pub start_timestamp: Option<String>,
+    pub start_timestamp: ::core::option::Option<String>,
 }
 
 /// A relative date range, specified by an offset and a duration. The supported range of dates begins 30 days before today and ends today, for example, the limits for these values are: offset_days &gt;= 0 duration_days &gt;= 1 offset_days + duration_days &lt;= 30
@@ -1450,10 +1482,10 @@ pub struct RealtimeTimeRange {
 pub struct RelativeDateRange {
     /// The number of days in the requested date range, for example, for a range spanning today: 1. For a range spanning the last 7 days: 7.
     #[serde(default, rename = "durationDays")]
-    pub duration_days: Option<i32>,
+    pub duration_days: ::core::option::Option<i32>,
     /// The end date of the filter set, specified as the number of days before today, for example, for a range where the last date is today: 0.
     #[serde(default, rename = "offsetDays")]
-    pub offset_days: Option<i32>,
+    pub offset_days: ::core::option::Option<i32>,
 }
 
 /// A request for removing the association between a deal and a creative.
@@ -1461,7 +1493,7 @@ pub struct RelativeDateRange {
 pub struct RemoveDealAssociationRequest {
     /// The association between a creative and a deal that should be removed.
     #[serde(default)]
-    pub association: Option<CreativeDealAssociation>,
+    pub association: ::core::option::Option<::std::boxed::Box<CreativeDealAssociation>>,
 }
 
 /// Request message to resume (unpause) serving for already-finalized deals.
@@ -1469,7 +1501,7 @@ pub struct RemoveDealAssociationRequest {
 pub struct ResumeProposalDealsRequest {
     /// The external_deal_id''s of the deals to resume. If empty, all the deals in the proposal will be resumed.
     #[serde(default, rename = "externalDealIds")]
-    pub external_deal_ids: Option<Vec<String>>,
+    pub external_deal_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A response may include multiple rows, breaking down along various dimensions. Encapsulates the values of all dimensions for a given row.
@@ -1477,10 +1509,10 @@ pub struct ResumeProposalDealsRequest {
 pub struct RowDimensions {
     /// The publisher identifier for this row, if a breakdown by [BreakdownDimension.PUBLISHER_IDENTIFIER](https://developers.google.com/authorized-buyers/apis/reference/rest/v2beta1/bidders.accounts.filterSets#FilterSet.BreakdownDimension) was requested.
     #[serde(default, rename = "publisherIdentifier")]
-    pub publisher_identifier: Option<String>,
+    pub publisher_identifier: ::core::option::Option<String>,
     /// The time interval that this row represents.
     #[serde(default, rename = "timeInterval")]
-    pub time_interval: Option<TimeInterval>,
+    pub time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
 }
 
 /// Output only. A security context.
@@ -1488,7 +1520,7 @@ pub struct RowDimensions {
 pub struct SecurityContext {
     /// The security types in this context.
     #[serde(default)]
-    pub securities: Option<Vec<String>>,
+    pub securities: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a seller of inventory. Each seller is identified by a unique Ad Manager account ID.
@@ -1496,10 +1528,10 @@ pub struct SecurityContext {
 pub struct Seller {
     /// The unique ID for the seller. The seller fills in this field. The seller account ID is then available to buyer in the product.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Output only. Ad manager network code for the seller.
     #[serde(default, rename = "subAccountId")]
-    pub sub_account_id: Option<String>,
+    pub sub_account_id: ::core::option::Option<String>,
 }
 
 /// The serving context for this restriction.
@@ -1507,22 +1539,22 @@ pub struct Seller {
 pub struct ServingContext {
     /// Matches all contexts. // TODO: enum values: ["SIMPLE_CONTEXT"]
     #[serde(default)]
-    pub all: Option<String>,
+    pub all: ::core::option::Option<String>,
     /// Matches impressions for a particular app type.
     #[serde(default, rename = "appType")]
-    pub app_type: Option<AppContext>,
+    pub app_type: ::core::option::Option<::std::boxed::Box<AppContext>>,
     /// Matches impressions for a particular auction type.
     #[serde(default, rename = "auctionType")]
-    pub auction_type: Option<AuctionContext>,
+    pub auction_type: ::core::option::Option<::std::boxed::Box<AuctionContext>>,
     /// Matches impressions coming from users *or* publishers in a specific location.
     #[serde(default)]
-    pub location: Option<LocationContext>,
+    pub location: ::core::option::Option<::std::boxed::Box<LocationContext>>,
     /// Matches impressions coming from a particular platform.
     #[serde(default)]
-    pub platform: Option<PlatformContext>,
+    pub platform: ::core::option::Option<::std::boxed::Box<PlatformContext>>,
     /// Matches impressions for a particular security type.
     #[serde(default, rename = "securityType")]
-    pub security_type: Option<SecurityContext>,
+    pub security_type: ::core::option::Option<::std::boxed::Box<SecurityContext>>,
 }
 
 /// Output only. A representation of the status of an ad in a specific context. A context here relates to where something ultimately serves (for example, a user or publisher geo, a platform, an HTTPS versus HTTP request, or the type of auction).
@@ -1530,16 +1562,17 @@ pub struct ServingContext {
 pub struct ServingRestriction {
     /// The contexts for the restriction.
     #[serde(default)]
-    pub contexts: Option<Vec<ServingContext>>,
+    pub contexts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServingContext>>>,
     /// Disapproval bound to this restriction. Only present if status=DISAPPROVED. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
-    pub disapproval: Option<Disapproval>,
+    pub disapproval: ::core::option::Option<::std::boxed::Box<Disapproval>>,
     /// Any disapprovals bound to this restriction. Only present if status=DISAPPROVED. Can be used to filter the response of the creatives.list method. Deprecated; use disapproval field instead.
     #[serde(default, rename = "disapprovalReasons")]
-    pub disapproval_reasons: Option<Vec<Disapproval>>,
+    pub disapproval_reasons:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Disapproval>>>,
     /// The status of the creative in this context (for example, it has been explicitly disapproved or is pending review). // TODO: enum values: ["STATUS_UNSPECIFIED", "DISAPPROVAL", "PENDING_REVIEW"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Message depicting the size of the creative. The units of width and height depend on the type of the targeting.
@@ -1547,10 +1580,10 @@ pub struct ServingRestriction {
 pub struct Size {
     /// The height of the creative.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// The width of the creative
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Advertisers can target different attributes of an ad slot. For example, they can choose to show ads only if the user is in the U.S. Such targeting criteria can be specified as part of Shared Targeting.
@@ -1558,13 +1591,13 @@ pub struct Size {
 pub struct TargetingCriteria {
     /// The list of values to exclude from targeting. Each value is AND''d together.
     #[serde(default)]
-    pub exclusions: Option<Vec<TargetingValue>>,
+    pub exclusions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetingValue>>>,
     /// The list of value to include as part of the targeting. Each value is OR''d together.
     #[serde(default)]
-    pub inclusions: Option<Vec<TargetingValue>>,
+    pub inclusions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetingValue>>>,
     /// The key representing the shared targeting criterion. Targeting criteria defined by Google ad servers will begin with GOOG_. Third parties may define their own keys. A list of permissible keys along with the acceptable values will be provided as part of the external documentation.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// A polymorphic targeting value used as part of Shared Targeting.
@@ -1572,16 +1605,16 @@ pub struct TargetingCriteria {
 pub struct TargetingValue {
     /// The creative size value to include/exclude. Filled in when key = GOOG_CREATIVE_SIZE
     #[serde(default, rename = "creativeSizeValue")]
-    pub creative_size_value: Option<CreativeSize>,
+    pub creative_size_value: ::core::option::Option<::std::boxed::Box<CreativeSize>>,
     /// The daypart targeting to include / exclude. Filled in when the key is GOOG_DAYPART_TARGETING. The definition of this targeting is derived from the structure used by Ad Manager.
     #[serde(default, rename = "dayPartTargetingValue")]
-    pub day_part_targeting_value: Option<DayPartTargeting>,
+    pub day_part_targeting_value: ::core::option::Option<::std::boxed::Box<DayPartTargeting>>,
     /// The long value to include/exclude.
     #[serde(default, rename = "longValue")]
-    pub long_value: Option<String>,
+    pub long_value: ::core::option::Option<String>,
     /// The string value to include/exclude.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// Represents targeting about various types of technology.
@@ -1589,13 +1622,14 @@ pub struct TargetingValue {
 pub struct TechnologyTargeting {
     /// IDs of device capabilities to be included/excluded.
     #[serde(default, rename = "deviceCapabilityTargeting")]
-    pub device_capability_targeting: Option<CriteriaTargeting>,
+    pub device_capability_targeting: ::core::option::Option<::std::boxed::Box<CriteriaTargeting>>,
     /// IDs of device categories to be included/excluded.
     #[serde(default, rename = "deviceCategoryTargeting")]
-    pub device_category_targeting: Option<CriteriaTargeting>,
+    pub device_category_targeting: ::core::option::Option<::std::boxed::Box<CriteriaTargeting>>,
     /// Operating system related targeting information.
     #[serde(default, rename = "operatingSystemTargeting")]
-    pub operating_system_targeting: Option<OperatingSystemTargeting>,
+    pub operating_system_targeting:
+        ::core::option::Option<::std::boxed::Box<OperatingSystemTargeting>>,
 }
 
 /// An interval of time, with an absolute start and end.
@@ -1603,10 +1637,10 @@ pub struct TechnologyTargeting {
 pub struct TimeInterval {
     /// The timestamp marking the end of the range (exclusive) for which data is included.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The timestamp marking the start of the range (inclusive) for which data is included.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -1614,16 +1648,16 @@ pub struct TimeInterval {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// Represents a list of targeted and excluded URLs (for example, google.com). For Private Auction and AdX Preferred Deals, URLs are either included or excluded. For Programmatic Guaranteed and Preferred Deals, this doesn''t apply.
@@ -1631,10 +1665,10 @@ pub struct TimeOfDay {
 pub struct UrlTargeting {
     /// A list of URLs to be excluded.
     #[serde(default, rename = "excludedUrls")]
-    pub excluded_urls: Option<Vec<String>>,
+    pub excluded_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of URLs to be included.
     #[serde(default, rename = "targetedUrls")]
-    pub targeted_urls: Option<Vec<String>>,
+    pub targeted_urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Video content for a creative.
@@ -1642,10 +1676,10 @@ pub struct UrlTargeting {
 pub struct VideoContent {
     /// The URL to fetch a video ad.
     #[serde(default, rename = "videoUrl")]
-    pub video_url: Option<String>,
+    pub video_url: ::core::option::Option<String>,
     /// The contents of a VAST document for a video ad. This document should conform to the VAST 2.0 or 3.0 standard.
     #[serde(default, rename = "videoVastXml")]
-    pub video_vast_xml: Option<String>,
+    pub video_vast_xml: ::core::option::Option<String>,
 }
 
 /// Represents targeting information about video.
@@ -1653,10 +1687,10 @@ pub struct VideoContent {
 pub struct VideoTargeting {
     /// A list of video positions to be excluded. Position types can either be included or excluded (XOR).
     #[serde(default, rename = "excludedPositionTypes")]
-    pub excluded_position_types: Option<Vec<String>>,
+    pub excluded_position_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of video positions to be included. When the included list is present, the excluded list must be empty. When the excluded list is present, the included list must be empty.
     #[serde(default, rename = "targetedPositionTypes")]
-    pub targeted_position_types: Option<Vec<String>>,
+    pub targeted_position_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request for watching changes to creative Status.
@@ -1664,5 +1698,5 @@ pub struct VideoTargeting {
 pub struct WatchCreativeRequest {
     /// The Pub/Sub topic to publish notifications to. This topic must already exist and must give permission to ad-exchange-buyside-reports@google.com to write to the topic. This should be the full resource name in "projects/{project_id}/topics/{topic_id}" format.
     #[serde(default)]
-    pub topic: Option<String>,
+    pub topic: ::core::option::Option<String>,
 }

@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Looker instance Admin settings fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdminSettings {
     /// Email domain allowlist for the instance.
     #[serde(default, rename = "allowedEmailDomains")]
-    pub allowed_email_domains: Option<Vec<String>>,
+    pub allowed_email_domains: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Controlled egress configuration.
@@ -26,13 +26,13 @@ pub struct AdminSettings {
 pub struct ControlledEgressConfig {
     /// Optional. List of fully qualified domain names to be added to the allowlist for outbound traffic.
     #[serde(default, rename = "egressFqdns")]
-    pub egress_fqdns: Option<Vec<String>>,
+    pub egress_fqdns: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Whether marketplace is enabled.
     #[serde(default, rename = "marketplaceEnabled")]
-    pub marketplace_enabled: Option<bool>,
+    pub marketplace_enabled: ::core::option::Option<bool>,
     /// Output only. The list of IP addresses used by Secure Web Proxy for outbound traffic.
     #[serde(default, rename = "webProxyIps")]
-    pub web_proxy_ips: Option<Vec<String>>,
+    pub web_proxy_ips: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Custom domain information.
@@ -40,10 +40,10 @@ pub struct ControlledEgressConfig {
 pub struct CustomDomain {
     /// Domain name.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Domain state. // TODO: enum values: ["CUSTOM_DOMAIN_STATE_UNSPECIFIED", "UNVERIFIED", "VERIFIED", "MODIFYING", "AVAILABLE", "UNAVAILABLE", "UNKNOWN"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -51,13 +51,13 @@ pub struct CustomDomain {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Specifies the maintenance denial period.
@@ -65,13 +65,13 @@ pub struct Date {
 pub struct DenyMaintenancePeriod {
     /// Required. End date of the deny maintenance period.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Required. Start date of the deny maintenance period.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Required. Time in UTC when the period starts and ends.
     #[serde(default)]
-    pub time: Option<TimeOfDay>,
+    pub time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Encryption configuration (i.e. CMEK).
@@ -79,13 +79,13 @@ pub struct DenyMaintenancePeriod {
 pub struct EncryptionConfig {
     /// Name of the CMEK key in KMS (input parameter).
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Output only. Full name and version of the CMEK key currently in use to encrypt Looker data. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}/cryptoKeyVersions/{version}. Empty if CMEK is not configured in this instance.
     #[serde(default, rename = "kmsKeyNameVersion")]
-    pub kms_key_name_version: Option<String>,
+    pub kms_key_name_version: ::core::option::Option<String>,
     /// Output only. Status of the CMEK key. // TODO: enum values: ["KMS_KEY_STATE_UNSPECIFIED", "VALID", "REVOKED"]
     #[serde(default, rename = "kmsKeyState")]
-    pub kms_key_state: Option<String>,
+    pub kms_key_state: ::core::option::Option<String>,
 }
 
 /// Configuration for Encryption - e.g. CMEK.
@@ -93,7 +93,7 @@ pub struct EncryptionConfig {
 pub struct ExportEncryptionConfig {
     /// Required. Name of the CMEK key in KMS.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// Request options for exporting data of an Instance.
@@ -101,10 +101,10 @@ pub struct ExportEncryptionConfig {
 pub struct ExportInstanceRequest {
     /// Required. Encryption configuration (CMEK). For CMEK enabled instances it should be same as looker CMEK.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<ExportEncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<ExportEncryptionConfig>>,
     /// The path to the folder in Google Cloud Storage where the export will be stored. The URI is in the form gs://bucketName/folderName.
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// ExportMetadata represents the metadata of the exported artifacts. The metadata.json file in export artifact can be parsed as this message
@@ -112,25 +112,26 @@ pub struct ExportInstanceRequest {
 pub struct ExportMetadata {
     /// Encryption key that was used to encrypt the export artifacts.
     #[serde(default, rename = "exportEncryptionKey")]
-    pub export_encryption_key: Option<ExportMetadataEncryptionKey>,
+    pub export_encryption_key:
+        ::core::option::Option<::std::boxed::Box<ExportMetadataEncryptionKey>>,
     /// List of files created as part of export artifact (excluding the metadata). The paths are relative to the folder containing the metadata.
     #[serde(default, rename = "filePaths")]
-    pub file_paths: Option<Vec<String>>,
+    pub file_paths: ::core::option::Option<::std::vec::Vec<String>>,
     /// Looker encryption key, encrypted with the provided export encryption key. This value will only be populated if the looker instance uses Looker managed encryption instead of CMEK.
     #[serde(default, rename = "lookerEncryptionKey")]
-    pub looker_encryption_key: Option<String>,
+    pub looker_encryption_key: ::core::option::Option<String>,
     /// Name of the exported instance. Format: projects/{project}/locations/{location}/instances/{instance}
     #[serde(default, rename = "lookerInstance")]
-    pub looker_instance: Option<String>,
+    pub looker_instance: ::core::option::Option<String>,
     /// Platform edition of the exported instance.
     #[serde(default, rename = "lookerPlatformEdition")]
-    pub looker_platform_edition: Option<String>,
+    pub looker_platform_edition: ::core::option::Option<String>,
     /// Version of instance when the export was created.
     #[serde(default, rename = "lookerVersion")]
-    pub looker_version: Option<String>,
+    pub looker_version: ::core::option::Option<String>,
     /// The source type of the migration. // TODO: enum values: ["SOURCE_UNSPECIFIED", "LOOKER_CORE", "LOOKER_ORIGINAL"]
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// Encryption key details for the exported artifact.
@@ -138,10 +139,10 @@ pub struct ExportMetadata {
 pub struct ExportMetadataEncryptionKey {
     /// Name of the CMEK.
     #[serde(default)]
-    pub cmek: Option<String>,
+    pub cmek: ::core::option::Option<String>,
     /// Version of the CMEK.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Requestion options for importing looker data to an Instance
@@ -149,7 +150,7 @@ pub struct ExportMetadataEncryptionKey {
 pub struct ImportInstanceRequest {
     /// Path to the import folder in Google Cloud Storage, in the form gs://bucketName/folderName.
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// Ingress IP allowlist configuration.
@@ -157,13 +158,14 @@ pub struct ImportInstanceRequest {
 pub struct IngressIpAllowlistConfig {
     /// Optional. List of IP range rules to allow ingress traffic.
     #[serde(default, rename = "allowlistRules")]
-    pub allowlist_rules: Option<Vec<IngressIpAllowlistRule>>,
+    pub allowlist_rules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IngressIpAllowlistRule>>>,
     /// Optional. Whether ingress IP allowlist functionality is enabled on the Looker instance.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Optional. Whether google service connections are enabled for the instance.
     #[serde(default, rename = "googleServicesEnabled")]
-    pub google_services_enabled: Option<bool>,
+    pub google_services_enabled: ::core::option::Option<bool>,
 }
 
 /// Ingress IP allowlist rule.
@@ -171,10 +173,10 @@ pub struct IngressIpAllowlistConfig {
 pub struct IngressIpAllowlistRule {
     /// Optional. Description for the IP range.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. The IP range to allow ingress traffic from.
     #[serde(default, rename = "ipRange")]
-    pub ip_range: Option<String>,
+    pub ip_range: ::core::option::Option<String>,
 }
 
 /// A Looker instance.
@@ -182,112 +184,114 @@ pub struct IngressIpAllowlistRule {
 pub struct Instance {
     /// Looker Instance Admin settings.
     #[serde(default, rename = "adminSettings")]
-    pub admin_settings: Option<AdminSettings>,
+    pub admin_settings: ::core::option::Option<::std::boxed::Box<AdminSettings>>,
     /// Optional. Indicates whether catalog integration is disabled for the Looker instance.
     #[serde(default, rename = "catalogIntegrationOptOut")]
-    pub catalog_integration_opt_out: Option<bool>,
+    pub catalog_integration_opt_out: ::core::option::Option<bool>,
     /// Optional. Storage class of the instance. // TODO: enum values: ["CLASS_TYPE_UNSPECIFIED", "R1", "P1"]
     #[serde(default, rename = "classType")]
-    pub class_type: Option<String>,
+    pub class_type: ::core::option::Option<String>,
     /// Network name in the consumer project. Format: projects/{project}/global/networks/{network}. Note that the consumer network may be in a different GCP project than the consumer project that is hosting the Looker Instance.
     #[serde(default, rename = "consumerNetwork")]
-    pub consumer_network: Option<String>,
+    pub consumer_network: ::core::option::Option<String>,
     /// Optional. Controlled egress configuration.
     #[serde(default, rename = "controlledEgressConfig")]
-    pub controlled_egress_config: Option<ControlledEgressConfig>,
+    pub controlled_egress_config: ::core::option::Option<::std::boxed::Box<ControlledEgressConfig>>,
     /// Optional. Whether controlled egress is enabled on the Looker instance.
     #[serde(default, rename = "controlledEgressEnabled")]
-    pub controlled_egress_enabled: Option<bool>,
+    pub controlled_egress_enabled: ::core::option::Option<bool>,
     /// Output only. The time when the Looker instance provisioning was first requested.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Custom domain configuration for the instance.
     #[serde(default, rename = "customDomain")]
-    pub custom_domain: Option<CustomDomain>,
+    pub custom_domain: ::core::option::Option<::std::boxed::Box<CustomDomain>>,
     /// Maintenance denial period for this instance.
     #[serde(default, rename = "denyMaintenancePeriod")]
-    pub deny_maintenance_period: Option<DenyMaintenancePeriod>,
+    pub deny_maintenance_period: ::core::option::Option<::std::boxed::Box<DenyMaintenancePeriod>>,
     /// Output only. Public Egress IP (IPv4).
     #[serde(default, rename = "egressPublicIp")]
-    pub egress_public_ip: Option<String>,
+    pub egress_public_ip: ::core::option::Option<String>,
     /// Encryption configuration (CMEK). Only set if CMEK has been enabled on the instance.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<EncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<EncryptionConfig>>,
     /// Optional. Whether FIPS is enabled on the Looker instance.
     #[serde(default, rename = "fipsEnabled")]
-    pub fips_enabled: Option<bool>,
+    pub fips_enabled: ::core::option::Option<bool>,
     /// Optional. Whether Gemini feature is enabled on the Looker instance or not.
     #[serde(default, rename = "geminiEnabled")]
-    pub gemini_enabled: Option<bool>,
+    pub gemini_enabled: ::core::option::Option<bool>,
     /// Optional. Ingress IP allowlist configuration for the Looker instance.
     #[serde(default, rename = "ingressIpAllowlistConfig")]
-    pub ingress_ip_allowlist_config: Option<IngressIpAllowlistConfig>,
+    pub ingress_ip_allowlist_config:
+        ::core::option::Option<::std::boxed::Box<IngressIpAllowlistConfig>>,
     /// Output only. Private Ingress IP (IPv4).
     #[serde(default, rename = "ingressPrivateIp")]
-    pub ingress_private_ip: Option<String>,
+    pub ingress_private_ip: ::core::option::Option<String>,
     /// Output only. Public Ingress IP (IPv4).
     #[serde(default, rename = "ingressPublicIp")]
-    pub ingress_public_ip: Option<String>,
+    pub ingress_public_ip: ::core::option::Option<String>,
     /// Output only. Last computed maintenance denial period for this instance.
     #[serde(default, rename = "lastDenyMaintenancePeriod")]
-    pub last_deny_maintenance_period: Option<DenyMaintenancePeriod>,
+    pub last_deny_maintenance_period:
+        ::core::option::Option<::std::boxed::Box<DenyMaintenancePeriod>>,
     /// Optional. Linked Google Cloud Project Number for Looker Studio Pro.
     #[serde(default, rename = "linkedLspProjectNumber")]
-    pub linked_lsp_project_number: Option<String>,
+    pub linked_lsp_project_number: ::core::option::Option<String>,
     /// Output only. Looker instance URI which can be used to access the Looker Instance UI.
     #[serde(default, rename = "lookerUri")]
-    pub looker_uri: Option<String>,
+    pub looker_uri: ::core::option::Option<String>,
     /// Output only. The Looker version that the instance is using.
     #[serde(default, rename = "lookerVersion")]
-    pub looker_version: Option<String>,
+    pub looker_version: ::core::option::Option<String>,
     /// Maintenance schedule for this instance.
     #[serde(default, rename = "maintenanceSchedule")]
-    pub maintenance_schedule: Option<MaintenanceSchedule>,
+    pub maintenance_schedule: ::core::option::Option<::std::boxed::Box<MaintenanceSchedule>>,
     /// Maintenance window for this instance.
     #[serde(default, rename = "maintenanceWindow")]
-    pub maintenance_window: Option<MaintenanceWindow>,
+    pub maintenance_window: ::core::option::Option<::std::boxed::Box<MaintenanceWindow>>,
     /// Output only. Format: projects/{project}/locations/{location}/instances/{instance}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Looker instance OAuth login settings.
     #[serde(default, rename = "oauthConfig")]
-    pub oauth_config: Option<OAuthConfig>,
+    pub oauth_config: ::core::option::Option<::std::boxed::Box<OAuthConfig>>,
     /// Optional. Configuration for periodic export.
     #[serde(default, rename = "periodicExportConfig")]
-    pub periodic_export_config: Option<PeriodicExportConfig>,
+    pub periodic_export_config: ::core::option::Option<::std::boxed::Box<PeriodicExportConfig>>,
     /// Platform edition. // TODO: enum values: ["PLATFORM_EDITION_UNSPECIFIED", "LOOKER_CORE_TRIAL", "LOOKER_CORE_STANDARD", "LOOKER_CORE_STANDARD_ANNUAL", "LOOKER_CORE_ENTERPRISE_ANNUAL", "LOOKER_CORE_EMBED_ANNUAL", "LOOKER_CORE_NONPROD_STANDARD_ANNUAL", "LOOKER_CORE_NONPROD_ENTERPRISE_ANNUAL", "LOOKER_CORE_NONPROD_EMBED_ANNUAL", "LOOKER_CORE_TRIAL_STANDARD", "LOOKER_CORE_TRIAL_ENTERPRISE", "LOOKER_CORE_TRIAL_EMBED"]
     #[serde(default, rename = "platformEdition")]
-    pub platform_edition: Option<String>,
+    pub platform_edition: ::core::option::Option<String>,
     /// Whether private IP is enabled on the Looker instance.
     #[serde(default, rename = "privateIpEnabled")]
-    pub private_ip_enabled: Option<bool>,
+    pub private_ip_enabled: ::core::option::Option<bool>,
     /// Optional. PSC configuration. Used when psc_enabled is true.
     #[serde(default, rename = "pscConfig")]
-    pub psc_config: Option<PscConfig>,
+    pub psc_config: ::core::option::Option<::std::boxed::Box<PscConfig>>,
     /// Optional. Whether to use Private Service Connect (PSC) for private IP connectivity. If true, neither public_ip_enabled nor private_ip_enabled can be true.
     #[serde(default, rename = "pscEnabled")]
-    pub psc_enabled: Option<bool>,
+    pub psc_enabled: ::core::option::Option<bool>,
     /// Whether public IP is enabled on the Looker instance.
     #[serde(default, rename = "publicIpEnabled")]
-    pub public_ip_enabled: Option<bool>,
+    pub public_ip_enabled: ::core::option::Option<bool>,
     /// Name of a reserved IP address range within the Instance.consumer_network, to be used for private services access connection. May or may not be specified in a create request.
     #[serde(default, rename = "reservedRange")]
-    pub reserved_range: Option<String>,
+    pub reserved_range: ::core::option::Option<String>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. The state of the instance. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "FAILED", "SUSPENDED", "UPDATING", "DELETING", "EXPORTING", "IMPORTING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time when the Looker instance was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. User metadata.
     #[serde(default, rename = "userMetadata")]
-    pub user_metadata: Option<UserMetadata>,
+    pub user_metadata: ::core::option::Option<::std::boxed::Box<UserMetadata>>,
 }
 
 /// The details of a backup resource.
@@ -295,19 +299,19 @@ pub struct Instance {
 pub struct InstanceBackup {
     /// Output only. The time when the backup was started.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Current status of the CMEK encryption
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<EncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<EncryptionConfig>>,
     /// Output only. The time when the backup will be deleted.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Immutable. The relative resource name of the backup, in the following form: projects/{project_number}/locations/{location_id}/instances/{instance_id}/backups/{backup}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "ACTIVE", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Response from listing Looker instance backups.
@@ -315,13 +319,14 @@ pub struct InstanceBackup {
 pub struct ListInstanceBackupsResponse {
     /// The list of instances matching the request filters, up to the requested page_size.
     #[serde(default, rename = "instanceBackups")]
-    pub instance_backups: Option<Vec<InstanceBackup>>,
+    pub instance_backups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstanceBackup>>>,
     /// If provided, a page token that can look up the next page_size results. If empty, the results list is exhausted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response from ListInstances.
@@ -329,13 +334,13 @@ pub struct ListInstanceBackupsResponse {
 pub struct ListInstancesResponse {
     /// The list of instances matching the request filters, up to the requested ListInstancesRequest.pageSize.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// If provided, a page token that can look up the next ListInstancesRequest.pageSize results. If empty, the results list is exhausted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -343,10 +348,10 @@ pub struct ListInstancesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -354,13 +359,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -368,19 +373,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Published upcoming future maintenance schedule.
@@ -388,10 +393,10 @@ pub struct Location {
 pub struct MaintenanceSchedule {
     /// The scheduled end time for the maintenance.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The scheduled start time for the maintenance.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Specifies the recurring maintenance window.
@@ -399,10 +404,10 @@ pub struct MaintenanceSchedule {
 pub struct MaintenanceWindow {
     /// Required. Day of the week for this MaintenanceWindow (in UTC). // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: Option<String>,
+    pub day_of_week: ::core::option::Option<String>,
     /// Required. Time in UTC when the period starts. Maintenance will be scheduled within 60 minutes.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Looker instance OAuth login settings.
@@ -410,13 +415,13 @@ pub struct MaintenanceWindow {
 pub struct OAuthConfig {
     /// Input only. Client ID from an external OAuth application. This is an input-only field, and thus will not be set in any responses.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Input only. Client secret from an external OAuth application. This is an input-only field, and thus will not be set in any responses.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// Optional. Whether to use the shared OAuth client. Instances specifying this field do not need to provide client_id and client_secret.
     #[serde(default, rename = "sharedOauthClientEnabled")]
-    pub shared_oauth_client_enabled: Option<bool>,
+    pub shared_oauth_client_enabled: ::core::option::Option<bool>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -424,19 +429,19 @@ pub struct OAuthConfig {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -444,25 +449,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Configuration for periodic export.
@@ -470,13 +475,13 @@ pub struct OperationMetadata {
 pub struct PeriodicExportConfig {
     /// Required. Cloud Storage bucket URI for periodic export. Format: gs://{bucket_name}
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
     /// Required. Name of the CMEK key in KMS. Format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Required. Time in UTC to start the periodic export job.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Information for Private Service Connect (PSC) setup for a Looker instance.
@@ -484,13 +489,14 @@ pub struct PeriodicExportConfig {
 pub struct PscConfig {
     /// Optional. List of VPCs that are allowed ingress into looker. Format: projects/{project}/global/networks/{network}
     #[serde(default, rename = "allowedVpcs")]
-    pub allowed_vpcs: Option<Vec<String>>,
+    pub allowed_vpcs: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. URI of the Looker service attachment.
     #[serde(default, rename = "lookerServiceAttachmentUri")]
-    pub looker_service_attachment_uri: Option<String>,
+    pub looker_service_attachment_uri: ::core::option::Option<String>,
     /// Optional. List of egress service attachment configurations.
     #[serde(default, rename = "serviceAttachments")]
-    pub service_attachments: Option<Vec<ServiceAttachment>>,
+    pub service_attachments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceAttachment>>>,
 }
 
 /// Request options for restoring an instance
@@ -498,7 +504,7 @@ pub struct PscConfig {
 pub struct RestoreInstanceRequest {
     /// Required. Backup being used to restore the instance Format: projects/{project}/locations/{location}/instances/{instance}/backups/{backup}
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
 }
 
 /// Service attachment configuration.
@@ -506,19 +512,19 @@ pub struct RestoreInstanceRequest {
 pub struct ServiceAttachment {
     /// Output only. Connection status. // TODO: enum values: ["UNKNOWN", "ACCEPTED", "PENDING", "REJECTED", "NEEDS_ATTENTION", "CLOSED"]
     #[serde(default, rename = "connectionStatus")]
-    pub connection_status: Option<String>,
+    pub connection_status: ::core::option::Option<String>,
     /// Output only. Reason the service attachment creation failed. This value will only be populated if the service attachment encounters an issue during provisioning.
     #[serde(default, rename = "failureReason")]
-    pub failure_reason: Option<String>,
+    pub failure_reason: ::core::option::Option<String>,
     /// Optional. Fully qualified domain name that will be used in the private DNS record created for the service attachment.
     #[serde(default, rename = "localFqdn")]
-    pub local_fqdn: Option<String>,
+    pub local_fqdn: ::core::option::Option<String>,
     /// Optional. List of fully qualified domain names that will be used in the private DNS record created for the service attachment.
     #[serde(default, rename = "localFqdns")]
-    pub local_fqdns: Option<Vec<String>>,
+    pub local_fqdns: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. URI of the service attachment to connect to. Format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment}
     #[serde(default, rename = "targetServiceAttachmentUri")]
-    pub target_service_attachment_uri: Option<String>,
+    pub target_service_attachment_uri: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -526,13 +532,13 @@ pub struct ServiceAttachment {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -540,16 +546,16 @@ pub struct Status {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// Metadata about users for a Looker instance.
@@ -557,11 +563,11 @@ pub struct TimeOfDay {
 pub struct UserMetadata {
     /// Optional. The number of additional developer users the instance owner has purchased.
     #[serde(default, rename = "additionalDeveloperUserCount")]
-    pub additional_developer_user_count: Option<i32>,
+    pub additional_developer_user_count: ::core::option::Option<i32>,
     /// Optional. The number of additional standard users the instance owner has purchased.
     #[serde(default, rename = "additionalStandardUserCount")]
-    pub additional_standard_user_count: Option<i32>,
+    pub additional_standard_user_count: ::core::option::Option<i32>,
     /// Optional. The number of additional viewer users the instance owner has purchased.
     #[serde(default, rename = "additionalViewerUserCount")]
-    pub additional_viewer_user_count: Option<i32>,
+    pub additional_viewer_user_count: ::core::option::Option<i32>,
 }

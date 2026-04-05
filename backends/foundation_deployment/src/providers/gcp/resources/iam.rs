@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Operation metadata returned by the CLH during resource state reconciliation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloudControl2SharedOperationsReconciliationOperationMetadata {
     /// DEPRECATED. Use exclusive_action instead.
     #[serde(default, rename = "deleteResource")]
-    pub delete_resource: Option<bool>,
+    pub delete_resource: ::core::option::Option<bool>,
     /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
     #[serde(default, rename = "exclusiveAction")]
-    pub exclusive_action: Option<String>,
+    pub exclusive_action: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -29,25 +29,25 @@ pub struct CloudControl2SharedOperationsReconciliationOperationMetadata {
 pub struct GoogleCloudCommonOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Audit log information specific to Cloud IAM admin APIs. This message is serialized as an Any type in the ServiceData message of an AuditLog message.
@@ -55,7 +55,8 @@ pub struct GoogleCloudCommonOperationMetadata {
 pub struct GoogleIamAdminV1AuditData {
     /// The permission_delta when when creating or updating a Role.
     #[serde(default, rename = "permissionDelta")]
-    pub permission_delta: Option<GoogleIamAdminV1AuditDataPermissionDelta>,
+    pub permission_delta:
+        ::core::option::Option<::std::boxed::Box<GoogleIamAdminV1AuditDataPermissionDelta>>,
 }
 
 /// A PermissionDelta message to record the added_permissions and removed_permissions inside a role.
@@ -63,10 +64,10 @@ pub struct GoogleIamAdminV1AuditData {
 pub struct GoogleIamAdminV1AuditDataPermissionDelta {
     /// Added permissions.
     #[serde(default, rename = "addedPermissions")]
-    pub added_permissions: Option<Vec<String>>,
+    pub added_permissions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Removed permissions.
     #[serde(default, rename = "removedPermissions")]
-    pub removed_permissions: Option<Vec<String>>,
+    pub removed_permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// One delta entry for Binding. Each individual change (only one member in each entry) to a binding will be a separate entry.
@@ -74,16 +75,16 @@ pub struct GoogleIamAdminV1AuditDataPermissionDelta {
 pub struct GoogleIamV1BindingDelta {
     /// The action that was performed on a Binding. Required // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// The condition that is associated with this binding.
     #[serde(default)]
-    pub condition: Option<GoogleTypeExpr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<GoogleTypeExpr>>,
     /// A single identity requesting access for a Google Cloud resource. Follows the same format of Binding.members. Required
     #[serde(default)]
-    pub member: Option<String>,
+    pub member: ::core::option::Option<String>,
     /// Role that is assigned to members. For example, roles/viewer, roles/editor, or roles/owner. Required
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Audit log information specific to Cloud IAM. This message is serialized as an Any type in the ServiceData message of an AuditLog message.
@@ -91,7 +92,7 @@ pub struct GoogleIamV1BindingDelta {
 pub struct GoogleIamV1LoggingAuditData {
     /// Policy delta between the original policy and the newly set policy.
     #[serde(default, rename = "policyDelta")]
-    pub policy_delta: Option<GoogleIamV1PolicyDelta>,
+    pub policy_delta: ::core::option::Option<::std::boxed::Box<GoogleIamV1PolicyDelta>>,
 }
 
 /// The difference delta between two policies.
@@ -99,7 +100,8 @@ pub struct GoogleIamV1LoggingAuditData {
 pub struct GoogleIamV1PolicyDelta {
     /// The delta for Bindings between two policies.
     #[serde(default, rename = "bindingDeltas")]
-    pub binding_deltas: Option<Vec<GoogleIamV1BindingDelta>>,
+    pub binding_deltas:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV1BindingDelta>>>,
 }
 
 /// A deny rule in an IAM deny policy.
@@ -107,19 +109,19 @@ pub struct GoogleIamV1PolicyDelta {
 pub struct GoogleIamV2DenyRule {
     /// The condition that determines whether this deny rule applies to a request. If the condition expression evaluates to true, then the deny rule is applied; otherwise, the deny rule is not applied. Each deny rule is evaluated independently. If this deny rule does not apply to a request, other deny rules might still apply. The condition can use CEL functions that evaluate [resource tags](https://cloud.google.com/iam/help/conditions/resource-tags). Other functions and operators are not supported.
     #[serde(default, rename = "denialCondition")]
-    pub denial_condition: Option<GoogleTypeExpr>,
+    pub denial_condition: ::core::option::Option<::std::boxed::Box<GoogleTypeExpr>>,
     /// The permissions that are explicitly denied by this rule. Each permission uses the format {service_fqdn}/{resource}.{verb}, where {service_fqdn} is the fully qualified domain name for the service. For example, iam.googleapis.com/roles.list.
     #[serde(default, rename = "deniedPermissions")]
-    pub denied_permissions: Option<Vec<String>>,
+    pub denied_permissions: ::core::option::Option<::std::vec::Vec<String>>,
     ///  The identities that are prevented from using one or more permissions on Google Cloud resources. This field can contain the following values: * principal://goog/subject/{email_id}: A specific Google Account. Includes Gmail, Cloud Identity, and Google Workspace user accounts. For example, principal://goog/subject/alice@example.com. * principal://iam.googleapis.com/projects/-/serviceAccounts/{service_account_id}: A Google Cloud service account. For example, principal://iam.googleapis.com/projects/-/serviceAccounts/my-service-account@iam.gserviceaccount.com. * principalSet://goog/group/{group_id}: A Google group. For example, principalSet://goog/group/admins@example.com. * principalSet://goog/public:all: A special identifier that represents any principal that is on the internet, even if they do not have a Google Account or are not logged in. * principalSet://goog/cloudIdentityCustomerId/{customer_id}: All of the principals associated with the specified Google Workspace or Cloud Identity customer ID. For example, principalSet://goog/cloudIdentityCustomerId/C01Abc35. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * principalSet://cloudresourcemanager.googleapis.com/[projects|folders|organizations]/{project_number|folder_number|org_number}/type/ServiceAccount: All service accounts grouped under a resource (project, folder, or organization). * principalSet://cloudresourcemanager.googleapis.com/[projects|folders|organizations]/{project_number|folder_number|org_number}/type/ServiceAgent: All service agents grouped under a resource (project, folder, or organization). * deleted:principal://goog/subject/{email_id}?uid={uid}: A specific Google Account that was deleted recently. For example, deleted:principal://goog/subject/alice@example.com?uid=1234567890. If the Google Account is recovered, this identifier reverts to the standard identifier for a Google Account. * deleted:principalSet://goog/group/{group_id}?uid={uid}: A Google group that was deleted recently. For example, deleted:principalSet://goog/group/admins@example.com?uid=1234567890. If the Google group is restored, this identifier reverts to the standard identifier for a Google group. * deleted:principal://iam.googleapis.com/projects/-/serviceAccounts/{service_account_id}?uid={uid}: A Google Cloud service account that was deleted recently. For example, deleted:principal://iam.googleapis.com/projects/-/serviceAccounts/my-service-account@iam.gserviceaccount.com?uid=1234567890. If the service account is undeleted, this identifier reverts to the standard identifier for a service account. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default, rename = "deniedPrincipals")]
-    pub denied_principals: Option<Vec<String>>,
+    pub denied_principals: ::core::option::Option<::std::vec::Vec<String>>,
     /// Specifies the permissions that this rule excludes from the set of denied permissions given by denied_permissions. If a permission appears in denied_permissions _and_ in exception_permissions then it will _not_ be denied. The excluded permissions can be specified using the same syntax as denied_permissions.
     #[serde(default, rename = "exceptionPermissions")]
-    pub exception_permissions: Option<Vec<String>>,
+    pub exception_permissions: ::core::option::Option<::std::vec::Vec<String>>,
     /// The identities that are excluded from the deny rule, even if they are listed in the denied_principals. For example, you could add a Google group to the denied_principals, then exclude specific users who belong to that group. This field can contain the same values as the denied_principals field, excluding principalSet://goog/public:all, which represents all users on the internet.
     #[serde(default, rename = "exceptionPrincipals")]
-    pub exception_principals: Option<Vec<String>>,
+    pub exception_principals: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListPolicies.
@@ -127,10 +129,10 @@ pub struct GoogleIamV2DenyRule {
 pub struct GoogleIamV2ListPoliciesResponse {
     /// A page token that you can use in a ListPoliciesRequest to retrieve the next page. If this field is omitted, there are no additional pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Metadata for the policies that are attached to the resource.
     #[serde(default)]
-    pub policies: Option<Vec<GoogleIamV2Policy>>,
+    pub policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV2Policy>>>,
 }
 
 /// Data for an IAM policy.
@@ -138,34 +140,34 @@ pub struct GoogleIamV2ListPoliciesResponse {
 pub struct GoogleIamV2Policy {
     /// A key-value map to store arbitrary metadata for the Policy. Keys can be up to 63 characters. Values can be up to 255 characters.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. The time when the Policy was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time when the Policy was deleted. Empty if the policy is not deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// A user-specified description of the Policy. This value can be up to 63 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// An opaque tag that identifies the current version of the Policy. IAM uses this value to help manage concurrent updates, so they do not cause one update to be overwritten by another. If this field is present in a CreatePolicyRequest, the value is ignored.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. The kind of the Policy. Always contains the value DenyPolicy.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Immutable. The resource name of the Policy, which must be unique. Format: policies/{attachment_point}/denypolicies/{policy_id} The attachment point is identified by its URL-encoded full resource name, which means that the forward-slash character, /, must be written as %2F. For example, policies/cloudresourcemanager.googleapis.com%2Fprojects%2Fmy-project/denypolicies/my-deny-policy. For organizations and folders, use the numeric ID in the full resource name. For projects, requests can use the alphanumeric or the numeric ID. Responses always contain the numeric ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A list of rules that specify the behavior of the Policy. All of the rules should be of the kind specified in the Policy.
     #[serde(default)]
-    pub rules: Option<Vec<GoogleIamV2PolicyRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV2PolicyRule>>>,
     /// Immutable. The globally unique ID of the Policy. Assigned automatically when the Policy is created.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The time when the Policy was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Metadata for long-running Policy operations.
@@ -173,7 +175,7 @@ pub struct GoogleIamV2Policy {
 pub struct GoogleIamV2PolicyOperationMetadata {
     /// Timestamp when the google.longrunning.Operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
 }
 
 /// A single rule in a Policy.
@@ -181,10 +183,10 @@ pub struct GoogleIamV2PolicyOperationMetadata {
 pub struct GoogleIamV2PolicyRule {
     /// A rule for a deny policy.
     #[serde(default, rename = "denyRule")]
-    pub deny_rule: Option<GoogleIamV2DenyRule>,
+    pub deny_rule: ::core::option::Option<::std::boxed::Box<GoogleIamV2DenyRule>>,
     /// A user-specified description of the rule. This value can be up to 256 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -192,25 +194,25 @@ pub struct GoogleIamV2PolicyRule {
 pub struct GoogleIamV3OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -218,25 +220,25 @@ pub struct GoogleIamV3OperationMetadata {
 pub struct GoogleIamV3alphaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -244,25 +246,25 @@ pub struct GoogleIamV3alphaOperationMetadata {
 pub struct GoogleIamV3betaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -270,25 +272,25 @@ pub struct GoogleIamV3betaOperationMetadata {
 pub struct GoogleIamV3mainOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -296,19 +298,19 @@ pub struct GoogleIamV3mainOperationMetadata {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -316,13 +318,13 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -330,14 +332,14 @@ pub struct GoogleRpcStatus {
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }

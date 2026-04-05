@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Describes configuration of a single bucket and its objects to be transformed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bucket {
     /// Required. Bucket name for the objects to be transformed.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Specifies objects in a manifest file.
     #[serde(default)]
-    pub manifest: Option<Manifest>,
+    pub manifest: ::core::option::Option<::std::boxed::Box<Manifest>>,
     /// Specifies objects matching a prefix set.
     #[serde(default, rename = "prefixList")]
-    pub prefix_list: Option<PrefixList>,
+    pub prefix_list: ::core::option::Option<::std::boxed::Box<PrefixList>>,
 }
 
 /// Describes list of buckets and their objects to be transformed.
@@ -32,7 +32,7 @@ pub struct Bucket {
 pub struct BucketList {
     /// Required. List of buckets and their objects to be transformed. Currently, only one bucket configuration is supported. If multiple buckets are specified, an error will be returned.
     #[serde(default)]
-    pub buckets: Option<Vec<Bucket>>,
+    pub buckets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Bucket>>>,
 }
 
 /// BucketOperation represents a bucket-level breakdown of a Job.
@@ -40,49 +40,50 @@ pub struct BucketList {
 pub struct BucketOperation {
     /// The bucket name of the objects to be transformed in the BucketOperation.
     #[serde(default, rename = "bucketName")]
-    pub bucket_name: Option<String>,
+    pub bucket_name: ::core::option::Option<String>,
     /// Output only. The time that the BucketOperation was completed.
     #[serde(default, rename = "completeTime")]
-    pub complete_time: Option<String>,
+    pub complete_time: ::core::option::Option<String>,
     /// Output only. Information about the progress of the bucket operation.
     #[serde(default)]
-    pub counters: Option<Counters>,
+    pub counters: ::core::option::Option<::std::boxed::Box<Counters>>,
     /// Output only. The time that the BucketOperation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Delete objects.
     #[serde(default, rename = "deleteObject")]
-    pub delete_object: Option<DeleteObject>,
+    pub delete_object: ::core::option::Option<::std::boxed::Box<DeleteObject>>,
     /// Output only. Summarizes errors encountered with sample error log entries.
     #[serde(default, rename = "errorSummaries")]
-    pub error_summaries: Option<Vec<ErrorSummary>>,
+    pub error_summaries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ErrorSummary>>>,
     /// Specifies objects in a manifest file.
     #[serde(default)]
-    pub manifest: Option<Manifest>,
+    pub manifest: ::core::option::Option<::std::boxed::Box<Manifest>>,
     /// Identifier. The resource name of the BucketOperation. This is defined by the service. Format: projects/{project}/locations/global/jobs/{job_id}/bucketOperations/{bucket_operation}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Specifies objects matching a prefix set.
     #[serde(default, rename = "prefixList")]
-    pub prefix_list: Option<PrefixList>,
+    pub prefix_list: ::core::option::Option<::std::boxed::Box<PrefixList>>,
     /// Updates object metadata. Allows updating fixed-key and custom metadata and fixed-key metadata i.e. Cache-Control, Content-Disposition, Content-Encoding, Content-Language, Content-Type, Custom-Time.
     #[serde(default, rename = "putMetadata")]
-    pub put_metadata: Option<PutMetadata>,
+    pub put_metadata: ::core::option::Option<::std::boxed::Box<PutMetadata>>,
     /// Changes object hold status.
     #[serde(default, rename = "putObjectHold")]
-    pub put_object_hold: Option<PutObjectHold>,
+    pub put_object_hold: ::core::option::Option<::std::boxed::Box<PutObjectHold>>,
     /// Rewrite the object and updates metadata like KMS key.
     #[serde(default, rename = "rewriteObject")]
-    pub rewrite_object: Option<RewriteObject>,
+    pub rewrite_object: ::core::option::Option<::std::boxed::Box<RewriteObject>>,
     /// Output only. The time that the BucketOperation was started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. State of the BucketOperation. // TODO: enum values: ["STATE_UNSPECIFIED", "QUEUED", "RUNNING", "SUCCEEDED", "CANCELED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Update object custom context.
     #[serde(default, rename = "updateObjectCustomContext")]
-    pub update_object_custom_context: Option<UpdateObjectCustomContext>,
+    pub update_object_custom_context:
+        ::core::option::Option<::std::boxed::Box<UpdateObjectCustomContext>>,
 }
 
 /// Message for Job to Cancel
@@ -90,7 +91,7 @@ pub struct BucketOperation {
 pub struct CancelJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID in case you need to retry your request. Requests with same request_id will be ignored for at least 60 minutes since the first request. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Describes details about the progress of the job.
@@ -98,25 +99,25 @@ pub struct CancelJobRequest {
 pub struct Counters {
     /// Output only. The number of objects that failed due to user errors or service errors.
     #[serde(default, rename = "failedObjectCount")]
-    pub failed_object_count: Option<String>,
+    pub failed_object_count: ::core::option::Option<String>,
     /// Output only. Number of object custom contexts created. This field is only populated for jobs with the UpdateObjectCustomContext transformation.
     #[serde(default, rename = "objectCustomContextsCreated")]
-    pub object_custom_contexts_created: Option<String>,
+    pub object_custom_contexts_created: ::core::option::Option<String>,
     /// Output only. Number of object custom contexts deleted. This field is only populated for jobs with the UpdateObjectCustomContext transformation.
     #[serde(default, rename = "objectCustomContextsDeleted")]
-    pub object_custom_contexts_deleted: Option<String>,
+    pub object_custom_contexts_deleted: ::core::option::Option<String>,
     /// Output only. Number of object custom contexts updated. This counter tracks custom contexts where the key already existed, but the payload was modified. This field is only populated for jobs with the UpdateObjectCustomContext transformation.
     #[serde(default, rename = "objectCustomContextsUpdated")]
-    pub object_custom_contexts_updated: Option<String>,
+    pub object_custom_contexts_updated: ::core::option::Option<String>,
     /// Output only. Number of objects completed.
     #[serde(default, rename = "succeededObjectCount")]
-    pub succeeded_object_count: Option<String>,
+    pub succeeded_object_count: ::core::option::Option<String>,
     /// Output only. Number of bytes found from source. This field is only populated for jobs with a prefix list object configuration.
     #[serde(default, rename = "totalBytesFound")]
-    pub total_bytes_found: Option<String>,
+    pub total_bytes_found: ::core::option::Option<String>,
     /// Output only. Number of objects listed.
     #[serde(default, rename = "totalObjectCount")]
-    pub total_object_count: Option<String>,
+    pub total_object_count: ::core::option::Option<String>,
 }
 
 /// Describes a collection of updates to apply to custom contexts identified by key.
@@ -124,10 +125,10 @@ pub struct Counters {
 pub struct CustomContextUpdates {
     /// Optional. Custom contexts to clear by key. A key cannot be present in both updates and keys_to_clear.
     #[serde(default, rename = "keysToClear")]
-    pub keys_to_clear: Option<Vec<String>>,
+    pub keys_to_clear: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Insert or update the existing custom contexts.
     #[serde(default)]
-    pub updates: Option<serde_json::Value>,
+    pub updates: ::core::option::Option<serde_json::Value>,
 }
 
 /// Describes options to delete an object.
@@ -135,7 +136,7 @@ pub struct CustomContextUpdates {
 pub struct DeleteObject {
     /// Required. Controls deletion behavior when versioning is enabled for the object''s bucket. If true both live and noncurrent objects will be permanently deleted. Otherwise live objects in versioned buckets will become noncurrent and objects that were already noncurrent will be skipped. This setting doesn''t have any impact on the Soft Delete feature. All objects deleted by this service can be be restored for the duration of the Soft Delete retention duration if enabled. If enabled and the manifest doesn''t specify an object''s generation, a GetObjectMetadata call (a Class B operation) will be made to determine the live object generation.
     #[serde(default, rename = "permanentObjectDeletionEnabled")]
-    pub permanent_object_deletion_enabled: Option<bool>,
+    pub permanent_object_deletion_enabled: ::core::option::Option<bool>,
 }
 
 /// An entry describing an error that has occurred.
@@ -143,10 +144,10 @@ pub struct DeleteObject {
 pub struct ErrorLogEntry {
     /// Optional. Output only. At most 5 error log entries are recorded for a given error code for a job.
     #[serde(default, rename = "errorDetails")]
-    pub error_details: Option<Vec<String>>,
+    pub error_details: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Output only. Object URL. e.g. gs://my_bucket/object.txt
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// A summary of errors by error code, plus a count and sample error log entries.
@@ -154,13 +155,14 @@ pub struct ErrorLogEntry {
 pub struct ErrorSummary {
     /// Required. The canonical error code. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
     /// Required. Number of errors encountered per error_code.
     #[serde(default, rename = "errorCount")]
-    pub error_count: Option<String>,
+    pub error_count: ::core::option::Option<String>,
     /// Required. Sample error logs.
     #[serde(default, rename = "errorLogEntries")]
-    pub error_log_entries: Option<Vec<ErrorLogEntry>>,
+    pub error_log_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ErrorLogEntry>>>,
 }
 
 /// The Storage Batch Operations Job description.
@@ -168,55 +170,56 @@ pub struct ErrorSummary {
 pub struct Job {
     /// Specifies a list of buckets and their objects to be transformed.
     #[serde(default, rename = "bucketList")]
-    pub bucket_list: Option<BucketList>,
+    pub bucket_list: ::core::option::Option<::std::boxed::Box<BucketList>>,
     /// Output only. The time that the job was completed.
     #[serde(default, rename = "completeTime")]
-    pub complete_time: Option<String>,
+    pub complete_time: ::core::option::Option<String>,
     /// Output only. Information about the progress of the job.
     #[serde(default)]
-    pub counters: Option<Counters>,
+    pub counters: ::core::option::Option<::std::boxed::Box<Counters>>,
     /// Output only. The time that the job was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Delete objects.
     #[serde(default, rename = "deleteObject")]
-    pub delete_object: Option<DeleteObject>,
+    pub delete_object: ::core::option::Option<::std::boxed::Box<DeleteObject>>,
     /// Optional. A description provided by the user for the job. Its max length is 1024 bytes when Unicode-encoded.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. If true, the job will run in dry run mode, returning the total object count and, if the object configuration is a prefix list, the bytes found from source. No transformations will be performed.
     #[serde(default, rename = "dryRun")]
-    pub dry_run: Option<bool>,
+    pub dry_run: ::core::option::Option<bool>,
     /// Output only. Summarizes errors encountered with sample error log entries.
     #[serde(default, rename = "errorSummaries")]
-    pub error_summaries: Option<Vec<ErrorSummary>>,
+    pub error_summaries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ErrorSummary>>>,
     /// Output only. If true, this Job operates on multiple buckets. Multibucket jobs are subject to different quota limits than single-bucket jobs.
     #[serde(default, rename = "isMultiBucketJob")]
-    pub is_multi_bucket_job: Option<bool>,
+    pub is_multi_bucket_job: ::core::option::Option<bool>,
     /// Optional. Logging configuration.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// Identifier. The resource name of the Job. job_id is unique within the project, that is either set by the customer or defined by the service. Format: projects/{project}/locations/global/jobs/{job_id} . For example: "projects/123456/locations/global/jobs/job01".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Updates object metadata. Allows updating fixed-key and custom metadata and fixed-key metadata i.e. Cache-Control, Content-Disposition, Content-Encoding, Content-Language, Content-Type, Custom-Time.
     #[serde(default, rename = "putMetadata")]
-    pub put_metadata: Option<PutMetadata>,
+    pub put_metadata: ::core::option::Option<::std::boxed::Box<PutMetadata>>,
     /// Changes object hold status.
     #[serde(default, rename = "putObjectHold")]
-    pub put_object_hold: Option<PutObjectHold>,
+    pub put_object_hold: ::core::option::Option<::std::boxed::Box<PutObjectHold>>,
     /// Rewrite the object and updates metadata like KMS key.
     #[serde(default, rename = "rewriteObject")]
-    pub rewrite_object: Option<RewriteObject>,
+    pub rewrite_object: ::core::option::Option<::std::boxed::Box<RewriteObject>>,
     /// Output only. The time that the job was scheduled.
     #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: Option<String>,
+    pub schedule_time: ::core::option::Option<String>,
     /// Output only. State of the job. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "CANCELED", "FAILED", "QUEUED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Update object custom context.
     #[serde(default, rename = "updateObjectCustomContext")]
-    pub update_object_custom_context: Option<UpdateObjectCustomContext>,
+    pub update_object_custom_context:
+        ::core::option::Option<::std::boxed::Box<UpdateObjectCustomContext>>,
 }
 
 /// Message for response to listing BucketOperations
@@ -224,13 +227,14 @@ pub struct Job {
 pub struct ListBucketOperationsResponse {
     /// A list of storage batch bucket operations.
     #[serde(default, rename = "bucketOperations")]
-    pub bucket_operations: Option<Vec<BucketOperation>>,
+    pub bucket_operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BucketOperation>>>,
     /// A token identifying a page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to listing Jobs
@@ -238,13 +242,13 @@ pub struct ListBucketOperationsResponse {
 pub struct ListJobsResponse {
     /// A list of storage batch jobs.
     #[serde(default)]
-    pub jobs: Option<Vec<Job>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Job>>>,
     /// A token identifying a page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -252,10 +256,10 @@ pub struct ListJobsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -263,13 +267,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -277,19 +281,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Specifies the Cloud Logging behavior.
@@ -297,10 +301,10 @@ pub struct Location {
 pub struct LoggingConfig {
     /// Required. States in which Action are logged.If empty, no logs are generated.
     #[serde(default, rename = "logActionStates")]
-    pub log_action_states: Option<Vec<String>>,
+    pub log_action_states: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Specifies the actions to be logged.
     #[serde(default, rename = "logActions")]
-    pub log_actions: Option<Vec<String>>,
+    pub log_actions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Describes list of objects to be transformed.
@@ -308,7 +312,7 @@ pub struct LoggingConfig {
 pub struct Manifest {
     /// Required. manifest_location must contain the manifest source file that is a CSV file in a Google Cloud Storage bucket. Each row in the file must include the object details i.e. BucketId and Name. Generation may optionally be specified. When it is not specified the live object is acted upon. manifest_location should either be 1) An absolute path to the object in the format of gs://bucket_name/path/file_name.csv. 2) An absolute path with a single wildcard character in the file name, for example gs://bucket_name/path/file_name*.csv. If manifest location is specified with a wildcard, objects in all manifest files matching the pattern will be acted upon.
     #[serde(default, rename = "manifestLocation")]
-    pub manifest_location: Option<String>,
+    pub manifest_location: ::core::option::Option<String>,
 }
 
 /// Describes the payload of a user defined object custom context.
@@ -316,7 +320,7 @@ pub struct Manifest {
 pub struct ObjectCustomContextPayload {
     /// The value of the object custom context. If set, value must NOT be an empty string since it is a required field in custom context. If unset, value will be ignored and no changes will be made to the value field of the custom context payload.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Describes options for object retention update.
@@ -324,10 +328,10 @@ pub struct ObjectCustomContextPayload {
 pub struct ObjectRetention {
     /// Required. The time when the object will be retained until. UNSET will clear the retention. Must be specified in RFC 3339 format e.g. YYYY-MM-DD''T''HH:MM:SS.SS''Z'' or YYYY-MM-DD''T''HH:MM:SS''Z''.
     #[serde(default, rename = "retainUntilTime")]
-    pub retain_until_time: Option<String>,
+    pub retain_until_time: ::core::option::Option<String>,
     /// Required. The retention mode of the object. // TODO: enum values: ["RETENTION_MODE_UNSPECIFIED", "LOCKED", "UNLOCKED"]
     #[serde(default, rename = "retentionMode")]
-    pub retention_mode: Option<String>,
+    pub retention_mode: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -335,19 +339,19 @@ pub struct ObjectRetention {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -355,22 +359,22 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The Job associated with the operation.
     #[serde(default)]
-    pub job: Option<Job>,
+    pub job: ::core::option::Option<::std::boxed::Box<Job>>,
     /// Output only. The unique operation resource name. Format: projects/{project}/locations/global/operations/{operation}.
     #[serde(default)]
-    pub operation: Option<String>,
+    pub operation: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
 }
 
 /// Describes prefixes of objects to be transformed.
@@ -378,7 +382,7 @@ pub struct OperationMetadata {
 pub struct PrefixList {
     /// Optional. Include prefixes of the objects to be transformed. * Supports full object name * Supports prefix of the object name * Wildcards are not supported * Supports empty string for all objects in a bucket.
     #[serde(default, rename = "includedObjectPrefixes")]
-    pub included_object_prefixes: Option<Vec<String>>,
+    pub included_object_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Describes options for object metadata update.
@@ -386,28 +390,28 @@ pub struct PrefixList {
 pub struct PutMetadata {
     /// Optional. Updates objects Cache-Control fixed metadata. Unset values will be ignored. Set empty values to clear the metadata. Additionally, the value for Custom-Time cannot decrease. Refer to documentation in https://cloud.google.com/storage/docs/metadata#caching_data.
     #[serde(default, rename = "cacheControl")]
-    pub cache_control: Option<String>,
+    pub cache_control: ::core::option::Option<String>,
     /// Optional. Updates objects Content-Disposition fixed metadata. Unset values will be ignored. Set empty values to clear the metadata. Refer https://cloud.google.com/storage/docs/metadata#content-disposition for additional documentation.
     #[serde(default, rename = "contentDisposition")]
-    pub content_disposition: Option<String>,
+    pub content_disposition: ::core::option::Option<String>,
     /// Optional. Updates objects Content-Encoding fixed metadata. Unset values will be ignored. Set empty values to clear the metadata. Refer to documentation in https://cloud.google.com/storage/docs/metadata#content-encoding.
     #[serde(default, rename = "contentEncoding")]
-    pub content_encoding: Option<String>,
+    pub content_encoding: ::core::option::Option<String>,
     /// Optional. Updates objects Content-Language fixed metadata. Refer to ISO 639-1 language codes for typical values of this metadata. Max length 100 characters. Unset values will be ignored. Set empty values to clear the metadata. Refer to documentation in https://cloud.google.com/storage/docs/metadata#content-language.
     #[serde(default, rename = "contentLanguage")]
-    pub content_language: Option<String>,
+    pub content_language: ::core::option::Option<String>,
     /// Optional. Updates objects Content-Type fixed metadata. Unset values will be ignored. Set empty values to clear the metadata. Refer to documentation in https://cloud.google.com/storage/docs/metadata#content-type
     #[serde(default, rename = "contentType")]
-    pub content_type: Option<String>,
+    pub content_type: ::core::option::Option<String>,
     /// Optional. Updates objects custom metadata. Adds or sets individual custom metadata key value pairs on objects. Keys that are set with empty custom metadata values will have its value cleared. Existing custom metadata not specified with this flag is not changed. Refer to documentation in https://cloud.google.com/storage/docs/metadata#custom-metadata
     #[serde(default, rename = "customMetadata")]
-    pub custom_metadata: Option<serde_json::Value>,
+    pub custom_metadata: ::core::option::Option<serde_json::Value>,
     /// Optional. Updates objects Custom-Time fixed metadata. Unset values will be ignored. Set empty values to clear the metadata. Refer to documentation in https://cloud.google.com/storage/docs/metadata#custom-time.
     #[serde(default, rename = "customTime")]
-    pub custom_time: Option<String>,
+    pub custom_time: ::core::option::Option<String>,
     /// Optional. Updates objects retention lock configuration. Unset values will be ignored. Set empty values to clear the retention for the object with existing Unlocked retention mode. Object with existing Locked retention mode cannot be cleared or reduce retain_until_time. Refer to documentation in https://cloud.google.com/storage/docs/object-lock
     #[serde(default, rename = "objectRetention")]
-    pub object_retention: Option<ObjectRetention>,
+    pub object_retention: ::core::option::Option<::std::boxed::Box<ObjectRetention>>,
 }
 
 /// Describes options to update object hold.
@@ -415,10 +419,10 @@ pub struct PutMetadata {
 pub struct PutObjectHold {
     /// Required. Updates object event based holds state. When object event based hold is set, object cannot be deleted or replaced. Resets object''s time in the bucket for the purposes of the retention period. // TODO: enum values: ["HOLD_STATUS_UNSPECIFIED", "SET", "UNSET"]
     #[serde(default, rename = "eventBasedHold")]
-    pub event_based_hold: Option<String>,
+    pub event_based_hold: ::core::option::Option<String>,
     /// Required. Updates object temporary holds state. When object temporary hold is set, object cannot be deleted or replaced. // TODO: enum values: ["HOLD_STATUS_UNSPECIFIED", "SET", "UNSET"]
     #[serde(default, rename = "temporaryHold")]
-    pub temporary_hold: Option<String>,
+    pub temporary_hold: ::core::option::Option<String>,
 }
 
 /// Describes options for object rewrite.
@@ -426,7 +430,7 @@ pub struct PutObjectHold {
 pub struct RewriteObject {
     /// Required. Resource name of the Cloud KMS key that will be used to encrypt the object. The Cloud KMS key must be located in same location as the object. Refer to https://cloud.google.com/storage/docs/encryption/using-customer-managed-keys#add-object-key for additional documentation. Format: projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key} For example: "projects/123456/locations/us-central1/keyRings/my-keyring/cryptoKeys/my-key". The object will be rewritten and set with the specified KMS key.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -434,13 +438,13 @@ pub struct RewriteObject {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Describes options to update object custom contexts.
@@ -448,8 +452,8 @@ pub struct Status {
 pub struct UpdateObjectCustomContext {
     /// If set, must be set to true and all existing object custom contexts will be deleted.
     #[serde(default, rename = "clearAll")]
-    pub clear_all: Option<bool>,
+    pub clear_all: ::core::option::Option<bool>,
     /// A collection of updates to apply to specific custom contexts. Use this to add, update or delete individual contexts by key.
     #[serde(default, rename = "customContextUpdates")]
-    pub custom_context_updates: Option<CustomContextUpdates>,
+    pub custom_context_updates: ::core::option::Option<::std::boxed::Box<CustomContextUpdates>>,
 }

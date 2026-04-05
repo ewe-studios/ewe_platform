@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Tracking parameters supported by Dynamic Link.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalyticsInfo {
     /// Google Play Campaign Measurements.
     #[serde(default, rename = "googlePlayAnalytics")]
-    pub google_play_analytics: Option<GooglePlayAnalytics>,
+    pub google_play_analytics: ::core::option::Option<::std::boxed::Box<GooglePlayAnalytics>>,
     /// iTunes Connect App Analytics.
     #[serde(default, rename = "itunesConnectAnalytics")]
-    pub itunes_connect_analytics: Option<ITunesConnectAnalytics>,
+    pub itunes_connect_analytics: ::core::option::Option<::std::boxed::Box<ITunesConnectAnalytics>>,
 }
 
 /// Android related attributes to the Dynamic Link.
@@ -29,16 +29,16 @@ pub struct AnalyticsInfo {
 pub struct AndroidInfo {
     /// Link to open on Android if the app is not installed.
     #[serde(default, rename = "androidFallbackLink")]
-    pub android_fallback_link: Option<String>,
+    pub android_fallback_link: ::core::option::Option<String>,
     /// If specified, this overrides the ‘link’ parameter on Android.
     #[serde(default, rename = "androidLink")]
-    pub android_link: Option<String>,
+    pub android_link: ::core::option::Option<String>,
     /// Minimum version code for the Android app. If the installed app’s version code is lower, then the user is taken to the Play Store.
     #[serde(default, rename = "androidMinPackageVersionCode")]
-    pub android_min_package_version_code: Option<String>,
+    pub android_min_package_version_code: ::core::option::Option<String>,
     /// Android package name of the app.
     #[serde(default, rename = "androidPackageName")]
-    pub android_package_name: Option<String>,
+    pub android_package_name: ::core::option::Option<String>,
 }
 
 /// Request to create a managed Short Dynamic Link.
@@ -46,19 +46,19 @@ pub struct AndroidInfo {
 pub struct CreateManagedShortLinkRequest {
     /// Information about the Dynamic Link to be shortened. [Learn more](https://firebase.google.com/docs/reference/dynamic-links/link-shortener).
     #[serde(default, rename = "dynamicLinkInfo")]
-    pub dynamic_link_info: Option<DynamicLinkInfo>,
+    pub dynamic_link_info: ::core::option::Option<::std::boxed::Box<DynamicLinkInfo>>,
     /// Full long Dynamic Link URL with desired query parameters specified. For example, "https://sample.app.goo.gl/?link=http://www.google.com&apn=com.sample", [Learn more](https://firebase.google.com/docs/reference/dynamic-links/link-shortener).
     #[serde(default, rename = "longDynamicLink")]
-    pub long_dynamic_link: Option<String>,
+    pub long_dynamic_link: ::core::option::Option<String>,
     /// Link name to associate with the link. It''s used for marketer to identify manually-created links in the Firebase console (https://console.firebase.google.com/). Links must be named to be tracked.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Google SDK version. Version takes the form "$major.$minor.$patch"
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<String>,
+    pub sdk_version: ::core::option::Option<String>,
     /// Short Dynamic Link suffix. Optional.
     #[serde(default)]
-    pub suffix: Option<Suffix>,
+    pub suffix: ::core::option::Option<::std::boxed::Box<Suffix>>,
 }
 
 /// Response to create a short Dynamic Link.
@@ -66,13 +66,13 @@ pub struct CreateManagedShortLinkRequest {
 pub struct CreateManagedShortLinkResponse {
     /// Short Dynamic Link value. e.g. https://abcd.app.goo.gl/wxyz
     #[serde(default, rename = "managedShortLink")]
-    pub managed_short_link: Option<ManagedShortLink>,
+    pub managed_short_link: ::core::option::Option<::std::boxed::Box<ManagedShortLink>>,
     /// Preview link to show the link flow chart. (debug info.)
     #[serde(default, rename = "previewLink")]
-    pub preview_link: Option<String>,
+    pub preview_link: ::core::option::Option<String>,
     /// Information about potential warnings on link creation.
     #[serde(default)]
-    pub warning: Option<Vec<DynamicLinkWarning>>,
+    pub warning: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DynamicLinkWarning>>>,
 }
 
 /// Request to create a short Dynamic Link.
@@ -80,16 +80,16 @@ pub struct CreateManagedShortLinkResponse {
 pub struct CreateShortDynamicLinkRequest {
     /// Information about the Dynamic Link to be shortened. [Learn more](https://firebase.google.com/docs/reference/dynamic-links/link-shortener).
     #[serde(default, rename = "dynamicLinkInfo")]
-    pub dynamic_link_info: Option<DynamicLinkInfo>,
+    pub dynamic_link_info: ::core::option::Option<::std::boxed::Box<DynamicLinkInfo>>,
     /// Full long Dynamic Link URL with desired query parameters specified. For example, "https://sample.app.goo.gl/?link=http://www.google.com&apn=com.sample", [Learn more](https://firebase.google.com/docs/reference/dynamic-links/link-shortener).
     #[serde(default, rename = "longDynamicLink")]
-    pub long_dynamic_link: Option<String>,
+    pub long_dynamic_link: ::core::option::Option<String>,
     /// Google SDK version. Version takes the form "$major.$minor.$patch"
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<String>,
+    pub sdk_version: ::core::option::Option<String>,
     /// Short Dynamic Link suffix. Optional.
     #[serde(default)]
-    pub suffix: Option<Suffix>,
+    pub suffix: ::core::option::Option<::std::boxed::Box<Suffix>>,
 }
 
 /// Response to create a short Dynamic Link.
@@ -97,13 +97,13 @@ pub struct CreateShortDynamicLinkRequest {
 pub struct CreateShortDynamicLinkResponse {
     /// Preview link to show the link flow chart. (debug info.)
     #[serde(default, rename = "previewLink")]
-    pub preview_link: Option<String>,
+    pub preview_link: ::core::option::Option<String>,
     /// Short Dynamic Link value. e.g. https://abcd.app.goo.gl/wxyz
     #[serde(default, rename = "shortLink")]
-    pub short_link: Option<String>,
+    pub short_link: ::core::option::Option<String>,
     /// Information about potential warnings on link creation.
     #[serde(default)]
-    pub warning: Option<Vec<DynamicLinkWarning>>,
+    pub warning: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DynamicLinkWarning>>>,
 }
 
 /// Desktop related attributes to the Dynamic Link.
@@ -111,7 +111,7 @@ pub struct CreateShortDynamicLinkResponse {
 pub struct DesktopInfo {
     /// Link to open on desktop.
     #[serde(default, rename = "desktopFallbackLink")]
-    pub desktop_fallback_link: Option<String>,
+    pub desktop_fallback_link: ::core::option::Option<String>,
 }
 
 /// Signals associated with the device making the request.
@@ -119,25 +119,25 @@ pub struct DesktopInfo {
 pub struct DeviceInfo {
     /// Device model name.
     #[serde(default, rename = "deviceModelName")]
-    pub device_model_name: Option<String>,
+    pub device_model_name: ::core::option::Option<String>,
     /// Device language code setting.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Device language code setting obtained by executing JavaScript code in WebView.
     #[serde(default, rename = "languageCodeFromWebview")]
-    pub language_code_from_webview: Option<String>,
+    pub language_code_from_webview: ::core::option::Option<String>,
     /// Device language code raw setting. iOS does returns language code in different format than iOS WebView. For example WebView returns en_US, but iOS returns en-US. Field below will return raw value returned by iOS.
     #[serde(default, rename = "languageCodeRaw")]
-    pub language_code_raw: Option<String>,
+    pub language_code_raw: ::core::option::Option<String>,
     /// Device display resolution height.
     #[serde(default, rename = "screenResolutionHeight")]
-    pub screen_resolution_height: Option<String>,
+    pub screen_resolution_height: ::core::option::Option<String>,
     /// Device display resolution width.
     #[serde(default, rename = "screenResolutionWidth")]
-    pub screen_resolution_width: Option<String>,
+    pub screen_resolution_width: ::core::option::Option<String>,
     /// Device timezone setting.
     #[serde(default)]
-    pub timezone: Option<String>,
+    pub timezone: ::core::option::Option<String>,
 }
 
 /// Dynamic Link event stat.
@@ -145,13 +145,13 @@ pub struct DeviceInfo {
 pub struct DynamicLinkEventStat {
     /// The number of times this event occurred.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Link event. // TODO: enum values: ["DYNAMIC_LINK_EVENT_UNSPECIFIED", "CLICK", "REDIRECT", "APP_INSTALL", "APP_FIRST_OPEN", "APP_RE_OPEN"]
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
     /// Requested platform. // TODO: enum values: ["DYNAMIC_LINK_PLATFORM_UNSPECIFIED", "ANDROID", "IOS", "DESKTOP", "OTHER"]
     #[serde(default)]
-    pub platform: Option<String>,
+    pub platform: ::core::option::Option<String>,
 }
 
 /// Information about a Dynamic Link.
@@ -159,31 +159,31 @@ pub struct DynamicLinkEventStat {
 pub struct DynamicLinkInfo {
     /// Parameters used for tracking. See all tracking parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
     #[serde(default, rename = "analyticsInfo")]
-    pub analytics_info: Option<AnalyticsInfo>,
+    pub analytics_info: ::core::option::Option<::std::boxed::Box<AnalyticsInfo>>,
     /// Android related information. See Android related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
     #[serde(default, rename = "androidInfo")]
-    pub android_info: Option<AndroidInfo>,
+    pub android_info: ::core::option::Option<::std::boxed::Box<AndroidInfo>>,
     /// Desktop related information. See desktop related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
     #[serde(default, rename = "desktopInfo")]
-    pub desktop_info: Option<DesktopInfo>,
+    pub desktop_info: ::core::option::Option<::std::boxed::Box<DesktopInfo>>,
     /// E.g. https://maps.app.goo.gl, https://maps.page.link, https://g.co/maps More examples can be found in description of getNormalizedUriPrefix in j/c/g/firebase/dynamiclinks/uri/DdlDomain.java Will fallback to dynamic_link_domain is this field is missing
     #[serde(default, rename = "domainUriPrefix")]
-    pub domain_uri_prefix: Option<String>,
+    pub domain_uri_prefix: ::core::option::Option<String>,
     /// Dynamic Links domain that the project owns, e.g. abcd.app.goo.gl [Learn more](https://firebase.google.com/docs/dynamic-links/android/receive) on how to set up Dynamic Link domain associated with your Firebase project. Required if missing domain_uri_prefix.
     #[serde(default, rename = "dynamicLinkDomain")]
-    pub dynamic_link_domain: Option<String>,
+    pub dynamic_link_domain: ::core::option::Option<String>,
     /// iOS related information. See iOS related parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
     #[serde(default, rename = "iosInfo")]
-    pub ios_info: Option<IosInfo>,
+    pub ios_info: ::core::option::Option<::std::boxed::Box<IosInfo>>,
     /// The link your app will open, You can specify any URL your app can handle. This link must be a well-formatted URL, be properly URL-encoded, and use the HTTP or HTTPS scheme. See ''link'' parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually). Required.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// Information of navigation behavior of a Firebase Dynamic Links.
     #[serde(default, rename = "navigationInfo")]
-    pub navigation_info: Option<NavigationInfo>,
+    pub navigation_info: ::core::option::Option<::std::boxed::Box<NavigationInfo>>,
     /// Parameters for social meta tag params. Used to set meta tag data for link previews on social sites.
     #[serde(default, rename = "socialMetaTagInfo")]
-    pub social_meta_tag_info: Option<SocialMetaTagInfo>,
+    pub social_meta_tag_info: ::core::option::Option<::std::boxed::Box<SocialMetaTagInfo>>,
 }
 
 /// Analytics stats of a Dynamic Link for a given timeframe.
@@ -191,10 +191,11 @@ pub struct DynamicLinkInfo {
 pub struct DynamicLinkStats {
     /// Dynamic Link event stats.
     #[serde(default, rename = "linkEventStats")]
-    pub link_event_stats: Option<Vec<DynamicLinkEventStat>>,
+    pub link_event_stats:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DynamicLinkEventStat>>>,
     /// Optional warnings associated this API request.
     #[serde(default)]
-    pub warnings: Option<Vec<DynamicLinkWarning>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DynamicLinkWarning>>>,
 }
 
 /// Dynamic Links warning messages.
@@ -202,13 +203,13 @@ pub struct DynamicLinkStats {
 pub struct DynamicLinkWarning {
     /// The warning code. // TODO: enum values: ["CODE_UNSPECIFIED", "NOT_IN_PROJECT_ANDROID_PACKAGE_NAME", "NOT_INTEGER_ANDROID_PACKAGE_MIN_VERSION", "UNNECESSARY_ANDROID_PACKAGE_MIN_VERSION", "NOT_URI_ANDROID_LINK", "UNNECESSARY_ANDROID_LINK", "NOT_URI_ANDROID_FALLBACK_LINK", "BAD_URI_SCHEME_ANDROID_FALLBACK_LINK", "NOT_IN_PROJECT_IOS_BUNDLE_ID", "NOT_IN_PROJECT_IPAD_BUNDLE_ID", "UNNECESSARY_IOS_URL_SCHEME", "NOT_NUMERIC_IOS_APP_STORE_ID", "UNNECESSARY_IOS_APP_STORE_ID", "NOT_URI_IOS_FALLBACK_LINK", "BAD_URI_SCHEME_IOS_FALLBACK_LINK", "NOT_URI_IPAD_FALLBACK_LINK", "BAD_URI_SCHEME_IPAD_FALLBACK_LINK", "BAD_DEBUG_PARAM", "BAD_AD_PARAM", "DEPRECATED_PARAM", "UNRECOGNIZED_PARAM", "TOO_LONG_PARAM", "NOT_URI_SOCIAL_IMAGE_LINK", "BAD_URI_SCHEME_SOCIAL_IMAGE_LINK", "NOT_URI_SOCIAL_URL", "BAD_URI_SCHEME_SOCIAL_URL", "LINK_LENGTH_TOO_LONG", "LINK_WITH_FRAGMENTS", "NOT_MATCHING_IOS_BUNDLE_ID_AND_STORE_ID", "API_DEPRECATED"]
     #[serde(default, rename = "warningCode")]
-    pub warning_code: Option<String>,
+    pub warning_code: ::core::option::Option<String>,
     /// The document describing the warning, and helps resolve.
     #[serde(default, rename = "warningDocumentLink")]
-    pub warning_document_link: Option<String>,
+    pub warning_document_link: ::core::option::Option<String>,
     /// The warning message to help developers improve their requests.
     #[serde(default, rename = "warningMessage")]
-    pub warning_message: Option<String>,
+    pub warning_message: ::core::option::Option<String>,
 }
 
 /// Request for iSDK to execute strong match flow for post-install attribution. This is meant for iOS requests only. Requests from other platforms will not be honored.
@@ -216,28 +217,28 @@ pub struct DynamicLinkWarning {
 pub struct GetIosPostInstallAttributionRequest {
     /// App installation epoch time (https://en.wikipedia.org/wiki/Unix_time). This is a client signal for a more accurate weak match.
     #[serde(default, rename = "appInstallationTime")]
-    pub app_installation_time: Option<String>,
+    pub app_installation_time: ::core::option::Option<String>,
     /// APP bundle ID.
     #[serde(default, rename = "bundleId")]
-    pub bundle_id: Option<String>,
+    pub bundle_id: ::core::option::Option<String>,
     /// Device information.
     #[serde(default)]
-    pub device: Option<DeviceInfo>,
+    pub device: ::core::option::Option<::std::boxed::Box<DeviceInfo>>,
     /// iOS version, ie: 9.3.5. Consider adding "build".
     #[serde(default, rename = "iosVersion")]
-    pub ios_version: Option<String>,
+    pub ios_version: ::core::option::Option<String>,
     /// App post install attribution retrieval information. Disambiguates mechanism (iSDK or developer invoked) to retrieve payload from clicked link. // TODO: enum values: ["UNKNOWN_PAYLOAD_RETRIEVAL_METHOD", "IMPLICIT_WEAK_MATCH", "EXPLICIT_WEAK_MATCH", "EXPLICIT_STRONG_AFTER_WEAK_MATCH"]
     #[serde(default, rename = "retrievalMethod")]
-    pub retrieval_method: Option<String>,
+    pub retrieval_method: ::core::option::Option<String>,
     /// Google SDK version. Version takes the form "$major.$minor.$patch"
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<String>,
+    pub sdk_version: ::core::option::Option<String>,
     /// Possible unique matched link that server need to check before performing device heuristics match. If passed link is short server need to expand the link. If link is long server need to vslidate the link.
     #[serde(default, rename = "uniqueMatchLinkToCheck")]
-    pub unique_match_link_to_check: Option<String>,
+    pub unique_match_link_to_check: ::core::option::Option<String>,
     /// Strong match page information. Disambiguates between default UI and custom page to present when strong match succeeds/fails to find cookie. // TODO: enum values: ["UNKNOWN_VISUAL_STYLE", "DEFAULT_STYLE", "CUSTOM_STYLE"]
     #[serde(default, rename = "visualStyle")]
-    pub visual_style: Option<String>,
+    pub visual_style: ::core::option::Option<String>,
 }
 
 /// Response for iSDK to execute strong match flow for post-install attribution. Information of the resolved FDL link.
@@ -245,52 +246,52 @@ pub struct GetIosPostInstallAttributionRequest {
 pub struct GetIosPostInstallAttributionResponse {
     /// The minimum version for app, specified by dev through ?imv= parameter. Return to iSDK to allow app to evaluate if current version meets this.
     #[serde(default, rename = "appMinimumVersion")]
-    pub app_minimum_version: Option<String>,
+    pub app_minimum_version: ::core::option::Option<String>,
     /// The confidence of the returned attribution. // TODO: enum values: ["UNKNOWN_ATTRIBUTION_CONFIDENCE", "WEAK", "DEFAULT", "UNIQUE"]
     #[serde(default, rename = "attributionConfidence")]
-    pub attribution_confidence: Option<String>,
+    pub attribution_confidence: ::core::option::Option<String>,
     /// The deep-link attributed post-install via one of several techniques (device heuristics, copy unique).
     #[serde(default, rename = "deepLink")]
-    pub deep_link: Option<String>,
+    pub deep_link: ::core::option::Option<String>,
     /// User-agent specific custom-scheme URIs for iSDK to open. This will be set according to the user-agent tha the click was originally made in. There is no Safari-equivalent custom-scheme open URLs. ie: googlechrome://www.example.com ie: firefox://open-url?url=http://www.example.com ie: opera-http://example.com
     #[serde(default, rename = "externalBrowserDestinationLink")]
-    pub external_browser_destination_link: Option<String>,
+    pub external_browser_destination_link: ::core::option::Option<String>,
     /// The link to navigate to update the app if min version is not met. This is either (in order): 1) fallback link (from ?ifl= parameter, if specified by developer) or 2) AppStore URL (from ?isi= parameter, if specified), or 3) the payload link (from required link= parameter).
     #[serde(default, rename = "fallbackLink")]
-    pub fallback_link: Option<String>,
+    pub fallback_link: ::core::option::Option<String>,
     /// Invitation ID attributed post-install via one of several techniques (device heuristics, copy unique).
     #[serde(default, rename = "invitationId")]
-    pub invitation_id: Option<String>,
+    pub invitation_id: ::core::option::Option<String>,
     /// Instruction for iSDK to attemmpt to perform strong match. For instance, if browser does not support/allow cookie or outside of support browsers, this will be false.
     #[serde(default, rename = "isStrongMatchExecutable")]
-    pub is_strong_match_executable: Option<bool>,
+    pub is_strong_match_executable: ::core::option::Option<bool>,
     /// Describes why match failed, ie: "discarded due to low confidence". This message will be publicly visible.
     #[serde(default, rename = "matchMessage")]
-    pub match_message: Option<String>,
+    pub match_message: ::core::option::Option<String>,
     /// Which IP version the request was made from. // TODO: enum values: ["UNKNOWN_IP_VERSION", "IP_V4", "IP_V6"]
     #[serde(default, rename = "requestIpVersion")]
-    pub request_ip_version: Option<String>,
+    pub request_ip_version: ::core::option::Option<String>,
     /// Entire FDL (short or long) attributed post-install via one of several techniques (device heuristics, copy unique).
     #[serde(default, rename = "requestedLink")]
-    pub requested_link: Option<String>,
+    pub requested_link: ::core::option::Option<String>,
     /// The entire FDL, expanded from a short link. It is the same as the requested_link, if it is long. Parameters from this should not be used directly (ie: server can default utm_[campaign|medium|source] to a value when requested_link lack them, server determine the best fallback_link when requested_link specifies &gt;1 fallback links).
     #[serde(default, rename = "resolvedLink")]
-    pub resolved_link: Option<String>,
+    pub resolved_link: ::core::option::Option<String>,
     /// Scion campaign value to be propagated by iSDK to Scion at post-install.
     #[serde(default, rename = "utmCampaign")]
-    pub utm_campaign: Option<String>,
+    pub utm_campaign: ::core::option::Option<String>,
     /// Scion content value to be propagated by iSDK to Scion at app-reopen.
     #[serde(default, rename = "utmContent")]
-    pub utm_content: Option<String>,
+    pub utm_content: ::core::option::Option<String>,
     /// Scion medium value to be propagated by iSDK to Scion at post-install.
     #[serde(default, rename = "utmMedium")]
-    pub utm_medium: Option<String>,
+    pub utm_medium: ::core::option::Option<String>,
     /// Scion source value to be propagated by iSDK to Scion at post-install.
     #[serde(default, rename = "utmSource")]
-    pub utm_source: Option<String>,
+    pub utm_source: ::core::option::Option<String>,
     /// Scion term value to be propagated by iSDK to Scion at app-reopen.
     #[serde(default, rename = "utmTerm")]
-    pub utm_term: Option<String>,
+    pub utm_term: ::core::option::Option<String>,
 }
 
 /// Request for iSDK to get reopen attribution for app universal link open deeplinking. This endpoint is meant for only iOS requests.
@@ -298,13 +299,13 @@ pub struct GetIosPostInstallAttributionResponse {
 pub struct GetIosReopenAttributionRequest {
     /// APP bundle ID.
     #[serde(default, rename = "bundleId")]
-    pub bundle_id: Option<String>,
+    pub bundle_id: ::core::option::Option<String>,
     /// FDL link to be verified from an app universal link open. The FDL link can be one of: 1) short FDL. e.g. .page.link/, or 2) long FDL. e.g. .page.link/?{query params}, or 3) Invite FDL. e.g. .page.link/i/
     #[serde(default, rename = "requestedLink")]
-    pub requested_link: Option<String>,
+    pub requested_link: ::core::option::Option<String>,
     /// Google SDK version. Version takes the form "$major.$minor.$patch"
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<String>,
+    pub sdk_version: ::core::option::Option<String>,
 }
 
 /// Response for iSDK to get reopen attribution for app universal link open deeplinking. This endpoint is meant for only iOS requests.
@@ -312,34 +313,34 @@ pub struct GetIosReopenAttributionRequest {
 pub struct GetIosReopenAttributionResponse {
     /// The deep-link attributed the app universal link open. For both regular FDL links and invite FDL links.
     #[serde(default, rename = "deepLink")]
-    pub deep_link: Option<String>,
+    pub deep_link: ::core::option::Option<String>,
     /// Optional invitation ID, for only invite typed requested FDL links.
     #[serde(default, rename = "invitationId")]
-    pub invitation_id: Option<String>,
+    pub invitation_id: ::core::option::Option<String>,
     /// FDL input value of the "&imv=" parameter, minimum app version to be returned to Google Firebase SDK running on iOS-9.
     #[serde(default, rename = "iosMinAppVersion")]
-    pub ios_min_app_version: Option<String>,
+    pub ios_min_app_version: ::core::option::Option<String>,
     /// The entire FDL, expanded from a short link. It is the same as the requested_link, if it is long.
     #[serde(default, rename = "resolvedLink")]
-    pub resolved_link: Option<String>,
+    pub resolved_link: ::core::option::Option<String>,
     /// Scion campaign value to be propagated by iSDK to Scion at app-reopen.
     #[serde(default, rename = "utmCampaign")]
-    pub utm_campaign: Option<String>,
+    pub utm_campaign: ::core::option::Option<String>,
     /// Scion content value to be propagated by iSDK to Scion at app-reopen.
     #[serde(default, rename = "utmContent")]
-    pub utm_content: Option<String>,
+    pub utm_content: ::core::option::Option<String>,
     /// Scion medium value to be propagated by iSDK to Scion at app-reopen.
     #[serde(default, rename = "utmMedium")]
-    pub utm_medium: Option<String>,
+    pub utm_medium: ::core::option::Option<String>,
     /// Scion source value to be propagated by iSDK to Scion at app-reopen.
     #[serde(default, rename = "utmSource")]
-    pub utm_source: Option<String>,
+    pub utm_source: ::core::option::Option<String>,
     /// Scion term value to be propagated by iSDK to Scion at app-reopen.
     #[serde(default, rename = "utmTerm")]
-    pub utm_term: Option<String>,
+    pub utm_term: ::core::option::Option<String>,
     /// Optional warnings associated this API request.
     #[serde(default)]
-    pub warning: Option<Vec<DynamicLinkWarning>>,
+    pub warning: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DynamicLinkWarning>>>,
 }
 
 /// Parameters for Google Play Campaign Measurements. [Learn more](https://developers.google.com/analytics/devguides/collection/android/v4/campaigns#campaign-params)
@@ -347,22 +348,22 @@ pub struct GetIosReopenAttributionResponse {
 pub struct GooglePlayAnalytics {
     /// Deprecated; FDL SDK does not process nor log it.
     #[serde(default)]
-    pub gclid: Option<String>,
+    pub gclid: ::core::option::Option<String>,
     /// Campaign name; used for keyword analysis to identify a specific product promotion or strategic campaign.
     #[serde(default, rename = "utmCampaign")]
-    pub utm_campaign: Option<String>,
+    pub utm_campaign: ::core::option::Option<String>,
     /// Campaign content; used for A/B testing and content-targeted ads to differentiate ads or links that point to the same URL.
     #[serde(default, rename = "utmContent")]
-    pub utm_content: Option<String>,
+    pub utm_content: ::core::option::Option<String>,
     /// Campaign medium; used to identify a medium such as email or cost-per-click.
     #[serde(default, rename = "utmMedium")]
-    pub utm_medium: Option<String>,
+    pub utm_medium: ::core::option::Option<String>,
     /// Campaign source; used to identify a search engine, newsletter, or other source.
     #[serde(default, rename = "utmSource")]
-    pub utm_source: Option<String>,
+    pub utm_source: ::core::option::Option<String>,
     /// Campaign term; used with paid search to supply the keywords for ads.
     #[serde(default, rename = "utmTerm")]
-    pub utm_term: Option<String>,
+    pub utm_term: ::core::option::Option<String>,
 }
 
 /// Parameters for iTunes Connect App Analytics.
@@ -370,16 +371,16 @@ pub struct GooglePlayAnalytics {
 pub struct ITunesConnectAnalytics {
     /// Affiliate token used to create affiliate-coded links.
     #[serde(default)]
-    pub at: Option<String>,
+    pub at: ::core::option::Option<String>,
     /// Campaign text that developers can optionally add to any link in order to track sales from a specific marketing campaign.
     #[serde(default)]
-    pub ct: Option<String>,
+    pub ct: ::core::option::Option<String>,
     /// iTune media types, including music, podcasts, audiobooks and so on.
     #[serde(default)]
-    pub mt: Option<String>,
+    pub mt: ::core::option::Option<String>,
     /// Provider token that enables analytics for Dynamic Links from within iTunes Connect.
     #[serde(default)]
-    pub pt: Option<String>,
+    pub pt: ::core::option::Option<String>,
 }
 
 /// iOS related attributes to the Dynamic Link..
@@ -387,25 +388,25 @@ pub struct ITunesConnectAnalytics {
 pub struct IosInfo {
     /// iOS App Store ID.
     #[serde(default, rename = "iosAppStoreId")]
-    pub ios_app_store_id: Option<String>,
+    pub ios_app_store_id: ::core::option::Option<String>,
     /// iOS bundle ID of the app.
     #[serde(default, rename = "iosBundleId")]
-    pub ios_bundle_id: Option<String>,
+    pub ios_bundle_id: ::core::option::Option<String>,
     /// Custom (destination) scheme to use for iOS. By default, we’ll use the bundle ID as the custom scheme. Developer can override this behavior using this param.
     #[serde(default, rename = "iosCustomScheme")]
-    pub ios_custom_scheme: Option<String>,
+    pub ios_custom_scheme: ::core::option::Option<String>,
     /// Link to open on iOS if the app is not installed.
     #[serde(default, rename = "iosFallbackLink")]
-    pub ios_fallback_link: Option<String>,
+    pub ios_fallback_link: ::core::option::Option<String>,
     /// iPad bundle ID of the app.
     #[serde(default, rename = "iosIpadBundleId")]
-    pub ios_ipad_bundle_id: Option<String>,
+    pub ios_ipad_bundle_id: ::core::option::Option<String>,
     /// If specified, this overrides the ios_fallback_link value on iPads.
     #[serde(default, rename = "iosIpadFallbackLink")]
-    pub ios_ipad_fallback_link: Option<String>,
+    pub ios_ipad_fallback_link: ::core::option::Option<String>,
     /// iOS minimum version.
     #[serde(default, rename = "iosMinimumVersion")]
-    pub ios_minimum_version: Option<String>,
+    pub ios_minimum_version: ::core::option::Option<String>,
 }
 
 /// Managed Short Link.
@@ -413,22 +414,22 @@ pub struct IosInfo {
 pub struct ManagedShortLink {
     /// Creation timestamp of the short link.
     #[serde(default, rename = "creationTime")]
-    pub creation_time: Option<String>,
+    pub creation_time: ::core::option::Option<String>,
     /// Attributes that have been flagged about this short url.
     #[serde(default, rename = "flaggedAttribute")]
-    pub flagged_attribute: Option<Vec<String>>,
+    pub flagged_attribute: ::core::option::Option<::std::vec::Vec<String>>,
     /// Full Dyamic Link info
     #[serde(default)]
-    pub info: Option<DynamicLinkInfo>,
+    pub info: ::core::option::Option<::std::boxed::Box<DynamicLinkInfo>>,
     /// Short durable link url, for example, "https://sample.app.goo.gl/xyz123". Required.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// Link name defined by the creator. Required.
     #[serde(default, rename = "linkName")]
-    pub link_name: Option<String>,
+    pub link_name: ::core::option::Option<String>,
     /// Visibility status of link. // TODO: enum values: ["UNSPECIFIED_VISIBILITY", "UNARCHIVED", "ARCHIVED", "NEVER_SHOWN"]
     #[serde(default)]
-    pub visibility: Option<String>,
+    pub visibility: ::core::option::Option<String>,
 }
 
 /// Information of navigation behavior.
@@ -436,7 +437,7 @@ pub struct ManagedShortLink {
 pub struct NavigationInfo {
     /// If this option is on, FDL click will be forced to redirect rather than show an interstitial page.
     #[serde(default, rename = "enableForcedRedirect")]
-    pub enable_forced_redirect: Option<bool>,
+    pub enable_forced_redirect: ::core::option::Option<bool>,
 }
 
 /// Parameters for social meta tag params. Used to set meta tag data for link previews on social sites.
@@ -444,13 +445,13 @@ pub struct NavigationInfo {
 pub struct SocialMetaTagInfo {
     /// A short description of the link. Optional.
     #[serde(default, rename = "socialDescription")]
-    pub social_description: Option<String>,
+    pub social_description: ::core::option::Option<String>,
     /// An image url string. Optional.
     #[serde(default, rename = "socialImageLink")]
-    pub social_image_link: Option<String>,
+    pub social_image_link: ::core::option::Option<String>,
     /// Title to be displayed. Optional.
     #[serde(default, rename = "socialTitle")]
-    pub social_title: Option<String>,
+    pub social_title: ::core::option::Option<String>,
 }
 
 /// Short Dynamic Link suffix.
@@ -458,8 +459,8 @@ pub struct SocialMetaTagInfo {
 pub struct Suffix {
     /// Only applies to Option.CUSTOM.
     #[serde(default, rename = "customSuffix")]
-    pub custom_suffix: Option<String>,
+    pub custom_suffix: ::core::option::Option<String>,
     /// Suffix option. // TODO: enum values: ["OPTION_UNSPECIFIED", "UNGUESSABLE", "SHORT", "CUSTOM"]
     #[serde(default)]
-    pub option: Option<String>,
+    pub option: ::core::option::Option<String>,
 }

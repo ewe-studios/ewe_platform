@@ -10,19 +10,19 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A Google Pub/Sub topic where notifications can be published when a location is updated or has a new review. There will be only one notification setting resource per-account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NotificationSetting {
     /// Required. The resource name this setting is for. This is of the form accounts/{account_id}/notificationSetting.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The types of notifications that will be sent to the Pub/Sub topic. To stop receiving notifications entirely, use NotificationSettings.UpdateNotificationSetting with an empty notification_types or set the pubsub_topic to an empty string.
     #[serde(default, rename = "notificationTypes")]
-    pub notification_types: Option<Vec<String>>,
+    pub notification_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The Google Pub/Sub topic that will receive notifications when locations managed by this account are updated. If unset, no notifications will be posted. The account mybusiness-api-pubsub@system.gserviceaccount.com must have at least Publish permissions on the Pub/Sub topic.
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
 }

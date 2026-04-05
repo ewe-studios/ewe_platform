@@ -10,15 +10,17 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Android app information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChromeManagementV1AndroidAppInfo {
     /// Output only. Permissions requested by an Android app.
     #[serde(default)]
-    pub permissions: Option<Vec<GoogleChromeManagementV1AndroidAppPermission>>,
+    pub permissions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1AndroidAppPermission>>,
+    >,
 }
 
 /// Permission requested by an Android app.
@@ -26,7 +28,7 @@ pub struct GoogleChromeManagementV1AndroidAppInfo {
 pub struct GoogleChromeManagementV1AndroidAppPermission {
     /// Output only. The type of the permission.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Resource representing app details.
@@ -34,61 +36,63 @@ pub struct GoogleChromeManagementV1AndroidAppPermission {
 pub struct GoogleChromeManagementV1AppDetails {
     /// Output only. Android app information.
     #[serde(default, rename = "androidAppInfo")]
-    pub android_app_info: Option<GoogleChromeManagementV1AndroidAppInfo>,
+    pub android_app_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1AndroidAppInfo>>,
     /// Output only. Unique store identifier for the item. Examples: "gmbmikajjgmnabiglmofipeabaddhgne" for the Save to Google Drive Chrome extension, "com.google.android.apps.docs" for the Google Drive Android app.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Output only. Chrome Web Store app information.
     #[serde(default, rename = "chromeAppInfo")]
-    pub chrome_app_info: Option<GoogleChromeManagementV1ChromeAppInfo>,
+    pub chrome_app_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1ChromeAppInfo>>,
     /// Output only. App''s description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The uri for the detail page of the item.
     #[serde(default, rename = "detailUri")]
-    pub detail_uri: Option<String>,
+    pub detail_uri: ::core::option::Option<String>,
     /// Output only. App''s display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. First published time.
     #[serde(default, rename = "firstPublishTime")]
-    pub first_publish_time: Option<String>,
+    pub first_publish_time: ::core::option::Option<String>,
     /// Output only. Home page or Website uri.
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<String>,
+    pub homepage_uri: ::core::option::Option<String>,
     /// Output only. A link to an image that can be used as an icon for the product.
     #[serde(default, rename = "iconUri")]
-    pub icon_uri: Option<String>,
+    pub icon_uri: ::core::option::Option<String>,
     /// Output only. Indicates if the app has to be paid for OR has paid content.
     #[serde(default, rename = "isPaidApp")]
-    pub is_paid_app: Option<bool>,
+    pub is_paid_app: ::core::option::Option<bool>,
     /// Output only. Latest published time.
     #[serde(default, rename = "latestPublishTime")]
-    pub latest_publish_time: Option<String>,
+    pub latest_publish_time: ::core::option::Option<String>,
     /// Output only. Format: name=customers/{customer_id}/apps/{chrome|android|web}/{app_id}@{version}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The URI pointing to the privacy policy of the app, if it was provided by the developer. Version-specific field that will only be set when the requested app version is found.
     #[serde(default, rename = "privacyPolicyUri")]
-    pub privacy_policy_uri: Option<String>,
+    pub privacy_policy_uri: ::core::option::Option<String>,
     /// Output only. The publisher of the item.
     #[serde(default)]
-    pub publisher: Option<String>,
+    pub publisher: ::core::option::Option<String>,
     /// Output only. Number of reviews received. Chrome Web Store review information will always be for the latest version of an app.
     #[serde(default, rename = "reviewNumber")]
-    pub review_number: Option<String>,
+    pub review_number: ::core::option::Option<String>,
     /// Output only. The rating of the app (on 5 stars). Chrome Web Store review information will always be for the latest version of an app.
     #[serde(default, rename = "reviewRating")]
-    pub review_rating: Option<f32>,
+    pub review_rating: ::core::option::Option<f32>,
     /// Output only. App version. A new revision is committed whenever a new version of the app is published.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Output only. Information about a partial service error if applicable.
     #[serde(default, rename = "serviceError")]
-    pub service_error: Option<GoogleRpcStatus>,
+    pub service_error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Output only. App type. // TODO: enum values: ["APP_ITEM_TYPE_UNSPECIFIED", "CHROME", "ANDROID", "WEB"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// App report.
@@ -96,10 +100,12 @@ pub struct GoogleChromeManagementV1AppDetails {
 pub struct GoogleChromeManagementV1AppReport {
     /// Timestamp when the report was collected.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// App usage data.
     #[serde(default, rename = "usageData")]
-    pub usage_data: Option<Vec<GoogleChromeManagementV1AppUsageData>>,
+    pub usage_data: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1AppUsageData>>,
+    >,
 }
 
 /// App usage data.
@@ -107,16 +113,16 @@ pub struct GoogleChromeManagementV1AppReport {
 pub struct GoogleChromeManagementV1AppUsageData {
     /// App id.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Application instance id. This will be unique per window/instance.
     #[serde(default, rename = "appInstanceId")]
-    pub app_instance_id: Option<String>,
+    pub app_instance_id: ::core::option::Option<String>,
     /// Type of app. // TODO: enum values: ["TELEMETRY_APPLICATION_TYPE_UNSPECIFIED", "APPLICATION_TYPE_ARC", "APPLICATION_TYPE_BUILT_IN", "APPLICATION_TYPE_CROSTINI", "APPLICATION_TYPE_CHROME_APP", "APPLICATION_TYPE_WEB", "APPLICATION_TYPE_MAC_OS", "APPLICATION_TYPE_PLUGIN_VM", "APPLICATION_TYPE_STANDALONE_BROWSER", "APPLICATION_TYPE_REMOTE", "APPLICATION_TYPE_BOREALIS", "APPLICATION_TYPE_SYSTEM_WEB", "APPLICATION_TYPE_STANDALONE_BROWSER_CHROME_APP", "APPLICATION_TYPE_EXTENSION", "APPLICATION_TYPE_STANDALONE_BROWSER_EXTENSION", "APPLICATION_TYPE_BRUSCHETTA"]
     #[serde(default, rename = "appType")]
-    pub app_type: Option<String>,
+    pub app_type: ::core::option::Option<String>,
     /// App foreground running time.
     #[serde(default, rename = "runningDuration")]
-    pub running_duration: Option<String>,
+    pub running_duration: ::core::option::Option<String>,
 }
 
 /// Status data for storage. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceAudioStatus](https://chromeenterprise.google/policies/#ReportDeviceAudioStatus) * Data Collection Frequency: 10 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_AUDIO_REPORT
@@ -124,25 +130,25 @@ pub struct GoogleChromeManagementV1AppUsageData {
 pub struct GoogleChromeManagementV1AudioStatusReport {
     /// Output only. Active input device''s name.
     #[serde(default, rename = "inputDevice")]
-    pub input_device: Option<String>,
+    pub input_device: ::core::option::Option<String>,
     /// Output only. Active input device''s gain in [0, 100].
     #[serde(default, rename = "inputGain")]
-    pub input_gain: Option<i32>,
+    pub input_gain: ::core::option::Option<i32>,
     /// Output only. Is active input device mute or not.
     #[serde(default, rename = "inputMute")]
-    pub input_mute: Option<bool>,
+    pub input_mute: ::core::option::Option<bool>,
     /// Output only. Active output device''s name.
     #[serde(default, rename = "outputDevice")]
-    pub output_device: Option<String>,
+    pub output_device: ::core::option::Option<String>,
     /// Output only. Is active output device mute or not.
     #[serde(default, rename = "outputMute")]
-    pub output_mute: Option<bool>,
+    pub output_mute: ::core::option::Option<bool>,
     /// Output only. Active output device''s volume in [0, 100].
     #[serde(default, rename = "outputVolume")]
-    pub output_volume: Option<i32>,
+    pub output_volume: ::core::option::Option<i32>,
     /// Output only. Timestamp of when the sample was collected on device.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
 }
 
 /// Information about the battery. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDevicePowerStatus](https://chromeenterprise.google/policies/#ReportDevicePowerStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_BATTERY_INFO
@@ -150,22 +156,22 @@ pub struct GoogleChromeManagementV1AudioStatusReport {
 pub struct GoogleChromeManagementV1BatteryInfo {
     /// Output only. Design capacity (mAmpere-hours).
     #[serde(default, rename = "designCapacity")]
-    pub design_capacity: Option<String>,
+    pub design_capacity: ::core::option::Option<String>,
     /// Output only. Designed minimum output voltage (mV)
     #[serde(default, rename = "designMinVoltage")]
-    pub design_min_voltage: Option<i32>,
+    pub design_min_voltage: ::core::option::Option<i32>,
     /// Output only. The date the battery was manufactured.
     #[serde(default, rename = "manufactureDate")]
-    pub manufacture_date: Option<GoogleTypeDate>,
+    pub manufacture_date: ::core::option::Option<::std::boxed::Box<GoogleTypeDate>>,
     /// Output only. Battery manufacturer.
     #[serde(default)]
-    pub manufacturer: Option<String>,
+    pub manufacturer: ::core::option::Option<String>,
     /// Output only. Battery serial number.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<String>,
+    pub serial_number: ::core::option::Option<String>,
     /// Output only. Technology of the battery. Example: Li-ion
     #[serde(default)]
-    pub technology: Option<String>,
+    pub technology: ::core::option::Option<String>,
 }
 
 /// Sampling data for battery. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDevicePowerStatus](https://chromeenterprise.google/policies/#ReportDevicePowerStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A
@@ -173,28 +179,28 @@ pub struct GoogleChromeManagementV1BatteryInfo {
 pub struct GoogleChromeManagementV1BatterySampleReport {
     /// Output only. Battery charge percentage.
     #[serde(default, rename = "chargeRate")]
-    pub charge_rate: Option<i32>,
+    pub charge_rate: ::core::option::Option<i32>,
     /// Output only. Battery current (mA).
     #[serde(default)]
-    pub current: Option<String>,
+    pub current: ::core::option::Option<String>,
     /// Output only. The battery discharge rate measured in mW. Positive if the battery is being discharged, negative if it''s being charged.
     #[serde(default, rename = "dischargeRate")]
-    pub discharge_rate: Option<i32>,
+    pub discharge_rate: ::core::option::Option<i32>,
     /// Output only. Battery remaining capacity (mAmpere-hours).
     #[serde(default, rename = "remainingCapacity")]
-    pub remaining_capacity: Option<String>,
+    pub remaining_capacity: ::core::option::Option<String>,
     /// Output only. Timestamp of when the sample was collected on device
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Output only. Battery status read from sysfs. Example: Discharging
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Output only. Temperature in Celsius degrees.
     #[serde(default)]
-    pub temperature: Option<i32>,
+    pub temperature: ::core::option::Option<i32>,
     /// Output only. Battery voltage (millivolt).
     #[serde(default)]
-    pub voltage: Option<String>,
+    pub voltage: ::core::option::Option<String>,
 }
 
 /// Status data for battery. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDevicePowerStatus](https://chromeenterprise.google/policies/#ReportDevicePowerStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_BATTERY_REPORT
@@ -202,22 +208,24 @@ pub struct GoogleChromeManagementV1BatterySampleReport {
 pub struct GoogleChromeManagementV1BatteryStatusReport {
     /// Output only. Battery health. // TODO: enum values: ["BATTERY_HEALTH_UNSPECIFIED", "BATTERY_HEALTH_NORMAL", "BATTERY_REPLACE_SOON", "BATTERY_REPLACE_NOW"]
     #[serde(default, rename = "batteryHealth")]
-    pub battery_health: Option<String>,
+    pub battery_health: ::core::option::Option<String>,
     /// Output only. Cycle count.
     #[serde(default, rename = "cycleCount")]
-    pub cycle_count: Option<i32>,
+    pub cycle_count: ::core::option::Option<i32>,
     /// Output only. Full charge capacity (mAmpere-hours).
     #[serde(default, rename = "fullChargeCapacity")]
-    pub full_charge_capacity: Option<String>,
+    pub full_charge_capacity: ::core::option::Option<String>,
     /// Output only. Timestamp of when the sample was collected on device
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Output only. Sampling data for the battery sorted in a decreasing order of report_time.
     #[serde(default)]
-    pub sample: Option<Vec<GoogleChromeManagementV1BatterySampleReport>>,
+    pub sample: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1BatterySampleReport>>,
+    >,
     /// Output only. Battery serial number.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<String>,
+    pub serial_number: ::core::option::Option<String>,
 }
 
 /// Boot performance report of a device. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceBootMode](https://chromeenterprise.google/policies/#ReportDeviceBootMode) * Data Collection Frequency: On every boot up event * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_OS_REPORT
@@ -225,22 +233,22 @@ pub struct GoogleChromeManagementV1BatteryStatusReport {
 pub struct GoogleChromeManagementV1BootPerformanceReport {
     /// Total time to boot up.
     #[serde(default, rename = "bootUpDuration")]
-    pub boot_up_duration: Option<String>,
+    pub boot_up_duration: ::core::option::Option<String>,
     /// The timestamp when power came on.
     #[serde(default, rename = "bootUpTime")]
-    pub boot_up_time: Option<String>,
+    pub boot_up_time: ::core::option::Option<String>,
     /// Timestamp when the report was collected.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Total time since shutdown start to power off.
     #[serde(default, rename = "shutdownDuration")]
-    pub shutdown_duration: Option<String>,
+    pub shutdown_duration: ::core::option::Option<String>,
     /// The shutdown reason. // TODO: enum values: ["SHUTDOWN_REASON_UNSPECIFIED", "USER_REQUEST", "SYSTEM_UPDATE", "LOW_BATTERY", "OTHER"]
     #[serde(default, rename = "shutdownReason")]
-    pub shutdown_reason: Option<String>,
+    pub shutdown_reason: ::core::option::Option<String>,
     /// The timestamp when shutdown.
     #[serde(default, rename = "shutdownTime")]
-    pub shutdown_time: Option<String>,
+    pub shutdown_time: ::core::option::Option<String>,
 }
 
 /// Describes a browser version and its install count.
@@ -248,19 +256,19 @@ pub struct GoogleChromeManagementV1BootPerformanceReport {
 pub struct GoogleChromeManagementV1BrowserVersion {
     /// Output only. The release channel of the installed browser. // TODO: enum values: ["RELEASE_CHANNEL_UNSPECIFIED", "CANARY", "DEV", "BETA", "STABLE"]
     #[serde(default)]
-    pub channel: Option<String>,
+    pub channel: ::core::option::Option<String>,
     /// Output only. Count grouped by device_system and major version
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Output only. Version of the system-specified operating system.
     #[serde(default, rename = "deviceOsVersion")]
-    pub device_os_version: Option<String>,
+    pub device_os_version: ::core::option::Option<String>,
     /// Output only. The device operating system. // TODO: enum values: ["DEVICE_SYSTEM_UNSPECIFIED", "SYSTEM_OTHER", "SYSTEM_ANDROID", "SYSTEM_IOS", "SYSTEM_CROS", "SYSTEM_WINDOWS", "SYSTEM_MAC", "SYSTEM_LINUX"]
     #[serde(default)]
-    pub system: Option<String>,
+    pub system: ::core::option::Option<String>,
     /// Output only. The full version of the installed browser.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Chrome Web Store app information.
@@ -268,40 +276,44 @@ pub struct GoogleChromeManagementV1BrowserVersion {
 pub struct GoogleChromeManagementV1ChromeAppInfo {
     /// Output only. Whether the app or extension is built and maintained by Google. Version-specific field that will only be set when the requested app version is found.
     #[serde(default, rename = "googleOwned")]
-    pub google_owned: Option<bool>,
+    pub google_owned: ::core::option::Option<bool>,
     /// Output only. Whether the app or extension is in a published state in the Chrome Web Store.
     #[serde(default, rename = "isCwsHosted")]
-    pub is_cws_hosted: Option<bool>,
+    pub is_cws_hosted: ::core::option::Option<bool>,
     /// Output only. Whether an app supports policy for extensions.
     #[serde(default, rename = "isExtensionPolicySupported")]
-    pub is_extension_policy_supported: Option<bool>,
+    pub is_extension_policy_supported: ::core::option::Option<bool>,
     /// Output only. Whether the app is only for Kiosk mode on ChromeOS devices
     #[serde(default, rename = "isKioskOnly")]
-    pub is_kiosk_only: Option<bool>,
+    pub is_kiosk_only: ::core::option::Option<bool>,
     /// Output only. Whether the app or extension is a theme.
     #[serde(default, rename = "isTheme")]
-    pub is_theme: Option<bool>,
+    pub is_theme: ::core::option::Option<bool>,
     /// Output only. Whether this app is enabled for Kiosk mode on ChromeOS devices
     #[serde(default, rename = "kioskEnabled")]
-    pub kiosk_enabled: Option<bool>,
+    pub kiosk_enabled: ::core::option::Option<bool>,
     /// Output only. The version of this extension''s manifest.
     #[serde(default, rename = "manifestVersion")]
-    pub manifest_version: Option<String>,
+    pub manifest_version: ::core::option::Option<String>,
     /// Output only. The minimum number of users using this app.
     #[serde(default, rename = "minUserCount")]
-    pub min_user_count: Option<i32>,
+    pub min_user_count: ::core::option::Option<i32>,
     /// Output only. Every custom permission requested by the app. Version-specific field that will only be set when the requested app version is found.
     #[serde(default)]
-    pub permissions: Option<Vec<GoogleChromeManagementV1ChromeAppPermission>>,
+    pub permissions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1ChromeAppPermission>>,
+    >,
     /// Output only. Every permission giving access to domains or broad host patterns. ( e.g. www.google.com). This includes the matches from content scripts as well as hosts in the permissions node of the manifest. Version-specific field that will only be set when the requested app version is found.
     #[serde(default, rename = "siteAccess")]
-    pub site_access: Option<Vec<GoogleChromeManagementV1ChromeAppSiteAccess>>,
+    pub site_access: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1ChromeAppSiteAccess>>,
+    >,
     /// Output only. The app developer has enabled support for their app. Version-specific field that will only be set when the requested app version is found.
     #[serde(default, rename = "supportEnabled")]
-    pub support_enabled: Option<bool>,
+    pub support_enabled: ::core::option::Option<bool>,
     /// Output only. Types of an item in the Chrome Web Store // TODO: enum values: ["ITEM_TYPE_UNSPECIFIED", "EXTENSION", "OTHERS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Permission requested by a Chrome app or extension.
@@ -309,13 +321,13 @@ pub struct GoogleChromeManagementV1ChromeAppInfo {
 pub struct GoogleChromeManagementV1ChromeAppPermission {
     /// Output only. If available, whether this permissions grants the app/extension access to user data.
     #[serde(default, rename = "accessUserData")]
-    pub access_user_data: Option<bool>,
+    pub access_user_data: ::core::option::Option<bool>,
     /// Output only. If available, a URI to a page that has documentation for the current permission.
     #[serde(default, rename = "documentationUri")]
-    pub documentation_uri: Option<String>,
+    pub documentation_uri: ::core::option::Option<String>,
     /// Output only. The type of the permission.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Details of an app installation request.
@@ -323,25 +335,25 @@ pub struct GoogleChromeManagementV1ChromeAppPermission {
 pub struct GoogleChromeManagementV1ChromeAppRequest {
     /// Output only. Format: app_details=customers/{customer_id}/apps/chrome/{app_id}
     #[serde(default, rename = "appDetails")]
-    pub app_details: Option<String>,
+    pub app_details: ::core::option::Option<String>,
     /// Output only. Unique store identifier for the app. Example: "gmbmikajjgmnabiglmofipeabaddhgne" for the Save to Google Drive Chrome extension.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Output only. The uri for the detail page of the item.
     #[serde(default, rename = "detailUri")]
-    pub detail_uri: Option<String>,
+    pub detail_uri: ::core::option::Option<String>,
     /// Output only. App''s display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. A link to an image that can be used as an icon for the product.
     #[serde(default, rename = "iconUri")]
-    pub icon_uri: Option<String>,
+    pub icon_uri: ::core::option::Option<String>,
     /// Output only. The timestamp of the most recently made request for this app.
     #[serde(default, rename = "latestRequestTime")]
-    pub latest_request_time: Option<String>,
+    pub latest_request_time: ::core::option::Option<String>,
     /// Output only. Total count of requests for this app.
     #[serde(default, rename = "requestCount")]
-    pub request_count: Option<String>,
+    pub request_count: ::core::option::Option<String>,
 }
 
 /// Represent one host permission.
@@ -349,7 +361,7 @@ pub struct GoogleChromeManagementV1ChromeAppRequest {
 pub struct GoogleChromeManagementV1ChromeAppSiteAccess {
     /// Output only. This can contain very specific hosts, or patterns like "*.com" for instance.
     #[serde(default, rename = "hostMatch")]
-    pub host_match: Option<String>,
+    pub host_match: ::core::option::Option<String>,
 }
 
 /// Response containing the number of active devices.
@@ -357,10 +369,10 @@ pub struct GoogleChromeManagementV1ChromeAppSiteAccess {
 pub struct GoogleChromeManagementV1CountActiveDevicesResponse {
     /// Number of active devices in the 7 days leading up to the date specified in the request.
     #[serde(default, rename = "sevenDaysCount")]
-    pub seven_days_count: Option<String>,
+    pub seven_days_count: ::core::option::Option<String>,
     /// Number of active devices in the 30 days leading up to the date specified in the request.
     #[serde(default, rename = "thirtyDaysCount")]
-    pub thirty_days_count: Option<String>,
+    pub thirty_days_count: ::core::option::Option<String>,
 }
 
 /// Response containing summary of requested app installations.
@@ -368,13 +380,15 @@ pub struct GoogleChromeManagementV1CountActiveDevicesResponse {
 pub struct GoogleChromeManagementV1CountChromeAppRequestsResponse {
     /// Token to specify the next page in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Count of requested apps matching request.
     #[serde(default, rename = "requestedApps")]
-    pub requested_apps: Option<Vec<GoogleChromeManagementV1ChromeAppRequest>>,
+    pub requested_apps: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1ChromeAppRequest>>,
+    >,
     /// Total number of matching app requests.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// Response containing counts for browsers that need attention.
@@ -382,13 +396,13 @@ pub struct GoogleChromeManagementV1CountChromeAppRequestsResponse {
 pub struct GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse {
     /// Number of browsers that haven’t had any recent activity
     #[serde(default, rename = "noRecentActivityCount")]
-    pub no_recent_activity_count: Option<String>,
+    pub no_recent_activity_count: ::core::option::Option<String>,
     /// Number of browsers that are pending an OS update
     #[serde(default, rename = "pendingBrowserUpdateCount")]
-    pub pending_browser_update_count: Option<String>,
+    pub pending_browser_update_count: ::core::option::Option<String>,
     /// Number of browsers that have been recently enrolled
     #[serde(default, rename = "recentlyEnrolledCount")]
-    pub recently_enrolled_count: Option<String>,
+    pub recently_enrolled_count: ::core::option::Option<String>,
 }
 
 /// Response contains a list of CrashEventCountByVersionPerDay which count the chrome crash at the certain date.
@@ -396,8 +410,13 @@ pub struct GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse {
 pub struct GoogleChromeManagementV1CountChromeCrashEventsResponse {
     /// Crash event counts grouped by date and browser version.
     #[serde(default, rename = "crashEventCounts")]
-    pub crash_event_counts:
-        Option<Vec<GoogleChromeManagementV1CountChromeCrashEventsResponseCrashEventCount>>,
+    pub crash_event_counts: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleChromeManagementV1CountChromeCrashEventsResponseCrashEventCount,
+            >,
+        >,
+    >,
 }
 
 /// The count of the Chrome crash events at the date.
@@ -405,13 +424,13 @@ pub struct GoogleChromeManagementV1CountChromeCrashEventsResponse {
 pub struct GoogleChromeManagementV1CountChromeCrashEventsResponseCrashEventCount {
     /// Browser version this is counting.
     #[serde(default, rename = "browserVersion")]
-    pub browser_version: Option<String>,
+    pub browser_version: ::core::option::Option<String>,
     /// Total count of crash events.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Date of the crash event.
     #[serde(default)]
-    pub date: Option<GoogleTypeDate>,
+    pub date: ::core::option::Option<::std::boxed::Box<GoogleTypeDate>>,
 }
 
 /// Response containing a list of devices expiring in each month of a selected time frame. Counts are grouped by model and Auto Update Expiration date.
@@ -419,7 +438,9 @@ pub struct GoogleChromeManagementV1CountChromeCrashEventsResponseCrashEventCount
 pub struct GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse {
     /// The list of reports sorted by auto update expiration date in ascending order.
     #[serde(default, rename = "deviceAueCountReports")]
-    pub device_aue_count_reports: Option<Vec<GoogleChromeManagementV1DeviceAueCountReport>>,
+    pub device_aue_count_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DeviceAueCountReport>>,
+    >,
 }
 
 /// Response containing counts for devices that need attention.
@@ -427,19 +448,19 @@ pub struct GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateR
 pub struct GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse {
     /// Number of ChromeOS devices have not synced policies in the past 28 days.
     #[serde(default, rename = "noRecentPolicySyncCount")]
-    pub no_recent_policy_sync_count: Option<String>,
+    pub no_recent_policy_sync_count: ::core::option::Option<String>,
     /// Number of ChromeOS devices that have not seen any user activity in the past 28 days.
     #[serde(default, rename = "noRecentUserActivityCount")]
-    pub no_recent_user_activity_count: Option<String>,
+    pub no_recent_user_activity_count: ::core::option::Option<String>,
     /// Number of devices whose OS version is not compliant.
     #[serde(default, rename = "osVersionNotCompliantCount")]
-    pub os_version_not_compliant_count: Option<String>,
+    pub os_version_not_compliant_count: ::core::option::Option<String>,
     /// Number of devices that are pending an OS update.
     #[serde(default, rename = "pendingUpdate")]
-    pub pending_update: Option<String>,
+    pub pending_update: ::core::option::Option<String>,
     /// Number of devices that are unable to apply a policy due to an OS version mismatch.
     #[serde(default, rename = "unsupportedPolicyCount")]
-    pub unsupported_policy_count: Option<String>,
+    pub unsupported_policy_count: ::core::option::Option<String>,
 }
 
 /// Response containing a list of devices with a specific type of hardware specification from the requested hardware type.
@@ -447,16 +468,24 @@ pub struct GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse {
 pub struct GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse {
     /// The DeviceHardwareCountReport for device cpu type (for example Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz).
     #[serde(default, rename = "cpuReports")]
-    pub cpu_reports: Option<Vec<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    pub cpu_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    >,
     /// The DeviceHardwareCountReport for device memory amount in gigabytes (for example 16).
     #[serde(default, rename = "memoryReports")]
-    pub memory_reports: Option<Vec<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    pub memory_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    >,
     /// The DeviceHardwareCountReport for device model type (for example Acer C7 Chromebook).
     #[serde(default, rename = "modelReports")]
-    pub model_reports: Option<Vec<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    pub model_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    >,
     /// The DeviceHardwareCountReport for device storage amount in gigabytes (for example 128).
     #[serde(default, rename = "storageReports")]
-    pub storage_reports: Option<Vec<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    pub storage_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DeviceHardwareCountReport>>,
+    >,
 }
 
 /// Response containing requested browser versions details and counts.
@@ -464,13 +493,15 @@ pub struct GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse {
 pub struct GoogleChromeManagementV1CountChromeVersionsResponse {
     /// List of all browser versions and their install counts.
     #[serde(default, rename = "browserVersions")]
-    pub browser_versions: Option<Vec<GoogleChromeManagementV1BrowserVersion>>,
+    pub browser_versions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1BrowserVersion>>,
+    >,
     /// Token to specify the next page of the request.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Total number browser versions matching request.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// Response containing the number of devices with the given boot type.
@@ -478,13 +509,13 @@ pub struct GoogleChromeManagementV1CountChromeVersionsResponse {
 pub struct GoogleChromeManagementV1CountDevicesPerBootTypeResponse {
     /// Number of devices with dev boot type.
     #[serde(default, rename = "devBootTypeCount")]
-    pub dev_boot_type_count: Option<String>,
+    pub dev_boot_type_count: ::core::option::Option<String>,
     /// Number of devices with unreported boot type.
     #[serde(default, rename = "unreportedBootTypeCount")]
-    pub unreported_boot_type_count: Option<String>,
+    pub unreported_boot_type_count: ::core::option::Option<String>,
     /// Number of devices with verified boot type.
     #[serde(default, rename = "verifiedBootTypeCount")]
-    pub verified_boot_type_count: Option<String>,
+    pub verified_boot_type_count: ::core::option::Option<String>,
 }
 
 /// Response containing the number of devices with the given channel.
@@ -492,28 +523,28 @@ pub struct GoogleChromeManagementV1CountDevicesPerBootTypeResponse {
 pub struct GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse {
     /// Number of devices with beta release channel.
     #[serde(default, rename = "betaChannelCount")]
-    pub beta_channel_count: Option<String>,
+    pub beta_channel_count: ::core::option::Option<String>,
     /// Number of devices with canary release channel.
     #[serde(default, rename = "canaryChannelCount")]
-    pub canary_channel_count: Option<String>,
+    pub canary_channel_count: ::core::option::Option<String>,
     /// Number of devices with dev release channel.
     #[serde(default, rename = "devChannelCount")]
-    pub dev_channel_count: Option<String>,
+    pub dev_channel_count: ::core::option::Option<String>,
     /// Number of devices with ltc release channel.
     #[serde(default, rename = "ltcChannelCount")]
-    pub ltc_channel_count: Option<String>,
+    pub ltc_channel_count: ::core::option::Option<String>,
     /// Number of devices with lts release channel.
     #[serde(default, rename = "ltsChannelCount")]
-    pub lts_channel_count: Option<String>,
+    pub lts_channel_count: ::core::option::Option<String>,
     /// Number of devices with stable release channel.
     #[serde(default, rename = "stableChannelCount")]
-    pub stable_channel_count: Option<String>,
+    pub stable_channel_count: ::core::option::Option<String>,
     /// Number of devices with an unreported release channel.
     #[serde(default, rename = "unreportedChannelCount")]
-    pub unreported_channel_count: Option<String>,
+    pub unreported_channel_count: ::core::option::Option<String>,
     /// Number of devices with unsupported release channel.
     #[serde(default, rename = "unsupportedChannelCount")]
-    pub unsupported_channel_count: Option<String>,
+    pub unsupported_channel_count: ::core::option::Option<String>,
 }
 
 /// Response containing details of queried installed apps.
@@ -521,13 +552,15 @@ pub struct GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse {
 pub struct GoogleChromeManagementV1CountInstalledAppsResponse {
     /// List of installed apps matching request.
     #[serde(default, rename = "installedApps")]
-    pub installed_apps: Option<Vec<GoogleChromeManagementV1InstalledApp>>,
+    pub installed_apps: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1InstalledApp>>,
+    >,
     /// Token to specify the next page of the request.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Total number of installed apps matching request.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// Response containing a summary printing report for each printer from the specified organizational unit for the requested time interval.
@@ -535,13 +568,15 @@ pub struct GoogleChromeManagementV1CountInstalledAppsResponse {
 pub struct GoogleChromeManagementV1CountPrintJobsByPrinterResponse {
     /// Pagination token for requesting the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of PrinterReports matching request.
     #[serde(default, rename = "printerReports")]
-    pub printer_reports: Option<Vec<GoogleChromeManagementV1PrinterReport>>,
+    pub printer_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1PrinterReport>>,
+    >,
     /// Total number of printers matching request.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<String>,
+    pub total_size: ::core::option::Option<String>,
 }
 
 /// Response containing a summary printing report for each user that has initiated a print job with a printer from the specified organizational unit during the requested time interval.
@@ -549,13 +584,15 @@ pub struct GoogleChromeManagementV1CountPrintJobsByPrinterResponse {
 pub struct GoogleChromeManagementV1CountPrintJobsByUserResponse {
     /// Pagination token for requesting the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Total number of users matching request.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<String>,
+    pub total_size: ::core::option::Option<String>,
     /// List of UserPrintReports matching request.
     #[serde(default, rename = "userPrintReports")]
-    pub user_print_reports: Option<Vec<GoogleChromeManagementV1UserPrintReport>>,
+    pub user_print_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1UserPrintReport>>,
+    >,
 }
 
 /// CPU specifications for the device * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_CPU_INFO
@@ -563,19 +600,19 @@ pub struct GoogleChromeManagementV1CountPrintJobsByUserResponse {
 pub struct GoogleChromeManagementV1CpuInfo {
     /// Output only. Architecture type for the CPU. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. Whether keylocker is configured.TRUE = Enabled; FALSE = disabled. Only reported if keylockerSupported = TRUE.
     #[serde(default, rename = "keylockerConfigured")]
-    pub keylocker_configured: Option<bool>,
+    pub keylocker_configured: ::core::option::Option<bool>,
     /// Output only. Whether keylocker is supported.
     #[serde(default, rename = "keylockerSupported")]
-    pub keylocker_supported: Option<bool>,
+    pub keylocker_supported: ::core::option::Option<bool>,
     /// Output only. The max CPU clock speed in kHz.
     #[serde(default, rename = "maxClockSpeed")]
-    pub max_clock_speed: Option<i32>,
+    pub max_clock_speed: ::core::option::Option<i32>,
     /// Output only. The CPU model name. Example: Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Provides information about the status of the CPU. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Every 10 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_CPU_REPORT
@@ -583,16 +620,18 @@ pub struct GoogleChromeManagementV1CpuInfo {
 pub struct GoogleChromeManagementV1CpuStatusReport {
     /// Output only. CPU temperature sample info per CPU core in Celsius
     #[serde(default, rename = "cpuTemperatureInfo")]
-    pub cpu_temperature_info: Option<Vec<GoogleChromeManagementV1CpuTemperatureInfo>>,
+    pub cpu_temperature_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1CpuTemperatureInfo>>,
+    >,
     /// Output only. Sample of CPU utilization (0-100 percent).
     #[serde(default, rename = "cpuUtilizationPct")]
-    pub cpu_utilization_pct: Option<i32>,
+    pub cpu_utilization_pct: ::core::option::Option<i32>,
     /// Output only. The timestamp in milliseconds representing time at which this report was sampled.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Output only. Frequency the report is sampled.
     #[serde(default, rename = "sampleFrequency")]
-    pub sample_frequency: Option<String>,
+    pub sample_frequency: ::core::option::Option<String>,
 }
 
 /// CPU temperature of a device. Sampled per CPU core in Celsius. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Every 10 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A
@@ -600,10 +639,10 @@ pub struct GoogleChromeManagementV1CpuStatusReport {
 pub struct GoogleChromeManagementV1CpuTemperatureInfo {
     /// Output only. CPU label. Example: Core 0
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Output only. CPU temperature in Celsius.
     #[serde(default, rename = "temperatureCelsius")]
-    pub temperature_celsius: Option<i32>,
+    pub temperature_celsius: ::core::option::Option<i32>,
 }
 
 /// Describes a device reporting Chrome browser information.
@@ -611,10 +650,10 @@ pub struct GoogleChromeManagementV1CpuTemperatureInfo {
 pub struct GoogleChromeManagementV1Device {
     /// Output only. The ID of the device that reported this Chrome browser information.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Output only. The name of the machine within its local network.
     #[serde(default)]
-    pub machine: Option<String>,
+    pub machine: ::core::option::Option<String>,
 }
 
 /// Device activity report. * Granular permission needed: TELEMETRY_API_DEVICE_ACTIVITY_REPORT
@@ -622,10 +661,10 @@ pub struct GoogleChromeManagementV1Device {
 pub struct GoogleChromeManagementV1DeviceActivityReport {
     /// Output only. Device activity state. // TODO: enum values: ["DEVICE_ACTIVITY_STATE_UNSPECIFIED", "ACTIVE", "IDLE", "LOCKED"]
     #[serde(default, rename = "deviceActivityState")]
-    pub device_activity_state: Option<String>,
+    pub device_activity_state: ::core::option::Option<String>,
     /// Output only. Timestamp of when the report was collected.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
 }
 
 /// Report for CountChromeDevicesPerAueDateResponse, contains the count of devices of a specific model and auto update expiration range.
@@ -633,19 +672,19 @@ pub struct GoogleChromeManagementV1DeviceActivityReport {
 pub struct GoogleChromeManagementV1DeviceAueCountReport {
     /// Enum value of month corresponding to the auto update expiration date in UTC time zone. If the device is already expired, this field is empty. // TODO: enum values: ["MONTH_UNSPECIFIED", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
     #[serde(default, rename = "aueMonth")]
-    pub aue_month: Option<String>,
+    pub aue_month: ::core::option::Option<String>,
     /// Int value of year corresponding to the Auto Update Expiration date in UTC time zone. If the device is already expired, this field is empty.
     #[serde(default, rename = "aueYear")]
-    pub aue_year: Option<String>,
+    pub aue_year: ::core::option::Option<String>,
     /// Count of devices of this model.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Boolean value for whether or not the device has already expired.
     #[serde(default)]
-    pub expired: Option<bool>,
+    pub expired: ::core::option::Option<bool>,
     /// Public model name of the devices.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Report for CountChromeDevicesPerHardwareSpecResponse, contains the count of devices with a unique hardware specification.
@@ -653,10 +692,10 @@ pub struct GoogleChromeManagementV1DeviceAueCountReport {
 pub struct GoogleChromeManagementV1DeviceHardwareCountReport {
     /// Public name of the hardware specification.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Count of devices with a unique hardware specification.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
 }
 
 /// Details of a device requesting an extension, including the name of the device and the justification of the request.
@@ -664,10 +703,10 @@ pub struct GoogleChromeManagementV1DeviceHardwareCountReport {
 pub struct GoogleChromeManagementV1DeviceRequestingExtensionDetails {
     /// The name of a device that has requested the extension.
     #[serde(default, rename = "deviceName")]
-    pub device_name: Option<String>,
+    pub device_name: ::core::option::Option<String>,
     /// Request justification as entered by the user.
     #[serde(default)]
-    pub justification: Option<String>,
+    pub justification: ::core::option::Option<String>,
 }
 
 /// Status of the single storage device.
@@ -675,43 +714,43 @@ pub struct GoogleChromeManagementV1DeviceRequestingExtensionDetails {
 pub struct GoogleChromeManagementV1DiskInfo {
     /// Output only. Number of bytes read since last boot.
     #[serde(default, rename = "bytesReadThisSession")]
-    pub bytes_read_this_session: Option<String>,
+    pub bytes_read_this_session: ::core::option::Option<String>,
     /// Output only. Number of bytes written since last boot.
     #[serde(default, rename = "bytesWrittenThisSession")]
-    pub bytes_written_this_session: Option<String>,
+    pub bytes_written_this_session: ::core::option::Option<String>,
     /// Output only. Time spent discarding since last boot. Discarding is writing to clear blocks which are no longer in use. Supported on kernels 4.18+.
     #[serde(default, rename = "discardTimeThisSession")]
-    pub discard_time_this_session: Option<String>,
+    pub discard_time_this_session: ::core::option::Option<String>,
     /// Output only. Disk health.
     #[serde(default)]
-    pub health: Option<String>,
+    pub health: ::core::option::Option<String>,
     /// Output only. Counts the time the disk and queue were busy, so unlike the fields above, parallel requests are not counted multiple times.
     #[serde(default, rename = "ioTimeThisSession")]
-    pub io_time_this_session: Option<String>,
+    pub io_time_this_session: ::core::option::Option<String>,
     /// Output only. Disk manufacturer.
     #[serde(default)]
-    pub manufacturer: Option<String>,
+    pub manufacturer: ::core::option::Option<String>,
     /// Output only. Disk model.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// Output only. Time spent reading from disk since last boot.
     #[serde(default, rename = "readTimeThisSession")]
-    pub read_time_this_session: Option<String>,
+    pub read_time_this_session: ::core::option::Option<String>,
     /// Output only. Disk serial number.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<String>,
+    pub serial_number: ::core::option::Option<String>,
     /// Output only. Disk size.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
     /// Output only. Disk type: eMMC / NVMe / ATA / SCSI.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Disk volumes.
     #[serde(default, rename = "volumeIds")]
-    pub volume_ids: Option<Vec<String>>,
+    pub volume_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Time spent writing to disk since last boot.
     #[serde(default, rename = "writeTimeThisSession")]
-    pub write_time_this_session: Option<String>,
+    pub write_time_this_session: ::core::option::Option<String>,
 }
 
 /// Information of a display device.
@@ -719,31 +758,31 @@ pub struct GoogleChromeManagementV1DiskInfo {
 pub struct GoogleChromeManagementV1DisplayDevice {
     /// Output only. Display height in millimeters.
     #[serde(default, rename = "displayHeightMm")]
-    pub display_height_mm: Option<i32>,
+    pub display_height_mm: ::core::option::Option<i32>,
     /// Output only. Display device name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Display width in millimeters.
     #[serde(default, rename = "displayWidthMm")]
-    pub display_width_mm: Option<i32>,
+    pub display_width_mm: ::core::option::Option<i32>,
     /// Output only. EDID version.
     #[serde(default, rename = "edidVersion")]
-    pub edid_version: Option<String>,
+    pub edid_version: ::core::option::Option<String>,
     /// Output only. Is display internal or not.
     #[serde(default)]
-    pub internal: Option<bool>,
+    pub internal: ::core::option::Option<bool>,
     /// Output only. Year of manufacture.
     #[serde(default, rename = "manufactureYear")]
-    pub manufacture_year: Option<i32>,
+    pub manufacture_year: ::core::option::Option<i32>,
     /// Output only. Three letter manufacturer ID.
     #[serde(default, rename = "manufacturerId")]
-    pub manufacturer_id: Option<String>,
+    pub manufacturer_id: ::core::option::Option<String>,
     /// Output only. Manufacturer product code.
     #[serde(default, rename = "modelId")]
-    pub model_id: Option<i32>,
+    pub model_id: ::core::option::Option<i32>,
     /// Output only. Serial number.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<i32>,
+    pub serial_number: ::core::option::Option<i32>,
 }
 
 /// Information for a display.
@@ -751,28 +790,28 @@ pub struct GoogleChromeManagementV1DisplayDevice {
 pub struct GoogleChromeManagementV1DisplayInfo {
     /// Output only. Represents the graphics card device id.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Output only. Display device name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. EDID version.
     #[serde(default, rename = "edidVersion")]
-    pub edid_version: Option<String>,
+    pub edid_version: ::core::option::Option<String>,
     /// Output only. Indicates if display is internal or not.
     #[serde(default, rename = "isInternal")]
-    pub is_internal: Option<bool>,
+    pub is_internal: ::core::option::Option<bool>,
     /// Output only. Refresh rate in Hz.
     #[serde(default, rename = "refreshRate")]
-    pub refresh_rate: Option<i32>,
+    pub refresh_rate: ::core::option::Option<i32>,
     /// Output only. Resolution height in pixels.
     #[serde(default, rename = "resolutionHeight")]
-    pub resolution_height: Option<i32>,
+    pub resolution_height: ::core::option::Option<i32>,
     /// Output only. Resolution width in pixels.
     #[serde(default, rename = "resolutionWidth")]
-    pub resolution_width: Option<i32>,
+    pub resolution_width: ::core::option::Option<i32>,
     /// Output only. Serial number.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<i32>,
+    pub serial_number: ::core::option::Option<i32>,
 }
 
 /// Response containing a list of print jobs.
@@ -780,13 +819,15 @@ pub struct GoogleChromeManagementV1DisplayInfo {
 pub struct GoogleChromeManagementV1EnumeratePrintJobsResponse {
     /// A token, which can be used in a subsequent request to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of requested print jobs.
     #[serde(default, rename = "printJobs")]
-    pub print_jobs: Option<Vec<GoogleChromeManagementV1PrintJob>>,
+    pub print_jobs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1PrintJob>>,
+    >,
     /// Total number of print jobs matching request.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<String>,
+    pub total_size: ::core::option::Option<String>,
 }
 
 /// Response containing a list of devices that have requested the queried extension.
@@ -794,13 +835,17 @@ pub struct GoogleChromeManagementV1EnumeratePrintJobsResponse {
 pub struct GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse {
     /// Details of devices that have requested the queried extension.
     #[serde(default, rename = "deviceDetails")]
-    pub device_details: Option<Vec<GoogleChromeManagementV1DeviceRequestingExtensionDetails>>,
+    pub device_details: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleChromeManagementV1DeviceRequestingExtensionDetails>,
+        >,
+    >,
     /// Optional. Token to specify the next page in the list. Token expires after 1 day.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Optional. Total number of devices in response.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// Response containing a list of users that have requested the queried extension.
@@ -808,13 +853,15 @@ pub struct GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse {
 pub struct GoogleChromeManagementV1FetchUsersRequestingExtensionResponse {
     /// Token to specify the next page in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Total number of users in response.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
     /// Details of users that have requested the queried extension.
     #[serde(default, rename = "userDetails")]
-    pub user_details: Option<Vec<GoogleChromeManagementV1UserRequestingExtensionDetails>>,
+    pub user_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1UserRequestingExtensionDetails>>,
+    >,
 }
 
 /// Response containing a list of devices with queried app installed.
@@ -822,13 +869,14 @@ pub struct GoogleChromeManagementV1FetchUsersRequestingExtensionResponse {
 pub struct GoogleChromeManagementV1FindInstalledAppDevicesResponse {
     /// A list of devices which have the app installed. Sorted in ascending alphabetical order on the Device.machine field.
     #[serde(default)]
-    pub devices: Option<Vec<GoogleChromeManagementV1Device>>,
+    pub devices:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1Device>>>,
     /// Token to specify the next page of the request.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Total number of devices matching request.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// Information of a graphics adapter (GPU).
@@ -836,13 +884,13 @@ pub struct GoogleChromeManagementV1FindInstalledAppDevicesResponse {
 pub struct GoogleChromeManagementV1GraphicsAdapterInfo {
     /// Output only. Adapter name. Example: Mesa DRI Intel(R) UHD Graphics 620 (Kabylake GT2).
     #[serde(default)]
-    pub adapter: Option<String>,
+    pub adapter: ::core::option::Option<String>,
     /// Output only. Represents the graphics card device id.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Output only. Version of the GPU driver.
     #[serde(default, rename = "driverVersion")]
-    pub driver_version: Option<String>,
+    pub driver_version: ::core::option::Option<String>,
 }
 
 /// Information of the graphics subsystem. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceGraphicsStatus](https://chromeenterprise.google/policies/#ReportDeviceGraphicsStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_GRAPHICS_INFO
@@ -850,16 +898,20 @@ pub struct GoogleChromeManagementV1GraphicsAdapterInfo {
 pub struct GoogleChromeManagementV1GraphicsInfo {
     /// Output only. Information about the graphics adapter (GPU).
     #[serde(default, rename = "adapterInfo")]
-    pub adapter_info: Option<GoogleChromeManagementV1GraphicsAdapterInfo>,
+    pub adapter_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1GraphicsAdapterInfo>>,
     /// Output only. Information about the display(s) of the device.
     #[serde(default, rename = "displayDevices")]
-    pub display_devices: Option<Vec<GoogleChromeManagementV1DisplayDevice>>,
+    pub display_devices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DisplayDevice>>,
+    >,
     /// Output only. Is ePrivacy screen supported or not.
     #[serde(default, rename = "eprivacySupported")]
-    pub eprivacy_supported: Option<bool>,
+    pub eprivacy_supported: ::core::option::Option<bool>,
     /// Output only. Information about the internal touch screen(s) of the device.
     #[serde(default, rename = "touchScreenInfo")]
-    pub touch_screen_info: Option<GoogleChromeManagementV1TouchScreenInfo>,
+    pub touch_screen_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1TouchScreenInfo>>,
 }
 
 /// Information of the graphics subsystem. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceGraphicsInfo](https://chromeenterprise.google/policies/#ReportDeviceGraphicsInfo) * Data Collection Frequency: 3 hours. * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_GRAPHICS_REPORT
@@ -867,10 +919,12 @@ pub struct GoogleChromeManagementV1GraphicsInfo {
 pub struct GoogleChromeManagementV1GraphicsStatusReport {
     /// Output only. Information about the displays for the device.
     #[serde(default)]
-    pub displays: Option<Vec<GoogleChromeManagementV1DisplayInfo>>,
+    pub displays: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DisplayInfo>>,
+    >,
     /// Output only. Time at which the graphics data was reported.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
 }
 
 /// Heartbeat status report of a device. * Available for Kiosks * This field provides online/offline/unknown status of a device and will only be included if the status has changed (e.g. Online -&gt; Offline) * Data for this field is controlled via policy: [HeartbeatEnabled](https://chromeenterprise.google/policies/#HeartbeatEnabled) [More Info](https://support.google.com/chrome/a/answer/6179663#:~:text=On%20the%20Chrome,device%20status%20alerts) * Heartbeat Frequency: 2 mins * Note: If a device goes offline, it can take up to 12 minutes for the online status of the device to be updated * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: N/A * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_DEVICE_ACTIVITY_REPORT
@@ -878,10 +932,10 @@ pub struct GoogleChromeManagementV1GraphicsStatusReport {
 pub struct GoogleChromeManagementV1HeartbeatStatusReport {
     /// Timestamp of when status changed was detected
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// State the device changed to // TODO: enum values: ["STATE_UNSPECIFIED", "UNKNOWN", "ONLINE", "OFFLINE", "DEVICE_OUTDATED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Data that describes the result of the HTTPS latency diagnostics routine, with the HTTPS requests issued to Google websites.
@@ -889,10 +943,10 @@ pub struct GoogleChromeManagementV1HeartbeatStatusReport {
 pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
     /// Output only. HTTPS latency if routine succeeded or failed because of HIGH_LATENCY or VERY_HIGH_LATENCY.
     #[serde(default)]
-    pub latency: Option<String>,
+    pub latency: ::core::option::Option<String>,
     /// Output only. HTTPS latency routine problem if a problem occurred. // TODO: enum values: ["HTTPS_LATENCY_PROBLEM_UNSPECIFIED", "FAILED_DNS_RESOLUTIONS", "FAILED_HTTPS_REQUESTS", "HIGH_LATENCY", "VERY_HIGH_LATENCY"]
     #[serde(default)]
-    pub problem: Option<String>,
+    pub problem: ::core::option::Option<String>,
 }
 
 /// Describes an installed app.
@@ -900,40 +954,41 @@ pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
 pub struct GoogleChromeManagementV1InstalledApp {
     /// Output only. Unique identifier of the app. For Chrome apps and extensions, the 32-character id (e.g. ehoadneljpdggcbbknedodolkkjodefl). For Android apps, the package name (e.g. com.evernote).
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Output only. How the app was installed. // TODO: enum values: ["APP_INSTALL_TYPE_UNSPECIFIED", "MULTIPLE", "NORMAL", "ADMIN", "DEVELOPMENT", "SIDELOAD", "OTHER"]
     #[serde(default, rename = "appInstallType")]
-    pub app_install_type: Option<String>,
+    pub app_install_type: ::core::option::Option<String>,
     /// Output only. Source of the installed app. // TODO: enum values: ["APP_SOURCE_UNSPECIFIED", "CHROME_WEBSTORE", "PLAY_STORE"]
     #[serde(default, rename = "appSource")]
-    pub app_source: Option<String>,
+    pub app_source: ::core::option::Option<String>,
     /// Output only. Type of the app. // TODO: enum values: ["APP_TYPE_UNSPECIFIED", "EXTENSION", "APP", "THEME", "HOSTED_APP", "ANDROID_APP"]
     #[serde(default, rename = "appType")]
-    pub app_type: Option<String>,
+    pub app_type: ::core::option::Option<String>,
     /// Output only. Count of browser devices with this app installed.
     #[serde(default, rename = "browserDeviceCount")]
-    pub browser_device_count: Option<String>,
+    pub browser_device_count: ::core::option::Option<String>,
     /// Output only. Description of the installed app.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Whether the app is disabled.
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// Output only. Name of the installed app.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Homepage uri of the installed app.
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<String>,
+    pub homepage_uri: ::core::option::Option<String>,
     /// Output only. Count of ChromeOS users with this app installed.
     #[serde(default, rename = "osUserCount")]
-    pub os_user_count: Option<String>,
+    pub os_user_count: ::core::option::Option<String>,
     /// Output only. Permissions of the installed app.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. If available, the risk assessment data about this extension.
     #[serde(default, rename = "riskAssessment")]
-    pub risk_assessment: Option<GoogleChromeManagementV1RiskAssessmentData>,
+    pub risk_assessment:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1RiskAssessmentData>>,
 }
 
 /// Kiosk app status report of a device. * Available for Kiosks * This field provides the app id and version number running on a kiosk device and the timestamp of when the report was last updated * Data for this field is controlled via policy: [ReportDeviceSessionStatus](https://chromeenterprise.google/policies/#ReportDeviceSessionStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_APPS_REPORT
@@ -941,13 +996,13 @@ pub struct GoogleChromeManagementV1InstalledApp {
 pub struct GoogleChromeManagementV1KioskAppStatusReport {
     /// App id of kiosk app for example "mdmkkicfmmkgmpkmkdikhlbggogpicma"
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// App version number of kiosk app for example "1.10.118"
     #[serde(default, rename = "appVersion")]
-    pub app_version: Option<String>,
+    pub app_version: ::core::option::Option<String>,
     /// Timestamp of when report was collected
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
 }
 
 /// GoogleChromeManagementV1ListTelemetryDevicesResponse resource type.
@@ -955,10 +1010,12 @@ pub struct GoogleChromeManagementV1KioskAppStatusReport {
 pub struct GoogleChromeManagementV1ListTelemetryDevicesResponse {
     /// Telemetry devices returned in the response.
     #[serde(default)]
-    pub devices: Option<Vec<GoogleChromeManagementV1TelemetryDevice>>,
+    pub devices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1TelemetryDevice>>,
+    >,
     /// Token to specify next page in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing telemetry events for a customer.
@@ -966,10 +1023,12 @@ pub struct GoogleChromeManagementV1ListTelemetryDevicesResponse {
 pub struct GoogleChromeManagementV1ListTelemetryEventsResponse {
     /// Token to specify next page in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Telemetry events returned in the response.
     #[serde(default, rename = "telemetryEvents")]
-    pub telemetry_events: Option<Vec<GoogleChromeManagementV1TelemetryEvent>>,
+    pub telemetry_events: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1TelemetryEvent>>,
+    >,
 }
 
 /// Response message for listing notification configs for a customer.
@@ -977,11 +1036,12 @@ pub struct GoogleChromeManagementV1ListTelemetryEventsResponse {
 pub struct GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The telemetry notification configs from the specified customer.
     #[serde(default, rename = "telemetryNotificationConfigs")]
-    pub telemetry_notification_configs:
-        Option<Vec<GoogleChromeManagementV1TelemetryNotificationConfig>>,
+    pub telemetry_notification_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1TelemetryNotificationConfig>>,
+    >,
 }
 
 /// Response message for listing telemetry users for a customer.
@@ -989,10 +1049,12 @@ pub struct GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse {
 pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
     /// Token to specify next page in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Telemetry users returned in the response.
     #[serde(default, rename = "telemetryUsers")]
-    pub telemetry_users: Option<Vec<GoogleChromeManagementV1TelemetryUser>>,
+    pub telemetry_users: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1TelemetryUser>>,
+    >,
 }
 
 /// Memory information of a device. * This field has both telemetry and device information: - totalRamBytes - Device information - availableRamBytes - Telemetry information - totalMemoryEncryption - Device information * Data for this field is controlled via policy: [ReportDeviceMemoryInfo](https://chromeenterprise.google/policies/#ReportDeviceMemoryInfo) * Data Collection Frequency: - totalRamBytes - Only at upload - availableRamBytes - Every 10 minutes - totalMemoryEncryption - at device startup * Default Data Reporting Frequency: - totalRamBytes - 3 hours - availableRamBytes - 3 hours - totalMemoryEncryption - at device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: only for totalMemoryEncryption * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_MEMORY_INFO
@@ -1000,13 +1062,15 @@ pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
 pub struct GoogleChromeManagementV1MemoryInfo {
     /// Output only. Amount of available RAM in bytes.
     #[serde(default, rename = "availableRamBytes")]
-    pub available_ram_bytes: Option<String>,
+    pub available_ram_bytes: ::core::option::Option<String>,
     /// Output only. Total memory encryption info for the device.
     #[serde(default, rename = "totalMemoryEncryption")]
-    pub total_memory_encryption: Option<GoogleChromeManagementV1TotalMemoryEncryptionInfo>,
+    pub total_memory_encryption: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TotalMemoryEncryptionInfo>,
+    >,
     /// Output only. Total RAM in bytes.
     #[serde(default, rename = "totalRamBytes")]
-    pub total_ram_bytes: Option<String>,
+    pub total_ram_bytes: ::core::option::Option<String>,
 }
 
 /// Contains samples of memory status reports. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceMemoryInfo](https://chromeenterprise.google/policies/#ReportDeviceMemoryInfo) * Data Collection Frequency: Only at upload, SystemRamFreeByes is collected every 10 minutes * Default Data Reporting Frequency: Every 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_MEMORY_REPORT
@@ -1014,16 +1078,16 @@ pub struct GoogleChromeManagementV1MemoryInfo {
 pub struct GoogleChromeManagementV1MemoryStatusReport {
     /// Output only. Number of page faults during this collection
     #[serde(default, rename = "pageFaults")]
-    pub page_faults: Option<i32>,
+    pub page_faults: ::core::option::Option<i32>,
     /// Output only. The timestamp in milliseconds representing time at which this report was sampled.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Output only. Frequency the report is sampled.
     #[serde(default, rename = "sampleFrequency")]
-    pub sample_frequency: Option<String>,
+    pub sample_frequency: ::core::option::Option<String>,
     /// Output only. Amount of free RAM in bytes (unreliable due to Garbage Collection).
     #[serde(default, rename = "systemRamFreeBytes")]
-    pub system_ram_free_bytes: Option<String>,
+    pub system_ram_free_bytes: ::core::option::Option<String>,
 }
 
 /// Network bandwidth report. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
@@ -1031,10 +1095,10 @@ pub struct GoogleChromeManagementV1MemoryStatusReport {
 pub struct GoogleChromeManagementV1NetworkBandwidthReport {
     /// Output only. Download speed in kilobits per second.
     #[serde(default, rename = "downloadSpeedKbps")]
-    pub download_speed_kbps: Option<String>,
+    pub download_speed_kbps: ::core::option::Option<String>,
     /// Output only. Timestamp of when the report was collected.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
 }
 
 /// Details about the network device. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportNetworkDeviceConfiguration](https://chromeenterprise.google/policies/#ReportNetworkDeviceConfiguration) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A
@@ -1042,22 +1106,22 @@ pub struct GoogleChromeManagementV1NetworkBandwidthReport {
 pub struct GoogleChromeManagementV1NetworkDevice {
     /// Output only. The integrated circuit card ID associated with the device''s sim card.
     #[serde(default)]
-    pub iccid: Option<String>,
+    pub iccid: ::core::option::Option<String>,
     /// Output only. IMEI (if applicable) of the corresponding network device.
     #[serde(default)]
-    pub imei: Option<String>,
+    pub imei: ::core::option::Option<String>,
     /// Output only. MAC address (if applicable) of the corresponding network device.
     #[serde(default, rename = "macAddress")]
-    pub mac_address: Option<String>,
+    pub mac_address: ::core::option::Option<String>,
     /// Output only. The mobile directory number associated with the device''s sim card.
     #[serde(default)]
-    pub mdn: Option<String>,
+    pub mdn: ::core::option::Option<String>,
     /// Output only. MEID (if applicable) of the corresponding network device.
     #[serde(default)]
-    pub meid: Option<String>,
+    pub meid: ::core::option::Option<String>,
     /// Output only. Network device type. // TODO: enum values: ["NETWORK_DEVICE_TYPE_UNSPECIFIED", "CELLULAR_DEVICE", "ETHERNET_DEVICE", "WIFI_DEVICE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Network testing results to determine the health of the device''s network connection, for example whether the HTTPS latency is high or normal. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
@@ -1065,10 +1129,11 @@ pub struct GoogleChromeManagementV1NetworkDevice {
 pub struct GoogleChromeManagementV1NetworkDiagnosticsReport {
     /// Output only. HTTPS latency test data.
     #[serde(default, rename = "httpsLatencyData")]
-    pub https_latency_data: Option<GoogleChromeManagementV1HttpsLatencyRoutineData>,
+    pub https_latency_data:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1HttpsLatencyRoutineData>>,
     /// Output only. Timestamp of when the diagnostics were collected.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
 }
 
 /// Network device information. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportNetworkDeviceConfiguration](https://chromeenterprise.google/policies/#ReportNetworkDeviceConfiguration) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_NETWORK_INFO
@@ -1076,7 +1141,9 @@ pub struct GoogleChromeManagementV1NetworkDiagnosticsReport {
 pub struct GoogleChromeManagementV1NetworkInfo {
     /// Output only. List of network devices.
     #[serde(default, rename = "networkDevices")]
-    pub network_devices: Option<Vec<GoogleChromeManagementV1NetworkDevice>>,
+    pub network_devices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1NetworkDevice>>,
+    >,
 }
 
 /// State of visible/configured networks. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportNetworkStatus](https://chromeenterprise.google/policies/#ReportNetworkStatus) * Data Collection Frequency: 60 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: Yes * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
@@ -1084,58 +1151,58 @@ pub struct GoogleChromeManagementV1NetworkInfo {
 pub struct GoogleChromeManagementV1NetworkStatusReport {
     /// Output only. Current connection state of the network. // TODO: enum values: ["NETWORK_CONNECTION_STATE_UNSPECIFIED", "ONLINE", "CONNECTED", "PORTAL", "CONNECTING", "NOT_CONNECTED"]
     #[serde(default, rename = "connectionState")]
-    pub connection_state: Option<String>,
+    pub connection_state: ::core::option::Option<String>,
     /// Output only. Network connection type. // TODO: enum values: ["NETWORK_TYPE_UNSPECIFIED", "CELLULAR", "ETHERNET", "TETHER", "VPN", "WIFI"]
     #[serde(default, rename = "connectionType")]
-    pub connection_type: Option<String>,
+    pub connection_type: ::core::option::Option<String>,
     /// Output only. Whether the wifi encryption key is turned off.
     #[serde(default, rename = "encryptionOn")]
-    pub encryption_on: Option<bool>,
+    pub encryption_on: ::core::option::Option<bool>,
     /// Output only. Gateway IP address.
     #[serde(default, rename = "gatewayIpAddress")]
-    pub gateway_ip_address: Option<String>,
+    pub gateway_ip_address: ::core::option::Option<String>,
     /// Output only. The gateway IPv6 for this interface, if detected
     #[serde(default, rename = "gatewayIpv6Address")]
-    pub gateway_ipv6_address: Option<String>,
+    pub gateway_ipv6_address: ::core::option::Option<String>,
     /// Output only. Network connection guid.
     #[serde(default)]
-    pub guid: Option<String>,
+    pub guid: ::core::option::Option<String>,
     /// Output only. IPv6 addresses assigned to this network, if any. Each address is a string in standard IPv6 text representation (e.g., "2001:db8::1").
     #[serde(default, rename = "ipv6Address")]
-    pub ipv6_address: Option<Vec<String>>,
+    pub ipv6_address: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. LAN IP address.
     #[serde(default, rename = "lanIpAddress")]
-    pub lan_ip_address: Option<String>,
+    pub lan_ip_address: ::core::option::Option<String>,
     /// Output only. The maximum downstream bandwidth in Kilobits per second (Kbps), if reported by the network interface or connection.
     #[serde(default, rename = "linkDownSpeedKbps")]
-    pub link_down_speed_kbps: Option<String>,
+    pub link_down_speed_kbps: ::core::option::Option<String>,
     /// Output only. Whether the network was detected as metered.
     #[serde(default)]
-    pub metered: Option<bool>,
+    pub metered: ::core::option::Option<bool>,
     /// Output only. Receiving bit rate measured in Megabits per second.
     #[serde(default, rename = "receivingBitRateMbps")]
-    pub receiving_bit_rate_mbps: Option<String>,
+    pub receiving_bit_rate_mbps: ::core::option::Option<String>,
     /// Output only. Time at which the network state was reported.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Output only. Frequency the report is sampled.
     #[serde(default, rename = "sampleFrequency")]
-    pub sample_frequency: Option<String>,
+    pub sample_frequency: ::core::option::Option<String>,
     /// Output only. Signal strength for wireless networks measured in decibels.
     #[serde(default, rename = "signalStrengthDbm")]
-    pub signal_strength_dbm: Option<i32>,
+    pub signal_strength_dbm: ::core::option::Option<i32>,
     /// Output only. Transmission bit rate measured in Megabits per second.
     #[serde(default, rename = "transmissionBitRateMbps")]
-    pub transmission_bit_rate_mbps: Option<String>,
+    pub transmission_bit_rate_mbps: ::core::option::Option<String>,
     /// Output only. Transmission power measured in decibels.
     #[serde(default, rename = "transmissionPowerDbm")]
-    pub transmission_power_dbm: Option<i32>,
+    pub transmission_power_dbm: ::core::option::Option<i32>,
     /// Output only. Wifi link quality. Value ranges from [0, 70]. 0 indicates no signal and 70 indicates a strong signal.
     #[serde(default, rename = "wifiLinkQuality")]
-    pub wifi_link_quality: Option<String>,
+    pub wifi_link_quality: ::core::option::Option<String>,
     /// Output only. Wifi power management enabled
     #[serde(default, rename = "wifiPowerManagementEnabled")]
-    pub wifi_power_management_enabled: Option<bool>,
+    pub wifi_power_management_enabled: ::core::option::Option<bool>,
 }
 
 /// Contains information regarding the current OS update status. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceOsUpdateStatus](https://chromeenterprise.google/policies/#ReportDeviceOsUpdateStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_OS_REPORT
@@ -1143,22 +1210,22 @@ pub struct GoogleChromeManagementV1NetworkStatusReport {
 pub struct GoogleChromeManagementV1OsUpdateStatus {
     /// Output only. Timestamp of the last reboot.
     #[serde(default, rename = "lastRebootTime")]
-    pub last_reboot_time: Option<String>,
+    pub last_reboot_time: ::core::option::Option<String>,
     /// Output only. Timestamp of the last update check.
     #[serde(default, rename = "lastUpdateCheckTime")]
-    pub last_update_check_time: Option<String>,
+    pub last_update_check_time: ::core::option::Option<String>,
     /// Output only. Timestamp of the last successful update.
     #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: Option<String>,
+    pub last_update_time: ::core::option::Option<String>,
     /// Output only. New platform version of the os image being downloaded and applied. It is only set when update status is OS_IMAGE_DOWNLOAD_IN_PROGRESS or OS_UPDATE_NEED_REBOOT. Note this could be a dummy "0.0.0.0" for OS_UPDATE_NEED_REBOOT status for some edge cases, e.g. update engine is restarted without a reboot.
     #[serde(default, rename = "newPlatformVersion")]
-    pub new_platform_version: Option<String>,
+    pub new_platform_version: ::core::option::Option<String>,
     /// Output only. New requested platform version from the pending updated kiosk app.
     #[serde(default, rename = "newRequestedPlatformVersion")]
-    pub new_requested_platform_version: Option<String>,
+    pub new_requested_platform_version: ::core::option::Option<String>,
     /// Output only. Current state of the os update. // TODO: enum values: ["UPDATE_STATE_UNSPECIFIED", "OS_IMAGE_DOWNLOAD_NOT_STARTED", "OS_IMAGE_DOWNLOAD_IN_PROGRESS", "OS_UPDATE_NEED_REBOOT"]
     #[serde(default, rename = "updateState")]
-    pub update_state: Option<String>,
+    pub update_state: ::core::option::Option<String>,
 }
 
 /// Peripherals report. * Granular permission needed: TELEMETRY_API_PERIPHERALS_REPORT
@@ -1166,10 +1233,12 @@ pub struct GoogleChromeManagementV1OsUpdateStatus {
 pub struct GoogleChromeManagementV1PeripheralsReport {
     /// Output only. Timestamp of when the report was collected.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Reports of all usb connected devices.
     #[serde(default, rename = "usbPeripheralReport")]
-    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
+    pub usb_peripheral_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1UsbPeripheralReport>>,
+    >,
 }
 
 /// Represents a request to print a document that has been submitted to a printer.
@@ -1177,43 +1246,43 @@ pub struct GoogleChromeManagementV1PeripheralsReport {
 pub struct GoogleChromeManagementV1PrintJob {
     /// Color mode. // TODO: enum values: ["COLOR_MODE_UNSPECIFIED", "BLACK_AND_WHITE", "COLOR"]
     #[serde(default, rename = "colorMode")]
-    pub color_mode: Option<String>,
+    pub color_mode: ::core::option::Option<String>,
     /// Print job completion timestamp.
     #[serde(default, rename = "completeTime")]
-    pub complete_time: Option<String>,
+    pub complete_time: ::core::option::Option<String>,
     /// Number of copies.
     #[serde(default, rename = "copyCount")]
-    pub copy_count: Option<i32>,
+    pub copy_count: ::core::option::Option<i32>,
     /// Print job creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Number of pages in the document.
     #[serde(default, rename = "documentPageCount")]
-    pub document_page_count: Option<i32>,
+    pub document_page_count: ::core::option::Option<i32>,
     /// Duplex mode. // TODO: enum values: ["DUPLEX_MODE_UNSPECIFIED", "ONE_SIDED", "TWO_SIDED_LONG_EDGE", "TWO_SIDED_SHORT_EDGE"]
     #[serde(default, rename = "duplexMode")]
-    pub duplex_mode: Option<String>,
+    pub duplex_mode: ::core::option::Option<String>,
     /// Unique ID of the print job.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of the printer used for printing.
     #[serde(default)]
-    pub printer: Option<String>,
+    pub printer: ::core::option::Option<String>,
     /// API ID of the printer used for printing.
     #[serde(default, rename = "printerId")]
-    pub printer_id: Option<String>,
+    pub printer_id: ::core::option::Option<String>,
     /// The final state of the job. // TODO: enum values: ["STATE_UNSPECIFIED", "PRINTED", "CANCELLED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The title of the document.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The primary e-mail address of the user who submitted the print job.
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
     /// The unique Directory API ID of the user who submitted the print job.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Report for CountPrintJobsByPrinter, contains statistics on printer usage. Contains the total number of print jobs initiated with this printer, the number of users and the number of devices that have initiated at least one print job with this printer.
@@ -1221,22 +1290,22 @@ pub struct GoogleChromeManagementV1PrintJob {
 pub struct GoogleChromeManagementV1PrinterReport {
     /// Number of chrome devices that have been used to send print jobs to the specified printer.
     #[serde(default, rename = "deviceCount")]
-    pub device_count: Option<String>,
+    pub device_count: ::core::option::Option<String>,
     /// Number of print jobs sent to the printer.
     #[serde(default, rename = "jobCount")]
-    pub job_count: Option<String>,
+    pub job_count: ::core::option::Option<String>,
     /// Printer name.
     #[serde(default)]
-    pub printer: Option<String>,
+    pub printer: ::core::option::Option<String>,
     /// Printer API ID.
     #[serde(default, rename = "printerId")]
-    pub printer_id: Option<String>,
+    pub printer_id: ::core::option::Option<String>,
     /// Printer model.
     #[serde(default, rename = "printerModel")]
-    pub printer_model: Option<String>,
+    pub printer_model: ::core::option::Option<String>,
     /// Number of users that have sent print jobs to the printer.
     #[serde(default, rename = "userCount")]
-    pub user_count: Option<String>,
+    pub user_count: ::core::option::Option<String>,
 }
 
 /// Risk assessment for a Chrome extension.
@@ -1244,13 +1313,13 @@ pub struct GoogleChromeManagementV1PrinterReport {
 pub struct GoogleChromeManagementV1RiskAssessment {
     /// Risk assessment for the extension. Currently, this is a numerical value, and its interpretation is specific to each risk assessment provider.
     #[serde(default)]
-    pub assessment: Option<String>,
+    pub assessment: ::core::option::Option<String>,
     /// A URL that a user can navigate to for more information about the risk assessment.
     #[serde(default, rename = "detailsUrl")]
-    pub details_url: Option<String>,
+    pub details_url: ::core::option::Option<String>,
     /// The version of the extension that this assessment applies to.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Risk assessment data about an extension/app.
@@ -1258,10 +1327,12 @@ pub struct GoogleChromeManagementV1RiskAssessment {
 pub struct GoogleChromeManagementV1RiskAssessmentData {
     /// Individual risk assessments.
     #[serde(default)]
-    pub entries: Option<Vec<GoogleChromeManagementV1RiskAssessmentEntry>>,
+    pub entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1RiskAssessmentEntry>>,
+    >,
     /// Overall assessed risk level across all entries. This will be the highest risk level from all entries. // TODO: enum values: ["RISK_LEVEL_UNSPECIFIED", "RISK_LEVEL_LOW", "RISK_LEVEL_MEDIUM", "RISK_LEVEL_HIGH"]
     #[serde(default, rename = "overallRiskLevel")]
-    pub overall_risk_level: Option<String>,
+    pub overall_risk_level: ::core::option::Option<String>,
 }
 
 /// One risk assessment entry.
@@ -1269,13 +1340,14 @@ pub struct GoogleChromeManagementV1RiskAssessmentData {
 pub struct GoogleChromeManagementV1RiskAssessmentEntry {
     /// Output only. The risk assessment provider from which this entry comes from. // TODO: enum values: ["RISK_ASSESSMENT_PROVIDER_UNSPECIFIED", "RISK_ASSESSMENT_PROVIDER_CRXCAVATOR", "RISK_ASSESSMENT_PROVIDER_SPIN_AI", "RISK_ASSESSMENT_PROVIDER_LAYERX", "RISK_ASSESSMENT_PROVIDER_SPIN_AI_V2"]
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
     /// Output only. The details of the provider''s risk assessment.
     #[serde(default, rename = "riskAssessment")]
-    pub risk_assessment: Option<GoogleChromeManagementV1RiskAssessment>,
+    pub risk_assessment:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1RiskAssessment>>,
     /// Output only. The bucketed risk level for the risk assessment. // TODO: enum values: ["RISK_LEVEL_UNSPECIFIED", "RISK_LEVEL_LOW", "RISK_LEVEL_MEDIUM", "RISK_LEVEL_HIGH"]
     #[serde(default, rename = "riskLevel")]
-    pub risk_level: Option<String>,
+    pub risk_level: ::core::option::Option<String>,
 }
 
 /// Runtime counters retrieved from CPU. Currently the runtime counters telemetry is only supported by Intel vPro PSR on Gen 14+.
@@ -1283,19 +1355,19 @@ pub struct GoogleChromeManagementV1RiskAssessmentEntry {
 pub struct GoogleChromeManagementV1RuntimeCountersReport {
     /// Number of times that the device has entered into the hibernation state. Currently obtained via the PSR, count from S0-&gt;S4.
     #[serde(default, rename = "enterHibernationCount")]
-    pub enter_hibernation_count: Option<String>,
+    pub enter_hibernation_count: ::core::option::Option<String>,
     /// Number of times that the device has entered into the power-off state. Currently obtained via the PSR, count from S0-&gt;S5.
     #[serde(default, rename = "enterPoweroffCount")]
-    pub enter_poweroff_count: Option<String>,
+    pub enter_poweroff_count: ::core::option::Option<String>,
     /// Number of times that the device has entered into the sleep state. Currently obtained via the PSR, count from S0-&gt;S3.
     #[serde(default, rename = "enterSleepCount")]
-    pub enter_sleep_count: Option<String>,
+    pub enter_sleep_count: ::core::option::Option<String>,
     /// Timestamp when the report was collected.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Total lifetime runtime. Currently always S0 runtime from Intel vPro PSR.
     #[serde(default, rename = "uptimeRuntimeDuration")]
-    pub uptime_runtime_duration: Option<String>,
+    pub uptime_runtime_duration: ::core::option::Option<String>,
 }
 
 /// Status data for storage. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceStorageStatus](https://chromeenterprise.google/policies/#ReportDeviceStorageStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_STORAGE_INFO
@@ -1303,13 +1375,15 @@ pub struct GoogleChromeManagementV1RuntimeCountersReport {
 pub struct GoogleChromeManagementV1StorageInfo {
     /// The available space for user data storage in the device in bytes.
     #[serde(default, rename = "availableDiskBytes")]
-    pub available_disk_bytes: Option<String>,
+    pub available_disk_bytes: ::core::option::Option<String>,
     /// The total space for user data storage in the device in bytes.
     #[serde(default, rename = "totalDiskBytes")]
-    pub total_disk_bytes: Option<String>,
+    pub total_disk_bytes: ::core::option::Option<String>,
     /// Information for disk volumes
     #[serde(default)]
-    pub volume: Option<Vec<GoogleChromeManagementV1StorageInfoDiskVolume>>,
+    pub volume: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1StorageInfoDiskVolume>>,
+    >,
 }
 
 /// Information for disk volumes
@@ -1317,13 +1391,13 @@ pub struct GoogleChromeManagementV1StorageInfo {
 pub struct GoogleChromeManagementV1StorageInfoDiskVolume {
     /// Free storage space in bytes.
     #[serde(default, rename = "storageFreeBytes")]
-    pub storage_free_bytes: Option<String>,
+    pub storage_free_bytes: ::core::option::Option<String>,
     /// Total storage space in bytes.
     #[serde(default, rename = "storageTotalBytes")]
-    pub storage_total_bytes: Option<String>,
+    pub storage_total_bytes: ::core::option::Option<String>,
     /// Disk volume id.
     #[serde(default, rename = "volumeId")]
-    pub volume_id: Option<String>,
+    pub volume_id: ::core::option::Option<String>,
 }
 
 /// Status data for storage. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceStorageStatus](https://chromeenterprise.google/policies/#ReportDeviceStorageStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_STORAGE_REPORT
@@ -1331,10 +1405,12 @@ pub struct GoogleChromeManagementV1StorageInfoDiskVolume {
 pub struct GoogleChromeManagementV1StorageStatusReport {
     /// Output only. Reports on disk.
     #[serde(default)]
-    pub disk: Option<Vec<GoogleChromeManagementV1DiskInfo>>,
+    pub disk: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DiskInfo>>,
+    >,
     /// Output only. Timestamp of when the sample was collected on device
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
 }
 
 /// App installation data.
@@ -1342,19 +1418,19 @@ pub struct GoogleChromeManagementV1StorageStatusReport {
 pub struct GoogleChromeManagementV1TelemetryAppInstallEvent {
     /// App id. For PWAs this is the start URL, and for extensions this is the extension id.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// App installation reason. // TODO: enum values: ["APPLICATION_INSTALL_REASON_UNSPECIFIED", "APPLICATION_INSTALL_REASON_SYSTEM", "APPLICATION_INSTALL_REASON_POLICY", "APPLICATION_INSTALL_REASON_OEM", "APPLICATION_INSTALL_REASON_DEFAULT", "APPLICATION_INSTALL_REASON_SYNC", "APPLICATION_INSTALL_REASON_USER", "APPLICATION_INSTALL_REASON_SUB_APP", "APPLICATION_INSTALL_REASON_KIOSK", "APPLICATION_INSTALL_REASON_COMMAND_LINE"]
     #[serde(default, rename = "appInstallReason")]
-    pub app_install_reason: Option<String>,
+    pub app_install_reason: ::core::option::Option<String>,
     /// App installation source. // TODO: enum values: ["APPLICATION_INSTALL_SOURCE_UNSPECIFIED", "APPLICATION_INSTALL_SOURCE_SYSTEM", "APPLICATION_INSTALL_SOURCE_SYNC", "APPLICATION_INSTALL_SOURCE_PLAY_STORE", "APPLICATION_INSTALL_SOURCE_CHROME_WEB_STORE", "APPLICATION_INSTALL_SOURCE_BROWSER"]
     #[serde(default, rename = "appInstallSource")]
-    pub app_install_source: Option<String>,
+    pub app_install_source: ::core::option::Option<String>,
     /// App installation time depending on the app lifecycle. // TODO: enum values: ["APPLICATION_INSTALL_TIME_UNSPECIFIED", "APPLICATION_INSTALL_TIME_INIT", "APPLICATION_INSTALL_TIME_RUNNING"]
     #[serde(default, rename = "appInstallTime")]
-    pub app_install_time: Option<String>,
+    pub app_install_time: ::core::option::Option<String>,
     /// Type of app. // TODO: enum values: ["TELEMETRY_APPLICATION_TYPE_UNSPECIFIED", "APPLICATION_TYPE_ARC", "APPLICATION_TYPE_BUILT_IN", "APPLICATION_TYPE_CROSTINI", "APPLICATION_TYPE_CHROME_APP", "APPLICATION_TYPE_WEB", "APPLICATION_TYPE_MAC_OS", "APPLICATION_TYPE_PLUGIN_VM", "APPLICATION_TYPE_STANDALONE_BROWSER", "APPLICATION_TYPE_REMOTE", "APPLICATION_TYPE_BOREALIS", "APPLICATION_TYPE_SYSTEM_WEB", "APPLICATION_TYPE_STANDALONE_BROWSER_CHROME_APP", "APPLICATION_TYPE_EXTENSION", "APPLICATION_TYPE_STANDALONE_BROWSER_EXTENSION", "APPLICATION_TYPE_BRUSCHETTA"]
     #[serde(default, rename = "appType")]
-    pub app_type: Option<String>,
+    pub app_type: ::core::option::Option<String>,
 }
 
 /// App launch data.
@@ -1362,13 +1438,13 @@ pub struct GoogleChromeManagementV1TelemetryAppInstallEvent {
 pub struct GoogleChromeManagementV1TelemetryAppLaunchEvent {
     /// App id. For PWAs this is the start URL, and for extensions this is the extension id.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// App launch source. // TODO: enum values: ["APPLICATION_LAUNCH_SOURCE_UNSPECIFIED", "APPLICATION_LAUNCH_SOURCE_APP_LIST_GRID", "APPLICATION_LAUNCH_SOURCE_APP_LIST_GRID_CONTEXT_MENU", "APPLICATION_LAUNCH_SOURCE_APP_LIST_QUERY", "APPLICATION_LAUNCH_SOURCE_APP_LIST_QUERY_CONTEXT_MENU", "APPLICATION_LAUNCH_SOURCE_APP_LIST_RECOMMENDATION", "APPLICATION_LAUNCH_SOURCE_PARENTAL_CONTROLS", "APPLICATION_LAUNCH_SOURCE_SHELF", "APPLICATION_LAUNCH_SOURCE_FILE_MANAGER", "APPLICATION_LAUNCH_SOURCE_LINK", "APPLICATION_LAUNCH_SOURCE_OMNIBOX", "APPLICATION_LAUNCH_SOURCE_CHROME_INTERNAL", "APPLICATION_LAUNCH_SOURCE_KEYBOARD", "APPLICATION_LAUNCH_SOURCE_OTHER_APP", "APPLICATION_LAUNCH_SOURCE_MENU", "APPLICATION_LAUNCH_SOURCE_INSTALLED_NOTIFICATION", "APPLICATION_LAUNCH_SOURCE_TEST", "APPLICATION_LAUNCH_SOURCE_ARC", "APPLICATION_LAUNCH_SOURCE_SHARESHEET", "APPLICATION_LAUNCH_SOURCE_RELEASE_NOTES_NOTIFICATION", "APPLICATION_LAUNCH_SOURCE_FULL_RESTORE", "APPLICATION_LAUNCH_SOURCE_SMART_TEXT_CONTEXT_MENU", "APPLICATION_LAUNCH_SOURCE_DISCOVER_TAB_NOTIFICATION", "APPLICATION_LAUNCH_SOURCE_MANAGEMENT_API", "APPLICATION_LAUNCH_SOURCE_KIOSK", "APPLICATION_LAUNCH_SOURCE_COMMAND_LINE", "APPLICATION_LAUNCH_SOURCE_BACKGROUND_MODE", "APPLICATION_LAUNCH_SOURCE_NEW_TAB_PAGE", "APPLICATION_LAUNCH_SOURCE_INTENT_URL", "APPLICATION_LAUNCH_SOURCE_OS_LOGIN", "APPLICATION_LAUNCH_SOURCE_PROTOCOL_HANDLER", "APPLICATION_LAUNCH_SOURCE_URL_HANDLER", "APPLICATION_LAUNCH_SOURCE_LOCK_SCREEN", "APPLICATION_LAUNCH_SOURCE_APP_HOME_PAGE", "APPLICATION_LAUNCH_SOURCE_REPARENTING", "APPLICATION_LAUNCH_SOURCE_PROFILE_MENU", "APPLICATION_LAUNCH_SOURCE_SYSTEM_TRAY_CALENDAR", "APPLICATION_LAUNCH_SOURCE_INSTALLER", "APPLICATION_LAUNCH_SOURCE_FIRST_RUN", "APPLICATION_LAUNCH_SOURCE_WELCOME_TOUR", "APPLICATION_LAUNCH_SOURCE_FOCUS_MODE", "APPLICATION_LAUNCH_SOURCE_SPARKY", "APPLICATION_LAUNCH_SOURCE_NAVIGATION_CAPTURING", "APPLICATION_LAUNCH_SOURCE_WEB_INSTALL_API"]
     #[serde(default, rename = "appLaunchSource")]
-    pub app_launch_source: Option<String>,
+    pub app_launch_source: ::core::option::Option<String>,
     /// Type of app. // TODO: enum values: ["TELEMETRY_APPLICATION_TYPE_UNSPECIFIED", "APPLICATION_TYPE_ARC", "APPLICATION_TYPE_BUILT_IN", "APPLICATION_TYPE_CROSTINI", "APPLICATION_TYPE_CHROME_APP", "APPLICATION_TYPE_WEB", "APPLICATION_TYPE_MAC_OS", "APPLICATION_TYPE_PLUGIN_VM", "APPLICATION_TYPE_STANDALONE_BROWSER", "APPLICATION_TYPE_REMOTE", "APPLICATION_TYPE_BOREALIS", "APPLICATION_TYPE_SYSTEM_WEB", "APPLICATION_TYPE_STANDALONE_BROWSER_CHROME_APP", "APPLICATION_TYPE_EXTENSION", "APPLICATION_TYPE_STANDALONE_BROWSER_EXTENSION", "APPLICATION_TYPE_BRUSCHETTA"]
     #[serde(default, rename = "appType")]
-    pub app_type: Option<String>,
+    pub app_type: ::core::option::Option<String>,
 }
 
 /// App uninstall data.
@@ -1376,13 +1452,13 @@ pub struct GoogleChromeManagementV1TelemetryAppLaunchEvent {
 pub struct GoogleChromeManagementV1TelemetryAppUninstallEvent {
     /// App id. For PWAs this is the start URL, and for extensions this is the extension id.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Type of app. // TODO: enum values: ["TELEMETRY_APPLICATION_TYPE_UNSPECIFIED", "APPLICATION_TYPE_ARC", "APPLICATION_TYPE_BUILT_IN", "APPLICATION_TYPE_CROSTINI", "APPLICATION_TYPE_CHROME_APP", "APPLICATION_TYPE_WEB", "APPLICATION_TYPE_MAC_OS", "APPLICATION_TYPE_PLUGIN_VM", "APPLICATION_TYPE_STANDALONE_BROWSER", "APPLICATION_TYPE_REMOTE", "APPLICATION_TYPE_BOREALIS", "APPLICATION_TYPE_SYSTEM_WEB", "APPLICATION_TYPE_STANDALONE_BROWSER_CHROME_APP", "APPLICATION_TYPE_EXTENSION", "APPLICATION_TYPE_STANDALONE_BROWSER_EXTENSION", "APPLICATION_TYPE_BRUSCHETTA"]
     #[serde(default, rename = "appType")]
-    pub app_type: Option<String>,
+    pub app_type: ::core::option::Option<String>,
     /// App uninstall source. // TODO: enum values: ["APPLICATION_UNINSTALL_SOURCE_UNSPECIFIED", "APPLICATION_UNINSTALL_SOURCE_APP_LIST", "APPLICATION_UNINSTALL_SOURCE_APP_MANAGEMENT", "APPLICATION_UNINSTALL_SOURCE_SHELF", "APPLICATION_UNINSTALL_SOURCE_MIGRATION"]
     #[serde(default, rename = "appUninstallSource")]
-    pub app_uninstall_source: Option<String>,
+    pub app_uninstall_source: ::core::option::Option<String>,
 }
 
 /// Telemetry data collected from a managed device. * Granular permission needed: TELEMETRY_API_DEVICE
@@ -1390,88 +1466,128 @@ pub struct GoogleChromeManagementV1TelemetryAppUninstallEvent {
 pub struct GoogleChromeManagementV1TelemetryDevice {
     /// Output only. App reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "appReport")]
-    pub app_report: Option<Vec<GoogleChromeManagementV1AppReport>>,
+    pub app_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1AppReport>>,
+    >,
     /// Output only. Audio reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "audioStatusReport")]
-    pub audio_status_report: Option<Vec<GoogleChromeManagementV1AudioStatusReport>>,
+    pub audio_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1AudioStatusReport>>,
+    >,
     /// Output only. Information on battery specs for the device.
     #[serde(default, rename = "batteryInfo")]
-    pub battery_info: Option<Vec<GoogleChromeManagementV1BatteryInfo>>,
+    pub battery_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1BatteryInfo>>,
+    >,
     /// Output only. Battery reports collected periodically.
     #[serde(default, rename = "batteryStatusReport")]
-    pub battery_status_report: Option<Vec<GoogleChromeManagementV1BatteryStatusReport>>,
+    pub battery_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1BatteryStatusReport>>,
+    >,
     /// Output only. Boot performance reports of the device.
     #[serde(default, rename = "bootPerformanceReport")]
-    pub boot_performance_report: Option<Vec<GoogleChromeManagementV1BootPerformanceReport>>,
+    pub boot_performance_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1BootPerformanceReport>>,
+    >,
     /// Output only. Information regarding CPU specs for the device.
     #[serde(default, rename = "cpuInfo")]
-    pub cpu_info: Option<Vec<GoogleChromeManagementV1CpuInfo>>,
+    pub cpu_info:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1CpuInfo>>>,
     /// Output only. CPU status reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "cpuStatusReport")]
-    pub cpu_status_report: Option<Vec<GoogleChromeManagementV1CpuStatusReport>>,
+    pub cpu_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1CpuStatusReport>>,
+    >,
     /// Output only. Google Workspace Customer whose enterprise enrolled the device.
     #[serde(default)]
-    pub customer: Option<String>,
+    pub customer: ::core::option::Option<String>,
     /// Output only. The unique Directory API ID of the device. This value is the same as the Admin Console''s Directory API ID in the ChromeOS Devices tab
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Output only. Contains information regarding Graphic peripherals for the device.
     #[serde(default, rename = "graphicsInfo")]
-    pub graphics_info: Option<GoogleChromeManagementV1GraphicsInfo>,
+    pub graphics_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1GraphicsInfo>>,
     /// Output only. Graphics reports collected periodically.
     #[serde(default, rename = "graphicsStatusReport")]
-    pub graphics_status_report: Option<Vec<GoogleChromeManagementV1GraphicsStatusReport>>,
+    pub graphics_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1GraphicsStatusReport>>,
+    >,
     /// Output only. Heartbeat status report containing timestamps periodically sorted in decreasing order of report_time
     #[serde(default, rename = "heartbeatStatusReport")]
-    pub heartbeat_status_report: Option<Vec<GoogleChromeManagementV1HeartbeatStatusReport>>,
+    pub heartbeat_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1HeartbeatStatusReport>>,
+    >,
     /// Output only. Kiosk app status report for the kiosk device
     #[serde(default, rename = "kioskAppStatusReport")]
-    pub kiosk_app_status_report: Option<Vec<GoogleChromeManagementV1KioskAppStatusReport>>,
+    pub kiosk_app_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1KioskAppStatusReport>>,
+    >,
     /// Output only. Information regarding memory specs for the device.
     #[serde(default, rename = "memoryInfo")]
-    pub memory_info: Option<GoogleChromeManagementV1MemoryInfo>,
+    pub memory_info: ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1MemoryInfo>>,
     /// Output only. Memory status reports collected periodically sorted decreasing by report_time.
     #[serde(default, rename = "memoryStatusReport")]
-    pub memory_status_report: Option<Vec<GoogleChromeManagementV1MemoryStatusReport>>,
+    pub memory_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1MemoryStatusReport>>,
+    >,
     /// Output only. Resource name of the device.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Network bandwidth reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "networkBandwidthReport")]
-    pub network_bandwidth_report: Option<Vec<GoogleChromeManagementV1NetworkBandwidthReport>>,
+    pub network_bandwidth_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1NetworkBandwidthReport>>,
+    >,
     /// Output only. Network diagnostics collected periodically.
     #[serde(default, rename = "networkDiagnosticsReport")]
-    pub network_diagnostics_report: Option<Vec<GoogleChromeManagementV1NetworkDiagnosticsReport>>,
+    pub network_diagnostics_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1NetworkDiagnosticsReport>>,
+    >,
     /// Output only. Network devices information.
     #[serde(default, rename = "networkInfo")]
-    pub network_info: Option<GoogleChromeManagementV1NetworkInfo>,
+    pub network_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1NetworkInfo>>,
     /// Output only. Network specs collected periodically.
     #[serde(default, rename = "networkStatusReport")]
-    pub network_status_report: Option<Vec<GoogleChromeManagementV1NetworkStatusReport>>,
+    pub network_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1NetworkStatusReport>>,
+    >,
     /// Output only. Organization unit ID of the device.
     #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: Option<String>,
+    pub org_unit_id: ::core::option::Option<String>,
     /// Output only. Contains relevant information regarding ChromeOS update status.
     #[serde(default, rename = "osUpdateStatus")]
-    pub os_update_status: Option<Vec<GoogleChromeManagementV1OsUpdateStatus>>,
+    pub os_update_status: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1OsUpdateStatus>>,
+    >,
     /// Output only. Peripherals reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "peripheralsReport")]
-    pub peripherals_report: Option<Vec<GoogleChromeManagementV1PeripheralsReport>>,
+    pub peripherals_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1PeripheralsReport>>,
+    >,
     /// Output only. Runtime counters reports collected device lifetime runtime, as well as the counts of S0-&gt;S3, S0-&gt;S4, and S0-&gt;S5 transitions, meaning entering into sleep, hibernation, and power-off states
     #[serde(default, rename = "runtimeCountersReport")]
-    pub runtime_counters_report: Option<Vec<GoogleChromeManagementV1RuntimeCountersReport>>,
+    pub runtime_counters_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1RuntimeCountersReport>>,
+    >,
     /// Output only. Device serial number. This value is the same as the Admin Console''s Serial Number in the ChromeOS Devices tab.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<String>,
+    pub serial_number: ::core::option::Option<String>,
     /// Output only. Information of storage specs for the device.
     #[serde(default, rename = "storageInfo")]
-    pub storage_info: Option<GoogleChromeManagementV1StorageInfo>,
+    pub storage_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1StorageInfo>>,
     /// Output only. Storage reports collected periodically.
     #[serde(default, rename = "storageStatusReport")]
-    pub storage_status_report: Option<Vec<GoogleChromeManagementV1StorageStatusReport>>,
+    pub storage_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1StorageStatusReport>>,
+    >,
     /// Output only. Information on Thunderbolt bus.
     #[serde(default, rename = "thunderboltInfo")]
-    pub thunderbolt_info: Option<Vec<GoogleChromeManagementV1ThunderboltInfo>>,
+    pub thunderbolt_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1ThunderboltInfo>>,
+    >,
 }
 
 /// Information about a device associated with telemetry data. * Granular Permission needed: TELEMETRY_API_DEVICE
@@ -1479,10 +1595,10 @@ pub struct GoogleChromeManagementV1TelemetryDevice {
 pub struct GoogleChromeManagementV1TelemetryDeviceInfo {
     /// Output only. The unique Directory API ID of the device. This value is the same as the Admin Console''s Directory API ID in the ChromeOS Devices tab.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Output only. Organization unit ID of the device.
     #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: Option<String>,
+    pub org_unit_id: ::core::option::Option<String>,
 }
 
 /// Telemetry data reported by a managed device.
@@ -1490,56 +1606,70 @@ pub struct GoogleChromeManagementV1TelemetryDeviceInfo {
 pub struct GoogleChromeManagementV1TelemetryEvent {
     /// Output only. Payload for app install event. Present only when event_type is APP_INSTALLED.
     #[serde(default, rename = "appInstallEvent")]
-    pub app_install_event: Option<GoogleChromeManagementV1TelemetryAppInstallEvent>,
+    pub app_install_event:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1TelemetryAppInstallEvent>>,
     /// Output only. Payload for app launch event.Present only when event_type is APP_LAUNCHED.
     #[serde(default, rename = "appLaunchEvent")]
-    pub app_launch_event: Option<GoogleChromeManagementV1TelemetryAppLaunchEvent>,
+    pub app_launch_event:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1TelemetryAppLaunchEvent>>,
     /// Output only. Payload for app uninstall event. Present only when event_type is APP_UNINSTALLED.
     #[serde(default, rename = "appUninstallEvent")]
-    pub app_uninstall_event: Option<GoogleChromeManagementV1TelemetryAppUninstallEvent>,
+    pub app_uninstall_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryAppUninstallEvent>,
+    >,
     /// Output only. Payload for audio severe underrun event. Present only when the event_type field is AUDIO_SEVERE_UNDERRUN.
     #[serde(default, rename = "audioSevereUnderrunEvent")]
-    pub audio_severe_underrun_event: Option<serde_json::Value>,
+    pub audio_severe_underrun_event: ::core::option::Option<serde_json::Value>,
     /// Output only. Information about the device associated with the event.
     #[serde(default)]
-    pub device: Option<GoogleChromeManagementV1TelemetryDeviceInfo>,
+    pub device:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1TelemetryDeviceInfo>>,
     /// The event type of the current event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "AUDIO_SEVERE_UNDERRUN", "NETWORK_STATE_CHANGE", "USB_ADDED", "USB_REMOVED", "NETWORK_HTTPS_LATENCY_CHANGE", "WIFI_SIGNAL_STRENGTH_LOW", "WIFI_SIGNAL_STRENGTH_RECOVERED", "VPN_CONNECTION_STATE_CHANGE", "APP_INSTALLED", "APP_UNINSTALLED", "APP_LAUNCHED", "OS_CRASH", "EXTERNAL_DISPLAY_CONNECTED", "EXTERNAL_DISPLAY_DISCONNECTED"]
     #[serde(default, rename = "eventType")]
-    pub event_type: Option<String>,
+    pub event_type: ::core::option::Option<String>,
     /// Output only. Payload for external display connected/disconnected event. Present only when event_type is EXTERNAL_DISPLAY_CONNECTED or EXTERNAL_DISPLAY_DISCONNECTED.
     #[serde(default, rename = "externalDisplaysEvent")]
-    pub external_displays_event: Option<GoogleChromeManagementV1TelemetryExternalDisplayEvent>,
+    pub external_displays_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryExternalDisplayEvent>,
+    >,
     /// Output only. Payload for HTTPS latency change event. Present only when event_type is NETWORK_HTTPS_LATENCY_CHANGE.
     #[serde(default, rename = "httpsLatencyChangeEvent")]
-    pub https_latency_change_event:
-        Option<GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent>,
+    pub https_latency_change_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent>,
+    >,
     /// Output only. Resource name of the event.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Payload for network connection state change event. Present only when event_type is NETWORK_STATE_CHANGE.
     #[serde(default, rename = "networkStateChangeEvent")]
-    pub network_state_change_event:
-        Option<GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent>,
+    pub network_state_change_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent>,
+    >,
     /// Output only. Payload for OS crash event. Present only when event_type is OS_CRASH.
     #[serde(default, rename = "osCrashEvent")]
-    pub os_crash_event: Option<GoogleChromeManagementV1TelemetryOsCrashEvent>,
+    pub os_crash_event:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1TelemetryOsCrashEvent>>,
     /// Timestamp that represents when the event was reported.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Output only. Payload for usb peripherals event. Present only when the event_type field is either USB_ADDED or USB_REMOVED.
     #[serde(default, rename = "usbPeripheralsEvent")]
-    pub usb_peripherals_event: Option<GoogleChromeManagementV1TelemetryUsbPeripheralsEvent>,
+    pub usb_peripherals_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryUsbPeripheralsEvent>,
+    >,
     /// Output only. Information about the user associated with the event.
     #[serde(default)]
-    pub user: Option<GoogleChromeManagementV1TelemetryUserInfo>,
+    pub user: ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1TelemetryUserInfo>>,
     /// Output only. Payload for VPN connection state change event. Present only when event_type is VPN_CONNECTION_STATE_CHANGE.
     #[serde(default, rename = "vpnConnectionStateChangeEvent")]
-    pub vpn_connection_state_change_event:
-        Option<GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent>,
+    pub vpn_connection_state_change_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent>,
+    >,
     /// Output only. Payload for WiFi signal strength events. Present only when event_type is WIFI_SIGNAL_STRENGTH_LOW or WIFI_SIGNAL_STRENGTH_RECOVERED.
     #[serde(default, rename = "wifiSignalStrengthEvent")]
-    pub wifi_signal_strength_event:
-        Option<GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent>,
+    pub wifi_signal_strength_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent>,
+    >,
 }
 
 /// Configures how the telemetry events should be filtered.
@@ -1547,7 +1677,7 @@ pub struct GoogleChromeManagementV1TelemetryEvent {
 pub struct GoogleChromeManagementV1TelemetryEventNotificationFilter {
     /// Only sends the notifications for events of these types. Must not be empty.
     #[serde(default, rename = "eventTypes")]
-    pub event_types: Option<Vec<String>>,
+    pub event_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// External display data.
@@ -1555,22 +1685,22 @@ pub struct GoogleChromeManagementV1TelemetryEventNotificationFilter {
 pub struct GoogleChromeManagementV1TelemetryExternalDisplayData {
     /// The display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The EDID version.
     #[serde(default, rename = "edidVersion")]
-    pub edid_version: Option<String>,
+    pub edid_version: ::core::option::Option<String>,
     /// The refresh rate.
     #[serde(default, rename = "refreshRate")]
-    pub refresh_rate: Option<String>,
+    pub refresh_rate: ::core::option::Option<String>,
     /// The horizontal resolution.
     #[serde(default, rename = "resolutionHorizontal")]
-    pub resolution_horizontal: Option<i32>,
+    pub resolution_horizontal: ::core::option::Option<i32>,
     /// The vertical resolution.
     #[serde(default, rename = "resolutionVertical")]
-    pub resolution_vertical: Option<i32>,
+    pub resolution_vertical: ::core::option::Option<i32>,
     /// The serial number.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<i32>,
+    pub serial_number: ::core::option::Option<i32>,
 }
 
 /// External display connected/disconnected event payload.
@@ -1578,7 +1708,9 @@ pub struct GoogleChromeManagementV1TelemetryExternalDisplayData {
 pub struct GoogleChromeManagementV1TelemetryExternalDisplayEvent {
     /// List of external displays that were connected/disconnected.
     #[serde(default, rename = "externalDisplayData")]
-    pub external_display_data: Option<Vec<GoogleChromeManagementV1TelemetryExternalDisplayData>>,
+    pub external_display_data: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1TelemetryExternalDisplayData>>,
+    >,
 }
 
 /// Https latency routine is run periodically and TelemetryHttpsLatencyChangeEvent is triggered if a latency problem was detected or if the device has recovered from a latency problem. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
@@ -1586,10 +1718,11 @@ pub struct GoogleChromeManagementV1TelemetryExternalDisplayEvent {
 pub struct GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent {
     /// HTTPS latency routine data that triggered the event.
     #[serde(default, rename = "httpsLatencyRoutineData")]
-    pub https_latency_routine_data: Option<GoogleChromeManagementV1HttpsLatencyRoutineData>,
+    pub https_latency_routine_data:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementV1HttpsLatencyRoutineData>>,
     /// Current HTTPS latency state. // TODO: enum values: ["HTTPS_LATENCY_STATE_UNSPECIFIED", "RECOVERY", "PROBLEM"]
     #[serde(default, rename = "httpsLatencyState")]
-    pub https_latency_state: Option<String>,
+    pub https_latency_state: ::core::option::Option<String>,
 }
 
 /// TelemetryNetworkConnectionStateChangeEvent is triggered on network connection state changes. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
@@ -1597,10 +1730,10 @@ pub struct GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent {
 pub struct GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent {
     /// Current connection state of the network. // TODO: enum values: ["NETWORK_CONNECTION_STATE_UNSPECIFIED", "ONLINE", "CONNECTED", "PORTAL", "CONNECTING", "NOT_CONNECTED"]
     #[serde(default, rename = "connectionState")]
-    pub connection_state: Option<String>,
+    pub connection_state: ::core::option::Option<String>,
     /// Unique identifier of the network.
     #[serde(default)]
-    pub guid: Option<String>,
+    pub guid: ::core::option::Option<String>,
 }
 
 /// TelemetryNetworkSignalStrengthEvent is triggered on WiFi signal strength events. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
@@ -1608,10 +1741,10 @@ pub struct GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent {
 pub struct GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent {
     /// Unique identifier of the network.
     #[serde(default)]
-    pub guid: Option<String>,
+    pub guid: ::core::option::Option<String>,
     /// Signal strength RSSI value.
     #[serde(default, rename = "signalStrengthDbm")]
-    pub signal_strength_dbm: Option<i32>,
+    pub signal_strength_dbm: ::core::option::Option<i32>,
 }
 
 /// Configuration to receive notifications of telemetry data.
@@ -1619,16 +1752,18 @@ pub struct GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent {
 pub struct GoogleChromeManagementV1TelemetryNotificationConfig {
     /// Output only. Google Workspace customer that owns the resource.
     #[serde(default)]
-    pub customer: Option<String>,
+    pub customer: ::core::option::Option<String>,
     /// Only send notifications for telemetry data matching this filter.
     #[serde(default)]
-    pub filter: Option<GoogleChromeManagementV1TelemetryNotificationFilter>,
+    pub filter: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryNotificationFilter>,
+    >,
     /// The pubsub topic to which notifications are published to.
     #[serde(default, rename = "googleCloudPubsubTopic")]
-    pub google_cloud_pubsub_topic: Option<String>,
+    pub google_cloud_pubsub_topic: ::core::option::Option<String>,
     /// Output only. Resource name of the notification configuration.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Configures how the telemetry data should be filtered.
@@ -1636,20 +1771,21 @@ pub struct GoogleChromeManagementV1TelemetryNotificationConfig {
 pub struct GoogleChromeManagementV1TelemetryNotificationFilter {
     /// If set, only sends notifications for telemetry data coming from this device.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// If set, only sends notifications for telemetry data coming from devices in this org unit.
     #[serde(default, rename = "deviceOrgUnitId")]
-    pub device_org_unit_id: Option<String>,
+    pub device_org_unit_id: ::core::option::Option<String>,
     /// Only sends notifications for the telemetry events matching this filter.
     #[serde(default, rename = "telemetryEventNotificationFilter")]
-    pub telemetry_event_notification_filter:
-        Option<GoogleChromeManagementV1TelemetryEventNotificationFilter>,
+    pub telemetry_event_notification_filter: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementV1TelemetryEventNotificationFilter>,
+    >,
     /// If set, only sends notifications for telemetry data coming from devices owned by this user.
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
     /// If set, only sends notifications for telemetry data coming from devices owned by users in this org unit.
     #[serde(default, rename = "userOrgUnitId")]
-    pub user_org_unit_id: Option<String>,
+    pub user_org_unit_id: ::core::option::Option<String>,
 }
 
 /// OS crash data.
@@ -1657,13 +1793,13 @@ pub struct GoogleChromeManagementV1TelemetryNotificationFilter {
 pub struct GoogleChromeManagementV1TelemetryOsCrashEvent {
     /// Crash id.
     #[serde(default, rename = "crashId")]
-    pub crash_id: Option<String>,
+    pub crash_id: ::core::option::Option<String>,
     /// Crash type. // TODO: enum values: ["CRASH_TYPE_UNSPECIFIED", "CRASH_TYPE_KERNEL", "CRASH_TYPE_EMBEDDED_CONTROLLER"]
     #[serde(default, rename = "crashType")]
-    pub crash_type: Option<String>,
+    pub crash_type: ::core::option::Option<String>,
     /// Session type. // TODO: enum values: ["SESSION_TYPE_UNSPECIFIED", "SESSION_TYPE_SIGNED_IN_USER", "SESSION_TYPE_KIOSK", "SESSION_TYPE_MANAGED_GUEST", "SESSION_TYPE_ACTIVE_DIRECTORY"]
     #[serde(default, rename = "sessionType")]
-    pub session_type: Option<String>,
+    pub session_type: ::core::option::Option<String>,
 }
 
 /// TelemetryUsbPeripheralsEvent is triggered USB devices are either added or removed. * Granular permission needed: TELEMETRY_API_PERIPHERALS_REPORT
@@ -1671,7 +1807,9 @@ pub struct GoogleChromeManagementV1TelemetryOsCrashEvent {
 pub struct GoogleChromeManagementV1TelemetryUsbPeripheralsEvent {
     /// List of usb devices that were either added or removed.
     #[serde(default, rename = "usbPeripheralReport")]
-    pub usb_peripheral_report: Option<Vec<GoogleChromeManagementV1UsbPeripheralReport>>,
+    pub usb_peripheral_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1UsbPeripheralReport>>,
+    >,
 }
 
 /// Telemetry data collected from a managed user. * Granular permission needed: TELEMETRY_API_USER
@@ -1679,22 +1817,24 @@ pub struct GoogleChromeManagementV1TelemetryUsbPeripheralsEvent {
 pub struct GoogleChromeManagementV1TelemetryUser {
     /// G Suite Customer whose enterprise enrolled the device.
     #[serde(default)]
-    pub customer: Option<String>,
+    pub customer: ::core::option::Option<String>,
     /// Resource name of the user.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Organization unit of the user.
     #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: Option<String>,
+    pub org_unit_id: ::core::option::Option<String>,
     /// Telemetry data collected from a managed user and device.
     #[serde(default, rename = "userDevice")]
-    pub user_device: Option<Vec<GoogleChromeManagementV1TelemetryUserDevice>>,
+    pub user_device: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1TelemetryUserDevice>>,
+    >,
     /// Email address of the user.
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
     /// Directory ID of the user.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Telemetry data collected for a managed user and device. * Granular permission needed: TELEMETRY_API_DEVICE
@@ -1702,22 +1842,32 @@ pub struct GoogleChromeManagementV1TelemetryUser {
 pub struct GoogleChromeManagementV1TelemetryUserDevice {
     /// Output only. App reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "appReport")]
-    pub app_report: Option<Vec<GoogleChromeManagementV1AppReport>>,
+    pub app_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1AppReport>>,
+    >,
     /// Output only. Audio reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "audioStatusReport")]
-    pub audio_status_report: Option<Vec<GoogleChromeManagementV1AudioStatusReport>>,
+    pub audio_status_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1AudioStatusReport>>,
+    >,
     /// Output only. Device activity reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "deviceActivityReport")]
-    pub device_activity_report: Option<Vec<GoogleChromeManagementV1DeviceActivityReport>>,
+    pub device_activity_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1DeviceActivityReport>>,
+    >,
     /// The unique Directory API ID of the device. This value is the same as the Admin Console''s Directory API ID in the ChromeOS Devices tab.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Output only. Network bandwidth reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "networkBandwidthReport")]
-    pub network_bandwidth_report: Option<Vec<GoogleChromeManagementV1NetworkBandwidthReport>>,
+    pub network_bandwidth_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1NetworkBandwidthReport>>,
+    >,
     /// Output only. Peripherals reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "peripheralsReport")]
-    pub peripherals_report: Option<Vec<GoogleChromeManagementV1PeripheralsReport>>,
+    pub peripherals_report: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1PeripheralsReport>>,
+    >,
 }
 
 /// Information about a user associated with telemetry data. * Granular permission needed: TELEMETRY_API_USER
@@ -1725,10 +1875,10 @@ pub struct GoogleChromeManagementV1TelemetryUserDevice {
 pub struct GoogleChromeManagementV1TelemetryUserInfo {
     /// Output only. User''s email.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Output only. Organization unit ID of the user.
     #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: Option<String>,
+    pub org_unit_id: ::core::option::Option<String>,
 }
 
 /// Thunderbolt bus info. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceSecurityStatus](https://chromeenterprise.google/policies/#ReportDeviceSecurityStatus) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: No * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_BUS_DEVICE_INFO
@@ -1736,7 +1886,7 @@ pub struct GoogleChromeManagementV1TelemetryUserInfo {
 pub struct GoogleChromeManagementV1ThunderboltInfo {
     /// Security level of the Thunderbolt bus. // TODO: enum values: ["THUNDERBOLT_SECURITY_LEVEL_UNSPECIFIED", "THUNDERBOLT_SECURITY_NONE_LEVEL", "THUNDERBOLT_SECURITY_USER_LEVEL", "THUNDERBOLT_SECURITY_SECURE_LEVEL", "THUNDERBOLT_SECURITY_DP_ONLY_LEVEL", "THUNDERBOLT_SECURITY_USB_ONLY_LEVEL", "THUNDERBOLT_SECURITY_NO_PCIE_LEVEL"]
     #[serde(default, rename = "securityLevel")]
-    pub security_level: Option<String>,
+    pub security_level: ::core::option::Option<String>,
 }
 
 /// Memory encryption information of a device. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceMemoryInfo](https://chromeenterprise.google/policies/#ReportDeviceMemoryInfo) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A
@@ -1744,16 +1894,16 @@ pub struct GoogleChromeManagementV1ThunderboltInfo {
 pub struct GoogleChromeManagementV1TotalMemoryEncryptionInfo {
     /// Memory encryption algorithm. // TODO: enum values: ["MEMORY_ENCRYPTION_ALGORITHM_UNSPECIFIED", "MEMORY_ENCRYPTION_ALGORITHM_UNKNOWN", "MEMORY_ENCRYPTION_ALGORITHM_AES_XTS_128", "MEMORY_ENCRYPTION_ALGORITHM_AES_XTS_256"]
     #[serde(default, rename = "encryptionAlgorithm")]
-    pub encryption_algorithm: Option<String>,
+    pub encryption_algorithm: ::core::option::Option<String>,
     /// The state of memory encryption on the device. // TODO: enum values: ["MEMORY_ENCRYPTION_STATE_UNSPECIFIED", "MEMORY_ENCRYPTION_STATE_UNKNOWN", "MEMORY_ENCRYPTION_STATE_DISABLED", "MEMORY_ENCRYPTION_STATE_TME", "MEMORY_ENCRYPTION_STATE_MKTME"]
     #[serde(default, rename = "encryptionState")]
-    pub encryption_state: Option<String>,
+    pub encryption_state: ::core::option::Option<String>,
     /// The length of the encryption keys.
     #[serde(default, rename = "keyLength")]
-    pub key_length: Option<String>,
+    pub key_length: ::core::option::Option<String>,
     /// The maximum number of keys that can be used for encryption.
     #[serde(default, rename = "maxKeys")]
-    pub max_keys: Option<String>,
+    pub max_keys: ::core::option::Option<String>,
 }
 
 /// Information of an internal touch screen device.
@@ -1761,13 +1911,13 @@ pub struct GoogleChromeManagementV1TotalMemoryEncryptionInfo {
 pub struct GoogleChromeManagementV1TouchScreenDevice {
     /// Output only. Touch screen device display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Touch screen device is stylus capable or not.
     #[serde(default, rename = "stylusCapable")]
-    pub stylus_capable: Option<bool>,
+    pub stylus_capable: ::core::option::Option<bool>,
     /// Output only. Number of touch points supported on the device.
     #[serde(default, rename = "touchPointCount")]
-    pub touch_point_count: Option<i32>,
+    pub touch_point_count: ::core::option::Option<i32>,
 }
 
 /// Information on the device touch screen.
@@ -1775,10 +1925,12 @@ pub struct GoogleChromeManagementV1TouchScreenDevice {
 pub struct GoogleChromeManagementV1TouchScreenInfo {
     /// Output only. List of the internal touch screen devices.
     #[serde(default)]
-    pub devices: Option<Vec<GoogleChromeManagementV1TouchScreenDevice>>,
+    pub devices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementV1TouchScreenDevice>>,
+    >,
     /// Output only. Touchpad library name used by the input stack.
     #[serde(default, rename = "touchpadLibrary")]
-    pub touchpad_library: Option<String>,
+    pub touchpad_library: ::core::option::Option<String>,
 }
 
 /// USB connected peripheral report.
@@ -1786,28 +1938,28 @@ pub struct GoogleChromeManagementV1TouchScreenInfo {
 pub struct GoogleChromeManagementV1UsbPeripheralReport {
     /// Output only. Categories the device belongs to https://www.usb.org/defined-class-codes
     #[serde(default)]
-    pub categories: Option<Vec<String>>,
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Class ID https://www.usb.org/defined-class-codes
     #[serde(default, rename = "classId")]
-    pub class_id: Option<i32>,
+    pub class_id: ::core::option::Option<i32>,
     /// Output only. Firmware version
     #[serde(default, rename = "firmwareVersion")]
-    pub firmware_version: Option<String>,
+    pub firmware_version: ::core::option::Option<String>,
     /// Output only. Device name, model name, or product name
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Product ID
     #[serde(default)]
-    pub pid: Option<i32>,
+    pub pid: ::core::option::Option<i32>,
     /// Output only. Subclass ID https://www.usb.org/defined-class-codes
     #[serde(default, rename = "subclassId")]
-    pub subclass_id: Option<i32>,
+    pub subclass_id: ::core::option::Option<i32>,
     /// Output only. Vendor name
     #[serde(default)]
-    pub vendor: Option<String>,
+    pub vendor: ::core::option::Option<String>,
     /// Output only. Vendor ID
     #[serde(default)]
-    pub vid: Option<i32>,
+    pub vid: ::core::option::Option<i32>,
 }
 
 /// Report for CountPrintJobsByUser, contains printing statistics for a user. Contains the number of printers, the number of devices used to initiate print jobs, and the number of print jobs initiated.
@@ -1815,19 +1967,19 @@ pub struct GoogleChromeManagementV1UsbPeripheralReport {
 pub struct GoogleChromeManagementV1UserPrintReport {
     /// Number of chrome devices that have been used to initiate print jobs by the user.
     #[serde(default, rename = "deviceCount")]
-    pub device_count: Option<String>,
+    pub device_count: ::core::option::Option<String>,
     /// Number of print jobs initiated by the user.
     #[serde(default, rename = "jobCount")]
-    pub job_count: Option<String>,
+    pub job_count: ::core::option::Option<String>,
     /// Number of printers used by the user.
     #[serde(default, rename = "printerCount")]
-    pub printer_count: Option<String>,
+    pub printer_count: ::core::option::Option<String>,
     /// The primary e-mail address of the user.
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
     /// The unique Directory API ID of the user.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Details of a user requesting an extension, including the email and the justification.
@@ -1835,10 +1987,10 @@ pub struct GoogleChromeManagementV1UserPrintReport {
 pub struct GoogleChromeManagementV1UserRequestingExtensionDetails {
     /// The e-mail address of a user that has requested the extension.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Request justification as entered by the user.
     #[serde(default)]
-    pub justification: Option<String>,
+    pub justification: ::core::option::Option<String>,
 }
 
 /// Information of public key associated with a Chrome browser profile.
@@ -1846,16 +1998,16 @@ pub struct GoogleChromeManagementV1UserRequestingExtensionDetails {
 pub struct GoogleChromeManagementVersionsV1AttestationCredential {
     /// Output only. Latest rotation timestamp of the public key rotation.
     #[serde(default, rename = "keyRotationTime")]
-    pub key_rotation_time: Option<String>,
+    pub key_rotation_time: ::core::option::Option<String>,
     /// Output only. Trust level of the public key. // TODO: enum values: ["KEY_TRUST_LEVEL_UNSPECIFIED", "CHROME_BROWSER_HW_KEY", "CHROME_BROWSER_OS_KEY"]
     #[serde(default, rename = "keyTrustLevel")]
-    pub key_trust_level: Option<String>,
+    pub key_trust_level: ::core::option::Option<String>,
     /// Output only. Type of the public key. // TODO: enum values: ["KEY_TYPE_UNSPECIFIED", "RSA_KEY", "EC_KEY"]
     #[serde(default, rename = "keyType")]
-    pub key_type: Option<String>,
+    pub key_type: ::core::option::Option<String>,
     /// Output only. Value of the public key.
     #[serde(default, rename = "publicKey")]
-    pub public_key: Option<String>,
+    pub public_key: ::core::option::Option<String>,
 }
 
 /// A certificate provisioning process.
@@ -1863,49 +2015,57 @@ pub struct GoogleChromeManagementVersionsV1AttestationCredential {
 pub struct GoogleChromeManagementVersionsV1CertificateProvisioningProcess {
     /// Output only. The client certificate is being provisioned for a ChromeOS device. This contains information about the device.
     #[serde(default, rename = "chromeOsDevice")]
-    pub chrome_os_device: Option<GoogleChromeManagementVersionsV1ChromeOsDevice>,
+    pub chrome_os_device:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementVersionsV1ChromeOsDevice>>,
     /// Output only. The client certificate is being provisioned for a ChromeOS user. This contains information about the current user session.
     #[serde(default, rename = "chromeOsUserSession")]
-    pub chrome_os_user_session: Option<GoogleChromeManagementVersionsV1ChromeOsUserSession>,
+    pub chrome_os_user_session: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementVersionsV1ChromeOsUserSession>,
+    >,
     /// Output only. A message describing why this CertificateProvisioningProcess has failed. Presence of this field indicates that the CertificateProvisioningProcess has failed.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Output only. The CA connection is a generic CA connection.
     #[serde(default, rename = "genericCaConnection")]
-    pub generic_ca_connection: Option<GoogleChromeManagementVersionsV1GenericCaConnection>,
+    pub generic_ca_connection: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementVersionsV1GenericCaConnection>,
+    >,
     /// Output only. The profile is a generic certificate provisioning profile.
     #[serde(default, rename = "genericProfile")]
-    pub generic_profile: Option<GoogleChromeManagementVersionsV1GenericProfile>,
+    pub generic_profile:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementVersionsV1GenericProfile>>,
     /// Output only. The issued certificate for this CertificateProvisioningProcess in PEM format.
     #[serde(default, rename = "issuedCertificate")]
-    pub issued_certificate: Option<String>,
+    pub issued_certificate: ::core::option::Option<String>,
     /// Identifier. Resource name of the CertificateProvisioningProcess. The name pattern is given as customers/{customer}/certificateProvisioningProcesses/{certificate_provisioning_process} with {customer} being the obfuscated customer id and {certificate_provisioning_process} being the certificate provisioning process id.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The ID of the certificate provisioning profile.
     #[serde(default, rename = "provisioningProfileId")]
-    pub provisioning_profile_id: Option<String>,
+    pub provisioning_profile_id: ::core::option::Option<String>,
     /// Output only. The CA connection is a SCEP CA connection.
     #[serde(default, rename = "scepCaConnection")]
-    pub scep_ca_connection: Option<GoogleChromeManagementVersionsV1ScepCaConnection>,
+    pub scep_ca_connection:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementVersionsV1ScepCaConnection>>,
     /// Output only. The profile is a SCEP certificate provisioning profile.
     #[serde(default, rename = "scepProfile")]
-    pub scep_profile: Option<GoogleChromeManagementVersionsV1ScepProfile>,
+    pub scep_profile:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementVersionsV1ScepProfile>>,
     /// Output only. The data that the client was asked to sign. This field is only present after the SignData operation has been initiated.
     #[serde(default, rename = "signData")]
-    pub sign_data: Option<String>,
+    pub sign_data: ::core::option::Option<String>,
     /// Output only. The signature of signature_algorithm, generated using the client''s private key using signature_algorithm. This field is only present after the SignData operation has finished.
     #[serde(default)]
-    pub signature: Option<String>,
+    pub signature: ::core::option::Option<String>,
     /// Output only. The signature algorithm that the client and backend components use when processing sign_data. If the profile_type is a GenericProfile, this field will only be present after the SignData operation was initiated. If the profile_type is a ScepProfile, the field will always be present. // TODO: enum values: ["SIGNATURE_ALGORITHM_UNSPECIFIED", "SIGNATURE_ALGORITHM_RSA_PKCS1_V1_5_SHA256", "SIGNATURE_ALGORITHM_ECDSA_SHA256"]
     #[serde(default, rename = "signatureAlgorithm")]
-    pub signature_algorithm: Option<String>,
+    pub signature_algorithm: ::core::option::Option<String>,
     /// Output only. Server-generated timestamp of when the certificate provisioning process has been created.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The public key for which a certificate should be provisioned. Represented as a DER-encoded X.509 SubjectPublicKeyInfo.
     #[serde(default, rename = "subjectPublicKeyInfo")]
-    pub subject_public_key_info: Option<String>,
+    pub subject_public_key_info: ::core::option::Option<String>,
 }
 
 /// A representation of a Chrome browser profile.
@@ -1913,85 +2073,89 @@ pub struct GoogleChromeManagementVersionsV1CertificateProvisioningProcess {
 pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfile {
     /// Output only. The specific affiliation state of the profile. // TODO: enum values: ["AFFILIATION_STATE_UNSPECIFIED", "UNAFFILIATED_GENERIC", "PROFILE_ONLY", "UNAFFILIATED_LOCAL_MACHINE", "UNAFFILIATED_CLOUD_MACHINE", "AFFILIATED_CLOUD_MANAGED"]
     #[serde(default, rename = "affiliationState")]
-    pub affiliation_state: Option<String>,
+    pub affiliation_state: ::core::option::Option<String>,
     /// Optional. Location of the profile annotated by the admin.
     #[serde(default, rename = "annotatedLocation")]
-    pub annotated_location: Option<String>,
+    pub annotated_location: ::core::option::Option<String>,
     /// Optional. User of the profile annotated by the admin.
     #[serde(default, rename = "annotatedUser")]
-    pub annotated_user: Option<String>,
+    pub annotated_user: ::core::option::Option<String>,
     /// Output only. Attestation credential information of the profile.
     #[serde(default, rename = "attestationCredential")]
-    pub attestation_credential: Option<GoogleChromeManagementVersionsV1AttestationCredential>,
+    pub attestation_credential: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementVersionsV1AttestationCredential>,
+    >,
     /// Output only. Channel of the browser on which the profile exists.
     #[serde(default, rename = "browserChannel")]
-    pub browser_channel: Option<String>,
+    pub browser_channel: ::core::option::Option<String>,
     /// Output only. Version of the browser on which the profile exists.
     #[serde(default, rename = "browserVersion")]
-    pub browser_version: Option<String>,
+    pub browser_version: ::core::option::Option<String>,
     /// Output only. Basic information of the device on which the profile exists. This information is only available for the affiliated profiles.
     #[serde(default, rename = "deviceInfo")]
-    pub device_info: Option<GoogleChromeManagementVersionsV1DeviceInfo>,
+    pub device_info:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementVersionsV1DeviceInfo>>,
     /// Output only. Profile display name set by client.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Etag of this ChromeBrowserProfile resource. This etag can be used with UPDATE operation to ensure consistency.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Number of extensions installed on the profile.
     #[serde(default, rename = "extensionCount")]
-    pub extension_count: Option<String>,
+    pub extension_count: ::core::option::Option<String>,
     /// Output only. Timestamp of the first enrollment of the profile.
     #[serde(default, rename = "firstEnrollmentTime")]
-    pub first_enrollment_time: Option<String>,
+    pub first_enrollment_time: ::core::option::Option<String>,
     /// Output only. Identify provider of the profile. // TODO: enum values: ["IDENTITY_PROVIDER_UNSPECIFIED", "GOOGLE_IDENTITY_PROVIDER", "EXTERNAL_IDENTITY_PROVIDER"]
     #[serde(default, rename = "identityProvider")]
-    pub identity_provider: Option<String>,
+    pub identity_provider: ::core::option::Option<String>,
     /// Output only. Timestamp of the latest activity by the profile.
     #[serde(default, rename = "lastActivityTime")]
-    pub last_activity_time: Option<String>,
+    pub last_activity_time: ::core::option::Option<String>,
     /// Output only. Timestamp of the latest policy fetch by the profile.
     #[serde(default, rename = "lastPolicyFetchTime")]
-    pub last_policy_fetch_time: Option<String>,
+    pub last_policy_fetch_time: ::core::option::Option<String>,
     /// Output only. Timestamp of the latest policy sync by the profile.
     #[serde(default, rename = "lastPolicySyncTime")]
-    pub last_policy_sync_time: Option<String>,
+    pub last_policy_sync_time: ::core::option::Option<String>,
     /// Output only. Timestamp of the latest status report by the profile.
     #[serde(default, rename = "lastStatusReportTime")]
-    pub last_status_report_time: Option<String>,
+    pub last_status_report_time: ::core::option::Option<String>,
     /// Identifier. Format: customers/{customer_id}/profiles/{profile_permanent_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. OS platform of the device on which the profile exists.
     #[serde(default, rename = "osPlatformType")]
-    pub os_platform_type: Option<String>,
+    pub os_platform_type: ::core::option::Option<String>,
     /// Output only. Major OS platform version of the device on which the profile exists, from profile reporting.
     #[serde(default, rename = "osPlatformVersion")]
-    pub os_platform_version: Option<String>,
+    pub os_platform_version: ::core::option::Option<String>,
     /// Output only. OS version of the device on which the profile exists.
     #[serde(default, rename = "osVersion")]
-    pub os_version: Option<String>,
+    pub os_version: ::core::option::Option<String>,
     /// Output only. Number of policies applied on the profile.
     #[serde(default, rename = "policyCount")]
-    pub policy_count: Option<String>,
+    pub policy_count: ::core::option::Option<String>,
     /// Output only. Chrome client side profile ID.
     #[serde(default, rename = "profileId")]
-    pub profile_id: Option<String>,
+    pub profile_id: ::core::option::Option<String>,
     /// Output only. Profile permanent ID is the unique identifier of a profile within one customer.
     #[serde(default, rename = "profilePermanentId")]
-    pub profile_permanent_id: Option<String>,
+    pub profile_permanent_id: ::core::option::Option<String>,
     /// Output only. Detailed reporting data of the profile. This information is only available when the profile reporting policy is enabled.
     #[serde(default, rename = "reportingData")]
-    pub reporting_data: Option<GoogleChromeManagementVersionsV1ReportingData>,
+    pub reporting_data:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementVersionsV1ReportingData>>,
     /// Output only. Whether the profile supports FCM notifications.
     #[serde(default, rename = "supportsFcmNotifications")]
-    pub supports_fcm_notifications: Option<bool>,
+    pub supports_fcm_notifications: ::core::option::Option<bool>,
     /// Output only. Email address of the user to which the profile belongs.
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
     /// Output only. Unique Directory API ID of the user that can be used in Admin SDK Users API.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// A representation of a remote command for a Chrome browser profile.
@@ -1999,26 +2163,27 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfile {
 pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand {
     /// Output only. Result of the remote command.
     #[serde(default, rename = "commandResult")]
-    pub command_result:
-        Option<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommandCommandResult>,
+    pub command_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommandCommandResult>,
+    >,
     /// Output only. State of the remote command. // TODO: enum values: ["COMMAND_STATE_UNSPECIFIED", "PENDING", "EXPIRED", "EXECUTED_BY_CLIENT"]
     #[serde(default, rename = "commandState")]
-    pub command_state: Option<String>,
+    pub command_state: ::core::option::Option<String>,
     /// Required. Type of the remote command. The only supported command_type is "clearBrowsingData".
     #[serde(default, rename = "commandType")]
-    pub command_type: Option<String>,
+    pub command_type: ::core::option::Option<String>,
     /// Output only. Timestamp of the issurance of the remote command.
     #[serde(default, rename = "issueTime")]
-    pub issue_time: Option<String>,
+    pub issue_time: ::core::option::Option<String>,
     /// Identifier. Format: customers/{customer_id}/profiles/{profile_permanent_id}/commands/{command_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Payload of the remote command. The payload for "clearBrowsingData" command supports: - fields "clearCache" and "clearCookies" - values of boolean type.
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     /// Output only. Valid duration of the remote command.
     #[serde(default, rename = "validDuration")]
-    pub valid_duration: Option<String>,
+    pub valid_duration: ::core::option::Option<String>,
 }
 
 /// Result of the execution of a command.
@@ -2026,13 +2191,13 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand {
 pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommandCommandResult {
     /// Output only. Timestamp of the client execution of the remote command.
     #[serde(default, rename = "clientExecutionTime")]
-    pub client_execution_time: Option<String>,
+    pub client_execution_time: ::core::option::Option<String>,
     /// Output only. Result code that indicates the type of error or success of the command.
     #[serde(default, rename = "resultCode")]
-    pub result_code: Option<String>,
+    pub result_code: ::core::option::Option<String>,
     /// Output only. Result type of the remote command. // TODO: enum values: ["COMMAND_RESULT_TYPE_UNSPECIFIED", "IGNORED", "FAILURE", "SUCCESS"]
     #[serde(default, rename = "resultType")]
-    pub result_type: Option<String>,
+    pub result_type: ::core::option::Option<String>,
 }
 
 /// Describes the ChromeOS device that a CertificateProvisioningProcess belongs to.
@@ -2040,10 +2205,10 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommandCommandRes
 pub struct GoogleChromeManagementVersionsV1ChromeOsDevice {
     /// Output only. The unique Directory API ID of the device. This value is the same as the Admin Console''s Directory API ID in the ChromeOS Devices tab.
     #[serde(default, rename = "deviceDirectoryApiId")]
-    pub device_directory_api_id: Option<String>,
+    pub device_directory_api_id: ::core::option::Option<String>,
     /// Output only. Device serial number. This value is the same as the Admin Console''s Serial Number in the ChromeOS Devices tab.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<String>,
+    pub serial_number: ::core::option::Option<String>,
 }
 
 /// Describes the ChromeOS user session that a CertificateProvisioningProcess belongs to.
@@ -2051,13 +2216,14 @@ pub struct GoogleChromeManagementVersionsV1ChromeOsDevice {
 pub struct GoogleChromeManagementVersionsV1ChromeOsUserSession {
     /// Output only. This field contains information about the ChromeOS device that the user session is running on. It is only set if the user is affiliated, i.e., if the user is managed by the same organization that manages the ChromeOS device.
     #[serde(default, rename = "chromeOsDevice")]
-    pub chrome_os_device: Option<GoogleChromeManagementVersionsV1ChromeOsDevice>,
+    pub chrome_os_device:
+        ::core::option::Option<::std::boxed::Box<GoogleChromeManagementVersionsV1ChromeOsDevice>>,
     /// Output only. The unique Directory API ID of the user.
     #[serde(default, rename = "userDirectoryApiId")]
-    pub user_directory_api_id: Option<String>,
+    pub user_directory_api_id: ::core::option::Option<String>,
     /// Output only. The primary e-mail address of the user.
     #[serde(default, rename = "userPrimaryEmail")]
-    pub user_primary_email: Option<String>,
+    pub user_primary_email: ::core::option::Option<String>,
 }
 
 /// Request message for claiming a certificate provisioning process.
@@ -2065,7 +2231,7 @@ pub struct GoogleChromeManagementVersionsV1ChromeOsUserSession {
 pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRequest {
     /// Required. The instance id of the caller.
     #[serde(default, rename = "callerInstanceId")]
-    pub caller_instance_id: Option<String>,
+    pub caller_instance_id: ::core::option::Option<String>,
 }
 
 /// Information of a device that runs a Chrome browser profile.
@@ -2073,16 +2239,16 @@ pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRe
 pub struct GoogleChromeManagementVersionsV1DeviceInfo {
     /// Output only. Device ID that identifies the affiliated device on which the profile exists. If the device type is CHROME_BROWSER, then this represents a unique Directory API ID of the device that can be used in Admin SDK Browsers API.
     #[serde(default, rename = "affiliatedDeviceId")]
-    pub affiliated_device_id: Option<String>,
+    pub affiliated_device_id: ::core::option::Option<String>,
     /// Output only. Type of the device on which the profile exists. // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "CHROME_BROWSER"]
     #[serde(default, rename = "deviceType")]
-    pub device_type: Option<String>,
+    pub device_type: ::core::option::Option<String>,
     /// Output only. Hostname of the device on which the profile exists.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Output only. Machine name of the device on which the profile exists. On platforms which do not report the machine name (currently iOS and Android) this is instead set to the browser''s device_id - but note that this is a different device_id than the |affiliated_device_id|.
     #[serde(default)]
-    pub machine: Option<String>,
+    pub machine: ::core::option::Option<String>,
 }
 
 /// Describes a generic Certificate Authority Connection.
@@ -2090,7 +2256,7 @@ pub struct GoogleChromeManagementVersionsV1DeviceInfo {
 pub struct GoogleChromeManagementVersionsV1GenericCaConnection {
     /// Output only. A string that references the administrator-provided configuration for the certification authority service.
     #[serde(default, rename = "caConnectionAdapterConfigReference")]
-    pub ca_connection_adapter_config_reference: Option<String>,
+    pub ca_connection_adapter_config_reference: ::core::option::Option<String>,
 }
 
 /// Describes a generic certificate provisioning profile.
@@ -2098,7 +2264,7 @@ pub struct GoogleChromeManagementVersionsV1GenericCaConnection {
 pub struct GoogleChromeManagementVersionsV1GenericProfile {
     /// Output only. A string that references the administrator-provided configuration for the certificate provisioning profile.
     #[serde(default, rename = "profileAdapterConfigReference")]
-    pub profile_adapter_config_reference: Option<String>,
+    pub profile_adapter_config_reference: ::core::option::Option<String>,
 }
 
 /// Response to ListChromeBrowserProfileCommands method.
@@ -2106,14 +2272,17 @@ pub struct GoogleChromeManagementVersionsV1GenericProfile {
 pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse {
     /// The list of commands returned.
     #[serde(default, rename = "chromeBrowserProfileCommands")]
-    pub chrome_browser_profile_commands:
-        Option<Vec<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>>,
+    pub chrome_browser_profile_commands: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>,
+        >,
+    >,
     /// The pagination token that can be used to list the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Total size represents an estimated number of resources returned.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<String>,
+    pub total_size: ::core::option::Option<String>,
 }
 
 /// Response to ListChromeBrowserProfiles method.
@@ -2121,13 +2290,15 @@ pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsRespo
 pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse {
     /// The list of profiles returned.
     #[serde(default, rename = "chromeBrowserProfiles")]
-    pub chrome_browser_profiles: Option<Vec<GoogleChromeManagementVersionsV1ChromeBrowserProfile>>,
+    pub chrome_browser_profiles: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementVersionsV1ChromeBrowserProfile>>,
+    >,
     /// The pagination token that can be used to list the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Total size represents an estimated number of resources returned. Not guaranteed to be accurate above 10k profiles.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<String>,
+    pub total_size: ::core::option::Option<String>,
 }
 
 /// Request to MoveThirdPartyProfileUser method.
@@ -2135,7 +2306,7 @@ pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse {
 pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserRequest {
     /// Required. Destination organizational unit where the third party chrome profile user will be moved to.
     #[serde(default, rename = "destinationOrgUnit")]
-    pub destination_org_unit: Option<String>,
+    pub destination_org_unit: ::core::option::Option<String>,
 }
 
 /// Response for MoveThirdPartyProfileUser method.
@@ -2143,7 +2314,9 @@ pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserRequest {
 pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse {
     /// Output only. The moved third party profile user.
     #[serde(default, rename = "thirdPartyProfileUser")]
-    pub third_party_profile_user: Option<GoogleChromeManagementVersionsV1ThirdPartyProfileUser>,
+    pub third_party_profile_user: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementVersionsV1ThirdPartyProfileUser>,
+    >,
 }
 
 /// Reporting data of a Chrome browser profile.
@@ -2151,23 +2324,32 @@ pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse {
 pub struct GoogleChromeManagementVersionsV1ReportingData {
     /// Output only. Executable path of the installed Chrome browser. A valid path is included only in affiliated profiles.
     #[serde(default, rename = "browserExecutablePath")]
-    pub browser_executable_path: Option<String>,
+    pub browser_executable_path: ::core::option::Option<String>,
     /// Output only. Information of the extensions installed on the profile.
     #[serde(default, rename = "extensionData")]
-    pub extension_data: Option<Vec<GoogleChromeManagementVersionsV1ReportingDataExtensionData>>,
+    pub extension_data: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleChromeManagementVersionsV1ReportingDataExtensionData>,
+        >,
+    >,
     /// Output only. Information of the policies applied on the extensions.
     #[serde(default, rename = "extensionPolicyData")]
-    pub extension_policy_data:
-        Option<Vec<GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData>>,
+    pub extension_policy_data: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData>,
+        >,
+    >,
     /// Output only. Updated version of a browser, if it is different from the active browser version.
     #[serde(default, rename = "installedBrowserVersion")]
-    pub installed_browser_version: Option<String>,
+    pub installed_browser_version: ::core::option::Option<String>,
     /// Output only. Information of the policies applied on the profile.
     #[serde(default, rename = "policyData")]
-    pub policy_data: Option<Vec<GoogleChromeManagementVersionsV1ReportingDataPolicyData>>,
+    pub policy_data: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementVersionsV1ReportingDataPolicyData>>,
+    >,
     /// Output only. Path of the profile. A valid path is included only in affiliated profiles.
     #[serde(default, rename = "profilePath")]
-    pub profile_path: Option<String>,
+    pub profile_path: ::core::option::Option<String>,
 }
 
 /// Information of conflicting policy applied on a Chrome browser profile.
@@ -2175,7 +2357,7 @@ pub struct GoogleChromeManagementVersionsV1ReportingData {
 pub struct GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData {
     /// Output only. Source of the policy. // TODO: enum values: ["POLICY_SOURCE_UNSPECIFIED", "MACHINE_PLATFORM", "USER_PLATFORM", "MACHINE_LEVEL_USER_CLOUD", "USER_CLOUD", "MACHINE_MERGED"]
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// Information of an extension installed on a Chrome browser profile.
@@ -2183,37 +2365,37 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData {
 pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionData {
     /// Output only. Description of the extension.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. ID of the extension.
     #[serde(default, rename = "extensionId")]
-    pub extension_id: Option<String>,
+    pub extension_id: ::core::option::Option<String>,
     /// Output only. Type of the extension. // TODO: enum values: ["EXTENSION_TYPE_UNSPECIFIED", "EXTENSION", "APP", "THEME", "HOSTED_APP"]
     #[serde(default, rename = "extensionType")]
-    pub extension_type: Option<String>,
+    pub extension_type: ::core::option::Option<String>,
     /// Output only. The URL of the homepage of the extension.
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<String>,
+    pub homepage_uri: ::core::option::Option<String>,
     /// Output only. Installation type of the extension. // TODO: enum values: ["INSTALLATION_TYPE_UNSPECIFIED", "MULTIPLE", "NORMAL", "ADMIN", "DEVELOPMENT", "SIDELOAD", "OTHER"]
     #[serde(default, rename = "installationType")]
-    pub installation_type: Option<String>,
+    pub installation_type: ::core::option::Option<String>,
     /// Output only. Represents whether the user disabled the extension.
     #[serde(default, rename = "isDisabled")]
-    pub is_disabled: Option<bool>,
+    pub is_disabled: ::core::option::Option<bool>,
     /// Output only. Represents whether the extension is from the webstore.
     #[serde(default, rename = "isWebstoreExtension")]
-    pub is_webstore_extension: Option<bool>,
+    pub is_webstore_extension: ::core::option::Option<bool>,
     /// Output only. Manifest version of the extension.
     #[serde(default, rename = "manifestVersion")]
-    pub manifest_version: Option<i32>,
+    pub manifest_version: ::core::option::Option<i32>,
     /// Output only. Name of the extension.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Permissions requested by the extension.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Version of the extension.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Information of the policies applied on an extension.
@@ -2221,13 +2403,15 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionData {
 pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData {
     /// Output only. ID of the extension.
     #[serde(default, rename = "extensionId")]
-    pub extension_id: Option<String>,
+    pub extension_id: ::core::option::Option<String>,
     /// Output only. Name of the extension.
     #[serde(default, rename = "extensionName")]
-    pub extension_name: Option<String>,
+    pub extension_name: ::core::option::Option<String>,
     /// Output only. Information of the policies applied on the extension.
     #[serde(default, rename = "policyData")]
-    pub policy_data: Option<Vec<GoogleChromeManagementVersionsV1ReportingDataPolicyData>>,
+    pub policy_data: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementVersionsV1ReportingDataPolicyData>>,
+    >,
 }
 
 /// Information of a policy applied on a Chrome browser profile.
@@ -2235,19 +2419,23 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData {
 pub struct GoogleChromeManagementVersionsV1ReportingDataPolicyData {
     /// Output only. Conflicting policy information.
     #[serde(default)]
-    pub conflicts: Option<Vec<GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData>>,
+    pub conflicts: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData>,
+        >,
+    >,
     /// Output only. Error message of the policy, if any.
     #[serde(default)]
-    pub error: Option<String>,
+    pub error: ::core::option::Option<String>,
     /// Output only. Name of the policy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Source of the policy. // TODO: enum values: ["POLICY_SOURCE_UNSPECIFIED", "MACHINE_PLATFORM", "USER_PLATFORM", "MACHINE_LEVEL_USER_CLOUD", "USER_CLOUD", "MACHINE_MERGED"]
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Output only. Value of the policy.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Describes a SCEP Certificate Authority Connection.
@@ -2255,7 +2443,7 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataPolicyData {
 pub struct GoogleChromeManagementVersionsV1ScepCaConnection {
     /// Output only. A string that references the administrator-provided configuration for the certification authority service.
     #[serde(default, rename = "caConnectionAdapterConfigReference")]
-    pub ca_connection_adapter_config_reference: Option<String>,
+    pub ca_connection_adapter_config_reference: ::core::option::Option<String>,
 }
 
 /// Describes a SCEP certificate provisioning profile.
@@ -2263,31 +2451,33 @@ pub struct GoogleChromeManagementVersionsV1ScepCaConnection {
 pub struct GoogleChromeManagementVersionsV1ScepProfile {
     /// Output only. The certificate template name as defined by the admin on their on-prem infrastructure. The Certificate Authority uses this name to identify the certificate template.
     #[serde(default, rename = "certificateTemplateName")]
-    pub certificate_template_name: Option<String>,
+    pub certificate_template_name: ::core::option::Option<String>,
     /// Output only. The country of the subject.
     #[serde(default)]
-    pub country: Option<String>,
+    pub country: ::core::option::Option<String>,
     /// Output only. The allowed key usages for certificate''s key.
     #[serde(default, rename = "keyUsages")]
-    pub key_usages: Option<Vec<String>>,
+    pub key_usages: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The locality of the subject.
     #[serde(default)]
-    pub locality: Option<String>,
+    pub locality: ::core::option::Option<String>,
     /// Output only. The name of the organization the subject belongs to.
     #[serde(default)]
-    pub organization: Option<String>,
+    pub organization: ::core::option::Option<String>,
     /// Output only. The organizational units of the subject.
     #[serde(default, rename = "organizationalUnits")]
-    pub organizational_units: Option<Vec<String>>,
+    pub organizational_units: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The state of the subject.
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The subject alternative names.
     #[serde(default, rename = "subjectAltNames")]
-    pub subject_alt_names: Option<Vec<GoogleChromeManagementVersionsV1SubjectAltName>>,
+    pub subject_alt_names: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleChromeManagementVersionsV1SubjectAltName>>,
+    >,
     /// Output only. The common name of the subject.
     #[serde(default, rename = "subjectCommonName")]
-    pub subject_common_name: Option<String>,
+    pub subject_common_name: ::core::option::Option<String>,
 }
 
 /// Request message for marking a certificate provisioning process as failed.
@@ -2295,7 +2485,7 @@ pub struct GoogleChromeManagementVersionsV1ScepProfile {
 pub struct GoogleChromeManagementVersionsV1SetFailureRequest {
     /// Required. A message describing the failure details. It is displayed on the ChromeOS client device.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
 }
 
 /// Metadata for the long-running operation returned by signData.
@@ -2303,7 +2493,7 @@ pub struct GoogleChromeManagementVersionsV1SetFailureRequest {
 pub struct GoogleChromeManagementVersionsV1SignDataMetadata {
     /// Output only. Start time of the SignData operation.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Request message for requesting a signature from the client that initated a certificate provisioning process.
@@ -2311,10 +2501,10 @@ pub struct GoogleChromeManagementVersionsV1SignDataMetadata {
 pub struct GoogleChromeManagementVersionsV1SignDataRequest {
     /// Required. The data that the client was asked to sign.
     #[serde(default, rename = "signData")]
-    pub sign_data: Option<String>,
+    pub sign_data: ::core::option::Option<String>,
     /// Required. The signature algorithm that the adapter expects the client and backend components to use when processing sign_data. // TODO: enum values: ["SIGNATURE_ALGORITHM_UNSPECIFIED", "SIGNATURE_ALGORITHM_RSA_PKCS1_V1_5_SHA256", "SIGNATURE_ALGORITHM_ECDSA_SHA256"]
     #[serde(default, rename = "signatureAlgorithm")]
-    pub signature_algorithm: Option<String>,
+    pub signature_algorithm: ::core::option::Option<String>,
 }
 
 /// Response message for requesting a signature from the client that initated a certificate provisioning process.
@@ -2322,8 +2512,9 @@ pub struct GoogleChromeManagementVersionsV1SignDataRequest {
 pub struct GoogleChromeManagementVersionsV1SignDataResponse {
     /// Output only. The certificate provisioning process. The signature generated by the client will be available in the signature field of CertificateProvisioningProcess.
     #[serde(default, rename = "certificateProvisioningProcess")]
-    pub certificate_provisioning_process:
-        Option<GoogleChromeManagementVersionsV1CertificateProvisioningProcess>,
+    pub certificate_provisioning_process: ::core::option::Option<
+        ::std::boxed::Box<GoogleChromeManagementVersionsV1CertificateProvisioningProcess>,
+    >,
 }
 
 /// Describes a subject alternative name.
@@ -2331,10 +2522,10 @@ pub struct GoogleChromeManagementVersionsV1SignDataResponse {
 pub struct GoogleChromeManagementVersionsV1SubjectAltName {
     /// Output only. The type of the SubjectAltName extension. // TODO: enum values: ["SUBJECT_ALT_NAME_TYPE_UNSPECIFIED", "RFC822_NAME", "DNS_NAME", "OTHER_NAME_USER_PRINCIPAL_NAME", "UNIFORM_RESOURCE_IDENTIFIER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The value of the subject alternative name with respect to the type.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A representation of non-Google (third party) user that is associated with a managed Chrome profile.
@@ -2342,10 +2533,10 @@ pub struct GoogleChromeManagementVersionsV1SubjectAltName {
 pub struct GoogleChromeManagementVersionsV1ThirdPartyProfileUser {
     /// Identifier. Format: customers/{customer_id}/thirdPartyProfileUsers/{third_party_profile_user_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The ID of the organizational unit assigned to the user.
     #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: Option<String>,
+    pub org_unit_id: ::core::option::Option<String>,
 }
 
 /// Request message for uploading an issued certificate for a certificate provisioning process.
@@ -2353,7 +2544,7 @@ pub struct GoogleChromeManagementVersionsV1ThirdPartyProfileUser {
 pub struct GoogleChromeManagementVersionsV1UploadCertificateRequest {
     /// Required. The issued certificate in PEM format.
     #[serde(default, rename = "certificatePem")]
-    pub certificate_pem: Option<String>,
+    pub certificate_pem: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -2361,13 +2552,14 @@ pub struct GoogleChromeManagementVersionsV1UploadCertificateRequest {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -2375,19 +2567,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2395,13 +2587,13 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -2409,11 +2601,11 @@ pub struct GoogleRpcStatus {
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }

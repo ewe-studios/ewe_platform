@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Message describing AWS Credentials using access key id and secret.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessKeyCredentials {
     /// AWS access key ID.
     #[serde(default, rename = "accessKeyId")]
-    pub access_key_id: Option<String>,
+    pub access_key_id: ::core::option::Option<String>,
     /// Input only. AWS secret access key.
     #[serde(default, rename = "secretAccessKey")]
-    pub secret_access_key: Option<String>,
+    pub secret_access_key: ::core::option::Option<String>,
     /// Input only. AWS session token. Used only when AWS security token service (STS) is responsible for creating the temporary credentials.
     #[serde(default, rename = "sessionToken")]
-    pub session_token: Option<String>,
+    pub session_token: ::core::option::Option<String>,
 }
 
 /// AdaptationModifier a modifier to be used for configuration of the OS adaptation process.
@@ -32,10 +32,10 @@ pub struct AccessKeyCredentials {
 pub struct AdaptationModifier {
     /// Optional. The modifier name.
     #[serde(default)]
-    pub modifier: Option<String>,
+    pub modifier: ::core::option::Option<String>,
     /// Optional. The value of the modifier. The actual value depends on the modifier and can also be empty.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Request message for ''AddGroupMigration'' request.
@@ -43,7 +43,7 @@ pub struct AdaptationModifier {
 pub struct AddGroupMigrationRequest {
     /// The full path name of the MigratingVm to add.
     #[serde(default, rename = "migratingVm")]
-    pub migrating_vm: Option<String>,
+    pub migrating_vm: ::core::option::Option<String>,
 }
 
 /// Describes an appliance version.
@@ -51,16 +51,16 @@ pub struct AddGroupMigrationRequest {
 pub struct ApplianceVersion {
     /// Determine whether it''s critical to upgrade the appliance to this version.
     #[serde(default)]
-    pub critical: Option<bool>,
+    pub critical: ::core::option::Option<bool>,
     /// Link to a page that contains the version release notes.
     #[serde(default, rename = "releaseNotesUri")]
-    pub release_notes_uri: Option<String>,
+    pub release_notes_uri: ::core::option::Option<String>,
     /// A link for downloading the version.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// The appliance version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// AppliedLicense holds the license data returned by adaptation module report.
@@ -68,10 +68,10 @@ pub struct ApplianceVersion {
 pub struct AppliedLicense {
     /// The OS license returned from the adaptation module''s report.
     #[serde(default, rename = "osLicense")]
-    pub os_license: Option<String>,
+    pub os_license: ::core::option::Option<String>,
     /// The license type that was used in OS adaptation. // TODO: enum values: ["TYPE_UNSPECIFIED", "NONE", "PAYG", "BYOL"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Holds information about the available versions for upgrade.
@@ -79,10 +79,10 @@ pub struct AppliedLicense {
 pub struct AvailableUpdates {
     /// The latest version for in place update. The current appliance can be updated to this version using the API or m4c CLI.
     #[serde(default, rename = "inPlaceUpdate")]
-    pub in_place_update: Option<ApplianceVersion>,
+    pub in_place_update: ::core::option::Option<::std::boxed::Box<ApplianceVersion>>,
     /// The newest deployable version of the appliance. The current appliance can''t be updated into this version, and the owner must manually deploy this OVA to a new appliance.
     #[serde(default, rename = "newDeployableAppliance")]
-    pub new_deployable_appliance: Option<ApplianceVersion>,
+    pub new_deployable_appliance: ::core::option::Option<::std::boxed::Box<ApplianceVersion>>,
 }
 
 /// The details of an AWS instance disk.
@@ -90,13 +90,13 @@ pub struct AvailableUpdates {
 pub struct AwsDiskDetails {
     /// Output only. The ordinal number of the disk.
     #[serde(default, rename = "diskNumber")]
-    pub disk_number: Option<i32>,
+    pub disk_number: ::core::option::Option<i32>,
     /// Output only. Size in GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<String>,
+    pub size_gb: ::core::option::Option<String>,
     /// Output only. AWS volume ID.
     #[serde(default, rename = "volumeId")]
-    pub volume_id: Option<String>,
+    pub volume_id: ::core::option::Option<String>,
 }
 
 /// AwsSecurityGroup describes a security group of an AWS VM.
@@ -104,10 +104,10 @@ pub struct AwsDiskDetails {
 pub struct AwsSecurityGroup {
     /// The AWS security group id.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The AWS security group name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// AwsSourceDetails message describes a specific source details for the AWS source type.
@@ -115,28 +115,28 @@ pub struct AwsSecurityGroup {
 pub struct AwsSourceDetails {
     /// AWS Credentials using access key id and secret.
     #[serde(default, rename = "accessKeyCreds")]
-    pub access_key_creds: Option<AccessKeyCredentials>,
+    pub access_key_creds: ::core::option::Option<::std::boxed::Box<AccessKeyCredentials>>,
     /// Immutable. The AWS region that the source VMs will be migrated from.
     #[serde(default, rename = "awsRegion")]
-    pub aws_region: Option<String>,
+    pub aws_region: ::core::option::Option<String>,
     /// Output only. Provides details on the state of the Source in case of an error.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// AWS security group names to limit the scope of the source inventory.
     #[serde(default, rename = "inventorySecurityGroupNames")]
-    pub inventory_security_group_names: Option<Vec<String>>,
+    pub inventory_security_group_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// AWS resource tags to limit the scope of the source inventory.
     #[serde(default, rename = "inventoryTagList")]
-    pub inventory_tag_list: Option<Vec<Tag>>,
+    pub inventory_tag_list: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
     /// User specified tags to add to every M2VM generated resource in AWS. These tags will be set in addition to the default tags that are set as part of the migration process. The tags must not begin with the reserved prefix m2vm.
     #[serde(default, rename = "migrationResourcesUserTags")]
-    pub migration_resources_user_tags: Option<serde_json::Value>,
+    pub migration_resources_user_tags: ::core::option::Option<serde_json::Value>,
     /// Output only. The source''s public IP. All communication initiated by this source will originate from this IP.
     #[serde(default, rename = "publicIp")]
-    pub public_ip: Option<String>,
+    pub public_ip: ::core::option::Option<String>,
     /// Output only. State of the source as determined by the health check. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "FAILED", "ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Represents the source AWS Disk details.
@@ -144,16 +144,16 @@ pub struct AwsSourceDetails {
 pub struct AwsSourceDiskDetails {
     /// Optional. Output only. Disk type. // TODO: enum values: ["TYPE_UNSPECIFIED", "GP2", "GP3", "IO1", "IO2", "ST1", "SC1", "STANDARD"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Output only. Size in GiB.
     #[serde(default, rename = "sizeGib")]
-    pub size_gib: Option<String>,
+    pub size_gib: ::core::option::Option<String>,
     /// Optional. Output only. A map of AWS volume tags.
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
     /// Required. AWS volume ID.
     #[serde(default, rename = "volumeId")]
-    pub volume_id: Option<String>,
+    pub volume_id: ::core::option::Option<String>,
 }
 
 /// Represent the source AWS VM details.
@@ -161,19 +161,19 @@ pub struct AwsSourceDiskDetails {
 pub struct AwsSourceVmDetails {
     /// Output only. The VM architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. The total size of the disks being migrated in bytes.
     #[serde(default, rename = "committedStorageBytes")]
-    pub committed_storage_bytes: Option<String>,
+    pub committed_storage_bytes: ::core::option::Option<String>,
     /// Output only. The disks attached to the source VM.
     #[serde(default)]
-    pub disks: Option<Vec<AwsDiskDetails>>,
+    pub disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AwsDiskDetails>>>,
     /// Output only. The firmware type of the source VM. // TODO: enum values: ["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]
     #[serde(default)]
-    pub firmware: Option<String>,
+    pub firmware: ::core::option::Option<String>,
     /// Output only. Information about VM capabilities needed for some Compute Engine features.
     #[serde(default, rename = "vmCapabilitiesInfo")]
-    pub vm_capabilities_info: Option<VmCapabilities>,
+    pub vm_capabilities_info: ::core::option::Option<::std::boxed::Box<VmCapabilities>>,
 }
 
 /// AwsVmDetails describes a VM in AWS.
@@ -181,61 +181,62 @@ pub struct AwsSourceVmDetails {
 pub struct AwsVmDetails {
     /// The CPU architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "I386", "X86_64", "ARM64", "X86_64_MAC"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// The VM Boot Option. // TODO: enum values: ["BOOT_OPTION_UNSPECIFIED", "EFI", "BIOS"]
     #[serde(default, rename = "bootOption")]
-    pub boot_option: Option<String>,
+    pub boot_option: ::core::option::Option<String>,
     /// The total size of the storage allocated to the VM in MB.
     #[serde(default, rename = "committedStorageMb")]
-    pub committed_storage_mb: Option<String>,
+    pub committed_storage_mb: ::core::option::Option<String>,
     /// The number of CPU cores the VM has.
     #[serde(default, rename = "cpuCount")]
-    pub cpu_count: Option<i32>,
+    pub cpu_count: ::core::option::Option<i32>,
     /// The number of disks the VM has.
     #[serde(default, rename = "diskCount")]
-    pub disk_count: Option<i32>,
+    pub disk_count: ::core::option::Option<i32>,
     /// The display name of the VM. Note that this value is not necessarily unique.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The instance type of the VM.
     #[serde(default, rename = "instanceType")]
-    pub instance_type: Option<String>,
+    pub instance_type: ::core::option::Option<String>,
     /// The memory size of the VM in MB.
     #[serde(default, rename = "memoryMb")]
-    pub memory_mb: Option<i32>,
+    pub memory_mb: ::core::option::Option<i32>,
     /// The VM''s OS.
     #[serde(default, rename = "osDescription")]
-    pub os_description: Option<String>,
+    pub os_description: ::core::option::Option<String>,
     /// Output only. The power state of the VM at the moment list was taken. // TODO: enum values: ["POWER_STATE_UNSPECIFIED", "ON", "OFF", "SUSPENDED", "PENDING"]
     #[serde(default, rename = "powerState")]
-    pub power_state: Option<String>,
+    pub power_state: ::core::option::Option<String>,
     /// The security groups the VM belongs to.
     #[serde(default, rename = "securityGroups")]
-    pub security_groups: Option<Vec<AwsSecurityGroup>>,
+    pub security_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AwsSecurityGroup>>>,
     /// The descriptive name of the AWS''s source this VM is connected to.
     #[serde(default, rename = "sourceDescription")]
-    pub source_description: Option<String>,
+    pub source_description: ::core::option::Option<String>,
     /// The id of the AWS''s source this VM is connected to.
     #[serde(default, rename = "sourceId")]
-    pub source_id: Option<String>,
+    pub source_id: ::core::option::Option<String>,
     /// The tags of the VM.
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
     /// The number of vCPUs the VM has. It is calculated as the number of CPU cores * threads per CPU the VM has.
     #[serde(default, rename = "vcpuCount")]
-    pub vcpu_count: Option<i32>,
+    pub vcpu_count: ::core::option::Option<i32>,
     /// The virtualization type. // TODO: enum values: ["VM_VIRTUALIZATION_TYPE_UNSPECIFIED", "HVM", "PARAVIRTUAL"]
     #[serde(default, rename = "virtualizationType")]
-    pub virtualization_type: Option<String>,
+    pub virtualization_type: ::core::option::Option<String>,
     /// The VM ID in AWS.
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
     /// The VPC ID the VM belongs to.
     #[serde(default, rename = "vpcId")]
-    pub vpc_id: Option<String>,
+    pub vpc_id: ::core::option::Option<String>,
     /// The AWS zone of the VM.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// AWSVmsDetails describes VMs in AWS.
@@ -243,7 +244,7 @@ pub struct AwsVmDetails {
 pub struct AwsVmsDetails {
     /// The details of the AWS VMs.
     #[serde(default)]
-    pub details: Option<Vec<AwsVmDetails>>,
+    pub details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AwsVmDetails>>>,
 }
 
 /// The details of an Azure VM disk.
@@ -251,13 +252,13 @@ pub struct AwsVmsDetails {
 pub struct AzureDiskDetails {
     /// Output only. Azure disk ID.
     #[serde(default, rename = "diskId")]
-    pub disk_id: Option<String>,
+    pub disk_id: ::core::option::Option<String>,
     /// Output only. The ordinal number of the disk.
     #[serde(default, rename = "diskNumber")]
-    pub disk_number: Option<i32>,
+    pub disk_number: ::core::option::Option<i32>,
     /// Output only. Size in GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<String>,
+    pub size_gb: ::core::option::Option<String>,
 }
 
 /// AzureSourceDetails message describes a specific source details for the Azure source type.
@@ -265,25 +266,25 @@ pub struct AzureDiskDetails {
 pub struct AzureSourceDetails {
     /// Immutable. The Azure location (region) that the source VMs will be migrated from.
     #[serde(default, rename = "azureLocation")]
-    pub azure_location: Option<String>,
+    pub azure_location: ::core::option::Option<String>,
     /// Azure Credentials using tenant ID, client ID and secret.
     #[serde(default, rename = "clientSecretCreds")]
-    pub client_secret_creds: Option<ClientSecretCredentials>,
+    pub client_secret_creds: ::core::option::Option<::std::boxed::Box<ClientSecretCredentials>>,
     /// Output only. Provides details on the state of the Source in case of an error.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// User specified tags to add to every M2VM generated resource in Azure. These tags will be set in addition to the default tags that are set as part of the migration process. The tags must not begin with the reserved prefix m4ce or m2vm.
     #[serde(default, rename = "migrationResourcesUserTags")]
-    pub migration_resources_user_tags: Option<serde_json::Value>,
+    pub migration_resources_user_tags: ::core::option::Option<serde_json::Value>,
     /// Output only. The ID of the Azure resource group that contains all resources related to the migration process of this source.
     #[serde(default, rename = "resourceGroupId")]
-    pub resource_group_id: Option<String>,
+    pub resource_group_id: ::core::option::Option<String>,
     /// Output only. State of the source as determined by the health check. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "FAILED", "ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Immutable. Azure subscription ID.
     #[serde(default, rename = "subscriptionId")]
-    pub subscription_id: Option<String>,
+    pub subscription_id: ::core::option::Option<String>,
 }
 
 /// Represent the source Azure VM details.
@@ -291,19 +292,19 @@ pub struct AzureSourceDetails {
 pub struct AzureSourceVmDetails {
     /// Output only. The VM architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. The total size of the disks being migrated in bytes.
     #[serde(default, rename = "committedStorageBytes")]
-    pub committed_storage_bytes: Option<String>,
+    pub committed_storage_bytes: ::core::option::Option<String>,
     /// Output only. The disks attached to the source VM.
     #[serde(default)]
-    pub disks: Option<Vec<AzureDiskDetails>>,
+    pub disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AzureDiskDetails>>>,
     /// Output only. The firmware type of the source VM. // TODO: enum values: ["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]
     #[serde(default)]
-    pub firmware: Option<String>,
+    pub firmware: ::core::option::Option<String>,
     /// Output only. Information about VM capabilities needed for some Compute Engine features.
     #[serde(default, rename = "vmCapabilitiesInfo")]
-    pub vm_capabilities_info: Option<VmCapabilities>,
+    pub vm_capabilities_info: ::core::option::Option<::std::boxed::Box<VmCapabilities>>,
 }
 
 /// AzureVmDetails describes a VM in Azure.
@@ -311,46 +312,46 @@ pub struct AzureSourceVmDetails {
 pub struct AzureVmDetails {
     /// The CPU architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// The VM Boot Option. // TODO: enum values: ["BOOT_OPTION_UNSPECIFIED", "EFI", "BIOS"]
     #[serde(default, rename = "bootOption")]
-    pub boot_option: Option<String>,
+    pub boot_option: ::core::option::Option<String>,
     /// The total size of the storage allocated to the VM in MB.
     #[serde(default, rename = "committedStorageMb")]
-    pub committed_storage_mb: Option<String>,
+    pub committed_storage_mb: ::core::option::Option<String>,
     /// The VM''s ComputerName.
     #[serde(default, rename = "computerName")]
-    pub computer_name: Option<String>,
+    pub computer_name: ::core::option::Option<String>,
     /// The number of cpus the VM has.
     #[serde(default, rename = "cpuCount")]
-    pub cpu_count: Option<i32>,
+    pub cpu_count: ::core::option::Option<i32>,
     /// The number of disks the VM has, including OS disk.
     #[serde(default, rename = "diskCount")]
-    pub disk_count: Option<i32>,
+    pub disk_count: ::core::option::Option<i32>,
     /// Description of the data disks.
     #[serde(default)]
-    pub disks: Option<Vec<Disk>>,
+    pub disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Disk>>>,
     /// The memory size of the VM in MB.
     #[serde(default, rename = "memoryMb")]
-    pub memory_mb: Option<i32>,
+    pub memory_mb: ::core::option::Option<i32>,
     /// Description of the OS.
     #[serde(default, rename = "osDescription")]
-    pub os_description: Option<OSDescription>,
+    pub os_description: ::core::option::Option<::std::boxed::Box<OSDescription>>,
     /// Description of the OS disk.
     #[serde(default, rename = "osDisk")]
-    pub os_disk: Option<OSDisk>,
+    pub os_disk: ::core::option::Option<::std::boxed::Box<OSDisk>>,
     /// The power state of the VM at the moment list was taken. // TODO: enum values: ["POWER_STATE_UNSPECIFIED", "STARTING", "RUNNING", "STOPPING", "STOPPED", "DEALLOCATING", "DEALLOCATED", "UNKNOWN"]
     #[serde(default, rename = "powerState")]
-    pub power_state: Option<String>,
+    pub power_state: ::core::option::Option<String>,
     /// The tags of the VM.
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
     /// The VM full path in Azure.
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
     /// VM size as configured in Azure. Determines the VM''s hardware spec.
     #[serde(default, rename = "vmSize")]
-    pub vm_size: Option<String>,
+    pub vm_size: ::core::option::Option<String>,
 }
 
 /// AzureVmsDetails describes VMs in Azure.
@@ -358,7 +359,7 @@ pub struct AzureVmDetails {
 pub struct AzureVmsDetails {
     /// The details of the Azure VMs.
     #[serde(default)]
-    pub details: Option<Vec<AzureVmDetails>>,
+    pub details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AzureVmDetails>>>,
 }
 
 /// BootDiskDefaults hold information about the boot disk of a VM.
@@ -366,19 +367,19 @@ pub struct AzureVmsDetails {
 pub struct BootDiskDefaults {
     /// Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.
     #[serde(default, rename = "deviceName")]
-    pub device_name: Option<String>,
+    pub device_name: ::core::option::Option<String>,
     /// Optional. The name of the disk.
     #[serde(default, rename = "diskName")]
-    pub disk_name: Option<String>,
+    pub disk_name: ::core::option::Option<String>,
     /// Optional. The type of disk provisioning to use for the VM. // TODO: enum values: ["COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED", "COMPUTE_ENGINE_DISK_TYPE_STANDARD", "COMPUTE_ENGINE_DISK_TYPE_SSD", "COMPUTE_ENGINE_DISK_TYPE_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. The encryption to apply to the boot disk.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// The image to use when creating the disk.
     #[serde(default)]
-    pub image: Option<DiskImageDefaults>,
+    pub image: ::core::option::Option<::std::boxed::Box<DiskImageDefaults>>,
 }
 
 /// Message describing Azure Credentials using tenant ID, client ID and secret.
@@ -386,13 +387,13 @@ pub struct BootDiskDefaults {
 pub struct ClientSecretCredentials {
     /// Azure client ID.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Input only. Azure client secret.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// Azure tenant ID.
     #[serde(default, rename = "tenantId")]
-    pub tenant_id: Option<String>,
+    pub tenant_id: ::core::option::Option<String>,
 }
 
 /// CloneJob describes the process of creating a clone of a MigratingVM to the requested target based on the latest successful uploaded snapshots. While the migration cycles of a MigratingVm take place, it is possible to verify the uploaded VM can be started in the cloud, by creating a clone. The clone can be created without any downtime, and it is created using the latest snapshots which are already in the cloud. The cloneJob is only responsible for its work, not its products, which means once it is finished, it will never touch the instance it created. It will only delete it in case of the CloneJob being cancelled or upon failure to clone.
@@ -400,31 +401,33 @@ pub struct ClientSecretCredentials {
 pub struct CloneJob {
     /// Output only. Details of the target Persistent Disks in Compute Engine.
     #[serde(default, rename = "computeEngineDisksTargetDetails")]
-    pub compute_engine_disks_target_details: Option<ComputeEngineDisksTargetDetails>,
+    pub compute_engine_disks_target_details:
+        ::core::option::Option<::std::boxed::Box<ComputeEngineDisksTargetDetails>>,
     /// Output only. Details of the target VM in Compute Engine.
     #[serde(default, rename = "computeEngineTargetDetails")]
-    pub compute_engine_target_details: Option<ComputeEngineTargetDetails>,
+    pub compute_engine_target_details:
+        ::core::option::Option<::std::boxed::Box<ComputeEngineTargetDetails>>,
     /// Output only. The time the clone job was created (as an API call, not when it was actually created in the target).
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the clone job was ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Provides details for the errors that led to the Clone Job''s state.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The name of the clone.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. State of the clone job. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ACTIVE", "FAILED", "SUCCEEDED", "CANCELLED", "CANCELLING", "ADAPTING_OS"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time the state was last updated.
     #[serde(default, rename = "stateTime")]
-    pub state_time: Option<String>,
+    pub state_time: ::core::option::Option<String>,
     /// Output only. The clone steps list representing its progress.
     #[serde(default)]
-    pub steps: Option<Vec<CloneStep>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloneStep>>>,
 }
 
 /// CloneStep holds information about the clone step progress.
@@ -432,19 +435,19 @@ pub struct CloneJob {
 pub struct CloneStep {
     /// Adapting OS step.
     #[serde(default, rename = "adaptingOs")]
-    pub adapting_os: Option<serde_json::Value>,
+    pub adapting_os: ::core::option::Option<serde_json::Value>,
     /// The time the step has ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Instantiating migrated VM step.
     #[serde(default, rename = "instantiatingMigratedVm")]
-    pub instantiating_migrated_vm: Option<serde_json::Value>,
+    pub instantiating_migrated_vm: ::core::option::Option<serde_json::Value>,
     /// Preparing VM disks step.
     #[serde(default, rename = "preparingVmDisks")]
-    pub preparing_vm_disks: Option<serde_json::Value>,
+    pub preparing_vm_disks: ::core::option::Option<serde_json::Value>,
     /// The time the step has started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Compute Engine disk target details.
@@ -452,16 +455,16 @@ pub struct CloneStep {
 pub struct ComputeEngineDisk {
     /// Optional. Target Compute Engine Disk ID. This is the resource ID segment of the Compute Engine Disk to create. In the resource name compute/v1/projects/{project}/zones/{zone}/disks/disk1 "disk1" is the resource ID for the disk.
     #[serde(default, rename = "diskId")]
-    pub disk_id: Option<String>,
+    pub disk_id: ::core::option::Option<String>,
     /// Required. The disk type to use. // TODO: enum values: ["COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED", "COMPUTE_ENGINE_DISK_TYPE_STANDARD", "COMPUTE_ENGINE_DISK_TYPE_SSD", "COMPUTE_ENGINE_DISK_TYPE_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. Replication zones of the regional disk. Should be of the form: projects/{target-project}/locations/{replica-zone} Currently only one replica zone is supported.
     #[serde(default, rename = "replicaZones")]
-    pub replica_zones: Option<Vec<String>>,
+    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The Compute Engine zone in which to create the disk. Should be of the form: projects/{target-project}/locations/{zone}
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// ComputeEngineDisksTargetDefaults is a collection of details for creating Persistent Disks in a target Compute Engine project.
@@ -469,19 +472,20 @@ pub struct ComputeEngineDisk {
 pub struct ComputeEngineDisksTargetDefaults {
     /// The details of each Persistent Disk to create.
     #[serde(default)]
-    pub disks: Option<Vec<PersistentDiskDefaults>>,
+    pub disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersistentDiskDefaults>>>,
     /// Details of the disk only migration target.
     #[serde(default, rename = "disksTargetDefaults")]
-    pub disks_target_defaults: Option<serde_json::Value>,
+    pub disks_target_defaults: ::core::option::Option<serde_json::Value>,
     /// The full path of the resource of type TargetProject which represents the Compute Engine project in which to create the Persistent Disks.
     #[serde(default, rename = "targetProject")]
-    pub target_project: Option<String>,
+    pub target_project: ::core::option::Option<String>,
     /// Details of the VM migration target.
     #[serde(default, rename = "vmTargetDefaults")]
-    pub vm_target_defaults: Option<DisksMigrationVmTargetDefaults>,
+    pub vm_target_defaults:
+        ::core::option::Option<::std::boxed::Box<DisksMigrationVmTargetDefaults>>,
     /// The zone in which to create the Persistent Disks.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// ComputeEngineDisksTargetDetails is a collection of created Persistent Disks details.
@@ -489,13 +493,13 @@ pub struct ComputeEngineDisksTargetDefaults {
 pub struct ComputeEngineDisksTargetDetails {
     /// The details of each created Persistent Disk.
     #[serde(default)]
-    pub disks: Option<Vec<PersistentDisk>>,
+    pub disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersistentDisk>>>,
     /// Details of the disks-only migration target.
     #[serde(default, rename = "disksTargetDetails")]
-    pub disks_target_details: Option<serde_json::Value>,
+    pub disks_target_details: ::core::option::Option<serde_json::Value>,
     /// Details for the VM the migrated data disks are attached to.
     #[serde(default, rename = "vmTargetDetails")]
-    pub vm_target_details: Option<DisksMigrationVmTargetDetails>,
+    pub vm_target_details: ::core::option::Option<::std::boxed::Box<DisksMigrationVmTargetDetails>>,
 }
 
 /// ComputeEngineTargetDefaults is a collection of details for creating a VM in a target Compute Engine project.
@@ -503,79 +507,81 @@ pub struct ComputeEngineDisksTargetDetails {
 pub struct ComputeEngineTargetDefaults {
     /// Optional. AdaptationModifiers are the set of modifiers used during OS adaptation.
     #[serde(default, rename = "adaptationModifiers")]
-    pub adaptation_modifiers: Option<Vec<AdaptationModifier>>,
+    pub adaptation_modifiers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptationModifier>>>,
     /// Additional licenses to assign to the VM.
     #[serde(default, rename = "additionalLicenses")]
-    pub additional_licenses: Option<Vec<String>>,
+    pub additional_licenses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The OS license returned from the adaptation module report.
     #[serde(default, rename = "appliedLicense")]
-    pub applied_license: Option<AppliedLicense>,
+    pub applied_license: ::core::option::Option<::std::boxed::Box<AppliedLicense>>,
     /// Optional. By default the virtual machine will keep its existing boot option. Setting this property will trigger an internal process which will convert the virtual machine from using the existing boot option to another. // TODO: enum values: ["BOOT_CONVERSION_UNSPECIFIED", "NONE", "BIOS_TO_EFI"]
     #[serde(default, rename = "bootConversion")]
-    pub boot_conversion: Option<String>,
+    pub boot_conversion: ::core::option::Option<String>,
     /// Output only. The VM Boot Option, as set in the source VM. // TODO: enum values: ["COMPUTE_ENGINE_BOOT_OPTION_UNSPECIFIED", "COMPUTE_ENGINE_BOOT_OPTION_EFI", "COMPUTE_ENGINE_BOOT_OPTION_BIOS"]
     #[serde(default, rename = "bootOption")]
-    pub boot_option: Option<String>,
+    pub boot_option: ::core::option::Option<String>,
     /// Compute instance scheduling information (if empty default is used).
     #[serde(default, rename = "computeScheduling")]
-    pub compute_scheduling: Option<ComputeScheduling>,
+    pub compute_scheduling: ::core::option::Option<::std::boxed::Box<ComputeScheduling>>,
     /// Optional. Additional replica zones of the target regional disks. If this list is not empty a regional disk will be created. The first supported zone would be the one stated in the zone field. The rest are taken from this list. Please refer to the [regional disk creation API](https://cloud.google.com/compute/docs/regions-zones/global-regional-zonal-resources) for further details about regional vs zonal disks. If not specified, a zonal disk will be created in the same zone the VM is created.
     #[serde(default, rename = "diskReplicaZones")]
-    pub disk_replica_zones: Option<Vec<String>>,
+    pub disk_replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
     /// The disk type to use in the VM. // TODO: enum values: ["COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED", "COMPUTE_ENGINE_DISK_TYPE_STANDARD", "COMPUTE_ENGINE_DISK_TYPE_SSD", "COMPUTE_ENGINE_DISK_TYPE_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. Defines whether the instance has integrity monitoring enabled. This can be set to true only if the VM boot option is EFI, and vTPM is enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
-    pub enable_integrity_monitoring: Option<bool>,
+    pub enable_integrity_monitoring: ::core::option::Option<bool>,
     /// Optional. Defines whether the instance has vTPM enabled. This can be set to true only if the VM boot option is EFI.
     #[serde(default, rename = "enableVtpm")]
-    pub enable_vtpm: Option<bool>,
+    pub enable_vtpm: ::core::option::Option<bool>,
     /// Optional. Immutable. The encryption to apply to the VM disks.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// The hostname to assign to the VM.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// A map of labels to associate with the VM.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The license type to use in OS adaptation. // TODO: enum values: ["COMPUTE_ENGINE_LICENSE_TYPE_DEFAULT", "COMPUTE_ENGINE_LICENSE_TYPE_PAYG", "COMPUTE_ENGINE_LICENSE_TYPE_BYOL"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
     /// The machine type to create the VM with.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// The machine type series to create the VM with.
     #[serde(default, rename = "machineTypeSeries")]
-    pub machine_type_series: Option<String>,
+    pub machine_type_series: ::core::option::Option<String>,
     /// The metadata key/value pairs to assign to the VM.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// List of NICs connected to this VM.
     #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    pub network_interfaces:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkInterface>>>,
     /// A list of network tags to associate with the VM.
     #[serde(default, rename = "networkTags")]
-    pub network_tags: Option<Vec<String>>,
+    pub network_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Defines whether the instance has Secure Boot enabled. This can be set to true only if the VM boot option is EFI.
     #[serde(default, rename = "secureBoot")]
-    pub secure_boot: Option<bool>,
+    pub secure_boot: ::core::option::Option<bool>,
     /// Optional. The service account to associate the VM with.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Optional. If specified this will be the storage pool in which the disk is created. This is the full path of the storage pool resource, for example: "projects/my-project/zones/us-central1-a/storagePools/my-storage-pool". The storage pool must be in the same project and zone as the target disks. The storage pool''s type must match the disk type.
     #[serde(default, rename = "storagePool")]
-    pub storage_pool: Option<String>,
+    pub storage_pool: ::core::option::Option<String>,
     /// The full path of the resource of type TargetProject which represents the Compute Engine project in which to create this VM.
     #[serde(default, rename = "targetProject")]
-    pub target_project: Option<String>,
+    pub target_project: ::core::option::Option<String>,
     /// The name of the VM to create.
     #[serde(default, rename = "vmName")]
-    pub vm_name: Option<String>,
+    pub vm_name: ::core::option::Option<String>,
     /// The zone in which to create the VM.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// ComputeEngineTargetDetails is a collection of details for creating a VM in a target Compute Engine project.
@@ -583,79 +589,81 @@ pub struct ComputeEngineTargetDefaults {
 pub struct ComputeEngineTargetDetails {
     /// Optional. Modifiers to be used as configuration of the OS adaptation process.
     #[serde(default, rename = "adaptationModifiers")]
-    pub adaptation_modifiers: Option<Vec<AdaptationModifier>>,
+    pub adaptation_modifiers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptationModifier>>>,
     /// Additional licenses to assign to the VM.
     #[serde(default, rename = "additionalLicenses")]
-    pub additional_licenses: Option<Vec<String>>,
+    pub additional_licenses: ::core::option::Option<::std::vec::Vec<String>>,
     /// The OS license returned from the adaptation module report.
     #[serde(default, rename = "appliedLicense")]
-    pub applied_license: Option<AppliedLicense>,
+    pub applied_license: ::core::option::Option<::std::boxed::Box<AppliedLicense>>,
     /// Optional. By default the virtual machine will keep its existing boot option. Setting this property will trigger an internal process which will convert the virtual machine from using the existing boot option to another. // TODO: enum values: ["BOOT_CONVERSION_UNSPECIFIED", "NONE", "BIOS_TO_EFI"]
     #[serde(default, rename = "bootConversion")]
-    pub boot_conversion: Option<String>,
+    pub boot_conversion: ::core::option::Option<String>,
     /// The VM Boot Option, as set in the source VM. // TODO: enum values: ["COMPUTE_ENGINE_BOOT_OPTION_UNSPECIFIED", "COMPUTE_ENGINE_BOOT_OPTION_EFI", "COMPUTE_ENGINE_BOOT_OPTION_BIOS"]
     #[serde(default, rename = "bootOption")]
-    pub boot_option: Option<String>,
+    pub boot_option: ::core::option::Option<String>,
     /// Compute instance scheduling information (if empty default is used).
     #[serde(default, rename = "computeScheduling")]
-    pub compute_scheduling: Option<ComputeScheduling>,
+    pub compute_scheduling: ::core::option::Option<::std::boxed::Box<ComputeScheduling>>,
     /// Optional. Additional replica zones of the target regional disks. If this list is not empty a regional disk will be created. The first supported zone would be the one stated in the zone field. The rest are taken from this list. Please refer to the [regional disk creation API](https://cloud.google.com/compute/docs/regions-zones/global-regional-zonal-resources) for further details about regional vs zonal disks. If not specified, a zonal disk will be created in the same zone the VM is created.
     #[serde(default, rename = "diskReplicaZones")]
-    pub disk_replica_zones: Option<Vec<String>>,
+    pub disk_replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
     /// The disk type to use in the VM. // TODO: enum values: ["COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED", "COMPUTE_ENGINE_DISK_TYPE_STANDARD", "COMPUTE_ENGINE_DISK_TYPE_SSD", "COMPUTE_ENGINE_DISK_TYPE_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. Defines whether the instance has integrity monitoring enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
-    pub enable_integrity_monitoring: Option<bool>,
+    pub enable_integrity_monitoring: ::core::option::Option<bool>,
     /// Optional. Defines whether the instance has vTPM enabled.
     #[serde(default, rename = "enableVtpm")]
-    pub enable_vtpm: Option<bool>,
+    pub enable_vtpm: ::core::option::Option<bool>,
     /// Optional. The encryption to apply to the VM disks.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// The hostname to assign to the VM.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// A map of labels to associate with the VM.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The license type to use in OS adaptation. // TODO: enum values: ["COMPUTE_ENGINE_LICENSE_TYPE_DEFAULT", "COMPUTE_ENGINE_LICENSE_TYPE_PAYG", "COMPUTE_ENGINE_LICENSE_TYPE_BYOL"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
     /// The machine type to create the VM with.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// The machine type series to create the VM with.
     #[serde(default, rename = "machineTypeSeries")]
-    pub machine_type_series: Option<String>,
+    pub machine_type_series: ::core::option::Option<String>,
     /// The metadata key/value pairs to assign to the VM.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// List of NICs connected to this VM.
     #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    pub network_interfaces:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkInterface>>>,
     /// A list of network tags to associate with the VM.
     #[serde(default, rename = "networkTags")]
-    pub network_tags: Option<Vec<String>>,
+    pub network_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// The Google Cloud target project ID or project name.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
     /// Defines whether the instance has Secure Boot enabled. This can be set to true only if the VM boot option is EFI.
     #[serde(default, rename = "secureBoot")]
-    pub secure_boot: Option<bool>,
+    pub secure_boot: ::core::option::Option<bool>,
     /// The service account to associate the VM with.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Optional. The storage pool used for the VM disks. If specified this will be the storage pool in which the disk is created. This is the full path of the storage pool resource, for example: "projects/my-project/zones/us-central1-a/storagePools/my-storage-pool". The storage pool must be in the same project and zone as the target disks. The storage pool''s type must match the disk type.
     #[serde(default, rename = "storagePool")]
-    pub storage_pool: Option<String>,
+    pub storage_pool: ::core::option::Option<String>,
     /// The name of the VM to create.
     #[serde(default, rename = "vmName")]
-    pub vm_name: Option<String>,
+    pub vm_name: ::core::option::Option<String>,
     /// The zone in which to create the VM.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.
@@ -663,16 +671,17 @@ pub struct ComputeEngineTargetDetails {
 pub struct ComputeScheduling {
     /// The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node. Ignored if no node_affinites are configured.
     #[serde(default, rename = "minNodeCpus")]
-    pub min_node_cpus: Option<i32>,
+    pub min_node_cpus: ::core::option::Option<i32>,
     /// A set of node affinity and anti-affinity configurations for sole tenant nodes.
     #[serde(default, rename = "nodeAffinities")]
-    pub node_affinities: Option<Vec<SchedulingNodeAffinity>>,
+    pub node_affinities:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchedulingNodeAffinity>>>,
     /// How the instance should behave when the host machine undergoes maintenance that may temporarily impact instance performance. // TODO: enum values: ["ON_HOST_MAINTENANCE_UNSPECIFIED", "TERMINATE", "MIGRATE"]
     #[serde(default, rename = "onHostMaintenance")]
-    pub on_host_maintenance: Option<String>,
+    pub on_host_maintenance: ::core::option::Option<String>,
     /// Whether the Instance should be automatically restarted whenever it is terminated by Compute Engine (not terminated by user). This configuration is identical to automaticRestart field in Compute Engine create instance under scheduling. It was changed to an enum (instead of a boolean) to match the default value in Compute Engine which is automatic restart. // TODO: enum values: ["RESTART_TYPE_UNSPECIFIED", "AUTOMATIC_RESTART", "NO_AUTOMATIC_RESTART"]
     #[serde(default, rename = "restartType")]
-    pub restart_type: Option<String>,
+    pub restart_type: ::core::option::Option<String>,
 }
 
 /// CutoverForecast holds information about future CutoverJobs of a MigratingVm.
@@ -680,7 +689,7 @@ pub struct ComputeScheduling {
 pub struct CutoverForecast {
     /// Output only. Estimation of the CutoverJob duration.
     #[serde(default, rename = "estimatedCutoverJobDuration")]
-    pub estimated_cutover_job_duration: Option<String>,
+    pub estimated_cutover_job_duration: ::core::option::Option<String>,
 }
 
 /// CutoverJob message describes a cutover of a migrating VM. The CutoverJob is the operation of shutting down the VM, creating a snapshot and cloning the VM using the replicated snapshot.
@@ -688,37 +697,39 @@ pub struct CutoverForecast {
 pub struct CutoverJob {
     /// Output only. Details of the target Persistent Disks in Compute Engine.
     #[serde(default, rename = "computeEngineDisksTargetDetails")]
-    pub compute_engine_disks_target_details: Option<ComputeEngineDisksTargetDetails>,
+    pub compute_engine_disks_target_details:
+        ::core::option::Option<::std::boxed::Box<ComputeEngineDisksTargetDetails>>,
     /// Output only. Details of the target VM in Compute Engine.
     #[serde(default, rename = "computeEngineTargetDetails")]
-    pub compute_engine_target_details: Option<ComputeEngineTargetDetails>,
+    pub compute_engine_target_details:
+        ::core::option::Option<::std::boxed::Box<ComputeEngineTargetDetails>>,
     /// Output only. The time the cutover job was created (as an API call, not when it was actually created in the target).
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the cutover job had finished.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Provides details for the errors that led to the Cutover Job''s state.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The name of the cutover job.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current progress in percentage of the cutover job.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Output only. State of the cutover job. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "FAILED", "SUCCEEDED", "CANCELLED", "CANCELLING", "ACTIVE", "ADAPTING_OS"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. A message providing possible extra details about the current state.
     #[serde(default, rename = "stateMessage")]
-    pub state_message: Option<String>,
+    pub state_message: ::core::option::Option<String>,
     /// Output only. The time the state was last updated.
     #[serde(default, rename = "stateTime")]
-    pub state_time: Option<String>,
+    pub state_time: ::core::option::Option<String>,
     /// Output only. The cutover steps list representing its progress.
     #[serde(default)]
-    pub steps: Option<Vec<CutoverStep>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CutoverStep>>>,
 }
 
 /// CutoverStep holds information about the cutover step progress.
@@ -726,25 +737,25 @@ pub struct CutoverJob {
 pub struct CutoverStep {
     /// The time the step has ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Final sync step.
     #[serde(default, rename = "finalSync")]
-    pub final_sync: Option<ReplicationCycle>,
+    pub final_sync: ::core::option::Option<::std::boxed::Box<ReplicationCycle>>,
     /// Instantiating migrated VM step.
     #[serde(default, rename = "instantiatingMigratedVm")]
-    pub instantiating_migrated_vm: Option<serde_json::Value>,
+    pub instantiating_migrated_vm: ::core::option::Option<serde_json::Value>,
     /// Preparing VM disks step.
     #[serde(default, rename = "preparingVmDisks")]
-    pub preparing_vm_disks: Option<serde_json::Value>,
+    pub preparing_vm_disks: ::core::option::Option<serde_json::Value>,
     /// A replication cycle prior cutover step.
     #[serde(default, rename = "previousReplicationCycle")]
-    pub previous_replication_cycle: Option<ReplicationCycle>,
+    pub previous_replication_cycle: ::core::option::Option<::std::boxed::Box<ReplicationCycle>>,
     /// Shutting down VM step.
     #[serde(default, rename = "shuttingDownSourceVm")]
-    pub shutting_down_source_vm: Option<serde_json::Value>,
+    pub shutting_down_source_vm: ::core::option::Option<serde_json::Value>,
     /// The time the step has started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// CycleStep holds information about a step progress.
@@ -752,19 +763,19 @@ pub struct CutoverStep {
 pub struct CycleStep {
     /// The time the cycle step has ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Initializing replication step.
     #[serde(default, rename = "initializingReplication")]
-    pub initializing_replication: Option<serde_json::Value>,
+    pub initializing_replication: ::core::option::Option<serde_json::Value>,
     /// Post processing step.
     #[serde(default, rename = "postProcessing")]
-    pub post_processing: Option<serde_json::Value>,
+    pub post_processing: ::core::option::Option<serde_json::Value>,
     /// Replicating step.
     #[serde(default)]
-    pub replicating: Option<ReplicatingStep>,
+    pub replicating: ::core::option::Option<::std::boxed::Box<ReplicatingStep>>,
     /// The time the cycle step has started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Used when the image import is not using OS adaptation process.
@@ -772,7 +783,7 @@ pub struct CycleStep {
 pub struct DataDiskImageImport {
     /// Optional. A list of guest OS features to apply to the imported image. These features are flags that are used by Compute Engine to enable certain capabilities for virtual machine instances that are created from the image. This field does not change the OS of the image; it only marks the image with the specified features. The user must ensure that the OS is compatible with the features. For a list of available features, see https://cloud.google.com/compute/docs/images/create-custom#guest-os-features.
     #[serde(default, rename = "guestOsFeatures")]
-    pub guest_os_features: Option<Vec<String>>,
+    pub guest_os_features: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// DatacenterConnector message describes a connector between the Source and Google Cloud, which is installed on a vmware datacenter (an OVA vm installed by the user) to connect the Datacenter to Google Cloud and support vm migration data transfer.
@@ -780,46 +791,46 @@ pub struct DataDiskImageImport {
 pub struct DatacenterConnector {
     /// Output only. Appliance OVA version. This is the OVA which is manually installed by the user and contains the infrastructure for the automatically updatable components on the appliance.
     #[serde(default, rename = "applianceInfrastructureVersion")]
-    pub appliance_infrastructure_version: Option<String>,
+    pub appliance_infrastructure_version: ::core::option::Option<String>,
     /// Output only. Appliance last installed update bundle version. This is the version of the automatically updatable components on the appliance.
     #[serde(default, rename = "applianceSoftwareVersion")]
-    pub appliance_software_version: Option<String>,
+    pub appliance_software_version: ::core::option::Option<String>,
     /// Output only. The available versions for updating this appliance.
     #[serde(default, rename = "availableVersions")]
-    pub available_versions: Option<AvailableUpdates>,
+    pub available_versions: ::core::option::Option<::std::boxed::Box<AvailableUpdates>>,
     /// Output only. The communication channel between the datacenter connector and Google Cloud.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Output only. The time the connector was created (as an API call, not when it was actually installed).
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Provides details on the state of the Datacenter Connector in case of an error.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The connector''s name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. A unique key for this connector. This key is internal to the OVA connector and is supplied with its creation during the registration process and can not be modified.
     #[serde(default, rename = "registrationId")]
-    pub registration_id: Option<String>,
+    pub registration_id: ::core::option::Option<String>,
     /// The service account to use in the connector when communicating with the cloud.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Output only. State of the DatacenterConnector, as determined by the health checks. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "OFFLINE", "FAILED", "ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time the state was last set.
     #[serde(default, rename = "stateTime")]
-    pub state_time: Option<String>,
+    pub state_time: ::core::option::Option<String>,
     /// Output only. The last time the connector was updated with an API call.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The status of the current / last upgradeAppliance operation.
     #[serde(default, rename = "upgradeStatus")]
-    pub upgrade_status: Option<UpgradeStatus>,
+    pub upgrade_status: ::core::option::Option<::std::boxed::Box<UpgradeStatus>>,
     /// The version running in the DatacenterConnector. This is supplied by the OVA connector during the registration process and can not be modified.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// A message describing a data disk.
@@ -827,13 +838,13 @@ pub struct DatacenterConnector {
 pub struct Disk {
     /// The disk''s Logical Unit Number (LUN).
     #[serde(default)]
-    pub lun: Option<i32>,
+    pub lun: ::core::option::Option<i32>,
     /// The disk name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The disk size in GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<i32>,
+    pub size_gb: ::core::option::Option<i32>,
 }
 
 /// Contains details about the image source used to create the disk.
@@ -841,7 +852,7 @@ pub struct Disk {
 pub struct DiskImageDefaults {
     /// Required. The Image resource used when creating the disk.
     #[serde(default, rename = "sourceImage")]
-    pub source_image: Option<String>,
+    pub source_image: ::core::option::Option<String>,
 }
 
 /// The target details of the image resource that will be created by the import job.
@@ -849,34 +860,35 @@ pub struct DiskImageDefaults {
 pub struct DiskImageTargetDetails {
     /// Optional. Additional licenses to assign to the image. Format: https://www.googleapis.com/compute/v1/projects/PROJECT_ID/global/licenses/LICENSE_NAME Or https://www.googleapis.com/compute/beta/projects/PROJECT_ID/global/licenses/LICENSE_NAME
     #[serde(default, rename = "additionalLicenses")]
-    pub additional_licenses: Option<Vec<String>>,
+    pub additional_licenses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Use to skip OS adaptation process.
     #[serde(default, rename = "dataDiskImageImport")]
-    pub data_disk_image_import: Option<DataDiskImageImport>,
+    pub data_disk_image_import: ::core::option::Option<::std::boxed::Box<DataDiskImageImport>>,
     /// Optional. An optional description of the image.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Immutable. The encryption to apply to the image.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// Optional. The name of the image family to which the new image belongs.
     #[serde(default, rename = "familyName")]
-    pub family_name: Option<String>,
+    pub family_name: ::core::option::Option<String>,
     /// Required. The name of the image to be created.
     #[serde(default, rename = "imageName")]
-    pub image_name: Option<String>,
+    pub image_name: ::core::option::Option<String>,
     /// Optional. A map of labels to associate with the image.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Use to set the parameters relevant for the OS adaptation process.
     #[serde(default, rename = "osAdaptationParameters")]
-    pub os_adaptation_parameters: Option<ImageImportOsAdaptationParameters>,
+    pub os_adaptation_parameters:
+        ::core::option::Option<::std::boxed::Box<ImageImportOsAdaptationParameters>>,
     /// Optional. Set to true to set the image storageLocations to the single region of the import job. When false, the closest multi-region is selected.
     #[serde(default, rename = "singleRegionStorage")]
-    pub single_region_storage: Option<bool>,
+    pub single_region_storage: ::core::option::Option<bool>,
     /// Required. Reference to the TargetProject resource that represents the target project in which the imported image will be created.
     #[serde(default, rename = "targetProject")]
-    pub target_project: Option<String>,
+    pub target_project: ::core::option::Option<String>,
 }
 
 /// Describes the disk which will be migrated from the source environment. The source disk has to be unattached.
@@ -884,28 +896,28 @@ pub struct DiskImageTargetDetails {
 pub struct DiskMigrationJob {
     /// Details of the unattached AWS source disk.
     #[serde(default, rename = "awsSourceDiskDetails")]
-    pub aws_source_disk_details: Option<AwsSourceDiskDetails>,
+    pub aws_source_disk_details: ::core::option::Option<::std::boxed::Box<AwsSourceDiskDetails>>,
     /// Output only. The time the DiskMigrationJob resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Provides details on the errors that led to the disk migration job''s state in case of an error.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Output only. Identifier. The identifier of the DiskMigrationJob.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. State of the DiskMigrationJob. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "RUNNING", "SUCCEEDED", "CANCELLING", "CANCELLED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The disk migration steps list representing its progress.
     #[serde(default)]
-    pub steps: Option<Vec<DiskMigrationStep>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiskMigrationStep>>>,
     /// Required. Details of the target Disk in Compute Engine.
     #[serde(default, rename = "targetDetails")]
-    pub target_details: Option<DiskMigrationJobTargetDetails>,
+    pub target_details: ::core::option::Option<::std::boxed::Box<DiskMigrationJobTargetDetails>>,
     /// Output only. The last time the DiskMigrationJob resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Details of the target disk in Compute Engine.
@@ -913,16 +925,16 @@ pub struct DiskMigrationJob {
 pub struct DiskMigrationJobTargetDetails {
     /// Optional. The encryption to apply to the disk. If the DiskMigrationJob parent Source resource has an encryption, this field must be set to the same encryption key.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// Optional. A map of labels to associate with the disk.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. The target disk.
     #[serde(default, rename = "targetDisk")]
-    pub target_disk: Option<ComputeEngineDisk>,
+    pub target_disk: ::core::option::Option<::std::boxed::Box<ComputeEngineDisk>>,
     /// Required. The name of the resource of type TargetProject which represents the Compute Engine project in which to create the disk. Should be of the form: projects/{project}/locations/global/targetProjects/{target-project}
     #[serde(default, rename = "targetProject")]
-    pub target_project: Option<String>,
+    pub target_project: ::core::option::Option<String>,
 }
 
 /// DiskMigrationStep holds information about the disk migration step progress.
@@ -930,19 +942,19 @@ pub struct DiskMigrationJobTargetDetails {
 pub struct DiskMigrationStep {
     /// Copying source disk snapshot step.
     #[serde(default, rename = "copyingSourceDiskSnapshot")]
-    pub copying_source_disk_snapshot: Option<serde_json::Value>,
+    pub copying_source_disk_snapshot: ::core::option::Option<serde_json::Value>,
     /// Creating source disk snapshot step.
     #[serde(default, rename = "creatingSourceDiskSnapshot")]
-    pub creating_source_disk_snapshot: Option<serde_json::Value>,
+    pub creating_source_disk_snapshot: ::core::option::Option<serde_json::Value>,
     /// Output only. The time the step has ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Creating target disk step.
     #[serde(default, rename = "provisioningTargetDisk")]
-    pub provisioning_target_disk: Option<serde_json::Value>,
+    pub provisioning_target_disk: ::core::option::Option<serde_json::Value>,
     /// Output only. The time the step has started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Details for creation of a VM that migrated data disks will be attached to.
@@ -950,52 +962,53 @@ pub struct DiskMigrationStep {
 pub struct DisksMigrationVmTargetDefaults {
     /// Optional. Additional licenses to assign to the VM.
     #[serde(default, rename = "additionalLicenses")]
-    pub additional_licenses: Option<Vec<String>>,
+    pub additional_licenses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Details of the boot disk of the VM.
     #[serde(default, rename = "bootDiskDefaults")]
-    pub boot_disk_defaults: Option<BootDiskDefaults>,
+    pub boot_disk_defaults: ::core::option::Option<::std::boxed::Box<BootDiskDefaults>>,
     /// Optional. Compute instance scheduling information (if empty default is used).
     #[serde(default, rename = "computeScheduling")]
-    pub compute_scheduling: Option<ComputeScheduling>,
+    pub compute_scheduling: ::core::option::Option<::std::boxed::Box<ComputeScheduling>>,
     /// Optional. Defines whether the instance has integrity monitoring enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
-    pub enable_integrity_monitoring: Option<bool>,
+    pub enable_integrity_monitoring: ::core::option::Option<bool>,
     /// Optional. Defines whether the instance has vTPM enabled.
     #[serde(default, rename = "enableVtpm")]
-    pub enable_vtpm: Option<bool>,
+    pub enable_vtpm: ::core::option::Option<bool>,
     /// Optional. The encryption to apply to the VM.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// Optional. The hostname to assign to the VM.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Optional. A map of labels to associate with the VM.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. The machine type to create the VM with.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Optional. The machine type series to create the VM with. For presentation only.
     #[serde(default, rename = "machineTypeSeries")]
-    pub machine_type_series: Option<String>,
+    pub machine_type_series: ::core::option::Option<String>,
     /// Optional. The metadata key/value pairs to assign to the VM.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Optional. NICs to attach to the VM.
     #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    pub network_interfaces:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkInterface>>>,
     /// Optional. A list of network tags to associate with the VM.
     #[serde(default, rename = "networkTags")]
-    pub network_tags: Option<Vec<String>>,
+    pub network_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Defines whether the instance has Secure Boot enabled. This can be set to true only if the VM boot option is EFI.
     #[serde(default, rename = "secureBoot")]
-    pub secure_boot: Option<bool>,
+    pub secure_boot: ::core::option::Option<bool>,
     /// Optional. The service account to associate the VM with.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Required. The name of the VM to create.
     #[serde(default, rename = "vmName")]
-    pub vm_name: Option<String>,
+    pub vm_name: ::core::option::Option<String>,
 }
 
 /// Details for the VM created VM as part of disks migration.
@@ -1003,7 +1016,7 @@ pub struct DisksMigrationVmTargetDefaults {
 pub struct DisksMigrationVmTargetDetails {
     /// Output only. The URI of the Compute Engine VM.
     #[serde(default, rename = "vmUri")]
-    pub vm_uri: Option<String>,
+    pub vm_uri: ::core::option::Option<String>,
 }
 
 /// Encryption message describes the details of the applied encryption.
@@ -1011,7 +1024,7 @@ pub struct DisksMigrationVmTargetDetails {
 pub struct Encryption {
     /// Required. The name of the encryption key that is stored in Google Cloud KMS.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
 }
 
 /// Expiration holds information about the expiration of a MigratingVm.
@@ -1019,13 +1032,13 @@ pub struct Encryption {
 pub struct Expiration {
     /// Output only. Timestamp of when this resource is considered expired.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. Describes whether the expiration can be extended.
     #[serde(default)]
-    pub extendable: Option<bool>,
+    pub extendable: ::core::option::Option<bool>,
     /// Output only. The number of times expiration was extended.
     #[serde(default, rename = "extensionCount")]
-    pub extension_count: Option<i32>,
+    pub extension_count: ::core::option::Option<i32>,
 }
 
 /// Response message for fetchInventory.
@@ -1033,19 +1046,19 @@ pub struct Expiration {
 pub struct FetchInventoryResponse {
     /// The description of the VMs in a Source of type AWS.
     #[serde(default, rename = "awsVms")]
-    pub aws_vms: Option<AwsVmsDetails>,
+    pub aws_vms: ::core::option::Option<::std::boxed::Box<AwsVmsDetails>>,
     /// The description of the VMs in a Source of type Azure.
     #[serde(default, rename = "azureVms")]
-    pub azure_vms: Option<AzureVmsDetails>,
+    pub azure_vms: ::core::option::Option<::std::boxed::Box<AzureVmsDetails>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The timestamp when the source was last queried (if the result is from the cache).
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The description of the VMs in a Source of type Vmware.
     #[serde(default, rename = "vmwareVms")]
-    pub vmware_vms: Option<VmwareVmsDetails>,
+    pub vmware_vms: ::core::option::Option<::std::boxed::Box<VmwareVmsDetails>>,
 }
 
 /// Response message for fetchStorageInventory.
@@ -1053,13 +1066,14 @@ pub struct FetchInventoryResponse {
 pub struct FetchStorageInventoryResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of storage resources in the source.
     #[serde(default)]
-    pub resources: Option<Vec<SourceStorageResource>>,
+    pub resources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SourceStorageResource>>>,
     /// Output only. The timestamp when the source was last queried (if the result is from the cache).
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Describes message for ''Group'' resource. The Group is a collections of several MigratingVms.
@@ -1067,22 +1081,22 @@ pub struct FetchStorageInventoryResponse {
 pub struct Group {
     /// Output only. The create time timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// User-provided description of the group.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Display name is a user defined name for this group which can be updated.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. The target type of this group. // TODO: enum values: ["MIGRATION_TARGET_TYPE_UNSPECIFIED", "MIGRATION_TARGET_TYPE_GCE", "MIGRATION_TARGET_TYPE_DISKS"]
     #[serde(default, rename = "migrationTargetType")]
-    pub migration_target_type: Option<String>,
+    pub migration_target_type: ::core::option::Option<String>,
     /// Output only. The Group name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The update time timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// ImageImport describes the configuration of the image import to run.
@@ -1090,25 +1104,28 @@ pub struct Group {
 pub struct ImageImport {
     /// Immutable. The path to the Cloud Storage file from which the image should be imported.
     #[serde(default, rename = "cloudStorageUri")]
-    pub cloud_storage_uri: Option<String>,
+    pub cloud_storage_uri: ::core::option::Option<String>,
     /// Output only. The time the image import was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Immutable. Target details for importing a disk image, will be used by ImageImportJob.
     #[serde(default, rename = "diskImageTargetDefaults")]
-    pub disk_image_target_defaults: Option<DiskImageTargetDetails>,
+    pub disk_image_target_defaults:
+        ::core::option::Option<::std::boxed::Box<DiskImageTargetDetails>>,
     /// Immutable. The encryption details used by the image import process during the image adaptation for Compute Engine.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// Immutable. Target details for importing a machine image, will be used by ImageImportJob.
     #[serde(default, rename = "machineImageTargetDefaults")]
-    pub machine_image_target_defaults: Option<MachineImageTargetDetails>,
+    pub machine_image_target_defaults:
+        ::core::option::Option<::std::boxed::Box<MachineImageTargetDetails>>,
     /// Output only. The resource path of the ImageImport.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The result of the most recent runs for this ImageImport. All jobs for this ImageImport can be listed via ListImageImportJobs.
     #[serde(default, rename = "recentImageImportJobs")]
-    pub recent_image_import_jobs: Option<Vec<ImageImportJob>>,
+    pub recent_image_import_jobs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageImportJob>>>,
 }
 
 /// ImageImportJob describes the progress and result of an image import.
@@ -1116,37 +1133,39 @@ pub struct ImageImport {
 pub struct ImageImportJob {
     /// Output only. The path to the Cloud Storage file from which the image should be imported.
     #[serde(default, rename = "cloudStorageUri")]
-    pub cloud_storage_uri: Option<String>,
+    pub cloud_storage_uri: ::core::option::Option<String>,
     /// Output only. The time the image import was created (as an API call, not when it was actually created in the target).
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The resource paths of the resources created by the image import job.
     #[serde(default, rename = "createdResources")]
-    pub created_resources: Option<Vec<String>>,
+    pub created_resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Target details used to import a disk image.
     #[serde(default, rename = "diskImageTargetDetails")]
-    pub disk_image_target_details: Option<DiskImageTargetDetails>,
+    pub disk_image_target_details:
+        ::core::option::Option<::std::boxed::Box<DiskImageTargetDetails>>,
     /// Output only. The time the image import was ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Provides details on the error that led to the image import state in case of an error.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Output only. Target details used to import a machine image.
     #[serde(default, rename = "machineImageTargetDetails")]
-    pub machine_image_target_details: Option<MachineImageTargetDetails>,
+    pub machine_image_target_details:
+        ::core::option::Option<::std::boxed::Box<MachineImageTargetDetails>>,
     /// Output only. The resource path of the ImageImportJob.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The state of the image import. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLING", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The image import steps list representing its progress.
     #[serde(default)]
-    pub steps: Option<Vec<ImageImportStep>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageImportStep>>>,
     /// Output only. Warnings that occurred during the image import.
     #[serde(default)]
-    pub warnings: Option<Vec<MigrationWarning>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MigrationWarning>>>,
 }
 
 /// Parameters affecting the OS adaptation process.
@@ -1154,16 +1173,17 @@ pub struct ImageImportJob {
 pub struct ImageImportOsAdaptationParameters {
     /// Optional. Modifiers to be used as configuration of the OS adaptation process.
     #[serde(default, rename = "adaptationModifiers")]
-    pub adaptation_modifiers: Option<Vec<AdaptationModifier>>,
+    pub adaptation_modifiers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptationModifier>>>,
     /// Optional. By default the image will keep its existing boot option. Setting this property will trigger an internal process which will convert the image from using the existing boot option to another. The size of the boot disk might be increased to allow the conversion // TODO: enum values: ["BOOT_CONVERSION_UNSPECIFIED", "NONE", "BIOS_TO_EFI"]
     #[serde(default, rename = "bootConversion")]
-    pub boot_conversion: Option<String>,
+    pub boot_conversion: ::core::option::Option<String>,
     /// Optional. Set to true in order to generalize the imported image. The generalization process enables co-existence of multiple VMs created from the same image. For Windows, generalizing the image removes computer-specific information such as installed drivers and the computer security identifier (SID).
     #[serde(default)]
-    pub generalize: Option<bool>,
+    pub generalize: ::core::option::Option<bool>,
     /// Optional. Choose which type of license to apply to the imported image. // TODO: enum values: ["COMPUTE_ENGINE_LICENSE_TYPE_DEFAULT", "COMPUTE_ENGINE_LICENSE_TYPE_PAYG", "COMPUTE_ENGINE_LICENSE_TYPE_BYOL"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
 }
 
 /// ImageImportStep holds information about the image import step progress.
@@ -1171,22 +1191,22 @@ pub struct ImageImportOsAdaptationParameters {
 pub struct ImageImportStep {
     /// Adapting OS step.
     #[serde(default, rename = "adaptingOs")]
-    pub adapting_os: Option<serde_json::Value>,
+    pub adapting_os: ::core::option::Option<serde_json::Value>,
     /// Creating image step.
     #[serde(default, rename = "creatingImage")]
-    pub creating_image: Option<serde_json::Value>,
+    pub creating_image: ::core::option::Option<serde_json::Value>,
     /// Output only. The time the step has ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Initializing step.
     #[serde(default)]
-    pub initializing: Option<serde_json::Value>,
+    pub initializing: ::core::option::Option<serde_json::Value>,
     /// Loading source files step.
     #[serde(default, rename = "loadingSourceFiles")]
-    pub loading_source_files: Option<serde_json::Value>,
+    pub loading_source_files: ::core::option::Option<serde_json::Value>,
     /// Output only. The time the step has started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Describes a URL link.
@@ -1194,10 +1214,10 @@ pub struct ImageImportStep {
 pub struct Link {
     /// Describes what the link offers.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The URL of the link.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Response message for ''ListCloneJobs'' request.
@@ -1205,13 +1225,13 @@ pub struct Link {
 pub struct ListCloneJobsResponse {
     /// Output only. The list of clone jobs response.
     #[serde(default, rename = "cloneJobs")]
-    pub clone_jobs: Option<Vec<CloneJob>>,
+    pub clone_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloneJob>>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListCutoverJobs'' request.
@@ -1219,13 +1239,13 @@ pub struct ListCloneJobsResponse {
 pub struct ListCutoverJobsResponse {
     /// Output only. The list of cutover jobs response.
     #[serde(default, rename = "cutoverJobs")]
-    pub cutover_jobs: Option<Vec<CutoverJob>>,
+    pub cutover_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CutoverJob>>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListDatacenterConnectors'' request.
@@ -1233,13 +1253,14 @@ pub struct ListCutoverJobsResponse {
 pub struct ListDatacenterConnectorsResponse {
     /// Output only. The list of sources response.
     #[serde(default, rename = "datacenterConnectors")]
-    pub datacenter_connectors: Option<Vec<DatacenterConnector>>,
+    pub datacenter_connectors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatacenterConnector>>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListDiskMigrationJobs'' request.
@@ -1247,13 +1268,14 @@ pub struct ListDatacenterConnectorsResponse {
 pub struct ListDiskMigrationJobsResponse {
     /// Output only. The list of the disk migration jobs.
     #[serde(default, rename = "diskMigrationJobs")]
-    pub disk_migration_jobs: Option<Vec<DiskMigrationJob>>,
+    pub disk_migration_jobs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiskMigrationJob>>>,
     /// Optional. Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListGroups'' request.
@@ -1261,13 +1283,13 @@ pub struct ListDiskMigrationJobsResponse {
 pub struct ListGroupsResponse {
     /// Output only. The list of groups response.
     #[serde(default)]
-    pub groups: Option<Vec<Group>>,
+    pub groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Group>>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListImageImportJobs'' call.
@@ -1275,13 +1297,14 @@ pub struct ListGroupsResponse {
 pub struct ListImageImportJobsResponse {
     /// Output only. The list of target response.
     #[serde(default, rename = "imageImportJobs")]
-    pub image_import_jobs: Option<Vec<ImageImportJob>>,
+    pub image_import_jobs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageImportJob>>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListImageImports'' call.
@@ -1289,13 +1312,13 @@ pub struct ListImageImportJobsResponse {
 pub struct ListImageImportsResponse {
     /// Output only. The list of target response.
     #[serde(default, rename = "imageImports")]
-    pub image_imports: Option<Vec<ImageImport>>,
+    pub image_imports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageImport>>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1303,10 +1326,10 @@ pub struct ListImageImportsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ''ListMigratingVms'' request.
@@ -1314,13 +1337,13 @@ pub struct ListLocationsResponse {
 pub struct ListMigratingVmsResponse {
     /// Output only. The list of Migrating VMs response.
     #[serde(default, rename = "migratingVms")]
-    pub migrating_vms: Option<Vec<MigratingVm>>,
+    pub migrating_vms: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MigratingVm>>>,
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1328,13 +1351,13 @@ pub struct ListMigratingVmsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListReplicationCycles'' request.
@@ -1342,13 +1365,14 @@ pub struct ListOperationsResponse {
 pub struct ListReplicationCyclesResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The list of replication cycles response.
     #[serde(default, rename = "replicationCycles")]
-    pub replication_cycles: Option<Vec<ReplicationCycle>>,
+    pub replication_cycles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReplicationCycle>>>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListSources'' request.
@@ -1356,13 +1380,13 @@ pub struct ListReplicationCyclesResponse {
 pub struct ListSourcesResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The list of sources response.
     #[serde(default)]
-    pub sources: Option<Vec<Source>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Source>>>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListTargetProjects'' call.
@@ -1370,13 +1394,13 @@ pub struct ListSourcesResponse {
 pub struct ListTargetProjectsResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The list of target response.
     #[serde(default, rename = "targetProjects")]
-    pub target_projects: Option<Vec<TargetProject>>,
+    pub target_projects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetProject>>>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ''ListUtilizationReports'' request.
@@ -1384,13 +1408,14 @@ pub struct ListTargetProjectsResponse {
 pub struct ListUtilizationReportsResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The list of reports.
     #[serde(default, rename = "utilizationReports")]
-    pub utilization_reports: Option<Vec<UtilizationReport>>,
+    pub utilization_reports:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UtilizationReport>>>,
 }
 
 /// Provides a localized error message that is safe to return to the user which can be attached to an RPC error.
@@ -1398,10 +1423,10 @@ pub struct ListUtilizationReportsResponse {
 pub struct LocalizedMessage {
     /// The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The localized error message in the above locale.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1409,19 +1434,19 @@ pub struct LocalizedMessage {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Parameters overriding decisions based on the source machine image configurations.
@@ -1429,7 +1454,7 @@ pub struct Location {
 pub struct MachineImageParametersOverrides {
     /// Optional. The machine type to create the MachineImage with. If empty, the service will choose a relevant machine type based on the information from the source image. For more information about machine types, please refer to https://cloud.google.com/compute/docs/machine-resource.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
 }
 
 /// The target details of the machine image resource that will be created by the image import job.
@@ -1437,46 +1462,49 @@ pub struct MachineImageParametersOverrides {
 pub struct MachineImageTargetDetails {
     /// Optional. Additional licenses to assign to the instance created by the machine image. Format: https://www.googleapis.com/compute/v1/projects/PROJECT_ID/global/licenses/LICENSE_NAME Or https://www.googleapis.com/compute/beta/projects/PROJECT_ID/global/licenses/LICENSE_NAME
     #[serde(default, rename = "additionalLicenses")]
-    pub additional_licenses: Option<Vec<String>>,
+    pub additional_licenses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. An optional description of the machine image.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Immutable. The encryption to apply to the machine image. If the Image Import resource has an encryption, this field must be set to the same encryption key.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// Optional. The labels to apply to the instance created by the machine image.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. The name of the machine image to be created.
     #[serde(default, rename = "machineImageName")]
-    pub machine_image_name: Option<String>,
+    pub machine_image_name: ::core::option::Option<String>,
     /// Optional. Parameters overriding decisions based on the source machine image configurations.
     #[serde(default, rename = "machineImageParametersOverrides")]
-    pub machine_image_parameters_overrides: Option<MachineImageParametersOverrides>,
+    pub machine_image_parameters_overrides:
+        ::core::option::Option<::std::boxed::Box<MachineImageParametersOverrides>>,
     /// Optional. The network interfaces to create with the instance created by the machine image. Internal and external IP addresses, and network tiers are ignored for machine image import.
     #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    pub network_interfaces:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkInterface>>>,
     /// Optional. Use to set the parameters relevant for the OS adaptation process.
     #[serde(default, rename = "osAdaptationParameters")]
-    pub os_adaptation_parameters: Option<ImageImportOsAdaptationParameters>,
+    pub os_adaptation_parameters:
+        ::core::option::Option<::std::boxed::Box<ImageImportOsAdaptationParameters>>,
     /// Optional. The service account to assign to the instance created by the machine image.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<ServiceAccount>,
+    pub service_account: ::core::option::Option<::std::boxed::Box<ServiceAccount>>,
     /// Optional. Shielded instance configuration.
     #[serde(default, rename = "shieldedInstanceConfig")]
-    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
+    pub shielded_instance_config: ::core::option::Option<::std::boxed::Box<ShieldedInstanceConfig>>,
     /// Optional. Set to true to set the machine image storageLocations to the single region of the import job. When false, the closest multi-region is selected.
     #[serde(default, rename = "singleRegionStorage")]
-    pub single_region_storage: Option<bool>,
+    pub single_region_storage: ::core::option::Option<bool>,
     /// Optional. Use to skip OS adaptation process.
     #[serde(default, rename = "skipOsAdaptation")]
-    pub skip_os_adaptation: Option<serde_json::Value>,
+    pub skip_os_adaptation: ::core::option::Option<serde_json::Value>,
     /// Optional. The tags to apply to the instance created by the machine image.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Reference to the TargetProject resource that represents the target project in which the imported machine image will be created.
     #[serde(default, rename = "targetProject")]
-    pub target_project: Option<String>,
+    pub target_project: ::core::option::Option<String>,
 }
 
 /// MigratingVm describes the VM that will be migrated from a Source environment and its replication state.
@@ -1484,76 +1512,78 @@ pub struct MachineImageTargetDetails {
 pub struct MigratingVm {
     /// Output only. Details of the VM from an AWS source.
     #[serde(default, rename = "awsSourceVmDetails")]
-    pub aws_source_vm_details: Option<AwsSourceVmDetails>,
+    pub aws_source_vm_details: ::core::option::Option<::std::boxed::Box<AwsSourceVmDetails>>,
     /// Output only. Details of the VM from an Azure source.
     #[serde(default, rename = "azureSourceVmDetails")]
-    pub azure_source_vm_details: Option<AzureSourceVmDetails>,
+    pub azure_source_vm_details: ::core::option::Option<::std::boxed::Box<AzureSourceVmDetails>>,
     /// Details of the target Persistent Disks in Compute Engine.
     #[serde(default, rename = "computeEngineDisksTargetDefaults")]
-    pub compute_engine_disks_target_defaults: Option<ComputeEngineDisksTargetDefaults>,
+    pub compute_engine_disks_target_defaults:
+        ::core::option::Option<::std::boxed::Box<ComputeEngineDisksTargetDefaults>>,
     /// Details of the target VM in Compute Engine.
     #[serde(default, rename = "computeEngineTargetDefaults")]
-    pub compute_engine_target_defaults: Option<ComputeEngineTargetDefaults>,
+    pub compute_engine_target_defaults:
+        ::core::option::Option<::std::boxed::Box<ComputeEngineTargetDefaults>>,
     /// Output only. The time the migrating VM was created (this refers to this resource and not to the time it was installed in the source).
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Details of the current running replication cycle.
     #[serde(default, rename = "currentSyncInfo")]
-    pub current_sync_info: Option<ReplicationCycle>,
+    pub current_sync_info: ::core::option::Option<::std::boxed::Box<ReplicationCycle>>,
     /// Output only. Provides details of future CutoverJobs of a MigratingVm. Set to empty when cutover forecast is unavailable.
     #[serde(default, rename = "cutoverForecast")]
-    pub cutover_forecast: Option<CutoverForecast>,
+    pub cutover_forecast: ::core::option::Option<::std::boxed::Box<CutoverForecast>>,
     /// The description attached to the migrating VM by the user.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The display name attached to the MigratingVm by the user.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Provides details on the state of the Migrating VM in case of an error in replication.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. Provides details about the expiration state of the migrating VM.
     #[serde(default)]
-    pub expiration: Option<Expiration>,
+    pub expiration: ::core::option::Option<::std::boxed::Box<Expiration>>,
     /// Output only. The group this migrating vm is included in, if any. The group is represented by the full path of the appropriate Group resource.
     #[serde(default)]
-    pub group: Option<String>,
+    pub group: ::core::option::Option<String>,
     /// The labels of the migrating VM.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Details of the last replication cycle. This will be updated whenever a replication cycle is finished and is not to be confused with last_sync which is only updated on successful replication cycles.
     #[serde(default, rename = "lastReplicationCycle")]
-    pub last_replication_cycle: Option<ReplicationCycle>,
+    pub last_replication_cycle: ::core::option::Option<::std::boxed::Box<ReplicationCycle>>,
     /// Output only. The most updated snapshot created time in the source that finished replication.
     #[serde(default, rename = "lastSync")]
-    pub last_sync: Option<ReplicationSync>,
+    pub last_sync: ::core::option::Option<::std::boxed::Box<ReplicationSync>>,
     /// Output only. The identifier of the MigratingVm.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The replication schedule policy.
     #[serde(default)]
-    pub policy: Option<SchedulePolicy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<SchedulePolicy>>,
     /// Output only. The recent clone jobs performed on the migrating VM. This field holds the vm''s last completed clone job and the vm''s running clone job, if one exists. Note: To have this field populated you need to explicitly request it via the "view" parameter of the Get/List request.
     #[serde(default, rename = "recentCloneJobs")]
-    pub recent_clone_jobs: Option<Vec<CloneJob>>,
+    pub recent_clone_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloneJob>>>,
     /// Output only. The recent cutover jobs performed on the migrating VM. This field holds the vm''s last completed cutover job and the vm''s running cutover job, if one exists. Note: To have this field populated you need to explicitly request it via the "view" parameter of the Get/List request.
     #[serde(default, rename = "recentCutoverJobs")]
-    pub recent_cutover_jobs: Option<Vec<CutoverJob>>,
+    pub recent_cutover_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CutoverJob>>>,
     /// The unique ID of the VM in the source. The VM''s name in vSphere can be changed, so this is not the VM''s name but rather its moRef id. This id is of the form vm-.
     #[serde(default, rename = "sourceVmId")]
-    pub source_vm_id: Option<String>,
+    pub source_vm_id: ::core::option::Option<String>,
     /// Output only. State of the MigratingVm. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "READY", "FIRST_SYNC", "ACTIVE", "CUTTING_OVER", "CUTOVER", "FINAL_SYNC", "PAUSED", "FINALIZING", "FINALIZED", "ERROR", "EXPIRED", "FINALIZED_EXPIRED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The last time the migrating VM state was updated.
     #[serde(default, rename = "stateTime")]
-    pub state_time: Option<String>,
+    pub state_time: ::core::option::Option<String>,
     /// Output only. The last time the migrating VM resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. Details of the VM from a Vmware source.
     #[serde(default, rename = "vmwareSourceVmDetails")]
-    pub vmware_source_vm_details: Option<VmwareSourceVmDetails>,
+    pub vmware_source_vm_details: ::core::option::Option<::std::boxed::Box<VmwareSourceVmDetails>>,
 }
 
 /// Represents migration resource error information that can be used with google.rpc.Status message. MigrationError is used to present the user with error information in migration operations.
@@ -1561,19 +1591,19 @@ pub struct MigratingVm {
 pub struct MigrationError {
     /// Output only. Suggested action for solving the error.
     #[serde(default, rename = "actionItem")]
-    pub action_item: Option<LocalizedMessage>,
+    pub action_item: ::core::option::Option<::std::boxed::Box<LocalizedMessage>>,
     /// Output only. The error code. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "UNKNOWN_ERROR", "SOURCE_VALIDATION_ERROR", "SOURCE_REPLICATION_ERROR", "TARGET_REPLICATION_ERROR", "OS_ADAPTATION_ERROR", "CLONE_ERROR", "CUTOVER_ERROR", "UTILIZATION_REPORT_ERROR", "APPLIANCE_UPGRADE_ERROR", "IMAGE_IMPORT_ERROR", "DISK_MIGRATION_ERROR"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Output only. The localized error message.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<LocalizedMessage>,
+    pub error_message: ::core::option::Option<::std::boxed::Box<LocalizedMessage>>,
     /// Output only. The time the error occurred.
     #[serde(default, rename = "errorTime")]
-    pub error_time: Option<String>,
+    pub error_time: ::core::option::Option<String>,
     /// Output only. URL(s) pointing to additional information on handling the current error.
     #[serde(default, rename = "helpLinks")]
-    pub help_links: Option<Vec<Link>>,
+    pub help_links: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Link>>>,
 }
 
 /// Represents migration resource warning information that can be used with google.rpc.Status message. MigrationWarning is used to present the user with warning information in migration operations.
@@ -1581,19 +1611,19 @@ pub struct MigrationError {
 pub struct MigrationWarning {
     /// Output only. Suggested action for solving the warning.
     #[serde(default, rename = "actionItem")]
-    pub action_item: Option<LocalizedMessage>,
+    pub action_item: ::core::option::Option<::std::boxed::Box<LocalizedMessage>>,
     /// The warning code. // TODO: enum values: ["WARNING_CODE_UNSPECIFIED", "ADAPTATION_WARNING"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Output only. URL(s) pointing to additional information on handling the current warning.
     #[serde(default, rename = "helpLinks")]
-    pub help_links: Option<Vec<Link>>,
+    pub help_links: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Link>>>,
     /// Output only. The localized warning message.
     #[serde(default, rename = "warningMessage")]
-    pub warning_message: Option<LocalizedMessage>,
+    pub warning_message: ::core::option::Option<::std::boxed::Box<LocalizedMessage>>,
     /// The time the warning occurred.
     #[serde(default, rename = "warningTime")]
-    pub warning_time: Option<String>,
+    pub warning_time: ::core::option::Option<String>,
 }
 
 /// NetworkInterface represents a NIC of a VM.
@@ -1601,19 +1631,19 @@ pub struct MigrationWarning {
 pub struct NetworkInterface {
     /// Optional. The external IP to define in the NIC.
     #[serde(default, rename = "externalIp")]
-    pub external_ip: Option<String>,
+    pub external_ip: ::core::option::Option<String>,
     /// Optional. The internal IP to define in the NIC. The formats accepted are: ephemeral \ ipv4 address \ a named address resource full path.
     #[serde(default, rename = "internalIp")]
-    pub internal_ip: Option<String>,
+    pub internal_ip: ::core::option::Option<String>,
     /// Optional. The network to connect the NIC to.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. The networking tier used for optimizing connectivity between instances and systems on the internet. Applies only for external ephemeral IP addresses. If left empty, will default to PREMIUM. // TODO: enum values: ["COMPUTE_ENGINE_NETWORK_TIER_UNSPECIFIED", "NETWORK_TIER_STANDARD", "NETWORK_TIER_PREMIUM"]
     #[serde(default, rename = "networkTier")]
-    pub network_tier: Option<String>,
+    pub network_tier: ::core::option::Option<String>,
     /// Optional. The subnetwork to connect the NIC to.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
 }
 
 /// A message describing the VM''s OS. Including OS, Publisher, Offer and Plan if applicable.
@@ -1621,16 +1651,16 @@ pub struct NetworkInterface {
 pub struct OSDescription {
     /// OS offer.
     #[serde(default)]
-    pub offer: Option<String>,
+    pub offer: ::core::option::Option<String>,
     /// OS plan.
     #[serde(default)]
-    pub plan: Option<String>,
+    pub plan: ::core::option::Option<String>,
     /// OS publisher.
     #[serde(default)]
-    pub publisher: Option<String>,
+    pub publisher: ::core::option::Option<String>,
     /// OS type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A message describing the OS disk.
@@ -1638,13 +1668,13 @@ pub struct OSDescription {
 pub struct OSDisk {
     /// The disk''s full name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The disk''s size in GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<i32>,
+    pub size_gb: ::core::option::Option<i32>,
     /// The disk''s type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1652,19 +1682,19 @@ pub struct OSDisk {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1672,25 +1702,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Details of a created Persistent Disk.
@@ -1698,10 +1728,10 @@ pub struct OperationMetadata {
 pub struct PersistentDisk {
     /// The URI of the Persistent Disk.
     #[serde(default, rename = "diskUri")]
-    pub disk_uri: Option<String>,
+    pub disk_uri: ::core::option::Option<String>,
     /// The ordinal number of the source VM disk.
     #[serde(default, rename = "sourceDiskNumber")]
-    pub source_disk_number: Option<i32>,
+    pub source_disk_number: ::core::option::Option<i32>,
 }
 
 /// Details for creation of a Persistent Disk.
@@ -1709,22 +1739,22 @@ pub struct PersistentDisk {
 pub struct PersistentDiskDefaults {
     /// A map of labels to associate with the Persistent Disk.
     #[serde(default, rename = "additionalLabels")]
-    pub additional_labels: Option<serde_json::Value>,
+    pub additional_labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The name of the Persistent Disk to create.
     #[serde(default, rename = "diskName")]
-    pub disk_name: Option<String>,
+    pub disk_name: ::core::option::Option<String>,
     /// The disk type to use. // TODO: enum values: ["COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED", "COMPUTE_ENGINE_DISK_TYPE_STANDARD", "COMPUTE_ENGINE_DISK_TYPE_SSD", "COMPUTE_ENGINE_DISK_TYPE_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED", "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. The encryption to apply to the disk.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// Required. The ordinal number of the source VM disk.
     #[serde(default, rename = "sourceDiskNumber")]
-    pub source_disk_number: Option<i32>,
+    pub source_disk_number: ::core::option::Option<i32>,
     /// Optional. Details for attachment of the disk to a VM. Used when the disk is set to be attached to a target VM.
     #[serde(default, rename = "vmAttachmentDetails")]
-    pub vm_attachment_details: Option<VmAttachmentDetails>,
+    pub vm_attachment_details: ::core::option::Option<::std::boxed::Box<VmAttachmentDetails>>,
 }
 
 /// Request message for ''RemoveMigration'' request.
@@ -1732,7 +1762,7 @@ pub struct PersistentDiskDefaults {
 pub struct RemoveGroupMigrationRequest {
     /// The MigratingVm to remove.
     #[serde(default, rename = "migratingVm")]
-    pub migrating_vm: Option<String>,
+    pub migrating_vm: ::core::option::Option<String>,
 }
 
 /// ReplicatingStep contains specific step details.
@@ -1740,16 +1770,16 @@ pub struct RemoveGroupMigrationRequest {
 pub struct ReplicatingStep {
     /// The source disks replication rate for the last 30 minutes in bytes per second.
     #[serde(default, rename = "lastThirtyMinutesAverageBytesPerSecond")]
-    pub last_thirty_minutes_average_bytes_per_second: Option<String>,
+    pub last_thirty_minutes_average_bytes_per_second: ::core::option::Option<String>,
     /// The source disks replication rate for the last 2 minutes in bytes per second.
     #[serde(default, rename = "lastTwoMinutesAverageBytesPerSecond")]
-    pub last_two_minutes_average_bytes_per_second: Option<String>,
+    pub last_two_minutes_average_bytes_per_second: ::core::option::Option<String>,
     /// Replicated bytes in the step.
     #[serde(default, rename = "replicatedBytes")]
-    pub replicated_bytes: Option<String>,
+    pub replicated_bytes: ::core::option::Option<String>,
     /// Total bytes to be handled in the step.
     #[serde(default, rename = "totalBytes")]
-    pub total_bytes: Option<String>,
+    pub total_bytes: ::core::option::Option<String>,
 }
 
 /// ReplicationCycle contains information about the current replication cycle status.
@@ -1757,34 +1787,34 @@ pub struct ReplicatingStep {
 pub struct ReplicationCycle {
     /// The cycle''s ordinal number.
     #[serde(default, rename = "cycleNumber")]
-    pub cycle_number: Option<i32>,
+    pub cycle_number: ::core::option::Option<i32>,
     /// The time the replication cycle has ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Provides details on the state of the cycle in case of an error.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The identifier of the ReplicationCycle.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The current progress in percentage of this cycle. Was replaced by ''steps'' field, which breaks down the cycle progression more accurately.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// The time the replication cycle has started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// State of the ReplicationCycle. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "PAUSED", "FAILED", "SUCCEEDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The cycle''s steps list representing its progress.
     #[serde(default)]
-    pub steps: Option<Vec<CycleStep>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CycleStep>>>,
     /// The accumulated duration the replication cycle was paused.
     #[serde(default, rename = "totalPauseDuration")]
-    pub total_pause_duration: Option<String>,
+    pub total_pause_duration: ::core::option::Option<String>,
     /// Output only. Warnings that occurred during the cycle.
     #[serde(default)]
-    pub warnings: Option<Vec<MigrationWarning>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MigrationWarning>>>,
 }
 
 /// ReplicationSync contain information about the last replica sync to the cloud.
@@ -1792,7 +1822,7 @@ pub struct ReplicationCycle {
 pub struct ReplicationSync {
     /// The most updated snapshot created time in the source that finished replication.
     #[serde(default, rename = "lastSyncTime")]
-    pub last_sync_time: Option<String>,
+    pub last_sync_time: ::core::option::Option<String>,
 }
 
 /// A policy for scheduling replications.
@@ -1800,10 +1830,10 @@ pub struct ReplicationSync {
 pub struct SchedulePolicy {
     /// The idle duration between replication stages.
     #[serde(default, rename = "idleDuration")]
-    pub idle_duration: Option<String>,
+    pub idle_duration: ::core::option::Option<String>,
     /// A flag to indicate whether to skip OS adaptation during the replication sync. OS adaptation is a process where the VM''s operating system undergoes changes and adaptations to fully function on Compute Engine.
     #[serde(default, rename = "skipOsAdaptation")]
-    pub skip_os_adaptation: Option<bool>,
+    pub skip_os_adaptation: ::core::option::Option<bool>,
 }
 
 /// Node Affinity: the configuration of desired nodes onto which this Instance could be scheduled. Based on https://cloud.google.com/compute/docs/reference/rest/v1/instances/setScheduling
@@ -1811,13 +1841,13 @@ pub struct SchedulePolicy {
 pub struct SchedulingNodeAffinity {
     /// The label key of Node resource to reference.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The operator to use for the node resources specified in the values parameter. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "IN", "NOT_IN"]
     #[serde(default)]
-    pub operator: Option<String>,
+    pub operator: ::core::option::Option<String>,
     /// Corresponds to the label values of Node resource.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Service account to assign to the instance created by the machine image.
@@ -1825,10 +1855,10 @@ pub struct SchedulingNodeAffinity {
 pub struct ServiceAccount {
     /// Required. The email address of the service account.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Optional. The list of scopes to be made available for this service account.
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Shielded instance configuration.
@@ -1836,13 +1866,13 @@ pub struct ServiceAccount {
 pub struct ShieldedInstanceConfig {
     /// Optional. Defines whether the instance created by the machine image has integrity monitoring enabled. This can be set to true only if the image boot option is EFI, and vTPM is enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
-    pub enable_integrity_monitoring: Option<bool>,
+    pub enable_integrity_monitoring: ::core::option::Option<bool>,
     /// Optional. Defines whether the instance created by the machine image has vTPM enabled. This can be set to true only if the image boot option is EFI.
     #[serde(default, rename = "enableVtpm")]
-    pub enable_vtpm: Option<bool>,
+    pub enable_vtpm: ::core::option::Option<bool>,
     /// Optional. Defines whether the instance created by the machine image has Secure Boot enabled. This can be set to true only if the image boot option is EFI. // TODO: enum values: ["SECURE_BOOT_UNSPECIFIED", "TRUE", "FALSE"]
     #[serde(default, rename = "secureBoot")]
-    pub secure_boot: Option<String>,
+    pub secure_boot: ::core::option::Option<String>,
 }
 
 /// Source message describes a specific vm migration Source resource. It contains the source environment information.
@@ -1850,31 +1880,31 @@ pub struct ShieldedInstanceConfig {
 pub struct Source {
     /// AWS type source details.
     #[serde(default)]
-    pub aws: Option<AwsSourceDetails>,
+    pub aws: ::core::option::Option<::std::boxed::Box<AwsSourceDetails>>,
     /// Azure type source details.
     #[serde(default)]
-    pub azure: Option<AzureSourceDetails>,
+    pub azure: ::core::option::Option<::std::boxed::Box<AzureSourceDetails>>,
     /// Output only. The create time timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// User-provided description of the source.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Immutable. The encryption details of the source data stored by the service.
     #[serde(default)]
-    pub encryption: Option<Encryption>,
+    pub encryption: ::core::option::Option<::std::boxed::Box<Encryption>>,
     /// The labels of the source.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The Source name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The update time timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Vmware type source details.
     #[serde(default)]
-    pub vmware: Option<VmwareSourceDetails>,
+    pub vmware: ::core::option::Option<::std::boxed::Box<VmwareSourceDetails>>,
 }
 
 /// SourceStorageResource describes a storage resource in the source.
@@ -1882,7 +1912,7 @@ pub struct Source {
 pub struct SourceStorageResource {
     /// Source AWS volume details.
     #[serde(default, rename = "awsDiskDetails")]
-    pub aws_disk_details: Option<AwsSourceDiskDetails>,
+    pub aws_disk_details: ::core::option::Option<::std::boxed::Box<AwsSourceDiskDetails>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1890,13 +1920,13 @@ pub struct SourceStorageResource {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Tag is an AWS tag representation.
@@ -1904,10 +1934,10 @@ pub struct Status {
 pub struct Tag {
     /// Required. Key of tag.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Required. Value of tag.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// TargetProject message represents a target Compute Engine project for a migration or a clone.
@@ -1915,19 +1945,19 @@ pub struct Tag {
 pub struct TargetProject {
     /// Output only. The time this target project resource was created (not related to when the Compute Engine project it points to was created).
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The target project''s description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The name of the target project.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The target project ID (number) or project name.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
     /// Output only. The last time the target project resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request message for ''UpgradeAppliance'' request.
@@ -1935,7 +1965,7 @@ pub struct TargetProject {
 pub struct UpgradeApplianceRequest {
     /// A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// UpgradeStatus contains information about upgradeAppliance operation.
@@ -1943,19 +1973,19 @@ pub struct UpgradeApplianceRequest {
 pub struct UpgradeStatus {
     /// Output only. Provides details on the state of the upgrade operation in case of an error.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The version from which we upgraded.
     #[serde(default, rename = "previousVersion")]
-    pub previous_version: Option<String>,
+    pub previous_version: ::core::option::Option<String>,
     /// The time the operation was started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The state of the upgradeAppliance operation. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "FAILED", "SUCCEEDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The version to upgrade to.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Utilization report details the utilization (CPU, memory, etc.) of selected source VMs.
@@ -1963,34 +1993,34 @@ pub struct UpgradeStatus {
 pub struct UtilizationReport {
     /// Output only. The time the report was created (this refers to the time of the request, not the time the report creation completed).
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The report display name, as assigned by the user.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Provides details on the state of the report in case of an error.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The point in time when the time frame ends. Notice that the time frame is counted backwards. For instance if the "frame_end_time" value is 2021/01/20 and the time frame is WEEK then the report covers the week between 2021/01/20 and 2021/01/14.
     #[serde(default, rename = "frameEndTime")]
-    pub frame_end_time: Option<String>,
+    pub frame_end_time: ::core::option::Option<String>,
     /// Output only. The report unique name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Current state of the report. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time the state was last set.
     #[serde(default, rename = "stateTime")]
-    pub state_time: Option<String>,
+    pub state_time: ::core::option::Option<String>,
     /// Time frame of the report. // TODO: enum values: ["TIME_FRAME_UNSPECIFIED", "WEEK", "MONTH", "YEAR"]
     #[serde(default, rename = "timeFrame")]
-    pub time_frame: Option<String>,
+    pub time_frame: ::core::option::Option<String>,
     /// Output only. Total number of VMs included in the report.
     #[serde(default, rename = "vmCount")]
-    pub vm_count: Option<i32>,
+    pub vm_count: ::core::option::Option<i32>,
     /// List of utilization information per VM. When sent as part of the request, the "vm_id" field is used in order to specify which VMs to include in the report. In that case all other fields are ignored.
     #[serde(default)]
-    pub vms: Option<Vec<VmUtilizationInfo>>,
+    pub vms: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmUtilizationInfo>>>,
 }
 
 /// Details for attachment of the disk to a VM.
@@ -1998,7 +2028,7 @@ pub struct UtilizationReport {
 pub struct VmAttachmentDetails {
     /// Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.
     #[serde(default, rename = "deviceName")]
-    pub device_name: Option<String>,
+    pub device_name: ::core::option::Option<String>,
 }
 
 /// Migrating VM source information about the VM capabilities needed for some Compute Engine features.
@@ -2006,10 +2036,10 @@ pub struct VmAttachmentDetails {
 pub struct VmCapabilities {
     /// Output only. The last time OS capabilities list was updated.
     #[serde(default, rename = "lastOsCapabilitiesUpdateTime")]
-    pub last_os_capabilities_update_time: Option<String>,
+    pub last_os_capabilities_update_time: ::core::option::Option<String>,
     /// Output only. Unordered list. List of certain VM OS capabilities needed for some Compute Engine features.
     #[serde(default, rename = "osCapabilities")]
-    pub os_capabilities: Option<Vec<String>>,
+    pub os_capabilities: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Utilization information of a single VM.
@@ -2017,13 +2047,13 @@ pub struct VmCapabilities {
 pub struct VmUtilizationInfo {
     /// Utilization metrics for this VM.
     #[serde(default)]
-    pub utilization: Option<VmUtilizationMetrics>,
+    pub utilization: ::core::option::Option<::std::boxed::Box<VmUtilizationMetrics>>,
     /// The VM''s ID in the source.
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
     /// The description of the VM in a Source of type Vmware.
     #[serde(default, rename = "vmwareVmDetails")]
-    pub vmware_vm_details: Option<VmwareVmDetails>,
+    pub vmware_vm_details: ::core::option::Option<::std::boxed::Box<VmwareVmDetails>>,
 }
 
 /// Utilization metrics values for a single VM.
@@ -2031,28 +2061,28 @@ pub struct VmUtilizationInfo {
 pub struct VmUtilizationMetrics {
     /// Average CPU usage, percent.
     #[serde(default, rename = "cpuAveragePercent")]
-    pub cpu_average_percent: Option<i32>,
+    pub cpu_average_percent: ::core::option::Option<i32>,
     /// Max CPU usage, percent.
     #[serde(default, rename = "cpuMaxPercent")]
-    pub cpu_max_percent: Option<i32>,
+    pub cpu_max_percent: ::core::option::Option<i32>,
     /// Average disk IO rate, in kilobytes per second.
     #[serde(default, rename = "diskIoRateAverageKbps")]
-    pub disk_io_rate_average_kbps: Option<String>,
+    pub disk_io_rate_average_kbps: ::core::option::Option<String>,
     /// Max disk IO rate, in kilobytes per second.
     #[serde(default, rename = "diskIoRateMaxKbps")]
-    pub disk_io_rate_max_kbps: Option<String>,
+    pub disk_io_rate_max_kbps: ::core::option::Option<String>,
     /// Average memory usage, percent.
     #[serde(default, rename = "memoryAveragePercent")]
-    pub memory_average_percent: Option<i32>,
+    pub memory_average_percent: ::core::option::Option<i32>,
     /// Max memory usage, percent.
     #[serde(default, rename = "memoryMaxPercent")]
-    pub memory_max_percent: Option<i32>,
+    pub memory_max_percent: ::core::option::Option<i32>,
     /// Average network throughput (combined transmit-rates and receive-rates), in kilobytes per second.
     #[serde(default, rename = "networkThroughputAverageKbps")]
-    pub network_throughput_average_kbps: Option<String>,
+    pub network_throughput_average_kbps: ::core::option::Option<String>,
     /// Max network throughput (combined transmit-rates and receive-rates), in kilobytes per second.
     #[serde(default, rename = "networkThroughputMaxKbps")]
-    pub network_throughput_max_kbps: Option<String>,
+    pub network_throughput_max_kbps: ::core::option::Option<String>,
 }
 
 /// The details of a Vmware VM disk.
@@ -2060,13 +2090,13 @@ pub struct VmUtilizationMetrics {
 pub struct VmwareDiskDetails {
     /// Output only. The ordinal number of the disk.
     #[serde(default, rename = "diskNumber")]
-    pub disk_number: Option<i32>,
+    pub disk_number: ::core::option::Option<i32>,
     /// Output only. The disk label.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Output only. Size in GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<String>,
+    pub size_gb: ::core::option::Option<String>,
 }
 
 /// VmwareSourceDetails message describes a specific source details for the vmware source type.
@@ -2074,19 +2104,19 @@ pub struct VmwareDiskDetails {
 pub struct VmwareSourceDetails {
     /// Input only. The credentials password. This is write only and can not be read in a GET operation.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// The hostname of the vcenter.
     #[serde(default, rename = "resolvedVcenterHost")]
-    pub resolved_vcenter_host: Option<String>,
+    pub resolved_vcenter_host: ::core::option::Option<String>,
     /// The thumbprint representing the certificate for the vcenter.
     #[serde(default)]
-    pub thumbprint: Option<String>,
+    pub thumbprint: ::core::option::Option<String>,
     /// The credentials username.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
     /// The ip address of the vcenter this Source represents.
     #[serde(default, rename = "vcenterIp")]
-    pub vcenter_ip: Option<String>,
+    pub vcenter_ip: ::core::option::Option<String>,
 }
 
 /// Represent the source Vmware VM details.
@@ -2094,19 +2124,19 @@ pub struct VmwareSourceDetails {
 pub struct VmwareSourceVmDetails {
     /// Output only. The VM architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. The total size of the disks being migrated in bytes.
     #[serde(default, rename = "committedStorageBytes")]
-    pub committed_storage_bytes: Option<String>,
+    pub committed_storage_bytes: ::core::option::Option<String>,
     /// Output only. The disks attached to the source VM.
     #[serde(default)]
-    pub disks: Option<Vec<VmwareDiskDetails>>,
+    pub disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareDiskDetails>>>,
     /// Output only. The firmware type of the source VM. // TODO: enum values: ["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]
     #[serde(default)]
-    pub firmware: Option<String>,
+    pub firmware: ::core::option::Option<String>,
     /// Output only. Information about VM capabilities needed for some Compute Engine features.
     #[serde(default, rename = "vmCapabilitiesInfo")]
-    pub vm_capabilities_info: Option<VmCapabilities>,
+    pub vm_capabilities_info: ::core::option::Option<::std::boxed::Box<VmCapabilities>>,
 }
 
 /// VmwareVmDetails describes a VM in vCenter.
@@ -2114,43 +2144,43 @@ pub struct VmwareSourceVmDetails {
 pub struct VmwareVmDetails {
     /// Output only. The CPU architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. The VM Boot Option. // TODO: enum values: ["BOOT_OPTION_UNSPECIFIED", "EFI", "BIOS"]
     #[serde(default, rename = "bootOption")]
-    pub boot_option: Option<String>,
+    pub boot_option: ::core::option::Option<String>,
     /// The total size of the storage allocated to the VM in MB.
     #[serde(default, rename = "committedStorageMb")]
-    pub committed_storage_mb: Option<String>,
+    pub committed_storage_mb: ::core::option::Option<String>,
     /// The number of cpus in the VM.
     #[serde(default, rename = "cpuCount")]
-    pub cpu_count: Option<i32>,
+    pub cpu_count: ::core::option::Option<i32>,
     /// The descriptive name of the vCenter''s datacenter this VM is contained in.
     #[serde(default, rename = "datacenterDescription")]
-    pub datacenter_description: Option<String>,
+    pub datacenter_description: ::core::option::Option<String>,
     /// The id of the vCenter''s datacenter this VM is contained in.
     #[serde(default, rename = "datacenterId")]
-    pub datacenter_id: Option<String>,
+    pub datacenter_id: ::core::option::Option<String>,
     /// The number of disks the VM has.
     #[serde(default, rename = "diskCount")]
-    pub disk_count: Option<i32>,
+    pub disk_count: ::core::option::Option<i32>,
     /// The display name of the VM. Note that this is not necessarily unique.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The VM''s OS. See for example https://vdc-repo.vmware.com/vmwb-repository/dcr-public/da47f910-60ac-438b-8b9b-6122f4d14524/16b7274a-bf8b-4b4c-a05e-746f2aa93c8c/doc/vim.vm.GuestOsDescriptor.GuestOsIdentifier.html for types of strings this might hold.
     #[serde(default, rename = "guestDescription")]
-    pub guest_description: Option<String>,
+    pub guest_description: ::core::option::Option<String>,
     /// The size of the memory of the VM in MB.
     #[serde(default, rename = "memoryMb")]
-    pub memory_mb: Option<i32>,
+    pub memory_mb: ::core::option::Option<i32>,
     /// The power state of the VM at the moment list was taken. // TODO: enum values: ["POWER_STATE_UNSPECIFIED", "ON", "OFF", "SUSPENDED"]
     #[serde(default, rename = "powerState")]
-    pub power_state: Option<String>,
+    pub power_state: ::core::option::Option<String>,
     /// The unique identifier of the VM in vCenter.
     #[serde(default)]
-    pub uuid: Option<String>,
+    pub uuid: ::core::option::Option<String>,
     /// The VM''s id in the source (note that this is not the MigratingVm''s id). This is the moref id of the VM.
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
 }
 
 /// VmwareVmsDetails describes VMs in vCenter.
@@ -2158,5 +2188,5 @@ pub struct VmwareVmDetails {
 pub struct VmwareVmsDetails {
     /// The details of the vmware VMs.
     #[serde(default)]
-    pub details: Option<Vec<VmwareVmDetails>>,
+    pub details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareVmDetails>>>,
 }

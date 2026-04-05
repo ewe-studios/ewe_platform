@@ -10,36 +10,36 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An achievement configuration resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AchievementConfiguration {
     /// The type of the achievement. // TODO: enum values: ["ACHIEVEMENT_TYPE_UNSPECIFIED", "STANDARD", "INCREMENTAL"]
     #[serde(default, rename = "achievementType")]
-    pub achievement_type: Option<String>,
+    pub achievement_type: ::core::option::Option<String>,
     /// The draft data of the achievement.
     #[serde(default)]
-    pub draft: Option<AchievementConfigurationDetail>,
+    pub draft: ::core::option::Option<::std::boxed::Box<AchievementConfigurationDetail>>,
     /// The ID of the achievement.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The initial state of the achievement. // TODO: enum values: ["INITIAL_STATE_UNSPECIFIED", "HIDDEN", "REVEALED"]
     #[serde(default, rename = "initialState")]
-    pub initial_state: Option<String>,
+    pub initial_state: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#achievementConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The read-only published data of the achievement.
     #[serde(default)]
-    pub published: Option<AchievementConfigurationDetail>,
+    pub published: ::core::option::Option<::std::boxed::Box<AchievementConfigurationDetail>>,
     /// Steps to unlock. Only applicable to incremental achievements.
     #[serde(default, rename = "stepsToUnlock")]
-    pub steps_to_unlock: Option<i32>,
+    pub steps_to_unlock: ::core::option::Option<i32>,
     /// The token for this resource.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// An achievement configuration detail.
@@ -47,22 +47,22 @@ pub struct AchievementConfiguration {
 pub struct AchievementConfigurationDetail {
     /// Localized strings for the achievement description.
     #[serde(default)]
-    pub description: Option<LocalizedStringBundle>,
+    pub description: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// The icon url of this achievement. Writes to this field are ignored.
     #[serde(default, rename = "iconUrl")]
-    pub icon_url: Option<String>,
+    pub icon_url: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#achievementConfigurationDetail.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Localized strings for the achievement name.
     #[serde(default)]
-    pub name: Option<LocalizedStringBundle>,
+    pub name: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// Point value for the achievement.
     #[serde(default, rename = "pointValue")]
-    pub point_value: Option<i32>,
+    pub point_value: ::core::option::Option<i32>,
     /// The sort rank of this achievement. Writes to this field are ignored.
     #[serde(default, rename = "sortRank")]
-    pub sort_rank: Option<i32>,
+    pub sort_rank: ::core::option::Option<i32>,
 }
 
 /// A ListConfigurations response.
@@ -70,13 +70,13 @@ pub struct AchievementConfigurationDetail {
 pub struct AchievementConfigurationListResponse {
     /// The achievement configurations.
     #[serde(default)]
-    pub items: Option<Vec<AchievementConfiguration>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AchievementConfiguration>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#achievementConfigurationListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A number affix resource.
@@ -84,22 +84,22 @@ pub struct AchievementConfigurationListResponse {
 pub struct GamesNumberAffixConfiguration {
     /// When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).
     #[serde(default)]
-    pub few: Option<LocalizedStringBundle>,
+    pub few: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// When the language requires special treatment of "large" numbers (as with numbers ending 11-99 in Maltese).
     #[serde(default)]
-    pub many: Option<LocalizedStringBundle>,
+    pub many: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// When the language requires special treatment of numbers like one (as with the number 1 in English and most other languages; in Russian, any number ending in 1 but not ending in 11 is in this class).
     #[serde(default)]
-    pub one: Option<LocalizedStringBundle>,
+    pub one: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// When the language does not require special treatment of the given quantity (as with all numbers in Chinese, or 42 in English).
     #[serde(default)]
-    pub other: Option<LocalizedStringBundle>,
+    pub other: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// When the language requires special treatment of numbers like two (as with 2 in Welsh, or 102 in Slovenian).
     #[serde(default)]
-    pub two: Option<LocalizedStringBundle>,
+    pub two: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// When the language requires special treatment of the number 0 (as in Arabic).
     #[serde(default)]
-    pub zero: Option<LocalizedStringBundle>,
+    pub zero: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
 }
 
 /// A number format resource.
@@ -107,16 +107,16 @@ pub struct GamesNumberAffixConfiguration {
 pub struct GamesNumberFormatConfiguration {
     /// The curreny code string. Only used for CURRENCY format type.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// The number of decimal places for number. Only used for NUMERIC format type.
     #[serde(default, rename = "numDecimalPlaces")]
-    pub num_decimal_places: Option<i32>,
+    pub num_decimal_places: ::core::option::Option<i32>,
     /// The formatting for the number. // TODO: enum values: ["NUMBER_FORMAT_TYPE_UNSPECIFIED", "NUMERIC", "TIME_DURATION", "CURRENCY"]
     #[serde(default, rename = "numberFormatType")]
-    pub number_format_type: Option<String>,
+    pub number_format_type: ::core::option::Option<String>,
     /// An optional suffix for the NUMERIC format type. These strings follow the same plural rules as all Android string resources.
     #[serde(default)]
-    pub suffix: Option<GamesNumberAffixConfiguration>,
+    pub suffix: ::core::option::Option<::std::boxed::Box<GamesNumberAffixConfiguration>>,
 }
 
 /// An leaderboard configuration resource.
@@ -124,28 +124,28 @@ pub struct GamesNumberFormatConfiguration {
 pub struct LeaderboardConfiguration {
     /// The draft data of the leaderboard.
     #[serde(default)]
-    pub draft: Option<LeaderboardConfigurationDetail>,
+    pub draft: ::core::option::Option<::std::boxed::Box<LeaderboardConfigurationDetail>>,
     /// The ID of the leaderboard.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#leaderboardConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The read-only published data of the leaderboard.
     #[serde(default)]
-    pub published: Option<LeaderboardConfigurationDetail>,
+    pub published: ::core::option::Option<::std::boxed::Box<LeaderboardConfigurationDetail>>,
     /// Maximum score that can be posted to this leaderboard.
     #[serde(default, rename = "scoreMax")]
-    pub score_max: Option<String>,
+    pub score_max: ::core::option::Option<String>,
     /// Minimum score that can be posted to this leaderboard.
     #[serde(default, rename = "scoreMin")]
-    pub score_min: Option<String>,
+    pub score_min: ::core::option::Option<String>,
     /// TODO: enum values: ["SCORE_ORDER_UNSPECIFIED", "LARGER_IS_BETTER", "SMALLER_IS_BETTER"]
     #[serde(default, rename = "scoreOrder")]
-    pub score_order: Option<String>,
+    pub score_order: ::core::option::Option<String>,
     /// The token for this resource.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// A leaderboard configuration detail.
@@ -153,19 +153,19 @@ pub struct LeaderboardConfiguration {
 pub struct LeaderboardConfigurationDetail {
     /// The icon url of this leaderboard. Writes to this field are ignored.
     #[serde(default, rename = "iconUrl")]
-    pub icon_url: Option<String>,
+    pub icon_url: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#leaderboardConfigurationDetail.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Localized strings for the leaderboard name.
     #[serde(default)]
-    pub name: Option<LocalizedStringBundle>,
+    pub name: ::core::option::Option<::std::boxed::Box<LocalizedStringBundle>>,
     /// The score formatting for the leaderboard.
     #[serde(default, rename = "scoreFormat")]
-    pub score_format: Option<GamesNumberFormatConfiguration>,
+    pub score_format: ::core::option::Option<::std::boxed::Box<GamesNumberFormatConfiguration>>,
     /// The sort rank of this leaderboard. Writes to this field are ignored.
     #[serde(default, rename = "sortRank")]
-    pub sort_rank: Option<i32>,
+    pub sort_rank: ::core::option::Option<i32>,
 }
 
 /// A ListConfigurations response.
@@ -173,13 +173,13 @@ pub struct LeaderboardConfigurationDetail {
 pub struct LeaderboardConfigurationListResponse {
     /// The leaderboard configurations.
     #[serde(default)]
-    pub items: Option<Vec<LeaderboardConfiguration>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LeaderboardConfiguration>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#leaderboardConfigurationListResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A localized string resource.
@@ -187,13 +187,13 @@ pub struct LeaderboardConfigurationListResponse {
 pub struct LocalizedString {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#localizedString.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The locale string.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The string value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A localized string bundle resource.
@@ -201,8 +201,8 @@ pub struct LocalizedString {
 pub struct LocalizedStringBundle {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#localizedStringBundle.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The locale strings.
     #[serde(default)]
-    pub translations: Option<Vec<LocalizedString>>,
+    pub translations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LocalizedString>>>,
 }

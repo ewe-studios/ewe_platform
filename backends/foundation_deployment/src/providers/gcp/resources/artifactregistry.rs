@@ -10,30 +10,30 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A detailed representation of an Apt artifact. Information in the record is derived from the archive''s control file. See https://www.debian.org/doc/debian-policy/ch-controlfields.html
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AptArtifact {
     /// Output only. Operating system architecture of the artifact.
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. Repository component of the artifact.
     #[serde(default)]
-    pub component: Option<String>,
+    pub component: ::core::option::Option<String>,
     /// Output only. Contents of the artifact''s control metadata file.
     #[serde(default, rename = "controlFile")]
-    pub control_file: Option<String>,
+    pub control_file: ::core::option::Option<String>,
     /// Output only. The Artifact Registry resource name of the artifact.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The Apt package name of the artifact.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Output only. An artifact is a binary or source package. // TODO: enum values: ["PACKAGE_TYPE_UNSPECIFIED", "BINARY", "SOURCE"]
     #[serde(default, rename = "packageType")]
-    pub package_type: Option<String>,
+    pub package_type: ::core::option::Option<String>,
 }
 
 /// Configuration for an Apt remote repository.
@@ -41,12 +41,18 @@ pub struct AptArtifact {
 pub struct AptRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
-    pub custom_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository>,
+    pub custom_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository,
+        >,
+    >,
     /// One of the publicly available Apt repositories supported by Artifact Registry.
     #[serde(default, rename = "publicRepository")]
-    pub public_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository>,
+    pub public_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository,
+        >,
+    >,
 }
 
 /// An Attachment refers to additional metadata that can be attached to artifacts in Artifact Registry. An attachment consists of one or more files.
@@ -54,31 +60,31 @@ pub struct AptRepository {
 pub struct Attachment {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Artifact Registry. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// The namespace this attachment belongs to. E.g. If an attachment is created by artifact analysis, namespace is set to artifactanalysis.googleapis.com.
     #[serde(default, rename = "attachmentNamespace")]
-    pub attachment_namespace: Option<String>,
+    pub attachment_namespace: ::core::option::Option<String>,
     /// Output only. The time when the attachment was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The files that belong to this attachment. If the file ID part contains slashes, they are escaped. E.g. projects/p1/locations/us-central1/repositories/repo1/files/sha:.
     #[serde(default)]
-    pub files: Option<Vec<String>>,
+    pub files: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the attachment. E.g. projects/p1/locations/us/repositories/repo/attachments/sbom.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The name of the OCI version that this attachment created. Only populated for Docker attachments. E.g. projects/p1/locations/us-central1/repositories/repo1/packages/p1/versions/v1.
     #[serde(default, rename = "ociVersionName")]
-    pub oci_version_name: Option<String>,
+    pub oci_version_name: ::core::option::Option<String>,
     /// Required. The target the attachment is for, can be a Version, Package or Repository. E.g. projects/p1/locations/us-central1/repositories/repo1/packages/p1/versions/v1.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Type of attachment. E.g. application/vnd.spdx+json
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The time when the attachment was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The metadata of an LRO from deleting multiple versions.
@@ -86,7 +92,7 @@ pub struct Attachment {
 pub struct BatchDeleteVersionsMetadata {
     /// The versions the operation failed to delete.
     #[serde(default, rename = "failedVersions")]
-    pub failed_versions: Option<Vec<String>>,
+    pub failed_versions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The request to delete multiple versions across a repository.
@@ -94,10 +100,10 @@ pub struct BatchDeleteVersionsMetadata {
 pub struct BatchDeleteVersionsRequest {
     /// Required. The names of the versions to delete. The maximum number of versions deleted per batch is determined by the service and is dependent on the available resources in the region.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
     /// If true, the request is performed without deleting data, following AIP-163.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Associates members, or principals, with a role.
@@ -105,13 +111,13 @@ pub struct BatchDeleteVersionsRequest {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Artifact policy configuration for repository cleanup policies.
@@ -119,16 +125,17 @@ pub struct Binding {
 pub struct CleanupPolicy {
     /// Policy action. // TODO: enum values: ["ACTION_UNSPECIFIED", "DELETE", "KEEP"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Policy condition for matching versions.
     #[serde(default)]
-    pub condition: Option<CleanupPolicyCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<CleanupPolicyCondition>>,
     /// The user-provided ID of the cleanup policy.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Policy condition for retaining a minimum number of versions. May only be specified with a Keep action.
     #[serde(default, rename = "mostRecentVersions")]
-    pub most_recent_versions: Option<CleanupPolicyMostRecentVersions>,
+    pub most_recent_versions:
+        ::core::option::Option<::std::boxed::Box<CleanupPolicyMostRecentVersions>>,
 }
 
 /// CleanupPolicyCondition is a set of conditions attached to a CleanupPolicy. If multiple entries are set, all must be satisfied for the condition to be satisfied.
@@ -136,22 +143,22 @@ pub struct CleanupPolicy {
 pub struct CleanupPolicyCondition {
     /// Match versions newer than a duration.
     #[serde(default, rename = "newerThan")]
-    pub newer_than: Option<String>,
+    pub newer_than: ::core::option::Option<String>,
     /// Match versions older than a duration.
     #[serde(default, rename = "olderThan")]
-    pub older_than: Option<String>,
+    pub older_than: ::core::option::Option<String>,
     /// Match versions by package prefix. Applied on any prefix match.
     #[serde(default, rename = "packageNamePrefixes")]
-    pub package_name_prefixes: Option<Vec<String>>,
+    pub package_name_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Match versions by tag prefix. Applied on any prefix match.
     #[serde(default, rename = "tagPrefixes")]
-    pub tag_prefixes: Option<Vec<String>>,
+    pub tag_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Match versions by tag status. // TODO: enum values: ["TAG_STATE_UNSPECIFIED", "TAGGED", "UNTAGGED", "ANY"]
     #[serde(default, rename = "tagState")]
-    pub tag_state: Option<String>,
+    pub tag_state: ::core::option::Option<String>,
     /// Match versions by version name prefix. Applied on any prefix match.
     #[serde(default, rename = "versionNamePrefixes")]
-    pub version_name_prefixes: Option<Vec<String>>,
+    pub version_name_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// CleanupPolicyMostRecentVersions is an alternate condition of a CleanupPolicy for retaining a minimum number of versions.
@@ -159,10 +166,10 @@ pub struct CleanupPolicyCondition {
 pub struct CleanupPolicyMostRecentVersions {
     /// Minimum number of versions to keep.
     #[serde(default, rename = "keepCount")]
-    pub keep_count: Option<i32>,
+    pub keep_count: ::core::option::Option<i32>,
     /// List of package name prefixes that will apply this rule.
     #[serde(default, rename = "packageNamePrefixes")]
-    pub package_name_prefixes: Option<Vec<String>>,
+    pub package_name_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Common remote repository settings type.
@@ -170,7 +177,7 @@ pub struct CleanupPolicyMostRecentVersions {
 pub struct CommonRemoteRepository {
     /// Required. A common public repository base for remote repository.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// DockerImage represents a docker artifact. The following fields are returned as untyped metadata in the Version resource, using camelcase keys (i.e. metadata.imageSizeBytes): * imageSizeBytes * mediaType * buildTime
@@ -178,34 +185,34 @@ pub struct CommonRemoteRepository {
 pub struct DockerImage {
     /// ArtifactType of this image, e.g. "application/vnd.example+type". If the subject_digest is set and no artifact_type is given, the media_type will be considered as the artifact_type. This field is returned as the metadata.artifactType field in the Version resource.
     #[serde(default, rename = "artifactType")]
-    pub artifact_type: Option<String>,
+    pub artifact_type: ::core::option::Option<String>,
     /// The time this image was built. This field is returned as the ''metadata.buildTime'' field in the Version resource. The build time is returned to the client as an RFC 3339 string, which can be easily used with the JavaScript Date constructor.
     #[serde(default, rename = "buildTime")]
-    pub build_time: Option<String>,
+    pub build_time: ::core::option::Option<String>,
     /// Optional. For multi-arch images (manifest lists), this field contains the list of image manifests.
     #[serde(default, rename = "imageManifests")]
-    pub image_manifests: Option<Vec<ImageManifest>>,
+    pub image_manifests: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageManifest>>>,
     /// Calculated size of the image. This field is returned as the ''metadata.imageSizeBytes'' field in the Version resource.
     #[serde(default, rename = "imageSizeBytes")]
-    pub image_size_bytes: Option<String>,
+    pub image_size_bytes: ::core::option::Option<String>,
     /// Media type of this image, e.g. "application/vnd.docker.distribution.manifest.v2+json". This field is returned as the ''metadata.mediaType'' field in the Version resource.
     #[serde(default, rename = "mediaType")]
-    pub media_type: Option<String>,
+    pub media_type: ::core::option::Option<String>,
     /// Required. registry_location, project_id, repository_name and image id forms a unique image name:projects//locations//repositories//dockerImages/. For example, "projects/test-project/locations/us-west4/repositories/test-repo/dockerImages/ nginx@sha256:e9954c1fc875017be1c3e36eca16be2d9e9bccc4bf072163515467d6a823c7cf", where "us-west4" is the registry_location, "test-project" is the project_id, "test-repo" is the repository_name and "nginx@sha256:e9954c1fc875017be1c3e36eca16be2d9e9bccc4bf072163515467d6a823c7cf" is the image''s digest.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Tags attached to this image.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The time when the docker image was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Time the image was uploaded.
     #[serde(default, rename = "uploadTime")]
-    pub upload_time: Option<String>,
+    pub upload_time: ::core::option::Option<String>,
     /// Required. URL to access the image. Example: us-west4-docker.pkg.dev/test-project/test-repo/nginx@sha256:e9954c1fc875017be1c3e36eca16be2d9e9bccc4bf072163515467d6a823c7cf
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Configuration for a Docker remote repository.
@@ -213,12 +220,14 @@ pub struct DockerImage {
 pub struct DockerRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
-    pub custom_repository: Option<
-        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository,
+    pub custom_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository,
+        >,
     >,
     /// One of the publicly available Docker repositories supported by Artifact Registry. // TODO: enum values: ["PUBLIC_REPOSITORY_UNSPECIFIED", "DOCKER_HUB"]
     #[serde(default, rename = "publicRepository")]
-    pub public_repository: Option<String>,
+    pub public_repository: ::core::option::Option<String>,
 }
 
 /// DockerRepositoryConfig is docker related repository details. Provides additional configuration details for repositories of the docker format type.
@@ -226,7 +235,7 @@ pub struct DockerRepository {
 pub struct DockerRepositoryConfig {
     /// The repository which enabled this flag prevents all tags from being modified, moved or deleted. This does not prevent tags from being created.
     #[serde(default, rename = "immutableTags")]
-    pub immutable_tags: Option<bool>,
+    pub immutable_tags: ::core::option::Option<bool>,
 }
 
 /// The LRO metadata for exporting an artifact.
@@ -234,7 +243,7 @@ pub struct DockerRepositoryConfig {
 pub struct ExportArtifactMetadata {
     /// The exported artifact files.
     #[serde(default, rename = "exportedFiles")]
-    pub exported_files: Option<Vec<ExportedFile>>,
+    pub exported_files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExportedFile>>>,
 }
 
 /// The request for exporting an artifact to a destination.
@@ -242,13 +251,13 @@ pub struct ExportArtifactMetadata {
 pub struct ExportArtifactRequest {
     /// The Cloud Storage path to export the artifact to. Should start with the bucket name, and optionally have a directory path. Examples: dst_bucket, dst_bucket/sub_dir. Existing objects with the same path will be overwritten.
     #[serde(default, rename = "gcsPath")]
-    pub gcs_path: Option<String>,
+    pub gcs_path: ::core::option::Option<String>,
     /// The artifact tag to export. Format:projects/{project}/locations/{location}/repositories/{repository}/packages/{package}/tags/{tag}
     #[serde(default, rename = "sourceTag")]
-    pub source_tag: Option<String>,
+    pub source_tag: ::core::option::Option<String>,
     /// The artifact version to export. Format: projects/{project}/locations/{location}/repositories/{repository}/packages/{package}/versions/{version}
     #[serde(default, rename = "sourceVersion")]
-    pub source_version: Option<String>,
+    pub source_version: ::core::option::Option<String>,
 }
 
 /// The response for exporting an artifact to a destination.
@@ -256,7 +265,7 @@ pub struct ExportArtifactRequest {
 pub struct ExportArtifactResponse {
     /// The exported version. Should be the same as the request version with fingerprint resource name.
     #[serde(default, rename = "exportedVersion")]
-    pub exported_version: Option<Version>,
+    pub exported_version: ::core::option::Option<::std::boxed::Box<Version>>,
 }
 
 /// The exported artifact file.
@@ -264,13 +273,13 @@ pub struct ExportArtifactResponse {
 pub struct ExportedFile {
     /// Cloud Storage Object path of the exported file. Examples: dst_bucket/file1, dst_bucket/sub_dir/file1
     #[serde(default, rename = "gcsObjectPath")]
-    pub gcs_object_path: Option<String>,
+    pub gcs_object_path: ::core::option::Option<String>,
     /// The hashes of the file content.
     #[serde(default)]
-    pub hashes: Option<Vec<Hash>>,
+    pub hashes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hash>>>,
     /// Name of the exported artifact file. Format: projects/p1/locations/us/repositories/repo1/files/file1
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -278,16 +287,16 @@ pub struct ExportedFile {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GenericArtifact represents a generic artifact
@@ -295,16 +304,16 @@ pub struct Expr {
 pub struct GenericArtifact {
     /// Output only. The time when the Generic module is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Resource name of the generic artifact. project, location, repository, package_id and version_id create a unique generic artifact. i.e. "projects/test-project/locations/us-west4/repositories/test-repo/ genericArtifacts/package_id:version_id"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time when the Generic module is updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The version of the generic artifact.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoModule represents a Go module.
@@ -312,16 +321,16 @@ pub struct GenericArtifact {
 pub struct GoModule {
     /// Output only. The time when the Go module is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The resource name of a Go module.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time when the Go module is updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The version of the Go module. Must be a valid canonical version as defined in https://go.dev/ref/mod#glos-canonical-version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// A detailed representation of a GooGet artifact.
@@ -329,13 +338,13 @@ pub struct GoModule {
 pub struct GoogetArtifact {
     /// Output only. Operating system architecture of the artifact.
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. The Artifact Registry resource name of the artifact.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The GooGet package name of the artifact.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
 }
 
 /// Files store content that is potentially associated with Packages or Versions.
@@ -343,28 +352,28 @@ pub struct GoogetArtifact {
 pub struct GoogleDevtoolsArtifactregistryV1File {
     /// Optional. Client specified annotations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. The time when the File was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time when the last attempt to refresh the file''s data was made. Only set when the repository is remote.
     #[serde(default, rename = "fetchTime")]
-    pub fetch_time: Option<String>,
+    pub fetch_time: ::core::option::Option<String>,
     /// The hashes of the file content.
     #[serde(default)]
-    pub hashes: Option<Vec<Hash>>,
+    pub hashes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hash>>>,
     /// The name of the file, for example: projects/p1/locations/us-central1/repositories/repo1/files/a%2Fb%2Fc.txt. If the file ID part contains slashes, they are escaped.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The name of the Package or Version that owns this file, if any.
     #[serde(default)]
-    pub owner: Option<String>,
+    pub owner: ::core::option::Option<String>,
     /// The size of the File in bytes.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
     /// Output only. The time when the File was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Customer-specified publicly available remote repository.
@@ -372,7 +381,7 @@ pub struct GoogleDevtoolsArtifactregistryV1File {
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.apt.registry/".
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Publicly available Apt repositories constructed from a common repository base and a custom repository path.
@@ -380,10 +389,10 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCu
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository {
     /// A common public repository base for Apt. // TODO: enum values: ["REPOSITORY_BASE_UNSPECIFIED", "DEBIAN", "UBUNTU", "DEBIAN_SNAPSHOT"]
     #[serde(default, rename = "repositoryBase")]
-    pub repository_base: Option<String>,
+    pub repository_base: ::core::option::Option<String>,
     /// A custom field to define a path to a specific repository from the base.
     #[serde(default, rename = "repositoryPath")]
-    pub repository_path: Option<String>,
+    pub repository_path: ::core::option::Option<String>,
 }
 
 /// Customer-specified publicly available remote repository.
@@ -391,7 +400,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPu
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository {
     /// An http/https uri reference to the custom remote repository, for ex: "https://registry-1.docker.io".
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Customer-specified publicly available remote repository.
@@ -399,7 +408,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositor
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.maven.registry/".
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Customer-specified publicly available remote repository.
@@ -407,7 +416,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepository
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.npm.registry/".
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Customer-specified publicly available remote repository.
@@ -415,7 +424,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCu
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.python.registry/".
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Customer-specified publicly available remote repository.
@@ -423,7 +432,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositor
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.yum.registry/".
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Publicly available Yum repositories constructed from a common repository base and a custom repository path.
@@ -431,10 +440,10 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCu
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository {
     /// A common public repository base for Yum. // TODO: enum values: ["REPOSITORY_BASE_UNSPECIFIED", "CENTOS", "CENTOS_DEBUG", "CENTOS_VAULT", "CENTOS_STREAM", "ROCKY", "EPEL"]
     #[serde(default, rename = "repositoryBase")]
-    pub repository_base: Option<String>,
+    pub repository_base: ::core::option::Option<String>,
     /// A custom field to define a path to a specific repository from the base.
     #[serde(default, rename = "repositoryPath")]
-    pub repository_path: Option<String>,
+    pub repository_path: ::core::option::Option<String>,
 }
 
 /// A rule defines the deny or allow action of the operation it applies to and the conditions required for the rule to apply. You can set one rule for an entire repository and one rule for each package within.
@@ -442,19 +451,19 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPu
 pub struct GoogleDevtoolsArtifactregistryV1Rule {
     /// The action this rule takes. // TODO: enum values: ["ACTION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Optional. A CEL expression for conditions that must be met in order for the rule to apply. If not provided, the rule matches all objects.
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// The name of the rule, for example: projects/p1/locations/us-central1/repositories/repo1/rules/rule1.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["OPERATION_UNSPECIFIED", "DOWNLOAD"]
     #[serde(default)]
-    pub operation: Option<String>,
+    pub operation: ::core::option::Option<String>,
     /// The package ID the rule applies to. If empty, this rule applies to all packages inside the repository.
     #[serde(default, rename = "packageId")]
-    pub package_id: Option<String>,
+    pub package_id: ::core::option::Option<String>,
 }
 
 /// A hash of file content.
@@ -462,10 +471,10 @@ pub struct GoogleDevtoolsArtifactregistryV1Rule {
 pub struct Hash {
     /// The algorithm used to compute the hash value. // TODO: enum values: ["HASH_TYPE_UNSPECIFIED", "SHA256", "MD5", "DIRSUM_SHA256"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The hash value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Details of a single image manifest within a multi-arch image.
@@ -473,25 +482,25 @@ pub struct Hash {
 pub struct ImageManifest {
     /// Optional. The CPU architecture of the image. Values are provided by the Docker client and are not validated by Artifact Registry. Example values include "amd64", "arm64", "ppc64le", "s390x", "riscv64", "mips64le", etc.
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Optional. The manifest digest, in the format "sha256:".
     #[serde(default)]
-    pub digest: Option<String>,
+    pub digest: ::core::option::Option<String>,
     /// Optional. The media type of the manifest, e.g., "application/vnd.docker.distribution.manifest.v2+json"
     #[serde(default, rename = "mediaType")]
-    pub media_type: Option<String>,
+    pub media_type: ::core::option::Option<String>,
     /// Optional. The operating system of the image. Values are provided by the Docker client and are not validated by Artifact Registry. Example values include "linux", "windows", "darwin", "aix", etc.
     #[serde(default)]
-    pub os: Option<String>,
+    pub os: ::core::option::Option<String>,
     /// Optional. The required OS features for the image, for example on Windows win32k.
     #[serde(default, rename = "osFeatures")]
-    pub os_features: Option<Vec<String>>,
+    pub os_features: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The OS version of the image, for example on Windows 10.0.14393.1066.
     #[serde(default, rename = "osVersion")]
-    pub os_version: Option<String>,
+    pub os_version: ::core::option::Option<String>,
     /// Optional. The variant of the CPU in the image, for example v7 to specify ARMv7 when architecture is arm.
     #[serde(default)]
-    pub variant: Option<String>,
+    pub variant: ::core::option::Option<String>,
 }
 
 /// Error information explaining why a package was not imported.
@@ -499,10 +508,10 @@ pub struct ImageManifest {
 pub struct ImportAptArtifactsErrorInfo {
     /// The detailed error status.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Google Cloud Storage location requested.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<ImportAptArtifactsGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<ImportAptArtifactsGcsSource>>,
 }
 
 /// Google Cloud Storage location where the artifacts currently reside.
@@ -510,10 +519,10 @@ pub struct ImportAptArtifactsErrorInfo {
 pub struct ImportAptArtifactsGcsSource {
     /// Cloud Storage paths URI (e.g., gs://my_bucket//my_object).
     #[serde(default)]
-    pub uris: Option<Vec<String>>,
+    pub uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Supports URI wildcards for matching multiple objects from a single URI.
     #[serde(default, rename = "useWildcards")]
-    pub use_wildcards: Option<bool>,
+    pub use_wildcards: ::core::option::Option<bool>,
 }
 
 /// The request to import new apt artifacts.
@@ -521,7 +530,7 @@ pub struct ImportAptArtifactsGcsSource {
 pub struct ImportAptArtifactsRequest {
     /// Google Cloud Storage location where input content is located.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<ImportAptArtifactsGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<ImportAptArtifactsGcsSource>>,
 }
 
 /// The response message from importing APT artifacts.
@@ -529,10 +538,11 @@ pub struct ImportAptArtifactsRequest {
 pub struct ImportAptArtifactsResponse {
     /// The Apt artifacts imported.
     #[serde(default, rename = "aptArtifacts")]
-    pub apt_artifacts: Option<Vec<AptArtifact>>,
+    pub apt_artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AptArtifact>>>,
     /// Detailed error info for packages that were not imported.
     #[serde(default)]
-    pub errors: Option<Vec<ImportAptArtifactsErrorInfo>>,
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportAptArtifactsErrorInfo>>>,
 }
 
 /// Error information explaining why a package was not imported.
@@ -540,10 +550,10 @@ pub struct ImportAptArtifactsResponse {
 pub struct ImportGoogetArtifactsErrorInfo {
     /// The detailed error status.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Google Cloud Storage location requested.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<ImportGoogetArtifactsGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<ImportGoogetArtifactsGcsSource>>,
 }
 
 /// Google Cloud Storage location where the artifacts currently reside.
@@ -551,10 +561,10 @@ pub struct ImportGoogetArtifactsErrorInfo {
 pub struct ImportGoogetArtifactsGcsSource {
     /// Cloud Storage paths URI (e.g., gs://my_bucket/my_object).
     #[serde(default)]
-    pub uris: Option<Vec<String>>,
+    pub uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Supports URI wildcards for matching multiple objects from a single URI.
     #[serde(default, rename = "useWildcards")]
-    pub use_wildcards: Option<bool>,
+    pub use_wildcards: ::core::option::Option<bool>,
 }
 
 /// The request to import new googet artifacts.
@@ -562,7 +572,7 @@ pub struct ImportGoogetArtifactsGcsSource {
 pub struct ImportGoogetArtifactsRequest {
     /// Google Cloud Storage location where input content is located.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<ImportGoogetArtifactsGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<ImportGoogetArtifactsGcsSource>>,
 }
 
 /// The response message from importing artifacts.
@@ -570,10 +580,12 @@ pub struct ImportGoogetArtifactsRequest {
 pub struct ImportGoogetArtifactsResponse {
     /// Detailed error info for packages that were not imported.
     #[serde(default)]
-    pub errors: Option<Vec<ImportGoogetArtifactsErrorInfo>>,
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportGoogetArtifactsErrorInfo>>>,
     /// The GooGet artifacts updated.
     #[serde(default, rename = "googetArtifacts")]
-    pub googet_artifacts: Option<Vec<GoogetArtifact>>,
+    pub googet_artifacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogetArtifact>>>,
 }
 
 /// Error information explaining why a package was not imported.
@@ -581,10 +593,10 @@ pub struct ImportGoogetArtifactsResponse {
 pub struct ImportYumArtifactsErrorInfo {
     /// The detailed error status.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Google Cloud Storage location requested.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<ImportYumArtifactsGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<ImportYumArtifactsGcsSource>>,
 }
 
 /// Google Cloud Storage location where the artifacts currently reside.
@@ -592,10 +604,10 @@ pub struct ImportYumArtifactsErrorInfo {
 pub struct ImportYumArtifactsGcsSource {
     /// Cloud Storage paths URI (e.g., gs://my_bucket//my_object).
     #[serde(default)]
-    pub uris: Option<Vec<String>>,
+    pub uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Supports URI wildcards for matching multiple objects from a single URI.
     #[serde(default, rename = "useWildcards")]
-    pub use_wildcards: Option<bool>,
+    pub use_wildcards: ::core::option::Option<bool>,
 }
 
 /// The request to import new yum artifacts.
@@ -603,7 +615,7 @@ pub struct ImportYumArtifactsGcsSource {
 pub struct ImportYumArtifactsRequest {
     /// Google Cloud Storage location where input content is located.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<ImportYumArtifactsGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<ImportYumArtifactsGcsSource>>,
 }
 
 /// The response message from importing YUM artifacts.
@@ -611,10 +623,11 @@ pub struct ImportYumArtifactsRequest {
 pub struct ImportYumArtifactsResponse {
     /// Detailed error info for packages that were not imported.
     #[serde(default)]
-    pub errors: Option<Vec<ImportYumArtifactsErrorInfo>>,
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportYumArtifactsErrorInfo>>>,
     /// The yum artifacts imported.
     #[serde(default, rename = "yumArtifacts")]
-    pub yum_artifacts: Option<Vec<YumArtifact>>,
+    pub yum_artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<YumArtifact>>>,
 }
 
 /// A detailed representation of a KFP artifact.
@@ -622,10 +635,10 @@ pub struct ImportYumArtifactsResponse {
 pub struct KfpArtifact {
     /// Output only. Resource name of the KFP artifact. Since users don''t directly interact with this resource, the name will be derived from the associated version. For example, when version = ".../versions/sha256:abcdef...", the name will be ".../kfpArtifacts/sha256:abcdef...".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The version associated with the KFP artifact. Must follow the Semantic Versioning standard.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The response from listing attachments.
@@ -633,10 +646,10 @@ pub struct KfpArtifact {
 pub struct ListAttachmentsResponse {
     /// The attachments returned.
     #[serde(default)]
-    pub attachments: Option<Vec<Attachment>>,
+    pub attachments: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Attachment>>>,
     /// The token to retrieve the next page of attachments, or empty if there are no more attachments to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response from listing docker images.
@@ -644,10 +657,10 @@ pub struct ListAttachmentsResponse {
 pub struct ListDockerImagesResponse {
     /// The docker images returned.
     #[serde(default, rename = "dockerImages")]
-    pub docker_images: Option<Vec<DockerImage>>,
+    pub docker_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DockerImage>>>,
     /// The token to retrieve the next page of artifacts, or empty if there are no more artifacts to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response from listing files.
@@ -655,10 +668,12 @@ pub struct ListDockerImagesResponse {
 pub struct ListFilesResponse {
     /// The files returned.
     #[serde(default)]
-    pub files: Option<Vec<GoogleDevtoolsArtifactregistryV1File>>,
+    pub files: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleDevtoolsArtifactregistryV1File>>,
+    >,
     /// The token to retrieve the next page of files, or empty if there are no more files to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -666,10 +681,10 @@ pub struct ListFilesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response from listing maven artifacts.
@@ -677,10 +692,10 @@ pub struct ListLocationsResponse {
 pub struct ListMavenArtifactsResponse {
     /// The maven artifacts returned.
     #[serde(default, rename = "mavenArtifacts")]
-    pub maven_artifacts: Option<Vec<MavenArtifact>>,
+    pub maven_artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MavenArtifact>>>,
     /// The token to retrieve the next page of artifacts, or empty if there are no more artifacts to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response from listing npm packages.
@@ -688,10 +703,10 @@ pub struct ListMavenArtifactsResponse {
 pub struct ListNpmPackagesResponse {
     /// The token to retrieve the next page of artifacts, or empty if there are no more artifacts to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The npm packages returned.
     #[serde(default, rename = "npmPackages")]
-    pub npm_packages: Option<Vec<NpmPackage>>,
+    pub npm_packages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NpmPackage>>>,
 }
 
 /// The response from listing packages.
@@ -699,10 +714,10 @@ pub struct ListNpmPackagesResponse {
 pub struct ListPackagesResponse {
     /// The token to retrieve the next page of packages, or empty if there are no more packages to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The packages returned.
     #[serde(default)]
-    pub packages: Option<Vec<Package>>,
+    pub packages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Package>>>,
 }
 
 /// The response from listing python packages.
@@ -710,10 +725,10 @@ pub struct ListPackagesResponse {
 pub struct ListPythonPackagesResponse {
     /// The token to retrieve the next page of artifacts, or empty if there are no more artifacts to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The python packages returned.
     #[serde(default, rename = "pythonPackages")]
-    pub python_packages: Option<Vec<PythonPackage>>,
+    pub python_packages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PythonPackage>>>,
 }
 
 /// The response from listing repositories.
@@ -721,10 +736,10 @@ pub struct ListPythonPackagesResponse {
 pub struct ListRepositoriesResponse {
     /// The token to retrieve the next page of repositories, or empty if there are no more repositories to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The repositories returned.
     #[serde(default)]
-    pub repositories: Option<Vec<Repository>>,
+    pub repositories: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Repository>>>,
 }
 
 /// The response from listing rules.
@@ -732,10 +747,12 @@ pub struct ListRepositoriesResponse {
 pub struct ListRulesResponse {
     /// The token to retrieve the next page of rules, or empty if there are no more rules to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The rules returned.
     #[serde(default)]
-    pub rules: Option<Vec<GoogleDevtoolsArtifactregistryV1Rule>>,
+    pub rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleDevtoolsArtifactregistryV1Rule>>,
+    >,
 }
 
 /// The response from listing tags.
@@ -743,10 +760,10 @@ pub struct ListRulesResponse {
 pub struct ListTagsResponse {
     /// The token to retrieve the next page of tags, or empty if there are no more tags to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The tags returned.
     #[serde(default)]
-    pub tags: Option<Vec<Tag>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
 }
 
 /// The response from listing versions.
@@ -754,10 +771,10 @@ pub struct ListTagsResponse {
 pub struct ListVersionsResponse {
     /// The token to retrieve the next page of versions, or empty if there are no more versions to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The versions returned.
     #[serde(default)]
-    pub versions: Option<Vec<Version>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Version>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -765,19 +782,19 @@ pub struct ListVersionsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// MavenArtifact represents a maven artifact.
@@ -785,25 +802,25 @@ pub struct Location {
 pub struct MavenArtifact {
     /// Artifact ID for the artifact.
     #[serde(default, rename = "artifactId")]
-    pub artifact_id: Option<String>,
+    pub artifact_id: ::core::option::Option<String>,
     /// Output only. Time the artifact was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Group ID for the artifact. Example: com.google.guava
     #[serde(default, rename = "groupId")]
-    pub group_id: Option<String>,
+    pub group_id: ::core::option::Option<String>,
     /// Required. registry_location, project_id, repository_name and maven_artifact forms a unique artifact For example, "projects/test-project/locations/us-west4/repositories/test-repo/mavenArtifacts/ com.google.guava:guava:31.0-jre", where "us-west4" is the registry_location, "test-project" is the project_id, "test-repo" is the repository_name and "com.google.guava:guava:31.0-jre" is the maven artifact.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. URL to access the pom file of the artifact. Example: us-west4-maven.pkg.dev/test-project/test-repo/com/google/guava/guava/31.0/guava-31.0.pom
     #[serde(default, rename = "pomUri")]
-    pub pom_uri: Option<String>,
+    pub pom_uri: ::core::option::Option<String>,
     /// Output only. Time the artifact was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Version of this artifact.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Configuration for a Maven remote repository.
@@ -811,12 +828,14 @@ pub struct MavenArtifact {
 pub struct MavenRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
-    pub custom_repository: Option<
-        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository,
+    pub custom_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository,
+        >,
     >,
     /// One of the publicly available Maven repositories supported by Artifact Registry. // TODO: enum values: ["PUBLIC_REPOSITORY_UNSPECIFIED", "MAVEN_CENTRAL"]
     #[serde(default, rename = "publicRepository")]
-    pub public_repository: Option<String>,
+    pub public_repository: ::core::option::Option<String>,
 }
 
 /// MavenRepositoryConfig is maven related repository details. Provides additional configuration details for repositories of the maven format type.
@@ -824,10 +843,10 @@ pub struct MavenRepository {
 pub struct MavenRepositoryConfig {
     /// The repository with this flag will allow publishing the same snapshot versions.
     #[serde(default, rename = "allowSnapshotOverwrites")]
-    pub allow_snapshot_overwrites: Option<bool>,
+    pub allow_snapshot_overwrites: ::core::option::Option<bool>,
     /// Version policy defines the versions that the registry will accept. // TODO: enum values: ["VERSION_POLICY_UNSPECIFIED", "RELEASE", "SNAPSHOT"]
     #[serde(default, rename = "versionPolicy")]
-    pub version_policy: Option<String>,
+    pub version_policy: ::core::option::Option<String>,
 }
 
 /// NpmPackage represents an npm artifact.
@@ -835,22 +854,22 @@ pub struct MavenRepositoryConfig {
 pub struct NpmPackage {
     /// Output only. Time the package was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. registry_location, project_id, repository_name and npm_package forms a unique package For example, "projects/test-project/locations/us-west4/repositories/test-repo/npmPackages/ npm_test:1.0.0", where "us-west4" is the registry_location, "test-project" is the project_id, "test-repo" is the repository_name and npm_test:1.0.0" is the npm package.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Package for the artifact.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Tags attached to this package.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Time the package was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Version of this package.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Configuration for a Npm remote repository.
@@ -858,11 +877,14 @@ pub struct NpmPackage {
 pub struct NpmRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
-    pub custom_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository>,
+    pub custom_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository,
+        >,
+    >,
     /// One of the publicly available Npm repositories supported by Artifact Registry. // TODO: enum values: ["PUBLIC_REPOSITORY_UNSPECIFIED", "NPMJS"]
     #[serde(default, rename = "publicRepository")]
-    pub public_repository: Option<String>,
+    pub public_repository: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -870,19 +892,19 @@ pub struct NpmRepository {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Packages are named collections of versions.
@@ -890,19 +912,19 @@ pub struct Operation {
 pub struct Package {
     /// Optional. Client specified annotations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// The time when the package was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The display name of the package.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The name of the package, for example: projects/p1/locations/us-central1/repositories/repo1/packages/pkg1. If the package ID part contains slashes, the slashes are escaped.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time when the package was last updated. This includes publishing a new version of the package.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The platform logs config for a project or a repository.
@@ -910,10 +932,10 @@ pub struct Package {
 pub struct PlatformLogsConfig {
     /// Optional. The state of the platform logs: enabled or disabled. // TODO: enum values: ["LOGGING_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "loggingState")]
-    pub logging_state: Option<String>,
+    pub logging_state: ::core::option::Option<String>,
     /// Optional. The severity level for the logs. Logs will be generated if their severity level is &gt;= than the value of the severity level mentioned here. // TODO: enum values: ["SEVERITY_LEVEL_UNSPECIFIED", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
     #[serde(default, rename = "severityLevel")]
-    pub severity_level: Option<String>,
+    pub severity_level: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -921,13 +943,13 @@ pub struct PlatformLogsConfig {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// The Artifact Registry logging configurations that apply to a Project.
@@ -935,10 +957,10 @@ pub struct Policy {
 pub struct ProjectConfig {
     /// Identifier. The name of the project''s configuration. Always of the form: projects/{project}/locations/{location}/projectConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Configuration for platform logs.
     #[serde(default, rename = "platformLogsConfig")]
-    pub platform_logs_config: Option<PlatformLogsConfig>,
+    pub platform_logs_config: ::core::option::Option<::std::boxed::Box<PlatformLogsConfig>>,
 }
 
 /// The Artifact Registry settings that apply to a Project.
@@ -946,13 +968,13 @@ pub struct ProjectConfig {
 pub struct ProjectSettings {
     /// The redirection state of the legacy repositories in this project. // TODO: enum values: ["REDIRECTION_STATE_UNSPECIFIED", "REDIRECTION_FROM_GCR_IO_DISABLED", "REDIRECTION_FROM_GCR_IO_ENABLED", "REDIRECTION_FROM_GCR_IO_FINALIZED", "REDIRECTION_FROM_GCR_IO_ENABLED_AND_COPYING", "REDIRECTION_FROM_GCR_IO_PARTIAL_AND_COPYING"]
     #[serde(default, rename = "legacyRedirectionState")]
-    pub legacy_redirection_state: Option<String>,
+    pub legacy_redirection_state: ::core::option::Option<String>,
     /// The name of the project''s settings. Always of the form: projects/{project-id}/projectSettings In update request: never set In response: always set
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The percentage of pull traffic to redirect from GCR to AR when using partial redirection.
     #[serde(default, rename = "pullPercent")]
-    pub pull_percent: Option<i32>,
+    pub pull_percent: ::core::option::Option<i32>,
 }
 
 /// PythonPackage represents a python artifact.
@@ -960,22 +982,22 @@ pub struct ProjectSettings {
 pub struct PythonPackage {
     /// Output only. Time the package was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. registry_location, project_id, repository_name and python_package forms a unique package name:projects//locations//repository//pythonPackages/. For example, "projects/test-project/locations/us-west4/repositories/test-repo/pythonPackages/ python_package:1.0.0", where "us-west4" is the registry_location, "test-project" is the project_id, "test-repo" is the repository_name and python_package:1.0.0" is the python package.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Package for the artifact.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Output only. Time the package was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Required. URL to access the package. Example: us-west4-python.pkg.dev/test-project/test-repo/python_package/file-name-1.0.0.tar.gz
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// Version of this package.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Configuration for a Python remote repository.
@@ -983,12 +1005,14 @@ pub struct PythonPackage {
 pub struct PythonRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
-    pub custom_repository: Option<
-        GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository,
+    pub custom_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository,
+        >,
     >,
     /// One of the publicly available Python repositories supported by Artifact Registry. // TODO: enum values: ["PUBLIC_REPOSITORY_UNSPECIFIED", "PYPI"]
     #[serde(default, rename = "publicRepository")]
-    pub public_repository: Option<String>,
+    pub public_repository: ::core::option::Option<String>,
 }
 
 /// Remote repository configuration.
@@ -996,34 +1020,34 @@ pub struct PythonRepository {
 pub struct RemoteRepositoryConfig {
     /// Specific settings for an Apt remote repository.
     #[serde(default, rename = "aptRepository")]
-    pub apt_repository: Option<AptRepository>,
+    pub apt_repository: ::core::option::Option<::std::boxed::Box<AptRepository>>,
     /// Common remote repository settings. Used as the remote repository upstream URL.
     #[serde(default, rename = "commonRepository")]
-    pub common_repository: Option<CommonRemoteRepository>,
+    pub common_repository: ::core::option::Option<::std::boxed::Box<CommonRemoteRepository>>,
     /// The description of the remote source.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Input only. A create/update remote repo option to avoid making a HEAD/GET request to validate a remote repo and any supplied upstream credentials.
     #[serde(default, rename = "disableUpstreamValidation")]
-    pub disable_upstream_validation: Option<bool>,
+    pub disable_upstream_validation: ::core::option::Option<bool>,
     /// Specific settings for a Docker remote repository.
     #[serde(default, rename = "dockerRepository")]
-    pub docker_repository: Option<DockerRepository>,
+    pub docker_repository: ::core::option::Option<::std::boxed::Box<DockerRepository>>,
     /// Specific settings for a Maven remote repository.
     #[serde(default, rename = "mavenRepository")]
-    pub maven_repository: Option<MavenRepository>,
+    pub maven_repository: ::core::option::Option<::std::boxed::Box<MavenRepository>>,
     /// Specific settings for an Npm remote repository.
     #[serde(default, rename = "npmRepository")]
-    pub npm_repository: Option<NpmRepository>,
+    pub npm_repository: ::core::option::Option<::std::boxed::Box<NpmRepository>>,
     /// Specific settings for a Python remote repository.
     #[serde(default, rename = "pythonRepository")]
-    pub python_repository: Option<PythonRepository>,
+    pub python_repository: ::core::option::Option<::std::boxed::Box<PythonRepository>>,
     /// Optional. The credentials used to access the remote repository.
     #[serde(default, rename = "upstreamCredentials")]
-    pub upstream_credentials: Option<UpstreamCredentials>,
+    pub upstream_credentials: ::core::option::Option<::std::boxed::Box<UpstreamCredentials>>,
     /// Specific settings for a Yum remote repository.
     #[serde(default, rename = "yumRepository")]
-    pub yum_repository: Option<YumRepository>,
+    pub yum_repository: ::core::option::Option<::std::boxed::Box<YumRepository>>,
 }
 
 /// A Repository for storing artifacts with a specific format.
@@ -1031,67 +1055,69 @@ pub struct RemoteRepositoryConfig {
 pub struct Repository {
     /// Optional. Cleanup policies for this repository. Cleanup policies indicate when certain package versions can be automatically deleted. Map keys are policy IDs supplied by users during policy creation. They must unique within a repository and be under 128 characters in length.
     #[serde(default, rename = "cleanupPolicies")]
-    pub cleanup_policies: Option<serde_json::Value>,
+    pub cleanup_policies: ::core::option::Option<serde_json::Value>,
     /// Optional. If true, the cleanup pipeline is prevented from deleting versions in this repository.
     #[serde(default, rename = "cleanupPolicyDryRun")]
-    pub cleanup_policy_dry_run: Option<bool>,
+    pub cleanup_policy_dry_run: ::core::option::Option<bool>,
     /// Output only. The time when the repository was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The user-provided description of the repository.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. If this is true, an unspecified repo type will be treated as error rather than defaulting to standard.
     #[serde(default, rename = "disallowUnspecifiedMode")]
-    pub disallow_unspecified_mode: Option<bool>,
+    pub disallow_unspecified_mode: ::core::option::Option<bool>,
     /// Docker repository config contains repository level configuration for the repositories of docker type.
     #[serde(default, rename = "dockerConfig")]
-    pub docker_config: Option<DockerRepositoryConfig>,
+    pub docker_config: ::core::option::Option<::std::boxed::Box<DockerRepositoryConfig>>,
     /// Optional. The format of packages that are stored in the repository. // TODO: enum values: ["FORMAT_UNSPECIFIED", "DOCKER", "MAVEN", "NPM", "APT", "YUM", "GOOGET", "PYTHON", "KFP", "GO", "GENERIC", "RUBY"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// The Cloud KMS resource name of the customer managed encryption key that''s used to encrypt the contents of the Repository. Has the form: projects/my-project/locations/my-region/keyRings/my-kr/cryptoKeys/my-key. This value may not be changed after the Repository has been created.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Labels with user-defined metadata. This field may contain up to 64 entries. Label keys and values may be no longer than 63 characters. Label keys must begin with a lowercase letter and may only contain lowercase letters, numeric characters, underscores, and dashes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Maven repository config contains repository level configuration for the repositories of maven type.
     #[serde(default, rename = "mavenConfig")]
-    pub maven_config: Option<MavenRepositoryConfig>,
+    pub maven_config: ::core::option::Option<::std::boxed::Box<MavenRepositoryConfig>>,
     /// Optional. The mode of the repository. // TODO: enum values: ["MODE_UNSPECIFIED", "STANDARD_REPOSITORY", "VIRTUAL_REPOSITORY", "REMOTE_REPOSITORY", "AOSS_REPOSITORY", "ASSURED_OSS_REPOSITORY"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// The name of the repository, for example: projects/p1/locations/us-central1/repositories/repo1. For each location in a project, repository names must be unique.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Configuration for platform logs.
     #[serde(default, rename = "platformLogsConfig")]
-    pub platform_logs_config: Option<PlatformLogsConfig>,
+    pub platform_logs_config: ::core::option::Option<::std::boxed::Box<PlatformLogsConfig>>,
     /// Output only. The repository endpoint, for example: us-docker.pkg.dev/my-proj/my-repo.
     #[serde(default, rename = "registryUri")]
-    pub registry_uri: Option<String>,
+    pub registry_uri: ::core::option::Option<String>,
     /// Configuration specific for a Remote Repository.
     #[serde(default, rename = "remoteRepositoryConfig")]
-    pub remote_repository_config: Option<RemoteRepositoryConfig>,
+    pub remote_repository_config: ::core::option::Option<::std::boxed::Box<RemoteRepositoryConfig>>,
     /// Output only. Whether or not this repository satisfies PZI.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Whether or not this repository satisfies PZS.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. The size, in bytes, of all artifact storage in this repository. Repositories that are generally available or in public preview use this to calculate storage costs.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
     /// Output only. The time when the repository was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Configuration specific for a Virtual Repository.
     #[serde(default, rename = "virtualRepositoryConfig")]
-    pub virtual_repository_config: Option<VirtualRepositoryConfig>,
+    pub virtual_repository_config:
+        ::core::option::Option<::std::boxed::Box<VirtualRepositoryConfig>>,
     /// Optional. Config and state for vulnerability scanning of resources within this Repository.
     #[serde(default, rename = "vulnerabilityScanningConfig")]
-    pub vulnerability_scanning_config: Option<VulnerabilityScanningConfig>,
+    pub vulnerability_scanning_config:
+        ::core::option::Option<::std::boxed::Box<VulnerabilityScanningConfig>>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -1099,7 +1125,7 @@ pub struct Repository {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1107,13 +1133,13 @@ pub struct SetIamPolicyRequest {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Tags point to a version and represent an alternative name that can be used to access the version.
@@ -1121,10 +1147,10 @@ pub struct Status {
 pub struct Tag {
     /// The name of the tag, for example: "projects/p1/locations/us-central1/repositories/repo1/packages/pkg1/tags/tag1". If the package part contains slashes, the slashes are escaped. The tag part can only have characters in [a-zA-Z0-9\-._~:@], anything else must be URL encoded.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The name of the version the tag refers to, for example: projects/p1/locations/us-central1/repositories/repo1/packages/pkg1/versions/sha256:5243811 If the package or version ID parts contain slashes, the slashes are escaped.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -1132,7 +1158,7 @@ pub struct Tag {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -1140,7 +1166,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response to upload an artifact.
@@ -1148,7 +1174,7 @@ pub struct TestIamPermissionsResponse {
 pub struct UploadAptArtifactMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
 }
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
@@ -1156,7 +1182,7 @@ pub struct UploadAptArtifactMediaResponse {
 pub struct UploadAptArtifactResponse {
     /// The Apt artifacts updated.
     #[serde(default, rename = "aptArtifacts")]
-    pub apt_artifacts: Option<Vec<AptArtifact>>,
+    pub apt_artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AptArtifact>>>,
 }
 
 /// The response to upload a generic artifact.
@@ -1164,7 +1190,7 @@ pub struct UploadAptArtifactResponse {
 pub struct UploadFileMediaResponse {
     /// Operation that will be returned to the user.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
 }
 
 /// The request to upload a file.
@@ -1172,7 +1198,7 @@ pub struct UploadFileMediaResponse {
 pub struct UploadFileRequest {
     /// Optional. The ID of the file. If left empty will default to sha256 digest of the content uploaded.
     #[serde(default, rename = "fileId")]
-    pub file_id: Option<String>,
+    pub file_id: ::core::option::Option<String>,
 }
 
 /// The response to upload a generic artifact.
@@ -1180,7 +1206,7 @@ pub struct UploadFileRequest {
 pub struct UploadGenericArtifactMediaResponse {
     /// Operation that will be returned to the user.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
 }
 
 /// The request to upload a generic artifact. The created GenericArtifact will have the resource name {parent}/genericArtifacts/package_id:version_id. The created file will have the resource name {parent}/files/package_id:version_id:filename.
@@ -1188,13 +1214,13 @@ pub struct UploadGenericArtifactMediaResponse {
 pub struct UploadGenericArtifactRequest {
     /// The name of the file of the generic artifact to be uploaded. E.g. example-file.zip The filename is limited to letters, numbers, and url safe characters, i.e. [a-zA-Z0-9-_.~@].
     #[serde(default)]
-    pub filename: Option<String>,
+    pub filename: ::core::option::Option<String>,
     /// The ID of the package of the generic artifact. If the package does not exist, a new package will be created. The package_id should start and end with a letter or number, only contain letters, numbers, hyphens, underscores, and periods, and not exceed 256 characters.
     #[serde(default, rename = "packageId")]
-    pub package_id: Option<String>,
+    pub package_id: ::core::option::Option<String>,
     /// The ID of the version of the generic artifact. If the version does not exist, a new version will be created. The version_id must start and end with a letter or number, can only contain lowercase letters, numbers, the following characters [-.+~:], i.e.[a-z0-9-.+~:] and cannot exceed a total of 128 characters. Creating a version called latest is not allowed.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
 }
 
 /// The response to upload a Go module.
@@ -1202,7 +1228,7 @@ pub struct UploadGenericArtifactRequest {
 pub struct UploadGoModuleMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
 }
 
 /// The response to upload an artifact.
@@ -1210,7 +1236,7 @@ pub struct UploadGoModuleMediaResponse {
 pub struct UploadGoogetArtifactMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
 }
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
@@ -1218,7 +1244,8 @@ pub struct UploadGoogetArtifactMediaResponse {
 pub struct UploadGoogetArtifactResponse {
     /// The GooGet artifacts updated.
     #[serde(default, rename = "googetArtifacts")]
-    pub googet_artifacts: Option<Vec<GoogetArtifact>>,
+    pub googet_artifacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogetArtifact>>>,
 }
 
 /// The response to upload an artifact.
@@ -1226,7 +1253,7 @@ pub struct UploadGoogetArtifactResponse {
 pub struct UploadKfpArtifactMediaResponse {
     /// Operation that will be returned to the user.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
 }
 
 /// The request to upload an artifact.
@@ -1234,10 +1261,10 @@ pub struct UploadKfpArtifactMediaResponse {
 pub struct UploadKfpArtifactRequest {
     /// Description of the package version.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Tags to be created with the version.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response to upload an artifact.
@@ -1245,7 +1272,7 @@ pub struct UploadKfpArtifactRequest {
 pub struct UploadYumArtifactMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
 }
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
@@ -1253,7 +1280,7 @@ pub struct UploadYumArtifactMediaResponse {
 pub struct UploadYumArtifactResponse {
     /// The Yum artifacts updated.
     #[serde(default, rename = "yumArtifacts")]
-    pub yum_artifacts: Option<Vec<YumArtifact>>,
+    pub yum_artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<YumArtifact>>>,
 }
 
 /// The credentials to access the remote repository.
@@ -1261,7 +1288,8 @@ pub struct UploadYumArtifactResponse {
 pub struct UpstreamCredentials {
     /// Use username and password to access the remote repository.
     #[serde(default, rename = "usernamePasswordCredentials")]
-    pub username_password_credentials: Option<UsernamePasswordCredentials>,
+    pub username_password_credentials:
+        ::core::option::Option<::std::boxed::Box<UsernamePasswordCredentials>>,
 }
 
 /// Artifact policy configuration for the repository contents.
@@ -1269,13 +1297,13 @@ pub struct UpstreamCredentials {
 pub struct UpstreamPolicy {
     /// The user-provided ID of the upstream policy.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Entries with a greater priority value take precedence in the pull order.
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     /// A reference to the repository resource, for example: projects/p1/locations/us-central1/repositories/repo1.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
 }
 
 /// Username and password credentials.
@@ -1283,10 +1311,10 @@ pub struct UpstreamPolicy {
 pub struct UsernamePasswordCredentials {
     /// The Secret Manager key version that holds the password to access the remote repository. Must be in the format of projects/{project}/secrets/{secret}/versions/{version}.
     #[serde(default, rename = "passwordSecretVersion")]
-    pub password_secret_version: Option<String>,
+    pub password_secret_version: ::core::option::Option<String>,
     /// The username to access the remote repository.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// The Artifact Registry VPC SC config that apply to a Project.
@@ -1294,10 +1322,10 @@ pub struct UsernamePasswordCredentials {
 pub struct VPCSCConfig {
     /// The name of the project''s VPC SC Config. Always of the form: projects/{projectID}/locations/{location}/vpcscConfig In update request: never set In response: always set
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The project per location VPC SC policy that defines the VPC SC behavior for the Remote Repository (Allow/Deny). // TODO: enum values: ["VPCSC_POLICY_UNSPECIFIED", "DENY", "ALLOW"]
     #[serde(default, rename = "vpcscPolicy")]
-    pub vpcsc_policy: Option<String>,
+    pub vpcsc_policy: ::core::option::Option<String>,
 }
 
 /// The body of a version resource. A version resource represents a collection of components, such as files and other data. This may correspond to a version in many package management schemes.
@@ -1305,28 +1333,28 @@ pub struct VPCSCConfig {
 pub struct Version {
     /// Optional. Client specified annotations.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// The time when the version was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of the version, as specified in its metadata.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Immutable reference for the version, calculated based on the version''s content. Currently we only support dirsum_sha256 hash algorithm. Additional hash algorithms may be added in the future.
     #[serde(default)]
-    pub fingerprints: Option<Vec<Hash>>,
+    pub fingerprints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hash>>>,
     /// Output only. Repository-specific Metadata stored against this version. The fields returned are defined by the underlying repository-specific resource. Currently, the resources could be: DockerImage MavenArtifact
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the version, for example: projects/p1/locations/us-central1/repositories/repo1/packages/pkg1/versions/art1. If the package or version ID parts contain slashes, the slashes are escaped.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A list of related tags. Will contain up to 100 tags that reference this version.
     #[serde(default, rename = "relatedTags")]
-    pub related_tags: Option<Vec<Tag>>,
+    pub related_tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
     /// The time when the version was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Virtual repository configuration.
@@ -1334,7 +1362,8 @@ pub struct Version {
 pub struct VirtualRepositoryConfig {
     /// Policies that configure the upstream artifacts distributed by the Virtual Repository. Upstream policies cannot be set on a standard repository.
     #[serde(default, rename = "upstreamPolicies")]
-    pub upstream_policies: Option<Vec<UpstreamPolicy>>,
+    pub upstream_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpstreamPolicy>>>,
 }
 
 /// Config on whether to perform vulnerability scanning for resources in this repository, as well as output fields describing current state.
@@ -1342,16 +1371,16 @@ pub struct VirtualRepositoryConfig {
 pub struct VulnerabilityScanningConfig {
     /// Optional. Config for whether this repository has vulnerability scanning disabled. // TODO: enum values: ["ENABLEMENT_CONFIG_UNSPECIFIED", "INHERITED", "DISABLED"]
     #[serde(default, rename = "enablementConfig")]
-    pub enablement_config: Option<String>,
+    pub enablement_config: ::core::option::Option<String>,
     /// Output only. State of feature enablement, combining repository enablement config and API enablement state. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "SCANNING_UNSUPPORTED", "SCANNING_DISABLED", "SCANNING_ACTIVE"]
     #[serde(default, rename = "enablementState")]
-    pub enablement_state: Option<String>,
+    pub enablement_state: ::core::option::Option<String>,
     /// Output only. Reason for the repository state.
     #[serde(default, rename = "enablementStateReason")]
-    pub enablement_state_reason: Option<String>,
+    pub enablement_state_reason: ::core::option::Option<String>,
     /// Output only. The last time this repository config was enabled.
     #[serde(default, rename = "lastEnableTime")]
-    pub last_enable_time: Option<String>,
+    pub last_enable_time: ::core::option::Option<String>,
 }
 
 /// A detailed representation of a Yum artifact.
@@ -1359,16 +1388,16 @@ pub struct VulnerabilityScanningConfig {
 pub struct YumArtifact {
     /// Output only. Operating system architecture of the artifact.
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. The Artifact Registry resource name of the artifact.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The yum package name of the artifact.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Output only. An artifact is a binary or source package. // TODO: enum values: ["PACKAGE_TYPE_UNSPECIFIED", "BINARY", "SOURCE"]
     #[serde(default, rename = "packageType")]
-    pub package_type: Option<String>,
+    pub package_type: ::core::option::Option<String>,
 }
 
 /// Configuration for a Yum remote repository.
@@ -1376,10 +1405,16 @@ pub struct YumArtifact {
 pub struct YumRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
-    pub custom_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository>,
+    pub custom_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository,
+        >,
+    >,
     /// One of the publicly available Yum repositories supported by Artifact Registry.
     #[serde(default, rename = "publicRepository")]
-    pub public_repository:
-        Option<GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository>,
+    pub public_repository: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository,
+        >,
+    >,
 }

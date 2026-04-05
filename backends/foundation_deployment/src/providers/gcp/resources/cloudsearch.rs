@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Action resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Action {
     /// [Required] Title of the action.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// [Optional] Url of the action.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Represents the settings for Cloud audit logging
@@ -29,16 +29,16 @@ pub struct Action {
 pub struct AuditLoggingSettings {
     /// Indicates whether audit logging is on/off for admin activity read APIs i.e. Get/List DataSources, Get/List SearchApplications etc.
     #[serde(default, rename = "logAdminReadActions")]
-    pub log_admin_read_actions: Option<bool>,
+    pub log_admin_read_actions: ::core::option::Option<bool>,
     /// Indicates whether audit logging is on/off for data access read APIs i.e. ListItems, GetItem etc.
     #[serde(default, rename = "logDataReadActions")]
-    pub log_data_read_actions: Option<bool>,
+    pub log_data_read_actions: ::core::option::Option<bool>,
     /// Indicates whether audit logging is on/off for data access write APIs i.e. IndexItem etc.
     #[serde(default, rename = "logDataWriteActions")]
-    pub log_data_write_actions: Option<bool>,
+    pub log_data_write_actions: ::core::option::Option<bool>,
     /// The resource name of the GCP Project to store audit logs. Cloud audit logging will be enabled after project_name has been updated through CustomerService. Format: projects/{project_id}
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
 }
 
 /// BackgroundColoredText resource type.
@@ -46,10 +46,10 @@ pub struct AuditLoggingSettings {
 pub struct BackgroundColoredText {
     /// [Optional] Color of the background. The text color can change depending on the selected background color, and the client does not have control over this. If missing, the background will be WHITE. // TODO: enum values: ["UNKNOWN_COLOR", "WHITE", "YELLOW", "ORANGE", "GREEN", "BLUE", "GREY"]
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: Option<String>,
+    pub background_color: ::core::option::Option<String>,
     /// [Required] The text to display.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Used to provide a search operator for boolean properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -57,7 +57,7 @@ pub struct BackgroundColoredText {
 pub struct BooleanOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the boolean property. For example, if operatorName is *closed* and the property''s name is *isClosed*, then queries like *closed:&lt;value&gt;* show results only where the value of the property named *isClosed* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any String properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for boolean properties.
@@ -65,7 +65,7 @@ pub struct BooleanOperatorOptions {
 pub struct BooleanPropertyOptions {
     /// If set, describes how the boolean should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<BooleanOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<BooleanOperatorOptions>>,
 }
 
 /// CheckAccessResponse resource type.
@@ -73,7 +73,7 @@ pub struct BooleanPropertyOptions {
 pub struct CheckAccessResponse {
     /// Returns true if principal has access. Returns false otherwise.
     #[serde(default, rename = "hasAccess")]
-    pub has_access: Option<bool>,
+    pub has_access: ::core::option::Option<bool>,
 }
 
 /// CompositeFilter resource type.
@@ -81,10 +81,10 @@ pub struct CheckAccessResponse {
 pub struct CompositeFilter {
     /// The logic operator of the sub filter. // TODO: enum values: ["AND", "OR", "NOT"]
     #[serde(default, rename = "logicOperator")]
-    pub logic_operator: Option<String>,
+    pub logic_operator: ::core::option::Option<String>,
     /// Sub filters.
     #[serde(default, rename = "subFilters")]
-    pub sub_filters: Option<Vec<Filter>>,
+    pub sub_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Filter>>>,
 }
 
 /// Content resource type.
@@ -92,16 +92,16 @@ pub struct CompositeFilter {
 pub struct Content {
     /// [Optional] Actions for this card.
     #[serde(default)]
-    pub actions: Option<Vec<Action>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Action>>>,
     /// [Optional] Description of the card.
     #[serde(default)]
-    pub description: Option<SafeHtmlProto>,
+    pub description: ::core::option::Option<::std::boxed::Box<SafeHtmlProto>>,
     /// [Optional] Subtitle of the card.
     #[serde(default)]
-    pub subtitle: Option<BackgroundColoredText>,
+    pub subtitle: ::core::option::Option<::std::boxed::Box<BackgroundColoredText>>,
     /// [Optional] Title of the card.
     #[serde(default)]
-    pub title: Option<BackgroundColoredText>,
+    pub title: ::core::option::Option<::std::boxed::Box<BackgroundColoredText>>,
 }
 
 /// Context resource type.
@@ -109,37 +109,37 @@ pub struct Content {
 pub struct Context {
     /// [Optional] App where the card should be shown. If missing, the card will be shown in TOPAZ.
     #[serde(default)]
-    pub app: Option<Vec<String>>,
+    pub app: ::core::option::Option<::std::vec::Vec<String>>,
     /// [Optional] Day of week when the card should be shown, where 0 is Monday.
     #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: Option<Vec<i32>>,
+    pub day_of_week: ::core::option::Option<::std::vec::Vec<i32>>,
     /// [Optional] Date (in seconds since epoch) when the card should stop being shown. If missing, end_date_sec will be set to Jan 1st, 2100.
     #[serde(default, rename = "endDateSec")]
-    pub end_date_sec: Option<String>,
+    pub end_date_sec: ::core::option::Option<String>,
     /// [Optional] End time in seconds, within a day, when the card should stop being shown if it''s within [start_date_sec, end_date_sec]. If missing, this is set to 86400 (24 hours x 3600 sec/hour), i.e., midnight next day.
     #[serde(default, rename = "endDayOffsetSec")]
-    pub end_day_offset_sec: Option<String>,
+    pub end_day_offset_sec: ::core::option::Option<String>,
     /// [Optional] The locales for which the card should be triggered (e.g., en_US and en_CA). If missing, the card is going to show to clients regardless of their locale.
     #[serde(default)]
-    pub locale: Option<Vec<String>>,
+    pub locale: ::core::option::Option<::std::vec::Vec<String>>,
     /// [Optional] Text-free locations where the card should be shown. This is expected to match the user''s location in focus. If no location is specified, the card will be shown for any location.
     #[serde(default)]
-    pub location: Option<Vec<String>>,
+    pub location: ::core::option::Option<::std::vec::Vec<String>>,
     /// [Required only for Answer and RHS cards - will be ignored for Homepage] cards. It''s the exact case-insensitive queries that will trigger the Answer or RHS card.
     #[serde(default)]
-    pub query: Option<Vec<String>>,
+    pub query: ::core::option::Option<::std::vec::Vec<String>>,
     /// [Optional] Date (in seconds since epoch) when the card should start being shown. If missing, start_date_sec will be Jan 1st, 1970 UTC.
     #[serde(default, rename = "startDateSec")]
-    pub start_date_sec: Option<String>,
+    pub start_date_sec: ::core::option::Option<String>,
     /// [Optional] Start time in seconds, within a day, when the card should be shown if it''s within [start_date_sec, end_date_sec]. If 0, the card will be shown from 12:00am on.
     #[serde(default, rename = "startDayOffsetSec")]
-    pub start_day_offset_sec: Option<String>,
+    pub start_day_offset_sec: ::core::option::Option<String>,
     /// [Optional] Surface where the card should be shown in. If missing, the card will be shown in any surface.
     #[serde(default)]
-    pub surface: Option<Vec<String>>,
+    pub surface: ::core::option::Option<::std::vec::Vec<String>>,
     /// [Required] Type of the card (homepage, Answer or RHS).
     #[serde(default, rename = "type")]
-    pub type_: Option<Vec<String>>,
+    pub type_: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A named attribute associated with an item which can be used for influencing the ranking of the item based on the context in the request.
@@ -147,10 +147,10 @@ pub struct Context {
 pub struct ContextAttribute {
     /// The name of the attribute. It should not be empty. The maximum length is 32 characters. The name must start with a letter and can only contain letters (A-Z, a-z) or numbers (0-9). The name will be normalized (lower-cased) before being matched.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Text values of the attribute. The maximum number of elements is 10. The maximum length of an element in the array is 32 characters. The value will be normalized (lower-cased) before being matched.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Aggregation of items by status code as of the specified date.
@@ -158,10 +158,11 @@ pub struct ContextAttribute {
 pub struct CustomerIndexStats {
     /// The date for which statistics were calculated.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Number of items aggregrated by status code.
     #[serde(default, rename = "itemCountByStatus")]
-    pub item_count_by_status: Option<Vec<ItemCountByStatus>>,
+    pub item_count_by_status:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ItemCountByStatus>>>,
 }
 
 /// CustomerQueryStats resource type.
@@ -169,9 +170,10 @@ pub struct CustomerIndexStats {
 pub struct CustomerQueryStats {
     /// The date for which query stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     #[serde(default, rename = "queryCountByStatus")]
-    pub query_count_by_status: Option<Vec<QueryCountByStatus>>,
+    pub query_count_by_status:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QueryCountByStatus>>>,
 }
 
 /// Search application stats for a customer for the given date.
@@ -179,10 +181,10 @@ pub struct CustomerQueryStats {
 pub struct CustomerSearchApplicationStats {
     /// The count of search applications for the date.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// The date for which search application stats were calculated.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
 }
 
 /// CustomerSessionStats resource type.
@@ -190,10 +192,10 @@ pub struct CustomerSearchApplicationStats {
 pub struct CustomerSessionStats {
     /// The date for which session stats were calculated. Stats are calculated on the following day, close to midnight PST, and then returned.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of search sessions on the day
     #[serde(default, rename = "searchSessionsCount")]
-    pub search_sessions_count: Option<String>,
+    pub search_sessions_count: ::core::option::Option<String>,
 }
 
 /// Represents settings at a customer level.
@@ -201,10 +203,10 @@ pub struct CustomerSessionStats {
 pub struct CustomerSettings {
     /// Audit Logging settings for the customer. If update_mask is empty then this field will be updated based on UpdateCustomerSettings request.
     #[serde(default, rename = "auditLoggingSettings")]
-    pub audit_logging_settings: Option<AuditLoggingSettings>,
+    pub audit_logging_settings: ::core::option::Option<::std::boxed::Box<AuditLoggingSettings>>,
     /// VPC SC settings for the customer. If update_mask is empty then this field will be updated based on UpdateCustomerSettings request.
     #[serde(default, rename = "vpcSettings")]
-    pub vpc_settings: Option<VPCSettings>,
+    pub vpc_settings: ::core::option::Option<::std::boxed::Box<VPCSettings>>,
 }
 
 /// CustomerUserStats resource type.
@@ -212,16 +214,16 @@ pub struct CustomerSettings {
 pub struct CustomerUserStats {
     /// The date for which session stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of unique active users in the past one day
     #[serde(default, rename = "oneDayActiveUsersCount")]
-    pub one_day_active_users_count: Option<String>,
+    pub one_day_active_users_count: ::core::option::Option<String>,
     /// The count of unique active users in the past seven days
     #[serde(default, rename = "sevenDaysActiveUsersCount")]
-    pub seven_days_active_users_count: Option<String>,
+    pub seven_days_active_users_count: ::core::option::Option<String>,
     /// The count of unique active users in the past thirty days
     #[serde(default, rename = "thirtyDaysActiveUsersCount")]
-    pub thirty_days_active_users_count: Option<String>,
+    pub thirty_days_active_users_count: ::core::option::Option<String>,
 }
 
 /// Datasource is a logical namespace for items to be indexed. All items must belong to a datasource. This is the prerequisite before items can be indexed into Cloud Search.
@@ -229,31 +231,32 @@ pub struct CustomerUserStats {
 pub struct DataSource {
     /// If true, sets the datasource to read-only mode. In read-only mode, the Indexing API rejects any requests to index or delete items in this source. Enabling read-only mode does not stop the processing of previously accepted data.
     #[serde(default, rename = "disableModifications")]
-    pub disable_modifications: Option<bool>,
+    pub disable_modifications: ::core::option::Option<bool>,
     /// Disable serving any search or assist results.
     #[serde(default, rename = "disableServing")]
-    pub disable_serving: Option<bool>,
+    pub disable_serving: ::core::option::Option<bool>,
     /// Required. Display name of the datasource The maximum length is 300 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// List of service accounts that have indexing access.
     #[serde(default, rename = "indexingServiceAccounts")]
-    pub indexing_service_accounts: Option<Vec<String>>,
+    pub indexing_service_accounts: ::core::option::Option<::std::vec::Vec<String>>,
     /// This field restricts visibility to items at the datasource level. Items within the datasource are restricted to the union of users and groups included in this field. Note that, this does not ensure access to a specific item, as users need to have ACL permissions on the contained items. This ensures a high level access on the entire datasource, and that the individual items are not shared outside this visibility.
     #[serde(default, rename = "itemsVisibility")]
-    pub items_visibility: Option<Vec<GSuitePrincipal>>,
+    pub items_visibility:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GSuitePrincipal>>>,
     /// The name of the datasource resource. Format: datasources/{source_id}. The name is ignored when creating a datasource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// IDs of the Long Running Operations (LROs) currently running for this schema.
     #[serde(default, rename = "operationIds")]
-    pub operation_ids: Option<Vec<String>>,
+    pub operation_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Can a user request to get thumbnail URI for Items indexed in this data source.
     #[serde(default, rename = "returnThumbnailUrls")]
-    pub return_thumbnail_urls: Option<bool>,
+    pub return_thumbnail_urls: ::core::option::Option<bool>,
     /// A short name or alias for the source. This value will be used to match the ''source'' operator. For example, if the short name is *&lt;value&gt;* then queries like *source:&lt;value&gt;* will only return results for this source. The value must be unique across all datasources. The value must only contain alphanumeric characters (a-zA-Z0-9). The value cannot start with ''google'' and cannot be one of the following: mail, gmail, docs, drive, groups, sites, calendar, hangouts, gplus, keep, people, teams. Its maximum length is 32 characters.
     #[serde(default, rename = "shortName")]
-    pub short_name: Option<String>,
+    pub short_name: ::core::option::Option<String>,
 }
 
 /// Aggregation of items by status code as of the specified date.
@@ -261,10 +264,11 @@ pub struct DataSource {
 pub struct DataSourceIndexStats {
     /// The date for which index stats were calculated. If the date of request is not the current date then stats calculated on the next day are returned. Stats are calculated close to mid night in this case. If date of request is current date, then real time stats are returned.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Number of items aggregrated by status code.
     #[serde(default, rename = "itemCountByStatus")]
-    pub item_count_by_status: Option<Vec<ItemCountByStatus>>,
+    pub item_count_by_status:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ItemCountByStatus>>>,
 }
 
 /// Restriction on Datasource.
@@ -272,10 +276,10 @@ pub struct DataSourceIndexStats {
 pub struct DataSourceRestriction {
     /// Filter options restricting the results. If multiple filters are present, they are grouped by object type before joining. Filters with the same object type are joined conjunctively, then the resulting expressions are joined disjunctively. The maximum number of elements is 20. NOTE: Suggest API supports only few filters at the moment: "objecttype", "type" and "mimetype". For now, schema specific filters cannot be used to filter suggestions.
     #[serde(default, rename = "filterOptions")]
-    pub filter_options: Option<Vec<FilterOptions>>,
+    pub filter_options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterOptions>>>,
     /// The source of restriction.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// Represents a whole calendar date, for example a date of birth. The time of day and time zone are either specified elsewhere or are not significant. The date is relative to the [Proleptic Gregorian Calendar](https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar). The date must be a valid calendar date between the year 1 and 9999.
@@ -283,13 +287,13 @@ pub struct DataSourceRestriction {
 pub struct Date {
     /// Day of month. Must be from 1 to 31 and valid for the year and month.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of date. Must be from 1 to 12.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of date. Must be from 1 to 9999.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Optional. Provides a search operator for date properties. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -297,13 +301,13 @@ pub struct Date {
 pub struct DateOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the date property using the greater-than operator. For example, if greaterThanOperatorName is *closedafter* and the property''s name is *closeDate*, then queries like *closedafter:&lt;value&gt;* show results only where the value of the property named *closeDate* is later than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "greaterThanOperatorName")]
-    pub greater_than_operator_name: Option<String>,
+    pub greater_than_operator_name: ::core::option::Option<String>,
     /// Indicates the operator name required in the query in order to isolate the date property using the less-than operator. For example, if lessThanOperatorName is *closedbefore* and the property''s name is *closeDate*, then queries like *closedbefore:&lt;value&gt;* show results only where the value of the property named *closeDate* is earlier than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "lessThanOperatorName")]
-    pub less_than_operator_name: Option<String>,
+    pub less_than_operator_name: ::core::option::Option<String>,
     /// Indicates the actual string required in the query in order to isolate the date property. For example, suppose an issue tracking schema object has a property named *closeDate* that specifies an operator with an operatorName of *closedon*. For searches on that data, queries like *closedon:&lt;value&gt;* show results only where the value of the *closeDate* property matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any String properties or text within the content field for the indexed datasource. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for date properties.
@@ -311,14 +315,14 @@ pub struct DateOperatorOptions {
 pub struct DatePropertyOptions {
     /// If set, describes how the date should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<DateOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<DateOperatorOptions>>,
 }
 
 /// List of date values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DateValues {
     #[serde(default)]
-    pub values: Option<Vec<Date>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Date>>>,
 }
 
 /// Shared request debug options for all cloudsearch RPC methods.
@@ -326,7 +330,7 @@ pub struct DateValues {
 pub struct DebugOptions {
     /// If you are asked by Google to help with debugging, set this field. Otherwise, ignore this field.
     #[serde(default, rename = "enableDebugging")]
-    pub enable_debugging: Option<bool>,
+    pub enable_debugging: ::core::option::Option<bool>,
 }
 
 /// DeleteQueueItemsRequest resource type.
@@ -334,13 +338,13 @@ pub struct DebugOptions {
 pub struct DeleteQueueItemsRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
-    pub connector_name: Option<String>,
+    pub connector_name: ::core::option::Option<String>,
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// The name of a queue to delete items from.
     #[serde(default)]
-    pub queue: Option<String>,
+    pub queue: ::core::option::Option<String>,
 }
 
 /// A reference to a top-level property within the object that should be displayed in search results. The values of the chosen properties is displayed in the search results along with the display label for that property if one is specified. If a display label is not specified, only the values is shown.
@@ -348,7 +352,7 @@ pub struct DeleteQueueItemsRequest {
 pub struct DisplayedProperty {
     /// The name of the top-level property as defined in a property definition for the object. If the name is not a defined property in the schema, an error is given when attempting to update the schema.
     #[serde(default, rename = "propertyName")]
-    pub property_name: Option<String>,
+    pub property_name: ::core::option::Option<String>,
 }
 
 /// Used to provide a search operator for double properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -356,7 +360,7 @@ pub struct DisplayedProperty {
 pub struct DoubleOperatorOptions {
     /// Indicates the operator name required in the query in order to use the double property in sorting or as a facet. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for double properties.
@@ -364,14 +368,14 @@ pub struct DoubleOperatorOptions {
 pub struct DoublePropertyOptions {
     /// If set, describes how the double should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<DoubleOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<DoubleOperatorOptions>>,
 }
 
 /// List of double values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DoubleValues {
     #[serde(default)]
-    pub values: Option<Vec<f64>>,
+    pub values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Drive follow-up search restricts (e.g. "followup:suggestions").
@@ -379,7 +383,7 @@ pub struct DoubleValues {
 pub struct DriveFollowUpRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "FOLLOWUP_SUGGESTIONS", "FOLLOWUP_ACTION_ITEMS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Drive location search restricts (e.g. "is:starred").
@@ -387,7 +391,7 @@ pub struct DriveFollowUpRestrict {
 pub struct DriveLocationRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "TRASHED", "STARRED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Drive mime-type search restricts (e.g. "type:pdf").
@@ -395,7 +399,7 @@ pub struct DriveLocationRestrict {
 pub struct DriveMimeTypeRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "PDF", "DOCUMENT", "PRESENTATION", "SPREADSHEET", "FORM", "DRAWING", "SCRIPT", "MAP", "IMAGE", "AUDIO", "VIDEO", "FOLDER", "ARCHIVE", "SITE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The time span search restrict (e.g. "after:2017-09-11 before:2017-09-12").
@@ -403,7 +407,7 @@ pub struct DriveMimeTypeRestrict {
 pub struct DriveTimeSpanRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "TODAY", "YESTERDAY", "LAST_7_DAYS", "LAST_30_DAYS", "LAST_90_DAYS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A person''s email address.
@@ -411,19 +415,19 @@ pub struct DriveTimeSpanRestrict {
 pub struct EmailAddress {
     /// If the value of type is custom, this property contains the custom type string.
     #[serde(default, rename = "customType")]
-    pub custom_type: Option<String>,
+    pub custom_type: ::core::option::Option<String>,
     /// The email address.
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<String>,
+    pub email_address: ::core::option::Option<String>,
     /// The URL to send email.
     #[serde(default, rename = "emailUrl")]
-    pub email_url: Option<String>,
+    pub email_url: ::core::option::Option<String>,
     /// Indicates if this is the user''s primary email. Only one entry can be marked as primary.
     #[serde(default)]
-    pub primary: Option<bool>,
+    pub primary: ::core::option::Option<bool>,
     /// The type of the email account. Acceptable values are: "custom", "home", "other", "work".
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazFrontendTeamsLink resource type.
@@ -431,9 +435,9 @@ pub struct EmailAddress {
 pub struct EnterpriseTopazFrontendTeamsLink {
     /// The identifying link type
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     #[serde(default)]
-    pub url: Option<SafeUrlProto>,
+    pub url: ::core::option::Option<::std::boxed::Box<SafeUrlProto>>,
 }
 
 /// EnterpriseTopazFrontendTeamsPersonCorePhoneNumber resource type.
@@ -441,13 +445,13 @@ pub struct EnterpriseTopazFrontendTeamsLink {
 pub struct EnterpriseTopazFrontendTeamsPersonCorePhoneNumber {
     /// Phone number in no particular format (as comes from the Focus profile).
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
     /// Phone number URL
     #[serde(default, rename = "phoneUrl")]
-    pub phone_url: Option<SafeUrlProto>,
+    pub phone_url: ::core::option::Option<::std::boxed::Box<SafeUrlProto>>,
     /// TODO: enum values: ["UNKNOWN", "MOBILE", "OFFICE", "OTHER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An AgendaEntry, e.g., a Calendar Event.
@@ -455,99 +459,107 @@ pub struct EnterpriseTopazFrontendTeamsPersonCorePhoneNumber {
 pub struct EnterpriseTopazSidekickAgendaEntry {
     /// URL of the agenda item.
     #[serde(default, rename = "agendaItemUrl")]
-    pub agenda_item_url: Option<String>,
+    pub agenda_item_url: ::core::option::Option<String>,
     /// The chronology from the present. // TODO: enum values: ["STALE", "ALL_DAY", "PAST", "RECENTLY_PAST", "PRESENT", "NEAR_FUTURE", "FUTURE"]
     #[serde(default)]
-    pub chronology: Option<String>,
+    pub chronology: ::core::option::Option<String>,
     /// Person who created the event.
     #[serde(default)]
-    pub creator: Option<EnterpriseTopazSidekickPerson>,
+    pub creator: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickPerson>>,
     /// Attendance status for the current user making the request. This is a convenience data member in order to avoid figuring out the same by iterating the invitee list above on the caller side. // TODO: enum values: ["AWAITING", "YES", "NO", "MAYBE"]
     #[serde(default, rename = "currentUserAttendingStatus")]
-    pub current_user_attending_status: Option<String>,
+    pub current_user_attending_status: ::core::option::Option<String>,
     /// Description of the agenda item (i.e., typically, summary in calendar event).
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Items related to the current AgendaEntry. E.g., related drive/mail/groups documents.
     #[serde(default)]
-    pub document: Option<Vec<EnterpriseTopazSidekickCommonDocument>>,
+    pub document: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonDocument>>,
+    >,
     /// End date "Friday, August 26" in the user''s timezone.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// End time (HH:mm) in the user''s timezone.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// End time in milliseconds
     #[serde(default, rename = "endTimeMs")]
-    pub end_time_ms: Option<String>,
+    pub end_time_ms: ::core::option::Option<String>,
     /// Event id provided by Calendar API.
     #[serde(default, rename = "eventId")]
-    pub event_id: Option<String>,
+    pub event_id: ::core::option::Option<String>,
     /// Whether the guests can invite other guests.
     #[serde(default, rename = "guestsCanInviteOthers")]
-    pub guests_can_invite_others: Option<bool>,
+    pub guests_can_invite_others: ::core::option::Option<bool>,
     /// Whether the guests can modify the event.
     #[serde(default, rename = "guestsCanModify")]
-    pub guests_can_modify: Option<bool>,
+    pub guests_can_modify: ::core::option::Option<bool>,
     /// Whether the guests of the event can be seen. If false, the user is going to be reported as the only attendee to the meeting, even though there may be more attendees.
     #[serde(default, rename = "guestsCanSeeGuests")]
-    pub guests_can_see_guests: Option<bool>,
+    pub guests_can_see_guests: ::core::option::Option<bool>,
     /// Hangout meeting identifier.
     #[serde(default, rename = "hangoutId")]
-    pub hangout_id: Option<String>,
+    pub hangout_id: ::core::option::Option<String>,
     /// Absolute URL for the Hangout meeting.
     #[serde(default, rename = "hangoutUrl")]
-    pub hangout_url: Option<String>,
+    pub hangout_url: ::core::option::Option<String>,
     /// People attending the meeting.
     #[serde(default)]
-    pub invitee: Option<Vec<EnterpriseTopazSidekickPerson>>,
+    pub invitee:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickPerson>>>,
     /// Whether the entry lasts all day.
     #[serde(default, rename = "isAllDay")]
-    pub is_all_day: Option<bool>,
+    pub is_all_day: ::core::option::Option<bool>,
     /// Last time the event was modified.
     #[serde(default, rename = "lastModificationTimeMs")]
-    pub last_modification_time_ms: Option<String>,
+    pub last_modification_time_ms: ::core::option::Option<String>,
     /// Agenda item location.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Whether this should be notified to the user.
     #[serde(default, rename = "notifyToUser")]
-    pub notify_to_user: Option<bool>,
+    pub notify_to_user: ::core::option::Option<bool>,
     /// Whether guest list is not returned because number of attendees is too large.
     #[serde(default, rename = "otherAttendeesExcluded")]
-    pub other_attendees_excluded: Option<bool>,
+    pub other_attendees_excluded: ::core::option::Option<bool>,
     /// Whether the requester is the owner of the agenda entry.
     #[serde(default, rename = "requesterIsOwner")]
-    pub requester_is_owner: Option<bool>,
+    pub requester_is_owner: ::core::option::Option<bool>,
     /// Whether the details of this entry should be displayed to the user.
     #[serde(default, rename = "showFullEventDetailsToUse")]
-    pub show_full_event_details_to_use: Option<bool>,
+    pub show_full_event_details_to_use: ::core::option::Option<bool>,
     /// Start date "Friday, August 26" in the user''s timezone.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// Start time (HH:mm) in the user''s timezone.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Start time in milliseconds.
     #[serde(default, rename = "startTimeMs")]
-    pub start_time_ms: Option<String>,
+    pub start_time_ms: ::core::option::Option<String>,
     /// User''s calendar timezone;
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// Title of the agenda item.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickAgendaGroupCardProto resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseTopazSidekickAgendaGroupCardProto {
     #[serde(default, rename = "agendaItem")]
-    pub agenda_item: Option<Vec<EnterpriseTopazSidekickAgendaItem>>,
+    pub agenda_item: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickAgendaItem>>,
+    >,
     #[serde(default)]
-    pub context: Option<EnterpriseTopazSidekickAgendaGroupCardProtoContext>,
+    pub context: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickAgendaGroupCardProtoContext>,
+    >,
     #[serde(default, rename = "currentAgendaItem")]
-    pub current_agenda_item: Option<EnterpriseTopazSidekickAgendaItem>,
+    pub current_agenda_item:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaItem>>,
 }
 
 /// The context that resulted in the generation of the card.
@@ -555,24 +567,26 @@ pub struct EnterpriseTopazSidekickAgendaGroupCardProto {
 pub struct EnterpriseTopazSidekickAgendaGroupCardProtoContext {
     /// User friendly free text that describes the context of the card (e.g. "Next meeting with Bob"). This is largely only applicable when the card is generated from a query.
     #[serde(default)]
-    pub context: Option<String>,
+    pub context: ::core::option::Option<String>,
     /// Localized free text that describes the dates represented by the card. Currently, the card will only represent a single day.
     #[serde(default)]
-    pub date: Option<String>,
+    pub date: ::core::option::Option<String>,
     /// Represents restrictions applied to the events requested in the user''s query. // TODO: enum values: ["NONE", "NEXT_MEETING"]
     #[serde(default, rename = "eventsRestrict")]
-    pub events_restrict: Option<String>,
+    pub events_restrict: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickAgendaItem resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseTopazSidekickAgendaItem {
     #[serde(default, rename = "conflictedGroup")]
-    pub conflicted_group: Option<EnterpriseTopazSidekickConflictingEventsCardProto>,
+    pub conflicted_group: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickConflictingEventsCardProto>,
+    >,
     #[serde(default, rename = "gapBefore")]
-    pub gap_before: Option<EnterpriseTopazSidekickGap>,
+    pub gap_before: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickGap>>,
     #[serde(default)]
-    pub meeting: Option<EnterpriseTopazSidekickAgendaEntry>,
+    pub meeting: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
 }
 
 /// A list of answers represented as free text.
@@ -580,10 +594,12 @@ pub struct EnterpriseTopazSidekickAgendaItem {
 pub struct EnterpriseTopazSidekickAnswerAnswerList {
     /// Answers that have a corresponding label.
     #[serde(default, rename = "labeledAnswer")]
-    pub labeled_answer: Option<Vec<EnterpriseTopazSidekickAnswerAnswerListLabeledAnswer>>,
+    pub labeled_answer: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickAnswerAnswerListLabeledAnswer>>,
+    >,
     /// Answer type. // TODO: enum values: ["UNKNOWN", "PERSON_ADDRESS", "PERSON_BIRTHDAY", "PERSON_DEPARTMENT", "PERSON_DESK_LOCATION", "PERSON_EMAIL", "PERSON_JOB_TITLE", "PERSON_PHONE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An answer with a corresponding label.
@@ -591,10 +607,10 @@ pub struct EnterpriseTopazSidekickAnswerAnswerList {
 pub struct EnterpriseTopazSidekickAnswerAnswerListLabeledAnswer {
     /// The free text answer.
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     /// A localized label for the answer (e.g. "Cell phone" vs "Desk phone").
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
 }
 
 /// Contains a list of suggested queries. Allows the user to determine what natural language queries they can ask Cloud Search (e.g. "what can I search for?").
@@ -602,7 +618,9 @@ pub struct EnterpriseTopazSidekickAnswerAnswerListLabeledAnswer {
 pub struct EnterpriseTopazSidekickAnswerSuggestedQueryAnswerCard {
     /// A list of queries to suggest.
     #[serde(default, rename = "suggestedQueryCategory")]
-    pub suggested_query_category: Option<Vec<EnterpriseTopazSidekickAnswerSuggestedQueryCategory>>,
+    pub suggested_query_category: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickAnswerSuggestedQueryCategory>>,
+    >,
 }
 
 /// Contains a list of suggested queries for a single category.
@@ -610,13 +628,13 @@ pub struct EnterpriseTopazSidekickAnswerSuggestedQueryAnswerCard {
 pub struct EnterpriseTopazSidekickAnswerSuggestedQueryCategory {
     /// The query list category. // TODO: enum values: ["UNKNOWN", "CALENDAR", "DOCUMENT", "PEOPLE"]
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// Whether this category is enabled.
     #[serde(default, rename = "isEnabled")]
-    pub is_enabled: Option<bool>,
+    pub is_enabled: ::core::option::Option<bool>,
     /// List of suggested queries to show the user.
     #[serde(default)]
-    pub query: Option<Vec<String>>,
+    pub query: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Wrapper proto for the Assist cards.
@@ -624,74 +642,96 @@ pub struct EnterpriseTopazSidekickAnswerSuggestedQueryCategory {
 pub struct EnterpriseTopazSidekickAssistCardProto {
     /// Agenda group card.
     #[serde(default, rename = "agendaGroupCardProto")]
-    pub agenda_group_card_proto: Option<EnterpriseTopazSidekickAgendaGroupCardProto>,
+    pub agenda_group_card_proto:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaGroupCardProto>>,
     /// Card metadata such as chronology and render mode of the card.
     #[serde(default, rename = "cardMetadata")]
-    pub card_metadata: Option<EnterpriseTopazSidekickCardMetadata>,
+    pub card_metadata:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCardMetadata>>,
     /// Card type. // TODO: enum values: ["UNKNOWN_TYPE", "AGENDA", "CHANGELISTS", "CONFLICTING_MEETINGS", "CREATE_NOTES_FOR_MEETING", "CREATE_NOTES_FOR_MEETING_REQUEST", "CUSTOMER_NEWS", "FIND_MEETING_TIME", "NEXT_MEETING", "PERSONALIZED_DOCS", "TRENDING_DOCS", "UPCOMING_TRIP", "SUMMARY", "MEETINGS", "HOMEPAGE", "SHARE_MEETING_DOCS", "DISCOVER_PEOPLE", "HOMEPAGE_V3", "AGENDA_GROUP", "WORK_IN_PROGRESS", "GET_AND_KEEP_AHEAD", "GENERIC_ANSWER_CARD", "THIRD_PARTY_ANSWER_CARD", "DOMAIN_TRENDING_DOCS", "TEAM_TRENDING_DOCS", "DOCUMENT_LIST_ANSWER_CARD", "SUGGESTED_QUERY_ANSWER_CARD", "PERSON_ANSWER_CARD", "RELATED_PEOPLE_ANSWER_CARD", "PERSON_KNOWLEDGE_CARD", "PEOPLE_SEARCH_PROMOTION_CARD"]
     #[serde(default, rename = "cardType")]
-    pub card_type: Option<String>,
+    pub card_type: ::core::option::Option<String>,
     /// Conflicting events card.
     #[serde(default, rename = "conflictingMeetingsCard")]
-    pub conflicting_meetings_card: Option<EnterpriseTopazSidekickConflictingEventsCardProto>,
+    pub conflicting_meetings_card: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickConflictingEventsCardProto>,
+    >,
     /// Answer card for documents that are applicable to the current query.
     #[serde(default, rename = "documentListCard")]
-    pub document_list_card: Option<EnterpriseTopazSidekickDocumentPerCategoryList>,
+    pub document_list_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickDocumentPerCategoryList>>,
     /// Documents with mentions.
     #[serde(default, rename = "documentsWithMentions")]
-    pub documents_with_mentions: Option<EnterpriseTopazSidekickDocumentPerCategoryList>,
+    pub documents_with_mentions:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickDocumentPerCategoryList>>,
     /// Find meeting time card.
     #[serde(default, rename = "findMeetingTimeCard")]
-    pub find_meeting_time_card: Option<EnterpriseTopazSidekickFindMeetingTimeCardProto>,
+    pub find_meeting_time_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickFindMeetingTimeCardProto>>,
     /// Generic answer card.
     #[serde(default, rename = "genericAnswerCard")]
-    pub generic_answer_card: Option<EnterpriseTopazSidekickGenericAnswerCard>,
+    pub generic_answer_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickGenericAnswerCard>>,
     /// Get and keep ahead card.
     #[serde(default, rename = "getAndKeepAheadCard")]
-    pub get_and_keep_ahead_card: Option<EnterpriseTopazSidekickGetAndKeepAheadCardProto>,
+    pub get_and_keep_ahead_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickGetAndKeepAheadCardProto>>,
     /// Meeting card.
     #[serde(default)]
-    pub meeting: Option<EnterpriseTopazSidekickAgendaEntry>,
+    pub meeting: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
     /// Meeting notes card.
     #[serde(default, rename = "meetingNotesCard")]
-    pub meeting_notes_card: Option<EnterpriseTopazSidekickMeetingNotesCardProto>,
+    pub meeting_notes_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickMeetingNotesCardProto>>,
     /// Request for meeting notes card.
     #[serde(default, rename = "meetingNotesCardRequest")]
-    pub meeting_notes_card_request: Option<EnterpriseTopazSidekickMeetingNotesCardRequest>,
+    pub meeting_notes_card_request:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickMeetingNotesCardRequest>>,
     /// The people disambiguation card.
     #[serde(default, rename = "peopleDisambiguationCard")]
-    pub people_disambiguation_card: Option<EnterpriseTopazSidekickPeopleDisambiguationCard>,
+    pub people_disambiguation_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickPeopleDisambiguationCard>>,
     /// People Search promotion card.
     #[serde(default, rename = "peoplePromotionCard")]
-    pub people_promotion_card: Option<PeoplePromotionCard>,
+    pub people_promotion_card: ::core::option::Option<::std::boxed::Box<PeoplePromotionCard>>,
     /// Answer card that represents a single person.
     #[serde(default, rename = "personAnswerCard")]
-    pub person_answer_card: Option<EnterpriseTopazSidekickPeopleAnswerPersonAnswerCard>,
+    pub person_answer_card: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickPeopleAnswerPersonAnswerCard>,
+    >,
     /// Full profile card.
     #[serde(default, rename = "personProfileCard")]
-    pub person_profile_card: Option<EnterpriseTopazSidekickPersonProfileCard>,
+    pub person_profile_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickPersonProfileCard>>,
     /// Card with recommended documents for the user.
     #[serde(default, rename = "personalizedDocsCard")]
-    pub personalized_docs_card: Option<EnterpriseTopazSidekickPersonalizedDocsCardProto>,
+    pub personalized_docs_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickPersonalizedDocsCardProto>>,
     /// Answer card that represents a list of people related to a person.
     #[serde(default, rename = "relatedPeopleAnswerCard")]
-    pub related_people_answer_card:
-        Option<EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard>,
+    pub related_people_answer_card: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard>,
+    >,
     /// Sahre meeting docs card.
     #[serde(default, rename = "shareMeetingDocsCard")]
-    pub share_meeting_docs_card: Option<EnterpriseTopazSidekickShareMeetingDocsCardProto>,
+    pub share_meeting_docs_card:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickShareMeetingDocsCardProto>>,
     /// Shared documents.
     #[serde(default, rename = "sharedDocuments")]
-    pub shared_documents: Option<EnterpriseTopazSidekickDocumentPerCategoryList>,
+    pub shared_documents:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickDocumentPerCategoryList>>,
     /// Answer card for what natural language queries the user can ask.
     #[serde(default, rename = "suggestedQueryAnswerCard")]
-    pub suggested_query_answer_card: Option<EnterpriseTopazSidekickAnswerSuggestedQueryAnswerCard>,
+    pub suggested_query_answer_card: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickAnswerSuggestedQueryAnswerCard>,
+    >,
     /// Third party answer cards.
     #[serde(default, rename = "thirdPartyAnswerCard")]
-    pub third_party_answer_card: Option<ThirdPartyGenericCard>,
+    pub third_party_answer_card: ::core::option::Option<::std::boxed::Box<ThirdPartyGenericCard>>,
     /// Work In Progress card.
     #[serde(default, rename = "workInProgressCardProto")]
-    pub work_in_progress_card_proto: Option<EnterpriseTopazSidekickRecentDocumentsCardProto>,
+    pub work_in_progress_card_proto:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickRecentDocumentsCardProto>>,
 }
 
 /// Card metadata.
@@ -699,25 +739,26 @@ pub struct EnterpriseTopazSidekickAssistCardProto {
 pub struct EnterpriseTopazSidekickCardMetadata {
     /// Declares a preference for how this card should be packed in MSCR. All cards in a response must correspond to a single category. As a result, cards may be dropped from the response if this field is set. Any card that does not match the category of the card with the highest priority in the response will be dropped. // TODO: enum values: ["DEFAULT", "ANSWER", "KNOWLEDGE", "HOMEPAGE"]
     #[serde(default, rename = "cardCategory")]
-    pub card_category: Option<String>,
+    pub card_category: ::core::option::Option<String>,
     /// An ID to identify the card and match actions to it. Be thoughtful of new card IDs since actions will be associated to that ID. E.g., if two card IDs collide, the system will think that the actions have been applied to the same card. Similarly, if EAS can return multiple cards of the same type (e.g., Meetings), ensure that the card_id identifies a given instance of the card so that, e.g., dismissals only affect the dismissed card as opposed to affecting all meeting cards.
     #[serde(default, rename = "cardId")]
-    pub card_id: Option<String>,
+    pub card_id: ::core::option::Option<String>,
     /// Chronology. // TODO: enum values: ["UNKNOWN", "PAST", "RECENTLY_PAST", "PRESENT", "NEAR_FUTURE", "FUTURE"]
     #[serde(default)]
-    pub chronology: Option<String>,
+    pub chronology: ::core::option::Option<String>,
     /// Debug info (only reported if request''s debug_level &gt; 0).
     #[serde(default, rename = "debugInfo")]
-    pub debug_info: Option<String>,
+    pub debug_info: ::core::option::Option<String>,
     /// Information about the NLP done to get the card.
     #[serde(default, rename = "nlpMetadata")]
-    pub nlp_metadata: Option<EnterpriseTopazSidekickNlpMetadata>,
+    pub nlp_metadata: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickNlpMetadata>>,
     /// Ranking params.
     #[serde(default, rename = "rankingParams")]
-    pub ranking_params: Option<EnterpriseTopazSidekickRankingParams>,
+    pub ranking_params:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickRankingParams>>,
     /// Render mode. // TODO: enum values: ["UNKNOWN_RENDER", "COLLAPSED", "EXPANDED"]
     #[serde(default, rename = "renderMode")]
-    pub render_mode: Option<String>,
+    pub render_mode: ::core::option::Option<String>,
 }
 
 /// Container of debugging information in all object levels. Extend as needed.
@@ -725,7 +766,7 @@ pub struct EnterpriseTopazSidekickCardMetadata {
 pub struct EnterpriseTopazSidekickCommonDebugInfo {
     /// Debug message.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Representation of a document. NEXT_TAG: 15
@@ -733,46 +774,51 @@ pub struct EnterpriseTopazSidekickCommonDebugInfo {
 pub struct EnterpriseTopazSidekickCommonDocument {
     /// Access type, i.e., whether the user has access to the document or not. // TODO: enum values: ["UNKNOWN_ACCESS", "ALLOWED", "NOT_ALLOWED"]
     #[serde(default, rename = "accessType")]
-    pub access_type: Option<String>,
+    pub access_type: ::core::option::Option<String>,
     /// Information for debugging.
     #[serde(default, rename = "debugInfo")]
-    pub debug_info: Option<EnterpriseTopazSidekickCommonDebugInfo>,
+    pub debug_info:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonDebugInfo>>,
     /// Document id.
     #[serde(default, rename = "documentId")]
-    pub document_id: Option<String>,
+    pub document_id: ::core::option::Option<String>,
     /// Drive document metadata.
     #[serde(default, rename = "driveDocumentMetadata")]
-    pub drive_document_metadata: Option<EnterpriseTopazSidekickCommonDocumentDriveDocumentMetadata>,
+    pub drive_document_metadata: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickCommonDocumentDriveDocumentMetadata>,
+    >,
     /// Generic Drive-based url in the format of drive.google.com/open to be used for deeplink
     #[serde(default, rename = "genericUrl")]
-    pub generic_url: Option<String>,
+    pub generic_url: ::core::option::Option<String>,
     /// Justification on why the document is selected.
     #[serde(default)]
-    pub justification: Option<EnterpriseTopazSidekickCommonDocumentJustification>,
+    pub justification: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickCommonDocumentJustification>,
+    >,
     /// MIME type
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Document provenance. // TODO: enum values: ["UNKNOWN_PROVENANCE", "CALENDAR_DESCRIPTION", "CALENDAR_ATTACHMENT", "MINED", "CALENDAR_ASSIST_ATTACHMENT"]
     #[serde(default)]
-    pub provenance: Option<String>,
+    pub provenance: ::core::option::Option<String>,
     /// Justification of why this document is being returned. // TODO: enum values: ["UNKNOWN", "TRENDING_IN_COLLABORATORS", "TRENDING_IN_DOMAIN", "FREQUENTLY_VIEWED", "FREQUENTLY_EDITED", "NEW_UPDATES", "NEW_COMMENTS", "EVENT_DESCRIPTION", "EVENT_ATTACHMENT", "EVENT_METADATA_ATTACHMENT", "MINED_DOCUMENT", "NEW_MENTIONS", "NEW_SHARES"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// A sampling of the text from the document.
     #[serde(default)]
-    pub snippet: Option<String>,
+    pub snippet: ::core::option::Option<String>,
     /// Thumbnail URL.
     #[serde(default, rename = "thumbnailUrl")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: ::core::option::Option<String>,
     /// Title of the document.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Type of the document. // TODO: enum values: ["UNKNOWN", "DOCUMENT", "PRESENTATION", "SPREADSHEET", "PDF", "IMAGE", "BINARY_BLOB", "FUSION_TABLE", "FOLDER", "DRAWING", "VIDEO", "FORM", "LINK_URL", "LINK_GO", "LINK_GOO_GL", "LINK_BIT_LY", "LINK_GMAIL", "LINK_MAILTO", "VIDEO_YOUTUBE", "VIDEO_LIVE", "GROUPS", "NEWS", "SITES", "HANGOUT", "AUDIO", "MS_WORD", "MS_POWERPOINT", "MS_EXCEL", "MS_OUTLOOK"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Absolute URL of the document.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Meta data for drive documents.
@@ -780,31 +826,31 @@ pub struct EnterpriseTopazSidekickCommonDocument {
 pub struct EnterpriseTopazSidekickCommonDocumentDriveDocumentMetadata {
     /// The drive document cosmo id. Client could use the id to build a URL to open a document. Please use Document.document_id.
     #[serde(default, rename = "documentId")]
-    pub document_id: Option<String>,
+    pub document_id: ::core::option::Option<String>,
     /// Additional field to identify whether a document is private since scope set to LIMITED can mean both that the doc is private or that it''s shared with others. is_private indicates whether the doc is not shared with anyone except for the owner.
     #[serde(default, rename = "isPrivate")]
-    pub is_private: Option<bool>,
+    pub is_private: ::core::option::Option<bool>,
     /// Timestamp of the most recent comment added to the document in milliseconds since epoch.
     #[serde(default, rename = "lastCommentTimeMs")]
-    pub last_comment_time_ms: Option<String>,
+    pub last_comment_time_ms: ::core::option::Option<String>,
     /// Timestamp of the most recent edit from the current user in milliseconds since epoch.
     #[serde(default, rename = "lastEditTimeMs")]
-    pub last_edit_time_ms: Option<String>,
+    pub last_edit_time_ms: ::core::option::Option<String>,
     /// Last modification time of the document (independent of the user that modified it).
     #[serde(default, rename = "lastModificationTimeMillis")]
-    pub last_modification_time_millis: Option<String>,
+    pub last_modification_time_millis: ::core::option::Option<String>,
     /// Timestamp of the last updated time of the document in milliseconds since epoch.
     #[serde(default, rename = "lastUpdatedTimeMs")]
-    pub last_updated_time_ms: Option<String>,
+    pub last_updated_time_ms: ::core::option::Option<String>,
     /// Timestamp of the most recent view from the current user in milliseconds since epoch.
     #[serde(default, rename = "lastViewTimeMs")]
-    pub last_view_time_ms: Option<String>,
+    pub last_view_time_ms: ::core::option::Option<String>,
     /// The owner of the document.
     #[serde(default)]
-    pub owner: Option<EnterpriseTopazSidekickCommonPerson>,
+    pub owner: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// ACL scope of the document which identifies the sharing status of the doc (e.g., limited, shared with link, team drive, ...). // TODO: enum values: ["UNKNOWN_DOCUMENT_SCOPE", "LIMITED", "DASHER_DOMAIN_WITH_LINK", "DASHER_DOMAIN", "PUBLIC_WITH_LINK", "PUBLIC", "TEAM_DRIVE"]
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
 }
 
 /// Justification of why we are reporting the document.
@@ -812,10 +858,10 @@ pub struct EnterpriseTopazSidekickCommonDocumentDriveDocumentMetadata {
 pub struct EnterpriseTopazSidekickCommonDocumentJustification {
     /// A locale aware message that explains why this document was selected.
     #[serde(default)]
-    pub justification: Option<String>,
+    pub justification: ::core::option::Option<String>,
     /// Reason on why the document is selected. Populate for trending documents. // TODO: enum values: ["UNKNOWN", "TRENDING_IN_COLLABORATORS", "TRENDING_IN_DOMAIN", "FREQUENTLY_VIEWED", "FREQUENTLY_EDITED", "NEW_UPDATES", "NEW_COMMENTS", "EVENT_DESCRIPTION", "EVENT_ATTACHMENT", "EVENT_METADATA_ATTACHMENT", "MINED_DOCUMENT", "NEW_MENTIONS", "NEW_SHARES"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Common representation of a person.
@@ -823,52 +869,53 @@ pub struct EnterpriseTopazSidekickCommonDocumentJustification {
 pub struct EnterpriseTopazSidekickCommonPerson {
     /// The birthday.
     #[serde(default)]
-    pub birthday: Option<EnterpriseTopazSidekickCommonPersonBirthday>,
+    pub birthday:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPersonBirthday>>,
     /// Cell phone number.
     #[serde(default, rename = "cellPhone")]
-    pub cell_phone: Option<String>,
+    pub cell_phone: ::core::option::Option<String>,
     /// The department the person works in (e.g. Engineering).
     #[serde(default)]
-    pub department: Option<String>,
+    pub department: ::core::option::Option<String>,
     /// Desk location (e.g. US-MTV-PR55-5-5B1I).
     #[serde(default, rename = "deskLocation")]
-    pub desk_location: Option<String>,
+    pub desk_location: ::core::option::Option<String>,
     /// Work desk phone number.
     #[serde(default, rename = "deskPhone")]
-    pub desk_phone: Option<String>,
+    pub desk_phone: ::core::option::Option<String>,
     /// The full name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Email.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The last name.
     #[serde(default, rename = "familyName")]
-    pub family_name: Option<String>,
+    pub family_name: ::core::option::Option<String>,
     /// The fully formatted address (e.g. 1255 Pear Avenue, Mountain View 94043, United States).
     #[serde(default, rename = "fullAddress")]
-    pub full_address: Option<String>,
+    pub full_address: ::core::option::Option<String>,
     /// This field is deprecated. The obfuscated_id should be used instead.
     #[serde(default, rename = "gaiaId")]
-    pub gaia_id: Option<String>,
+    pub gaia_id: ::core::option::Option<String>,
     /// The first name.
     #[serde(default, rename = "givenName")]
-    pub given_name: Option<String>,
+    pub given_name: ::core::option::Option<String>,
     /// The person''s job title (e.g. Software Engineer).
     #[serde(default, rename = "jobTitle")]
-    pub job_title: Option<String>,
+    pub job_title: ::core::option::Option<String>,
     /// The manager.
     #[serde(default)]
-    pub manager: Option<EnterpriseTopazSidekickCommonPerson>,
+    pub manager: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// The obfuscated GAIA ID.
     #[serde(default, rename = "obfuscatedId")]
-    pub obfuscated_id: Option<String>,
+    pub obfuscated_id: ::core::option::Option<String>,
     /// The URL for the Focus profile picture.
     #[serde(default, rename = "photoUrl")]
-    pub photo_url: Option<String>,
+    pub photo_url: ::core::option::Option<String>,
     /// The street address (e.g. 1255 Pear Avenue).
     #[serde(default, rename = "streetAddress")]
-    pub street_address: Option<String>,
+    pub street_address: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickCommonPersonBirthday resource type.
@@ -876,7 +923,7 @@ pub struct EnterpriseTopazSidekickCommonPerson {
 pub struct EnterpriseTopazSidekickCommonPersonBirthday {
     /// Unstructured birthday.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Conflicting meetings card proto.
@@ -884,10 +931,12 @@ pub struct EnterpriseTopazSidekickCommonPersonBirthday {
 pub struct EnterpriseTopazSidekickConflictingEventsCardProto {
     /// All the events that conflict with main_event.
     #[serde(default, rename = "conflictingEvent")]
-    pub conflicting_event: Option<Vec<EnterpriseTopazSidekickAgendaEntry>>,
+    pub conflicting_event: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
+    >,
     /// The event identified as being the most important.
     #[serde(default, rename = "mainEvent")]
-    pub main_event: Option<EnterpriseTopazSidekickAgendaEntry>,
+    pub main_event: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
 }
 
 /// Represents a mapping between a document type and its corresponding documents. Use for Work in Progress card in v1 homepage.
@@ -895,30 +944,37 @@ pub struct EnterpriseTopazSidekickConflictingEventsCardProto {
 pub struct EnterpriseTopazSidekickDocumentGroup {
     /// Document group type // TODO: enum values: ["UNKNOWN_TYPE", "ALL"]
     #[serde(default, rename = "groupType")]
-    pub group_type: Option<String>,
+    pub group_type: ::core::option::Option<String>,
     /// The list of corresponding documents.
     #[serde(default, rename = "personalizedDocument")]
-    pub personalized_document: Option<Vec<EnterpriseTopazSidekickCommonDocument>>,
+    pub personalized_document: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonDocument>>,
+    >,
 }
 
 /// EnterpriseTopazSidekickDocumentPerCategoryList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseTopazSidekickDocumentPerCategoryList {
     #[serde(default)]
-    pub documents:
-        Option<Vec<EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryListEntry>>,
+    pub documents: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryListEntry,
+            >,
+        >,
+    >,
     /// Localized message explaining how the documents were derived (e.g. from the last 30 days activity). This field is optional.
     #[serde(default, rename = "helpMessage")]
-    pub help_message: Option<String>,
+    pub help_message: ::core::option::Option<String>,
     /// TODO: enum values: ["UNKNOWN_LIST_TYPE", "MENTIONS", "SHARES", "NEEDS_ATTENTION", "VIEWS", "EDITS"]
     #[serde(default, rename = "listType")]
-    pub list_type: Option<String>,
+    pub list_type: ::core::option::Option<String>,
     /// Description of the types of documents present in the list.
     #[serde(default, rename = "listTypeDescription")]
-    pub list_type_description: Option<String>,
+    pub list_type_description: ::core::option::Option<String>,
     /// Response message in case no documents are present in the card.
     #[serde(default, rename = "responseMessage")]
-    pub response_message: Option<String>,
+    pub response_message: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryListEntry resource type.
@@ -926,12 +982,12 @@ pub struct EnterpriseTopazSidekickDocumentPerCategoryList {
 pub struct EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryListEntry {
     /// TODO: enum values: ["UNKNOWN_DOCUMENT", "ACTIONABLE", "VIEWED", "REPLIED", "MENTION_VIEWED", "MENTION_REPLIED", "MENTION_NOT_VIEWED", "SHARED_AND_VIEWED", "SHARED_NOT_VIEWED", "EDITED"]
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     #[serde(default)]
-    pub document: Option<EnterpriseTopazSidekickCommonDocument>,
+    pub document: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonDocument>>,
     /// Reason this document was selected.
     #[serde(default)]
-    pub rationale: Option<String>,
+    pub rationale: ::core::option::Option<String>,
 }
 
 /// Response to find meeting time among a set of people.
@@ -939,25 +995,29 @@ pub struct EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryList
 pub struct EnterpriseTopazSidekickFindMeetingTimeCardProto {
     /// Slots when all attendees have availability.
     #[serde(default, rename = "commonAvailableTimeSlots")]
-    pub common_available_time_slots: Option<Vec<EnterpriseTopazSidekickTimeSlot>>,
+    pub common_available_time_slots:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickTimeSlot>>>,
     /// Invitees to the event.
     #[serde(default)]
-    pub invitees: Option<Vec<EnterpriseTopazSidekickPerson>>,
+    pub invitees:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickPerson>>>,
     /// Requester.
     #[serde(default)]
-    pub requester: Option<EnterpriseTopazSidekickPerson>,
+    pub requester: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickPerson>>,
     /// Details about the scheduled meeting, if one exists.
     #[serde(default, rename = "scheduledMeeting")]
-    pub scheduled_meeting: Option<EnterpriseTopazSidekickScheduledMeeting>,
+    pub scheduled_meeting:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickScheduledMeeting>>,
     /// Invitees that have been skipped in the computation, most likely because they are groups.
     #[serde(default, rename = "skippedInvitees")]
-    pub skipped_invitees: Option<Vec<EnterpriseTopazSidekickPerson>>,
+    pub skipped_invitees:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickPerson>>>,
     /// Min and max timestamp used to find a common available timeslot.
     #[serde(default, rename = "timeBoundaries")]
-    pub time_boundaries: Option<EnterpriseTopazSidekickTimeSlot>,
+    pub time_boundaries: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickTimeSlot>>,
     /// Timezone ID.
     #[serde(default, rename = "timezoneId")]
-    pub timezone_id: Option<String>,
+    pub timezone_id: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickGap resource type.
@@ -965,19 +1025,19 @@ pub struct EnterpriseTopazSidekickFindMeetingTimeCardProto {
 pub struct EnterpriseTopazSidekickGap {
     /// Localized time string in the format: 1 hour 15 minutes
     #[serde(default, rename = "displayRemainingTime")]
-    pub display_remaining_time: Option<String>,
+    pub display_remaining_time: ::core::option::Option<String>,
     /// Localized time string in the format:(Locale CZ) 8:30 odp.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     #[serde(default, rename = "endTimeMs")]
-    pub end_time_ms: Option<String>,
+    pub end_time_ms: ::core::option::Option<String>,
     #[serde(default, rename = "remainingTime")]
-    pub remaining_time: Option<String>,
+    pub remaining_time: ::core::option::Option<String>,
     /// Localized time string in the format:(Locale CZ) 8:30 odp.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     #[serde(default, rename = "startTimeMs")]
-    pub start_time_ms: Option<String>,
+    pub start_time_ms: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickGenericAnswerCard resource type.
@@ -985,28 +1045,34 @@ pub struct EnterpriseTopazSidekickGap {
 pub struct EnterpriseTopazSidekickGenericAnswerCard {
     /// The answer.
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     /// Title or header of the card.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Get and keep ahead card
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseTopazSidekickGetAndKeepAheadCardProto {
     #[serde(default, rename = "declinedEvents")]
-    pub declined_events: Option<EnterpriseTopazSidekickGetAndKeepAheadCardProtoDeclinedEvents>,
+    pub declined_events: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickGetAndKeepAheadCardProtoDeclinedEvents>,
+    >,
     #[serde(default, rename = "mentionedDocuments")]
-    pub mentioned_documents: Option<EnterpriseTopazSidekickDocumentPerCategoryList>,
+    pub mentioned_documents:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickDocumentPerCategoryList>>,
     #[serde(default, rename = "sharedDocuments")]
-    pub shared_documents: Option<EnterpriseTopazSidekickDocumentPerCategoryList>,
+    pub shared_documents:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickDocumentPerCategoryList>>,
 }
 
 /// A list of events where all guests declined.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseTopazSidekickGetAndKeepAheadCardProtoDeclinedEvents {
     #[serde(default)]
-    pub events: Option<Vec<EnterpriseTopazSidekickAgendaEntry>>,
+    pub events: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
+    >,
 }
 
 /// Errors in the creation of meeting notes.
@@ -1014,13 +1080,13 @@ pub struct EnterpriseTopazSidekickGetAndKeepAheadCardProtoDeclinedEvents {
 pub struct EnterpriseTopazSidekickMeetingNotesCardError {
     /// The description of the reason why create-meeting-notes failed.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The event to request meeting notes creation
     #[serde(default)]
-    pub event: Option<EnterpriseTopazSidekickAgendaEntry>,
+    pub event: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
     /// The reason why create-meeting-notes failed. // TODO: enum values: ["NONE", "NOT_OWNER", "UNKNOWN"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Information about the meeting notes created.
@@ -1028,16 +1094,16 @@ pub struct EnterpriseTopazSidekickMeetingNotesCardError {
 pub struct EnterpriseTopazSidekickMeetingNotesCardProto {
     /// The event to request meeting notes creation.
     #[serde(default)]
-    pub event: Option<EnterpriseTopazSidekickAgendaEntry>,
+    pub event: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
     /// Google Drive ID (a.k.a. resource ID) of the file.
     #[serde(default, rename = "fileId")]
-    pub file_id: Option<String>,
+    pub file_id: ::core::option::Option<String>,
     /// Title we want to show for meeting notes in the answer card
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// New URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Meeting notes card request.
@@ -1045,13 +1111,14 @@ pub struct EnterpriseTopazSidekickMeetingNotesCardProto {
 pub struct EnterpriseTopazSidekickMeetingNotesCardRequest {
     /// Who are the meeting notes created for.
     #[serde(default, rename = "canCreateFor")]
-    pub can_create_for: Option<Vec<String>>,
+    pub can_create_for: ::core::option::Option<::std::vec::Vec<String>>,
     /// The error and reason if known error occured.
     #[serde(default)]
-    pub error: Option<EnterpriseTopazSidekickMeetingNotesCardError>,
+    pub error:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickMeetingNotesCardError>>,
     /// The event to request meeting notes creation
     #[serde(default)]
-    pub event: Option<EnterpriseTopazSidekickAgendaEntry>,
+    pub event: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
 }
 
 /// Metadata about the NLP interpretation of the query.
@@ -1059,7 +1126,7 @@ pub struct EnterpriseTopazSidekickMeetingNotesCardRequest {
 pub struct EnterpriseTopazSidekickNlpMetadata {
     /// Confidence of the interpretation that generated this card.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
 }
 
 /// Metadata for disambiguation.
@@ -1067,11 +1134,16 @@ pub struct EnterpriseTopazSidekickNlpMetadata {
 pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo {
     /// A list of people that also matched the query. This list is not complete.
     #[serde(default)]
-    pub disambiguation:
-        Option<Vec<EnterpriseTopazSidekickPeopleAnswerDisambiguationInfoDisambiguationPerson>>,
+    pub disambiguation: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                EnterpriseTopazSidekickPeopleAnswerDisambiguationInfoDisambiguationPerson,
+            >,
+        >,
+    >,
     /// The name that was extracted from the query. This may be in the form of the given name, last name, full name, LDAP, or email address. This name can be considered suitable for displaying to the user and can largely be considered to be normalized (e.g. "Bob''s" -&gt; "Bob").
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A person that also matches the query, but was not selected due to a lower affinity with the requesting user.
@@ -1079,10 +1151,10 @@ pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo {
 pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfoDisambiguationPerson {
     /// The profile of this person.
     #[serde(default)]
-    pub person: Option<EnterpriseTopazSidekickCommonPerson>,
+    pub person: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// The query that can be used to produce an answer card with the same attribute, but for this person.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// Recommended header to display for the card.
@@ -1090,7 +1162,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfoDisambiguationPe
 pub struct EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader {
     /// The suggested title to display. This defaults to the user''s query.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// An answer card for a single person.
@@ -1098,25 +1170,30 @@ pub struct EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader {
 pub struct EnterpriseTopazSidekickPeopleAnswerPersonAnswerCard {
     /// List of answers.
     #[serde(default)]
-    pub answer: Option<Vec<SafeHtmlProto>>,
+    pub answer: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SafeHtmlProto>>>,
     /// List of answers.
     #[serde(default, rename = "answerText")]
-    pub answer_text: Option<EnterpriseTopazSidekickAnswerAnswerList>,
+    pub answer_text:
+        ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAnswerAnswerList>>,
     /// Disambiguation information.
     #[serde(default, rename = "disambiguationInfo")]
-    pub disambiguation_info: Option<EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo>,
+    pub disambiguation_info: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo>,
+    >,
     /// The header to display for the card.
     #[serde(default)]
-    pub header: Option<EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader>,
+    pub header: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader>,
+    >,
     /// The response status. // TODO: enum values: ["UNKNOWN", "SUCCESS", "MISSING_PERSON", "MISSING_DATA"]
     #[serde(default, rename = "responseStatus")]
-    pub response_status: Option<String>,
+    pub response_status: ::core::option::Option<String>,
     /// Localized user friendly message to display to the user in the case of missing data or an error.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// The profile of the person that was the subject of the query.
     #[serde(default)]
-    pub subject: Option<EnterpriseTopazSidekickCommonPerson>,
+    pub subject: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
 }
 
 /// An answer card for a list of people that are related to the subject of the query.
@@ -1124,25 +1201,31 @@ pub struct EnterpriseTopazSidekickPeopleAnswerPersonAnswerCard {
 pub struct EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard {
     /// Disambiguation information.
     #[serde(default, rename = "disambiguationInfo")]
-    pub disambiguation_info: Option<EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo>,
+    pub disambiguation_info: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo>,
+    >,
     /// The header to display for the card.
     #[serde(default)]
-    pub header: Option<EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader>,
+    pub header: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader>,
+    >,
     /// A list of people that are related to the query subject.
     #[serde(default, rename = "relatedPeople")]
-    pub related_people: Option<Vec<EnterpriseTopazSidekickCommonPerson>>,
+    pub related_people: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
+    >,
     /// Defines the type of relation the list of people have with the subject of the card. // TODO: enum values: ["UNKNOWN", "DIRECT_REPORTS", "MANAGER", "PEERS"]
     #[serde(default, rename = "relationType")]
-    pub relation_type: Option<String>,
+    pub relation_type: ::core::option::Option<String>,
     /// The response status. // TODO: enum values: ["UNKNOWN", "SUCCESS", "MISSING_PERSON", "MISSING_DATA"]
     #[serde(default, rename = "responseStatus")]
-    pub response_status: Option<String>,
+    pub response_status: ::core::option::Option<String>,
     /// Localized user friendly message to display to the user in the case of missing data or an error.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// The profile of the person that was the subject of the query.
     #[serde(default)]
-    pub subject: Option<EnterpriseTopazSidekickCommonPerson>,
+    pub subject: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
 }
 
 /// EnterpriseTopazSidekickPeopleDisambiguationCard resource type.
@@ -1150,7 +1233,9 @@ pub struct EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard {
 pub struct EnterpriseTopazSidekickPeopleDisambiguationCard {
     /// Candidate persons for the query.
     #[serde(default)]
-    pub person: Option<Vec<EnterpriseTopazSidekickCommonPerson>>,
+    pub person: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
+    >,
 }
 
 /// Person.
@@ -1158,38 +1243,40 @@ pub struct EnterpriseTopazSidekickPeopleDisambiguationCard {
 pub struct EnterpriseTopazSidekickPerson {
     /// The level of affinity this person has with the requesting user. // TODO: enum values: ["UNKNOWN", "LOW", "MEDIUM", "HIGH"]
     #[serde(default, rename = "affinityLevel")]
-    pub affinity_level: Option<String>,
+    pub affinity_level: ::core::option::Option<String>,
     /// Attendance status of the person when included in a meeting event. // TODO: enum values: ["AWAITING", "YES", "NO", "MAYBE"]
     #[serde(default, rename = "attendingStatus")]
-    pub attending_status: Option<String>,
+    pub attending_status: ::core::option::Option<String>,
     /// Email.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Gaia id.
     #[serde(default, rename = "gaiaId")]
-    pub gaia_id: Option<String>,
+    pub gaia_id: ::core::option::Option<String>,
     /// Whether the invitee is a group.
     #[serde(default, rename = "isGroup")]
-    pub is_group: Option<bool>,
+    pub is_group: ::core::option::Option<bool>,
     /// Name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Obfuscated Gaia id.
     #[serde(default, rename = "obfuscatedGaiaId")]
-    pub obfuscated_gaia_id: Option<String>,
+    pub obfuscated_gaia_id: ::core::option::Option<String>,
     /// Absolute URL to the profile photo of the person.
     #[serde(default, rename = "photoUrl")]
-    pub photo_url: Option<String>,
+    pub photo_url: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickPersonProfileCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseTopazSidekickPersonProfileCard {
     #[serde(default, rename = "relatedPeople")]
-    pub related_people: Option<Vec<EnterpriseTopazSidekickPersonProfileCardRelatedPeople>>,
+    pub related_people: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickPersonProfileCardRelatedPeople>>,
+    >,
     /// The subject of the card.
     #[serde(default)]
-    pub subject: Option<EnterpriseTopazSidekickCommonPerson>,
+    pub subject: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
 }
 
 /// EnterpriseTopazSidekickPersonProfileCardRelatedPeople resource type.
@@ -1197,10 +1284,12 @@ pub struct EnterpriseTopazSidekickPersonProfileCard {
 pub struct EnterpriseTopazSidekickPersonProfileCardRelatedPeople {
     /// Related people.
     #[serde(default, rename = "relatedPerson")]
-    pub related_person: Option<Vec<EnterpriseTopazSidekickCommonPerson>>,
+    pub related_person: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
+    >,
     /// Relation type. // TODO: enum values: ["UNKNOWN", "MANAGER", "DIRECT_REPORT"]
     #[serde(default)]
-    pub relation: Option<String>,
+    pub relation: ::core::option::Option<String>,
 }
 
 /// Personalized docs card proto.
@@ -1208,7 +1297,9 @@ pub struct EnterpriseTopazSidekickPersonProfileCardRelatedPeople {
 pub struct EnterpriseTopazSidekickPersonalizedDocsCardProto {
     /// Document group.
     #[serde(default, rename = "documentGroup")]
-    pub document_group: Option<Vec<EnterpriseTopazSidekickDocumentGroup>>,
+    pub document_group: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickDocumentGroup>>,
+    >,
 }
 
 /// Ranking params.
@@ -1216,29 +1307,31 @@ pub struct EnterpriseTopazSidekickPersonalizedDocsCardProto {
 pub struct EnterpriseTopazSidekickRankingParams {
     /// The end-time that this object will expect to occur. If the type is marked as FIXED, then this end-time will persist after bidding. If the type is marked as FLEXIBLE, this field is NOT expected to be filled and will be filled in after it has won a bid. Expected to be set when type is set to FIXED.
     #[serde(default, rename = "endTimeMs")]
-    pub end_time_ms: Option<String>,
+    pub end_time_ms: ::core::option::Option<String>,
     /// The priority to determine between objects that have the same start_time_ms The lower-value of priority == ranked higher. Max-priority = 0. Expected to be set for all types. // TODO: enum values: ["UNKNOWN", "CRITICAL", "IMPORTANT", "HIGH", "NORMAL", "BEST_EFFORT"]
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
     /// The score of the card to be used to break priority-ties
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The span that this card will take in the stream Expected to be set when type is set to FLEXIBLE.
     #[serde(default, rename = "spanMs")]
-    pub span_ms: Option<String>,
+    pub span_ms: ::core::option::Option<String>,
     /// The start-time that this object will bid-for If the type is marked as FIXED, then this start-time will persist after bidding. If the type is marked as FLEXIBLE, then it will occur at the given time or sometime after the requested time. Expected to be set for all types.
     #[serde(default, rename = "startTimeMs")]
-    pub start_time_ms: Option<String>,
+    pub start_time_ms: ::core::option::Option<String>,
     /// The packing type of this object. // TODO: enum values: ["FIXED", "FLEXIBLE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// EnterpriseTopazSidekickRecentDocumentsCardProto resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseTopazSidekickRecentDocumentsCardProto {
     #[serde(default)]
-    pub document: Option<Vec<EnterpriseTopazSidekickCommonDocument>>,
+    pub document: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonDocument>>,
+    >,
 }
 
 /// Details about scheduled meetings.
@@ -1246,13 +1339,13 @@ pub struct EnterpriseTopazSidekickRecentDocumentsCardProto {
 pub struct EnterpriseTopazSidekickScheduledMeeting {
     /// The meeting location.
     #[serde(default, rename = "meetingLocation")]
-    pub meeting_location: Option<String>,
+    pub meeting_location: ::core::option::Option<String>,
     /// The meeting time slot.
     #[serde(default, rename = "meetingTime")]
-    pub meeting_time: Option<EnterpriseTopazSidekickTimeSlot>,
+    pub meeting_time: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickTimeSlot>>,
     /// The meeting title.
     #[serde(default, rename = "meetingTitle")]
-    pub meeting_title: Option<String>,
+    pub meeting_title: ::core::option::Option<String>,
 }
 
 /// Share meeting docs card proto.
@@ -1260,10 +1353,12 @@ pub struct EnterpriseTopazSidekickScheduledMeeting {
 pub struct EnterpriseTopazSidekickShareMeetingDocsCardProto {
     /// Documents to share for the given meeting.
     #[serde(default)]
-    pub document: Option<Vec<EnterpriseTopazSidekickCommonDocument>>,
+    pub document: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonDocument>>,
+    >,
     /// Event.
     #[serde(default)]
-    pub event: Option<EnterpriseTopazSidekickAgendaEntry>,
+    pub event: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickAgendaEntry>>,
 }
 
 /// Slot of time.
@@ -1271,22 +1366,22 @@ pub struct EnterpriseTopazSidekickShareMeetingDocsCardProto {
 pub struct EnterpriseTopazSidekickTimeSlot {
     /// Day end time at the user''s timezone.
     #[serde(default, rename = "endTimeDay")]
-    pub end_time_day: Option<String>,
+    pub end_time_day: ::core::option::Option<String>,
     /// Hour and minute of the end time at the user''s timezone.
     #[serde(default, rename = "endTimeHourAndMinute")]
-    pub end_time_hour_and_minute: Option<String>,
+    pub end_time_hour_and_minute: ::core::option::Option<String>,
     /// End time in milliseconds.
     #[serde(default, rename = "endTimeInMillis")]
-    pub end_time_in_millis: Option<String>,
+    pub end_time_in_millis: ::core::option::Option<String>,
     /// Day start time at user''s timezone.
     #[serde(default, rename = "startTimeDay")]
-    pub start_time_day: Option<String>,
+    pub start_time_day: ::core::option::Option<String>,
     /// Hour and minute of the start time at the user''s timezone.
     #[serde(default, rename = "startTimeHourAndMinute")]
-    pub start_time_hour_and_minute: Option<String>,
+    pub start_time_hour_and_minute: ::core::option::Option<String>,
     /// Start time in milliseconds.
     #[serde(default, rename = "startTimeInMillis")]
-    pub start_time_in_millis: Option<String>,
+    pub start_time_in_millis: ::core::option::Option<String>,
 }
 
 /// Used to provide a search operator for enum properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched. For example, if you provide no operator for a *priority* enum property with possible values *p0* and *p1*, a query that contains the term *p0* returns items that have *p0* as the value of the *priority* property, as well as any items that contain the string *p0* in other fields. If you provide an operator name for the enum, such as *priority*, then search users can use that operator to refine results to only items that have *p0* as this property''s value, with the query *priority:p0*.
@@ -1294,7 +1389,7 @@ pub struct EnterpriseTopazSidekickTimeSlot {
 pub struct EnumOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the enum property. For example, if operatorName is *priority* and the property''s name is *priorityVal*, then queries like *priority:&lt;value&gt;* show results only where the value of the property named *priorityVal* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any String properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for enum properties, which allow you to define a restricted set of strings to match user queries, set rankings for those string values, and define an operator name to be paired with those strings so that users can narrow results to only items with a specific value. For example, for items in a request tracking system with priority information, you could define *p0* as an allowable enum value and tie this enum to the operator name *priority* so that search users could add *priority:p0* to their query to restrict the set of results to only those items indexed with the value *p0*.
@@ -1302,13 +1397,13 @@ pub struct EnumOperatorOptions {
 pub struct EnumPropertyOptions {
     /// If set, describes how the enum should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<EnumOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<EnumOperatorOptions>>,
     /// Used to specify the ordered ranking for the enumeration that determines how the integer values provided in the possible EnumValuePairs are used to rank results. If specified, integer values must be provided for all possible EnumValuePair values given for this property. Can only be used if isRepeatable is false. // TODO: enum values: ["NO_ORDER", "ASCENDING", "DESCENDING"]
     #[serde(default, rename = "orderedRanking")]
-    pub ordered_ranking: Option<String>,
+    pub ordered_ranking: ::core::option::Option<String>,
     /// The list of possible values for the enumeration property. All EnumValuePairs must provide a string value. If you specify an integer value for one EnumValuePair, then all possible EnumValuePairs must provide an integer value. Both the string value and integer value must be unique over all possible values. Once set, possible values cannot be removed or modified. If you supply an ordered ranking and think you might insert additional enum values in the future, leave gaps in the initial integer values to allow adding a value in between previously registered values. The maximum number of elements is 100.
     #[serde(default, rename = "possibleValues")]
-    pub possible_values: Option<Vec<EnumValuePair>>,
+    pub possible_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnumValuePair>>>,
 }
 
 /// The enumeration value pair defines two things: a required string value and an optional integer value. The string value defines the necessary query term required to retrieve that item, such as *p0* for a priority item. The integer value determines the ranking of that string value relative to other enumerated values for the same property. For example, you might associate *p0* with *0* and define another enum pair such as *p1* and *1*. You must use the integer value in combination with ordered ranking to set the ranking of a given value relative to other enumerated values for the same property name. Here, a ranking order of DESCENDING for *priority* properties results in a ranking boost for items indexed with a value of *p0* compared to items indexed with a value of *p1*. Without a specified ranking order, the integer value has no effect on item ranking.
@@ -1316,10 +1411,10 @@ pub struct EnumPropertyOptions {
 pub struct EnumValuePair {
     /// The integer value of the EnumValuePair which must be non-negative. Optional.
     #[serde(default, rename = "integerValue")]
-    pub integer_value: Option<i32>,
+    pub integer_value: ::core::option::Option<i32>,
     /// The string value of the EnumValuePair. The maximum length is 32 characters.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// List of enum values.
@@ -1327,23 +1422,23 @@ pub struct EnumValuePair {
 pub struct EnumValues {
     /// The maximum allowable length for string values is 32 characters.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Error information about the response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorInfo {
     #[serde(default, rename = "errorMessages")]
-    pub error_messages: Option<Vec<ErrorMessage>>,
+    pub error_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ErrorMessage>>>,
 }
 
 /// Error message per source response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorMessage {
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// A bucket in a facet is the basic unit of operation. A bucket can comprise either a single value OR a contiguous range of values, depending on the type of the field bucketed. FacetBucket is currently used only for returning the response object.
@@ -1351,15 +1446,15 @@ pub struct ErrorMessage {
 pub struct FacetBucket {
     /// Number of results that match the bucket value. Counts are only returned for searches when count accuracy is ensured. Cloud Search does not guarantee facet counts for any query and facet counts might be present only intermittently, even for identical queries. Do not build dependencies on facet count existence; instead use facet ount percentages which are always returned.
     #[serde(default)]
-    pub count: Option<i32>,
+    pub count: ::core::option::Option<i32>,
     /// Filter to be passed in the search request if the corresponding bucket is selected.
     #[serde(default)]
-    pub filter: Option<Filter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<Filter>>,
     /// Percent of results that match the bucket value. The returned value is between (0-100], and is rounded down to an integer if fractional. If the value is not explicitly returned, it represents a percentage value that rounds to 0. Percentages are returned for all searches, but are an estimate. Because percentages are always returned, you should render percentages instead of counts.
     #[serde(default)]
-    pub percentage: Option<i32>,
+    pub percentage: ::core::option::Option<i32>,
     #[serde(default)]
-    pub value: Option<Value>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }
 
 /// Specifies operators to return facet results for. There will be one FacetResult for every source_name/object_type/operator_name combination.
@@ -1367,19 +1462,19 @@ pub struct FacetBucket {
 pub struct FacetOptions {
     /// If set, describes integer faceting options for the given integer property. The corresponding integer property in the schema should be marked isFacetable. The number of buckets returned would be minimum of this and num_facet_buckets.
     #[serde(default, rename = "integerFacetingOptions")]
-    pub integer_faceting_options: Option<IntegerFacetingOptions>,
+    pub integer_faceting_options: ::core::option::Option<::std::boxed::Box<IntegerFacetingOptions>>,
     /// Maximum number of facet buckets that should be returned for this facet. Defaults to 10. Maximum value is 100.
     #[serde(default, rename = "numFacetBuckets")]
-    pub num_facet_buckets: Option<i32>,
+    pub num_facet_buckets: ::core::option::Option<i32>,
     /// If object_type is set, only those objects of that type will be used to compute facets. If empty, then all objects will be used to compute facets.
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
     /// The name of the operator chosen for faceting. @see cloudsearch.SchemaPropertyOptions
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
     /// Source name to facet on. Format: datasources/{source_id} If empty, all data sources will be used.
     #[serde(default, rename = "sourceName")]
-    pub source_name: Option<String>,
+    pub source_name: ::core::option::Option<String>,
 }
 
 /// Source specific facet response
@@ -1387,16 +1482,16 @@ pub struct FacetOptions {
 pub struct FacetResult {
     /// FacetBuckets for values in response containing at least a single result with the corresponding filter.
     #[serde(default)]
-    pub buckets: Option<Vec<FacetBucket>>,
+    pub buckets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FacetBucket>>>,
     /// Object type for which facet results are returned. Can be empty.
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
     /// The name of the operator chosen for faceting. @see cloudsearch.SchemaPropertyOptions
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
     /// Source name for which facet results are returned. Will not be empty.
     #[serde(default, rename = "sourceName")]
-    pub source_name: Option<String>,
+    pub source_name: ::core::option::Option<String>,
 }
 
 /// FieldViolation resource type.
@@ -1404,19 +1499,19 @@ pub struct FacetResult {
 pub struct FieldViolation {
     /// The description of the error.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Path of field with violation.
     #[serde(default)]
-    pub field: Option<String>,
+    pub field: ::core::option::Option<String>,
 }
 
 /// A generic way of expressing filters in a query, which supports two approaches: **1. Setting a ValueFilter.** The name must match an operator_name defined in the schema for your data source. **2. Setting a CompositeFilter.** The filters are evaluated using the logical operator. The top-level operators can only be either an AND or a NOT. AND can appear only at the top-most level. OR can appear only under a top-level AND.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Filter {
     #[serde(default, rename = "compositeFilter")]
-    pub composite_filter: Option<CompositeFilter>,
+    pub composite_filter: ::core::option::Option<::std::boxed::Box<CompositeFilter>>,
     #[serde(default, rename = "valueFilter")]
-    pub value_filter: Option<ValueFilter>,
+    pub value_filter: ::core::option::Option<::std::boxed::Box<ValueFilter>>,
 }
 
 /// Filter options to be applied on query.
@@ -1424,10 +1519,10 @@ pub struct Filter {
 pub struct FilterOptions {
     /// Generic filter to restrict the search, such as lang:en, site:xyz.
     #[serde(default)]
-    pub filter: Option<Filter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<Filter>>,
     /// If object_type is set, only objects of that type are returned. This should correspond to the name of the object that was registered within the definition of schema. The maximum length is 256 characters.
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
 }
 
 /// Indicates which freshness property to use when adjusting search ranking for an item. Fresher, more recent dates indicate higher quality. Use the freshness option property that best works with your data. For fileshare documents, last modified time is most relevant. For calendar event data, the time when the event occurs is a more relevant freshness indicator. In this way, calendar events that occur closer to the time of the search query are considered higher quality and ranked accordingly.
@@ -1435,10 +1530,10 @@ pub struct FilterOptions {
 pub struct FreshnessOptions {
     /// The duration after which an object should be considered stale. The default value is 180 days (in seconds).
     #[serde(default, rename = "freshnessDuration")]
-    pub freshness_duration: Option<String>,
+    pub freshness_duration: ::core::option::Option<String>,
     /// This property indicates the freshness level of the object in the index. If set, this property must be a top-level property within the property definitions and it must be a timestamp type or date type. Otherwise, the Indexing API uses updateTime as the freshness indicator. The maximum length is 256 characters. When a property is used to calculate freshness, the value defaults to 2 years from the current time.
     #[serde(default, rename = "freshnessProperty")]
-    pub freshness_property: Option<String>,
+    pub freshness_property: ::core::option::Option<String>,
 }
 
 /// GSuitePrincipal resource type.
@@ -1446,13 +1541,13 @@ pub struct FreshnessOptions {
 pub struct GSuitePrincipal {
     /// This principal represents all users of the Google Workspace domain of the customer.
     #[serde(default, rename = "gsuiteDomain")]
-    pub gsuite_domain: Option<bool>,
+    pub gsuite_domain: ::core::option::Option<bool>,
     /// This principal references a Google Workspace group name.
     #[serde(default, rename = "gsuiteGroupEmail")]
-    pub gsuite_group_email: Option<String>,
+    pub gsuite_group_email: ::core::option::Option<String>,
     /// This principal references a Google Workspace user account.
     #[serde(default, rename = "gsuiteUserEmail")]
-    pub gsuite_user_email: Option<String>,
+    pub gsuite_user_email: ::core::option::Option<String>,
 }
 
 /// GetCustomerIndexStatsResponse resource type.
@@ -1460,20 +1555,20 @@ pub struct GSuitePrincipal {
 pub struct GetCustomerIndexStatsResponse {
     /// Average item count for the given date range for which billing is done.
     #[serde(default, rename = "averageIndexedItemCount")]
-    pub average_indexed_item_count: Option<String>,
+    pub average_indexed_item_count: ::core::option::Option<String>,
     /// Summary of indexed item counts, one for each day in the requested range.
     #[serde(default)]
-    pub stats: Option<Vec<CustomerIndexStats>>,
+    pub stats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerIndexStats>>>,
 }
 
 /// GetCustomerQueryStatsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetCustomerQueryStatsResponse {
     #[serde(default)]
-    pub stats: Option<Vec<CustomerQueryStats>>,
+    pub stats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerQueryStats>>>,
     /// Total successful query count (status code 200) for the given date range.
     #[serde(default, rename = "totalQueryCount")]
-    pub total_query_count: Option<String>,
+    pub total_query_count: ::core::option::Option<String>,
 }
 
 /// Response format for search application stats for a customer.
@@ -1481,24 +1576,25 @@ pub struct GetCustomerQueryStatsResponse {
 pub struct GetCustomerSearchApplicationStatsResponse {
     /// Average search application count for the given date range.
     #[serde(default, rename = "averageSearchApplicationCount")]
-    pub average_search_application_count: Option<String>,
+    pub average_search_application_count: ::core::option::Option<String>,
     /// Search application stats by date.
     #[serde(default)]
-    pub stats: Option<Vec<CustomerSearchApplicationStats>>,
+    pub stats:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerSearchApplicationStats>>>,
 }
 
 /// GetCustomerSessionStatsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetCustomerSessionStatsResponse {
     #[serde(default)]
-    pub stats: Option<Vec<CustomerSessionStats>>,
+    pub stats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerSessionStats>>>,
 }
 
 /// GetCustomerUserStatsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetCustomerUserStatsResponse {
     #[serde(default)]
-    pub stats: Option<Vec<CustomerUserStats>>,
+    pub stats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerUserStats>>>,
 }
 
 /// GetDataSourceIndexStatsResponse resource type.
@@ -1506,10 +1602,10 @@ pub struct GetCustomerUserStatsResponse {
 pub struct GetDataSourceIndexStatsResponse {
     /// Average item count for the given date range for which billing is done.
     #[serde(default, rename = "averageIndexedItemCount")]
-    pub average_indexed_item_count: Option<String>,
+    pub average_indexed_item_count: ::core::option::Option<String>,
     /// Summary of indexed item counts, one for each day in the requested range.
     #[serde(default)]
-    pub stats: Option<Vec<DataSourceIndexStats>>,
+    pub stats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceIndexStats>>>,
 }
 
 /// Response format for getting query stats for a search application between given dates.
@@ -1517,24 +1613,27 @@ pub struct GetDataSourceIndexStatsResponse {
 pub struct GetSearchApplicationQueryStatsResponse {
     /// Query stats per date for a search application.
     #[serde(default)]
-    pub stats: Option<Vec<SearchApplicationQueryStats>>,
+    pub stats:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SearchApplicationQueryStats>>>,
     /// Total successful query count (status code 200) for the given date range.
     #[serde(default, rename = "totalQueryCount")]
-    pub total_query_count: Option<String>,
+    pub total_query_count: ::core::option::Option<String>,
 }
 
 /// GetSearchApplicationSessionStatsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetSearchApplicationSessionStatsResponse {
     #[serde(default)]
-    pub stats: Option<Vec<SearchApplicationSessionStats>>,
+    pub stats:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SearchApplicationSessionStats>>>,
 }
 
 /// GetSearchApplicationUserStatsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetSearchApplicationUserStatsResponse {
     #[serde(default)]
-    pub stats: Option<Vec<SearchApplicationUserStats>>,
+    pub stats:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SearchApplicationUserStats>>>,
 }
 
 /// Used to provide a search operator for html properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -1542,7 +1641,7 @@ pub struct GetSearchApplicationUserStatsResponse {
 pub struct HtmlOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the html property. For example, if operatorName is *subject* and the property''s name is *subjectLine*, then queries like *subject:&lt;value&gt;* show results only where the value of the property named *subjectLine* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator return all items where *&lt;value&gt;* matches the value of any html properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for html properties.
@@ -1550,10 +1649,10 @@ pub struct HtmlOperatorOptions {
 pub struct HtmlPropertyOptions {
     /// If set, describes how the property should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<HtmlOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<HtmlOperatorOptions>>,
     /// Indicates the search quality importance of the tokens within the field when used for retrieval. Can only be set to DEFAULT or NONE.
     #[serde(default, rename = "retrievalImportance")]
-    pub retrieval_importance: Option<RetrievalImportance>,
+    pub retrieval_importance: ::core::option::Option<::std::boxed::Box<RetrievalImportance>>,
 }
 
 /// List of html values.
@@ -1561,7 +1660,7 @@ pub struct HtmlPropertyOptions {
 pub struct HtmlValues {
     /// The maximum allowable length for html values is 2048 characters.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// IndexItemOptions resource type.
@@ -1569,7 +1668,7 @@ pub struct HtmlValues {
 pub struct IndexItemOptions {
     /// Specifies if the index request should allow Google Workspace principals that do not exist or are deleted.
     #[serde(default, rename = "allowUnknownGsuitePrincipals")]
-    pub allow_unknown_gsuite_principals: Option<bool>,
+    pub allow_unknown_gsuite_principals: ::core::option::Option<bool>,
 }
 
 /// IndexItemRequest resource type.
@@ -1577,18 +1676,18 @@ pub struct IndexItemOptions {
 pub struct IndexItemRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
-    pub connector_name: Option<String>,
+    pub connector_name: ::core::option::Option<String>,
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     #[serde(default, rename = "indexItemOptions")]
-    pub index_item_options: Option<IndexItemOptions>,
+    pub index_item_options: ::core::option::Option<::std::boxed::Box<IndexItemOptions>>,
     /// The name of the item. Format: datasources/{source_id}/items/{item_id}
     #[serde(default)]
-    pub item: Option<Item>,
+    pub item: ::core::option::Option<::std::boxed::Box<Item>>,
     /// Required. The RequestMode for this request. // TODO: enum values: ["UNSPECIFIED", "SYNCHRONOUS", "ASYNCHRONOUS"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
 }
 
 /// Used to specify integer faceting options.
@@ -1596,7 +1695,7 @@ pub struct IndexItemRequest {
 pub struct IntegerFacetingOptions {
     /// Buckets for given integer values should be in strictly ascending order. For example, if values supplied are (1,5,10,100), the following facet buckets will be formed {&lt;1, [1,5), [5-10), [10-100), &gt;=100}.
     #[serde(default, rename = "integerBuckets")]
-    pub integer_buckets: Option<Vec<String>>,
+    pub integer_buckets: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Used to provide a search operator for integer properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -1604,13 +1703,13 @@ pub struct IntegerFacetingOptions {
 pub struct IntegerOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the integer property using the greater-than operator. For example, if greaterThanOperatorName is *priorityabove* and the property''s name is *priorityVal*, then queries like *priorityabove:&lt;value&gt;* show results only where the value of the property named *priorityVal* is greater than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "greaterThanOperatorName")]
-    pub greater_than_operator_name: Option<String>,
+    pub greater_than_operator_name: ::core::option::Option<String>,
     /// Indicates the operator name required in the query in order to isolate the integer property using the less-than operator. For example, if lessThanOperatorName is *prioritybelow* and the property''s name is *priorityVal*, then queries like *prioritybelow:&lt;value&gt;* show results only where the value of the property named *priorityVal* is less than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "lessThanOperatorName")]
-    pub less_than_operator_name: Option<String>,
+    pub less_than_operator_name: ::core::option::Option<String>,
     /// Indicates the operator name required in the query in order to isolate the integer property. For example, if operatorName is *priority* and the property''s name is *priorityVal*, then queries like *priority:&lt;value&gt;* show results only where the value of the property named *priorityVal* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any String properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for integer properties.
@@ -1618,26 +1717,26 @@ pub struct IntegerOperatorOptions {
 pub struct IntegerPropertyOptions {
     /// If set, describes integer faceting options for the given integer property. The corresponding integer property should be marked isFacetable.
     #[serde(default, rename = "integerFacetingOptions")]
-    pub integer_faceting_options: Option<IntegerFacetingOptions>,
+    pub integer_faceting_options: ::core::option::Option<::std::boxed::Box<IntegerFacetingOptions>>,
     /// The maximum value of the property. The minimum and maximum values for the property are used to rank results according to the ordered ranking. Indexing requests with values greater than the maximum are accepted and ranked with the same weight as items indexed with the maximum value.
     #[serde(default, rename = "maximumValue")]
-    pub maximum_value: Option<String>,
+    pub maximum_value: ::core::option::Option<String>,
     /// The minimum value of the property. The minimum and maximum values for the property are used to rank results according to the ordered ranking. Indexing requests with values less than the minimum are accepted and ranked with the same weight as items indexed with the minimum value.
     #[serde(default, rename = "minimumValue")]
-    pub minimum_value: Option<String>,
+    pub minimum_value: ::core::option::Option<String>,
     /// If set, describes how the integer should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<IntegerOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<IntegerOperatorOptions>>,
     /// Used to specify the ordered ranking for the integer. Can only be used if isRepeatable is false. // TODO: enum values: ["NO_ORDER", "ASCENDING", "DESCENDING"]
     #[serde(default, rename = "orderedRanking")]
-    pub ordered_ranking: Option<String>,
+    pub ordered_ranking: ::core::option::Option<String>,
 }
 
 /// List of integer values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IntegerValues {
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents an interaction between a user and an item.
@@ -1645,13 +1744,13 @@ pub struct IntegerValues {
 pub struct Interaction {
     /// The time when the user acted on the item. If multiple actions of the same type exist for a single user, only the most recent action is recorded.
     #[serde(default, rename = "interactionTime")]
-    pub interaction_time: Option<String>,
+    pub interaction_time: ::core::option::Option<String>,
     /// The user that acted on the item.
     #[serde(default)]
-    pub principal: Option<Principal>,
+    pub principal: ::core::option::Option<::std::boxed::Box<Principal>>,
     /// TODO: enum values: ["UNSPECIFIED", "VIEW", "EDIT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a single object that is an item in the search index, such as a file, folder, or a database record.
@@ -1659,34 +1758,34 @@ pub struct Interaction {
 pub struct Item {
     /// Access control list for this item.
     #[serde(default)]
-    pub acl: Option<ItemAcl>,
+    pub acl: ::core::option::Option<::std::boxed::Box<ItemAcl>>,
     /// Item content to be indexed and made text searchable.
     #[serde(default)]
-    pub content: Option<ItemContent>,
+    pub content: ::core::option::Option<::std::boxed::Box<ItemContent>>,
     /// The type for this item. // TODO: enum values: ["UNSPECIFIED", "CONTENT_ITEM", "CONTAINER_ITEM", "VIRTUAL_CONTAINER_ITEM"]
     #[serde(default, rename = "itemType")]
-    pub item_type: Option<String>,
+    pub item_type: ::core::option::Option<String>,
     /// The metadata information.
     #[serde(default)]
-    pub metadata: Option<ItemMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<ItemMetadata>>,
     /// The name of the Item. Format: datasources/{source_id}/items/{item_id} This is a required field. The maximum length is 1536 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Additional state connector can store for this item. The maximum length is 10000 bytes.
     #[serde(default)]
-    pub payload: Option<String>,
+    pub payload: ::core::option::Option<String>,
     /// Queue this item belongs to. The maximum length is 100 characters.
     #[serde(default)]
-    pub queue: Option<String>,
+    pub queue: ::core::option::Option<String>,
     /// Status of the item. Output only field.
     #[serde(default)]
-    pub status: Option<ItemStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ItemStatus>>,
     /// The structured data for the item that should conform to a registered object definition in the schema for the data source.
     #[serde(default, rename = "structuredData")]
-    pub structured_data: Option<ItemStructuredData>,
+    pub structured_data: ::core::option::Option<::std::boxed::Box<ItemStructuredData>>,
     /// Required. The indexing system stores the version from the datasource as a byte string and compares the Item version in the index to the version of the queued Item using lexical ordering. Cloud Search Indexing won''t index or delete any queued item with a version value that is less than or equal to the version of the currently indexed item. The maximum length for this field is 1024 bytes. For information on how item version affects the deletion process, refer to [Handle revisions after manual deletes](https://developers.google.com/workspace/cloud-search/docs/guides/operations).
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Access control list information for the item. For more information see [Map ACLs](https://developers.google.com/workspace/cloud-search/docs/guides/acls).
@@ -1694,19 +1793,19 @@ pub struct Item {
 pub struct ItemAcl {
     /// Sets the type of access rules to apply when an item inherits its ACL from a parent. This should always be set in tandem with the inheritAclFrom field. Also, when the inheritAclFrom field is set, this field should be set to a valid AclInheritanceType. // TODO: enum values: ["NOT_APPLICABLE", "CHILD_OVERRIDE", "PARENT_OVERRIDE", "BOTH_PERMIT"]
     #[serde(default, rename = "aclInheritanceType")]
-    pub acl_inheritance_type: Option<String>,
+    pub acl_inheritance_type: ::core::option::Option<String>,
     /// List of principals who are explicitly denied access to the item in search results. While principals are denied access by default, use denied readers to handle exceptions and override the list allowed readers. The maximum number of elements is 100.
     #[serde(default, rename = "deniedReaders")]
-    pub denied_readers: Option<Vec<Principal>>,
+    pub denied_readers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Principal>>>,
     /// The name of the item to inherit the Access Permission List (ACL) from. Note: ACL inheritance *only* provides access permissions to child items and does not define structural relationships, nor does it provide convenient ways to delete large groups of items. Deleting an ACL parent from the index only alters the access permissions of child items that reference the parent in the inheritAclFrom field. The item is still in the index, but may not visible in search results. By contrast, deletion of a container item also deletes all items that reference the container via the containerName field. The maximum length for this field is 1536 characters.
     #[serde(default, rename = "inheritAclFrom")]
-    pub inherit_acl_from: Option<String>,
+    pub inherit_acl_from: ::core::option::Option<String>,
     /// Optional. List of owners for the item. This field has no bearing on document access permissions. It does, however, offer a slight ranking boosts items where the querying user is an owner. The maximum number of elements is 5.
     #[serde(default)]
-    pub owners: Option<Vec<Principal>>,
+    pub owners: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Principal>>>,
     /// List of principals who are allowed to see the item in search results. Optional if inheriting permissions from another item or if the item is not intended to be visible, such as virtual containers. The maximum number of elements is 1000.
     #[serde(default)]
-    pub readers: Option<Vec<Principal>>,
+    pub readers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Principal>>>,
 }
 
 /// Content of an item to be indexed and surfaced by Cloud Search. Only UTF-8 encoded strings are allowed as inlineContent. If the content is uploaded and not binary, it must be UTF-8 encoded.
@@ -1714,16 +1813,16 @@ pub struct ItemAcl {
 pub struct ItemContent {
     /// Upload reference ID of a previously uploaded content via write method.
     #[serde(default, rename = "contentDataRef")]
-    pub content_data_ref: Option<UploadItemRef>,
+    pub content_data_ref: ::core::option::Option<::std::boxed::Box<UploadItemRef>>,
     /// TODO: enum values: ["UNSPECIFIED", "HTML", "TEXT", "RAW"]
     #[serde(default, rename = "contentFormat")]
-    pub content_format: Option<String>,
+    pub content_format: ::core::option::Option<String>,
     /// Hashing info calculated and provided by the API client for content. Can be used with the items.push method to calculate modified state. The maximum length is 2048 characters.
     #[serde(default)]
-    pub hash: Option<String>,
+    pub hash: ::core::option::Option<String>,
     /// Content that is supplied inlined within the update method. The maximum length is 102400 bytes (100 KiB).
     #[serde(default, rename = "inlineContent")]
-    pub inline_content: Option<String>,
+    pub inline_content: ::core::option::Option<String>,
 }
 
 /// ItemCountByStatus resource type.
@@ -1731,13 +1830,13 @@ pub struct ItemContent {
 pub struct ItemCountByStatus {
     /// Number of items matching the status code.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Number of items matching the status code for which billing is done. This excludes virtual container items from the total count. This count would not be applicable for items with ERROR or NEW_ITEM status code.
     #[serde(default, rename = "indexedItemsCount")]
-    pub indexed_items_count: Option<String>,
+    pub indexed_items_count: ::core::option::Option<String>,
     /// Status of the items. // TODO: enum values: ["CODE_UNSPECIFIED", "ERROR", "MODIFIED", "NEW_ITEM", "ACCEPTED"]
     #[serde(default, rename = "statusCode")]
-    pub status_code: Option<String>,
+    pub status_code: ::core::option::Option<String>,
 }
 
 /// Available metadata fields for the item.
@@ -1745,43 +1844,44 @@ pub struct ItemCountByStatus {
 pub struct ItemMetadata {
     /// The name of the container for this item. Deletion of the container item leads to automatic deletion of this item. Note: ACLs are not inherited from a container item. To provide ACL inheritance for an item, use the inheritAclFrom field. The maximum length is 1536 characters.
     #[serde(default, rename = "containerName")]
-    pub container_name: Option<String>,
+    pub container_name: ::core::option::Option<String>,
     /// The BCP-47 language code for the item, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier. The maximum length is 32 characters.
     #[serde(default, rename = "contentLanguage")]
-    pub content_language: Option<String>,
+    pub content_language: ::core::option::Option<String>,
     /// A set of named attributes associated with the item. This can be used for influencing the ranking of the item based on the context in the request. The maximum number of elements is 10.
     #[serde(default, rename = "contextAttributes")]
-    pub context_attributes: Option<Vec<ContextAttribute>>,
+    pub context_attributes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContextAttribute>>>,
     /// The time when the item was created in the source repository.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Hashing value provided by the API caller. This can be used with the items.push method to calculate modified state. The maximum length is 2048 characters.
     #[serde(default)]
-    pub hash: Option<String>,
+    pub hash: ::core::option::Option<String>,
     /// A list of interactions for the item. Interactions are used to improve Search quality, but are not exposed to end users. The maximum number of elements is 1000.
     #[serde(default)]
-    pub interactions: Option<Vec<Interaction>>,
+    pub interactions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Interaction>>>,
     /// Additional keywords or phrases that should match the item. Used internally for user generated content. The maximum number of elements is 100. The maximum length is 8192 characters.
     #[serde(default)]
-    pub keywords: Option<Vec<String>>,
+    pub keywords: ::core::option::Option<::std::vec::Vec<String>>,
     /// The original mime-type of ItemContent.content in the source repository. The maximum length is 256 characters.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// The type of the item. This should correspond to the name of an object definition in the schema registered for the data source. For example, if the schema for the data source contains an object definition with name ''document'', then item indexing requests for objects of that type should set objectType to ''document''. The maximum length is 256 characters.
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
     /// Additional search quality metadata of the item
     #[serde(default, rename = "searchQualityMetadata")]
-    pub search_quality_metadata: Option<SearchQualityMetadata>,
+    pub search_quality_metadata: ::core::option::Option<::std::boxed::Box<SearchQualityMetadata>>,
     /// Link to the source repository serving the data. Seach results apply this link to the title. Whitespace or special characters may cause Cloud Seach result links to trigger a redirect notice; to avoid this, encode the URL. The maximum length is 2048 characters.
     #[serde(default, rename = "sourceRepositoryUrl")]
-    pub source_repository_url: Option<String>,
+    pub source_repository_url: ::core::option::Option<String>,
     /// The title of the item. If given, this will be the displayed title of the Search result. The maximum length is 2048 characters.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The time when the item was last modified in the source repository.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// This contains item''s status and any errors.
@@ -1789,13 +1889,15 @@ pub struct ItemMetadata {
 pub struct ItemStatus {
     /// Status code. // TODO: enum values: ["CODE_UNSPECIFIED", "ERROR", "MODIFIED", "NEW_ITEM", "ACCEPTED"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Error details in case the item is in ERROR state.
     #[serde(default, rename = "processingErrors")]
-    pub processing_errors: Option<Vec<ProcessingError>>,
+    pub processing_errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProcessingError>>>,
     /// Repository error reported by connector.
     #[serde(default, rename = "repositoryErrors")]
-    pub repository_errors: Option<Vec<RepositoryError>>,
+    pub repository_errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RepositoryError>>>,
 }
 
 /// Available structured data fields for the item.
@@ -1803,10 +1905,10 @@ pub struct ItemStatus {
 pub struct ItemStructuredData {
     /// Hashing value provided by the API caller. This can be used with the items.push method to calculate modified state. The maximum length is 2048 characters.
     #[serde(default)]
-    pub hash: Option<String>,
+    pub hash: ::core::option::Option<String>,
     /// The structured data object that should conform to a registered object definition in the schema for the data source.
     #[serde(default)]
-    pub object: Option<StructuredDataObject>,
+    pub object: ::core::option::Option<::std::boxed::Box<StructuredDataObject>>,
 }
 
 /// ListDataSourceResponse resource type.
@@ -1814,29 +1916,29 @@ pub struct ItemStructuredData {
 pub struct ListDataSourceResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub sources: Option<Vec<DataSource>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSource>>>,
 }
 
 /// ListItemNamesForUnmappedIdentityResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListItemNamesForUnmappedIdentityResponse {
     #[serde(default, rename = "itemNames")]
-    pub item_names: Option<Vec<String>>,
+    pub item_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListItemsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListItemsResponse {
     #[serde(default)]
-    pub items: Option<Vec<Item>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Item>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1844,22 +1946,22 @@ pub struct ListItemsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// List sources response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListQuerySourcesResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub sources: Option<Vec<QuerySource>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QuerySource>>>,
 }
 
 /// ListSearchApplicationsResponse resource type.
@@ -1867,9 +1969,10 @@ pub struct ListQuerySourcesResponse {
 pub struct ListSearchApplicationsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "searchApplications")]
-    pub search_applications: Option<Vec<SearchApplication>>,
+    pub search_applications:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SearchApplication>>>,
 }
 
 /// ListUnmappedIdentitiesResponse resource type.
@@ -1877,9 +1980,10 @@ pub struct ListSearchApplicationsResponse {
 pub struct ListUnmappedIdentitiesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "unmappedIdentities")]
-    pub unmapped_identities: Option<Vec<UnmappedIdentity>>,
+    pub unmapped_identities:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UnmappedIdentity>>>,
 }
 
 /// Geo information used for rendering a map that shows the user''s work location.
@@ -1887,19 +1991,19 @@ pub struct ListUnmappedIdentitiesResponse {
 pub struct MapInfo {
     /// Latitude in degrees
     #[serde(default)]
-    pub lat: Option<f64>,
+    pub lat: ::core::option::Option<f64>,
     /// URL to a view of a map centered on the user''s work location in Campus Maps (for google.com) or Google Maps (external).
     #[serde(default, rename = "locationUrl")]
-    pub location_url: Option<SafeUrlProto>,
+    pub location_url: ::core::option::Option<::std::boxed::Box<SafeUrlProto>>,
     /// Longitude in degrees
     #[serde(default)]
-    pub long: Option<f64>,
+    pub long: ::core::option::Option<f64>,
     /// MapTiles for the area around a user''s work location
     #[serde(default, rename = "mapTile")]
-    pub map_tile: Option<Vec<MapTile>>,
+    pub map_tile: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MapTile>>>,
     /// The zoom level of the map. A constant zoom value of 18 is used for now to match the zoom of the map shown on a Moma Teams Profile page
     #[serde(default)]
-    pub zoom: Option<i32>,
+    pub zoom: ::core::option::Option<i32>,
 }
 
 /// Information used to render a map tile image in the proper location on a map.
@@ -1907,13 +2011,13 @@ pub struct MapInfo {
 pub struct MapTile {
     /// URL to an image file containing an office layout of the user''s location for their organization, if one is available. For google.com, this image is from Corp Campus Maps.
     #[serde(default, rename = "imageUrl")]
-    pub image_url: Option<SafeUrlProto>,
+    pub image_url: ::core::option::Option<::std::boxed::Box<SafeUrlProto>>,
     /// Map tile x coordinate
     #[serde(default, rename = "tileX")]
-    pub tile_x: Option<f64>,
+    pub tile_x: ::core::option::Option<f64>,
     /// Map tile y coordinate
     #[serde(default, rename = "tileY")]
-    pub tile_y: Option<f64>,
+    pub tile_y: ::core::option::Option<f64>,
 }
 
 /// Matched range of a snippet [start, end).
@@ -1921,10 +2025,10 @@ pub struct MapTile {
 pub struct MatchRange {
     /// End of the match in the snippet.
     #[serde(default)]
-    pub end: Option<i32>,
+    pub end: ::core::option::Option<i32>,
     /// Starting position of the match in the snippet.
     #[serde(default)]
-    pub start: Option<i32>,
+    pub start: ::core::option::Option<i32>,
 }
 
 /// Media resource.
@@ -1932,7 +2036,7 @@ pub struct MatchRange {
 pub struct Media {
     /// Name of the media resource.
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// Metadata of a matched search result.
@@ -1940,31 +2044,31 @@ pub struct Media {
 pub struct Metadata {
     /// The creation time for this document or object in the search result.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Options that specify how to display a structured data search result.
     #[serde(default, rename = "displayOptions")]
-    pub display_options: Option<ResultDisplayMetadata>,
+    pub display_options: ::core::option::Option<::std::boxed::Box<ResultDisplayMetadata>>,
     /// Indexed fields in structured data, returned as a generic named property.
     #[serde(default)]
-    pub fields: Option<Vec<NamedProperty>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NamedProperty>>>,
     /// Mime type of the search result.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Object type of the search result.
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
     /// Owner (usually creator) of the document or object of the search result.
     #[serde(default)]
-    pub owner: Option<Person>,
+    pub owner: ::core::option::Option<::std::boxed::Box<Person>>,
     /// The named source for the result, such as Gmail.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
     /// The thumbnail URL of the result.
     #[serde(default, rename = "thumbnailUrl")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: ::core::option::Option<String>,
     /// The last modified date for the object in the search result. If not set in the item, the value returned here is empty. When updateTime is used for calculating freshness and is not set, this value defaults to 2 years from the current time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A metaline is a list of properties that are displayed along with the search result to provide context.
@@ -1972,7 +2076,7 @@ pub struct Metadata {
 pub struct Metaline {
     /// The list of displayed properties for the metaline. The maximum number of properties is 5.
     #[serde(default)]
-    pub properties: Option<Vec<DisplayedProperty>>,
+    pub properties: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DisplayedProperty>>>,
 }
 
 /// A person''s name.
@@ -1980,33 +2084,33 @@ pub struct Metaline {
 pub struct Name {
     /// The read-only display name formatted according to the locale specified by the viewer''s account or the Accept-Language HTTP header.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// A typed name-value pair for structured data. The type of the value should be the same as the registered type for the name property in the object definition of objectType.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NamedProperty {
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "dateValues")]
-    pub date_values: Option<DateValues>,
+    pub date_values: ::core::option::Option<::std::boxed::Box<DateValues>>,
     #[serde(default, rename = "doubleValues")]
-    pub double_values: Option<DoubleValues>,
+    pub double_values: ::core::option::Option<::std::boxed::Box<DoubleValues>>,
     #[serde(default, rename = "enumValues")]
-    pub enum_values: Option<EnumValues>,
+    pub enum_values: ::core::option::Option<::std::boxed::Box<EnumValues>>,
     #[serde(default, rename = "htmlValues")]
-    pub html_values: Option<HtmlValues>,
+    pub html_values: ::core::option::Option<::std::boxed::Box<HtmlValues>>,
     #[serde(default, rename = "integerValues")]
-    pub integer_values: Option<IntegerValues>,
+    pub integer_values: ::core::option::Option<::std::boxed::Box<IntegerValues>>,
     /// The name of the property. This name should correspond to the name of the property that was registered for object definition in the schema. The maximum allowable length for this property is 256 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "objectValues")]
-    pub object_values: Option<ObjectValues>,
+    pub object_values: ::core::option::Option<::std::boxed::Box<ObjectValues>>,
     #[serde(default, rename = "textValues")]
-    pub text_values: Option<TextValues>,
+    pub text_values: ::core::option::Option<::std::boxed::Box<TextValues>>,
     #[serde(default, rename = "timestampValues")]
-    pub timestamp_values: Option<TimestampValues>,
+    pub timestamp_values: ::core::option::Option<::std::boxed::Box<TimestampValues>>,
 }
 
 /// The definition for an object within a data source.
@@ -2014,13 +2118,14 @@ pub struct NamedProperty {
 pub struct ObjectDefinition {
     /// The name for the object, which then defines its type. Item indexing requests should set the objectType field equal to this value. For example, if *name* is *Document*, then indexing requests for items of type Document should set objectType equal to *Document*. Each object definition must be uniquely named within a schema. The name must start with a letter and can only contain letters (A-Z, a-z) or numbers (0-9). The maximum length is 256 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The optional object-specific options.
     #[serde(default)]
-    pub options: Option<ObjectOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<ObjectOptions>>,
     /// The property definitions for the object. The maximum number of elements is 1000.
     #[serde(default, rename = "propertyDefinitions")]
-    pub property_definitions: Option<Vec<PropertyDefinition>>,
+    pub property_definitions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PropertyDefinition>>>,
 }
 
 /// The display options for an object.
@@ -2028,10 +2133,10 @@ pub struct ObjectDefinition {
 pub struct ObjectDisplayOptions {
     /// Defines the properties that are displayed in the metalines of the search results. The property values are displayed in the order given here. If a property holds multiple values, all of the values are displayed before the next properties. For this reason, it is a good practice to specify singular properties before repeated properties in this list. All of the properties must set is_returnable to true. The maximum number of metalines is 3.
     #[serde(default)]
-    pub metalines: Option<Vec<Metaline>>,
+    pub metalines: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metaline>>>,
     /// The user friendly label to display in the search result to indicate the type of the item. This is OPTIONAL; if not provided, an object label isn''t displayed on the context line of the search results. The maximum length is 64 characters.
     #[serde(default, rename = "objectDisplayLabel")]
-    pub object_display_label: Option<String>,
+    pub object_display_label: ::core::option::Option<String>,
 }
 
 /// The options for an object.
@@ -2039,13 +2144,13 @@ pub struct ObjectDisplayOptions {
 pub struct ObjectOptions {
     /// The options that determine how the object is displayed in the Cloud Search results page.
     #[serde(default, rename = "displayOptions")]
-    pub display_options: Option<ObjectDisplayOptions>,
+    pub display_options: ::core::option::Option<::std::boxed::Box<ObjectDisplayOptions>>,
     /// The freshness options for an object.
     #[serde(default, rename = "freshnessOptions")]
-    pub freshness_options: Option<FreshnessOptions>,
+    pub freshness_options: ::core::option::Option<::std::boxed::Box<FreshnessOptions>>,
     /// Operators that can be used to filter suggestions. For Suggest API, only operators mentioned here will be honored in the FilterOptions. Only TEXT and ENUM operators are supported. NOTE: "objecttype", "type" and "mimetype" are already supported. This property is to configure schema specific operators. Even though this is an array, only one operator can be specified. This is an array for future extensibility. Operators mapping to multiple properties within the same object are not supported. If the operator spans across different object types, this option has to be set once for each object definition.
     #[serde(default, rename = "suggestionFilteringOperators")]
-    pub suggestion_filtering_operators: Option<Vec<String>>,
+    pub suggestion_filtering_operators: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The options for object properties.
@@ -2053,14 +2158,15 @@ pub struct ObjectOptions {
 pub struct ObjectPropertyOptions {
     /// The properties of the sub-object. These properties represent a nested object. For example, if this property represents a postal address, the subobjectProperties might be named *street*, *city*, and *state*. The maximum number of elements is 1000.
     #[serde(default, rename = "subobjectProperties")]
-    pub subobject_properties: Option<Vec<PropertyDefinition>>,
+    pub subobject_properties:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PropertyDefinition>>>,
 }
 
 /// List of object values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObjectValues {
     #[serde(default)]
-    pub values: Option<Vec<StructuredDataObject>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StructuredDataObject>>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -2068,26 +2174,26 @@ pub struct ObjectValues {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// PeoplePromotionCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PeoplePromotionCard {
     #[serde(default)]
-    pub people: Option<Vec<PersonCore>>,
+    pub people: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersonCore>>>,
 }
 
 /// This field contains information about the person being suggested.
@@ -2095,7 +2201,7 @@ pub struct PeoplePromotionCard {
 pub struct PeopleSuggestion {
     /// Suggested person. All fields of the person object might not be populated.
     #[serde(default)]
-    pub person: Option<Person>,
+    pub person: ::core::option::Option<::std::boxed::Box<Person>>,
 }
 
 /// Object to represent a person.
@@ -2103,22 +2209,22 @@ pub struct PeopleSuggestion {
 pub struct Person {
     /// The person''s email addresses
     #[serde(default, rename = "emailAddresses")]
-    pub email_addresses: Option<Vec<EmailAddress>>,
+    pub email_addresses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EmailAddress>>>,
     /// The resource name of the person to provide information about. See [People.get](https://developers.google.com/people/api/rest/v1/people/get) from the Google People API.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Obfuscated ID of a person.
     #[serde(default, rename = "obfuscatedId")]
-    pub obfuscated_id: Option<String>,
+    pub obfuscated_id: ::core::option::Option<String>,
     /// The person''s name
     #[serde(default, rename = "personNames")]
-    pub person_names: Option<Vec<Name>>,
+    pub person_names: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Name>>>,
     /// The person''s phone numbers
     #[serde(default, rename = "phoneNumbers")]
-    pub phone_numbers: Option<Vec<PhoneNumber>>,
+    pub phone_numbers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PhoneNumber>>>,
     /// A person''s read-only photo. A picture shown next to the person''s name to help others recognize the person in search results.
     #[serde(default)]
-    pub photos: Option<Vec<Photo>>,
+    pub photos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Photo>>>,
 }
 
 /// Information for rendering a person. NEXT ID: 37
@@ -2126,108 +2232,113 @@ pub struct Person {
 pub struct PersonCore {
     /// Instructions for how to address this person (e.g. custom pronouns). For google.com this is a set of pronouns from a defined list of options.
     #[serde(default, rename = "addressMeAs")]
-    pub address_me_as: Option<String>,
+    pub address_me_as: ::core::option::Option<String>,
     /// People the profile owner is an admin to. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "adminTo")]
-    pub admin_to: Option<Vec<PersonCore>>,
+    pub admin_to: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersonCore>>>,
     /// The profile owner''s admins in no particular order. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default)]
-    pub admins: Option<Vec<PersonCore>>,
+    pub admins: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersonCore>>>,
     /// TODO: enum values: ["UNKNOWN", "OUT_OF_OFFICE", "OUTSIDE_WORKING_HOURS", "AVAILABLE"]
     #[serde(default, rename = "availabilityStatus")]
-    pub availability_status: Option<String>,
+    pub availability_status: ::core::option::Option<String>,
     /// Person birthday.
     #[serde(default)]
-    pub birthday: Option<Date>,
+    pub birthday: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The URL to open the profile owner''s primary calendar.
     #[serde(default, rename = "calendarUrl")]
-    pub calendar_url: Option<SafeUrlProto>,
+    pub calendar_url: ::core::option::Option<::std::boxed::Box<SafeUrlProto>>,
     /// The URL to start a chat conversation with the profile owner. For google.com this is a Hangouts URL.
     #[serde(default, rename = "chatUrl")]
-    pub chat_url: Option<SafeUrlProto>,
+    pub chat_url: ::core::option::Option<::std::boxed::Box<SafeUrlProto>>,
     /// Person''s cost center as a string, e.g. "926: Googler Apps".
     #[serde(default, rename = "costCenter")]
-    pub cost_center: Option<String>,
+    pub cost_center: ::core::option::Option<String>,
     /// The person''s Organization department, e.g. "People Operations". For google.com this is usually called "area".
     #[serde(default)]
-    pub department: Option<String>,
+    pub department: ::core::option::Option<String>,
     /// A subset of the profile owner''s direct reports. The number of entities here may be less than total_direct_reports_count, because typically ProfileResponse does not include all the person''s reports, if there are too many to retrieve efficiently. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "directReports")]
-    pub direct_reports: Option<Vec<PersonCore>>,
+    pub direct_reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersonCore>>>,
     /// The profile owner''s direct dotted line managers in no particular order. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "dottedLineManagers")]
-    pub dotted_line_managers: Option<Vec<PersonCore>>,
+    pub dotted_line_managers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersonCore>>>,
     /// A subset of the profile owner''s dotted-line reports. The number of entities here may be less than total_dlr_count. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "dottedLineReports")]
-    pub dotted_line_reports: Option<Vec<PersonCore>>,
+    pub dotted_line_reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersonCore>>>,
     /// E-mail addresses of the person. The primary or preferred email should be first.
     #[serde(default)]
-    pub emails: Option<Vec<String>>,
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// Person''s employee number (external ID of type "organization") For google.com this is the badge number (e.g. 2 for Larry Page).
     #[serde(default, rename = "employeeId")]
-    pub employee_id: Option<String>,
+    pub employee_id: ::core::option::Option<String>,
     /// A fingerprint used by PAPI to reliably determine if a resource has changed Externally it is used as part of the etag.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Full-time equivalent (in ‰) (e.g. 800 for a person who''s working 80%).
     #[serde(default, rename = "ftePermille")]
-    pub fte_permille: Option<String>,
+    pub fte_permille: ::core::option::Option<String>,
     #[serde(default, rename = "geoLocation")]
-    pub geo_location: Option<MapInfo>,
+    pub geo_location: ::core::option::Option<::std::boxed::Box<MapInfo>>,
     #[serde(default, rename = "gmailUrl")]
-    pub gmail_url: Option<String>,
+    pub gmail_url: ::core::option::Option<String>,
     /// Profile owner''s job title (e.g. "Software Engineer"). For google.com this is the Workday preferred job title.
     #[serde(default, rename = "jobTitle")]
-    pub job_title: Option<String>,
+    pub job_title: ::core::option::Option<String>,
     /// List of keys to use from the map ''keywords''.
     #[serde(default, rename = "keywordTypes")]
-    pub keyword_types: Option<Vec<String>>,
+    pub keyword_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Custom keywords the domain admin has added.
     #[serde(default)]
-    pub keywords: Option<serde_json::Value>,
+    pub keywords: ::core::option::Option<serde_json::Value>,
     /// Custom links the profile owner has added.
     #[serde(default)]
-    pub links: Option<Vec<EnterpriseTopazFrontendTeamsLink>>,
+    pub links: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazFrontendTeamsLink>>,
+    >,
     /// Detailed desk location within the company. For google.com this is the desk location code (e.g. "DE-MUC-ARP-6T2-6T2C0C") if the person has a desk.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The profile owner''s management chain from top to bottom, where managers[0] is the CEO, manager[N-2] is the person''s manager''s manager and managers[N-1] is the person''s direct manager. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default)]
-    pub managers: Option<Vec<PersonCore>>,
+    pub managers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PersonCore>>>,
     /// Custom mission statement the profile owner has added.
     #[serde(default)]
-    pub mission: Option<String>,
+    pub mission: ::core::option::Option<String>,
     /// Human-readable Unicode display name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Office/building identifier within the company. For google.com this is the office code (e.g. "DE-MUC-ARP").
     #[serde(default, rename = "officeLocation")]
-    pub office_location: Option<String>,
+    pub office_location: ::core::option::Option<String>,
     /// The person''s obfuscated Gaia ID.
     #[serde(default, rename = "personId")]
-    pub person_id: Option<String>,
+    pub person_id: ::core::option::Option<String>,
     #[serde(default, rename = "phoneNumbers")]
-    pub phone_numbers: Option<Vec<EnterpriseTopazFrontendTeamsPersonCorePhoneNumber>>,
+    pub phone_numbers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazFrontendTeamsPersonCorePhoneNumber>>,
+    >,
     /// Person photo.
     #[serde(default, rename = "photoUrl")]
-    pub photo_url: Option<SafeUrlProto>,
+    pub photo_url: ::core::option::Option<::std::boxed::Box<SafeUrlProto>>,
     /// Postal address of office/building.
     #[serde(default, rename = "postalAddress")]
-    pub postal_address: Option<String>,
+    pub postal_address: ::core::option::Option<String>,
     /// Total count of the profile owner''s direct reports.
     #[serde(default, rename = "totalDirectReportsCount")]
-    pub total_direct_reports_count: Option<i32>,
+    pub total_direct_reports_count: ::core::option::Option<i32>,
     /// Total count of the profile owner''s dotted-line reports.
     #[serde(default, rename = "totalDlrCount")]
-    pub total_dlr_count: Option<i32>,
+    pub total_dlr_count: ::core::option::Option<i32>,
     /// The sum of all profile owner''s reports and their own full-time-equivalents in ‰ (e.g. 1800 if one report is working 80% and profile owner 100%).
     #[serde(default, rename = "totalFteCount")]
-    pub total_fte_count: Option<String>,
+    pub total_fte_count: ::core::option::Option<String>,
     /// External ID of type "login_id" for the profile. For google.com this is the username/LDAP.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
     #[serde(default, rename = "waldoComeBackTime")]
-    pub waldo_come_back_time: Option<String>,
+    pub waldo_come_back_time: ::core::option::Option<String>,
 }
 
 /// A person''s Phone Number
@@ -2235,10 +2346,10 @@ pub struct PersonCore {
 pub struct PhoneNumber {
     /// The phone number of the person.
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
     /// TODO: enum values: ["OTHER", "MOBILE", "OFFICE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A person''s photo.
@@ -2246,7 +2357,7 @@ pub struct PhoneNumber {
 pub struct Photo {
     /// The URL of the photo.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// PollItemsRequest resource type.
@@ -2254,19 +2365,19 @@ pub struct Photo {
 pub struct PollItemsRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
-    pub connector_name: Option<String>,
+    pub connector_name: ::core::option::Option<String>,
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// Maximum number of items to return. The maximum value is 100 and the default value is 20.
     #[serde(default)]
-    pub limit: Option<i32>,
+    pub limit: ::core::option::Option<i32>,
     /// Queue name to fetch items from. If unspecified, PollItems will fetch from ''default'' queue. The maximum length is 100 characters.
     #[serde(default)]
-    pub queue: Option<String>,
+    pub queue: ::core::option::Option<String>,
     /// Limit the items polled to the ones with these statuses.
     #[serde(default, rename = "statusCodes")]
-    pub status_codes: Option<Vec<String>>,
+    pub status_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// PollItemsResponse resource type.
@@ -2274,7 +2385,7 @@ pub struct PollItemsRequest {
 pub struct PollItemsResponse {
     /// Set of items from the queue available for connector to process. These items have the following subset of fields populated: version metadata.hash structured_data.hash content.hash payload status queue
     #[serde(default)]
-    pub items: Option<Vec<Item>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Item>>>,
 }
 
 /// Reference to a user, group, or domain.
@@ -2282,13 +2393,13 @@ pub struct PollItemsResponse {
 pub struct Principal {
     /// This principal is a group identified using an external identity. The name field must specify the group resource name with this format: identitysources/{source_id}/groups/{ID}
     #[serde(default, rename = "groupResourceName")]
-    pub group_resource_name: Option<String>,
+    pub group_resource_name: ::core::option::Option<String>,
     /// This principal is a Google Workspace user, group or domain.
     #[serde(default, rename = "gsuitePrincipal")]
-    pub gsuite_principal: Option<GSuitePrincipal>,
+    pub gsuite_principal: ::core::option::Option<::std::boxed::Box<GSuitePrincipal>>,
     /// This principal is a user identified using an external identity. The name field must specify the user resource name with this format: identitysources/{source_id}/users/{ID}
     #[serde(default, rename = "userResourceName")]
-    pub user_resource_name: Option<String>,
+    pub user_resource_name: ::core::option::Option<String>,
 }
 
 /// ProcessingError resource type.
@@ -2296,60 +2407,62 @@ pub struct Principal {
 pub struct ProcessingError {
     /// Error code indicating the nature of the error. // TODO: enum values: ["PROCESSING_ERROR_CODE_UNSPECIFIED", "MALFORMED_REQUEST", "UNSUPPORTED_CONTENT_FORMAT", "INDIRECT_BROKEN_ACL", "ACL_CYCLE"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// The description of the error.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// In case the item fields are invalid, this field contains the details about the validation errors.
     #[serde(default, rename = "fieldViolations")]
-    pub field_violations: Option<Vec<FieldViolation>>,
+    pub field_violations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldViolation>>>,
 }
 
 /// The definition of a property within an object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PropertyDefinition {
     #[serde(default, rename = "booleanPropertyOptions")]
-    pub boolean_property_options: Option<BooleanPropertyOptions>,
+    pub boolean_property_options: ::core::option::Option<::std::boxed::Box<BooleanPropertyOptions>>,
     #[serde(default, rename = "datePropertyOptions")]
-    pub date_property_options: Option<DatePropertyOptions>,
+    pub date_property_options: ::core::option::Option<::std::boxed::Box<DatePropertyOptions>>,
     /// The options that determine how the property is displayed in the Cloud Search results page if it''s specified to be displayed in the object''s display options.
     #[serde(default, rename = "displayOptions")]
-    pub display_options: Option<PropertyDisplayOptions>,
+    pub display_options: ::core::option::Option<::std::boxed::Box<PropertyDisplayOptions>>,
     #[serde(default, rename = "doublePropertyOptions")]
-    pub double_property_options: Option<DoublePropertyOptions>,
+    pub double_property_options: ::core::option::Option<::std::boxed::Box<DoublePropertyOptions>>,
     #[serde(default, rename = "enumPropertyOptions")]
-    pub enum_property_options: Option<EnumPropertyOptions>,
+    pub enum_property_options: ::core::option::Option<::std::boxed::Box<EnumPropertyOptions>>,
     #[serde(default, rename = "htmlPropertyOptions")]
-    pub html_property_options: Option<HtmlPropertyOptions>,
+    pub html_property_options: ::core::option::Option<::std::boxed::Box<HtmlPropertyOptions>>,
     #[serde(default, rename = "integerPropertyOptions")]
-    pub integer_property_options: Option<IntegerPropertyOptions>,
+    pub integer_property_options: ::core::option::Option<::std::boxed::Box<IntegerPropertyOptions>>,
     /// Indicates that the property can be used for generating facets. Cannot be true for properties whose type is object. IsReturnable must be true to set this option. Only supported for boolean, enum, integer, and text properties.
     #[serde(default, rename = "isFacetable")]
-    pub is_facetable: Option<bool>,
+    pub is_facetable: ::core::option::Option<bool>,
     /// Indicates that multiple values are allowed for the property. For example, a document only has one description but can have multiple comments. Cannot be true for properties whose type is a boolean. If set to false, properties that contain more than one value cause the indexing request for that item to be rejected.
     #[serde(default, rename = "isRepeatable")]
-    pub is_repeatable: Option<bool>,
+    pub is_repeatable: ::core::option::Option<bool>,
     /// Indicates that the property identifies data that should be returned in search results via the Query API. If set to *true*, indicates that Query API users can use matching property fields in results. However, storing fields requires more space allocation and uses more bandwidth for search queries, which impacts performance over large datasets. Set to *true* here only if the field is needed for search results. Cannot be true for properties whose type is an object.
     #[serde(default, rename = "isReturnable")]
-    pub is_returnable: Option<bool>,
+    pub is_returnable: ::core::option::Option<bool>,
     /// Indicates that the property can be used for sorting. Cannot be true for properties that are repeatable. Cannot be true for properties whose type is object. IsReturnable must be true to set this option. Only supported for boolean, date, double, integer, and timestamp properties.
     #[serde(default, rename = "isSortable")]
-    pub is_sortable: Option<bool>,
+    pub is_sortable: ::core::option::Option<bool>,
     /// Indicates that the property can be used for generating query suggestions.
     #[serde(default, rename = "isSuggestable")]
-    pub is_suggestable: Option<bool>,
+    pub is_suggestable: ::core::option::Option<bool>,
     /// Indicates that users can perform wildcard search for this property. Only supported for Text properties. IsReturnable must be true to set this option. In a given datasource maximum of 5 properties can be marked as is_wildcard_searchable. For more details, see [Define object properties](https://developers.google.com/workspace/cloud-search/docs/guides/schema-guide#properties)
     #[serde(default, rename = "isWildcardSearchable")]
-    pub is_wildcard_searchable: Option<bool>,
+    pub is_wildcard_searchable: ::core::option::Option<bool>,
     /// The name of the property. Item indexing requests sent to the Indexing API should set the property name equal to this value. For example, if name is *subject_line*, then indexing requests for document items with subject fields should set the name for that field equal to *subject_line*. Use the name as the identifier for the object property. Once registered as a property for an object, you cannot re-use this name for another property within that object. The name must start with a letter and can only contain letters (A-Z, a-z) or numbers (0-9). The maximum length is 256 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "objectPropertyOptions")]
-    pub object_property_options: Option<ObjectPropertyOptions>,
+    pub object_property_options: ::core::option::Option<::std::boxed::Box<ObjectPropertyOptions>>,
     #[serde(default, rename = "textPropertyOptions")]
-    pub text_property_options: Option<TextPropertyOptions>,
+    pub text_property_options: ::core::option::Option<::std::boxed::Box<TextPropertyOptions>>,
     #[serde(default, rename = "timestampPropertyOptions")]
-    pub timestamp_property_options: Option<TimestampPropertyOptions>,
+    pub timestamp_property_options:
+        ::core::option::Option<::std::boxed::Box<TimestampPropertyOptions>>,
 }
 
 /// The display options for a property.
@@ -2357,7 +2470,7 @@ pub struct PropertyDefinition {
 pub struct PropertyDisplayOptions {
     /// The user friendly label for the property that is used if the property is specified to be displayed in ObjectDisplayOptions. If provided, the display label is shown in front of the property values when the property is part of the object display options. For example, if the property value is ''1'', the value by itself may not be useful context for the user. If the display name given was ''priority'', then the user sees ''priority : 1'' in the search results which provides clear context to search users. This is OPTIONAL; if not given, only the property values are displayed. The maximum length is 64 characters.
     #[serde(default, rename = "displayLabel")]
-    pub display_label: Option<String>,
+    pub display_label: ::core::option::Option<String>,
 }
 
 /// Represents an item to be pushed to the indexing queue.
@@ -2365,25 +2478,25 @@ pub struct PropertyDisplayOptions {
 pub struct PushItem {
     /// Content hash of the item according to the repository. If specified, this is used to determine how to modify this item''s status. Setting this field and the type field results in argument error. The maximum length is 2048 characters.
     #[serde(default, rename = "contentHash")]
-    pub content_hash: Option<String>,
+    pub content_hash: ::core::option::Option<String>,
     /// The metadata hash of the item according to the repository. If specified, this is used to determine how to modify this item''s status. Setting this field and the type field results in argument error. The maximum length is 2048 characters.
     #[serde(default, rename = "metadataHash")]
-    pub metadata_hash: Option<String>,
+    pub metadata_hash: ::core::option::Option<String>,
     /// Provides additional document state information for the connector, such as an alternate repository ID and other metadata. The maximum length is 8192 bytes.
     #[serde(default)]
-    pub payload: Option<String>,
+    pub payload: ::core::option::Option<String>,
     /// Queue to which this item belongs. The default queue is chosen if this field is not specified. The maximum length is 512 characters.
     #[serde(default)]
-    pub queue: Option<String>,
+    pub queue: ::core::option::Option<String>,
     /// Populate this field to store Connector or repository error details. This information is displayed in the Admin Console. This field may only be populated when the Type is REPOSITORY_ERROR.
     #[serde(default, rename = "repositoryError")]
-    pub repository_error: Option<RepositoryError>,
+    pub repository_error: ::core::option::Option<::std::boxed::Box<RepositoryError>>,
     /// Structured data hash of the item according to the repository. If specified, this is used to determine how to modify this item''s status. Setting this field and the type field results in argument error. The maximum length is 2048 characters.
     #[serde(default, rename = "structuredDataHash")]
-    pub structured_data_hash: Option<String>,
+    pub structured_data_hash: ::core::option::Option<String>,
     /// The type of the push operation that defines the push behavior. // TODO: enum values: ["UNSPECIFIED", "MODIFIED", "NOT_MODIFIED", "REPOSITORY_ERROR", "REQUEUE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// PushItemRequest resource type.
@@ -2391,13 +2504,13 @@ pub struct PushItem {
 pub struct PushItemRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
-    pub connector_name: Option<String>,
+    pub connector_name: ::core::option::Option<String>,
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// Item to push onto the queue.
     #[serde(default)]
-    pub item: Option<PushItem>,
+    pub item: ::core::option::Option<::std::boxed::Box<PushItem>>,
 }
 
 /// Details about a user''s query activity.
@@ -2405,17 +2518,17 @@ pub struct PushItemRequest {
 pub struct QueryActivity {
     /// User input query to be logged/removed.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// QueryCountByStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryCountByStatus {
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// This represents the http status code.
     #[serde(default, rename = "statusCode")]
-    pub status_code: Option<i32>,
+    pub status_code: ::core::option::Option<i32>,
 }
 
 /// QueryInterpretation resource type.
@@ -2423,19 +2536,19 @@ pub struct QueryCountByStatus {
 pub struct QueryInterpretation {
     /// TODO: enum values: ["NONE", "BLEND", "REPLACE"]
     #[serde(default, rename = "interpretationType")]
-    pub interpretation_type: Option<String>,
+    pub interpretation_type: ::core::option::Option<String>,
     /// The interpretation of the query used in search. For example, queries with natural language intent like "email from john" will be interpreted as "from:john source:mail". This field will not be filled when the reason is NOT_ENOUGH_RESULTS_FOUND_FOR_USER_QUERY.
     #[serde(default, rename = "interpretedQuery")]
-    pub interpreted_query: Option<String>,
+    pub interpreted_query: ::core::option::Option<String>,
     /// The actual number of results returned by the interpreted query.
     #[serde(default, rename = "interpretedQueryActualResultCount")]
-    pub interpreted_query_actual_result_count: Option<i32>,
+    pub interpreted_query_actual_result_count: ::core::option::Option<i32>,
     /// The estimated number of results returned by the interpreted query.
     #[serde(default, rename = "interpretedQueryEstimatedResultCount")]
-    pub interpreted_query_estimated_result_count: Option<String>,
+    pub interpreted_query_estimated_result_count: ::core::option::Option<String>,
     /// The reason for interpretation of the query. This field will not be UNSPECIFIED if the interpretation type is not NONE. // TODO: enum values: ["UNSPECIFIED", "QUERY_HAS_NATURAL_LANGUAGE_INTENT", "NOT_ENOUGH_RESULTS_FOUND_FOR_USER_QUERY"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Default options to interpret user query.
@@ -2443,10 +2556,10 @@ pub struct QueryInterpretation {
 pub struct QueryInterpretationConfig {
     /// Set this flag to disable supplemental results retrieval, setting a flag here will not retrieve supplemental results for queries associated with a given search application. If this flag is set to True, it will take precedence over the option set at Query level. For the default value of False, query level flag will set the correct interpretation for supplemental results.
     #[serde(default, rename = "forceDisableSupplementalResults")]
-    pub force_disable_supplemental_results: Option<bool>,
+    pub force_disable_supplemental_results: ::core::option::Option<bool>,
     /// Enable this flag to turn off all internal optimizations like natural language (NL) interpretation of queries, supplemental results retrieval, and usage of synonyms including custom ones. If this flag is set to True, it will take precedence over the option set at Query level. For the default value of False, query level flag will set the correct interpretation for verbatim mode.
     #[serde(default, rename = "forceVerbatimMode")]
-    pub force_verbatim_mode: Option<bool>,
+    pub force_verbatim_mode: ::core::option::Option<bool>,
 }
 
 /// Options to interpret user query.
@@ -2454,13 +2567,13 @@ pub struct QueryInterpretationConfig {
 pub struct QueryInterpretationOptions {
     /// Flag to disable natural language (NL) interpretation of queries. Default is false, Set to true to disable natural language interpretation. NL interpretation only applies to predefined datasources.
     #[serde(default, rename = "disableNlInterpretation")]
-    pub disable_nl_interpretation: Option<bool>,
+    pub disable_nl_interpretation: ::core::option::Option<bool>,
     /// Use this flag to disable supplemental results for a query. Supplemental results setting chosen at SearchApplication level will take precedence if set to True.
     #[serde(default, rename = "disableSupplementalResults")]
-    pub disable_supplemental_results: Option<bool>,
+    pub disable_supplemental_results: ::core::option::Option<bool>,
     /// Enable this flag to turn off all internal optimizations like natural language (NL) interpretation of queries, supplemental result retrieval, and usage of synonyms including custom ones. Nl interpretation will be disabled if either one of the two flags is true.
     #[serde(default, rename = "enableVerbatimMode")]
-    pub enable_verbatim_mode: Option<bool>,
+    pub enable_verbatim_mode: ::core::option::Option<bool>,
 }
 
 /// Information relevant only to a query entry.
@@ -2468,7 +2581,7 @@ pub struct QueryInterpretationOptions {
 pub struct QueryItem {
     /// True if the text was generated by means other than a previous user search.
     #[serde(default, rename = "isSynthetic")]
-    pub is_synthetic: Option<bool>,
+    pub is_synthetic: ::core::option::Option<bool>,
 }
 
 /// The definition of a operator that can be used in a Search/Suggest request.
@@ -2476,40 +2589,40 @@ pub struct QueryItem {
 pub struct QueryOperator {
     /// Display name of the operator
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Potential list of values for the opeatror field. This field is only filled when we can safely enumerate all the possible values of this operator.
     #[serde(default, rename = "enumValues")]
-    pub enum_values: Option<Vec<String>>,
+    pub enum_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Indicates the operator name that can be used to isolate the property using the greater-than operator.
     #[serde(default, rename = "greaterThanOperatorName")]
-    pub greater_than_operator_name: Option<String>,
+    pub greater_than_operator_name: ::core::option::Option<String>,
     /// Can this operator be used to get facets.
     #[serde(default, rename = "isFacetable")]
-    pub is_facetable: Option<bool>,
+    pub is_facetable: ::core::option::Option<bool>,
     /// Indicates if multiple values can be set for this property.
     #[serde(default, rename = "isRepeatable")]
-    pub is_repeatable: Option<bool>,
+    pub is_repeatable: ::core::option::Option<bool>,
     /// Will the property associated with this facet be returned as part of search results.
     #[serde(default, rename = "isReturnable")]
-    pub is_returnable: Option<bool>,
+    pub is_returnable: ::core::option::Option<bool>,
     /// Can this operator be used to sort results.
     #[serde(default, rename = "isSortable")]
-    pub is_sortable: Option<bool>,
+    pub is_sortable: ::core::option::Option<bool>,
     /// Can get suggestions for this field.
     #[serde(default, rename = "isSuggestable")]
-    pub is_suggestable: Option<bool>,
+    pub is_suggestable: ::core::option::Option<bool>,
     /// Indicates the operator name that can be used to isolate the property using the less-than operator.
     #[serde(default, rename = "lessThanOperatorName")]
-    pub less_than_operator_name: Option<String>,
+    pub less_than_operator_name: ::core::option::Option<String>,
     /// The name of the object corresponding to the operator. This field is only filled for schema-specific operators, and is unset for common operators.
     #[serde(default, rename = "objectType")]
-    pub object_type: Option<String>,
+    pub object_type: ::core::option::Option<String>,
     /// The name of the operator.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
     /// The type of the operator. // TODO: enum values: ["UNKNOWN", "INTEGER", "DOUBLE", "TIMESTAMP", "BOOLEAN", "ENUM", "DATE", "TEXT", "HTML"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// List of sources that the user can search using the query API.
@@ -2517,16 +2630,16 @@ pub struct QueryOperator {
 pub struct QuerySource {
     /// Display name of the data source.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// List of all operators applicable for this source.
     #[serde(default)]
-    pub operators: Option<Vec<QueryOperator>>,
+    pub operators: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QueryOperator>>>,
     /// A short name or alias for the source. This value can be used with the ''source'' operator.
     #[serde(default, rename = "shortName")]
-    pub short_name: Option<String>,
+    pub short_name: ::core::option::Option<String>,
     /// The name of the source
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// This field does not contain anything as of now and is just used as an indicator that the suggest result was a phrase completion.
@@ -2534,10 +2647,10 @@ pub struct QuerySource {
 pub struct QuerySuggestion {
     /// Last query time of the suggestion for query history suggestions.
     #[serde(default, rename = "lastQueryTime")]
-    pub last_query_time: Option<String>,
+    pub last_query_time: ::core::option::Option<String>,
     /// Source corpus of the suggestion. // TODO: enum values: ["SOURCE_CORPUS_UNSPECIFIED", "GMAIL", "DRIVE", "CHAT", "CALENDAR"]
     #[serde(default, rename = "sourceCorpus")]
-    pub source_corpus: Option<String>,
+    pub source_corpus: ::core::option::Option<String>,
 }
 
 /// Remove Logged Activity Request.
@@ -2545,10 +2658,10 @@ pub struct QuerySuggestion {
 pub struct RemoveActivityRequest {
     /// Request options, such as the search application and clientId.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
     /// User Activity containing the data to be deleted.
     #[serde(default, rename = "userActivity")]
-    pub user_activity: Option<UserActivity>,
+    pub user_activity: ::core::option::Option<::std::boxed::Box<UserActivity>>,
 }
 
 /// Errors when the connector is communicating to the source repository.
@@ -2556,13 +2669,13 @@ pub struct RemoveActivityRequest {
 pub struct RepositoryError {
     /// Message that describes the error. The maximum allowable length of the message is 8192 characters.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// Error codes. Matches the definition of HTTP status codes.
     #[serde(default, rename = "httpStatusCode")]
-    pub http_status_code: Option<i32>,
+    pub http_status_code: ::core::option::Option<i32>,
     /// The type of error. // TODO: enum values: ["UNKNOWN", "NETWORK_ERROR", "DNS_ERROR", "CONNECTION_ERROR", "AUTHENTICATION_ERROR", "AUTHORIZATION_ERROR", "SERVER_ERROR", "QUOTA_EXCEEDED", "SERVICE_UNAVAILABLE", "CLIENT_ERROR"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Shared request options for all RPC methods.
@@ -2570,16 +2683,16 @@ pub struct RepositoryError {
 pub struct RequestOptions {
     /// Debug options of the request
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier. For translations. Set this field using the language set in browser or for the page. In the event that the user''s language preference is known, set this field to the known user language. When specified, the documents in search results are biased towards the specified language. The Suggest API uses this field as a hint to make better third-party autocomplete predictions.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// The ID generated when you create a search application using the [admin console](https://support.google.com/a/answer/9043922).
     #[serde(default, rename = "searchApplicationId")]
-    pub search_application_id: Option<String>,
+    pub search_application_id: ::core::option::Option<String>,
     /// Current user''s time zone id, such as "America/Los_Angeles" or "Australia/Sydney". These IDs are defined by [Unicode Common Locale Data Repository (CLDR)](http://cldr.unicode.org/) project, and currently available in the file [timezone.xml](http://unicode.org/repos/cldr/trunk/common/bcp47/timezone.xml). This field is used to correctly interpret date and time queries. If this field is not specified, the default time zone (UTC) is used.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// ResetSearchApplicationRequest resource type.
@@ -2587,7 +2700,7 @@ pub struct RequestOptions {
 pub struct ResetSearchApplicationRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
 }
 
 /// Debugging information about the response.
@@ -2595,24 +2708,24 @@ pub struct ResetSearchApplicationRequest {
 pub struct ResponseDebugInfo {
     /// General debug info formatted for display.
     #[serde(default, rename = "formattedDebugInfo")]
-    pub formatted_debug_info: Option<String>,
+    pub formatted_debug_info: ::core::option::Option<String>,
 }
 
 /// Information relevant only to a restrict entry. NextId: 12
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestrictItem {
     #[serde(default, rename = "driveFollowUpRestrict")]
-    pub drive_follow_up_restrict: Option<DriveFollowUpRestrict>,
+    pub drive_follow_up_restrict: ::core::option::Option<::std::boxed::Box<DriveFollowUpRestrict>>,
     #[serde(default, rename = "driveLocationRestrict")]
-    pub drive_location_restrict: Option<DriveLocationRestrict>,
+    pub drive_location_restrict: ::core::option::Option<::std::boxed::Box<DriveLocationRestrict>>,
     /// Drive Types.
     #[serde(default, rename = "driveMimeTypeRestrict")]
-    pub drive_mime_type_restrict: Option<DriveMimeTypeRestrict>,
+    pub drive_mime_type_restrict: ::core::option::Option<::std::boxed::Box<DriveMimeTypeRestrict>>,
     #[serde(default, rename = "driveTimeSpanRestrict")]
-    pub drive_time_span_restrict: Option<DriveTimeSpanRestrict>,
+    pub drive_time_span_restrict: ::core::option::Option<::std::boxed::Box<DriveTimeSpanRestrict>>,
     /// The search restrict (e.g. "after:2017-09-11 before:2017-09-12").
     #[serde(default, rename = "searchOperator")]
-    pub search_operator: Option<String>,
+    pub search_operator: ::core::option::Option<String>,
 }
 
 /// Result count information
@@ -2620,7 +2733,8 @@ pub struct RestrictItem {
 pub struct ResultCounts {
     /// Result count information for each source with results.
     #[serde(default, rename = "sourceResultCounts")]
-    pub source_result_counts: Option<Vec<SourceResultCount>>,
+    pub source_result_counts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SourceResultCount>>>,
 }
 
 /// Debugging information about the result.
@@ -2628,7 +2742,7 @@ pub struct ResultCounts {
 pub struct ResultDebugInfo {
     /// General debug info formatted for display.
     #[serde(default, rename = "formattedDebugInfo")]
-    pub formatted_debug_info: Option<String>,
+    pub formatted_debug_info: ::core::option::Option<String>,
 }
 
 /// Display Fields for Search Results
@@ -2636,20 +2750,20 @@ pub struct ResultDebugInfo {
 pub struct ResultDisplayField {
     /// The display label for the property.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The operator name of the property.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
     /// The name value pair for the property.
     #[serde(default)]
-    pub property: Option<NamedProperty>,
+    pub property: ::core::option::Option<::std::boxed::Box<NamedProperty>>,
 }
 
 /// The collection of fields that make up a displayed line
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResultDisplayLine {
     #[serde(default)]
-    pub fields: Option<Vec<ResultDisplayField>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResultDisplayField>>>,
 }
 
 /// ResultDisplayMetadata resource type.
@@ -2657,10 +2771,10 @@ pub struct ResultDisplayLine {
 pub struct ResultDisplayMetadata {
     /// The metalines content to be displayed with the result.
     #[serde(default)]
-    pub metalines: Option<Vec<ResultDisplayLine>>,
+    pub metalines: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResultDisplayLine>>>,
     /// The display label for the object.
     #[serde(default, rename = "objectTypeLabel")]
-    pub object_type_label: Option<String>,
+    pub object_type_label: ::core::option::Option<String>,
 }
 
 /// RetrievalImportance resource type.
@@ -2668,7 +2782,7 @@ pub struct ResultDisplayMetadata {
 pub struct RetrievalImportance {
     /// Indicates the ranking importance given to property when it is matched during retrieval. Once set, the token importance of a property cannot be changed. // TODO: enum values: ["DEFAULT", "HIGHEST", "HIGH", "LOW", "NONE"]
     #[serde(default)]
-    pub importance: Option<String>,
+    pub importance: ::core::option::Option<String>,
 }
 
 /// IMPORTANT: It is unsafe to accept this message from an untrusted source, since it''s trivial for an attacker to forge serialized messages that don''t fulfill the type''s safety contract -- for example, it could contain attacker controlled script. A system which receives a SafeHtmlProto implicitly trusts the producer of the SafeHtmlProto. So, it''s generally safe to return this message in RPC responses, but generally unsafe to accept it in RPC requests.
@@ -2676,7 +2790,7 @@ pub struct RetrievalImportance {
 pub struct SafeHtmlProto {
     /// IMPORTANT: Never set or read this field, even from tests, it is private. See documentation at the top of .proto file for programming language packages with which to create or read this message.
     #[serde(default, rename = "privateDoNotAccessOrElseSafeHtmlWrappedValue")]
-    pub private_do_not_access_or_else_safe_html_wrapped_value: Option<String>,
+    pub private_do_not_access_or_else_safe_html_wrapped_value: ::core::option::Option<String>,
 }
 
 /// Message containing a string that is safe to use in URL contexts in DOM APIs and HTML documents, where the URL context does not refer to a resource that loads code.
@@ -2684,7 +2798,7 @@ pub struct SafeHtmlProto {
 pub struct SafeUrlProto {
     /// IMPORTANT: Never set or read this field, even from tests, it is private. See documentation at the top of .proto file for programming language packages with which to create or read this message.
     #[serde(default, rename = "privateDoNotAccessOrElseSafeUrlWrappedValue")]
-    pub private_do_not_access_or_else_safe_url_wrapped_value: Option<String>,
+    pub private_do_not_access_or_else_safe_url_wrapped_value: ::core::option::Option<String>,
 }
 
 /// The schema definition for a data source.
@@ -2692,10 +2806,11 @@ pub struct SafeUrlProto {
 pub struct Schema {
     /// The list of top-level objects for the data source. The maximum number of elements is 10.
     #[serde(default, rename = "objectDefinitions")]
-    pub object_definitions: Option<Vec<ObjectDefinition>>,
+    pub object_definitions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ObjectDefinition>>>,
     /// IDs of the Long Running Operations (LROs) currently running for this schema. After modifying the schema, wait for operations to complete before indexing additional content.
     #[serde(default, rename = "operationIds")]
-    pub operation_ids: Option<Vec<String>>,
+    pub operation_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Scoring configurations for a source while processing a Search or Suggest request.
@@ -2703,10 +2818,10 @@ pub struct Schema {
 pub struct ScoringConfig {
     /// Whether to use freshness as a ranking signal. By default, freshness is used as a ranking signal. Note that this setting is not available in the Admin UI.
     #[serde(default, rename = "disableFreshness")]
-    pub disable_freshness: Option<bool>,
+    pub disable_freshness: ::core::option::Option<bool>,
     /// Whether to personalize the results. By default, personal signals will be used to boost results.
     #[serde(default, rename = "disablePersonalization")]
-    pub disable_personalization: Option<bool>,
+    pub disable_personalization: ::core::option::Option<bool>,
 }
 
 /// SearchApplication
@@ -2714,37 +2829,40 @@ pub struct ScoringConfig {
 pub struct SearchApplication {
     /// Retrictions applied to the configurations. The maximum number of elements is 10.
     #[serde(default, rename = "dataSourceRestrictions")]
-    pub data_source_restrictions: Option<Vec<DataSourceRestriction>>,
+    pub data_source_restrictions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceRestriction>>>,
     /// The default fields for returning facet results. The sources specified here also have been included in data_source_restrictions above.
     #[serde(default, rename = "defaultFacetOptions")]
-    pub default_facet_options: Option<Vec<FacetOptions>>,
+    pub default_facet_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FacetOptions>>>,
     /// The default options for sorting the search results
     #[serde(default, rename = "defaultSortOptions")]
-    pub default_sort_options: Option<SortOptions>,
+    pub default_sort_options: ::core::option::Option<::std::boxed::Box<SortOptions>>,
     /// Display name of the Search Application. The maximum length is 300 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates whether audit logging is on/off for requests made for the search application in query APIs.
     #[serde(default, rename = "enableAuditLog")]
-    pub enable_audit_log: Option<bool>,
+    pub enable_audit_log: ::core::option::Option<bool>,
     /// The name of the Search Application. Format: searchapplications/{application_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. IDs of the Long Running Operations (LROs) currently running for this schema. Output only field.
     #[serde(default, rename = "operationIds")]
-    pub operation_ids: Option<Vec<String>>,
+    pub operation_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The default options for query interpretation
     #[serde(default, rename = "queryInterpretationConfig")]
-    pub query_interpretation_config: Option<QueryInterpretationConfig>,
+    pub query_interpretation_config:
+        ::core::option::Option<::std::boxed::Box<QueryInterpretationConfig>>,
     /// With each result we should return the URI for its thumbnail (when applicable)
     #[serde(default, rename = "returnResultThumbnailUrls")]
-    pub return_result_thumbnail_urls: Option<bool>,
+    pub return_result_thumbnail_urls: ::core::option::Option<bool>,
     /// Configuration for ranking results.
     #[serde(default, rename = "scoringConfig")]
-    pub scoring_config: Option<ScoringConfig>,
+    pub scoring_config: ::core::option::Option<::std::boxed::Box<ScoringConfig>>,
     /// Configuration for a sources specified in data_source_restrictions.
     #[serde(default, rename = "sourceConfig")]
-    pub source_config: Option<Vec<SourceConfig>>,
+    pub source_config: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SourceConfig>>>,
 }
 
 /// Search application level query stats per date
@@ -2752,9 +2870,10 @@ pub struct SearchApplication {
 pub struct SearchApplicationQueryStats {
     /// The date for which query stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     #[serde(default, rename = "queryCountByStatus")]
-    pub query_count_by_status: Option<Vec<QueryCountByStatus>>,
+    pub query_count_by_status:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QueryCountByStatus>>>,
 }
 
 /// SearchApplicationSessionStats resource type.
@@ -2762,10 +2881,10 @@ pub struct SearchApplicationQueryStats {
 pub struct SearchApplicationSessionStats {
     /// The date for which session stats were calculated. Stats are calculated on the following day, close to midnight PST, and then returned.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of search sessions on the day
     #[serde(default, rename = "searchSessionsCount")]
-    pub search_sessions_count: Option<String>,
+    pub search_sessions_count: ::core::option::Option<String>,
 }
 
 /// SearchApplicationUserStats resource type.
@@ -2773,16 +2892,16 @@ pub struct SearchApplicationSessionStats {
 pub struct SearchApplicationUserStats {
     /// The date for which session stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of unique active users in the past one day
     #[serde(default, rename = "oneDayActiveUsersCount")]
-    pub one_day_active_users_count: Option<String>,
+    pub one_day_active_users_count: ::core::option::Option<String>,
     /// The count of unique active users in the past seven days
     #[serde(default, rename = "sevenDaysActiveUsersCount")]
-    pub seven_days_active_users_count: Option<String>,
+    pub seven_days_active_users_count: ::core::option::Option<String>,
     /// The count of unique active users in the past thirty days
     #[serde(default, rename = "thirtyDaysActiveUsersCount")]
-    pub thirty_days_active_users_count: Option<String>,
+    pub thirty_days_active_users_count: ::core::option::Option<String>,
 }
 
 /// SearchItemsByViewUrlRequest resource type.
@@ -2790,23 +2909,23 @@ pub struct SearchApplicationUserStats {
 pub struct SearchItemsByViewUrlRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// The next_page_token value returned from a previous request, if any.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Specify the full view URL to find the corresponding item. The maximum length is 2048 characters.
     #[serde(default, rename = "viewUrl")]
-    pub view_url: Option<String>,
+    pub view_url: ::core::option::Option<String>,
 }
 
 /// SearchItemsByViewUrlResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchItemsByViewUrlResponse {
     #[serde(default)]
-    pub items: Option<Vec<Item>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Item>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Additional search quality metadata of the item.
@@ -2814,7 +2933,7 @@ pub struct SearchItemsByViewUrlResponse {
 pub struct SearchQualityMetadata {
     /// An indication of the quality of the item, used to influence search quality. Value should be between 0.0 (lowest quality) and 1.0 (highest quality). The default value is 0.0.
     #[serde(default)]
-    pub quality: Option<f64>,
+    pub quality: ::core::option::Option<f64>,
 }
 
 /// The search API request. NEXT ID: 25
@@ -2822,30 +2941,33 @@ pub struct SearchQualityMetadata {
 pub struct SearchRequest {
     /// Context attributes for the request which will be used to adjust ranking of search results. The maximum number of elements is 10.
     #[serde(default, rename = "contextAttributes")]
-    pub context_attributes: Option<Vec<ContextAttribute>>,
+    pub context_attributes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContextAttribute>>>,
     /// The sources to use for querying. If not specified, all data sources from the current search application are used.
     #[serde(default, rename = "dataSourceRestrictions")]
-    pub data_source_restrictions: Option<Vec<DataSourceRestriction>>,
+    pub data_source_restrictions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceRestriction>>>,
     #[serde(default, rename = "facetOptions")]
-    pub facet_options: Option<Vec<FacetOptions>>,
+    pub facet_options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FacetOptions>>>,
     /// Maximum number of search results to return in one page. Valid values are between 1 and 100, inclusive. Default value is 10. Minimum value is 50 when results beyond 2000 are requested.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// The raw query string. See supported search operators in the [Narrow your search with operators](https://support.google.com/cloudsearch/answer/6172299)
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Options to interpret the user query.
     #[serde(default, rename = "queryInterpretationOptions")]
-    pub query_interpretation_options: Option<QueryInterpretationOptions>,
+    pub query_interpretation_options:
+        ::core::option::Option<::std::boxed::Box<QueryInterpretationOptions>>,
     /// Request options, such as the search application and user timezone.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
     /// The options for sorting the search results
     #[serde(default, rename = "sortOptions")]
-    pub sort_options: Option<SortOptions>,
+    pub sort_options: ::core::option::Option<::std::boxed::Box<SortOptions>>,
     /// Starting index of the results.
     #[serde(default)]
-    pub start: Option<i32>,
+    pub start: ::core::option::Option<i32>,
 }
 
 /// The search API response. NEXT ID: 19
@@ -2853,37 +2975,38 @@ pub struct SearchRequest {
 pub struct SearchResponse {
     /// Debugging information about the response.
     #[serde(default, rename = "debugInfo")]
-    pub debug_info: Option<ResponseDebugInfo>,
+    pub debug_info: ::core::option::Option<::std::boxed::Box<ResponseDebugInfo>>,
     /// Error information about the response.
     #[serde(default, rename = "errorInfo")]
-    pub error_info: Option<ErrorInfo>,
+    pub error_info: ::core::option::Option<::std::boxed::Box<ErrorInfo>>,
     /// Repeated facet results.
     #[serde(default, rename = "facetResults")]
-    pub facet_results: Option<Vec<FacetResult>>,
+    pub facet_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FacetResult>>>,
     /// Whether there are more search results matching the query.
     #[serde(default, rename = "hasMoreResults")]
-    pub has_more_results: Option<bool>,
+    pub has_more_results: ::core::option::Option<bool>,
     /// Query interpretation result for user query. Empty if query interpretation is disabled.
     #[serde(default, rename = "queryInterpretation")]
-    pub query_interpretation: Option<QueryInterpretation>,
+    pub query_interpretation: ::core::option::Option<::std::boxed::Box<QueryInterpretation>>,
     /// The estimated result count for this query.
     #[serde(default, rename = "resultCountEstimate")]
-    pub result_count_estimate: Option<String>,
+    pub result_count_estimate: ::core::option::Option<String>,
     /// The exact result count for this query.
     #[serde(default, rename = "resultCountExact")]
-    pub result_count_exact: Option<String>,
+    pub result_count_exact: ::core::option::Option<String>,
     /// Expanded result count information.
     #[serde(default, rename = "resultCounts")]
-    pub result_counts: Option<ResultCounts>,
+    pub result_counts: ::core::option::Option<::std::boxed::Box<ResultCounts>>,
     /// Results from a search query.
     #[serde(default)]
-    pub results: Option<Vec<SearchResult>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SearchResult>>>,
     /// Suggested spelling for the query.
     #[serde(default, rename = "spellResults")]
-    pub spell_results: Option<Vec<SpellResult>>,
+    pub spell_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SpellResult>>>,
     /// Structured results for the user query. These results are not counted against the page_size.
     #[serde(default, rename = "structuredResults")]
-    pub structured_results: Option<Vec<StructuredResult>>,
+    pub structured_results:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StructuredResult>>>,
 }
 
 /// Results containing indexed information for a document. Next ID: 16
@@ -2891,22 +3014,22 @@ pub struct SearchResponse {
 pub struct SearchResult {
     /// If source is clustered, provide list of clustered results. There will only be one level of clustered results. If current source is not enabled for clustering, this field will be empty.
     #[serde(default, rename = "clusteredResults")]
-    pub clustered_results: Option<Vec<SearchResult>>,
+    pub clustered_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SearchResult>>>,
     /// Debugging information about this search result.
     #[serde(default, rename = "debugInfo")]
-    pub debug_info: Option<ResultDebugInfo>,
+    pub debug_info: ::core::option::Option<::std::boxed::Box<ResultDebugInfo>>,
     /// Metadata of the search result.
     #[serde(default)]
-    pub metadata: Option<Metadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<Metadata>>,
     /// The concatenation of all snippets (summaries) available for this result.
     #[serde(default)]
-    pub snippet: Option<Snippet>,
+    pub snippet: ::core::option::Option<::std::boxed::Box<Snippet>>,
     /// Title of the search result.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The URL of the search result. The URL contains a Google redirect to the actual item. This URL is signed and shouldn''t be changed.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Snippet of the search result, which summarizes the content of the resulting page.
@@ -2914,10 +3037,10 @@ pub struct SearchResult {
 pub struct Snippet {
     /// The matched ranges in the snippet.
     #[serde(default, rename = "matchRanges")]
-    pub match_ranges: Option<Vec<MatchRange>>,
+    pub match_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MatchRange>>>,
     /// The snippet of the document. May contain escaped HTML character that should be unescaped prior to rendering.
     #[serde(default)]
-    pub snippet: Option<String>,
+    pub snippet: ::core::option::Option<String>,
 }
 
 /// SortOptions resource type.
@@ -2925,10 +3048,10 @@ pub struct Snippet {
 pub struct SortOptions {
     /// The name of the operator corresponding to the field to sort on. The corresponding property must be marked as sortable.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
     /// Ascending is the default sort order // TODO: enum values: ["ASCENDING", "DESCENDING"]
     #[serde(default, rename = "sortOrder")]
-    pub sort_order: Option<String>,
+    pub sort_order: ::core::option::Option<String>,
 }
 
 /// Defines sources for the suggest/search APIs.
@@ -2936,10 +3059,10 @@ pub struct SortOptions {
 pub struct Source {
     /// Source name for content indexed by the Indexing API.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Predefined content source for Google Apps. // TODO: enum values: ["NONE", "QUERY_HISTORY", "PERSON", "GOOGLE_DRIVE", "GOOGLE_GMAIL", "GOOGLE_SITES", "GOOGLE_GROUPS", "GOOGLE_CALENDAR", "GOOGLE_KEEP"]
     #[serde(default, rename = "predefinedSource")]
-    pub predefined_source: Option<String>,
+    pub predefined_source: ::core::option::Option<String>,
 }
 
 /// Configurations for a source while processing a Search or Suggest request.
@@ -2947,13 +3070,13 @@ pub struct Source {
 pub struct SourceConfig {
     /// The crowding configuration for the source.
     #[serde(default, rename = "crowdingConfig")]
-    pub crowding_config: Option<SourceCrowdingConfig>,
+    pub crowding_config: ::core::option::Option<::std::boxed::Box<SourceCrowdingConfig>>,
     /// The scoring configuration for the source.
     #[serde(default, rename = "scoringConfig")]
-    pub scoring_config: Option<SourceScoringConfig>,
+    pub scoring_config: ::core::option::Option<::std::boxed::Box<SourceScoringConfig>>,
     /// The source for which this configuration is to be used.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// Set search results crowding limits. Crowding is a situation in which multiple results from the same source or host "crowd out" other results, diminishing the quality of search for users. To foster better search quality and source diversity in search results, you can set a condition to reduce repetitive results by source.
@@ -2961,10 +3084,10 @@ pub struct SourceConfig {
 pub struct SourceCrowdingConfig {
     /// Maximum number of results allowed from a datasource in a result page as long as results from other sources are not exhausted. Value specified must not be negative. A default value is used if this value is equal to 0. To disable crowding, set the value greater than 100.
     #[serde(default, rename = "numResults")]
-    pub num_results: Option<i32>,
+    pub num_results: ::core::option::Option<i32>,
     /// Maximum number of suggestions allowed from a source. No limits will be set on results if this value is less than or equal to 0.
     #[serde(default, rename = "numSuggestions")]
-    pub num_suggestions: Option<i32>,
+    pub num_suggestions: ::core::option::Option<i32>,
 }
 
 /// Per source result count information.
@@ -2972,16 +3095,16 @@ pub struct SourceCrowdingConfig {
 pub struct SourceResultCount {
     /// Whether there are more search results for this source.
     #[serde(default, rename = "hasMoreResults")]
-    pub has_more_results: Option<bool>,
+    pub has_more_results: ::core::option::Option<bool>,
     /// The estimated result count for this source.
     #[serde(default, rename = "resultCountEstimate")]
-    pub result_count_estimate: Option<String>,
+    pub result_count_estimate: ::core::option::Option<String>,
     /// The exact result count for this source.
     #[serde(default, rename = "resultCountExact")]
-    pub result_count_exact: Option<String>,
+    pub result_count_exact: ::core::option::Option<String>,
     /// The source the result count information is associated with.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// Set the scoring configuration. This allows modifying the ranking of results for a source.
@@ -2989,7 +3112,7 @@ pub struct SourceResultCount {
 pub struct SourceScoringConfig {
     /// Importance of the source. // TODO: enum values: ["DEFAULT", "LOW", "HIGH"]
     #[serde(default, rename = "sourceImportance")]
-    pub source_importance: Option<String>,
+    pub source_importance: ::core::option::Option<String>,
 }
 
 /// SpellResult resource type.
@@ -2997,13 +3120,13 @@ pub struct SourceScoringConfig {
 pub struct SpellResult {
     /// The suggested spelling of the query.
     #[serde(default, rename = "suggestedQuery")]
-    pub suggested_query: Option<String>,
+    pub suggested_query: ::core::option::Option<String>,
     /// The sanitized HTML representing the spell corrected query that can be used in the UI. This usually has language-specific tags to mark up parts of the query that are spell checked.
     #[serde(default, rename = "suggestedQueryHtml")]
-    pub suggested_query_html: Option<SafeHtmlProto>,
+    pub suggested_query_html: ::core::option::Option<::std::boxed::Box<SafeHtmlProto>>,
     /// Suggestion triggered for the current query. // TODO: enum values: ["SUGGESTION_TYPE_UNSPECIFIED", "NON_EMPTY_RESULTS_SPELL_SUGGESTION", "ZERO_RESULTS_FULL_PAGE_REPLACEMENT"]
     #[serde(default, rename = "suggestionType")]
-    pub suggestion_type: Option<String>,
+    pub suggestion_type: ::core::option::Option<String>,
 }
 
 /// Start upload file request.
@@ -3011,10 +3134,10 @@ pub struct SpellResult {
 pub struct StartUploadItemRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
-    pub connector_name: Option<String>,
+    pub connector_name: ::core::option::Option<String>,
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -3022,13 +3145,13 @@ pub struct StartUploadItemRequest {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A structured data object consisting of named properties.
@@ -3036,7 +3159,7 @@ pub struct Status {
 pub struct StructuredDataObject {
     /// The properties for the object. The maximum number of elements is 1000.
     #[serde(default)]
-    pub properties: Option<Vec<NamedProperty>>,
+    pub properties: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NamedProperty>>>,
 }
 
 /// Structured results that are returned as part of search request.
@@ -3044,7 +3167,7 @@ pub struct StructuredDataObject {
 pub struct StructuredResult {
     /// Representation of a person
     #[serde(default)]
-    pub person: Option<Person>,
+    pub person: ::core::option::Option<::std::boxed::Box<Person>>,
 }
 
 /// Request of suggest API.
@@ -3052,13 +3175,14 @@ pub struct StructuredResult {
 pub struct SuggestRequest {
     /// The sources to use for suggestions. If not specified, the data sources are taken from the current search application. NOTE: Suggestions are only supported for the following sources: * Third-party data sources * PredefinedSource.PERSON * PredefinedSource.GOOGLE_DRIVE
     #[serde(default, rename = "dataSourceRestrictions")]
-    pub data_source_restrictions: Option<Vec<DataSourceRestriction>>,
+    pub data_source_restrictions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceRestriction>>>,
     /// Partial query for which autocomplete suggestions will be shown. For example, if the query is "sea", then the server might return "season", "search", "seagull" and so on.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Request options, such as the search application and user timezone.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
 }
 
 /// Response of the suggest API.
@@ -3066,7 +3190,7 @@ pub struct SuggestRequest {
 pub struct SuggestResponse {
     /// List of suggestions.
     #[serde(default, rename = "suggestResults")]
-    pub suggest_results: Option<Vec<SuggestResult>>,
+    pub suggest_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SuggestResult>>>,
 }
 
 /// One suggestion result.
@@ -3074,16 +3198,16 @@ pub struct SuggestResponse {
 pub struct SuggestResult {
     /// This is present when the suggestion indicates a person. It contains more information about the person - like their email ID, name etc.
     #[serde(default, rename = "peopleSuggestion")]
-    pub people_suggestion: Option<PeopleSuggestion>,
+    pub people_suggestion: ::core::option::Option<::std::boxed::Box<PeopleSuggestion>>,
     /// This field will be present if the suggested query is a word/phrase completion.
     #[serde(default, rename = "querySuggestion")]
-    pub query_suggestion: Option<QuerySuggestion>,
+    pub query_suggestion: ::core::option::Option<::std::boxed::Box<QuerySuggestion>>,
     /// The source of the suggestion.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
     /// The suggested query that will be used for search, when the user clicks on the suggestion
     #[serde(default, rename = "suggestedQuery")]
-    pub suggested_query: Option<String>,
+    pub suggested_query: ::core::option::Option<String>,
 }
 
 /// Used to provide a search operator for text properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -3091,10 +3215,10 @@ pub struct SuggestResult {
 pub struct TextOperatorOptions {
     /// If true, the text value is tokenized as one atomic value in operator searches and facet matches. For example, if the operator name is "genre" and the value is "science-fiction" the query restrictions "genre:science" and "genre:fiction" doesn''t match the item; "genre:science-fiction" does. Text value matching is case-sensitive and does not remove special characters. If false, the text is tokenized. For example, if the value is "science-fiction" the queries "genre:science" and "genre:fiction" matches the item.
     #[serde(default, rename = "exactMatchWithOperator")]
-    pub exact_match_with_operator: Option<bool>,
+    pub exact_match_with_operator: ::core::option::Option<bool>,
     /// Indicates the operator name required in the query in order to isolate the text property. For example, if operatorName is *subject* and the property''s name is *subjectLine*, then queries like *subject:&lt;value&gt;* show results only where the value of the property named *subjectLine* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any text properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for text properties.
@@ -3102,10 +3226,10 @@ pub struct TextOperatorOptions {
 pub struct TextPropertyOptions {
     /// If set, describes how the property should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<TextOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<TextOperatorOptions>>,
     /// Indicates the search quality importance of the tokens within the field when used for retrieval.
     #[serde(default, rename = "retrievalImportance")]
-    pub retrieval_importance: Option<RetrievalImportance>,
+    pub retrieval_importance: ::core::option::Option<::std::boxed::Box<RetrievalImportance>>,
 }
 
 /// List of text values.
@@ -3113,7 +3237,7 @@ pub struct TextPropertyOptions {
 pub struct TextValues {
     /// The maximum allowable length for text values is 2048 characters.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ThirdPartyGenericCard resource type.
@@ -3121,22 +3245,22 @@ pub struct TextValues {
 pub struct ThirdPartyGenericCard {
     /// Unique identifier for the card.
     #[serde(default, rename = "cardId")]
-    pub card_id: Option<String>,
+    pub card_id: ::core::option::Option<String>,
     /// Category that the card belongs to.
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// [Required] Card content.
     #[serde(default)]
-    pub content: Option<Content>,
+    pub content: ::core::option::Option<::std::boxed::Box<Content>>,
     /// [Required] Context where the card should be triggered.
     #[serde(default)]
-    pub context: Option<Context>,
+    pub context: ::core::option::Option<::std::boxed::Box<Context>>,
     /// Whether the card can be dismissed.
     #[serde(default, rename = "isDismissible")]
-    pub is_dismissible: Option<bool>,
+    pub is_dismissible: ::core::option::Option<bool>,
     /// Priority of the card, where 0 is the highest priority.
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
 }
 
 /// Used to provide a search operator for timestamp properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -3144,13 +3268,13 @@ pub struct ThirdPartyGenericCard {
 pub struct TimestampOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the timestamp property using the greater-than operator. For example, if greaterThanOperatorName is *closedafter* and the property''s name is *closeDate*, then queries like *closedafter:&lt;value&gt;* show results only where the value of the property named *closeDate* is later than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "greaterThanOperatorName")]
-    pub greater_than_operator_name: Option<String>,
+    pub greater_than_operator_name: ::core::option::Option<String>,
     /// Indicates the operator name required in the query in order to isolate the timestamp property using the less-than operator. For example, if lessThanOperatorName is *closedbefore* and the property''s name is *closeDate*, then queries like *closedbefore:&lt;value&gt;* show results only where the value of the property named *closeDate* is earlier than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "lessThanOperatorName")]
-    pub less_than_operator_name: Option<String>,
+    pub less_than_operator_name: ::core::option::Option<String>,
     /// Indicates the operator name required in the query in order to isolate the timestamp property. For example, if operatorName is *closedon* and the property''s name is *closeDate*, then queries like *closedon:&lt;value&gt;* show results only where the value of the property named *closeDate* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any String properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The options for timestamp properties.
@@ -3158,14 +3282,14 @@ pub struct TimestampOperatorOptions {
 pub struct TimestampPropertyOptions {
     /// If set, describes how the timestamp should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: Option<TimestampOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<TimestampOperatorOptions>>,
 }
 
 /// List of timestamp values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimestampValues {
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// UnmappedIdentity resource type.
@@ -3173,10 +3297,10 @@ pub struct TimestampValues {
 pub struct UnmappedIdentity {
     /// The resource name for an external user.
     #[serde(default, rename = "externalIdentity")]
-    pub external_identity: Option<Principal>,
+    pub external_identity: ::core::option::Option<::std::boxed::Box<Principal>>,
     /// The resolution status for the external identity. // TODO: enum values: ["CODE_UNSPECIFIED", "NOT_FOUND", "IDENTITY_SOURCE_NOT_FOUND", "IDENTITY_SOURCE_MISCONFIGURED", "TOO_MANY_MAPPINGS_FOUND", "INTERNAL_ERROR"]
     #[serde(default, rename = "resolutionStatusCode")]
-    pub resolution_status_code: Option<String>,
+    pub resolution_status_code: ::core::option::Option<String>,
 }
 
 /// UnreserveItemsRequest resource type.
@@ -3184,13 +3308,13 @@ pub struct UnmappedIdentity {
 pub struct UnreserveItemsRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
-    pub connector_name: Option<String>,
+    pub connector_name: ::core::option::Option<String>,
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// The name of a queue to unreserve items from.
     #[serde(default)]
-    pub queue: Option<String>,
+    pub queue: ::core::option::Option<String>,
 }
 
 /// UpdateDataSourceRequest resource type.
@@ -3198,12 +3322,12 @@ pub struct UnreserveItemsRequest {
 pub struct UpdateDataSourceRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     #[serde(default)]
-    pub source: Option<DataSource>,
+    pub source: ::core::option::Option<::std::boxed::Box<DataSource>>,
     /// Only applies to [settings.datasources.patch](https://developers.google.com/workspace/cloud-search/docs/reference/rest/v1/settings.datasources/patch). Update mask to control which fields to update. Example field paths: name, displayName. * If update_mask is non-empty, then only the fields specified in the update_mask are updated. * If you specify a field in the update_mask, but don''t specify its value in the source, that field is cleared. * If the update_mask is not present or empty or has the value *, then all fields are updated.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// UpdateSchemaRequest resource type.
@@ -3211,13 +3335,13 @@ pub struct UpdateDataSourceRequest {
 pub struct UpdateSchemaRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// The new schema for the source.
     #[serde(default)]
-    pub schema: Option<Schema>,
+    pub schema: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// If true, the schema will be checked for validity, but will not be registered with the data source, even if valid.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Represents an upload session reference. This reference is created via upload method. This reference is valid for 30 days after its creation. Updating of item content may refer to this uploaded content via contentDataRef.
@@ -3225,7 +3349,7 @@ pub struct UpdateSchemaRequest {
 pub struct UploadItemRef {
     /// The name of the content reference. The maximum length is 2048 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// User''s single or bulk query activity. This can be a logging query or deletion query.
@@ -3233,7 +3357,7 @@ pub struct UploadItemRef {
 pub struct UserActivity {
     /// Contains data which needs to be logged/removed.
     #[serde(default, rename = "queryActivity")]
-    pub query_activity: Option<QueryActivity>,
+    pub query_activity: ::core::option::Option<::std::boxed::Box<QueryActivity>>,
 }
 
 /// VPCSettings resource type.
@@ -3241,24 +3365,24 @@ pub struct UserActivity {
 pub struct VPCSettings {
     /// The resource name of the GCP Project to be used for VPC SC policy check. VPC security settings on this project will be honored for Cloud Search APIs after project_name has been updated through CustomerService. Format: projects/{project_id}
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
 }
 
 /// Definition of a single value with generic type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Value {
+pub struct ApiValue {
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "dateValue")]
-    pub date_value: Option<Date>,
+    pub date_value: ::core::option::Option<::std::boxed::Box<Date>>,
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     #[serde(default, rename = "integerValue")]
-    pub integer_value: Option<String>,
+    pub integer_value: ::core::option::Option<String>,
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
     #[serde(default, rename = "timestampValue")]
-    pub timestamp_value: Option<String>,
+    pub timestamp_value: ::core::option::Option<String>,
 }
 
 /// ValueFilter resource type.
@@ -3266,8 +3390,8 @@ pub struct Value {
 pub struct ValueFilter {
     /// The operator_name applied to the query, such as *price_greater_than*. The filter can work against both types of filters defined in the schema for your data source: 1. operator_name, where the query filters results by the property that matches the value. 2. greater_than_operator_name or less_than_operator_name in your schema. The query filters the results for the property values that are greater than or less than the supplied value in the query.
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
     /// The value to be compared with.
     #[serde(default)]
-    pub value: Option<Value>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }

@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Generated advice about this change, used for providing more information about how a change will affect the existing service.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Advice {
     /// Useful description for why this advice was applied and what actions should be taken to mitigate any implied risks.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// Api is a light-weight descriptor for an API Interface. Interfaces are also described as "protocol buffer services" in some contexts, such as by the "service" keyword in a .proto file, but they are different from API Services, which represent a concrete implementation of an interface as opposed to simply a description of methods and bindings. They are also sometimes simply referred to as "APIs" in other contexts, such as the name of this message itself. See https://cloud.google.com/apis/design/glossary for detailed terminology. New usages of this message as an alternative to ServiceDescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -26,28 +26,28 @@ pub struct Advice {
 pub struct Api {
     /// The source edition string, only valid when syntax is SYNTAX_EDITIONS.
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// The methods of this interface, in unspecified order.
     #[serde(default)]
-    pub methods: Option<Vec<Method>>,
+    pub methods: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Method>>>,
     /// Included interfaces. See Mixin.
     #[serde(default)]
-    pub mixins: Option<Vec<Mixin>>,
+    pub mixins: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Mixin>>>,
     /// The fully qualified name of this interface, including package name followed by the interface''s simple name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Any metadata attached to the interface.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
     /// Source context for the protocol buffer service represented by this message.
     #[serde(default, rename = "sourceContext")]
-    pub source_context: Option<SourceContext>,
+    pub source_context: ::core::option::Option<::std::boxed::Box<SourceContext>>,
     /// The source syntax of the service. // TODO: enum values: ["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"]
     #[serde(default)]
-    pub syntax: Option<String>,
+    pub syntax: ::core::option::Option<String>,
     /// A version string for this interface. If specified, must have the form major-version.minor-version, as in 1.10. If the minor version is omitted, it defaults to zero. If the entire version field is empty, the major version is derived from the package name, as outlined below. If the field is not empty, the version in the package name will be verified to be consistent with what is provided here. The versioning schema uses [semantic versioning](http://semver.org) where the major version number indicates a breaking change and the minor version an additive, non-breaking change. Both version numbers are signals to users what to expect from different versions, and should be carefully chosen based on the product plan. The major version is also reflected in the package name of the interface, which must end in v, as in google.feature.v1. For major versions 0 and 1, the suffix can be omitted. Zero major versions must only be used for experimental, non-GA interfaces.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Aspect represents Generic aspect. It is used to configure an aspect without making direct changes to service.proto
@@ -55,13 +55,13 @@ pub struct Api {
 pub struct Aspect {
     /// The type of this aspect configuration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. Rules of the Configuration.
     #[serde(default)]
-    pub rules: Option<Vec<AspectRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AspectRule>>>,
     /// Content of the configuration. The underlying schema should be defined by Aspect owners as protobuf message under google/api/configaspects/proto.
     #[serde(default)]
-    pub spec: Option<serde_json::Value>,
+    pub spec: ::core::option::Option<serde_json::Value>,
 }
 
 /// Rule-based configuration for an aspect.
@@ -69,10 +69,10 @@ pub struct Aspect {
 pub struct AspectRule {
     /// Required. Rules of the configuration. The underlying schema should be defined by Aspect owners as protobuf message under google/api/configaspects/proto.
     #[serde(default)]
-    pub config: Option<serde_json::Value>,
+    pub config: ::core::option::Option<serde_json::Value>,
     /// Required. Selects the RPC methods to which this rule applies. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
@@ -80,10 +80,11 @@ pub struct AspectRule {
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    pub audit_log_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditLogConfig>>>,
     /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -91,10 +92,10 @@ pub struct AuditConfig {
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: Option<Vec<String>>,
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// Configuration for an authentication provider, including support for [JSON Web Token (JWT)](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32).
@@ -102,22 +103,22 @@ pub struct AuditLogConfig {
 pub struct AuthProvider {
     /// The list of JWT [audiences](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3). that are allowed to access. A JWT containing any of these audiences will be accepted. When this setting is absent, JWTs with audiences: - "https://[service.name]/[google.protobuf.Api.name]" - "https://[service.name]/" will be accepted. For example, if no audiences are in the setting, LibraryService API will accept JWTs with the following audiences: - https://library-example.googleapis.com/google.example.library.v1.LibraryService - https://library-example.googleapis.com/ Example: audiences: bookstore_android.apps.googleusercontent.com, bookstore_web.apps.googleusercontent.com
     #[serde(default)]
-    pub audiences: Option<String>,
+    pub audiences: ::core::option::Option<String>,
     /// Redirect URL if JWT token is required but not present or is expired. Implement authorizationUrl of securityDefinitions in OpenAPI spec.
     #[serde(default, rename = "authorizationUrl")]
-    pub authorization_url: Option<String>,
+    pub authorization_url: ::core::option::Option<String>,
     /// The unique identifier of the auth provider. It will be referred to by AuthRequirement.provider_id. Example: "bookstore_auth".
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies the principal that issued the JWT. See https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.1 Usually a URL or an email address. Example: https://securetoken.google.com Example: 1234567-compute@developer.gserviceaccount.com
     #[serde(default)]
-    pub issuer: Option<String>,
+    pub issuer: ::core::option::Option<String>,
     /// URL of the provider''s public key set to validate signature of the JWT. See [OpenID Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata). Optional if the key set document: - can be retrieved from [OpenID Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html) of the issuer. - can be inferred from the email domain of the issuer (e.g. a Google service account). Example: https://www.googleapis.com/oauth2/v1/certs
     #[serde(default, rename = "jwksUri")]
-    pub jwks_uri: Option<String>,
+    pub jwks_uri: ::core::option::Option<String>,
     /// Defines the locations to extract the JWT. For now it is only used by the Cloud Endpoints to store the OpenAPI extension [x-google-jwt-locations] (https://cloud.google.com/endpoints/docs/openapi/openapi-extensions#x-google-jwt-locations) JWT locations can be one of HTTP headers, URL query parameters or cookies. The rule is that the first match wins. If not specified, default to use following 3 locations: 1) Authorization: Bearer 2) x-goog-iap-jwt-assertion 3) access_token query parameter Default locations can be specified as followings: jwt_locations: - header: Authorization value_prefix: "Bearer " - header: x-goog-iap-jwt-assertion - query: access_token
     #[serde(default, rename = "jwtLocations")]
-    pub jwt_locations: Option<Vec<JwtLocation>>,
+    pub jwt_locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<JwtLocation>>>,
 }
 
 /// User-defined authentication requirements, including support for [JSON Web Token (JWT)](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32).
@@ -125,10 +126,10 @@ pub struct AuthProvider {
 pub struct AuthRequirement {
     /// NOTE: This will be deprecated soon, once AuthProvider.audiences is implemented and accepted in all the runtime components. The list of JWT [audiences](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3). that are allowed to access. A JWT containing any of these audiences will be accepted. When this setting is absent, only JWTs with audience "https://Service_name/API_name" will be accepted. For example, if no audiences are in the setting, LibraryService API will only accept JWTs with the following audience "https://library-example.googleapis.com/google.example.library.v1.LibraryService". Example: audiences: bookstore_android.apps.googleusercontent.com, bookstore_web.apps.googleusercontent.com
     #[serde(default)]
-    pub audiences: Option<String>,
+    pub audiences: ::core::option::Option<String>,
     /// id from authentication provider. Example: provider_id: bookstore_auth
     #[serde(default, rename = "providerId")]
-    pub provider_id: Option<String>,
+    pub provider_id: ::core::option::Option<String>,
 }
 
 /// Authentication defines the authentication configuration for API methods provided by an API service. Example: name: calendar.googleapis.com authentication: providers: - id: google_calendar_auth jwks_uri: https://www.googleapis.com/oauth2/v1/certs issuer: https://securetoken.google.com rules: - selector: "*" requirements: provider_id: google_calendar_auth - selector: google.calendar.Delegate oauth: canonical_scopes: https://www.googleapis.com/auth/calendar.read
@@ -136,10 +137,10 @@ pub struct AuthRequirement {
 pub struct Authentication {
     /// Defines a set of authentication providers that a service supports.
     #[serde(default)]
-    pub providers: Option<Vec<AuthProvider>>,
+    pub providers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthProvider>>>,
     /// A list of authentication rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<AuthenticationRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthenticationRule>>>,
 }
 
 /// Authentication rules for the service. By default, if a method has any authentication requirements, every request must include a valid credential matching one of the requirements. It''s an error to include more than one kind of credential in a single request. If a method doesn''t have any auth requirements, request credentials will be ignored.
@@ -147,16 +148,16 @@ pub struct Authentication {
 pub struct AuthenticationRule {
     /// If true, the service accepts API keys without any other credential. This flag only applies to HTTP and gRPC requests.
     #[serde(default, rename = "allowWithoutCredential")]
-    pub allow_without_credential: Option<bool>,
+    pub allow_without_credential: ::core::option::Option<bool>,
     /// The requirements for OAuth credentials.
     #[serde(default)]
-    pub oauth: Option<OAuthRequirements>,
+    pub oauth: ::core::option::Option<::std::boxed::Box<OAuthRequirements>>,
     /// Requirements for additional authentication providers.
     #[serde(default)]
-    pub requirements: Option<Vec<AuthRequirement>>,
+    pub requirements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthRequirement>>>,
     /// Selects the methods to which this rule applies. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Backend defines the backend configuration for a service.
@@ -164,7 +165,7 @@ pub struct AuthenticationRule {
 pub struct Backend {
     /// A list of API backend rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<BackendRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackendRule>>>,
 }
 
 /// A backend rule provides configuration for an individual API element.
@@ -172,37 +173,37 @@ pub struct Backend {
 pub struct BackendRule {
     /// The address of the API backend. The scheme is used to determine the backend protocol and security. The following schemes are accepted: SCHEME PROTOCOL SECURITY http:// HTTP None https:// HTTP TLS grpc:// gRPC None grpcs:// gRPC TLS It is recommended to explicitly include a scheme. Leaving out the scheme may cause constrasting behaviors across platforms. If the port is unspecified, the default is: - 80 for schemes without TLS - 443 for schemes with TLS For HTTP backends, use protocol to specify the protocol version.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// The number of seconds to wait for a response from a request. The default varies based on the request protocol and deployment environment.
     #[serde(default)]
-    pub deadline: Option<f64>,
+    pub deadline: ::core::option::Option<f64>,
     /// When disable_auth is true, a JWT ID token won''t be generated and the original "Authorization" HTTP header will be preserved. If the header is used to carry the original token and is expected by the backend, this field must be set to true to preserve the header.
     #[serde(default, rename = "disableAuth")]
-    pub disable_auth: Option<bool>,
+    pub disable_auth: ::core::option::Option<bool>,
     /// The JWT audience is used when generating a JWT ID token for the backend. This ID token will be added in the HTTP "authorization" header, and sent to the backend.
     #[serde(default, rename = "jwtAudience")]
-    pub jwt_audience: Option<String>,
+    pub jwt_audience: ::core::option::Option<String>,
     /// The load balancing policy used for connection to the application backend. Defined as an arbitrary string to accomondate custom load balancing policies supported by the underlying channel, but suggest most users use one of the standard policies, such as the default, "RoundRobin".
     #[serde(default, rename = "loadBalancingPolicy")]
-    pub load_balancing_policy: Option<String>,
+    pub load_balancing_policy: ::core::option::Option<String>,
     /// Deprecated, do not use.
     #[serde(default, rename = "minDeadline")]
-    pub min_deadline: Option<f64>,
+    pub min_deadline: ::core::option::Option<f64>,
     /// The number of seconds to wait for the completion of a long running operation. The default is no deadline.
     #[serde(default, rename = "operationDeadline")]
-    pub operation_deadline: Option<f64>,
+    pub operation_deadline: ::core::option::Option<f64>,
     /// The map between request protocol and the backend address.
     #[serde(default, rename = "overridesByRequestProtocol")]
-    pub overrides_by_request_protocol: Option<serde_json::Value>,
+    pub overrides_by_request_protocol: ::core::option::Option<serde_json::Value>,
     /// no-lint // TODO: enum values: ["PATH_TRANSLATION_UNSPECIFIED", "CONSTANT_ADDRESS", "APPEND_PATH_TO_ADDRESS"]
     #[serde(default, rename = "pathTranslation")]
-    pub path_translation: Option<String>,
+    pub path_translation: ::core::option::Option<String>,
     /// The protocol used for sending a request to the backend. The supported values are "http/1.1" and "h2". The default value is inferred from the scheme in the address field: SCHEME PROTOCOL http:// http/1.1 https:// http/1.1 grpc:// h2 grpcs:// h2 For secure HTTP backends (https://) that support HTTP/2, set this field to "h2" for improved performance. Configuring this field to non-default values is only supported for secure HTTP backends. This field will be ignored for all other backends. See https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids for more details on the supported values.
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
     /// Selects the methods to which this rule applies. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// BatchingConfigProto defines the batching configuration for an API method.
@@ -210,10 +211,10 @@ pub struct BackendRule {
 pub struct BatchingConfigProto {
     /// The request and response fields used in batching.
     #[serde(default, rename = "batchDescriptor")]
-    pub batch_descriptor: Option<BatchingDescriptorProto>,
+    pub batch_descriptor: ::core::option::Option<::std::boxed::Box<BatchingDescriptorProto>>,
     /// The thresholds which trigger a batched request to be sent.
     #[serde(default)]
-    pub thresholds: Option<BatchingSettingsProto>,
+    pub thresholds: ::core::option::Option<::std::boxed::Box<BatchingSettingsProto>>,
 }
 
 /// BatchingDescriptorProto specifies the fields of the request message to be used for batching, and, optionally, the fields of the response message to be used for demultiplexing.
@@ -221,13 +222,13 @@ pub struct BatchingConfigProto {
 pub struct BatchingDescriptorProto {
     /// The repeated field in the request message to be aggregated by batching.
     #[serde(default, rename = "batchedField")]
-    pub batched_field: Option<String>,
+    pub batched_field: ::core::option::Option<String>,
     /// A list of the fields in the request message. Two requests will be batched together only if the values of every field specified in request_discriminator_fields is equal between the two requests.
     #[serde(default, rename = "discriminatorFields")]
-    pub discriminator_fields: Option<Vec<String>>,
+    pub discriminator_fields: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. When present, indicates the field in the response message to be used to demultiplex the response into multiple response messages, in correspondence with the multiple request messages originally batched together.
     #[serde(default, rename = "subresponseField")]
-    pub subresponse_field: Option<String>,
+    pub subresponse_field: ::core::option::Option<String>,
 }
 
 /// BatchingSettingsProto specifies a set of batching thresholds, each of which acts as a trigger to send a batch of messages as a request. At least one threshold must be positive nonzero.
@@ -235,28 +236,28 @@ pub struct BatchingDescriptorProto {
 pub struct BatchingSettingsProto {
     /// The duration after which a batch should be sent, starting from the addition of the first message to that batch.
     #[serde(default, rename = "delayThreshold")]
-    pub delay_threshold: Option<String>,
+    pub delay_threshold: ::core::option::Option<String>,
     /// The maximum number of elements collected in a batch that could be accepted by server.
     #[serde(default, rename = "elementCountLimit")]
-    pub element_count_limit: Option<i32>,
+    pub element_count_limit: ::core::option::Option<i32>,
     /// The number of elements of a field collected into a batch which, if exceeded, causes the batch to be sent.
     #[serde(default, rename = "elementCountThreshold")]
-    pub element_count_threshold: Option<i32>,
+    pub element_count_threshold: ::core::option::Option<i32>,
     /// The maximum size of data allowed by flow control.
     #[serde(default, rename = "flowControlByteLimit")]
-    pub flow_control_byte_limit: Option<i32>,
+    pub flow_control_byte_limit: ::core::option::Option<i32>,
     /// The maximum number of elements allowed by flow control.
     #[serde(default, rename = "flowControlElementLimit")]
-    pub flow_control_element_limit: Option<i32>,
+    pub flow_control_element_limit: ::core::option::Option<i32>,
     /// The behavior to take when the flow control limit is exceeded. // TODO: enum values: ["UNSET_BEHAVIOR", "THROW_EXCEPTION", "BLOCK", "IGNORE"]
     #[serde(default, rename = "flowControlLimitExceededBehavior")]
-    pub flow_control_limit_exceeded_behavior: Option<String>,
+    pub flow_control_limit_exceeded_behavior: ::core::option::Option<String>,
     /// The maximum size of the request that could be accepted by server.
     #[serde(default, rename = "requestByteLimit")]
-    pub request_byte_limit: Option<i32>,
+    pub request_byte_limit: ::core::option::Option<i32>,
     /// The aggregated size of the batched field which, if exceeded, causes the batch to be sent. This size is computed by aggregating the sizes of the request field to be batched, not of the entire request message.
     #[serde(default, rename = "requestByteThreshold")]
-    pub request_byte_threshold: Option<String>,
+    pub request_byte_threshold: ::core::option::Option<String>,
 }
 
 /// Billing related configuration of the service. The following example shows how to configure monitored resources and metrics for billing, consumer_destinations is the only supported destination and the monitored resources need at least one label key cloud.googleapis.com/location to indicate the location of the billing usage, using different monitored resources between monitoring and billing is recommended so they can be evolved independently: monitored_resources: - type: library.googleapis.com/billing_branch labels: - key: cloud.googleapis.com/location description: | Predefined label to support billing location restriction. - key: city description: | Custom label to define the city where the library branch is located in. - key: name description: Custom label to define the name of the library branch. metrics: - name: library.googleapis.com/book/borrowed_count metric_kind: DELTA value_type: INT64 unit: "1" billing: consumer_destinations: - monitored_resource: library.googleapis.com/billing_branch metrics: - library.googleapis.com/book/borrowed_count
@@ -264,7 +265,8 @@ pub struct BatchingSettingsProto {
 pub struct Billing {
     /// Billing configurations for sending metrics to the consumer project. There can be multiple consumer destinations per service, each one must have a different monitored resource type. A metric can be used in at most one consumer destination.
     #[serde(default, rename = "consumerDestinations")]
-    pub consumer_destinations: Option<Vec<BillingDestination>>,
+    pub consumer_destinations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BillingDestination>>>,
 }
 
 /// Configuration of a specific billing destination (Currently only support bill against consumer project).
@@ -272,10 +274,10 @@ pub struct Billing {
 pub struct BillingDestination {
     /// Names of the metrics to report to this billing destination. Each name must be defined in Service.metrics section.
     #[serde(default)]
-    pub metrics: Option<Vec<String>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
     /// The monitored resource type. The type must be defined in Service.monitored_resources section.
     #[serde(default, rename = "monitoredResource")]
-    pub monitored_resource: Option<String>,
+    pub monitored_resource: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -283,13 +285,13 @@ pub struct BillingDestination {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Change report associated with a particular service configuration. It contains a list of ConfigChanges based on the comparison between two service configurations.
@@ -297,7 +299,7 @@ pub struct Binding {
 pub struct ChangeReport {
     /// List of changes between two service configurations. The changes will be alphabetically sorted based on the identifier of each change. A ConfigChange identifier is a dot separated path to the configuration. Example: visibility.rules[selector=''LibraryService.CreateBook''].restriction
     #[serde(default, rename = "configChanges")]
-    pub config_changes: Option<Vec<ConfigChange>>,
+    pub config_changes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConfigChange>>>,
 }
 
 /// Details about how and where to publish client libraries.
@@ -305,37 +307,37 @@ pub struct ChangeReport {
 pub struct ClientLibrarySettings {
     /// Settings for C++ client libraries.
     #[serde(default, rename = "cppSettings")]
-    pub cpp_settings: Option<CppSettings>,
+    pub cpp_settings: ::core::option::Option<::std::boxed::Box<CppSettings>>,
     /// Settings for .NET client libraries.
     #[serde(default, rename = "dotnetSettings")]
-    pub dotnet_settings: Option<DotnetSettings>,
+    pub dotnet_settings: ::core::option::Option<::std::boxed::Box<DotnetSettings>>,
     /// Settings for Go client libraries.
     #[serde(default, rename = "goSettings")]
-    pub go_settings: Option<GoSettings>,
+    pub go_settings: ::core::option::Option<::std::boxed::Box<GoSettings>>,
     /// Settings for legacy Java features, supported in the Service YAML.
     #[serde(default, rename = "javaSettings")]
-    pub java_settings: Option<JavaSettings>,
+    pub java_settings: ::core::option::Option<::std::boxed::Box<JavaSettings>>,
     /// Launch stage of this version of the API. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// Settings for Node client libraries.
     #[serde(default, rename = "nodeSettings")]
-    pub node_settings: Option<NodeSettings>,
+    pub node_settings: ::core::option::Option<::std::boxed::Box<NodeSettings>>,
     /// Settings for PHP client libraries.
     #[serde(default, rename = "phpSettings")]
-    pub php_settings: Option<PhpSettings>,
+    pub php_settings: ::core::option::Option<::std::boxed::Box<PhpSettings>>,
     /// Settings for Python client libraries.
     #[serde(default, rename = "pythonSettings")]
-    pub python_settings: Option<PythonSettings>,
+    pub python_settings: ::core::option::Option<::std::boxed::Box<PythonSettings>>,
     /// When using transport=rest, the client request will encode enums as numbers rather than strings.
     #[serde(default, rename = "restNumericEnums")]
-    pub rest_numeric_enums: Option<bool>,
+    pub rest_numeric_enums: ::core::option::Option<bool>,
     /// Settings for Ruby client libraries.
     #[serde(default, rename = "rubySettings")]
-    pub ruby_settings: Option<RubySettings>,
+    pub ruby_settings: ::core::option::Option<::std::boxed::Box<RubySettings>>,
     /// Version of the API to apply these settings to. This is the full protobuf package for the API, ending in the version element. Examples: "google.cloud.speech.v1" and "google.spanner.admin.database.v1".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Required information for every language.
@@ -343,13 +345,14 @@ pub struct ClientLibrarySettings {
 pub struct CommonLanguageSettings {
     /// The destination where API teams want this client library to be published.
     #[serde(default)]
-    pub destinations: Option<Vec<String>>,
+    pub destinations: ::core::option::Option<::std::vec::Vec<String>>,
     /// Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest
     #[serde(default, rename = "referenceDocsUri")]
-    pub reference_docs_uri: Option<String>,
+    pub reference_docs_uri: ::core::option::Option<String>,
     /// Configuration for which RPCs should be generated in the GAPIC client.
     #[serde(default, rename = "selectiveGapicGeneration")]
-    pub selective_gapic_generation: Option<SelectiveGapicGeneration>,
+    pub selective_gapic_generation:
+        ::core::option::Option<::std::boxed::Box<SelectiveGapicGeneration>>,
 }
 
 /// Output generated from semantically comparing two versions of a service configuration. Includes detailed information about a field that have changed with applicable advice about potential consequences for the change, such as backwards-incompatibility.
@@ -357,19 +360,19 @@ pub struct CommonLanguageSettings {
 pub struct ConfigChange {
     /// Collection of advice provided for this change, useful for determining the possible impact of this change.
     #[serde(default)]
-    pub advices: Option<Vec<Advice>>,
+    pub advices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Advice>>>,
     /// The type for this change, either ADDED, REMOVED, or MODIFIED. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ADDED", "REMOVED", "MODIFIED"]
     #[serde(default, rename = "changeType")]
-    pub change_type: Option<String>,
+    pub change_type: ::core::option::Option<String>,
     /// Object hierarchy path to the change, with levels separated by a ''.'' character. For repeated fields, an applicable unique identifier field is used for the index (usually selector, name, or id). For maps, the term ''key'' is used. If the field has no unique identifier, the numeric index is used. Examples: - visibility.rules[selector=="google.LibraryService.ListBooks"].restriction - quota.metric_rules[selector=="google"].metric_costs[key=="reads"].value - logging.producer_destinations[0]
     #[serde(default)]
-    pub element: Option<String>,
+    pub element: ::core::option::Option<String>,
     /// Value of the changed object in the new Service configuration, in JSON format. This field will not be populated if ChangeType == REMOVED.
     #[serde(default, rename = "newValue")]
-    pub new_value: Option<String>,
+    pub new_value: ::core::option::Option<String>,
     /// Value of the changed object in the old Service configuration, in JSON format. This field will not be populated if ChangeType == ADDED.
     #[serde(default, rename = "oldValue")]
-    pub old_value: Option<String>,
+    pub old_value: ::core::option::Option<String>,
 }
 
 /// Generic specification of a source configuration file
@@ -377,13 +380,13 @@ pub struct ConfigChange {
 pub struct ConfigFile {
     /// The bytes that constitute the file.
     #[serde(default, rename = "fileContents")]
-    pub file_contents: Option<String>,
+    pub file_contents: ::core::option::Option<String>,
     /// The file name of the configuration file (full or relative path).
     #[serde(default, rename = "filePath")]
-    pub file_path: Option<String>,
+    pub file_path: ::core::option::Option<String>,
     /// The type of configuration file this represents. // TODO: enum values: ["FILE_TYPE_UNSPECIFIED", "SERVICE_CONFIG_YAML", "OPEN_API_JSON", "OPEN_API_YAML", "FILE_DESCRIPTOR_SET_PROTO", "PROTO_FILE"]
     #[serde(default, rename = "fileType")]
-    pub file_type: Option<String>,
+    pub file_type: ::core::option::Option<String>,
 }
 
 /// Represents a service configuration with its name and id.
@@ -391,7 +394,7 @@ pub struct ConfigFile {
 pub struct ConfigRef {
     /// Resource name of a service config. It must have the following format: "services/{service name}/configs/{config id}".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Represents a source file which is used to generate the service configuration defined by google.api.Service.
@@ -399,10 +402,10 @@ pub struct ConfigRef {
 pub struct ConfigSource {
     /// Set of source configuration files that are used to generate a service configuration (google.api.Service).
     #[serde(default)]
-    pub files: Option<Vec<ConfigFile>>,
+    pub files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConfigFile>>>,
     /// A unique ID for a specific instance of this message, typically assigned by the client for tracking purpose. If empty, the server may choose to generate one instead.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Context defines which contexts an API requests. Example: context: rules: - selector: "*" requested: - google.rpc.context.ProjectContext - google.rpc.context.OriginContext The above specifies that all methods in the API request google.rpc.context.ProjectContext and google.rpc.context.OriginContext. Available context types are defined in package google.rpc.context. This also provides mechanism to allowlist any protobuf message extension that can be sent in grpc metadata using “x-goog-ext--bin” and “x-goog-ext--jspb” format. For example, list any service specific protobuf types that can appear in grpc metadata as follows in your yaml file: Example: context: rules: - selector: "google.example.library.v1.LibraryService.CreateBook" allowed_request_extensions: - google.foo.v1.NewExtension allowed_response_extensions: - google.foo.v1.NewExtension You can also specify extension ID instead of fully qualified extension name here.
@@ -410,7 +413,7 @@ pub struct ConfigSource {
 pub struct Context {
     /// A list of RPC context rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<ContextRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContextRule>>>,
 }
 
 /// A context rule provides information about the context for an individual API element.
@@ -418,19 +421,19 @@ pub struct Context {
 pub struct ContextRule {
     /// A list of full type names or extension IDs of extensions allowed in grpc side channel from client to backend.
     #[serde(default, rename = "allowedRequestExtensions")]
-    pub allowed_request_extensions: Option<Vec<String>>,
+    pub allowed_request_extensions: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of full type names or extension IDs of extensions allowed in grpc side channel from backend to client.
     #[serde(default, rename = "allowedResponseExtensions")]
-    pub allowed_response_extensions: Option<Vec<String>>,
+    pub allowed_response_extensions: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of full type names of provided contexts. It is used to support propagating HTTP headers and ETags from the response extension.
     #[serde(default)]
-    pub provided: Option<Vec<String>>,
+    pub provided: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of full type names of requested contexts, only the requested context will be made available to the backend.
     #[serde(default)]
-    pub requested: Option<Vec<String>>,
+    pub requested: ::core::option::Option<::std::vec::Vec<String>>,
     /// Selects the methods to which this rule applies. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Selects and configures the service controller used by the service. Example: control: environment: servicecontrol.googleapis.com
@@ -438,10 +441,10 @@ pub struct ContextRule {
 pub struct Control {
     /// The service controller environment to use. If empty, no control plane features (like quota and billing) will be enabled. The recommended value for most services is servicecontrol.googleapis.com.
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// Defines policies applying to the API methods of the service.
     #[serde(default, rename = "methodPolicies")]
-    pub method_policies: Option<Vec<MethodPolicy>>,
+    pub method_policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MethodPolicy>>>,
 }
 
 /// Settings for C++ client libraries.
@@ -449,7 +452,7 @@ pub struct Control {
 pub struct CppSettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
 }
 
 /// Customize service error responses. For example, list any service specific protobuf types that can appear in error detail lists of error responses. Example: custom_error: types: - google.foo.v1.CustomError - google.foo.v1.AnotherError
@@ -457,10 +460,10 @@ pub struct CppSettings {
 pub struct CustomError {
     /// The list of custom error rules that apply to individual API messages. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<CustomErrorRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomErrorRule>>>,
     /// The list of custom error detail types, e.g. ''google.foo.v1.CustomError''.
     #[serde(default)]
-    pub types: Option<Vec<String>>,
+    pub types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A custom error rule.
@@ -468,10 +471,10 @@ pub struct CustomError {
 pub struct CustomErrorRule {
     /// Mark this message as possible payload in error response. Otherwise, objects of this type will be filtered when they appear in error payload.
     #[serde(default, rename = "isErrorType")]
-    pub is_error_type: Option<bool>,
+    pub is_error_type: ::core::option::Option<bool>,
     /// Selects messages to which this rule applies. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// A custom pattern is used for defining custom HTTP verb.
@@ -479,10 +482,10 @@ pub struct CustomErrorRule {
 pub struct CustomHttpPattern {
     /// The name of this custom HTTP verb.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The path matched by this custom verb.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// Represents a diagnostic message (error or warning)
@@ -490,13 +493,13 @@ pub struct CustomHttpPattern {
 pub struct Diagnostic {
     /// The kind of diagnostic information provided. // TODO: enum values: ["WARNING", "ERROR"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// File name and line number of the error or warning.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Message describing the error or warning.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Documentation provides the information for describing a service. Example: documentation: summary: &gt; The Google Calendar API gives access to most calendar features. pages: - name: Overview content: (== include google/foo/overview.md ==) - name: Tutorial content: (== include google/foo/tutorial.md ==) subpages: - name: Java content: (== include google/foo/tutorial_java.md ==) rules: - selector: google.calendar.Calendar.Get description: &gt; ... - selector: google.calendar.Calendar.Put description: &gt; ... Documentation is provided in markdown syntax. In addition to standard markdown features, definition lists, tables and fenced code blocks are supported. Section headers can be provided and are interpreted relative to the section nesting of the context where a documentation fragment is embedded. Documentation from the IDL is merged with documentation defined via the config at normalization time, where documentation provided by config rules overrides IDL provided. A number of constructs specific to the API platform are supported in documentation text. In order to reference a proto element, the following notation can be used: [fully.qualified.proto.name][] To override the display text used for the link, this can be used: [display text][fully.qualified.proto.name] Text can be excluded from doc using the following notation: (-- internal comment --) A few directives are available in documentation. Note that directives must appear on a single line to be properly identified. The include directive includes a markdown file from an external source: (== include path/to/file ==) The resource_for directive marks a message to be the resource of a collection in REST view. If it is not specified, tools attempt to infer the resource from the operations in a collection: (== resource_for v1.shelves.books ==) The directive suppress_warning does not directly affect documentation and is documented together with service config validation.
@@ -504,28 +507,28 @@ pub struct Diagnostic {
 pub struct Documentation {
     /// Optional information about the IAM configuration. This is typically used to link to documentation about a product''s IAM roles and permissions.
     #[serde(default, rename = "additionalIamInfo")]
-    pub additional_iam_info: Option<String>,
+    pub additional_iam_info: ::core::option::Option<String>,
     /// The URL to the root of documentation.
     #[serde(default, rename = "documentationRootUrl")]
-    pub documentation_root_url: Option<String>,
+    pub documentation_root_url: ::core::option::Option<String>,
     /// Declares a single overview page. For example: documentation: summary: ... overview: (== include overview.md ==) This is a shortcut for the following declaration (using pages style): documentation: summary: ... pages: - name: Overview content: (== include overview.md ==) Note: you cannot specify both overview field and pages field.
     #[serde(default)]
-    pub overview: Option<String>,
+    pub overview: ::core::option::Option<String>,
     /// The top level pages for the documentation set.
     #[serde(default)]
-    pub pages: Option<Vec<Page>>,
+    pub pages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Page>>>,
     /// A list of documentation rules that apply to individual API elements. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<DocumentationRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DocumentationRule>>>,
     /// Specifies section and content to override the boilerplate content. Currently overrides following sections: 1. rest.service.client_libraries
     #[serde(default, rename = "sectionOverrides")]
-    pub section_overrides: Option<Vec<Page>>,
+    pub section_overrides: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Page>>>,
     /// Specifies the service root url if the default one (the service name from the yaml file) is not suitable. This can be seen in any fully specified service urls as well as sections that show a base that other urls are relative to.
     #[serde(default, rename = "serviceRootUrl")]
-    pub service_root_url: Option<String>,
+    pub service_root_url: ::core::option::Option<String>,
     /// A short description of what the service does. The summary must be plain text. It becomes the overview of the service displayed in Google Cloud Console. NOTE: This field is equivalent to the standard field description.
     #[serde(default)]
-    pub summary: Option<String>,
+    pub summary: ::core::option::Option<String>,
 }
 
 /// A documentation rule provides information about individual API elements.
@@ -533,16 +536,16 @@ pub struct Documentation {
 pub struct DocumentationRule {
     /// Deprecation description of the selected element(s). It can be provided if an element is marked as deprecated.
     #[serde(default, rename = "deprecationDescription")]
-    pub deprecation_description: Option<String>,
+    pub deprecation_description: ::core::option::Option<String>,
     /// Description of the selected proto element (e.g. a message, a method, a ''service'' definition, or a field). Defaults to leading & trailing comments taken from the proto source definition of the proto element.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// String of comma or space separated case-sensitive words for which method/field name replacement will be disabled.
     #[serde(default, rename = "disableReplacementWords")]
-    pub disable_replacement_words: Option<String>,
+    pub disable_replacement_words: ::core::option::Option<String>,
     /// The selector is a comma-separated list of patterns for any element such as a method, a field, an enum value. Each pattern is a qualified name of the element which may end in "*", indicating a wildcard. Wildcards are only allowed at the end and for a whole component of the qualified name, i.e. "foo.*" is ok, but not "foo.b*" or "foo.*.bar". A wildcard will match one or more components. To specify a default for all applicable elements, the whole pattern "*" is used.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Settings for Dotnet client libraries.
@@ -550,22 +553,22 @@ pub struct DocumentationRule {
 pub struct DotnetSettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
     /// Namespaces which must be aliased in snippets due to a known (but non-generator-predictable) naming collision
     #[serde(default, rename = "forcedNamespaceAliases")]
-    pub forced_namespace_aliases: Option<Vec<String>>,
+    pub forced_namespace_aliases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Method signatures (in the form "service.method(signature)") which are provided separately, so shouldn''t be generated. Snippets *calling* these methods are still generated, however.
     #[serde(default, rename = "handwrittenSignatures")]
-    pub handwritten_signatures: Option<Vec<String>>,
+    pub handwritten_signatures: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of full resource types to ignore during generation. This is typically used for API-specific Location resources, which should be handled by the generator as if they were actually the common Location resources. Example entry: "documentai.googleapis.com/Location"
     #[serde(default, rename = "ignoredResources")]
-    pub ignored_resources: Option<Vec<String>>,
+    pub ignored_resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Map from full resource types to the effective short name for the resource. This is used when otherwise resource named from different services would cause naming collisions. Example entry: "datalabeling.googleapis.com/Dataset": "DataLabelingDataset"
     #[serde(default, rename = "renamedResources")]
-    pub renamed_resources: Option<serde_json::Value>,
+    pub renamed_resources: ::core::option::Option<serde_json::Value>,
     /// Map from original service names to renamed versions. This is used when the default generated types would cause a naming conflict. (Neither name is fully-qualified.) Example: Subscriber to SubscriberServiceApi.
     #[serde(default, rename = "renamedServices")]
-    pub renamed_services: Option<serde_json::Value>,
+    pub renamed_services: ::core::option::Option<serde_json::Value>,
 }
 
 /// Endpoint describes a network address of a service that serves a set of APIs. It is commonly known as a service endpoint. A service may expose any number of service endpoints, and all service endpoints share the same service definition, such as quota limits and monitoring metrics. Example: type: google.api.Service name: library-example.googleapis.com endpoints: # Declares network address https://library-example.googleapis.com # for service library-example.googleapis.com. The https scheme # is implicit for all service endpoints. Other schemes may be # supported in the future. - name: library-example.googleapis.com allow_cors: false - name: content-staging-library-example.googleapis.com # Allows HTTP OPTIONS calls to be passed to the API frontend, for it # to decide whether the subsequent cross-origin request is allowed # to proceed. allow_cors: true
@@ -573,16 +576,16 @@ pub struct DotnetSettings {
 pub struct Endpoint {
     /// Aliases for this endpoint, these will be served by the same UrlMap as the parent endpoint, and will be provisioned in the GCP stack for the Regional Endpoints.
     #[serde(default)]
-    pub aliases: Option<Vec<String>>,
+    pub aliases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Allowing [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing), aka cross-domain traffic, would allow the backends served from this endpoint to receive and respond to HTTP OPTIONS requests. The response will be used by the browser to determine whether the subsequent cross-origin request is allowed to proceed.
     #[serde(default, rename = "allowCors")]
-    pub allow_cors: Option<bool>,
+    pub allow_cors: ::core::option::Option<bool>,
     /// The canonical name of this endpoint.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The specification of an Internet routable address of API frontend that will handle requests to this [API Endpoint](https://cloud.google.com/apis/design/glossary). It should be either a valid IPv4 address or a fully-qualified domain name. For example, "8.8.8.8" or "myservice.appspot.com".
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
 }
 
 /// Enum type definition. New usages of this message as an alternative to EnumDescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -590,22 +593,22 @@ pub struct Endpoint {
 pub struct Enum {
     /// The source edition string, only valid when syntax is SYNTAX_EDITIONS.
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// Enum value definitions.
     #[serde(default)]
-    pub enumvalue: Option<Vec<EnumValue>>,
+    pub enumvalue: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnumValue>>>,
     /// Enum type name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Protocol buffer options.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
     /// The source context.
     #[serde(default, rename = "sourceContext")]
-    pub source_context: Option<SourceContext>,
+    pub source_context: ::core::option::Option<::std::boxed::Box<SourceContext>>,
     /// The source syntax. // TODO: enum values: ["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"]
     #[serde(default)]
-    pub syntax: Option<String>,
+    pub syntax: ::core::option::Option<String>,
 }
 
 /// Enum value definition. New usages of this message as an alternative to EnumValueDescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -613,13 +616,13 @@ pub struct Enum {
 pub struct EnumValue {
     /// Enum value name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Enum value number.
     #[serde(default)]
-    pub number: Option<i32>,
+    pub number: ::core::option::Option<i32>,
     /// Protocol buffer options.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
 }
 
 /// Experimental features to be included during client library generation. These fields will be deprecated once the feature graduates and is enabled by default.
@@ -627,13 +630,13 @@ pub struct EnumValue {
 pub struct ExperimentalFeatures {
     /// Enables generation of protobuf code using new types that are more Pythonic which are included in protobuf&gt;=5.29.x. This feature will be enabled by default 1 month after launching the feature in preview packages.
     #[serde(default, rename = "protobufPythonicTypesEnabled")]
-    pub protobuf_pythonic_types_enabled: Option<bool>,
+    pub protobuf_pythonic_types_enabled: ::core::option::Option<bool>,
     /// Enables generation of asynchronous REST clients if rest transport is enabled. By default, asynchronous REST clients will not be generated. This feature will be enabled by default 1 month after launching the feature in preview packages.
     #[serde(default, rename = "restAsyncIoEnabled")]
-    pub rest_async_io_enabled: Option<bool>,
+    pub rest_async_io_enabled: ::core::option::Option<bool>,
     /// Disables generation of an unversioned Python package for this client library. This means that the module names will need to be versioned in import statements. For example import google.cloud.library_v2 instead of import google.cloud.library.
     #[serde(default, rename = "unversionedPackageDisabled")]
-    pub unversioned_package_disabled: Option<bool>,
+    pub unversioned_package_disabled: ::core::option::Option<bool>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -641,16 +644,16 @@ pub struct ExperimentalFeatures {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A single field of a message type. New usages of this message as an alternative to FieldDescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -658,34 +661,34 @@ pub struct Expr {
 pub struct Field {
     /// The field cardinality. // TODO: enum values: ["CARDINALITY_UNKNOWN", "CARDINALITY_OPTIONAL", "CARDINALITY_REQUIRED", "CARDINALITY_REPEATED"]
     #[serde(default)]
-    pub cardinality: Option<String>,
+    pub cardinality: ::core::option::Option<String>,
     /// The string value of the default value of this field. Proto2 syntax only.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<String>,
+    pub default_value: ::core::option::Option<String>,
     /// The field JSON name.
     #[serde(default, rename = "jsonName")]
-    pub json_name: Option<String>,
+    pub json_name: ::core::option::Option<String>,
     /// The field type. // TODO: enum values: ["TYPE_UNKNOWN", "TYPE_DOUBLE", "TYPE_FLOAT", "TYPE_INT64", "TYPE_UINT64", "TYPE_INT32", "TYPE_FIXED64", "TYPE_FIXED32", "TYPE_BOOL", "TYPE_STRING", "TYPE_GROUP", "TYPE_MESSAGE", "TYPE_BYTES", "TYPE_UINT32", "TYPE_ENUM", "TYPE_SFIXED32", "TYPE_SFIXED64", "TYPE_SINT32", "TYPE_SINT64"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The field name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The field number.
     #[serde(default)]
-    pub number: Option<i32>,
+    pub number: ::core::option::Option<i32>,
     /// The index of the field type in Type.oneofs, for message or enumeration types. The first type has index 1; zero means the type is not in the list.
     #[serde(default, rename = "oneofIndex")]
-    pub oneof_index: Option<i32>,
+    pub oneof_index: ::core::option::Option<i32>,
     /// The protocol buffer options.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
     /// Whether to use alternative packed wire representation.
     #[serde(default)]
-    pub packed: Option<bool>,
+    pub packed: ::core::option::Option<bool>,
     /// The field type URL, without the scheme, for message or enumeration types. Example: "type.googleapis.com/google.protobuf.Timestamp".
     #[serde(default, rename = "typeUrl")]
-    pub type_url: Option<String>,
+    pub type_url: ::core::option::Option<String>,
 }
 
 /// Google API Policy Annotation This message defines a simple API policy annotation that can be used to annotate API request and response message fields with applicable policies. One field may have multiple applicable policies that must all be satisfied before a request can be processed. This policy annotation is used to generate the overall policy that will be used for automatic runtime policy enforcement and documentation generation.
@@ -693,13 +696,13 @@ pub struct Field {
 pub struct FieldPolicy {
     /// Specifies the required permission(s) for the resource referred to by the field. It requires the field contains a valid resource reference, and the request must pass the permission checks to proceed. For example, "resourcemanager.projects.get".
     #[serde(default, rename = "resourcePermission")]
-    pub resource_permission: Option<String>,
+    pub resource_permission: ::core::option::Option<String>,
     /// Specifies the resource type for the resource referred to by the field.
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
     /// Selects one or more request or response message fields to apply this FieldPolicy. When a FieldPolicy is used in proto annotation, the selector must be left as empty. The service config generator will automatically fill the correct value. When a FieldPolicy is used in service config, the selector must be a comma-separated string with valid request or response field paths, such as "foo.bar" or "foo.bar,foo.baz".
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Encapsulation of flow-specific error details for debugging. Used as a details field on an error Status, not intended for external use.
@@ -707,10 +710,10 @@ pub struct FieldPolicy {
 pub struct FlowErrorDetails {
     /// The type of exception (as a class name).
     #[serde(default, rename = "exceptionType")]
-    pub exception_type: Option<String>,
+    pub exception_type: ::core::option::Option<String>,
     /// The step that failed.
     #[serde(default, rename = "flowStepId")]
-    pub flow_step_id: Option<String>,
+    pub flow_step_id: ::core::option::Option<String>,
 }
 
 /// Request message for GenerateConfigReport method.
@@ -718,10 +721,10 @@ pub struct FlowErrorDetails {
 pub struct GenerateConfigReportRequest {
     /// Required. Service configuration for which we want to generate the report. For this version of API, the supported types are google.api.servicemanagement.v1.ConfigRef, google.api.servicemanagement.v1.ConfigSource, and google.api.Service
     #[serde(default, rename = "newConfig")]
-    pub new_config: Option<serde_json::Value>,
+    pub new_config: ::core::option::Option<serde_json::Value>,
     /// Optional. Service configuration against which the comparison will be done. For this version of API, the supported types are google.api.servicemanagement.v1.ConfigRef, google.api.servicemanagement.v1.ConfigSource, and google.api.Service
     #[serde(default, rename = "oldConfig")]
-    pub old_config: Option<serde_json::Value>,
+    pub old_config: ::core::option::Option<serde_json::Value>,
 }
 
 /// Response message for GenerateConfigReport method.
@@ -729,16 +732,16 @@ pub struct GenerateConfigReportRequest {
 pub struct GenerateConfigReportResponse {
     /// list of ChangeReport, each corresponding to comparison between two service configurations.
     #[serde(default, rename = "changeReports")]
-    pub change_reports: Option<Vec<ChangeReport>>,
+    pub change_reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ChangeReport>>>,
     /// Errors / Linter warnings associated with the service definition this report belongs to.
     #[serde(default)]
-    pub diagnostics: Option<Vec<Diagnostic>>,
+    pub diagnostics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Diagnostic>>>,
     /// ID of the service configuration this report belongs to.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of the service this report belongs to.
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
 }
 
 /// Request message for GetIamPolicy method.
@@ -746,7 +749,7 @@ pub struct GenerateConfigReportResponse {
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
-    pub options: Option<GetPolicyOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<GetPolicyOptions>>,
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
@@ -754,7 +757,7 @@ pub struct GetIamPolicyRequest {
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: Option<i32>,
+    pub requested_policy_version: ::core::option::Option<i32>,
 }
 
 /// Settings for Go client libraries.
@@ -762,10 +765,10 @@ pub struct GetPolicyOptions {
 pub struct GoSettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
     /// Map of service names to renamed services. Keys are the package relative service names and values are the name to be used for the service client and call options. Example: publishing: go_settings: renamed_services: Publisher: TopicAdmin
     #[serde(default, rename = "renamedServices")]
-    pub renamed_services: Option<serde_json::Value>,
+    pub renamed_services: ::core::option::Option<serde_json::Value>,
 }
 
 /// Defines the HTTP configuration for an API service. It contains a list of HttpRule, each specifying the mapping of an RPC method to one or more HTTP REST API methods.
@@ -773,10 +776,10 @@ pub struct GoSettings {
 pub struct Http {
     /// When set to true, URL path parameters will be fully URI-decoded except in cases of single segment matches in reserved expansion, where "%2F" will be left encoded. The default behavior is to not decode RFC 6570 reserved characters in multi segment matches.
     #[serde(default, rename = "fullyDecodeReservedExpansion")]
-    pub fully_decode_reserved_expansion: Option<bool>,
+    pub fully_decode_reserved_expansion: ::core::option::Option<bool>,
     /// A list of HTTP configuration rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<HttpRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HttpRule>>>,
 }
 
 /// gRPC Transcoding gRPC Transcoding is a feature for mapping between a gRPC method and one or more HTTP REST endpoints. It allows developers to build a single API service that supports both gRPC APIs and REST APIs. Many systems, including [Google APIs](https://github.com/googleapis/googleapis), [Cloud Endpoints](https://cloud.google.com/endpoints), [gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway), and [Envoy](https://github.com/envoyproxy/envoy) proxy support this feature and use it for large scale production services. HttpRule defines the schema of the gRPC/REST mapping. The mapping specifies how different portions of the gRPC request message are mapped to the URL path, URL query parameters, and HTTP request body. It also controls how the gRPC response message is mapped to the HTTP response body. HttpRule is typically specified as an google.api.http annotation on the gRPC method. Each mapping specifies a URL path template and an HTTP method. The path template may refer to one or more fields in the gRPC request message, as long as each field is a non-repeated field with a primitive (non-message) type. The path template controls how fields of the request message are mapped to the URL path. Example: service Messaging { rpc GetMessage(GetMessageRequest) returns (Message) { option (google.api.http) = { get: "/v1/{name=messages/*}" }; } } message GetMessageRequest { string name = 1; // Mapped to URL path. } message Message { string text = 1; // The resource content. } This enables an HTTP REST to gRPC mapping as below: - HTTP: GET /v1/messages/123456 - gRPC: GetMessage(name: "messages/123456") Any fields in the request message which are not bound by the path template automatically become HTTP query parameters if there is no HTTP request body. For example: service Messaging { rpc GetMessage(GetMessageRequest) returns (Message) { option (google.api.http) = { get:"/v1/messages/{message_id}" }; } } message GetMessageRequest { message SubMessage { string subfield = 1; } string message_id = 1; // Mapped to URL path. int64 revision = 2; // Mapped to URL query parameter revision. SubMessage sub = 3; // Mapped to URL query parameter sub.subfield. } This enables a HTTP JSON to RPC mapping as below: - HTTP: GET /v1/messages/123456?revision=2&sub.subfield=foo - gRPC: GetMessage(message_id: "123456" revision: 2 sub: SubMessage(subfield: "foo")) Note that fields which are mapped to URL query parameters must have a primitive type or a repeated primitive type or a non-repeated message type. In the case of a repeated type, the parameter can be repeated in the URL as ...?param=A&param=B. In the case of a message type, each field of the message is mapped to a separate parameter, such as ...?foo.a=A&foo.b=B&foo.c=C. For HTTP methods that allow a request body, the body field specifies the mapping. Consider a REST update method on the message resource collection: service Messaging { rpc UpdateMessage(UpdateMessageRequest) returns (Message) { option (google.api.http) = { patch: "/v1/messages/{message_id}" body: "message" }; } } message UpdateMessageRequest { string message_id = 1; // mapped to the URL Message message = 2; // mapped to the body } The following HTTP JSON to RPC mapping is enabled, where the representation of the JSON in the request body is determined by protos JSON encoding: - HTTP: PATCH /v1/messages/123456 { "text": "Hi!" } - gRPC: UpdateMessage(message_id: "123456" message { text: "Hi!" }) The special name * can be used in the body mapping to define that every field not bound by the path template should be mapped to the request body. This enables the following alternative definition of the update method: service Messaging { rpc UpdateMessage(Message) returns (Message) { option (google.api.http) = { patch: "/v1/messages/{message_id}" body: "*" }; } } message Message { string message_id = 1; string text = 2; } The following HTTP JSON to RPC mapping is enabled: - HTTP: PATCH /v1/messages/123456 { "text": "Hi!" } - gRPC: UpdateMessage(message_id: "123456" text: "Hi!") Note that when using * in the body mapping, it is not possible to have HTTP parameters, as all fields not bound by the path end in the body. This makes this option more rarely used in practice when defining REST APIs. The common usage of * is in custom methods which don''t use the URL at all for transferring data. It is possible to define multiple HTTP methods for one RPC by using the additional_bindings option. Example: service Messaging { rpc GetMessage(GetMessageRequest) returns (Message) { option (google.api.http) = { get: "/v1/messages/{message_id}" additional_bindings { get: "/v1/users/{user_id}/messages/{message_id}" } }; } } message GetMessageRequest { string message_id = 1; string user_id = 2; } This enables the following two alternative HTTP JSON to RPC mappings: - HTTP: GET /v1/messages/123456 - gRPC: GetMessage(message_id: "123456") - HTTP: GET /v1/users/me/messages/123456 - gRPC: GetMessage(user_id: "me" message_id: "123456") Rules for HTTP mapping 1. Leaf request fields (recursive expansion nested messages in the request message) are classified into three categories: - Fields referred by the path template. They are passed via the URL path. - Fields referred by the HttpRule.body. They are passed via the HTTP request body. - All other fields are passed via the URL query parameters, and the parameter name is the field path in the request message. A repeated field can be represented as multiple query parameters under the same name. 2. If HttpRule.body is "*", there is no URL query parameter, all fields are passed via URL path and HTTP request body. 3. If HttpRule.body is omitted, there is no HTTP request body, all fields are passed via URL path and URL query parameters. Path template syntax Template = "/" Segments [ Verb ] ; Segments = Segment { "/" Segment } ; Segment = "*" | "**" | LITERAL | Variable ; Variable = "{" FieldPath [ "=" Segments ] "}" ; FieldPath = IDENT { "." IDENT } ; Verb = ":" LITERAL ; The syntax * matches a single URL path segment. The syntax ** matches zero or more URL path segments, which must be the last part of the URL path except the Verb. The syntax Variable matches part of the URL path as specified by its template. A variable template must not contain other variables. If a variable matches a single path segment, its template may be omitted, e.g. {var} is equivalent to {var=*}. The syntax LITERAL matches literal text in the URL path. If the LITERAL contains any reserved character, such characters should be percent-encoded before the matching. If a variable contains exactly one path segment, such as "{var}" or "{var=*}", when such a variable is expanded into a URL path on the client side, all characters except [-_.~0-9a-zA-Z] are percent-encoded. The server side does the reverse decoding. Such variables show up in the [Discovery Document](https://developers.google.com/discovery/v1/reference/apis) as {var}. If a variable contains multiple path segments, such as "{var=foo/*}" or "{var=**}", when such a variable is expanded into a URL path on the client side, all characters except [-_.~/0-9a-zA-Z] are percent-encoded. The server side does the reverse decoding, except "%2F" and "%2f" are left unchanged. Such variables show up in the [Discovery Document](https://developers.google.com/discovery/v1/reference/apis) as {+var}. Using gRPC API Service Configuration gRPC API Service Configuration (service config) is a configuration language for configuring a gRPC service to become a user-facing product. The service config is simply the YAML representation of the google.api.Service proto message. As an alternative to annotating your proto file, you can configure gRPC transcoding in your service config YAML files. You do this by specifying a HttpRule that maps the gRPC method to a REST endpoint, achieving the same effect as the proto annotation. This can be particularly useful if you have a proto that is reused in multiple services. Note that any transcoding specified in the service config will override any matching transcoding configuration in the proto. The following example selects a gRPC method and applies an HttpRule to it: http: rules: - selector: example.v1.Messaging.GetMessage get: /v1/messages/{message_id}/{sub.subfield} Special notes When gRPC Transcoding is used to map a gRPC to JSON REST endpoints, the proto to JSON conversion must follow the [proto3 specification](https://developers.google.com/protocol-buffers/docs/proto3#json). While the single segment variable follows the semantics of [RFC 6570](https://tools.ietf.org/html/rfc6570) Section 3.2.2 Simple String Expansion, the multi segment variable **does not** follow RFC 6570 Section 3.2.3 Reserved Expansion. The reason is that the Reserved Expansion does not expand special characters like ? and #, which would lead to invalid URLs. As the result, gRPC Transcoding uses a custom encoding for multi segment variables. The path variables **must not** refer to any repeated or mapped field, because client libraries are not capable of handling such variable expansion. The path variables **must not** capture the leading "/" character. The reason is that the most common use case "{var}" does not capture the leading "/" character. For consistency, all path variables must share the same behavior. Repeated message fields must not be mapped to URL query parameters, because no client library can support such complicated mapping. If an API needs to use a JSON array for request or response body, it can map the request or response body to a repeated field. However, some gRPC Transcoding implementations may not support this feature.
@@ -784,34 +787,34 @@ pub struct Http {
 pub struct HttpRule {
     /// Additional HTTP bindings for the selector. Nested bindings must not contain an additional_bindings field themselves (that is, the nesting may only be one level deep).
     #[serde(default, rename = "additionalBindings")]
-    pub additional_bindings: Option<Vec<HttpRule>>,
+    pub additional_bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HttpRule>>>,
     /// The name of the request field whose value is mapped to the HTTP request body, or * for mapping all request fields not captured by the path pattern to the HTTP body, or omitted for not having any HTTP request body. NOTE: the referred field must be present at the top-level of the request message type.
     #[serde(default)]
-    pub body: Option<String>,
+    pub body: ::core::option::Option<String>,
     /// The custom pattern is used for specifying an HTTP method that is not included in the pattern field, such as HEAD, or "*" to leave the HTTP method unspecified for this rule. The wild-card rule is useful for services that provide content to Web (HTML) clients.
     #[serde(default)]
-    pub custom: Option<CustomHttpPattern>,
+    pub custom: ::core::option::Option<::std::boxed::Box<CustomHttpPattern>>,
     /// Maps to HTTP DELETE. Used for deleting a resource.
     #[serde(default)]
-    pub delete: Option<String>,
+    pub delete: ::core::option::Option<String>,
     /// Maps to HTTP GET. Used for listing and getting information about resources.
     #[serde(default)]
-    pub get: Option<String>,
+    pub get: ::core::option::Option<String>,
     /// Maps to HTTP PATCH. Used for updating a resource.
     #[serde(default)]
-    pub patch: Option<String>,
+    pub patch: ::core::option::Option<String>,
     /// Maps to HTTP POST. Used for creating a resource or performing an action.
     #[serde(default)]
-    pub post: Option<String>,
+    pub post: ::core::option::Option<String>,
     /// Maps to HTTP PUT. Used for replacing a resource.
     #[serde(default)]
-    pub put: Option<String>,
+    pub put: ::core::option::Option<String>,
     /// Optional. The name of the response field whose value is mapped to the HTTP response body. When omitted, the entire response message will be used as the HTTP response body. NOTE: The referred field must be present at the top-level of the response message type.
     #[serde(default, rename = "responseBody")]
-    pub response_body: Option<String>,
+    pub response_body: ::core::option::Option<String>,
     /// Selects a method to which this rule applies. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Settings for Java client libraries.
@@ -819,13 +822,13 @@ pub struct HttpRule {
 pub struct JavaSettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
     /// The package name to use in Java. Clobbers the java_package option set in the protobuf. This should be used **only** by APIs who have already set the language_settings.java.package_name" field in gapic.yaml. API teams should use the protobuf java_package option where possible. Example of a YAML configuration:: publishing: library_settings: java_settings: library_package: com.google.cloud.pubsub.v1
     #[serde(default, rename = "libraryPackage")]
-    pub library_package: Option<String>,
+    pub library_package: ::core::option::Option<String>,
     /// Configure the Java class name to use instead of the service''s for its corresponding generated GAPIC client. Keys are fully-qualified service names as they appear in the protobuf (including the full the language_settings.java.interface_names" field in gapic.yaml. API teams should otherwise use the service name as it appears in the protobuf. Example of a YAML configuration:: publishing: java_settings: service_class_names: - google.pubsub.v1.Publisher: TopicAdmin - google.pubsub.v1.Subscriber: SubscriptionAdmin
     #[serde(default, rename = "serviceClassNames")]
-    pub service_class_names: Option<serde_json::Value>,
+    pub service_class_names: ::core::option::Option<serde_json::Value>,
 }
 
 /// Specifies a location to extract JWT from an API request.
@@ -833,16 +836,16 @@ pub struct JavaSettings {
 pub struct JwtLocation {
     /// Specifies cookie name to extract JWT token.
     #[serde(default)]
-    pub cookie: Option<String>,
+    pub cookie: ::core::option::Option<String>,
     /// Specifies HTTP header name to extract JWT token.
     #[serde(default)]
-    pub header: Option<String>,
+    pub header: ::core::option::Option<String>,
     /// Specifies URL query parameter name to extract JWT token.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// The value prefix. The value format is "value_prefix{token}" Only applies to "in" header type. Must be empty for "in" query type. If not empty, the header value has to match (case sensitive) this prefix. If not matched, JWT will not be extracted. If matched, JWT will be extracted after the prefix is removed. For example, for "Authorization: Bearer {JWT}", value_prefix="Bearer " with a space at the end.
     #[serde(default, rename = "valuePrefix")]
-    pub value_prefix: Option<String>,
+    pub value_prefix: ::core::option::Option<String>,
 }
 
 /// A description of a label.
@@ -850,13 +853,13 @@ pub struct JwtLocation {
 pub struct LabelDescriptor {
     /// A human-readable description for the label.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The label key.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The type of data that can be assigned to the label. // TODO: enum values: ["STRING", "BOOL", "INT64"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -864,13 +867,13 @@ pub struct LabelDescriptor {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListServiceConfigs method.
@@ -878,10 +881,10 @@ pub struct ListOperationsResponse {
 pub struct ListServiceConfigsResponse {
     /// The token of the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of service configuration resources.
     #[serde(default, rename = "serviceConfigs")]
-    pub service_configs: Option<Vec<Service>>,
+    pub service_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Service>>>,
 }
 
 /// Response message for ListServiceRollouts method.
@@ -889,10 +892,10 @@ pub struct ListServiceConfigsResponse {
 pub struct ListServiceRolloutsResponse {
     /// The token of the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of rollout resources.
     #[serde(default)]
-    pub rollouts: Option<Vec<Rollout>>,
+    pub rollouts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Rollout>>>,
 }
 
 /// Response message for ListServices method.
@@ -900,10 +903,10 @@ pub struct ListServiceRolloutsResponse {
 pub struct ListServicesResponse {
     /// Token that can be passed to ListServices to resume a paginated query.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The returned services will only have the name field set.
     #[serde(default)]
-    pub services: Option<Vec<ManagedService>>,
+    pub services: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedService>>>,
 }
 
 /// A description of a log type. Example in YAML format: - name: library.googleapis.com/activity_history description: The history of borrowing and returning library items. display_name: Activity labels: - key: /customer_id description: Identifier of a library customer
@@ -911,16 +914,16 @@ pub struct ListServicesResponse {
 pub struct LogDescriptor {
     /// A human-readable description of this log. This information appears in the documentation and can contain details.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The human-readable name for this log. This information appears on the user interface and should be concise.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The set of labels that are available to describe a specific log entry. Runtime requests that contain labels not specified here are considered invalid.
     #[serde(default)]
-    pub labels: Option<Vec<LabelDescriptor>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelDescriptor>>>,
     /// The name of the log. It must be less than 512 characters long and can include the following characters: upper- and lower-case alphanumeric characters [A-Za-z0-9], and punctuation characters including slash, underscore, hyphen, period [/_-.].
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Logging configuration of the service. The following example shows how to configure logs to be sent to the producer and consumer projects. In the example, the activity_history log is sent to both the producer and consumer projects, whereas the purchase_history log is only sent to the producer project. monitored_resources: - type: library.googleapis.com/branch labels: - key: /city description: The city where the library branch is located in. - key: /name description: The name of the branch. logs: - name: activity_history labels: - key: /customer_id - name: purchase_history logging: producer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history - purchase_history consumer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history
@@ -928,10 +931,12 @@ pub struct LogDescriptor {
 pub struct Logging {
     /// Logging configurations for sending logs to the consumer project. There can be multiple consumer destinations, each one must have a different monitored resource type. A log can be used in at most one consumer destination.
     #[serde(default, rename = "consumerDestinations")]
-    pub consumer_destinations: Option<Vec<LoggingDestination>>,
+    pub consumer_destinations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LoggingDestination>>>,
     /// Logging configurations for sending logs to the producer project. There can be multiple producer destinations, each one must have a different monitored resource type. A log can be used in at most one producer destination.
     #[serde(default, rename = "producerDestinations")]
-    pub producer_destinations: Option<Vec<LoggingDestination>>,
+    pub producer_destinations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LoggingDestination>>>,
 }
 
 /// Configuration of a specific logging destination (the producer project or the consumer project).
@@ -939,10 +944,10 @@ pub struct Logging {
 pub struct LoggingDestination {
     /// Names of the logs to be sent to this destination. Each name must be defined in the Service.logs section. If the log name is not a domain scoped name, it will be automatically prefixed with the service name followed by "/".
     #[serde(default)]
-    pub logs: Option<Vec<String>>,
+    pub logs: ::core::option::Option<::std::vec::Vec<String>>,
     /// The monitored resource type. The type must be defined in the Service.monitored_resources section.
     #[serde(default, rename = "monitoredResource")]
-    pub monitored_resource: Option<String>,
+    pub monitored_resource: ::core::option::Option<String>,
 }
 
 /// Describes settings to use when generating API methods that use the long-running operation pattern. All default values below are from those used in the client library generators (e.g. [Java](https://github.com/googleapis/gapic-generator-java/blob/04c2faa191a9b5a10b92392fe8482279c4404803/src/main/java/com/google/api/generator/gapic/composer/common/RetrySettingsComposer.java)).
@@ -950,16 +955,16 @@ pub struct LoggingDestination {
 pub struct LongRunning {
     /// Initial delay after which the first poll request will be made. Default value: 5 seconds.
     #[serde(default, rename = "initialPollDelay")]
-    pub initial_poll_delay: Option<String>,
+    pub initial_poll_delay: ::core::option::Option<String>,
     /// Maximum time between two subsequent poll requests. Default value: 45 seconds.
     #[serde(default, rename = "maxPollDelay")]
-    pub max_poll_delay: Option<String>,
+    pub max_poll_delay: ::core::option::Option<String>,
     /// Multiplier to gradually increase delay between subsequent polls until it reaches max_poll_delay. Default value: 1.5.
     #[serde(default, rename = "pollDelayMultiplier")]
-    pub poll_delay_multiplier: Option<f32>,
+    pub poll_delay_multiplier: ::core::option::Option<f32>,
     /// Total polling timeout. Default value: 5 minutes.
     #[serde(default, rename = "totalPollTimeout")]
-    pub total_poll_timeout: Option<String>,
+    pub total_poll_timeout: ::core::option::Option<String>,
 }
 
 /// The full representation of a Service that is managed by Google Service Management.
@@ -967,10 +972,10 @@ pub struct LongRunning {
 pub struct ManagedService {
     /// ID of the project that produces and owns this service.
     #[serde(default, rename = "producerProjectId")]
-    pub producer_project_id: Option<String>,
+    pub producer_project_id: ::core::option::Option<String>,
     /// The name of the service. See the [overview](https://cloud.google.com/service-infrastructure/docs/overview) for naming requirements.
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
 }
 
 /// Method represents a method of an API interface. New usages of this message as an alternative to MethodDescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -978,28 +983,28 @@ pub struct ManagedService {
 pub struct Method {
     /// The source edition string, only valid when syntax is SYNTAX_EDITIONS. This field should be ignored, instead the edition should be inherited from Api. This is similar to Field and EnumValue.
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// The simple name of this method.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Any metadata attached to the method.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
     /// If true, the request is streamed.
     #[serde(default, rename = "requestStreaming")]
-    pub request_streaming: Option<bool>,
+    pub request_streaming: ::core::option::Option<bool>,
     /// A URL of the input message type.
     #[serde(default, rename = "requestTypeUrl")]
-    pub request_type_url: Option<String>,
+    pub request_type_url: ::core::option::Option<String>,
     /// If true, the response is streamed.
     #[serde(default, rename = "responseStreaming")]
-    pub response_streaming: Option<bool>,
+    pub response_streaming: ::core::option::Option<bool>,
     /// The URL of the output message type.
     #[serde(default, rename = "responseTypeUrl")]
-    pub response_type_url: Option<String>,
+    pub response_type_url: ::core::option::Option<String>,
     /// The source syntax of this method. This field should be ignored, instead the syntax should be inherited from Api. This is similar to Field and EnumValue. // TODO: enum values: ["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"]
     #[serde(default)]
-    pub syntax: Option<String>,
+    pub syntax: ::core::option::Option<String>,
 }
 
 /// Defines policies applying to an RPC method.
@@ -1007,10 +1012,10 @@ pub struct Method {
 pub struct MethodPolicy {
     /// Policies that are applicable to the request message.
     #[serde(default, rename = "requestPolicies")]
-    pub request_policies: Option<Vec<FieldPolicy>>,
+    pub request_policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldPolicy>>>,
     /// Selects a method to which these policies should be enforced, for example, "google.pubsub.v1.Subscriber.CreateSubscription". Refer to selector for syntax details. NOTE: This field must not be set in the proto annotation. It will be automatically filled by the service config compiler .
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Describes the generator configuration for a method.
@@ -1018,16 +1023,16 @@ pub struct MethodPolicy {
 pub struct MethodSettings {
     /// List of top-level fields of the request message, that should be automatically populated by the client libraries based on their (google.api.field_info).format. Currently supported format: UUID4. Example of a YAML configuration: publishing: method_settings: - selector: google.example.v1.ExampleService.CreateExample auto_populated_fields: - request_id
     #[serde(default, rename = "autoPopulatedFields")]
-    pub auto_populated_fields: Option<Vec<String>>,
+    pub auto_populated_fields: ::core::option::Option<::std::vec::Vec<String>>,
     /// Batching configuration for an API method in client libraries. Example of a YAML configuration: publishing: method_settings: - selector: google.example.v1.ExampleService.BatchCreateExample batching: element_count_threshold: 1000 request_byte_threshold: 100000000 delay_threshold_millis: 10
     #[serde(default)]
-    pub batching: Option<BatchingConfigProto>,
+    pub batching: ::core::option::Option<::std::boxed::Box<BatchingConfigProto>>,
     /// Describes settings to use for long-running operations when generating API methods for RPCs. Complements RPCs that use the annotations in google/longrunning/operations.proto. Example of a YAML configuration:: publishing: method_settings: - selector: google.cloud.speech.v2.Speech.BatchRecognize long_running: initial_poll_delay: 60s # 1 minute poll_delay_multiplier: 1.5 max_poll_delay: 360s # 6 minutes total_poll_timeout: 54000s # 90 minutes
     #[serde(default, rename = "longRunning")]
-    pub long_running: Option<LongRunning>,
+    pub long_running: ::core::option::Option<::std::boxed::Box<LongRunning>>,
     /// The fully qualified name of the method, for which the options below apply. This is used to find the method to apply the options. Example: publishing: method_settings: - selector: google.storage.control.v2.StorageControl.CreateFolder # method settings for CreateFolder...
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Defines a metric type and its schema. Once a metric descriptor is created, deleting or altering it stops data collection and makes the metric type''s existing data unusable.
@@ -1035,37 +1040,37 @@ pub struct MethodSettings {
 pub struct MetricDescriptor {
     /// A detailed description of the metric, which can be used in documentation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A concise name for the metric, which can be displayed in user interfaces. Use sentence case without an ending period, for example "Request count". This field is optional but it is recommended to be set for any metrics associated with user-visible concepts, such as Quota.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The set of labels that can be used to describe a specific instance of this metric type. For example, the appengine.googleapis.com/http/server/response_latencies metric type has a label for the HTTP response code, response_code, so you can look at latencies for successful responses or just for responses that failed.
     #[serde(default)]
-    pub labels: Option<Vec<LabelDescriptor>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelDescriptor>>>,
     /// Optional. The launch stage of the metric definition. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// Optional. Metadata which can be used to guide usage of the metric.
     #[serde(default)]
-    pub metadata: Option<MetricDescriptorMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<MetricDescriptorMetadata>>,
     /// Whether the metric records instantaneous values, changes to a value, etc. Some combinations of metric_kind and value_type might not be supported. // TODO: enum values: ["METRIC_KIND_UNSPECIFIED", "GAUGE", "DELTA", "CUMULATIVE"]
     #[serde(default, rename = "metricKind")]
-    pub metric_kind: Option<String>,
+    pub metric_kind: ::core::option::Option<String>,
     /// Read-only. If present, then a time series, which is identified partially by a metric type and a MonitoredResourceDescriptor, that is associated with this metric type can only be associated with one of the monitored resource types listed here.
     #[serde(default, rename = "monitoredResourceTypes")]
-    pub monitored_resource_types: Option<Vec<String>>,
+    pub monitored_resource_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// The resource name of the metric descriptor.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The metric type, including its DNS name prefix. The type is not URL-encoded. All user-defined metric types have the DNS name custom.googleapis.com or external.googleapis.com. Metric types should use a natural hierarchical grouping. For example: "custom.googleapis.com/invoice/paid/amount" "external.googleapis.com/prometheus/up" "appengine.googleapis.com/http/server/response_latencies"
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The units in which the metric value is reported. It is only applicable if the value_type is INT64, DOUBLE, or DISTRIBUTION. The unit defines the representation of the stored metric values. Different systems might scale the values to be more easily displayed (so a value of 0.02kBy _might_ be displayed as 20By, and a value of 3523kBy _might_ be displayed as 3.5MBy). However, if the unit is kBy, then the value of the metric is always in thousands of bytes, no matter how it might be displayed. If you want a custom metric to record the exact number of CPU-seconds used by a job, you can create an INT64 CUMULATIVE metric whose unit is s{CPU} (or equivalently 1s{CPU} or just s). If the job uses 12,005 CPU-seconds, then the value is written as 12005. Alternatively, if you want a custom metric to record data in a more granular way, you can create a DOUBLE CUMULATIVE metric whose unit is ks{CPU}, and then write the value 12.005 (which is 12005/1000), or use Kis{CPU} and write 11.723 (which is 12005/1024). The supported units are a subset of [The Unified Code for Units of Measure](https://unitsofmeasure.org/ucum.html) standard: **Basic units (UNIT)** * bit bit * By byte * s second * min minute * h hour * d day * 1 dimensionless **Prefixes (PREFIX)** * k kilo (10^3) * M mega (10^6) * G giga (10^9) * T tera (10^12) * P peta (10^15) * E exa (10^18) * Z zetta (10^21) * Y yotta (10^24) * m milli (10^-3) * u micro (10^-6) * n nano (10^-9) * p pico (10^-12) * f femto (10^-15) * a atto (10^-18) * z zepto (10^-21) * y yocto (10^-24) * Ki kibi (2^10) * Mi mebi (2^20) * Gi gibi (2^30) * Ti tebi (2^40) * Pi pebi (2^50) **Grammar** The grammar also includes these connectors: * / division or ratio (as an infix operator). For examples, kBy/{email} or MiBy/10ms (although you should almost never have /s in a metric unit; rates should always be computed at query time from the underlying cumulative or delta value). * . multiplication or composition (as an infix operator). For examples, GBy.d or k{watt}.h. The grammar for a unit is as follows: Expression = Component { "." Component } { "/" Component } ; Component = ( [ PREFIX ] UNIT | "%" ) [ Annotation ] | Annotation | "1" ; Annotation = "{" NAME "}" ; Notes: * Annotation is just a comment if it follows a UNIT. If the annotation is used alone, then the unit is equivalent to 1. For examples, {request}/s == 1/s, By{transmitted}/s == By/s. * NAME is a sequence of non-blank printable ASCII characters not containing { or }. * 1 represents a unitary [dimensionless unit](https://en.wikipedia.org/wiki/Dimensionless_quantity) of 1, such as in 1/s. It is typically used when none of the basic units are appropriate. For example, "new users per day" can be represented as 1/d or {new-users}/d (and a metric value 5 would mean "5 new users). Alternatively, "thousands of page views per day" would be represented as 1000/d or k1/d or k{page_views}/d (and a metric value of 5.3 would mean "5300 page views per day"). * % represents dimensionless value of 1/100, and annotates values giving a percentage (so the metric values are typically in the range of 0..100, and a metric value 3 means "3 percent"). * 10^2.% indicates a metric contains a ratio, typically in the range 0..1, that will be multiplied by 100 and displayed as a percentage (so a metric value 0.03 means "3 percent").
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// Whether the measurement is an integer, a floating-point number, etc. Some combinations of metric_kind and value_type might not be supported. // TODO: enum values: ["VALUE_TYPE_UNSPECIFIED", "BOOL", "INT64", "DOUBLE", "STRING", "DISTRIBUTION", "MONEY"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// Additional annotations that can be used to guide the usage of a metric.
@@ -1073,16 +1078,16 @@ pub struct MetricDescriptor {
 pub struct MetricDescriptorMetadata {
     /// The delay of data points caused by ingestion. Data points older than this age are guaranteed to be ingested and available to be read, excluding data loss due to errors.
     #[serde(default, rename = "ingestDelay")]
-    pub ingest_delay: Option<String>,
+    pub ingest_delay: ::core::option::Option<String>,
     /// Deprecated. Must use the MetricDescriptor.launch_stage instead. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// The sampling period of metric data points. For metrics which are written periodically, consecutive data points are stored at this time interval, excluding data loss due to errors. Metrics with a higher granularity have a smaller sampling period.
     #[serde(default, rename = "samplePeriod")]
-    pub sample_period: Option<String>,
+    pub sample_period: ::core::option::Option<String>,
     /// The scope of the timeseries data of the metric.
     #[serde(default, rename = "timeSeriesResourceHierarchyLevel")]
-    pub time_series_resource_hierarchy_level: Option<Vec<String>>,
+    pub time_series_resource_hierarchy_level: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Bind API methods to metrics. Binding a method to a metric causes that metric''s configured quota behaviors to apply to the method call.
@@ -1090,10 +1095,10 @@ pub struct MetricDescriptorMetadata {
 pub struct MetricRule {
     /// Metrics to update when the selected methods are called, and the associated cost applied to each metric. The key of the map is the metric name, and the values are the amount increased for the metric against which the quota limits are defined. The value must not be negative.
     #[serde(default, rename = "metricCosts")]
-    pub metric_costs: Option<serde_json::Value>,
+    pub metric_costs: ::core::option::Option<serde_json::Value>,
     /// Selects the methods to which this rule applies. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// Declares an API Interface to be included in this interface. The including interface must redeclare all the methods from the included interface, but documentation and options are inherited as follows: - If after comment and whitespace stripping, the documentation string of the redeclared method is empty, it will be inherited from the original method. - Each annotation belonging to the service config (http, visibility) which is not set in the redeclared method will be inherited. - If an http annotation is inherited, the path pattern will be modified as follows. Any version prefix will be replaced by the version of the including interface plus the root path if specified. Example of a simple mixin: package google.acl.v1; service AccessControl { // Get the underlying ACL object. rpc GetAcl(GetAclRequest) returns (Acl) { option (google.api.http).get = "/v1/{resource=**}:getAcl"; } } package google.storage.v2; service Storage { // rpc GetAcl(GetAclRequest) returns (Acl); // Get a data record. rpc GetData(GetDataRequest) returns (Data) { option (google.api.http).get = "/v2/{resource=**}"; } } Example of a mixin configuration: apis: - name: google.storage.v2.Storage mixins: - name: google.acl.v1.AccessControl The mixin construct implies that all methods in AccessControl are also declared with same name and request/response types in Storage. A documentation generator or annotation processor will see the effective Storage.GetAcl method after inheriting documentation and annotations as follows: service Storage { // Get the underlying ACL object. rpc GetAcl(GetAclRequest) returns (Acl) { option (google.api.http).get = "/v2/{resource=**}:getAcl"; } ... } Note how the version in the path pattern changed from v1 to v2. If the root field in the mixin is specified, it should be a relative path under which inherited HTTP paths are placed. Example: apis: - name: google.storage.v2.Storage mixins: - name: google.acl.v1.AccessControl root: acls This implies the following inherited HTTP annotation: service Storage { // Get the underlying ACL object. rpc GetAcl(GetAclRequest) returns (Acl) { option (google.api.http).get = "/v2/acls/{resource=**}:getAcl"; } ... }
@@ -1101,10 +1106,10 @@ pub struct MetricRule {
 pub struct Mixin {
     /// The fully qualified name of the interface which is included.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// If non-empty specifies a path under which inherited HTTP paths are rooted.
     #[serde(default)]
-    pub root: Option<String>,
+    pub root: ::core::option::Option<String>,
 }
 
 /// An object that describes the schema of a MonitoredResource object using a type name and a set of labels. For example, the monitored resource descriptor for Google Compute Engine VM instances has a type of "gce_instance" and specifies the use of the labels "instance_id" and "zone" to identify particular VM instances. Different APIs can support different monitored resource types. APIs generally provide a list method that returns the monitored resource descriptors used by the API.
@@ -1112,22 +1117,22 @@ pub struct Mixin {
 pub struct MonitoredResourceDescriptor {
     /// Optional. A detailed description of the monitored resource type that might be used in documentation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. A concise name for the monitored resource type that might be displayed in user interfaces. It should be a Title Cased Noun Phrase, without any article or other determiners. For example, "Google Cloud SQL Database".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. A set of labels used to describe instances of this monitored resource type. For example, an individual Google Cloud SQL database is identified by values for the labels "database_id" and "zone".
     #[serde(default)]
-    pub labels: Option<Vec<LabelDescriptor>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelDescriptor>>>,
     /// Optional. The launch stage of the monitored resource definition. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// Optional. The resource name of the monitored resource descriptor: "projects/{project_id}/monitoredResourceDescriptors/{type}" where {type} is the value of the type field in this object and {project_id} is a project ID that provides API-specific context for accessing the type. APIs that do not use project information can use the resource name format "monitoredResourceDescriptors/{type}".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The monitored resource type. For example, the type "cloudsql_database" represents databases in Google Cloud SQL. For a list of types, see [Monitored resource types](https://cloud.google.com/monitoring/api/resources) and [Logging resource types](https://cloud.google.com/logging/docs/api/v2/resource-list).
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Monitoring configuration of the service. The example below shows how to configure monitored resources and metrics for monitoring. In the example, a monitored resource and two metrics are defined. The library.googleapis.com/book/returned_count metric is sent to both producer and consumer projects, whereas the library.googleapis.com/book/num_overdue metric is only sent to the consumer project. monitored_resources: - type: library.googleapis.com/Branch display_name: "Library Branch" description: "A branch of a library." launch_stage: GA labels: - key: resource_container description: "The Cloud container (ie. project id) for the Branch." - key: location description: "The location of the library branch." - key: branch_id description: "The id of the branch." metrics: - name: library.googleapis.com/book/returned_count display_name: "Books Returned" description: "The count of books that have been returned." launch_stage: GA metric_kind: DELTA value_type: INT64 unit: "1" labels: - key: customer_id description: "The id of the customer." - name: library.googleapis.com/book/num_overdue display_name: "Books Overdue" description: "The current number of overdue books." launch_stage: GA metric_kind: GAUGE value_type: INT64 unit: "1" labels: - key: customer_id description: "The id of the customer." monitoring: producer_destinations: - monitored_resource: library.googleapis.com/Branch metrics: - library.googleapis.com/book/returned_count consumer_destinations: - monitored_resource: library.googleapis.com/Branch metrics: - library.googleapis.com/book/returned_count - library.googleapis.com/book/num_overdue
@@ -1135,10 +1140,12 @@ pub struct MonitoredResourceDescriptor {
 pub struct Monitoring {
     /// Monitoring configurations for sending metrics to the consumer project. There can be multiple consumer destinations. A monitored resource type may appear in multiple monitoring destinations if different aggregations are needed for different sets of metrics associated with that monitored resource type. A monitored resource and metric pair may only be used once in the Monitoring configuration.
     #[serde(default, rename = "consumerDestinations")]
-    pub consumer_destinations: Option<Vec<MonitoringDestination>>,
+    pub consumer_destinations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MonitoringDestination>>>,
     /// Monitoring configurations for sending metrics to the producer project. There can be multiple producer destinations. A monitored resource type may appear in multiple monitoring destinations if different aggregations are needed for different sets of metrics associated with that monitored resource type. A monitored resource and metric pair may only be used once in the Monitoring configuration.
     #[serde(default, rename = "producerDestinations")]
-    pub producer_destinations: Option<Vec<MonitoringDestination>>,
+    pub producer_destinations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MonitoringDestination>>>,
 }
 
 /// Configuration of a specific monitoring destination (the producer project or the consumer project).
@@ -1146,10 +1153,10 @@ pub struct Monitoring {
 pub struct MonitoringDestination {
     /// Types of the metrics to report to this monitoring destination. Each type must be defined in Service.metrics section.
     #[serde(default)]
-    pub metrics: Option<Vec<String>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
     /// The monitored resource type. The type must be defined in Service.monitored_resources section.
     #[serde(default, rename = "monitoredResource")]
-    pub monitored_resource: Option<String>,
+    pub monitored_resource: ::core::option::Option<String>,
 }
 
 /// Settings for Node client libraries.
@@ -1157,7 +1164,7 @@ pub struct MonitoringDestination {
 pub struct NodeSettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
 }
 
 /// OAuth scopes are a way to define data and permissions on data. For example, there are scopes defined for "Read-only access to Google Calendar" and "Access to Cloud Platform". Users can consent to a scope for an application, giving it permission to access that data on their behalf. OAuth scope specifications should be fairly coarse grained; a user will need to see and understand the text description of what your scope means. In most cases: use one or at most two OAuth scopes for an entire family of products. If your product has multiple APIs, you should probably be sharing the OAuth scope across all of those APIs. When you need finer grained OAuth consent screens: talk with your product management about how developers will use them in practice. Please note that even though each of the canonical scopes is enough for a request to be accepted and passed to the backend, a request can still fail due to the backend requiring additional scopes or permissions.
@@ -1165,7 +1172,7 @@ pub struct NodeSettings {
 pub struct OAuthRequirements {
     /// The list of publicly documented OAuth scopes that are allowed access. An OAuth token containing any of these scopes will be accepted. Example: canonical_scopes: https://www.googleapis.com/auth/calendar, https://www.googleapis.com/auth/calendar.read
     #[serde(default, rename = "canonicalScopes")]
-    pub canonical_scopes: Option<String>,
+    pub canonical_scopes: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1173,19 +1180,19 @@ pub struct OAuthRequirements {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// A message representing the message types used by a long-running operation. Example: rpc Export(ExportRequest) returns (google.longrunning.Operation) { option (google.longrunning.operation_info) = { response_type: "ExportResponse" metadata_type: "ExportMetadata" }; }
@@ -1193,10 +1200,10 @@ pub struct Operation {
 pub struct OperationInfo {
     /// Required. The message name of the metadata type for this long-running operation. If the response is in a different package from the rpc, a fully-qualified message name must be used (e.g. google.protobuf.Struct). Note: Altering this value constitutes a breaking change.
     #[serde(default, rename = "metadataType")]
-    pub metadata_type: Option<String>,
+    pub metadata_type: ::core::option::Option<String>,
     /// Required. The message name of the primary return type for this long-running operation. This type will be used to deserialize the LRO''s response. If the response is in a different package from the rpc, a fully-qualified message name must be used (e.g. google.protobuf.Struct). Note: Altering this value constitutes a breaking change.
     #[serde(default, rename = "responseType")]
-    pub response_type: Option<String>,
+    pub response_type: ::core::option::Option<String>,
 }
 
 /// The metadata associated with a long running operation resource.
@@ -1204,27 +1211,27 @@ pub struct OperationInfo {
 pub struct OperationMetadata {
     /// Percentage of completion of this operation, ranging from 0 to 100.
     #[serde(default, rename = "progressPercentage")]
-    pub progress_percentage: Option<i32>,
+    pub progress_percentage: ::core::option::Option<i32>,
     /// The full name of the resources that this operation is directly associated with.
     #[serde(default, rename = "resourceNames")]
-    pub resource_names: Option<Vec<String>>,
+    pub resource_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The start time of the operation.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Detailed status information for each step. The order is undetermined.
     #[serde(default)]
-    pub steps: Option<Vec<Step>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Step>>>,
 }
 
 /// A protocol buffer option, which can be attached to a message, field, enumeration, etc. New usages of this message as an alternative to FileOptions, MessageOptions, FieldOptions, EnumOptions, EnumValueOptions, ServiceOptions, or MethodOptions are strongly discouraged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Option {
+pub struct ApiOption {
     /// The option''s name. For protobuf built-in options (options defined in descriptor.proto), this is the short name. For example, "map_entry". For custom options, it should be the fully-qualified name. For example, "google.api.http".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The option''s value packed in an Any message. If the value is a primitive, the corresponding wrapper type defined in google/protobuf/wrappers.proto should be used. If the value is an enum, it should be stored as an int32 value using the google.protobuf.Int32Value type.
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a documentation page. A page can contain subpages to represent nested documentation set structure.
@@ -1232,13 +1239,13 @@ pub struct Option {
 pub struct Page {
     /// The Markdown content of the page. You can use (== include {path} ==) to include content from a Markdown file. The content can be used to produce the documentation page such as HTML format page.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The name of the page. It will be used as an identity of the page to generate URI of the page, text of the link to this page in navigation, etc. The full page name (start from the root page name to this page concatenated with .) can be used as reference to the page in your documentation. For example: pages: - name: Tutorial content: (== include tutorial.md ==) subpages: - name: Java content: (== include tutorial_java.md ==) You can reference Java page using Markdown reference link syntax: Java.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Subpages of this page. The order of subpages specified here will be honored in the generated docset.
     #[serde(default)]
-    pub subpages: Option<Vec<Page>>,
+    pub subpages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Page>>>,
 }
 
 /// Settings for Php client libraries.
@@ -1246,10 +1253,10 @@ pub struct Page {
 pub struct PhpSettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
     /// The package name to use in Php. Clobbers the php_namespace option set in the protobuf. This should be used **only** by APIs who have already set the language_settings.php.package_name" field in gapic.yaml. API teams should use the protobuf php_namespace option where possible. Example of a YAML configuration:: publishing: library_settings: php_settings: library_package: Google\Cloud\PubSub\V1
     #[serde(default, rename = "libraryPackage")]
-    pub library_package: Option<String>,
+    pub library_package: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -1257,16 +1264,16 @@ pub struct PhpSettings {
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: Option<Vec<AuditConfig>>,
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditConfig>>>,
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// This message configures the settings for publishing [Google Cloud Client libraries](https://cloud.google.com/apis/docs/cloud-client-libraries) generated from the service config.
@@ -1274,37 +1281,38 @@ pub struct Policy {
 pub struct Publishing {
     /// Used as a tracking tag when collecting data about the APIs developer relations artifacts like docs, packages delivered to package managers, etc. Example: "speech".
     #[serde(default, rename = "apiShortName")]
-    pub api_short_name: Option<String>,
+    pub api_short_name: ::core::option::Option<String>,
     /// GitHub teams to be added to CODEOWNERS in the directory in GitHub containing source code for the client libraries for this API.
     #[serde(default, rename = "codeownerGithubTeams")]
-    pub codeowner_github_teams: Option<Vec<String>>,
+    pub codeowner_github_teams: ::core::option::Option<::std::vec::Vec<String>>,
     /// A prefix used in sample code when demarking regions to be included in documentation.
     #[serde(default, rename = "docTagPrefix")]
-    pub doc_tag_prefix: Option<String>,
+    pub doc_tag_prefix: ::core::option::Option<String>,
     /// Link to product home page. Example: https://cloud.google.com/asset-inventory/docs/overview
     #[serde(default, rename = "documentationUri")]
-    pub documentation_uri: Option<String>,
+    pub documentation_uri: ::core::option::Option<String>,
     /// GitHub label to apply to issues and pull requests opened for this API.
     #[serde(default, rename = "githubLabel")]
-    pub github_label: Option<String>,
+    pub github_label: ::core::option::Option<String>,
     /// Client library settings. If the same version string appears multiple times in this list, then the last one wins. Settings from earlier settings with the same version string are discarded.
     #[serde(default, rename = "librarySettings")]
-    pub library_settings: Option<Vec<ClientLibrarySettings>>,
+    pub library_settings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClientLibrarySettings>>>,
     /// A list of API method settings, e.g. the behavior for methods that use the long-running operation pattern.
     #[serde(default, rename = "methodSettings")]
-    pub method_settings: Option<Vec<MethodSettings>>,
+    pub method_settings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MethodSettings>>>,
     /// Link to a *public* URI where users can report issues. Example: https://issuetracker.google.com/issues/new?component=190865&template=1161103
     #[serde(default, rename = "newIssueUri")]
-    pub new_issue_uri: Option<String>,
+    pub new_issue_uri: ::core::option::Option<String>,
     /// For whom the client library is being published. // TODO: enum values: ["CLIENT_LIBRARY_ORGANIZATION_UNSPECIFIED", "CLOUD", "ADS", "PHOTOS", "STREET_VIEW", "SHOPPING", "GEO", "GENERATIVE_AI"]
     #[serde(default)]
-    pub organization: Option<String>,
+    pub organization: ::core::option::Option<String>,
     /// Optional link to proto reference documentation. Example: https://cloud.google.com/pubsub/lite/docs/reference/rpc
     #[serde(default, rename = "protoReferenceDocumentationUri")]
-    pub proto_reference_documentation_uri: Option<String>,
+    pub proto_reference_documentation_uri: ::core::option::Option<String>,
     /// Optional link to REST reference documentation. Example: https://cloud.google.com/pubsub/lite/docs/reference/rest
     #[serde(default, rename = "restReferenceDocumentationUri")]
-    pub rest_reference_documentation_uri: Option<String>,
+    pub rest_reference_documentation_uri: ::core::option::Option<String>,
 }
 
 /// Settings for Python client libraries.
@@ -1312,10 +1320,10 @@ pub struct Publishing {
 pub struct PythonSettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
     /// Experimental features to be included during client library generation.
     #[serde(default, rename = "experimentalFeatures")]
-    pub experimental_features: Option<ExperimentalFeatures>,
+    pub experimental_features: ::core::option::Option<::std::boxed::Box<ExperimentalFeatures>>,
 }
 
 /// Quota configuration helps to achieve fairness and budgeting in service usage. The metric based quota configuration works this way: - The service configuration defines a set of metrics. - For API calls, the quota.metric_rules maps methods to metrics with corresponding costs. - The quota.limits defines limits on the metrics, which will be used for quota checks at runtime. An example quota configuration in yaml format: quota: limits: - name: apiWriteQpsPerProject metric: library.googleapis.com/write_calls unit: "1/min/{project}" # rate limit for consumer projects values: STANDARD: 10000 (The metric rules bind all methods to the read_calls metric, except for the UpdateBook and DeleteBook methods. These two methods are mapped to the write_calls metric, with the UpdateBook method consuming at twice rate as the DeleteBook method.) metric_rules: - selector: "*" metric_costs: library.googleapis.com/read_calls: 1 - selector: google.example.library.v1.LibraryService.UpdateBook metric_costs: library.googleapis.com/write_calls: 2 - selector: google.example.library.v1.LibraryService.DeleteBook metric_costs: library.googleapis.com/write_calls: 1 Corresponding Metric definition: metrics: - name: library.googleapis.com/read_calls display_name: Read requests metric_kind: DELTA value_type: INT64 - name: library.googleapis.com/write_calls display_name: Write requests metric_kind: DELTA value_type: INT64
@@ -1323,10 +1331,10 @@ pub struct PythonSettings {
 pub struct Quota {
     /// List of QuotaLimit definitions for the service.
     #[serde(default)]
-    pub limits: Option<Vec<QuotaLimit>>,
+    pub limits: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QuotaLimit>>>,
     /// List of MetricRule definitions, each one mapping a selected method to one or more metrics.
     #[serde(default, rename = "metricRules")]
-    pub metric_rules: Option<Vec<MetricRule>>,
+    pub metric_rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricRule>>>,
 }
 
 /// QuotaLimit defines a specific limit that applies over a specified duration for a limit type. There can be at most one limit for a duration and limit type combination defined within a QuotaGroup.
@@ -1334,34 +1342,34 @@ pub struct Quota {
 pub struct QuotaLimit {
     /// Default number of tokens that can be consumed during the specified duration. This is the number of tokens assigned when a client application developer activates the service for his/her project. Specifying a value of 0 will block all requests. This can be used if you are provisioning quota to selected consumers and blocking others. Similarly, a value of -1 will indicate an unlimited quota. No other negative values are allowed. Used by group-based quotas only.
     #[serde(default, rename = "defaultLimit")]
-    pub default_limit: Option<String>,
+    pub default_limit: ::core::option::Option<String>,
     /// Optional. User-visible, extended description for this quota limit. Should be used only when more context is needed to understand this limit than provided by the limit''s display name (see: display_name).
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User-visible display name for this limit. Optional. If not set, the UI will provide a default display name based on the quota configuration. This field can be used to override the default display name generated from the configuration.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Duration of this limit in textual notation. Must be "100s" or "1d". Used by group-based quotas only.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Free tier value displayed in the Developers Console for this limit. The free tier is the number of tokens that will be subtracted from the billed amount when billing is enabled. This field can only be set on a limit with duration "1d", in a billable group; it is invalid on any other limit. If this field is not set, it defaults to 0, indicating that there is no free tier for this service. Used by group-based quotas only.
     #[serde(default, rename = "freeTier")]
-    pub free_tier: Option<String>,
+    pub free_tier: ::core::option::Option<String>,
     /// Maximum number of tokens that can be consumed during the specified duration. Client application developers can override the default limit up to this maximum. If specified, this value cannot be set to a value less than the default limit. If not specified, it is set to the default limit. To allow clients to apply overrides with no upper bound, set this to -1, indicating unlimited maximum quota. Used by group-based quotas only.
     #[serde(default, rename = "maxLimit")]
-    pub max_limit: Option<String>,
+    pub max_limit: ::core::option::Option<String>,
     /// The name of the metric this quota limit applies to. The quota limits with the same metric will be checked together during runtime. The metric must be defined within the service config.
     #[serde(default)]
-    pub metric: Option<String>,
+    pub metric: ::core::option::Option<String>,
     /// Name of the quota limit. The name must be provided, and it must be unique within the service. The name can only include alphanumeric characters as well as ''-''. The maximum length of the limit name is 64 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Specify the unit of the quota limit. It uses the same syntax as MetricDescriptor.unit. The supported unit kinds are determined by the quota backend system. Here are some examples: * "1/min/{project}" for quota per minute per project. Note: the order of unit components is insignificant. The "1" at the beginning is required to follow the metric unit syntax.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// Tiered limit values. You must specify this as a key:value pair, with an integer value that is the maximum number of requests allowed for the specified unit. Currently only STANDARD is supported.
     #[serde(default)]
-    pub values: Option<serde_json::Value>,
+    pub values: ::core::option::Option<serde_json::Value>,
 }
 
 /// Defines a proto annotation that describes a string field that refers to an API resource.
@@ -1369,10 +1377,10 @@ pub struct QuotaLimit {
 pub struct ResourceReference {
     /// The resource type of a child collection that the annotated field references. This is useful for annotating the parent field that doesn''t have a fixed resource type. Example: message ListLogEntriesRequest { string parent = 1 [(google.api.resource_reference) = { child_type: "logging.googleapis.com/LogEntry" }; }
     #[serde(default, rename = "childType")]
-    pub child_type: Option<String>,
+    pub child_type: ::core::option::Option<String>,
     /// The resource type that the annotated field references. Example: message Subscription { string topic = 2 [(google.api.resource_reference) = { type: "pubsub.googleapis.com/Topic" }]; } Occasionally, a field may reference an arbitrary resource. In this case, APIs use the special value * in their resource reference. Example: message GetIamPolicyRequest { string resource = 2 [(google.api.resource_reference) = { type: "*" }]; }
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A rollout resource that defines how service configuration versions are pushed to control plane systems. Typically, you create a new version of the service config, and then create a Rollout to push the service config.
@@ -1380,25 +1388,25 @@ pub struct ResourceReference {
 pub struct Rollout {
     /// Creation time of the rollout. Readonly.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The user who created the Rollout. Readonly.
     #[serde(default, rename = "createdBy")]
-    pub created_by: Option<String>,
+    pub created_by: ::core::option::Option<String>,
     /// The strategy associated with a rollout to delete a ManagedService. Readonly.
     #[serde(default, rename = "deleteServiceStrategy")]
-    pub delete_service_strategy: Option<serde_json::Value>,
+    pub delete_service_strategy: ::core::option::Option<serde_json::Value>,
     /// Optional. Unique identifier of this Rollout. Must be no longer than 63 characters and only lower case letters, digits, ''.'', ''_'' and ''-'' are allowed. If not specified by client, the server will generate one. The generated id will have the form of , where "date" is the create date in ISO 8601 format. "revision number" is a monotonically increasing positive number that is reset every day for each service. An example of the generated rollout_id is ''2016-02-16r1''
     #[serde(default, rename = "rolloutId")]
-    pub rollout_id: Option<String>,
+    pub rollout_id: ::core::option::Option<String>,
     /// The name of the service associated with this Rollout.
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
     /// The status of this rollout. Readonly. In case of a failed rollout, the system will automatically rollback to the current Rollout version. Readonly. // TODO: enum values: ["ROLLOUT_STATUS_UNSPECIFIED", "IN_PROGRESS", "SUCCESS", "CANCELLED", "FAILED", "PENDING", "FAILED_ROLLED_BACK"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Google Service Control selects service configurations based on traffic percentage.
     #[serde(default, rename = "trafficPercentStrategy")]
-    pub traffic_percent_strategy: Option<TrafficPercentStrategy>,
+    pub traffic_percent_strategy: ::core::option::Option<::std::boxed::Box<TrafficPercentStrategy>>,
 }
 
 /// Settings for Ruby client libraries.
@@ -1406,7 +1414,7 @@ pub struct Rollout {
 pub struct RubySettings {
     /// Some settings.
     #[serde(default)]
-    pub common: Option<CommonLanguageSettings>,
+    pub common: ::core::option::Option<::std::boxed::Box<CommonLanguageSettings>>,
 }
 
 /// This message is used to configure the generation of a subset of the RPCs in a service for client libraries.
@@ -1414,10 +1422,10 @@ pub struct RubySettings {
 pub struct SelectiveGapicGeneration {
     /// Setting this to true indicates to the client generators that methods that would be excluded from the generation should instead be generated in a way that indicates these methods should not be consumed by end users. How this is expressed is up to individual language implementations to decide. Some examples may be: added annotations, obfuscated identifiers, or other language idiomatic patterns.
     #[serde(default, rename = "generateOmittedAsInternal")]
-    pub generate_omitted_as_internal: Option<bool>,
+    pub generate_omitted_as_internal: ::core::option::Option<bool>,
     /// An allowlist of the fully qualified names of RPCs that should be included on public client surfaces.
     #[serde(default)]
-    pub methods: Option<Vec<String>>,
+    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Service is the root object of Google API service configuration (service config). It describes the basic information about a logical service, such as the service name and the user-facing title, and delegates other aspects to sub-sections. Each sub-section is either a proto message or a repeated proto message that configures a specific aspect, such as auth. For more information, see each proto message definition. Example: type: google.api.Service name: calendar.googleapis.com title: Google Calendar API apis: - name: google.calendar.v3.Calendar visibility: rules: - selector: "google.calendar.v3.*" restriction: PREVIEW backend: rules: - selector: "google.calendar.v3.*" address: calendar.example.com authentication: providers: - id: google_calendar_auth jwks_uri: https://www.googleapis.com/oauth2/v1/certs issuer: https://securetoken.google.com rules: - selector: "*" requirements: provider_id: google_calendar_auth
@@ -1425,91 +1433,92 @@ pub struct SelectiveGapicGeneration {
 pub struct Service {
     /// A list of API interfaces exported by this service. Only the name field of the google.protobuf.Api needs to be provided by the configuration author, as the remaining fields will be derived from the IDL during the normalization process. It is an error to specify an API interface here which cannot be resolved against the associated IDL files.
     #[serde(default)]
-    pub apis: Option<Vec<Api>>,
+    pub apis: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Api>>>,
     /// Configuration aspects. This is a repeated field to allow multiple aspects to be configured. The kind field in each ConfigAspect specifies the type of aspect. The spec field contains the configuration for that aspect. The schema for the spec field is defined by the backend service owners.
     #[serde(default)]
-    pub aspects: Option<Vec<Aspect>>,
+    pub aspects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Aspect>>>,
     /// Auth configuration.
     #[serde(default)]
-    pub authentication: Option<Authentication>,
+    pub authentication: ::core::option::Option<::std::boxed::Box<Authentication>>,
     /// API backend configuration.
     #[serde(default)]
-    pub backend: Option<Backend>,
+    pub backend: ::core::option::Option<::std::boxed::Box<Backend>>,
     /// Billing configuration.
     #[serde(default)]
-    pub billing: Option<Billing>,
+    pub billing: ::core::option::Option<::std::boxed::Box<Billing>>,
     /// Obsolete. Do not use. This field has no semantic meaning. The service config compiler always sets this field to 3.
     #[serde(default, rename = "configVersion")]
-    pub config_version: Option<i64>,
+    pub config_version: ::core::option::Option<i64>,
     /// Context configuration.
     #[serde(default)]
-    pub context: Option<Context>,
+    pub context: ::core::option::Option<::std::boxed::Box<Context>>,
     /// Configuration for the service control plane.
     #[serde(default)]
-    pub control: Option<Control>,
+    pub control: ::core::option::Option<::std::boxed::Box<Control>>,
     /// Custom error configuration.
     #[serde(default, rename = "customError")]
-    pub custom_error: Option<CustomError>,
+    pub custom_error: ::core::option::Option<::std::boxed::Box<CustomError>>,
     /// Additional API documentation.
     #[serde(default)]
-    pub documentation: Option<Documentation>,
+    pub documentation: ::core::option::Option<::std::boxed::Box<Documentation>>,
     /// Configuration for network endpoints. If this is empty, then an endpoint with the same name as the service is automatically generated to service all defined APIs. WARNING: Defining any entries in the endpoints list disables the automatic generation of default endpoint variations (e.g., {service}.clients6.google.com, content-{service}.googleapis.com, and mTLS variants like {service}.mtls.googleapis.com). To retain these default variations, you are required to explicitly include your main service endpoint (e.g., myservice.googleapis.com) in this list alongside any other custom endpoints (like REP, GFE, etc.).
     #[serde(default)]
-    pub endpoints: Option<Vec<Endpoint>>,
+    pub endpoints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Endpoint>>>,
     /// A list of all enum types included in this API service. Enums referenced directly or indirectly by the apis are automatically included. Enums which are not referenced but shall be included should be listed here by name by the configuration author. Example: enums: - name: google.someapi.v1.SomeEnum
     #[serde(default)]
-    pub enums: Option<Vec<Enum>>,
+    pub enums: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Enum>>>,
     /// HTTP configuration.
     #[serde(default)]
-    pub http: Option<Http>,
+    pub http: ::core::option::Option<::std::boxed::Box<Http>>,
     /// A unique ID for a specific instance of this message, typically assigned by the client for tracking purpose. Must be no longer than 63 characters and only lower case letters, digits, ''.'', ''_'' and ''-'' are allowed. If empty, the server may choose to generate one instead.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Logging configuration.
     #[serde(default)]
-    pub logging: Option<Logging>,
+    pub logging: ::core::option::Option<::std::boxed::Box<Logging>>,
     /// Defines the logs used by this service.
     #[serde(default)]
-    pub logs: Option<Vec<LogDescriptor>>,
+    pub logs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LogDescriptor>>>,
     /// Defines the metrics used by this service.
     #[serde(default)]
-    pub metrics: Option<Vec<MetricDescriptor>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricDescriptor>>>,
     /// Defines the monitored resources used by this service. This is required by the Service.monitoring and Service.logging configurations.
     #[serde(default, rename = "monitoredResources")]
-    pub monitored_resources: Option<Vec<MonitoredResourceDescriptor>>,
+    pub monitored_resources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MonitoredResourceDescriptor>>>,
     /// Monitoring configuration.
     #[serde(default)]
-    pub monitoring: Option<Monitoring>,
+    pub monitoring: ::core::option::Option<::std::boxed::Box<Monitoring>>,
     /// The service name, which is a DNS-like logical identifier for the service, such as calendar.googleapis.com. The service name typically goes through DNS verification to make sure the owner of the service also owns the DNS name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The Google project that owns this service.
     #[serde(default, rename = "producerProjectId")]
-    pub producer_project_id: Option<String>,
+    pub producer_project_id: ::core::option::Option<String>,
     /// Settings for [Google Cloud Client libraries](https://cloud.google.com/apis/docs/cloud-client-libraries) generated from APIs defined as protocol buffers.
     #[serde(default)]
-    pub publishing: Option<Publishing>,
+    pub publishing: ::core::option::Option<::std::boxed::Box<Publishing>>,
     /// Quota configuration.
     #[serde(default)]
-    pub quota: Option<Quota>,
+    pub quota: ::core::option::Option<::std::boxed::Box<Quota>>,
     /// Output only. The source information for this configuration if available.
     #[serde(default, rename = "sourceInfo")]
-    pub source_info: Option<SourceInfo>,
+    pub source_info: ::core::option::Option<::std::boxed::Box<SourceInfo>>,
     /// System parameter configuration.
     #[serde(default, rename = "systemParameters")]
-    pub system_parameters: Option<SystemParameters>,
+    pub system_parameters: ::core::option::Option<::std::boxed::Box<SystemParameters>>,
     /// A list of all proto message types included in this API service. It serves similar purpose as [google.api.Service.types], except that these types are not needed by user-defined APIs. Therefore, they will not show up in the generated discovery doc. This field should only be used to define system APIs in ESF.
     #[serde(default, rename = "systemTypes")]
-    pub system_types: Option<Vec<Type>>,
+    pub system_types: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Type>>>,
     /// The product title for this service, it is the name displayed in Google Cloud Console.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// A list of all proto message types included in this API service. Types referenced directly or indirectly by the apis are automatically included. Messages which are not referenced but shall be included, such as types used by the google.protobuf.Any type, should be listed here by name by the configuration author. Example: types: - name: google.protobuf.Int32
     #[serde(default)]
-    pub types: Option<Vec<Type>>,
+    pub types: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Type>>>,
     /// Configuration controlling usage of this service.
     #[serde(default)]
-    pub usage: Option<Usage>,
+    pub usage: ::core::option::Option<::std::boxed::Box<Usage>>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -1517,10 +1526,10 @@ pub struct Service {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
     /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// SourceContext represents information about the source of a protobuf element, like the file in which it is defined.
@@ -1528,7 +1537,7 @@ pub struct SetIamPolicyRequest {
 pub struct SourceContext {
     /// The path-qualified name of the .proto file that contained the associated protobuf element. For example: "google/protobuf/source_context.proto".
     #[serde(default, rename = "fileName")]
-    pub file_name: Option<String>,
+    pub file_name: ::core::option::Option<String>,
 }
 
 /// Source information used to create a Service Config
@@ -1536,7 +1545,7 @@ pub struct SourceContext {
 pub struct SourceInfo {
     /// All files used during config generation.
     #[serde(default, rename = "sourceFiles")]
-    pub source_files: Option<Vec<serde_json::Value>>,
+    pub source_files: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1544,13 +1553,13 @@ pub struct SourceInfo {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents the status of one operation step.
@@ -1558,10 +1567,10 @@ pub struct Status {
 pub struct Step {
     /// The short description of the step.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The status code. // TODO: enum values: ["STATUS_UNSPECIFIED", "DONE", "NOT_STARTED", "IN_PROGRESS", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Request message for SubmitConfigSource method.
@@ -1569,10 +1578,10 @@ pub struct Step {
 pub struct SubmitConfigSourceRequest {
     /// Required. The source configuration for the service.
     #[serde(default, rename = "configSource")]
-    pub config_source: Option<ConfigSource>,
+    pub config_source: ::core::option::Option<::std::boxed::Box<ConfigSource>>,
     /// Optional. If set, this will result in the generation of a google.api.Service configuration based on the ConfigSource provided, but the generated config and the sources will NOT be persisted.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response message for SubmitConfigSource method.
@@ -1580,7 +1589,7 @@ pub struct SubmitConfigSourceRequest {
 pub struct SubmitConfigSourceResponse {
     /// The generated service configuration.
     #[serde(default, rename = "serviceConfig")]
-    pub service_config: Option<Service>,
+    pub service_config: ::core::option::Option<::std::boxed::Box<Service>>,
 }
 
 /// Define a parameter''s name and location. The parameter may be passed as either an HTTP header or a URL query parameter, and if both are passed the behavior is implementation-dependent.
@@ -1588,13 +1597,13 @@ pub struct SubmitConfigSourceResponse {
 pub struct SystemParameter {
     /// Define the HTTP header name to use for the parameter. It is case insensitive.
     #[serde(default, rename = "httpHeader")]
-    pub http_header: Option<String>,
+    pub http_header: ::core::option::Option<String>,
     /// Define the name of the parameter, such as "api_key" . It is case sensitive.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Define the URL query parameter name to use for the parameter. It is case sensitive.
     #[serde(default, rename = "urlQueryParameter")]
-    pub url_query_parameter: Option<String>,
+    pub url_query_parameter: ::core::option::Option<String>,
 }
 
 /// Define a system parameter rule mapping system parameter definitions to methods.
@@ -1602,10 +1611,10 @@ pub struct SystemParameter {
 pub struct SystemParameterRule {
     /// Define parameters. Multiple names may be defined for a parameter. For a given method call, only one of them should be used. If multiple names are used the behavior is implementation-dependent. If none of the specified names are present the behavior is parameter-dependent.
     #[serde(default)]
-    pub parameters: Option<Vec<SystemParameter>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SystemParameter>>>,
     /// Selects the methods to which this rule applies. Use ''*'' to indicate all methods in all APIs. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
 }
 
 /// ### System parameter configuration A system parameter is a special kind of parameter defined by the API system, not by an individual API. It is typically mapped to an HTTP header and/or a URL query parameter. This configuration specifies which methods change the names of the system parameters.
@@ -1613,7 +1622,7 @@ pub struct SystemParameterRule {
 pub struct SystemParameters {
     /// Define system parameters. The parameters defined here will override the default parameters implemented by the system. If this field is missing from the service config, default system parameters will be used. Default system parameters and names is implementation-dependent. Example: define api key for all methods system_parameters rules: - selector: "*" parameters: - name: api_key url_query_parameter: api_key Example: define 2 api key names for a specific method. system_parameters rules: - selector: "/ListShelves" parameters: - name: api_key http_header: Api-Key1 - name: api_key http_header: Api-Key2 **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<SystemParameterRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SystemParameterRule>>>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -1621,7 +1630,7 @@ pub struct SystemParameters {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -1629,7 +1638,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A protocol buffer message type. New usages of this message as an alternative to DescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -1637,25 +1646,25 @@ pub struct TestIamPermissionsResponse {
 pub struct Type {
     /// The source edition string, only valid when syntax is SYNTAX_EDITIONS.
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// The list of fields.
     #[serde(default)]
-    pub fields: Option<Vec<Field>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Field>>>,
     /// The fully qualified message name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The list of types appearing in oneof definitions in this type.
     #[serde(default)]
-    pub oneofs: Option<Vec<String>>,
+    pub oneofs: ::core::option::Option<::std::vec::Vec<String>>,
     /// The protocol buffer options.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
     /// The source context.
     #[serde(default, rename = "sourceContext")]
-    pub source_context: Option<SourceContext>,
+    pub source_context: ::core::option::Option<::std::boxed::Box<SourceContext>>,
     /// The source syntax. // TODO: enum values: ["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"]
     #[serde(default)]
-    pub syntax: Option<String>,
+    pub syntax: ::core::option::Option<String>,
 }
 
 /// Response message for UndeleteService method.
@@ -1663,7 +1672,7 @@ pub struct Type {
 pub struct UndeleteServiceResponse {
     /// Revived service resource.
     #[serde(default)]
-    pub service: Option<ManagedService>,
+    pub service: ::core::option::Option<::std::boxed::Box<ManagedService>>,
 }
 
 /// Configuration controlling usage of a service.
@@ -1671,13 +1680,13 @@ pub struct UndeleteServiceResponse {
 pub struct Usage {
     /// The full resource name of a channel used for sending notifications to the service producer. Google Service Management currently only supports [Google Cloud Pub/Sub](https://cloud.google.com/pubsub) as a notification channel. To use Google Cloud Pub/Sub as the channel, this must be the name of a Cloud Pub/Sub topic that uses the Cloud Pub/Sub topic name format documented in https://cloud.google.com/pubsub/docs/overview.
     #[serde(default, rename = "producerNotificationChannel")]
-    pub producer_notification_channel: Option<String>,
+    pub producer_notification_channel: ::core::option::Option<String>,
     /// Requirements that must be satisfied before a consumer project can use the service. Each requirement is of the form /; for example ''serviceusage.googleapis.com/billing-enabled''. For Google APIs, a Terms of Service requirement must be included here. Google Cloud APIs must include "serviceusage.googleapis.com/tos/cloud". Other Google APIs should include "serviceusage.googleapis.com/tos/universal". Additional ToS can be included based on the business needs.
     #[serde(default)]
-    pub requirements: Option<Vec<String>>,
+    pub requirements: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of usage rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: Option<Vec<UsageRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UsageRule>>>,
 }
 
 /// Usage configuration rules for the service.
@@ -1685,11 +1694,11 @@ pub struct Usage {
 pub struct UsageRule {
     ///  Use this rule to configure unregistered calls for the service. Unregistered calls are calls that do not contain consumer project identity. (Example: calls that do not contain an API key). WARNING: By default, API methods do not allow unregistered calls, and each method call must be identified by a consumer project identity.
     #[serde(default, rename = "allowUnregisteredCalls")]
-    pub allow_unregistered_calls: Option<bool>,
+    pub allow_unregistered_calls: ::core::option::Option<bool>,
     /// Selects the methods to which this rule applies. Use ''*'' to indicate all methods in all APIs. Refer to selector for syntax details.
     #[serde(default)]
-    pub selector: Option<String>,
+    pub selector: ::core::option::Option<String>,
     /// If true, the selected method should skip service control and the control plane features, such as quota and billing, will not be available. This flag is used by Google Cloud Endpoints to bypass checks for internal methods, such as service health check methods.
     #[serde(default, rename = "skipServiceControl")]
-    pub skip_service_control: Option<bool>,
+    pub skip_service_control: ::core::option::Option<bool>,
 }

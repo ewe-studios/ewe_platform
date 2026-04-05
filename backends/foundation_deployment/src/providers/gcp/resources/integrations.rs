@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Registered ids for errors, as "oneof" enums. Each task or logical grouping of tasks may share the same enum.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CrmlogErrorCode {
     /// TODO: enum values: ["COMMON_ERROR_CODE_UNSPECIFIED", "INVALID_CREDENTIALS", "REQUIRED_FIELDS_MISSING", "INVALID_FIELDS", "BACKEND", "GENERAL", "INTERNAL", "IO_ERROR", "NOT_FOUND", "EVENT_BUS", "ALREADY_EXISTS", "CONCORD", "CONVERSION", "FLUME", "PERMISSION", "SALES_FORCE", "SPANNER", "UNIMPLEMENTED", "RELTIO", "WORKFLOW_NOT_FOUND", "QUOTA_THROTTLED", "QUOTA_ENQUEUED", "INVALID_QUOTA_CONFIGURATION", "TASK_NOT_FOUND", "EXECUTION_TIMEOUT", "INVALID_EVENT_EXECUTION_STATE", "INVALID_ATTRIBUTE", "MISSING_ATTRIBUTE", "CLIENT_UNAUTHORIZED_FOR_WORKFLOW", "INVALID_PARAMETER", "MISSING_PARAMETER", "UNAUTHROIZED_WORKFLOW_EDITOR_ACTION", "FAILED_PRECONDITION", "INVALID_CLIENT", "MISSING_CLIENT", "INVALID_WORKFLOW", "MISSING_QUOTA_CONFIGURATION", "UNHANDLED_TASK_ERROR", "SCRIPT_TASK_RUNTIME_ERROR", "RPC", "INVALID_PROTO", "UNHANDLED_EVENTBUS_ERROR", "INVALID_TASK_STATE", "TYPED_TASK_INVALID_INPUT_OPERATION", "TYPED_TASK_INVALID_OUTPUT_OPERATION", "VALIDATION_ERROR", "RESUME_ERROR", "APPS_SCRIPT_EXECUTION_ERROR", "INVALID_VECTOR_USER", "INFORMATICA", "RETRYABLE_TASK_ERROR", "INVALID_TENANT", "WRONG_TENANT", "INFORMATICA_BACKEND_UNAVAILABLE", "RPC_PERMISSION_DENIED", "SYNC_EVENTBUS_EXECUTION_TIMEOUT", "ASYNC_EVENTBUS_EXECUTION_TIMEOUT", "NOT_SUPPORTED_DATA_TYPE", "UNSANITIZED_USER_INPUT", "TRANSFORM_EXPRESSION_EVALUATION_ERROR", "HTTP_EXCEPTION", "EXECUTION_CANCELLED"]
     #[serde(default, rename = "commonErrorCode")]
-    pub common_error_code: Option<String>,
+    pub common_error_code: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusAuthconfigAuthConfigTaskParam resource type.
@@ -26,17 +26,17 @@ pub struct CrmlogErrorCode {
 pub struct EnterpriseCrmEventbusAuthconfigAuthConfigTaskParam {
     /// Defines the credential types to be supported as Task may restrict specific types to use, e.g. Cloud SQL Task will use username/password type only.
     #[serde(default, rename = "allowedCredentialTypes")]
-    pub allowed_credential_types: Option<Vec<String>>,
+    pub allowed_credential_types: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "allowedServiceAccountInContext")]
-    pub allowed_service_account_in_context: Option<bool>,
+    pub allowed_service_account_in_context: ::core::option::Option<bool>,
     /// UUID of the AuthConfig.
     #[serde(default, rename = "authConfigId")]
-    pub auth_config_id: Option<String>,
+    pub auth_config_id: ::core::option::Option<String>,
     /// A space-delimited list of requested scope permissions.
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     #[serde(default, rename = "useServiceAccountInContext")]
-    pub use_service_account_in_context: Option<bool>,
+    pub use_service_account_in_context: ::core::option::Option<bool>,
 }
 
 /// Email address along with optional name and tokens. These tokens will be substituted for the variables in the form of [{var_name}], where var_name could be any string of no more than 32 bytes.
@@ -44,11 +44,12 @@ pub struct EnterpriseCrmEventbusAuthconfigAuthConfigTaskParam {
 pub struct EnterpriseCrmEventbusProtoAddress {
     /// Required.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub tokens: Option<Vec<EnterpriseCrmEventbusProtoToken>>,
+    pub tokens:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoToken>>>,
 }
 
 /// Attributes are additional options that can be associated with each event property. For more information, see
@@ -56,50 +57,52 @@ pub struct EnterpriseCrmEventbusProtoAddress {
 pub struct EnterpriseCrmEventbusProtoAttributes {
     /// Things like URL, Email, Currency, Timestamp (rather than string, int64...) // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "EMAIL", "URL", "CURRENCY", "TIMESTAMP", "DOMAIN_NAME"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// Used to define defaults.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<EnterpriseCrmEventbusProtoValueType>,
+    pub default_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoValueType>>,
     /// Required for event execution. The validation will be done by the event bus when the event is triggered.
     #[serde(default, rename = "isRequired")]
-    pub is_required: Option<bool>,
+    pub is_required: ::core::option::Option<bool>,
     /// Used to indicate if a ParameterEntry should be converted to ParamIndexes for ST-Spanner full-text search. DEPRECATED: use searchable.
     #[serde(default, rename = "isSearchable")]
-    pub is_searchable: Option<bool>,
+    pub is_searchable: ::core::option::Option<bool>,
     /// See
     #[serde(default, rename = "logSettings")]
-    pub log_settings: Option<EnterpriseCrmEventbusProtoLogSettings>,
+    pub log_settings:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoLogSettings>>,
     /// True if this workflow parameter should be masked in the logs
     #[serde(default)]
-    pub masked: Option<bool>,
+    pub masked: ::core::option::Option<bool>,
     /// Used to indicate if the ParameterEntry is a read only field or not.
     #[serde(default, rename = "readOnly")]
-    pub read_only: Option<bool>,
+    pub read_only: ::core::option::Option<bool>,
     /// TODO: enum values: ["UNSPECIFIED", "YES", "NO"]
     #[serde(default)]
-    pub searchable: Option<String>,
+    pub searchable: ::core::option::Option<String>,
     /// List of tasks that can view this property, if empty then all.
     #[serde(default, rename = "taskVisibility")]
-    pub task_visibility: Option<Vec<String>>,
+    pub task_visibility: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// List of error enums for alerts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList {
     #[serde(default, rename = "enumStrings")]
-    pub enum_strings: Option<Vec<String>>,
+    pub enum_strings: ::core::option::Option<::std::vec::Vec<String>>,
     /// TODO: enum values: ["DEFAULT_INCLUSIVE", "EXCLUSIVE"]
     #[serde(default, rename = "filterType")]
-    pub filter_type: Option<String>,
+    pub filter_type: ::core::option::Option<String>,
 }
 
 /// The threshold value of the metric, above or below which the alert should be triggered. See EventAlertConfig or TaskAlertConfig for the different alert metric types in each case. For the *RATE metrics, one or both of these fields may be set. Zero is the default value and can be left at that. For *PERCENTILE_DURATION metrics, one or both of these fields may be set, and also, the duration threshold value should be specified in the threshold_duration_ms member below. For *AVERAGE_DURATION metrics, these fields should not be set at all. A different member, threshold_duration_ms, must be set in the EventAlertConfig or the TaskAlertConfig.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue {
     #[serde(default)]
-    pub absolute: Option<String>,
+    pub absolute: ::core::option::Option<String>,
     #[serde(default)]
-    pub percentage: Option<i32>,
+    pub percentage: ::core::option::Option<i32>,
 }
 
 /// EnterpriseCrmEventbusProtoBaseFunction resource type.
@@ -107,7 +110,7 @@ pub struct EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue {
 pub struct EnterpriseCrmEventbusProtoBaseFunction {
     /// TODO: enum values: ["UNSPECIFIED", "NOW_IN_MILLIS", "INT_LIST", "ENVIRONMENT", "GET_EXECUTION_ID", "GET_INTEGRATION_NAME", "GET_REGION", "GET_UUID", "GET_PROJECT_ID"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoBaseValue resource type.
@@ -115,13 +118,15 @@ pub struct EnterpriseCrmEventbusProtoBaseFunction {
 pub struct EnterpriseCrmEventbusProtoBaseValue {
     /// Start with a function that does not build on existing values. Eg. CurrentTime, Min, Max, Exists, etc.
     #[serde(default, rename = "baseFunction")]
-    pub base_function: Option<EnterpriseCrmEventbusProtoFunction>,
+    pub base_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoFunction>>,
     /// Start with a literal value.
     #[serde(default, rename = "literalValue")]
-    pub literal_value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub literal_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
     /// Start with a reference value to dereference.
     #[serde(default, rename = "referenceValue")]
-    pub reference_value: Option<String>,
+    pub reference_value: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoBooleanArrayFunction resource type.
@@ -129,7 +134,7 @@ pub struct EnterpriseCrmEventbusProtoBaseValue {
 pub struct EnterpriseCrmEventbusProtoBooleanArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoBooleanFunction resource type.
@@ -137,14 +142,14 @@ pub struct EnterpriseCrmEventbusProtoBooleanArrayFunction {
 pub struct EnterpriseCrmEventbusProtoBooleanFunction {
     /// TODO: enum values: ["UNSPECIFIED", "TO_JSON", "NOT", "AND", "NAND", "OR", "XOR", "NOR", "XNOR", "TO_STRING", "EQUALS"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoBooleanParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoBooleanParameterArray {
     #[serde(default, rename = "booleanValues")]
-    pub boolean_values: Option<Vec<bool>>,
+    pub boolean_values: ::core::option::Option<::std::vec::Vec<bool>>,
 }
 
 /// EnterpriseCrmEventbusProtoBuganizerNotification resource type.
@@ -152,16 +157,16 @@ pub struct EnterpriseCrmEventbusProtoBooleanParameterArray {
 pub struct EnterpriseCrmEventbusProtoBuganizerNotification {
     /// Whom to assign the new bug. Optional.
     #[serde(default, rename = "assigneeEmailAddress")]
-    pub assignee_email_address: Option<String>,
+    pub assignee_email_address: ::core::option::Option<String>,
     /// ID of the buganizer component within which to create a new issue. Required.
     #[serde(default, rename = "componentId")]
-    pub component_id: Option<String>,
+    pub component_id: ::core::option::Option<String>,
     /// ID of the buganizer template to use. Optional.
     #[serde(default, rename = "templateId")]
-    pub template_id: Option<String>,
+    pub template_id: ::core::option::Option<String>,
     /// Title of the issue to be created. Required.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoCloudKmsConfig resource type.
@@ -169,22 +174,22 @@ pub struct EnterpriseCrmEventbusProtoBuganizerNotification {
 pub struct EnterpriseCrmEventbusProtoCloudKmsConfig {
     /// Optional. The id of GCP project where the KMS key is stored. If not provided, assume the key is stored in the same GCP project defined in Client (tag 14).
     #[serde(default, rename = "gcpProjectId")]
-    pub gcp_project_id: Option<String>,
+    pub gcp_project_id: ::core::option::Option<String>,
     /// A Cloud KMS key is a named object containing one or more key versions, along with metadata for the key. A key exists on exactly one key ring tied to a specific location.
     #[serde(default, rename = "keyName")]
-    pub key_name: Option<String>,
+    pub key_name: ::core::option::Option<String>,
     /// A key ring organizes keys in a specific Google Cloud location and allows you to manage access control on groups of keys. A key ring''s name does not need to be unique across a Google Cloud project, but must be unique within a given location.
     #[serde(default, rename = "keyRingName")]
-    pub key_ring_name: Option<String>,
+    pub key_ring_name: ::core::option::Option<String>,
     /// Optional. Each version of a key contains key material used for encryption or signing. A key''s version is represented by an integer, starting at 1. To decrypt data or verify a signature, you must use the same key version that was used to encrypt or sign the data.
     #[serde(default, rename = "keyVersionName")]
-    pub key_version_name: Option<String>,
+    pub key_version_name: ::core::option::Option<String>,
     /// Location name of the key ring, e.g. "us-west1".
     #[serde(default, rename = "locationName")]
-    pub location_name: Option<String>,
+    pub location_name: ::core::option::Option<String>,
     /// Optional. The service account used for authentication of this KMS key. If this is not provided, the service account in Client.clientSource will be used.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
 }
 
 /// Cloud Logging details, selected by the user for the integration version (workflow). This message field will be also used in ExecutionInfo, to indicate the CloudLoggingDetails config at the time of workflow (integration version) execution, since this field value can be changed for an unpublished workflow.
@@ -192,10 +197,10 @@ pub struct EnterpriseCrmEventbusProtoCloudKmsConfig {
 pub struct EnterpriseCrmEventbusProtoCloudLoggingDetails {
     /// Severity selected by the customer for the logs to be sent to Cloud Logging, for the integration version getting executed. // TODO: enum values: ["CLOUD_LOGGING_SEVERITY_UNSPECIFIED", "INFO", "ERROR", "WARNING"]
     #[serde(default, rename = "cloudLoggingSeverity")]
-    pub cloud_logging_severity: Option<String>,
+    pub cloud_logging_severity: ::core::option::Option<String>,
     /// Status of whether Cloud Logging is enabled or not for the integration version getting executed.
     #[serde(default, rename = "enableCloudLogging")]
-    pub enable_cloud_logging: Option<bool>,
+    pub enable_cloud_logging: ::core::option::Option<bool>,
 }
 
 /// Cloud Scheduler Trigger configuration
@@ -203,16 +208,16 @@ pub struct EnterpriseCrmEventbusProtoCloudLoggingDetails {
 pub struct EnterpriseCrmEventbusProtoCloudSchedulerConfig {
     /// Required. The cron tab of cloud scheduler trigger.
     #[serde(default, rename = "cronTab")]
-    pub cron_tab: Option<String>,
+    pub cron_tab: ::core::option::Option<String>,
     /// Optional. When the job was deleted from Pantheon UI, error_message will be populated when Get/List integrations
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// Required. The location where associated cloud scheduler job will be created
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Required. Service account used by Cloud Scheduler to trigger the integration at scheduled time
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
 }
 
 /// This message recursively combines constituent conditions using logical AND.
@@ -220,7 +225,9 @@ pub struct EnterpriseCrmEventbusProtoCloudSchedulerConfig {
 pub struct EnterpriseCrmEventbusProtoCombinedCondition {
     /// A set of individual constituent conditions.
     #[serde(default)]
-    pub conditions: Option<Vec<EnterpriseCrmEventbusProtoCondition>>,
+    pub conditions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoCondition>>,
+    >,
 }
 
 /// Condition that uses operator to evaluate the key against the value.
@@ -228,13 +235,13 @@ pub struct EnterpriseCrmEventbusProtoCombinedCondition {
 pub struct EnterpriseCrmEventbusProtoCondition {
     /// Key that''s evaluated against the value. Please note the data type of the runtime value associated with the key should match the data type of value, else an IllegalArgumentException is thrown.
     #[serde(default, rename = "eventPropertyKey")]
-    pub event_property_key: Option<String>,
+    pub event_property_key: ::core::option::Option<String>,
     /// Operator used to evaluate the condition. Please note that an operator with an inappropriate key/value operand will result in IllegalArgumentException, e.g. CONTAINS with boolean key/value pair. // TODO: enum values: ["UNSET", "EQUALS", "CONTAINS", "LESS_THAN", "GREATER_THAN", "EXISTS", "DOES_NOT_EXIST", "IS_EMPTY", "IS_NOT_EMPTY"]
     #[serde(default)]
-    pub operator: Option<String>,
+    pub operator: ::core::option::Option<String>,
     /// Value that''s checked for the key.
     #[serde(default)]
-    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
+    pub value: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoValueType>>,
 }
 
 /// Contains the combined condition calculation results.
@@ -242,13 +249,13 @@ pub struct EnterpriseCrmEventbusProtoCondition {
 pub struct EnterpriseCrmEventbusProtoConditionResult {
     /// the current task number.
     #[serde(default, rename = "currentTaskNumber")]
-    pub current_task_number: Option<String>,
+    pub current_task_number: ::core::option::Option<String>,
     /// the next task number.
     #[serde(default, rename = "nextTaskNumber")]
-    pub next_task_number: Option<String>,
+    pub next_task_number: ::core::option::Option<String>,
     /// the result comes out after evaluate the combined condition. True if there''s no combined condition specified.
     #[serde(default)]
-    pub result: Option<bool>,
+    pub result: ::core::option::Option<bool>,
 }
 
 /// EnterpriseCrmEventbusProtoConditionalFailurePolicies resource type.
@@ -256,10 +263,13 @@ pub struct EnterpriseCrmEventbusProtoConditionResult {
 pub struct EnterpriseCrmEventbusProtoConditionalFailurePolicies {
     /// The default failure policy to be applied if no conditional failure policy matches
     #[serde(default, rename = "defaultFailurePolicy")]
-    pub default_failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
+    pub default_failure_policy:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoFailurePolicy>>,
     /// The list of failure policies that will be applied to the task in order.
     #[serde(default, rename = "failurePolicies")]
-    pub failure_policies: Option<Vec<EnterpriseCrmEventbusProtoFailurePolicy>>,
+    pub failure_policies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoFailurePolicy>>,
+    >,
 }
 
 /// EnterpriseCrmEventbusProtoConnectorsConnection resource type.
@@ -267,16 +277,16 @@ pub struct EnterpriseCrmEventbusProtoConditionalFailurePolicies {
 pub struct EnterpriseCrmEventbusProtoConnectorsConnection {
     /// Connection name Format: projects/{project}/locations/{location}/connections/{connection}
     #[serde(default, rename = "connectionName")]
-    pub connection_name: Option<String>,
+    pub connection_name: ::core::option::Option<String>,
     /// Connector version Format: projects/{project}/locations/{location}/providers/{provider}/connectors/{connector}/versions/{version}
     #[serde(default, rename = "connectorVersion")]
-    pub connector_version: Option<String>,
+    pub connector_version: ::core::option::Option<String>,
     /// The name of the Hostname of the Service Directory service with TLS if used.
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// Service name Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoConnectorsGenericConnectorTaskConfig resource type.
@@ -284,19 +294,20 @@ pub struct EnterpriseCrmEventbusProtoConnectorsConnection {
 pub struct EnterpriseCrmEventbusProtoConnectorsGenericConnectorTaskConfig {
     /// User-selected connection.
     #[serde(default)]
-    pub connection: Option<EnterpriseCrmEventbusProtoConnectorsConnection>,
+    pub connection:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoConnectorsConnection>>,
     /// Operation to perform using the configured connection. // TODO: enum values: ["OPERATION_UNSPECIFIED", "EXECUTE_ACTION", "LIST_ENTITIES", "GET_ENTITY", "CREATE_ENTITY", "UPDATE_ENTITY", "DELETE_ENTITY", "EXECUTE_QUERY"]
     #[serde(default)]
-    pub operation: Option<String>,
+    pub operation: ::core::option::Option<String>,
 }
 
 /// Represents two-dimensional positions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoCoordinate {
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// EnterpriseCrmEventbusProtoCustomSuspensionRequest resource type.
@@ -304,18 +315,19 @@ pub struct EnterpriseCrmEventbusProtoCoordinate {
 pub struct EnterpriseCrmEventbusProtoCustomSuspensionRequest {
     /// Request to fire an event containing the SuspensionInfo message.
     #[serde(default, rename = "postToQueueWithTriggerIdRequest")]
-    pub post_to_queue_with_trigger_id_request:
-        Option<GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest>,
+    pub post_to_queue_with_trigger_id_request: ::core::option::Option<
+        ::std::boxed::Box<GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest>,
+    >,
     /// In the fired event, set the SuspensionInfo message as the value for this key.
     #[serde(default, rename = "suspensionInfoEventParameterKey")]
-    pub suspension_info_event_parameter_key: Option<String>,
+    pub suspension_info_event_parameter_key: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoDoubleArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoDoubleArray {
     #[serde(default)]
-    pub values: Option<Vec<f64>>,
+    pub values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// EnterpriseCrmEventbusProtoDoubleArrayFunction resource type.
@@ -323,7 +335,7 @@ pub struct EnterpriseCrmEventbusProtoDoubleArray {
 pub struct EnterpriseCrmEventbusProtoDoubleArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "SUM", "AVG", "MAX", "MIN", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoDoubleFunction resource type.
@@ -331,14 +343,14 @@ pub struct EnterpriseCrmEventbusProtoDoubleArrayFunction {
 pub struct EnterpriseCrmEventbusProtoDoubleFunction {
     /// TODO: enum values: ["UNSPECIFIED", "TO_JSON", "TO_STRING", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EXPONENT", "ROUND", "FLOOR", "CEIL", "GREATER_THAN", "LESS_THAN", "EQUALS", "GREATER_THAN_EQUALS", "LESS_THAN_EQUALS", "MOD"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoDoubleParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
     #[serde(default, rename = "doubleValues")]
-    pub double_values: Option<Vec<f64>>,
+    pub double_values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// An error, warning, or information message associated with a workflow.
@@ -346,16 +358,16 @@ pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
 pub struct EnterpriseCrmEventbusProtoErrorDetail {
     /// The associated error-code, which can be a common or internal code.
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<CrmlogErrorCode>,
+    pub error_code: ::core::option::Option<::std::boxed::Box<CrmlogErrorCode>>,
     /// The full text of the error message, including any parameters that were thrown along with the exception.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// The severity of the error: ERROR|WARN|INFO. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARN", "INFO"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// The task try-number, in which, the error occurred. If zero, the error happened at the event level.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<i32>,
+    pub task_number: ::core::option::Option<i32>,
 }
 
 /// LINT.IfChange This message is used for storing key value pair properties for each Event / Task in the EventBus.
@@ -363,7 +375,9 @@ pub struct EnterpriseCrmEventbusProtoErrorDetail {
 pub struct EnterpriseCrmEventbusProtoEventBusProperties {
     /// An unordered list of property entries.
     #[serde(default)]
-    pub properties: Option<Vec<EnterpriseCrmEventbusProtoPropertyEntry>>,
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoPropertyEntry>>,
+    >,
 }
 
 /// Contains the details of the execution info of this event: this includes the tasks execution details plus the event execution statistics. Next available id: 12
@@ -371,33 +385,38 @@ pub struct EnterpriseCrmEventbusProtoEventBusProperties {
 pub struct EnterpriseCrmEventbusProtoEventExecutionDetails {
     /// If the execution is manually canceled, this field will contain the reason for cancellation.
     #[serde(default, rename = "cancelReason")]
-    pub cancel_reason: Option<String>,
+    pub cancel_reason: ::core::option::Option<String>,
     #[serde(default, rename = "eventAttemptStats")]
-    pub event_attempt_stats:
-        Option<Vec<EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats>>,
+    pub event_attempt_stats: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats>,
+        >,
+    >,
     #[serde(default, rename = "eventExecutionSnapshot")]
-    pub event_execution_snapshot: Option<Vec<EnterpriseCrmEventbusProtoEventExecutionSnapshot>>,
+    pub event_execution_snapshot: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoEventExecutionSnapshot>>,
+    >,
     /// Total size of all event_execution_snapshots for an execution
     #[serde(default, rename = "eventExecutionSnapshotsSize")]
-    pub event_execution_snapshots_size: Option<String>,
+    pub event_execution_snapshots_size: ::core::option::Option<String>,
     /// TODO: enum values: ["UNSPECIFIED", "ON_HOLD", "IN_PROCESS", "SUCCEEDED", "FAILED", "CANCELED", "RETRY_ON_HOLD", "SUSPENDED"]
     #[serde(default, rename = "eventExecutionState")]
-    pub event_execution_state: Option<String>,
+    pub event_execution_state: ::core::option::Option<String>,
     /// Indicates the number of times the execution has restarted from the beginning.
     #[serde(default, rename = "eventRetriesFromBeginningCount")]
-    pub event_retries_from_beginning_count: Option<i32>,
+    pub event_retries_from_beginning_count: ::core::option::Option<i32>,
     /// The log file path (aka. cns address) for this event.
     #[serde(default, rename = "logFilePath")]
-    pub log_file_path: Option<String>,
+    pub log_file_path: ::core::option::Option<String>,
     /// The network address (aka. bns address) that indicates where the event executor is running.
     #[serde(default, rename = "networkAddress")]
-    pub network_address: Option<String>,
+    pub network_address: ::core::option::Option<String>,
     /// Next scheduled execution time in case the execution status was RETRY_ON_HOLD.
     #[serde(default, rename = "nextExecutionTime")]
-    pub next_execution_time: Option<String>,
+    pub next_execution_time: ::core::option::Option<String>,
     /// Used internally and shouldn''t be exposed to users. A counter for the cron job to record how many times this event is in in_process state but don''t have a lock consecutively/
     #[serde(default, rename = "ryeLockUnheldCount")]
-    pub rye_lock_unheld_count: Option<i32>,
+    pub rye_lock_unheld_count: ::core::option::Option<i32>,
 }
 
 /// EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats resource type.
@@ -405,10 +424,10 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionDetails {
 pub struct EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats {
     /// The end time of the event execution for current attempt.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The start time of the event execution for current attempt. This could be in the future if it''s been scheduled.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Contains the snapshot of the event execution for a given checkpoint. Next available id: 15
@@ -416,43 +435,52 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats {
 pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshot {
     /// Indicates "right after which checkpoint task''s execution" this snapshot is taken.
     #[serde(default, rename = "checkpointTaskNumber")]
-    pub checkpoint_task_number: Option<String>,
+    pub checkpoint_task_number: ::core::option::Option<String>,
     /// Client that the execution snapshot is associated to.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// All of the computed conditions that been calculated.
     #[serde(default, rename = "conditionResults")]
-    pub condition_results: Option<Vec<EnterpriseCrmEventbusProtoConditionResult>>,
+    pub condition_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoConditionResult>>,
+    >,
     /// The parameters in Event object that differs from last snapshot.
     #[serde(default, rename = "diffParams")]
-    pub diff_params: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    pub diff_params:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventParameters>>,
     /// Points to the event execution info this snapshot belongs to.
     #[serde(default, rename = "eventExecutionInfoId")]
-    pub event_execution_info_id: Option<String>,
+    pub event_execution_info_id: ::core::option::Option<String>,
     /// Auto-generated. Used as primary key for EventExecutionSnapshots table.
     #[serde(default, rename = "eventExecutionSnapshotId")]
-    pub event_execution_snapshot_id: Option<String>,
+    pub event_execution_snapshot_id: ::core::option::Option<String>,
     #[serde(default, rename = "eventExecutionSnapshotMetadata")]
-    pub event_execution_snapshot_metadata:
-        Option<EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata>,
+    pub event_execution_snapshot_metadata: ::core::option::Option<
+        ::std::boxed::Box<
+            EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata,
+        >,
+    >,
     /// The parameters in Event object.
     #[serde(default, rename = "eventParams")]
-    pub event_params: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    pub event_params:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventParameters>>,
     /// indicate whether snapshot exceeded maximum size before clean up
     #[serde(default, rename = "exceedMaxSize")]
-    pub exceed_max_size: Option<bool>,
+    pub exceed_max_size: ::core::option::Option<bool>,
     /// Indicates when this snapshot is taken.
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
     /// All of the task execution details at the given point of time.
     #[serde(default, rename = "taskExecutionDetails")]
-    pub task_execution_details: Option<Vec<EnterpriseCrmEventbusProtoTaskExecutionDetails>>,
+    pub task_execution_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTaskExecutionDetails>>,
+    >,
     /// The task name associated with this snapshot. Could be empty.
     #[serde(default, rename = "taskName")]
-    pub task_name: Option<String>,
+    pub task_name: ::core::option::Option<String>,
     /// Name of the workflow this event execution snapshot belongs to.
     #[serde(default, rename = "workflowName")]
-    pub workflow_name: Option<String>,
+    pub workflow_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata resource type.
@@ -460,28 +488,28 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshot {
 pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata {
     /// Ancestor iteration number for the task(it will only be non-empty if the task is under ''private workflow'')
     #[serde(default, rename = "ancestorIterationNumbers")]
-    pub ancestor_iteration_numbers: Option<Vec<String>>,
+    pub ancestor_iteration_numbers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Ancestor task number for the task(it will only be non-empty if the task is under ''private workflow'')
     #[serde(default, rename = "ancestorTaskNumbers")]
-    pub ancestor_task_numbers: Option<Vec<String>>,
+    pub ancestor_task_numbers: ::core::option::Option<::std::vec::Vec<String>>,
     /// the event attempt number this snapshot belongs to.
     #[serde(default, rename = "eventAttemptNum")]
-    pub event_attempt_num: Option<i32>,
+    pub event_attempt_num: ::core::option::Option<i32>,
     /// The direct integration which the event execution snapshots belongs to
     #[serde(default, rename = "integrationName")]
-    pub integration_name: Option<String>,
+    pub integration_name: ::core::option::Option<String>,
     /// the task attempt number this snapshot belongs to. Could be empty.
     #[serde(default, rename = "taskAttemptNum")]
-    pub task_attempt_num: Option<i32>,
+    pub task_attempt_num: ::core::option::Option<i32>,
     /// the task label associated with this snapshot. Could be empty.
     #[serde(default, rename = "taskLabel")]
-    pub task_label: Option<String>,
+    pub task_label: ::core::option::Option<String>,
     /// the task name associated with this snapshot. Could be empty.
     #[serde(default, rename = "taskName")]
-    pub task_name: Option<String>,
+    pub task_name: ::core::option::Option<String>,
     /// The task number associated with this snapshot. Could be empty.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
 }
 
 /// LINT.IfChange This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Please see
@@ -489,7 +517,9 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapsho
 pub struct EnterpriseCrmEventbusProtoEventParameters {
     /// Parameters are a part of Event and can be used to communicate between different tasks that are part of the same integration execution.
     #[serde(default)]
-    pub parameters: Option<Vec<EnterpriseCrmEventbusProtoParameterEntry>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterEntry>>,
+    >,
 }
 
 /// Message that helps aggregate all sub-executions triggered by one execution and keeps track of child-parent relationships.
@@ -497,10 +527,10 @@ pub struct EnterpriseCrmEventbusProtoEventParameters {
 pub struct EnterpriseCrmEventbusProtoExecutionTraceInfo {
     /// Parent event execution info id that triggers the current execution through SubWorkflowExecutorTask.
     #[serde(default, rename = "parentEventExecutionInfoId")]
-    pub parent_event_execution_info_id: Option<String>,
+    pub parent_event_execution_info_id: ::core::option::Option<String>,
     /// Used to aggregate ExecutionTraceInfo.
     #[serde(default, rename = "traceId")]
-    pub trace_id: Option<String>,
+    pub trace_id: ::core::option::Option<String>,
 }
 
 /// Represents external traffic type and id.
@@ -508,22 +538,22 @@ pub struct EnterpriseCrmEventbusProtoExecutionTraceInfo {
 pub struct EnterpriseCrmEventbusProtoExternalTraffic {
     /// Indicates the client enables internal IP feature, this is applicable for internal clients only.
     #[serde(default, rename = "enableInternalIp")]
-    pub enable_internal_ip: Option<bool>,
+    pub enable_internal_ip: ::core::option::Option<bool>,
     /// User’s GCP project id the traffic is referring to.
     #[serde(default, rename = "gcpProjectId")]
-    pub gcp_project_id: Option<String>,
+    pub gcp_project_id: ::core::option::Option<String>,
     /// User’s GCP project number the traffic is referring to.
     #[serde(default, rename = "gcpProjectNumber")]
-    pub gcp_project_number: Option<String>,
+    pub gcp_project_number: ::core::option::Option<String>,
     /// Location for the user''s request.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Enqueue the execution request due to quota issue
     #[serde(default, rename = "retryRequestForQuota")]
-    pub retry_request_for_quota: Option<bool>,
+    pub retry_request_for_quota: ::core::option::Option<bool>,
     /// TODO: enum values: ["SOURCE_UNSPECIFIED", "APIGEE", "SECURITY"]
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a retry_strategy of NONE will be applied).
@@ -531,16 +561,16 @@ pub struct EnterpriseCrmEventbusProtoExternalTraffic {
 pub struct EnterpriseCrmEventbusProtoFailurePolicy {
     /// Required if retry_strategy is FIXED_INTERVAL or LINEAR/EXPONENTIAL_BACKOFF/RESTART_WORKFLOW_WITH_BACKOFF. Defines the initial interval for backoff.
     #[serde(default, rename = "intervalInSeconds")]
-    pub interval_in_seconds: Option<String>,
+    pub interval_in_seconds: ::core::option::Option<String>,
     /// Required if retry_strategy is FIXED_INTERVAL or LINEAR/EXPONENTIAL_BACKOFF/RESTART_WORKFLOW_WITH_BACKOFF. Defines the number of times the task will be retried if failed.
     #[serde(default, rename = "maxNumRetries")]
-    pub max_num_retries: Option<i32>,
+    pub max_num_retries: ::core::option::Option<i32>,
     /// Optional. The retry condition that will be evaluated for this failure policy with the corresponding retry strategy.
     #[serde(default, rename = "retryCondition")]
-    pub retry_condition: Option<String>,
+    pub retry_condition: ::core::option::Option<String>,
     /// Defines what happens to the task upon failure. // TODO: enum values: ["UNSPECIFIED", "IGNORE", "NONE", "FATAL", "FIXED_INTERVAL", "LINEAR_BACKOFF", "EXPONENTIAL_BACKOFF", "RESTART_WORKFLOW_WITH_BACKOFF"]
     #[serde(default, rename = "retryStrategy")]
-    pub retry_strategy: Option<String>,
+    pub retry_strategy: ::core::option::Option<String>,
 }
 
 /// Information about the value and type of the field.
@@ -548,29 +578,33 @@ pub struct EnterpriseCrmEventbusProtoFailurePolicy {
 pub struct EnterpriseCrmEventbusProtoField {
     /// By default, if the cardinality is unspecified the field is considered required while mapping. // TODO: enum values: ["UNSPECIFIED", "OPTIONAL"]
     #[serde(default)]
-    pub cardinality: Option<String>,
+    pub cardinality: ::core::option::Option<String>,
     /// This holds the default values for the fields. This value is supplied by user so may or may not contain PII or SPII data.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub default_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
     /// Specifies the data type of the field. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "fieldType")]
-    pub field_type: Option<String>,
+    pub field_type: ::core::option::Option<String>,
     /// Optional. The fully qualified proto name (e.g. enterprise.crm.storage.Account). Required for output field of type PROTO_VALUE or PROTO_ARRAY. For e.g., if input field_type is BYTES and output field_type is PROTO_VALUE, then fully qualified proto type url should be provided to parse the input bytes. If field_type is *_ARRAY, then all the converted protos are of the same type.
     #[serde(default, rename = "protoDefPath")]
-    pub proto_def_path: Option<String>,
+    pub proto_def_path: ::core::option::Option<String>,
     /// This holds the reference key of the workflow or task parameter. 1. Any workflow parameter, for e.g. $workflowParam1$. 2. Any task input or output parameter, for e.g. $task1_param1$. 3. Any workflow or task parameters with subfield references, for e.g., $task1_param1.employee.id$
     #[serde(default, rename = "referenceKey")]
-    pub reference_key: Option<String>,
+    pub reference_key: ::core::option::Option<String>,
     /// This is the transform expression to fetch the input field value. for e.g. $param1$.CONCAT(''test''). Keep points - 1. Only input field can have a transform expression. 2. If a transform expression is provided, reference_key will be ignored. 3. If no value is returned after evaluation of transform expression, default_value can be mapped if provided. 4. The field_type should be the type of the final object returned after the transform expression is evaluated. Scrubs the transform expression before logging as value provided by user so may or may not contain PII or SPII data.
     #[serde(default, rename = "transformExpression")]
-    pub transform_expression: Option<EnterpriseCrmEventbusProtoTransformExpression>,
+    pub transform_expression:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoTransformExpression>>,
 }
 
 /// Field Mapping Config to map multiple output fields values from input fields values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoFieldMappingConfig {
     #[serde(default, rename = "mappedFields")]
-    pub mapped_fields: Option<Vec<EnterpriseCrmEventbusProtoMappedField>>,
+    pub mapped_fields: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoMappedField>>,
+    >,
 }
 
 /// EnterpriseCrmEventbusProtoFunction resource type.
@@ -578,10 +612,13 @@ pub struct EnterpriseCrmEventbusProtoFieldMappingConfig {
 pub struct EnterpriseCrmEventbusProtoFunction {
     /// The name of the function to perform.
     #[serde(default, rename = "functionType")]
-    pub function_type: Option<EnterpriseCrmEventbusProtoFunctionType>,
+    pub function_type:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoFunctionType>>,
     /// List of parameters required for the transformation.
     #[serde(default)]
-    pub parameters: Option<Vec<EnterpriseCrmEventbusProtoTransformExpression>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTransformExpression>>,
+    >,
 }
 
 /// EnterpriseCrmEventbusProtoFunctionType resource type.
@@ -589,36 +626,48 @@ pub struct EnterpriseCrmEventbusProtoFunction {
 pub struct EnterpriseCrmEventbusProtoFunctionType {
     /// LINT.IfChange
     #[serde(default, rename = "baseFunction")]
-    pub base_function: Option<EnterpriseCrmEventbusProtoBaseFunction>,
+    pub base_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBaseFunction>>,
     #[serde(default, rename = "booleanArrayFunction")]
-    pub boolean_array_function: Option<EnterpriseCrmEventbusProtoBooleanArrayFunction>,
+    pub boolean_array_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBooleanArrayFunction>>,
     #[serde(default, rename = "booleanFunction")]
-    pub boolean_function: Option<EnterpriseCrmEventbusProtoBooleanFunction>,
+    pub boolean_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBooleanFunction>>,
     #[serde(default, rename = "doubleArrayFunction")]
-    pub double_array_function: Option<EnterpriseCrmEventbusProtoDoubleArrayFunction>,
+    pub double_array_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoDoubleArrayFunction>>,
     #[serde(default, rename = "doubleFunction")]
-    pub double_function: Option<EnterpriseCrmEventbusProtoDoubleFunction>,
+    pub double_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoDoubleFunction>>,
     #[serde(default, rename = "intArrayFunction")]
-    pub int_array_function: Option<EnterpriseCrmEventbusProtoIntArrayFunction>,
+    pub int_array_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoIntArrayFunction>>,
     #[serde(default, rename = "intFunction")]
-    pub int_function: Option<EnterpriseCrmEventbusProtoIntFunction>,
+    pub int_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoIntFunction>>,
     #[serde(default, rename = "jsonFunction")]
-    pub json_function: Option<EnterpriseCrmEventbusProtoJsonFunction>,
+    pub json_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoJsonFunction>>,
     #[serde(default, rename = "protoArrayFunction")]
-    pub proto_array_function: Option<EnterpriseCrmEventbusProtoProtoArrayFunction>,
+    pub proto_array_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoProtoArrayFunction>>,
     #[serde(default, rename = "protoFunction")]
-    pub proto_function: Option<EnterpriseCrmEventbusProtoProtoFunction>,
+    pub proto_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoProtoFunction>>,
     #[serde(default, rename = "stringArrayFunction")]
-    pub string_array_function: Option<EnterpriseCrmEventbusProtoStringArrayFunction>,
+    pub string_array_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoStringArrayFunction>>,
     #[serde(default, rename = "stringFunction")]
-    pub string_function: Option<EnterpriseCrmEventbusProtoStringFunction>,
+    pub string_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoStringFunction>>,
 }
 
 /// EnterpriseCrmEventbusProtoIntArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoIntArray {
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmEventbusProtoIntArrayFunction resource type.
@@ -626,7 +675,7 @@ pub struct EnterpriseCrmEventbusProtoIntArray {
 pub struct EnterpriseCrmEventbusProtoIntArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "SUM", "AVG", "MAX", "MIN", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoIntFunction resource type.
@@ -634,14 +683,14 @@ pub struct EnterpriseCrmEventbusProtoIntArrayFunction {
 pub struct EnterpriseCrmEventbusProtoIntFunction {
     /// TODO: enum values: ["UNSPECIFIED", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EXPONENT", "GREATER_THAN_EQUAL_TO", "GREATER_THAN", "LESS_THAN_EQUAL_TO", "LESS_THAN", "TO_DOUBLE", "TO_STRING", "EQUALS", "TO_JSON", "MOD", "EPOCH_TO_HUMAN_READABLE_TIME"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoIntParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoIntParameterArray {
     #[serde(default, rename = "intValues")]
-    pub int_values: Option<Vec<String>>,
+    pub int_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmEventbusProtoJsonFunction resource type.
@@ -649,7 +698,7 @@ pub struct EnterpriseCrmEventbusProtoIntParameterArray {
 pub struct EnterpriseCrmEventbusProtoJsonFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET_PROPERTY", "GET_ELEMENT", "APPEND_ELEMENT", "SIZE", "SET_PROPERTY", "FLATTEN", "FLATTEN_ONCE", "MERGE", "TO_STRING", "TO_INT", "TO_DOUBLE", "TO_BOOLEAN", "TO_PROTO", "TO_STRING_ARRAY", "TO_INT_ARRAY", "TO_DOUBLE_ARRAY", "TO_PROTO_ARRAY", "TO_BOOLEAN_ARRAY", "REMOVE_PROPERTY", "RESOLVE_TEMPLATE", "EQUALS", "FOR_EACH", "FILTER_ELEMENTS"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// The LogSettings define the logging attributes for an event property. These attributes are used to map the property to the parameter in the log proto. Also used to define scrubbing/truncation behavior and PII information.
@@ -657,13 +706,13 @@ pub struct EnterpriseCrmEventbusProtoJsonFunction {
 pub struct EnterpriseCrmEventbusProtoLogSettings {
     /// The name of corresponding logging field of the event property. If omitted, assumes the same name as the event property key.
     #[serde(default, rename = "logFieldName")]
-    pub log_field_name: Option<String>,
+    pub log_field_name: ::core::option::Option<String>,
     /// TODO: enum values: ["SEED_PERIOD_UNSPECIFIED", "DAY", "WEEK", "MONTH"]
     #[serde(default, rename = "seedPeriod")]
-    pub seed_period: Option<String>,
+    pub seed_period: ::core::option::Option<String>,
     /// TODO: enum values: ["SEED_SCOPE_UNSPECIFIED", "EVENT_NAME", "TIME_PERIOD", "PARAM_NAME"]
     #[serde(default, rename = "seedScope")]
-    pub seed_scope: Option<String>,
+    pub seed_scope: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoLoopMetadata resource type.
@@ -671,16 +720,16 @@ pub struct EnterpriseCrmEventbusProtoLogSettings {
 pub struct EnterpriseCrmEventbusProtoLoopMetadata {
     /// Starting from 1, not 0.
     #[serde(default, rename = "currentIterationCount")]
-    pub current_iteration_count: Option<String>,
+    pub current_iteration_count: ::core::option::Option<String>,
     /// Needs to be set by the loop impl class before each iteration. The abstract loop class will append the request and response to it. Eg. The foreach Loop will clean up and set it as the current iteration element at the start of each loop. The post request and response will be appended to the value once they are available.
     #[serde(default, rename = "currentIterationDetail")]
-    pub current_iteration_detail: Option<String>,
+    pub current_iteration_detail: ::core::option::Option<String>,
     /// Add the error message when loops fail.
     #[serde(default, rename = "errorMsg")]
-    pub error_msg: Option<String>,
+    pub error_msg: ::core::option::Option<String>,
     /// Indicates where in the loop logic did it error out. // TODO: enum values: ["UNKNOWN", "SUBWORKFLOW", "PARAM_OVERRIDING", "PARAM_AGGREGATING", "SETTING_ITERATION_ELEMENT", "GETTING_LIST_TO_ITERATE", "CONDITION_EVALUATION", "BUILDING_REQUEST"]
     #[serde(default, rename = "failureLocation")]
-    pub failure_location: Option<String>,
+    pub failure_location: ::core::option::Option<String>,
 }
 
 /// Mapped field is a pair of input field and output field.
@@ -688,10 +737,10 @@ pub struct EnterpriseCrmEventbusProtoLoopMetadata {
 pub struct EnterpriseCrmEventbusProtoMappedField {
     /// The input field being mapped from.
     #[serde(default, rename = "inputField")]
-    pub input_field: Option<EnterpriseCrmEventbusProtoField>,
+    pub input_field: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoField>>,
     /// The output field being mapped to.
     #[serde(default, rename = "outputField")]
-    pub output_field: Option<EnterpriseCrmEventbusProtoField>,
+    pub output_field: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoField>>,
 }
 
 /// The task that is next in line to be executed, if the condition specified evaluated to true.
@@ -699,22 +748,24 @@ pub struct EnterpriseCrmEventbusProtoMappedField {
 pub struct EnterpriseCrmEventbusProtoNextTask {
     /// Combined condition for this task to become an eligible next task. Each of these combined_conditions are joined with logical OR. DEPRECATED: use condition
     #[serde(default, rename = "combinedConditions")]
-    pub combined_conditions: Option<Vec<EnterpriseCrmEventbusProtoCombinedCondition>>,
+    pub combined_conditions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoCombinedCondition>>,
+    >,
     /// Standard filter expression for this task to become an eligible next task.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// User-provided description intended to give more business context about the next task edge or condition.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User-provided label that is attached to this edge in the UI.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// ID of the next task.
     #[serde(default, rename = "taskConfigId")]
-    pub task_config_id: Option<String>,
+    pub task_config_id: ::core::option::Option<String>,
     /// Task number of the next task.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
 }
 
 /// The teardown task that is next in line to be executed. We support only sequential execution of teardown tasks (i.e. no branching).
@@ -722,7 +773,7 @@ pub struct EnterpriseCrmEventbusProtoNextTask {
 pub struct EnterpriseCrmEventbusProtoNextTeardownTask {
     /// Required. Name of the next teardown task.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Represents a node identifier (type + id). Next highest id: 3
@@ -730,26 +781,29 @@ pub struct EnterpriseCrmEventbusProtoNextTeardownTask {
 pub struct EnterpriseCrmEventbusProtoNodeIdentifier {
     /// Configuration of the edge.
     #[serde(default, rename = "elementIdentifier")]
-    pub element_identifier: Option<String>,
+    pub element_identifier: ::core::option::Option<String>,
     /// Destination node where the edge ends. It can only be a task config. // TODO: enum values: ["UNKNOWN_TYPE", "TASK_CONFIG", "TRIGGER_CONFIG"]
     #[serde(default, rename = "elementType")]
-    pub element_type: Option<String>,
+    pub element_type: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoNotification resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoNotification {
     #[serde(default, rename = "buganizerNotification")]
-    pub buganizer_notification: Option<EnterpriseCrmEventbusProtoBuganizerNotification>,
+    pub buganizer_notification:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBuganizerNotification>>,
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<EnterpriseCrmEventbusProtoAddress>,
+    pub email_address: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoAddress>>,
     #[serde(default, rename = "escalatorQueue")]
-    pub escalator_queue: Option<String>,
+    pub escalator_queue: ::core::option::Option<String>,
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
     /// If the out-of-the-box email/pubsub notifications are not suitable and custom logic is required, fire a workflow containing all info needed to notify users to resume execution.
     #[serde(default)]
-    pub request: Option<EnterpriseCrmEventbusProtoCustomSuspensionRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoCustomSuspensionRequest>,
+    >,
 }
 
 /// EnterpriseCrmEventbusProtoParamSpecEntryConfig resource type.
@@ -757,31 +811,31 @@ pub struct EnterpriseCrmEventbusProtoNotification {
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryConfig {
     /// A short phrase to describe what this parameter contains.
     #[serde(default, rename = "descriptivePhrase")]
-    pub descriptive_phrase: Option<String>,
+    pub descriptive_phrase: ::core::option::Option<String>,
     /// Detailed help text for this parameter containing information not provided elsewhere. For example, instructions on how to migrate from a deprecated parameter.
     #[serde(default, rename = "helpText")]
-    pub help_text: Option<String>,
+    pub help_text: ::core::option::Option<String>,
     /// Whether the default value is hidden in the UI.
     #[serde(default, rename = "hideDefaultValue")]
-    pub hide_default_value: Option<bool>,
+    pub hide_default_value: ::core::option::Option<bool>,
     /// TODO: enum values: ["DEFAULT", "STRING_MULTI_LINE", "NUMBER_SLIDER", "BOOLEAN_TOGGLE"]
     #[serde(default, rename = "inputDisplayOption")]
-    pub input_display_option: Option<String>,
+    pub input_display_option: ::core::option::Option<String>,
     /// Whether this field is hidden in the UI.
     #[serde(default, rename = "isHidden")]
-    pub is_hidden: Option<bool>,
+    pub is_hidden: ::core::option::Option<bool>,
     /// A user-friendly label for the parameter.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// TODO: enum values: ["DEFAULT_NOT_PARAMETER_NAME", "IS_PARAMETER_NAME", "KEY_IS_PARAMETER_NAME", "VALUE_IS_PARAMETER_NAME"]
     #[serde(default, rename = "parameterNameOption")]
-    pub parameter_name_option: Option<String>,
+    pub parameter_name_option: ::core::option::Option<String>,
     /// A user-friendly label for subSection under which the parameter will be displayed.
     #[serde(default, rename = "subSectionLabel")]
-    pub sub_section_label: Option<String>,
+    pub sub_section_label: ::core::option::Option<String>,
     /// Placeholder text which will appear in the UI input form for this parameter.
     #[serde(default, rename = "uiPlaceholderText")]
-    pub ui_placeholder_text: Option<String>,
+    pub ui_placeholder_text: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition resource type.
@@ -789,21 +843,27 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryConfig {
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition {
     /// The fully-qualified proto name. This message, for example, would be "enterprise.crm.eventbus.proto.ParamSpecEntry.ProtoDefinition".
     #[serde(default, rename = "fullName")]
-    pub full_name: Option<String>,
+    pub full_name: ::core::option::Option<String>,
     /// Path to the proto file that contains the message type''s definition.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoParamSpecEntryValidationRule resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRule {
     #[serde(default, rename = "doubleRange")]
-    pub double_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange>,
+    pub double_range: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange>,
+    >,
     #[serde(default, rename = "intRange")]
-    pub int_range: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange>,
+    pub int_range: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange>,
+    >,
     #[serde(default, rename = "stringRegex")]
-    pub string_regex: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex>,
+    pub string_regex: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex>,
+    >,
 }
 
 /// Range used to validate doubles and floats.
@@ -811,10 +871,10 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRule {
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange {
     /// The inclusive maximum of the acceptable range.
     #[serde(default)]
-    pub max: Option<f64>,
+    pub max: ::core::option::Option<f64>,
     /// The inclusive minimum of the acceptable range.
     #[serde(default)]
-    pub min: Option<f64>,
+    pub min: ::core::option::Option<f64>,
 }
 
 /// Range used to validate longs and ints.
@@ -822,10 +882,10 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange {
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange {
     /// The inclusive maximum of the acceptable range.
     #[serde(default)]
-    pub max: Option<String>,
+    pub max: ::core::option::Option<String>,
     /// The inclusive minimum of the acceptable range.
     #[serde(default)]
-    pub min: Option<String>,
+    pub min: ::core::option::Option<String>,
 }
 
 /// Rule used to validate strings.
@@ -833,10 +893,10 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange {
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex {
     /// Whether the regex matcher is applied exclusively (if true, matching values will be rejected).
     #[serde(default)]
-    pub exclusive: Option<bool>,
+    pub exclusive: ::core::option::Option<bool>,
     /// The regex applied to the input value(s).
     #[serde(default)]
-    pub regex: Option<String>,
+    pub regex: ::core::option::Option<String>,
 }
 
 /// Key-value pair of EventBus parameters.
@@ -844,35 +904,39 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex {
 pub struct EnterpriseCrmEventbusProtoParameterEntry {
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given fired event. These parameters must be predefined in the integration definition.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// True if this parameter should be masked in the logs
     #[serde(default)]
-    pub masked: Option<bool>,
+    pub masked: ::core::option::Option<bool>,
     /// Values for the defined keys. Each value can either be string, int, double or any proto message.
     #[serde(default)]
-    pub value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
 }
 
 /// A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoParameterMap {
     #[serde(default)]
-    pub entries: Option<Vec<EnterpriseCrmEventbusProtoParameterMapEntry>>,
+    pub entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterMapEntry>>,
+    >,
     /// Option to specify key value type for all entries of the map. If provided then field types for all entries must conform to this. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "keyType")]
-    pub key_type: Option<String>,
+    pub key_type: ::core::option::Option<String>,
     /// TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// Entry is a pair of key and value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoParameterMapEntry {
     #[serde(default)]
-    pub key: Option<EnterpriseCrmEventbusProtoParameterMapField>,
+    pub key: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterMapField>>,
     #[serde(default)]
-    pub value: Option<EnterpriseCrmEventbusProtoParameterMapField>,
+    pub value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterMapField>>,
 }
 
 /// Field represents either the key or value in an entry.
@@ -880,37 +944,45 @@ pub struct EnterpriseCrmEventbusProtoParameterMapEntry {
 pub struct EnterpriseCrmEventbusProtoParameterMapField {
     /// Passing a literal value.
     #[serde(default, rename = "literalValue")]
-    pub literal_value: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub literal_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
     /// Referencing one of the WF variables.
     #[serde(default, rename = "referenceKey")]
-    pub reference_key: Option<String>,
+    pub reference_key: ::core::option::Option<String>,
 }
 
 /// LINT.IfChange To support various types of parameter values. Next available id: 14
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoParameterValueType {
     #[serde(default, rename = "booleanArray")]
-    pub boolean_array: Option<EnterpriseCrmEventbusProtoBooleanParameterArray>,
+    pub boolean_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBooleanParameterArray>>,
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "doubleArray")]
-    pub double_array: Option<EnterpriseCrmEventbusProtoDoubleParameterArray>,
+    pub double_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoDoubleParameterArray>>,
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     #[serde(default, rename = "intArray")]
-    pub int_array: Option<EnterpriseCrmEventbusProtoIntParameterArray>,
+    pub int_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoIntParameterArray>>,
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     #[serde(default, rename = "protoArray")]
-    pub proto_array: Option<EnterpriseCrmEventbusProtoProtoParameterArray>,
+    pub proto_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoProtoParameterArray>>,
     #[serde(default, rename = "protoValue")]
-    pub proto_value: Option<serde_json::Value>,
+    pub proto_value: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "serializedObjectValue")]
-    pub serialized_object_value: Option<EnterpriseCrmEventbusProtoSerializedObjectParameter>,
+    pub serialized_object_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoSerializedObjectParameter>,
+    >,
     #[serde(default, rename = "stringArray")]
-    pub string_array: Option<EnterpriseCrmEventbusProtoStringParameterArray>,
+    pub string_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoStringParameterArray>>,
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// Key-value pair of EventBus property.
@@ -918,10 +990,10 @@ pub struct EnterpriseCrmEventbusProtoParameterValueType {
 pub struct EnterpriseCrmEventbusProtoPropertyEntry {
     /// Key is used to retrieve the corresponding property value. This should be unique for a given fired event. The Tasks should be aware of the keys used while firing the events for them to be able to retrieve the values.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Values for the defined keys. Each value can either be string, int, double or any proto message.
     #[serde(default)]
-    pub value: Option<EnterpriseCrmEventbusProtoValueType>,
+    pub value: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoValueType>>,
 }
 
 /// EnterpriseCrmEventbusProtoProtoArrayFunction resource type.
@@ -929,7 +1001,7 @@ pub struct EnterpriseCrmEventbusProtoPropertyEntry {
 pub struct EnterpriseCrmEventbusProtoProtoArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoProtoFunction resource type.
@@ -937,14 +1009,14 @@ pub struct EnterpriseCrmEventbusProtoProtoArrayFunction {
 pub struct EnterpriseCrmEventbusProtoProtoFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET_STRING_SUBFIELD", "GET_INT_SUBFIELD", "GET_DOUBLE_SUBFIELD", "GET_BOOLEAN_SUBFIELD", "GET_STRING_ARRAY_SUBFIELD", "GET_INT_ARRAY_SUBFIELD", "GET_DOUBLE_ARRAY_SUBFIELD", "GET_BOOLEAN_ARRAY_SUBFIELD", "GET_PROTO_ARRAY_SUBFIELD", "GET_PROTO_SUBFIELD", "TO_JSON", "GET_BYTES_SUBFIELD_AS_UTF_8_STRING", "GET_BYTES_SUBFIELD_AS_PROTO", "EQUALS"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoProtoParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoProtoParameterArray {
     #[serde(default, rename = "protoValues")]
-    pub proto_values: Option<Vec<serde_json::Value>>,
+    pub proto_values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// EnterpriseCrmEventbusProtoScatterResponse resource type.
@@ -952,33 +1024,36 @@ pub struct EnterpriseCrmEventbusProtoProtoParameterArray {
 pub struct EnterpriseCrmEventbusProtoScatterResponse {
     /// The error message of the failure if applicable.
     #[serde(default, rename = "errorMsg")]
-    pub error_msg: Option<String>,
+    pub error_msg: ::core::option::Option<String>,
     /// The execution ids of each Subworkflow fired by this scatter.
     #[serde(default, rename = "executionIds")]
-    pub execution_ids: Option<Vec<String>>,
+    pub execution_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// If execution is sync, this is true if the execution passed and false if it failed. If the execution is async, this is true if the WF was fired off successfully, and false if it failed to execute. The success or failure of the subworkflows executed are not captured.
     #[serde(default, rename = "isSuccessful")]
-    pub is_successful: Option<bool>,
+    pub is_successful: ::core::option::Option<bool>,
     /// A list of all the response parameters in the aggregtorMap stored with the remapped key.
     #[serde(default, rename = "responseParams")]
-    pub response_params: Option<Vec<EnterpriseCrmEventbusProtoParameterEntry>>,
+    pub response_params: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterEntry>>,
+    >,
     /// The element that was scattered for this execution.
     #[serde(default, rename = "scatterElement")]
-    pub scatter_element: Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub scatter_element:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
 }
 
 /// EnterpriseCrmEventbusProtoSerializedObjectParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
     #[serde(default, rename = "objectValue")]
-    pub object_value: Option<String>,
+    pub object_value: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoStringArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoStringArray {
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmEventbusProtoStringArrayFunction resource type.
@@ -986,7 +1061,7 @@ pub struct EnterpriseCrmEventbusProtoStringArray {
 pub struct EnterpriseCrmEventbusProtoStringArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoStringFunction resource type.
@@ -994,14 +1069,14 @@ pub struct EnterpriseCrmEventbusProtoStringArrayFunction {
 pub struct EnterpriseCrmEventbusProtoStringFunction {
     /// TODO: enum values: ["UNSPECIFIED", "CONCAT", "TO_UPPERCASE", "TO_LOWERCASE", "CONTAINS", "SPLIT", "LENGTH", "EQUALS", "TO_INT", "TO_DOUBLE", "TO_BOOLEAN", "TO_BASE_64", "TO_JSON", "EQUALS_IGNORE_CASE", "REPLACE_ALL", "SUBSTRING", "RESOLVE_TEMPLATE", "DECODE_BASE64_STRING"]
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoStringParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoStringParameterArray {
     #[serde(default, rename = "stringValues")]
-    pub string_values: Option<Vec<String>>,
+    pub string_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Policy that dictates the behavior for the task after it completes successfully.
@@ -1009,7 +1084,7 @@ pub struct EnterpriseCrmEventbusProtoStringParameterArray {
 pub struct EnterpriseCrmEventbusProtoSuccessPolicy {
     /// State to which the execution snapshot status will be set if the task succeeds. // TODO: enum values: ["UNSPECIFIED", "SUCCEEDED", "SUSPENDED"]
     #[serde(default, rename = "finalState")]
-    pub final_state: Option<String>,
+    pub final_state: ::core::option::Option<String>,
 }
 
 /// LINT.IfChange
@@ -1017,22 +1092,26 @@ pub struct EnterpriseCrmEventbusProtoSuccessPolicy {
 pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissions {
     /// Represents a Gaia identity for a person or service account.
     #[serde(default, rename = "gaiaIdentity")]
-    pub gaia_identity: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    pub gaia_identity: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    >,
     #[serde(default, rename = "googleGroup")]
-    pub google_group: Option<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    pub google_group: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity>,
+    >,
     #[serde(default, rename = "loasRole")]
-    pub loas_role: Option<String>,
+    pub loas_role: ::core::option::Option<String>,
     #[serde(default, rename = "mdbGroup")]
-    pub mdb_group: Option<String>,
+    pub mdb_group: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity {
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<String>,
+    pub email_address: ::core::option::Option<String>,
     #[serde(default, rename = "gaiaId")]
-    pub gaia_id: Option<String>,
+    pub gaia_id: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionConfig resource type.
@@ -1040,15 +1119,20 @@ pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity {
 pub struct EnterpriseCrmEventbusProtoSuspensionConfig {
     /// Optional information to provide recipients of the suspension in addition to the resolution URL, typically containing relevant parameter values from the originating workflow.
     #[serde(default, rename = "customMessage")]
-    pub custom_message: Option<String>,
+    pub custom_message: ::core::option::Option<String>,
     #[serde(default)]
-    pub notifications: Option<Vec<EnterpriseCrmEventbusProtoNotification>>,
+    pub notifications: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoNotification>>,
+    >,
     /// Indicates the next steps when no external actions happen on the suspension.
     #[serde(default, rename = "suspensionExpiration")]
-    pub suspension_expiration: Option<EnterpriseCrmEventbusProtoSuspensionExpiration>,
+    pub suspension_expiration:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoSuspensionExpiration>>,
     /// Identities able to resolve this suspension.
     #[serde(default, rename = "whoMayResolve")]
-    pub who_may_resolve: Option<Vec<EnterpriseCrmEventbusProtoSuspensionAuthPermissions>>,
+    pub who_may_resolve: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoSuspensionAuthPermissions>>,
+    >,
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionExpiration resource type.
@@ -1056,72 +1140,77 @@ pub struct EnterpriseCrmEventbusProtoSuspensionConfig {
 pub struct EnterpriseCrmEventbusProtoSuspensionExpiration {
     /// Milliseconds after which the suspension expires, if no action taken.
     #[serde(default, rename = "expireAfterMs")]
-    pub expire_after_ms: Option<i32>,
+    pub expire_after_ms: ::core::option::Option<i32>,
     /// Whether the suspension will be REJECTED or LIFTED upon expiration. REJECTED is the default behavior.
     #[serde(default, rename = "liftWhenExpired")]
-    pub lift_when_expired: Option<bool>,
+    pub lift_when_expired: ::core::option::Option<bool>,
     /// Milliseconds after which the previous suspension action reminder, if any, is sent using the selected notification option, for a suspension which is still PENDING_UNSPECIFIED.
     #[serde(default, rename = "remindAfterMs")]
-    pub remind_after_ms: Option<i32>,
+    pub remind_after_ms: ::core::option::Option<i32>,
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionResolutionInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoSuspensionResolutionInfo {
     #[serde(default)]
-    pub audit: Option<EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit>,
+    pub audit: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit>,
+    >,
     /// The event data user sends as request.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// KMS info, used by cmek/gmek integration
     #[serde(default, rename = "cloudKmsConfig")]
-    pub cloud_kms_config: Option<EnterpriseCrmEventbusProtoCloudKmsConfig>,
+    pub cloud_kms_config:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoCloudKmsConfig>>,
     /// Auto-generated.
     #[serde(default, rename = "createdTimestamp")]
-    pub created_timestamp: Option<String>,
+    pub created_timestamp: ::core::option::Option<String>,
     /// Encrypted SuspensionResolutionInfo
     #[serde(default, rename = "encryptedSuspensionResolutionInfo")]
-    pub encrypted_suspension_resolution_info: Option<String>,
+    pub encrypted_suspension_resolution_info: ::core::option::Option<String>,
     /// Required. ID of the associated execution.
     #[serde(default, rename = "eventExecutionInfoId")]
-    pub event_execution_info_id: Option<String>,
+    pub event_execution_info_id: ::core::option::Option<String>,
     /// The origin of the suspension for periodic notifications.
     #[serde(default, rename = "externalTraffic")]
-    pub external_traffic: Option<EnterpriseCrmEventbusProtoExternalTraffic>,
+    pub external_traffic:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoExternalTraffic>>,
     /// Auto-generated.
     #[serde(default, rename = "lastModifiedTimestamp")]
-    pub last_modified_timestamp: Option<String>,
+    pub last_modified_timestamp: ::core::option::Option<String>,
     /// Which Google product the suspension belongs to. If not set, the suspension belongs to Integration Platform by default. // TODO: enum values: ["UNSPECIFIED_PRODUCT", "IP", "APIGEE", "SECURITY"]
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
     /// TODO: enum values: ["PENDING_UNSPECIFIED", "REJECTED", "LIFTED", "CANCELED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     #[serde(default, rename = "suspensionConfig")]
-    pub suspension_config: Option<EnterpriseCrmEventbusProtoSuspensionConfig>,
+    pub suspension_config:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoSuspensionConfig>>,
     /// Primary key for the SuspensionResolutionInfoTable.
     #[serde(default, rename = "suspensionId")]
-    pub suspension_id: Option<String>,
+    pub suspension_id: ::core::option::Option<String>,
     /// Required. Task number of the associated SuspensionTask.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
     /// Required. The name of the originating workflow.
     #[serde(default, rename = "workflowName")]
-    pub workflow_name: Option<String>,
+    pub workflow_name: ::core::option::Option<String>,
     /// Wrapped dek
     #[serde(default, rename = "wrappedDek")]
-    pub wrapped_dek: Option<String>,
+    pub wrapped_dek: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit {
     #[serde(default, rename = "resolvedBy")]
-    pub resolved_by: Option<String>,
+    pub resolved_by: ::core::option::Option<String>,
     #[serde(default, rename = "resolvedByCpi")]
-    pub resolved_by_cpi: Option<String>,
+    pub resolved_by_cpi: ::core::option::Option<String>,
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
 }
 
 /// Message to be used to configure alerting in the {@code TaskConfig} protos for tasks in an event.
@@ -1129,41 +1218,47 @@ pub struct EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit {
 pub struct EnterpriseCrmEventbusProtoTaskAlertConfig {
     /// The period over which the metric value should be aggregated and evaluated. Format is , where integer should be a positive integer and unit should be one of (s,m,h,d,w) meaning (second, minute, hour, day, week).
     #[serde(default, rename = "aggregationPeriod")]
-    pub aggregation_period: Option<String>,
+    pub aggregation_period: ::core::option::Option<String>,
     /// Set to false by default. When set to true, the metrics are not aggregated or pushed to Monarch for this workflow alert.
     #[serde(default, rename = "alertDisabled")]
-    pub alert_disabled: Option<bool>,
+    pub alert_disabled: ::core::option::Option<bool>,
     /// A name to identify this alert. This will be displayed in the alert subject. If set, this name should be unique in within the scope of the containing workflow.
     #[serde(default, rename = "alertName")]
-    pub alert_name: Option<String>,
+    pub alert_name: ::core::option::Option<String>,
     /// Client associated with this alert configuration. Must be a client enabled in one of the containing workflow''s triggers.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Should be specified only for TASK_AVERAGE_DURATION and TASK_PERCENTILE_DURATION metrics. This member should be used to specify what duration value the metrics should exceed for the alert to trigger.
     #[serde(default, rename = "durationThresholdMs")]
-    pub duration_threshold_ms: Option<String>,
+    pub duration_threshold_ms: ::core::option::Option<String>,
     #[serde(default, rename = "errorEnumList")]
-    pub error_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    pub error_enum_list: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    >,
     /// TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "TASK_ERROR_RATE", "TASK_WARNING_RATE", "TASK_RATE", "TASK_AVERAGE_DURATION", "TASK_PERCENTILE_DURATION"]
     #[serde(default, rename = "metricType")]
-    pub metric_type: Option<String>,
+    pub metric_type: ::core::option::Option<String>,
     /// For how many contiguous aggregation periods should the expected min or max be violated for the alert to be fired.
     #[serde(default, rename = "numAggregationPeriods")]
-    pub num_aggregation_periods: Option<i32>,
+    pub num_aggregation_periods: ::core::option::Option<i32>,
     /// Only count final task attempts, not retries.
     #[serde(default, rename = "onlyFinalAttempt")]
-    pub only_final_attempt: Option<bool>,
+    pub only_final_attempt: ::core::option::Option<bool>,
     /// Link to a playbook for resolving the issue that triggered this alert.
     #[serde(default, rename = "playbookUrl")]
-    pub playbook_url: Option<String>,
+    pub playbook_url: ::core::option::Option<String>,
     /// The threshold type for which this alert is being configured. If value falls below expected_min or exceeds expected_max, an alert will be fired. // TODO: enum values: ["UNSPECIFIED_THRESHOLD_TYPE", "EXPECTED_MIN", "EXPECTED_MAX"]
     #[serde(default, rename = "thresholdType")]
-    pub threshold_type: Option<String>,
+    pub threshold_type: ::core::option::Option<String>,
     /// The metric value, above or below which the alert should be triggered.
     #[serde(default, rename = "thresholdValue")]
-    pub threshold_value: Option<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
+    pub threshold_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
+    >,
     #[serde(default, rename = "warningEnumList")]
-    pub warning_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    pub warning_enum_list: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    >,
 }
 
 /// Contains the details of the execution of this task. Next available id: 11
@@ -1171,16 +1266,19 @@ pub struct EnterpriseCrmEventbusProtoTaskAlertConfig {
 pub struct EnterpriseCrmEventbusProtoTaskExecutionDetails {
     /// Indicates whether the task was skipped on failure. Only relevant if the task is in SKIPPED state.
     #[serde(default, rename = "skippedOnFailure")]
-    pub skipped_on_failure: Option<bool>,
+    pub skipped_on_failure: ::core::option::Option<bool>,
     #[serde(default, rename = "taskAttemptStats")]
-    pub task_attempt_stats:
-        Option<Vec<EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats>>,
+    pub task_attempt_stats: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats>,
+        >,
+    >,
     /// TODO: enum values: ["UNSPECIFIED", "PENDING_EXECUTION", "IN_PROCESS", "SUCCEED", "FAILED", "FATAL", "RETRY_ON_HOLD", "SKIPPED", "CANCELED", "PENDING_ROLLBACK", "ROLLBACK_IN_PROCESS", "ROLLEDBACK", "SUSPENDED"]
     #[serde(default, rename = "taskExecutionState")]
-    pub task_execution_state: Option<String>,
+    pub task_execution_state: ::core::option::Option<String>,
     /// Pointer to the task config it used for execution.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats resource type.
@@ -1188,10 +1286,10 @@ pub struct EnterpriseCrmEventbusProtoTaskExecutionDetails {
 pub struct EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats {
     /// The end time of the task execution for current attempt.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The start time of the task execution for current attempt. This could be in the future if it''s been scheduled.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// TaskMetadata are attributes that are associated to every common Task we have.
@@ -1199,78 +1297,80 @@ pub struct EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats {
 pub struct EnterpriseCrmEventbusProtoTaskMetadata {
     /// The new task name to replace the current task if it is deprecated. Otherwise, it is the same as the current task name.
     #[serde(default, rename = "activeTaskName")]
-    pub active_task_name: Option<String>,
+    pub active_task_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub admins: Option<Vec<EnterpriseCrmEventbusProtoTaskMetadataAdmin>>,
+    pub admins: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTaskMetadataAdmin>>,
+    >,
     /// TODO: enum values: ["UNSPECIFIED_CATEGORY", "CUSTOM", "FLOW_CONTROL", "DATA_MANIPULATION", "SCRIPTING", "CONNECTOR", "HIDDEN", "CLOUD_SYSTEMS", "CUSTOM_TASK_TEMPLATE", "TASK_RECOMMENDATIONS"]
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// The Code Search link to the Task Java file.
     #[serde(default, rename = "codeSearchLink")]
-    pub code_search_link: Option<String>,
+    pub code_search_link: ::core::option::Option<String>,
     /// Controls whether JSON workflow parameters are validated against provided schemas before and/or after this task''s execution. // TODO: enum values: ["UNSPECIFIED_JSON_VALIDATION_OPTION", "SKIP", "PRE_EXECUTION", "POST_EXECUTION", "PRE_POST_EXECUTION"]
     #[serde(default, rename = "defaultJsonValidationOption")]
-    pub default_json_validation_option: Option<String>,
+    pub default_json_validation_option: ::core::option::Option<String>,
     /// Contains the initial configuration of the task with default values set. For now, The string should be compatible to an ASCII-proto format.
     #[serde(default, rename = "defaultSpec")]
-    pub default_spec: Option<String>,
+    pub default_spec: ::core::option::Option<String>,
     /// In a few sentences, describe the purpose and usage of the task.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The string name to show on the task list on the Workflow editor screen. This should be a very short, one to two words name for the task. (e.g. "Send Mail")
     #[serde(default, rename = "descriptiveName")]
-    pub descriptive_name: Option<String>,
+    pub descriptive_name: ::core::option::Option<String>,
     /// Snippet of markdown documentation to embed in the RHP for this task.
     #[serde(default, rename = "docMarkdown")]
-    pub doc_markdown: Option<String>,
+    pub doc_markdown: ::core::option::Option<String>,
     /// TODO: enum values: ["UNSPECIFIED_EXTERNAL_CATEGORY", "CORE", "CONNECTORS", "EXTERNAL_HTTP", "EXTERNAL_INTEGRATION_SERVICES", "EXTERNAL_CUSTOMER_ACTIONS", "EXTERNAL_FLOW_CONTROL", "EXTERNAL_WORKSPACE", "EXTERNAL_SECURITY", "EXTERNAL_DATABASES", "EXTERNAL_ANALYTICS", "EXTERNAL_BYOC", "EXTERNAL_BYOT", "EXTERNAL_ARTIFICIAL_INTELIGENCE", "EXTERNAL_DATA_MANIPULATION"]
     #[serde(default, rename = "externalCategory")]
-    pub external_category: Option<String>,
+    pub external_category: ::core::option::Option<String>,
     /// Sequence with which the task in specific category to be displayed in task discovery panel for external users.
     #[serde(default, rename = "externalCategorySequence")]
-    pub external_category_sequence: Option<i32>,
+    pub external_category_sequence: ::core::option::Option<i32>,
     /// External-facing documention embedded in the RHP for this task.
     #[serde(default, rename = "externalDocHtml")]
-    pub external_doc_html: Option<String>,
+    pub external_doc_html: ::core::option::Option<String>,
     /// Doc link for external-facing documentation (separate from g3doc).
     #[serde(default, rename = "externalDocLink")]
-    pub external_doc_link: Option<String>,
+    pub external_doc_link: ::core::option::Option<String>,
     /// DEPRECATED: Use external_doc_html.
     #[serde(default, rename = "externalDocMarkdown")]
-    pub external_doc_markdown: Option<String>,
+    pub external_doc_markdown: ::core::option::Option<String>,
     /// URL to the associated G3 Doc for the task if available
     #[serde(default, rename = "g3DocLink")]
-    pub g3_doc_link: Option<String>,
+    pub g3_doc_link: ::core::option::Option<String>,
     /// URL to gstatic image icon for this task. This icon shows up on the task list panel along with the task name in the Workflow Editor screen. Use the 24p, 2x, gray color icon image format.
     #[serde(default, rename = "iconLink")]
-    pub icon_link: Option<String>,
+    pub icon_link: ::core::option::Option<String>,
     /// The deprecation status of the current task. Default value is false;
     #[serde(default, rename = "isDeprecated")]
-    pub is_deprecated: Option<bool>,
+    pub is_deprecated: ::core::option::Option<bool>,
     /// The actual class name or the annotated name of the task. Task Author should initialize this field with value from the getName() method of the Task class.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// External-facing documention for standalone IP in pantheon embedded in the RHP for this task. Non null only if different from external_doc_html
     #[serde(default, rename = "standaloneExternalDocHtml")]
-    pub standalone_external_doc_html: Option<String>,
+    pub standalone_external_doc_html: ::core::option::Option<String>,
     /// Allows author to indicate if the task is ready to use or not. If not set, then it will default to INACTIVE. // TODO: enum values: ["UNSPECIFIED_STATUS", "DEFAULT_INACTIVE", "ACTIVE"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// TODO: enum values: ["UNSPECIFIED_SYSTEM", "GENERIC", "BUGANIZER", "SALESFORCE", "CLOUD_SQL", "PLX", "SHEETS", "GOOGLE_GROUPS", "EMAIL", "SPANNER", "DATA_BRIDGE"]
     #[serde(default)]
-    pub system: Option<String>,
+    pub system: ::core::option::Option<String>,
     /// A set of tags that pertain to a particular task. This can be used to improve the searchability of tasks with several names ("REST Caller" vs. "Call REST Endpoint") or to help users find tasks based on related words.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Admins are owners of a Task, and have all permissions on a particular task identified by the task name. By default, Eventbus periodically scans all task metadata and syncs (adds) any new admins defined here to Zanzibar.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoTaskMetadataAdmin {
     #[serde(default, rename = "googleGroupEmail")]
-    pub google_group_email: Option<String>,
+    pub google_group_email: ::core::option::Option<String>,
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
 }
 
 /// Task authors would use this type to configure the UI for a particular task by specifying what UI config modules should be included to compose the UI. Learn more about config module framework:
@@ -1278,7 +1378,9 @@ pub struct EnterpriseCrmEventbusProtoTaskMetadataAdmin {
 pub struct EnterpriseCrmEventbusProtoTaskUiConfig {
     /// Configurations of included config modules.
     #[serde(default, rename = "taskUiModuleConfigs")]
-    pub task_ui_module_configs: Option<Vec<EnterpriseCrmEventbusProtoTaskUiModuleConfig>>,
+    pub task_ui_module_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTaskUiModuleConfig>>,
+    >,
 }
 
 /// Task author would use this type to configure a config module.
@@ -1286,7 +1388,7 @@ pub struct EnterpriseCrmEventbusProtoTaskUiConfig {
 pub struct EnterpriseCrmEventbusProtoTaskUiModuleConfig {
     /// ID of the config module. // TODO: enum values: ["UNSPECIFIED_TASK_MODULE", "LABEL", "ERROR_HANDLING", "TASK_PARAM_TABLE", "TASK_PARAM_FORM", "PRECONDITION", "SCRIPT_EDITOR", "RPC", "TASK_SUMMARY", "SUSPENSION", "RPC_TYPED", "SUB_WORKFLOW", "APPS_SCRIPT_NAVIGATOR", "SUB_WORKFLOW_FOR_EACH_LOOP", "FIELD_MAPPING", "README", "REST_CALLER", "SUB_WORKFLOW_SCATTER_GATHER", "CLOUD_SQL", "GENERIC_CONNECTOR_TASK"]
     #[serde(default, rename = "moduleId")]
-    pub module_id: Option<String>,
+    pub module_id: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoTeardown resource type.
@@ -1294,7 +1396,9 @@ pub struct EnterpriseCrmEventbusProtoTaskUiModuleConfig {
 pub struct EnterpriseCrmEventbusProtoTeardown {
     /// Required.
     #[serde(default, rename = "teardownTaskConfigs")]
-    pub teardown_task_configs: Option<Vec<EnterpriseCrmEventbusProtoTeardownTaskConfig>>,
+    pub teardown_task_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTeardownTaskConfig>>,
+    >,
 }
 
 /// EnterpriseCrmEventbusProtoTeardownTaskConfig resource type.
@@ -1302,29 +1406,32 @@ pub struct EnterpriseCrmEventbusProtoTeardown {
 pub struct EnterpriseCrmEventbusProtoTeardownTaskConfig {
     /// The creator''s email address.
     #[serde(default, rename = "creatorEmail")]
-    pub creator_email: Option<String>,
+    pub creator_email: ::core::option::Option<String>,
     /// Required. Unique identifier of the teardown task within this Config. We use this field as the identifier to find next teardown tasks.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "nextTeardownTask")]
-    pub next_teardown_task: Option<EnterpriseCrmEventbusProtoNextTeardownTask>,
+    pub next_teardown_task:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoNextTeardownTask>>,
     /// The parameters the user can pass to this task.
     #[serde(default)]
-    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    pub parameters:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventParameters>>,
     #[serde(default)]
-    pub properties: Option<EnterpriseCrmEventbusProtoEventBusProperties>,
+    pub properties:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventBusProperties>>,
     /// Required. Implementation class name.
     #[serde(default, rename = "teardownTaskImplementationClassName")]
-    pub teardown_task_implementation_class_name: Option<String>,
+    pub teardown_task_implementation_class_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoToken resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoToken {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoTransformExpression resource type.
@@ -1332,10 +1439,13 @@ pub struct EnterpriseCrmEventbusProtoToken {
 pub struct EnterpriseCrmEventbusProtoTransformExpression {
     /// Initial value upon which to perform transformations.
     #[serde(default, rename = "initialValue")]
-    pub initial_value: Option<EnterpriseCrmEventbusProtoBaseValue>,
+    pub initial_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBaseValue>>,
     /// Transformations to be applied sequentially.
     #[serde(default, rename = "transformationFunctions")]
-    pub transformation_functions: Option<Vec<EnterpriseCrmEventbusProtoFunction>>,
+    pub transformation_functions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoFunction>>,
+    >,
 }
 
 /// EnterpriseCrmEventbusProtoTriggerCriteria resource type.
@@ -1343,34 +1453,37 @@ pub struct EnterpriseCrmEventbusProtoTransformExpression {
 pub struct EnterpriseCrmEventbusProtoTriggerCriteria {
     /// Required. Standard filter expression, when true the workflow will be executed. If there''s no trigger_criteria_task_implementation_class_name specified, the condition will be validated directly.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// Optional. To be used in TaskConfig for the implementation class.
     #[serde(default)]
-    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    pub parameters:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventParameters>>,
     /// Optional. Implementation class name. The class should implement the “TypedTask” interface.
     #[serde(default, rename = "triggerCriteriaTaskImplementationClassName")]
-    pub trigger_criteria_task_implementation_class_name: Option<String>,
+    pub trigger_criteria_task_implementation_class_name: ::core::option::Option<String>,
 }
 
 /// Used for define type for values. Currently supported value types include int, string, double, array, and any proto message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoValueType {
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "doubleArray")]
-    pub double_array: Option<EnterpriseCrmEventbusProtoDoubleArray>,
+    pub double_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoDoubleArray>>,
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     #[serde(default, rename = "intArray")]
-    pub int_array: Option<EnterpriseCrmEventbusProtoIntArray>,
+    pub int_array: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoIntArray>>,
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     #[serde(default, rename = "protoValue")]
-    pub proto_value: Option<serde_json::Value>,
+    pub proto_value: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "stringArray")]
-    pub string_array: Option<EnterpriseCrmEventbusProtoStringArray>,
+    pub string_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoStringArray>>,
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// Message to be used to configure custom alerting in the {@code EventConfig} protos for an event.
@@ -1378,41 +1491,47 @@ pub struct EnterpriseCrmEventbusProtoValueType {
 pub struct EnterpriseCrmEventbusProtoWorkflowAlertConfig {
     /// For an EXPECTED_MIN threshold, this aggregation_period must be lesser than 24 hours.
     #[serde(default, rename = "aggregationPeriod")]
-    pub aggregation_period: Option<String>,
+    pub aggregation_period: ::core::option::Option<String>,
     /// Set to false by default. When set to true, the metrics are not aggregated or pushed to Monarch for this workflow alert.
     #[serde(default, rename = "alertDisabled")]
-    pub alert_disabled: Option<bool>,
+    pub alert_disabled: ::core::option::Option<bool>,
     /// A name to identify this alert. This will be displayed in the alert subject. If set, this name should be unique within the scope of the workflow.
     #[serde(default, rename = "alertName")]
-    pub alert_name: Option<String>,
+    pub alert_name: ::core::option::Option<String>,
     /// Client associated with this alert configuration.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Should be specified only for *AVERAGE_DURATION and *PERCENTILE_DURATION metrics. This member should be used to specify what duration value the metrics should exceed for the alert to trigger.
     #[serde(default, rename = "durationThresholdMs")]
-    pub duration_threshold_ms: Option<String>,
+    pub duration_threshold_ms: ::core::option::Option<String>,
     #[serde(default, rename = "errorEnumList")]
-    pub error_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    pub error_enum_list: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    >,
     /// TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "EVENT_ERROR_RATE", "EVENT_WARNING_RATE", "TASK_ERROR_RATE", "TASK_WARNING_RATE", "TASK_RATE", "EVENT_RATE", "EVENT_AVERAGE_DURATION", "EVENT_PERCENTILE_DURATION", "TASK_AVERAGE_DURATION", "TASK_PERCENTILE_DURATION"]
     #[serde(default, rename = "metricType")]
-    pub metric_type: Option<String>,
+    pub metric_type: ::core::option::Option<String>,
     /// For how many contiguous aggregation periods should the expected min or max be violated for the alert to be fired.
     #[serde(default, rename = "numAggregationPeriods")]
-    pub num_aggregation_periods: Option<i32>,
+    pub num_aggregation_periods: ::core::option::Option<i32>,
     /// For either events or tasks, depending on the type of alert, count only final attempts, not retries.
     #[serde(default, rename = "onlyFinalAttempt")]
-    pub only_final_attempt: Option<bool>,
+    pub only_final_attempt: ::core::option::Option<bool>,
     /// Link to a playbook for resolving the issue that triggered this alert.
     #[serde(default, rename = "playbookUrl")]
-    pub playbook_url: Option<String>,
+    pub playbook_url: ::core::option::Option<String>,
     /// The threshold type, whether lower(expected_min) or upper(expected_max), for which this alert is being configured. If value falls below expected_min or exceeds expected_max, an alert will be fired. // TODO: enum values: ["UNSPECIFIED_THRESHOLD_TYPE", "EXPECTED_MIN", "EXPECTED_MAX"]
     #[serde(default, rename = "thresholdType")]
-    pub threshold_type: Option<String>,
+    pub threshold_type: ::core::option::Option<String>,
     /// The metric value, above or below which the alert should be triggered.
     #[serde(default, rename = "thresholdValue")]
-    pub threshold_value: Option<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
+    pub threshold_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue>,
+    >,
     #[serde(default, rename = "warningEnumList")]
-    pub warning_enum_list: Option<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    pub warning_enum_list: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList>,
+    >,
 }
 
 /// Stats for the requested dimensions: QPS, duration, and error/warning rate
@@ -1420,61 +1539,61 @@ pub struct EnterpriseCrmEventbusProtoWorkflowAlertConfig {
 pub struct EnterpriseCrmEventbusStats {
     /// Dimensions that these stats have been aggregated on.
     #[serde(default)]
-    pub dimensions: Option<EnterpriseCrmEventbusStatsDimensions>,
+    pub dimensions: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusStatsDimensions>>,
     /// Average duration in seconds.
     #[serde(default, rename = "durationInSeconds")]
-    pub duration_in_seconds: Option<f64>,
+    pub duration_in_seconds: ::core::option::Option<f64>,
     /// Average error rate.
     #[serde(default, rename = "errorRate")]
-    pub error_rate: Option<f64>,
+    pub error_rate: ::core::option::Option<f64>,
     /// Queries per second.
     #[serde(default)]
-    pub qps: Option<f64>,
+    pub qps: ::core::option::Option<f64>,
     /// Average warning rate.
     #[serde(default, rename = "warningRate")]
-    pub warning_rate: Option<f64>,
+    pub warning_rate: ::core::option::Option<f64>,
 }
 
 /// EnterpriseCrmEventbusStatsDimensions resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusStatsDimensions {
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Whether to include or exclude the enums matching the regex. // TODO: enum values: ["DEFAULT_INCLUSIVE", "EXCLUSIVE"]
     #[serde(default, rename = "enumFilterType")]
-    pub enum_filter_type: Option<String>,
+    pub enum_filter_type: ::core::option::Option<String>,
     #[serde(default, rename = "errorEnumString")]
-    pub error_enum_string: Option<String>,
+    pub error_enum_string: ::core::option::Option<String>,
     /// TODO: enum values: ["UNSPECIFIED", "FINAL", "RETRYABLE", "CANCELED"]
     #[serde(default, rename = "retryAttempt")]
-    pub retry_attempt: Option<String>,
+    pub retry_attempt: ::core::option::Option<String>,
     #[serde(default, rename = "taskName")]
-    pub task_name: Option<String>,
+    pub task_name: ::core::option::Option<String>,
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
     /// Stats have been or will be aggregated on set fields for any semantically-meaningful combination.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     #[serde(default, rename = "warningEnumString")]
-    pub warning_enum_string: Option<String>,
+    pub warning_enum_string: ::core::option::Option<String>,
     #[serde(default, rename = "workflowId")]
-    pub workflow_id: Option<String>,
+    pub workflow_id: ::core::option::Option<String>,
     #[serde(default, rename = "workflowName")]
-    pub workflow_name: Option<String>,
+    pub workflow_name: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray {
     #[serde(default, rename = "booleanValues")]
-    pub boolean_values: Option<Vec<bool>>,
+    pub boolean_values: ::core::option::Option<::std::vec::Vec<bool>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
     #[serde(default, rename = "doubleValues")]
-    pub double_values: Option<Vec<f64>>,
+    pub double_values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Contains the details of the execution info of this event: this includes the tasks execution details plus the event execution statistics. Next available id: 12
@@ -1482,35 +1601,41 @@ pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails {
     /// If the execution is manually canceled, this field will contain the reason for cancellation.
     #[serde(default, rename = "cancelReason")]
-    pub cancel_reason: Option<String>,
+    pub cancel_reason: ::core::option::Option<String>,
     #[serde(default, rename = "eventAttemptStats")]
-    pub event_attempt_stats:
-        Option<Vec<EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats>>,
+    pub event_attempt_stats: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats>,
+        >,
+    >,
     /// After snapshot migration, this field will no longer be populated, but old execution snapshots will still be accessible.
     #[serde(default, rename = "eventExecutionSnapshot")]
-    pub event_execution_snapshot:
-        Option<Vec<EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot>>,
+    pub event_execution_snapshot: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot>,
+        >,
+    >,
     /// Total size of all event_execution_snapshots for an execution
     #[serde(default, rename = "eventExecutionSnapshotsSize")]
-    pub event_execution_snapshots_size: Option<String>,
+    pub event_execution_snapshots_size: ::core::option::Option<String>,
     /// The execution state of this event. // TODO: enum values: ["UNSPECIFIED", "ON_HOLD", "IN_PROCESS", "SUCCEEDED", "FAILED", "CANCELED", "RETRY_ON_HOLD", "SUSPENDED"]
     #[serde(default, rename = "eventExecutionState")]
-    pub event_execution_state: Option<String>,
+    pub event_execution_state: ::core::option::Option<String>,
     /// Indicates the number of times the execution has restarted from the beginning.
     #[serde(default, rename = "eventRetriesFromBeginningCount")]
-    pub event_retries_from_beginning_count: Option<i32>,
+    pub event_retries_from_beginning_count: ::core::option::Option<i32>,
     /// The log file path (aka. cns address) for this event.
     #[serde(default, rename = "logFilePath")]
-    pub log_file_path: Option<String>,
+    pub log_file_path: ::core::option::Option<String>,
     /// The network address (aka. bns address) that indicates where the event executor is running.
     #[serde(default, rename = "networkAddress")]
-    pub network_address: Option<String>,
+    pub network_address: ::core::option::Option<String>,
     /// Next scheduled execution time in case the execution status was RETRY_ON_HOLD.
     #[serde(default, rename = "nextExecutionTime")]
-    pub next_execution_time: Option<String>,
+    pub next_execution_time: ::core::option::Option<String>,
     /// Used internally and shouldn''t be exposed to users. A counter for the cron job to record how many times this event is in in_process state but don''t have a lock consecutively/
     #[serde(default, rename = "ryeLockUnheldCount")]
-    pub rye_lock_unheld_count: Option<i32>,
+    pub rye_lock_unheld_count: ::core::option::Option<i32>,
 }
 
 /// Contains all the execution details for a workflow instance. Next available id: 27
@@ -1518,70 +1643,82 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails {
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo {
     /// The event data user sends as request.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Cloud Logging details for execution info
     #[serde(default, rename = "cloudLoggingDetails")]
-    pub cloud_logging_details: Option<EnterpriseCrmEventbusProtoCloudLoggingDetails>,
+    pub cloud_logging_details:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoCloudLoggingDetails>>,
     /// Auto-generated.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Final error-code if event failed.
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<CrmlogErrorCode>,
+    pub error_code: ::core::option::Option<::std::boxed::Box<CrmlogErrorCode>>,
     /// Errors, warnings, and informationals associated with the workflow/task. The order in which the errors were added by the workflow/task is maintained.
     #[serde(default)]
-    pub errors: Option<Vec<EnterpriseCrmEventbusProtoErrorDetail>>,
+    pub errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoErrorDetail>>,
+    >,
     /// The execution info about this event.
     #[serde(default, rename = "eventExecutionDetails")]
-    pub event_execution_details: Option<EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails>,
+    pub event_execution_details: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails>,
+    >,
     /// Auto-generated primary key.
     #[serde(default, rename = "eventExecutionInfoId")]
-    pub event_execution_info_id: Option<String>,
+    pub event_execution_info_id: ::core::option::Option<String>,
     /// Execution trace info to aggregate parent-child executions.
     #[serde(default, rename = "executionTraceInfo")]
-    pub execution_trace_info: Option<EnterpriseCrmEventbusProtoExecutionTraceInfo>,
+    pub execution_trace_info:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoExecutionTraceInfo>>,
     /// User-defined label that annotates the executed integration version.
     #[serde(default, rename = "integrationVersionUserLabel")]
-    pub integration_version_user_label: Option<String>,
+    pub integration_version_user_label: ::core::option::Option<String>,
     /// Auto-generated.
     #[serde(default, rename = "lastModifiedTime")]
-    pub last_modified_time: Option<String>,
+    pub last_modified_time: ::core::option::Option<String>,
     /// The ways user posts this event. // TODO: enum values: ["UNSPECIFIED", "POST", "POST_TO_QUEUE", "SCHEDULE", "POST_BY_EVENT_CONFIG_ID", "POST_WITH_EVENT_DETAILS"]
     #[serde(default, rename = "postMethod")]
-    pub post_method: Option<String>,
+    pub post_method: ::core::option::Option<String>,
     /// Which Google product the execution_info belongs to. If not set, the execution_info belongs to Integration Platform by default. // TODO: enum values: ["UNSPECIFIED_PRODUCT", "IP", "APIGEE", "SECURITY"]
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
     /// Replay info for the execution
     #[serde(default, rename = "replayInfo")]
-    pub replay_info: Option<EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo>,
+    pub replay_info: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo>,
+    >,
     /// Optional. This is used to de-dup incoming request.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Event parameters come in as part of the request.
     #[serde(default, rename = "requestParams")]
-    pub request_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub request_params: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Event parameters come out as part of the response.
     #[serde(default, rename = "responseParams")]
-    pub response_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub response_params: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Workflow snapshot number.
     #[serde(default, rename = "snapshotNumber")]
-    pub snapshot_number: Option<String>,
+    pub snapshot_number: ::core::option::Option<String>,
     /// Tenant this event is created. Used to reschedule the event to correct tenant.
     #[serde(default)]
-    pub tenant: Option<String>,
+    pub tenant: ::core::option::Option<String>,
     /// The trigger id of the workflow trigger config. If both trigger_id and client_id is present, the workflow is executed from the start tasks provided by the matching trigger config otherwise it is executed from the default start tasks.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// Required. Pointer to the workflow it is executing.
     #[serde(default, rename = "workflowId")]
-    pub workflow_id: Option<String>,
+    pub workflow_id: ::core::option::Option<String>,
     /// Name of the workflow.
     #[serde(default, rename = "workflowName")]
-    pub workflow_name: Option<String>,
+    pub workflow_name: ::core::option::Option<String>,
     /// Time interval in seconds to schedule retry of workflow in manifold when workflow is already running
     #[serde(default, rename = "workflowRetryBackoffIntervalSeconds")]
-    pub workflow_retry_backoff_interval_seconds: Option<String>,
+    pub workflow_retry_backoff_interval_seconds: ::core::option::Option<String>,
 }
 
 /// Contains the details of the execution info: this includes the replay reason and replay tree connecting executions in a parent-child relationship
@@ -1589,16 +1726,16 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo {
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo {
     /// If this execution is a replay of another execution, then this field contains the original execution id.
     #[serde(default, rename = "originalExecutionInfoId")]
-    pub original_execution_info_id: Option<String>,
+    pub original_execution_info_id: ::core::option::Option<String>,
     /// Replay mode for the execution // TODO: enum values: ["REPLAY_MODE_UNSPECIFIED", "REPLAY_MODE_FROM_BEGINNING", "REPLAY_MODE_POINT_OF_FAILURE"]
     #[serde(default, rename = "replayMode")]
-    pub replay_mode: Option<String>,
+    pub replay_mode: ::core::option::Option<String>,
     /// reason for replay
     #[serde(default, rename = "replayReason")]
-    pub replay_reason: Option<String>,
+    pub replay_reason: ::core::option::Option<String>,
     /// If this execution has been replayed, then this field contains the execution ids of the replayed executions.
     #[serde(default, rename = "replayedExecutionInfoIds")]
-    pub replayed_execution_info_ids: Option<Vec<String>>,
+    pub replayed_execution_info_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot resource type.
@@ -1606,34 +1743,45 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo {
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot {
     /// Indicates "right after which checkpoint task''s execution" this snapshot is taken.
     #[serde(default, rename = "checkpointTaskNumber")]
-    pub checkpoint_task_number: Option<String>,
+    pub checkpoint_task_number: ::core::option::Option<String>,
     /// All of the computed conditions that been calculated.
     #[serde(default, rename = "conditionResults")]
-    pub condition_results: Option<Vec<EnterpriseCrmEventbusProtoConditionResult>>,
+    pub condition_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoConditionResult>>,
+    >,
     /// The parameters in Event object that differs from last snapshot.
     #[serde(default, rename = "diffParams")]
-    pub diff_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub diff_params: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Points to the event execution info this snapshot belongs to.
     #[serde(default, rename = "eventExecutionInfoId")]
-    pub event_execution_info_id: Option<String>,
+    pub event_execution_info_id: ::core::option::Option<String>,
     /// Auto-generated. Used as primary key for EventExecutionSnapshots table.
     #[serde(default, rename = "eventExecutionSnapshotId")]
-    pub event_execution_snapshot_id: Option<String>,
+    pub event_execution_snapshot_id: ::core::option::Option<String>,
     #[serde(default, rename = "eventExecutionSnapshotMetadata")]
-    pub event_execution_snapshot_metadata:
-        Option<EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata>,
+    pub event_execution_snapshot_metadata: ::core::option::Option<
+        ::std::boxed::Box<
+            EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata,
+        >,
+    >,
     /// The parameters in Event object.
     #[serde(default, rename = "eventParams")]
-    pub event_params: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub event_params: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Indicates when this snapshot is taken.
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
     /// All of the task execution details at the given point of time.
     #[serde(default, rename = "taskExecutionDetails")]
-    pub task_execution_details: Option<Vec<EnterpriseCrmEventbusProtoTaskExecutionDetails>>,
+    pub task_execution_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTaskExecutionDetails>>,
+    >,
     /// The task name associated with this snapshot. Could be empty.
     #[serde(default, rename = "taskName")]
-    pub task_name: Option<String>,
+    pub task_name: ::core::option::Option<String>,
 }
 
 /// LINT.IfChange This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Please see
@@ -1641,14 +1789,16 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot {
 pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
     /// Parameters are a part of Event and can be used to communicate between different tasks that are part of the same workflow execution.
     #[serde(default)]
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    >,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoIntParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
     #[serde(default, rename = "intValues")]
-    pub int_values: Option<Vec<String>>,
+    pub int_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Key-value pair of EventBus task parameters. Next id: 13
@@ -1656,46 +1806,55 @@ pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
 pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecEntry {
     /// The FQCN of the Java object this represents. A string, for example, would be "java.lang.String". If this is "java.lang.Object", the parameter can be of any type.
     #[serde(default, rename = "className")]
-    pub class_name: Option<String>,
+    pub class_name: ::core::option::Option<String>,
     /// If it is a collection of objects, this would be the FCQN of every individual element in the collection. If this is "java.lang.Object", the parameter is a collection of any type.
     #[serde(default, rename = "collectionElementClassName")]
-    pub collection_element_class_name: Option<String>,
+    pub collection_element_class_name: ::core::option::Option<String>,
     /// Optional fields, such as help text and other useful info.
     #[serde(default)]
-    pub config: Option<EnterpriseCrmEventbusProtoParamSpecEntryConfig>,
+    pub config:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParamSpecEntryConfig>>,
     /// The data type of the parameter. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// Default values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    pub default_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    >,
     /// If set, this entry is deprecated, so further use of this parameter should be prohibited.
     #[serde(default, rename = "isDeprecated")]
-    pub is_deprecated: Option<bool>,
+    pub is_deprecated: ::core::option::Option<bool>,
     #[serde(default, rename = "isOutput")]
-    pub is_output: Option<bool>,
+    pub is_output: ::core::option::Option<bool>,
     /// If the data_type is JSON_VALUE, then this will define its schema.
     #[serde(default, rename = "jsonSchema")]
-    pub json_schema: Option<String>,
+    pub json_schema: ::core::option::Option<String>,
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given task. These parameters must be predefined in the workflow definition.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Populated if this represents a proto or proto array.
     #[serde(default, rename = "protoDef")]
-    pub proto_def: Option<EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition>,
+    pub proto_def: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition>,
+    >,
     /// If set, the user must provide an input value for this parameter.
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
     /// Rule used to validate inputs (individual values and collection elements) for this parameter.
     #[serde(default, rename = "validationRule")]
-    pub validation_rule: Option<EnterpriseCrmEventbusProtoParamSpecEntryValidationRule>,
+    pub validation_rule: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoParamSpecEntryValidationRule>,
+    >,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage {
     #[serde(default)]
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParamSpecEntry>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParamSpecEntry>>,
+    >,
 }
 
 /// Key-value pair of EventBus parameters.
@@ -1703,38 +1862,46 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage {
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
     /// Explicitly getting the type of the parameter. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given fired event. These parameters must be predefined in the workflow definition.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// True if this parameter should be masked in the logs
     #[serde(default)]
-    pub masked: Option<bool>,
+    pub masked: ::core::option::Option<bool>,
     /// Values for the defined keys. Each value can either be string, int, double or any proto message.
     #[serde(default)]
-    pub value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    pub value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    >,
 }
 
 /// A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterMap {
     #[serde(default)]
-    pub entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterMapEntry>>,
+    pub entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterMapEntry>>,
+    >,
     /// Option to specify key value type for all entries of the map. If provided then field types for all entries must conform to this. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "keyType")]
-    pub key_type: Option<String>,
+    pub key_type: ::core::option::Option<String>,
     /// TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// Entry is a pair of key and value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterMapEntry {
     #[serde(default)]
-    pub key: Option<EnterpriseCrmFrontendsEventbusProtoParameterMapField>,
+    pub key: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterMapField>,
+    >,
     #[serde(default)]
-    pub value: Option<EnterpriseCrmFrontendsEventbusProtoParameterMapField>,
+    pub value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterMapField>,
+    >,
 }
 
 /// Field represents either the key or value in an entry.
@@ -1742,47 +1909,60 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterMapEntry {
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterMapField {
     /// Passing a literal value.
     #[serde(default, rename = "literalValue")]
-    pub literal_value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    pub literal_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    >,
     /// Referencing one of the WF variables.
     #[serde(default, rename = "referenceKey")]
-    pub reference_key: Option<String>,
+    pub reference_key: ::core::option::Option<String>,
 }
 
 /// To support various types of parameter values. Next available id: 14
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterValueType {
     #[serde(default, rename = "booleanArray")]
-    pub boolean_array: Option<EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray>,
+    pub boolean_array: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray>,
+    >,
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "doubleArray")]
-    pub double_array: Option<EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray>,
+    pub double_array: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray>,
+    >,
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     #[serde(default, rename = "intArray")]
-    pub int_array: Option<EnterpriseCrmFrontendsEventbusProtoIntParameterArray>,
+    pub int_array: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoIntParameterArray>,
+    >,
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     #[serde(default, rename = "jsonValue")]
-    pub json_value: Option<String>,
+    pub json_value: ::core::option::Option<String>,
     #[serde(default, rename = "protoArray")]
-    pub proto_array: Option<EnterpriseCrmFrontendsEventbusProtoProtoParameterArray>,
+    pub proto_array: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoProtoParameterArray>,
+    >,
     #[serde(default, rename = "protoValue")]
-    pub proto_value: Option<serde_json::Value>,
+    pub proto_value: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "serializedObjectValue")]
-    pub serialized_object_value:
-        Option<EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter>,
+    pub serialized_object_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter>,
+    >,
     #[serde(default, rename = "stringArray")]
-    pub string_array: Option<EnterpriseCrmFrontendsEventbusProtoStringParameterArray>,
+    pub string_array: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoStringParameterArray>,
+    >,
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoProtoParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
     #[serde(default, rename = "protoValues")]
-    pub proto_values: Option<Vec<serde_json::Value>>,
+    pub proto_values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Next available id: 4
@@ -1790,27 +1970,29 @@ pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
 pub struct EnterpriseCrmFrontendsEventbusProtoRollbackStrategy {
     /// Optional. The customized parameters the user can pass to this task.
     #[serde(default)]
-    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub parameters: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Required. This is the name of the task that needs to be executed upon rollback of this task.
     #[serde(default, rename = "rollbackTaskImplementationClassName")]
-    pub rollback_task_implementation_class_name: Option<String>,
+    pub rollback_task_implementation_class_name: ::core::option::Option<String>,
     /// Required. These are the tasks numbers of the tasks whose rollback_strategy.rollback_task_implementation_class_name needs to be executed upon failure of this task.
     #[serde(default, rename = "taskNumbersToRollback")]
-    pub task_numbers_to_rollback: Option<Vec<String>>,
+    pub task_numbers_to_rollback: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
     #[serde(default, rename = "objectValue")]
-    pub object_value: Option<String>,
+    pub object_value: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoStringParameterArray resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
     #[serde(default, rename = "stringValues")]
-    pub string_values: Option<Vec<String>>,
+    pub string_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The task configuration details. This is not the implementation of Task. There might be multiple TaskConfigs for the same Task.
@@ -1818,91 +2000,103 @@ pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
 pub struct EnterpriseCrmFrontendsEventbusProtoTaskConfig {
     /// Alert configurations on error rate, warning rate, number of runs, durations, etc.
     #[serde(default, rename = "alertConfigs")]
-    pub alert_configs: Option<Vec<EnterpriseCrmEventbusProtoTaskAlertConfig>>,
+    pub alert_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTaskAlertConfig>>,
+    >,
     /// Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).
     #[serde(default, rename = "conditionalFailurePolicies")]
-    pub conditional_failure_policies: Option<EnterpriseCrmEventbusProtoConditionalFailurePolicies>,
+    pub conditional_failure_policies: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoConditionalFailurePolicies>,
+    >,
     /// Auto-generated.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The creator''s email address. Auto-generated from the user''s email.
     #[serde(default, rename = "creatorEmail")]
-    pub creator_email: Option<String>,
+    pub creator_email: ::core::option::Option<String>,
     /// User-provided description intended to give more business context about the task.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// If this config contains a TypedTask, allow validation to succeed if an input is read from the output of another TypedTask whose output type is declared as a superclass of the requested input type. For instance, if the previous task declares an output of type Message, any task with this flag enabled will pass validation when attempting to read any proto Message type from the resultant Event parameter.
     #[serde(default, rename = "disableStrictTypeValidation")]
-    pub disable_strict_type_validation: Option<bool>,
+    pub disable_strict_type_validation: ::core::option::Option<bool>,
     /// Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task
     #[serde(default, rename = "errorCatcherId")]
-    pub error_catcher_id: Option<String>,
+    pub error_catcher_id: ::core::option::Option<String>,
     /// TODO: enum values: ["EXTERNAL_TASK_TYPE_UNSPECIFIED", "NORMAL_TASK", "ERROR_TASK"]
     #[serde(default, rename = "externalTaskType")]
-    pub external_task_type: Option<String>,
+    pub external_task_type: ::core::option::Option<String>,
     /// Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).
     #[serde(default, rename = "failurePolicy")]
-    pub failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
+    pub failure_policy:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoFailurePolicy>>,
     /// The number of edges leading into this TaskConfig.
     #[serde(default, rename = "incomingEdgeCount")]
-    pub incoming_edge_count: Option<i32>,
+    pub incoming_edge_count: ::core::option::Option<i32>,
     /// If set, overrides the option configured in the Task implementation class. // TODO: enum values: ["UNSPECIFIED_JSON_VALIDATION_OPTION", "SKIP", "PRE_EXECUTION", "POST_EXECUTION", "PRE_POST_EXECUTION"]
     #[serde(default, rename = "jsonValidationOption")]
-    pub json_validation_option: Option<String>,
+    pub json_validation_option: ::core::option::Option<String>,
     /// User-provided label that is attached to this TaskConfig in the UI.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Auto-generated.
     #[serde(default, rename = "lastModifiedTime")]
-    pub last_modified_time: Option<String>,
+    pub last_modified_time: ::core::option::Option<String>,
     /// The set of tasks that are next in line to be executed as per the execution graph defined for the parent event, specified by event_config_id. Each of these next tasks are executed only if the condition associated with them evaluates to true.
     #[serde(default, rename = "nextTasks")]
-    pub next_tasks: Option<Vec<EnterpriseCrmEventbusProtoNextTask>>,
+    pub next_tasks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoNextTask>>,
+    >,
     /// The policy dictating the execution of the next set of tasks for the current task. // TODO: enum values: ["UNSPECIFIED", "RUN_ALL_MATCH", "RUN_FIRST_MATCH"]
     #[serde(default, rename = "nextTasksExecutionPolicy")]
-    pub next_tasks_execution_policy: Option<String>,
+    pub next_tasks_execution_policy: ::core::option::Option<String>,
     /// The customized parameters the user can pass to this task.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. Informs the front-end application where to draw this task config on the UI.
     #[serde(default)]
-    pub position: Option<EnterpriseCrmEventbusProtoCoordinate>,
+    pub position: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoCoordinate>>,
     /// Optional. Standard filter expression evaluated before execution. Independent of other conditions and tasks. Can be used to enable rollout. e.g. "rollout(5)" will only allow 5% of incoming traffic to task.
     #[serde(default)]
-    pub precondition: Option<String>,
+    pub precondition: ::core::option::Option<String>,
     /// Optional. User-provided label that is attached to precondition in the UI.
     #[serde(default, rename = "preconditionLabel")]
-    pub precondition_label: Option<String>,
+    pub precondition_label: ::core::option::Option<String>,
     /// Optional. Contains information about what needs to be done upon failure (either a permanent error or after it has been retried too many times).
     #[serde(default, rename = "rollbackStrategy")]
-    pub rollback_strategy: Option<EnterpriseCrmFrontendsEventbusProtoRollbackStrategy>,
+    pub rollback_strategy: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoRollbackStrategy>,
+    >,
     /// Determines what action to take upon successful task completion.
     #[serde(default, rename = "successPolicy")]
-    pub success_policy: Option<EnterpriseCrmEventbusProtoSuccessPolicy>,
+    pub success_policy:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoSuccessPolicy>>,
     /// Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).
     #[serde(default, rename = "synchronousCallFailurePolicy")]
-    pub synchronous_call_failure_policy: Option<EnterpriseCrmEventbusProtoFailurePolicy>,
+    pub synchronous_call_failure_policy:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoFailurePolicy>>,
     /// Copy of the task entity that this task config is an instance of.
     #[serde(default, rename = "taskEntity")]
-    pub task_entity: Option<EnterpriseCrmFrontendsEventbusProtoTaskEntity>,
+    pub task_entity:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoTaskEntity>>,
     /// The policy dictating the execution strategy of this task. // TODO: enum values: ["WHEN_ALL_SUCCEED", "WHEN_ANY_SUCCEED", "WHEN_ALL_TASKS_AND_CONDITIONS_SUCCEED"]
     #[serde(default, rename = "taskExecutionStrategy")]
-    pub task_execution_strategy: Option<String>,
+    pub task_execution_strategy: ::core::option::Option<String>,
     /// The name for the task.
     #[serde(default, rename = "taskName")]
-    pub task_name: Option<String>,
+    pub task_name: ::core::option::Option<String>,
     /// REQUIRED: the identifier of this task within its parent event config, specified by the client. This should be unique among all the tasks belong to the same event config. We use this field as the identifier to find next tasks (via field next_tasks.task_number).
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
     /// A string template that allows user to configure task parameters (with either literal default values or tokens which will be resolved at execution time) for the task. It will eventually replace the old "parameters" field.
     #[serde(default, rename = "taskSpec")]
-    pub task_spec: Option<String>,
+    pub task_spec: ::core::option::Option<String>,
     /// Used to define task-template name if task is of type task-template
     #[serde(default, rename = "taskTemplateName")]
-    pub task_template_name: Option<String>,
+    pub task_template_name: ::core::option::Option<String>,
     /// Defines the type of the task // TODO: enum values: ["TASK", "ASIS_TEMPLATE", "IO_TEMPLATE"]
     #[serde(default, rename = "taskType")]
-    pub task_type: Option<String>,
+    pub task_type: ::core::option::Option<String>,
 }
 
 /// Contains a task''s metadata and associated information. Next available id: 7
@@ -1910,22 +2104,25 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTaskConfig {
 pub struct EnterpriseCrmFrontendsEventbusProtoTaskEntity {
     /// True if the task has conflict with vpcsc
     #[serde(default, rename = "disabledForVpcSc")]
-    pub disabled_for_vpc_sc: Option<bool>,
+    pub disabled_for_vpc_sc: ::core::option::Option<bool>,
     /// Metadata inclueds the task name, author and so on.
     #[serde(default)]
-    pub metadata: Option<EnterpriseCrmEventbusProtoTaskMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoTaskMetadata>>,
     /// Declarations for inputs/outputs for a TypedTask. This is also associated with the METADATA mask.
     #[serde(default, rename = "paramSpecs")]
-    pub param_specs: Option<EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage>,
+    pub param_specs: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage>,
+    >,
     /// Deprecated - statistics from the Monarch query.
     #[serde(default)]
-    pub stats: Option<EnterpriseCrmEventbusStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusStats>>,
     /// Defines the type of the task // TODO: enum values: ["TASK", "ASIS_TEMPLATE", "IO_TEMPLATE"]
     #[serde(default, rename = "taskType")]
-    pub task_type: Option<String>,
+    pub task_type: ::core::option::Option<String>,
     /// UI configuration for this task Also associated with the METADATA mask.
     #[serde(default, rename = "uiConfig")]
-    pub ui_config: Option<EnterpriseCrmEventbusProtoTaskUiConfig>,
+    pub ui_config:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoTaskUiConfig>>,
 }
 
 /// Configuration detail of a trigger. Next available id: 22
@@ -1933,57 +2130,67 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTaskEntity {
 pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfig {
     /// An alert threshold configuration for the [trigger + client + workflow] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + workflow] when published.
     #[serde(default, rename = "alertConfig")]
-    pub alert_config: Option<Vec<EnterpriseCrmEventbusProtoWorkflowAlertConfig>>,
+    pub alert_config: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoWorkflowAlertConfig>>,
+    >,
     #[serde(default, rename = "cloudSchedulerConfig")]
-    pub cloud_scheduler_config: Option<EnterpriseCrmEventbusProtoCloudSchedulerConfig>,
+    pub cloud_scheduler_config:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoCloudSchedulerConfig>>,
     /// User-provided description intended to give more business context about the task.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The list of client ids which are enabled to execute the workflow using this trigger. In other words, these clients have the workflow execution privledges for this trigger. For API trigger, the client id in the incoming request is validated against the list of enabled clients. For non-API triggers, one workflow execution is triggered on behalf of each enabled client.
     #[serde(default, rename = "enabledClients")]
-    pub enabled_clients: Option<Vec<String>>,
+    pub enabled_clients: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task
     #[serde(default, rename = "errorCatcherId")]
-    pub error_catcher_id: Option<String>,
+    pub error_catcher_id: ::core::option::Option<String>,
     /// Optional. List of input variables for the api trigger.
     #[serde(default, rename = "inputVariables")]
-    pub input_variables: Option<EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables>,
+    pub input_variables: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables>,
+    >,
     /// The user created label for a particular trigger.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Dictates how next tasks will be executed. // TODO: enum values: ["UNSPECIFIED", "RUN_ALL_MATCH", "RUN_FIRST_MATCH"]
     #[serde(default, rename = "nextTasksExecutionPolicy")]
-    pub next_tasks_execution_policy: Option<String>,
+    pub next_tasks_execution_policy: ::core::option::Option<String>,
     /// Optional. List of output variables for the api trigger.
     #[serde(default, rename = "outputVariables")]
-    pub output_variables: Option<EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables>,
+    pub output_variables: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables>,
+    >,
     /// Optional. If set to true, any upcoming requests for this trigger config will be paused and the executions will be resumed later when the flag is reset. The workflow to which this trigger config belongs has to be in ACTIVE status for the executions to be paused or resumed.
     #[serde(default, rename = "pauseWorkflowExecutions")]
-    pub pause_workflow_executions: Option<bool>,
+    pub pause_workflow_executions: ::core::option::Option<bool>,
     /// Optional. Informs the front-end application where to draw this trigger config on the UI.
     #[serde(default)]
-    pub position: Option<EnterpriseCrmEventbusProtoCoordinate>,
+    pub position: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoCoordinate>>,
     /// Configurable properties of the trigger, not to be confused with workflow parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Cloud Pubsub triggers.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// Set of tasks numbers from where the workflow execution is started by this trigger. If this is empty, then workflow is executed with default start tasks. In the list of start tasks, none of two tasks can have direct ancestor-descendant relationships (i.e. in a same workflow execution graph).
     #[serde(default, rename = "startTasks")]
-    pub start_tasks: Option<Vec<EnterpriseCrmEventbusProtoNextTask>>,
+    pub start_tasks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoNextTask>>,
+    >,
     /// Optional. When set, Eventbus will run the task specified in the trigger_criteria and validate the result using the trigger_criteria.condition, and only execute the workflow when result is true.
     #[serde(default, rename = "triggerCriteria")]
-    pub trigger_criteria: Option<EnterpriseCrmEventbusProtoTriggerCriteria>,
+    pub trigger_criteria:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoTriggerCriteria>>,
     /// The backend trigger ID.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// Optional. Name of the trigger This is added to identify the type of trigger. This is avoid the logic on triggerId to identify the trigger_type and push the same to monitoring.
     #[serde(default, rename = "triggerName")]
-    pub trigger_name: Option<String>,
+    pub trigger_name: ::core::option::Option<String>,
     /// Required. A number to uniquely identify each trigger config within the workflow on UI.
     #[serde(default, rename = "triggerNumber")]
-    pub trigger_number: Option<String>,
+    pub trigger_number: ::core::option::Option<String>,
     /// TODO: enum values: ["UNKNOWN", "CLOUD_PUBSUB", "GOOPS", "SFDC_SYNC", "CRON", "API", "MANIFOLD_TRIGGER", "DATALAYER_DATA_CHANGE", "SFDC_CHANNEL", "CLOUD_PUBSUB_EXTERNAL", "SFDC_CDC_CHANNEL", "SFDC_PLATFORM_EVENTS_CHANNEL", "CLOUD_SCHEDULER", "INTEGRATION_CONNECTOR_TRIGGER", "PRIVATE_TRIGGER", "EVENTARC_TRIGGER"]
     #[serde(default, rename = "triggerType")]
-    pub trigger_type: Option<String>,
+    pub trigger_type: ::core::option::Option<String>,
 }
 
 /// Variables names mapped to api trigger.
@@ -1991,7 +2198,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfig {
 pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables {
     /// Optional. List of variable names.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry resource type.
@@ -1999,50 +2206,57 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables {
 pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
     /// Metadata information about the parameters.
     #[serde(default)]
-    pub attributes: Option<EnterpriseCrmEventbusProtoAttributes>,
+    pub attributes: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoAttributes>>,
     /// Child parameters nested within this parameter. This field only applies to protobuf parameters
     #[serde(default)]
-    pub children: Option<Vec<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>,
+    pub children: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>,
+        >,
+    >,
     /// Indicates whether this variable contains large data and need to be uploaded to Cloud Storage.
     #[serde(default, rename = "containsLargeData")]
-    pub contains_large_data: Option<bool>,
+    pub contains_large_data: ::core::option::Option<bool>,
     /// The data type of the parameter. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// Default values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    pub default_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterValueType>,
+    >,
     /// Optional. The description about the parameter
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Specifies the input/output type for the parameter. // TODO: enum values: ["IN_OUT_TYPE_UNSPECIFIED", "IN", "OUT", "IN_OUT"]
     #[serde(default, rename = "inOutType")]
-    pub in_out_type: Option<String>,
+    pub in_out_type: ::core::option::Option<String>,
     /// Whether this parameter is a transient parameter.
     #[serde(default, rename = "isTransient")]
-    pub is_transient: Option<bool>,
+    pub is_transient: ::core::option::Option<bool>,
     /// This schema will be used to validate runtime JSON-typed values of this parameter.
     #[serde(default, rename = "jsonSchema")]
-    pub json_schema: Option<String>,
+    pub json_schema: ::core::option::Option<String>,
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given fired event. These parameters must be predefined in the workflow definition.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The name (without prefix) to be displayed in the UI for this parameter. E.g. if the key is "foo.bar.myName", then the name would be "myName".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The identifier of the node (TaskConfig/TriggerConfig) this parameter was produced by, if it is a transient param or a copy of an input param.
     #[serde(default, rename = "producedBy")]
-    pub produced_by: Option<EnterpriseCrmEventbusProtoNodeIdentifier>,
+    pub produced_by:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoNodeIdentifier>>,
     #[serde(default)]
-    pub producer: Option<String>,
+    pub producer: ::core::option::Option<String>,
     /// The name of the protobuf type if the parameter has a protobuf data type.
     #[serde(default, rename = "protoDefName")]
-    pub proto_def_name: Option<String>,
+    pub proto_def_name: ::core::option::Option<String>,
     /// If the data type is of type proto or proto array, this field needs to be populated with the fully qualified proto name. This message, for example, would be "enterprise.crm.frontends.eventbus.proto.WorkflowParameterEntry".
     #[serde(default, rename = "protoDefPath")]
-    pub proto_def_path: Option<String>,
+    pub proto_def_path: ::core::option::Option<String>,
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
 }
 
 /// LINT.IfChange This is the frontend version of WorkflowParameters. It''s exactly like the backend version except that instead of flattening protobuf parameters and treating every field and subfield of a protobuf parameter as a separate parameter, the fields/subfields of a protobuf parameter will be nested as "children" (see ''children'' field below) parameters of the parent parameter. Please refer to enterprise/crm/eventbus/proto/workflow_parameters.proto for more information about WorkflowParameters.
@@ -2050,7 +2264,11 @@ pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
 pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
     /// Parameters are a part of Event and can be used to communiticate between different tasks that are part of the same workflow execution.
     #[serde(default)]
-    pub parameters: Option<Vec<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>,
+        >,
+    >,
 }
 
 /// AuthConfig defines details of a authentication type.
@@ -2058,32 +2276,42 @@ pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
 pub struct GoogleCloudConnectorsV1AuthConfig {
     /// Optional. List containing additional auth configs.
     #[serde(default, rename = "additionalVariables")]
-    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    pub additional_variables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1ConfigVariable>>,
+    >,
     /// Optional. Identifier key for auth config
     #[serde(default, rename = "authKey")]
-    pub auth_key: Option<String>,
+    pub auth_key: ::core::option::Option<String>,
     /// Optional. The type of authentication configured. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "USER_PASSWORD", "OAUTH2_JWT_BEARER", "OAUTH2_CLIENT_CREDENTIALS", "SSH_PUBLIC_KEY", "OAUTH2_AUTH_CODE_FLOW", "GOOGLE_AUTHENTICATION", "OAUTH2_AUTH_CODE_FLOW_GOOGLE_MANAGED"]
     #[serde(default, rename = "authType")]
-    pub auth_type: Option<String>,
+    pub auth_type: ::core::option::Option<String>,
     /// Oauth2AuthCodeFlow.
     #[serde(default, rename = "oauth2AuthCodeFlow")]
-    pub oauth2_auth_code_flow: Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow>,
+    pub oauth2_auth_code_flow: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow>,
+    >,
     /// Oauth2AuthCodeFlowGoogleManaged.
     #[serde(default, rename = "oauth2AuthCodeFlowGoogleManaged")]
-    pub oauth2_auth_code_flow_google_managed:
-        Option<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged>,
+    pub oauth2_auth_code_flow_google_managed: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged>,
+    >,
     /// Oauth2ClientCredentials.
     #[serde(default, rename = "oauth2ClientCredentials")]
-    pub oauth2_client_credentials: Option<GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials>,
+    pub oauth2_client_credentials: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials>,
+    >,
     /// Oauth2JwtBearer.
     #[serde(default, rename = "oauth2JwtBearer")]
-    pub oauth2_jwt_bearer: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer>,
+    pub oauth2_jwt_bearer:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer>>,
     /// SSH Public Key.
     #[serde(default, rename = "sshPublicKey")]
-    pub ssh_public_key: Option<GoogleCloudConnectorsV1AuthConfigSshPublicKey>,
+    pub ssh_public_key:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1AuthConfigSshPublicKey>>,
     /// UserPassword.
     #[serde(default, rename = "userPassword")]
-    pub user_password: Option<GoogleCloudConnectorsV1AuthConfigUserPassword>,
+    pub user_password:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1AuthConfigUserPassword>>,
 }
 
 /// Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.
@@ -2091,28 +2319,28 @@ pub struct GoogleCloudConnectorsV1AuthConfig {
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow {
     /// Optional. Authorization code to be exchanged for access and refresh tokens.
     #[serde(default, rename = "authCode")]
-    pub auth_code: Option<String>,
+    pub auth_code: ::core::option::Option<String>,
     /// Optional. Auth URL for Authorization Code Flow
     #[serde(default, rename = "authUri")]
-    pub auth_uri: Option<String>,
+    pub auth_uri: ::core::option::Option<String>,
     /// Optional. Client ID for user-provided OAuth app.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Optional. Client secret for user-provided OAuth app.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
+    pub client_secret: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Whether to enable PKCE when the user performs the auth code flow.
     #[serde(default, rename = "enablePkce")]
-    pub enable_pkce: Option<bool>,
+    pub enable_pkce: ::core::option::Option<bool>,
     /// Optional. PKCE verifier to be used during the auth code exchange.
     #[serde(default, rename = "pkceVerifier")]
-    pub pkce_verifier: Option<String>,
+    pub pkce_verifier: ::core::option::Option<String>,
     /// Optional. Redirect URI to be provided during the auth code exchange.
     #[serde(default, rename = "redirectUri")]
-    pub redirect_uri: Option<String>,
+    pub redirect_uri: ::core::option::Option<String>,
     /// Optional. Scopes the connection will request when the user performs the auth code flow.
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.
@@ -2120,13 +2348,13 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow {
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged {
     /// Optional. Authorization code to be exchanged for access and refresh tokens.
     #[serde(default, rename = "authCode")]
-    pub auth_code: Option<String>,
+    pub auth_code: ::core::option::Option<String>,
     /// Optional. Redirect URI to be provided during the auth code exchange.
     #[serde(default, rename = "redirectUri")]
-    pub redirect_uri: Option<String>,
+    pub redirect_uri: ::core::option::Option<String>,
     /// Required. Scopes the connection will request when the user performs the auth code flow.
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.
@@ -2134,10 +2362,10 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged {
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials {
     /// Optional. The client identifier.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Optional. Secret version reference containing the client secret.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<GoogleCloudConnectorsV1Secret>,
+    pub client_secret: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
 }
 
 /// Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.
@@ -2145,10 +2373,12 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials {
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer {
     /// Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: projects/*/secrets/*/versions/*.
     #[serde(default, rename = "clientKey")]
-    pub client_key: Option<GoogleCloudConnectorsV1Secret>,
+    pub client_key: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. JwtClaims providers fields to generate the token.
     #[serde(default, rename = "jwtClaims")]
-    pub jwt_claims: Option<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims>,
+    pub jwt_claims: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims>,
+    >,
 }
 
 /// JWT claims used for the jwt-bearer authorization grant.
@@ -2156,13 +2386,13 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer {
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims {
     /// Optional. Value for the "aud" claim.
     #[serde(default)]
-    pub audience: Option<String>,
+    pub audience: ::core::option::Option<String>,
     /// Optional. Value for the "iss" claim.
     #[serde(default)]
-    pub issuer: Option<String>,
+    pub issuer: ::core::option::Option<String>,
     /// Optional. Value for the "sub" claim.
     #[serde(default)]
-    pub subject: Option<String>,
+    pub subject: ::core::option::Option<String>,
 }
 
 /// Parameters to support Ssh public key Authentication.
@@ -2170,16 +2400,17 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims {
 pub struct GoogleCloudConnectorsV1AuthConfigSshPublicKey {
     /// Optional. Format of SSH Client cert.
     #[serde(default, rename = "certType")]
-    pub cert_type: Option<String>,
+    pub cert_type: ::core::option::Option<String>,
     /// Optional. SSH Client Cert. It should contain both public and private key.
     #[serde(default, rename = "sshClientCert")]
-    pub ssh_client_cert: Option<GoogleCloudConnectorsV1Secret>,
+    pub ssh_client_cert: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Password (passphrase) for ssh client certificate if it has one.
     #[serde(default, rename = "sshClientCertPass")]
-    pub ssh_client_cert_pass: Option<GoogleCloudConnectorsV1Secret>,
+    pub ssh_client_cert_pass:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. The user account used to authenticate.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// Parameters to support Username and Password Authentication.
@@ -2187,10 +2418,10 @@ pub struct GoogleCloudConnectorsV1AuthConfigSshPublicKey {
 pub struct GoogleCloudConnectorsV1AuthConfigUserPassword {
     /// Optional. Secret version reference containing the password.
     #[serde(default)]
-    pub password: Option<GoogleCloudConnectorsV1Secret>,
+    pub password: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Username.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// Billing config for the connection.
@@ -2198,7 +2429,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigUserPassword {
 pub struct GoogleCloudConnectorsV1BillingConfig {
     /// Output only. Billing category for the connector. // TODO: enum values: ["BILLING_CATEGORY_UNSPECIFIED", "GCP_AND_TECHNICAL_CONNECTOR", "NON_GCP_CONNECTOR"]
     #[serde(default, rename = "billingCategory")]
-    pub billing_category: Option<String>,
+    pub billing_category: ::core::option::Option<String>,
 }
 
 /// ConfigVariable represents a configuration variable present in a Connection. or AuthConfig.
@@ -2206,22 +2437,23 @@ pub struct GoogleCloudConnectorsV1BillingConfig {
 pub struct GoogleCloudConnectorsV1ConfigVariable {
     /// Optional. Value is a bool.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Optional. Value is a Encryption Key.
     #[serde(default, rename = "encryptionKeyValue")]
-    pub encryption_key_value: Option<GoogleCloudConnectorsV1EncryptionKey>,
+    pub encryption_key_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1EncryptionKey>>,
     /// Optional. Value is an integer
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// Optional. Key of the config variable.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Optional. Value is a secret.
     #[serde(default, rename = "secretValue")]
-    pub secret_value: Option<GoogleCloudConnectorsV1Secret>,
+    pub secret_value: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Value is a string.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// Connection represents an instance of connector.
@@ -2229,109 +2461,121 @@ pub struct GoogleCloudConnectorsV1ConfigVariable {
 pub struct GoogleCloudConnectorsV1Connection {
     /// Optional. Async operations enabled for the connection. If Async Operations is enabled, Connection allows the customers to initiate async long running operations using the actions API.
     #[serde(default, rename = "asyncOperationsEnabled")]
-    pub async_operations_enabled: Option<bool>,
+    pub async_operations_enabled: ::core::option::Option<bool>,
     /// Optional. Configuration for establishing the connection''s authentication with an external system.
     #[serde(default, rename = "authConfig")]
-    pub auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    pub auth_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1AuthConfig>>,
     /// Optional. Auth override enabled for the connection. If Auth Override is enabled, Connection allows the backend service auth to be overridden in the entities/actions API.
     #[serde(default, rename = "authOverrideEnabled")]
-    pub auth_override_enabled: Option<bool>,
+    pub auth_override_enabled: ::core::option::Option<bool>,
     /// Output only. Billing config for the connection.
     #[serde(default, rename = "billingConfig")]
-    pub billing_config: Option<GoogleCloudConnectorsV1BillingConfig>,
+    pub billing_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1BillingConfig>>,
     /// Optional. Configuration for configuring the connection with an external system.
     #[serde(default, rename = "configVariables")]
-    pub config_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    pub config_variables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1ConfigVariable>>,
+    >,
     /// Output only. Connection revision. This field is only updated when the connection is created or updated by User.
     #[serde(default, rename = "connectionRevision")]
-    pub connection_revision: Option<String>,
+    pub connection_revision: ::core::option::Option<String>,
     /// Required. Connector version on which the connection is created. The format is: projects/*/locations/*/providers/*/connectors/*/versions/* Only global location is supported for ConnectorVersion resource.
     #[serde(default, rename = "connectorVersion")]
-    pub connector_version: Option<String>,
+    pub connector_version: ::core::option::Option<String>,
     /// Output only. Infra configs supported by Connector Version.
     #[serde(default, rename = "connectorVersionInfraConfig")]
-    pub connector_version_infra_config: Option<GoogleCloudConnectorsV1ConnectorVersionInfraConfig>,
+    pub connector_version_infra_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1ConnectorVersionInfraConfig>,
+    >,
     /// Output only. Flag to mark the version indicating the launch stage. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "PREVIEW", "GA", "DEPRECATED", "TEST", "PRIVATE_PREVIEW"]
     #[serde(default, rename = "connectorVersionLaunchStage")]
-    pub connector_version_launch_stage: Option<String>,
+    pub connector_version_launch_stage: ::core::option::Option<String>,
     /// Output only. Created time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Configuration of the Connector''s destination. Only accepted for Connectors that accepts user defined destination(s).
     #[serde(default, rename = "destinationConfigs")]
-    pub destination_configs: Option<Vec<GoogleCloudConnectorsV1DestinationConfig>>,
+    pub destination_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1DestinationConfig>>,
+    >,
     /// Output only. GCR location where the envoy image is stored. formatted like: gcr.io/{bucketName}/{imageName}
     #[serde(default, rename = "envoyImageLocation")]
-    pub envoy_image_location: Option<String>,
+    pub envoy_image_location: ::core::option::Option<String>,
     /// Optional. Additional Oauth2.0 Auth config for EUA. If the connection is configured using non-OAuth authentication but OAuth needs to be used for EUA, this field can be populated with the OAuth config. This should be a OAuth2AuthCodeFlow Auth type only.
     #[serde(default, rename = "euaOauthAuthConfig")]
-    pub eua_oauth_auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    pub eua_oauth_auth_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1AuthConfig>>,
     /// Optional. Eventing config of a connection
     #[serde(default, rename = "eventingConfig")]
-    pub eventing_config: Option<GoogleCloudConnectorsV1EventingConfig>,
+    pub eventing_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1EventingConfig>>,
     /// Optional. Eventing enablement type. Will be nil if eventing is not enabled. // TODO: enum values: ["EVENTING_ENABLEMENT_TYPE_UNSPECIFIED", "EVENTING_AND_CONNECTION", "ONLY_EVENTING"]
     #[serde(default, rename = "eventingEnablementType")]
-    pub eventing_enablement_type: Option<String>,
+    pub eventing_enablement_type: ::core::option::Option<String>,
     /// Output only. Eventing Runtime Data.
     #[serde(default, rename = "eventingRuntimeData")]
-    pub eventing_runtime_data: Option<GoogleCloudConnectorsV1EventingRuntimeData>,
+    pub eventing_runtime_data:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1EventingRuntimeData>>,
     /// Optional. Fallback on admin credentials for the connection. If this both auth_override_enabled and fallback_on_admin_credentials are set to true, the connection will use the admin credentials if the dynamic auth header is not present during auth override.
     #[serde(default, rename = "fallbackOnAdminCredentials")]
-    pub fallback_on_admin_credentials: Option<bool>,
+    pub fallback_on_admin_credentials: ::core::option::Option<bool>,
     /// Output only. The name of the Hostname of the Service Directory service with TLS.
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// Output only. GCR location where the runtime image is stored. formatted like: gcr.io/{bucketName}/{imageName}
     #[serde(default, rename = "imageLocation")]
-    pub image_location: Option<String>,
+    pub image_location: ::core::option::Option<String>,
     /// Output only. Is trusted tester program enabled for the project.
     #[serde(default, rename = "isTrustedTester")]
-    pub is_trusted_tester: Option<bool>,
+    pub is_trusted_tester: ::core::option::Option<bool>,
     /// Optional. Resource labels to represent user-provided metadata. Refer to cloud documentation on labels for more details. https://cloud.google.com/compute/docs/labeling-resources
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Configuration that indicates whether or not the Connection can be edited.
     #[serde(default, rename = "lockConfig")]
-    pub lock_config: Option<GoogleCloudConnectorsV1LockConfig>,
+    pub lock_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1LockConfig>>,
     /// Optional. Log configuration for the connection.
     #[serde(default, rename = "logConfig")]
-    pub log_config: Option<GoogleCloudConnectorsV1LogConfig>,
+    pub log_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1LogConfig>>,
     /// Output only. Resource name of the Connection. Format: projects/{project}/locations/{location}/connections/{connection}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Node configuration for the connection.
     #[serde(default, rename = "nodeConfig")]
-    pub node_config: Option<GoogleCloudConnectorsV1NodeConfig>,
+    pub node_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1NodeConfig>>,
     /// Optional. Service account needed for runtime plane to access Google Cloud resources.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Output only. The name of the Service Directory service name. Used for Private Harpoon to resolve the ILB address. e.g. "projects/cloud-connectors-e2e-testing/locations/us-central1/namespaces/istio-system/services/istio-ingressgateway-connectors"
     #[serde(default, rename = "serviceDirectory")]
-    pub service_directory: Option<String>,
+    pub service_directory: ::core::option::Option<String>,
     /// Optional. Ssl config of a connection
     #[serde(default, rename = "sslConfig")]
-    pub ssl_config: Option<GoogleCloudConnectorsV1SslConfig>,
+    pub ssl_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1SslConfig>>,
     /// Output only. Current status of the connection.
     #[serde(default)]
-    pub status: Option<GoogleCloudConnectorsV1ConnectionStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1ConnectionStatus>>,
     /// Output only. This subscription type enum states the subscription type of the project. // TODO: enum values: ["SUBSCRIPTION_TYPE_UNSPECIFIED", "PAY_G", "PAID"]
     #[serde(default, rename = "subscriptionType")]
-    pub subscription_type: Option<String>,
+    pub subscription_type: ::core::option::Option<String>,
     /// Optional. Suspended indicates if a user has suspended a connection or not.
     #[serde(default)]
-    pub suspended: Option<bool>,
+    pub suspended: ::core::option::Option<bool>,
     /// Output only. The name of the Service Directory service with TLS.
     #[serde(default, rename = "tlsServiceDirectory")]
-    pub tls_service_directory: Option<String>,
+    pub tls_service_directory: ::core::option::Option<String>,
     /// Optional. Traffic shaping configuration for the connection.
     #[serde(default, rename = "trafficShapingConfigs")]
-    pub traffic_shaping_configs: Option<Vec<GoogleCloudConnectorsV1TrafficShapingConfig>>,
+    pub traffic_shaping_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1TrafficShapingConfig>>,
+    >,
     /// Output only. Updated time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// ConnectionStatus indicates the state of the connection.
@@ -2339,13 +2583,13 @@ pub struct GoogleCloudConnectorsV1Connection {
 pub struct GoogleCloudConnectorsV1ConnectionStatus {
     /// Description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// State. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "INACTIVE", "DELETING", "UPDATING", "ERROR", "AUTHORIZATION_REQUIRED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Status provides detailed information for the state.
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// This configuration provides infra configs like rate limit threshold which need to be configurable for every connector version
@@ -2353,37 +2597,39 @@ pub struct GoogleCloudConnectorsV1ConnectionStatus {
 pub struct GoogleCloudConnectorsV1ConnectorVersionInfraConfig {
     /// Output only. The window used for ratelimiting runtime requests to connections.
     #[serde(default, rename = "connectionRatelimitWindowSeconds")]
-    pub connection_ratelimit_window_seconds: Option<String>,
+    pub connection_ratelimit_window_seconds: ::core::option::Option<String>,
     /// Output only. Indicates whether connector is deployed on GKE/CloudRun // TODO: enum values: ["DEPLOYMENT_MODEL_UNSPECIFIED", "GKE_MST", "CLOUD_RUN_MST"]
     #[serde(default, rename = "deploymentModel")]
-    pub deployment_model: Option<String>,
+    pub deployment_model: ::core::option::Option<String>,
     /// Output only. Status of the deployment model migration. // TODO: enum values: ["DEPLOYMENT_MODEL_MIGRATION_STATE_UNSPECIFIED", "IN_PROGRESS", "COMPLETED", "ROLLEDBACK", "ROLLBACK_IN_PROGRESS"]
     #[serde(default, rename = "deploymentModelMigrationState")]
-    pub deployment_model_migration_state: Option<String>,
+    pub deployment_model_migration_state: ::core::option::Option<String>,
     /// Output only. HPA autoscaling config.
     #[serde(default, rename = "hpaConfig")]
-    pub hpa_config: Option<GoogleCloudConnectorsV1hPAConfig>,
+    pub hpa_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1hPAConfig>>,
     /// Output only. Max QPS supported for internal requests originating from Connd.
     #[serde(default, rename = "internalclientRatelimitThreshold")]
-    pub internalclient_ratelimit_threshold: Option<String>,
+    pub internalclient_ratelimit_threshold: ::core::option::Option<String>,
     /// Output only. Max instance request concurrency.
     #[serde(default, rename = "maxInstanceRequestConcurrency")]
-    pub max_instance_request_concurrency: Option<i32>,
+    pub max_instance_request_concurrency: ::core::option::Option<i32>,
     /// Output only. Max QPS supported by the connector version before throttling of requests.
     #[serde(default, rename = "ratelimitThreshold")]
-    pub ratelimit_threshold: Option<String>,
+    pub ratelimit_threshold: ::core::option::Option<String>,
     /// Output only. System resource limits.
     #[serde(default, rename = "resourceLimits")]
-    pub resource_limits: Option<GoogleCloudConnectorsV1ResourceLimits>,
+    pub resource_limits:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1ResourceLimits>>,
     /// Output only. System resource requests.
     #[serde(default, rename = "resourceRequests")]
-    pub resource_requests: Option<GoogleCloudConnectorsV1ResourceRequests>,
+    pub resource_requests:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1ResourceRequests>>,
     /// Output only. The name of shared connector deployment.
     #[serde(default, rename = "sharedDeployment")]
-    pub shared_deployment: Option<String>,
+    pub shared_deployment: ::core::option::Option<String>,
     /// Output only. Status of the TLS migration. // TODO: enum values: ["TLS_MIGRATION_STATE_UNSPECIFIED", "TLS_MIGRATION_NOT_STARTED", "TLS_MIGRATION_COMPLETED"]
     #[serde(default, rename = "tlsMigrationState")]
-    pub tls_migration_state: Option<String>,
+    pub tls_migration_state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudConnectorsV1Destination resource type.
@@ -2391,13 +2637,13 @@ pub struct GoogleCloudConnectorsV1ConnectorVersionInfraConfig {
 pub struct GoogleCloudConnectorsV1Destination {
     /// For publicly routable host.
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// Optional. The port is the target port number that is accepted by the destination.
     #[serde(default)]
-    pub port: Option<i32>,
+    pub port: ::core::option::Option<i32>,
     /// PSC service attachments. Format: projects/*/regions/*/serviceAttachments/*
     #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: Option<String>,
+    pub service_attachment: ::core::option::Option<String>,
 }
 
 /// Define the Connectors target endpoint.
@@ -2405,10 +2651,12 @@ pub struct GoogleCloudConnectorsV1Destination {
 pub struct GoogleCloudConnectorsV1DestinationConfig {
     /// Optional. The destinations for the key.
     #[serde(default)]
-    pub destinations: Option<Vec<GoogleCloudConnectorsV1Destination>>,
+    pub destinations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1Destination>>,
+    >,
     /// Optional. The key is the destination identifier that is supported by the Connector.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// Encryption Key value.
@@ -2416,10 +2664,10 @@ pub struct GoogleCloudConnectorsV1DestinationConfig {
 pub struct GoogleCloudConnectorsV1EncryptionKey {
     /// Optional. The [KMS key name] with which the content of the Operation is encrypted. The expected format: projects/*/locations/*/keyRings/*/cryptoKeys/*. Will be empty string if google managed.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Optional. Specifies the type of the encryption key. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Data enrichment configuration.
@@ -2427,7 +2675,7 @@ pub struct GoogleCloudConnectorsV1EncryptionKey {
 pub struct GoogleCloudConnectorsV1EnrichmentConfig {
     /// Optional. Append ACL to the event.
     #[serde(default, rename = "appendAcl")]
-    pub append_acl: Option<bool>,
+    pub append_acl: ::core::option::Option<bool>,
 }
 
 /// Eventing Configuration of a connection next: 20
@@ -2435,43 +2683,51 @@ pub struct GoogleCloudConnectorsV1EnrichmentConfig {
 pub struct GoogleCloudConnectorsV1EventingConfig {
     /// Optional. Additional eventing related field values
     #[serde(default, rename = "additionalVariables")]
-    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    pub additional_variables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1ConfigVariable>>,
+    >,
     /// Optional. List of allowed event types for the connection.
     #[serde(default, rename = "allowedEventTypes")]
-    pub allowed_event_types: Option<Vec<String>>,
+    pub allowed_event_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Auth details for the webhook adapter.
     #[serde(default, rename = "authConfig")]
-    pub auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    pub auth_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1AuthConfig>>,
     /// Optional. Dead letter configuration for eventing of a connection.
     #[serde(default, rename = "deadLetterConfig")]
-    pub dead_letter_config: Option<GoogleCloudConnectorsV1EventingConfigDeadLetterConfig>,
+    pub dead_letter_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1EventingConfigDeadLetterConfig>,
+    >,
     /// Optional. Data enrichment configuration.
     #[serde(default, rename = "enrichmentConfig")]
-    pub enrichment_config: Option<GoogleCloudConnectorsV1EnrichmentConfig>,
+    pub enrichment_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1EnrichmentConfig>>,
     /// Optional. Enrichment Enabled.
     #[serde(default, rename = "enrichmentEnabled")]
-    pub enrichment_enabled: Option<bool>,
+    pub enrichment_enabled: ::core::option::Option<bool>,
     /// Output only. Ingress endpoint of the event listener. This is used only when private connectivity is enabled.
     #[serde(default, rename = "eventsListenerIngressEndpoint")]
-    pub events_listener_ingress_endpoint: Option<String>,
+    pub events_listener_ingress_endpoint: ::core::option::Option<String>,
     /// Optional. Auth details for the event listener.
     #[serde(default, rename = "listenerAuthConfig")]
-    pub listener_auth_config: Option<GoogleCloudConnectorsV1AuthConfig>,
+    pub listener_auth_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1AuthConfig>>,
     /// Optional. List of projects to be allowlisted for the service attachment created in the tenant project for eventing ingress.
     #[serde(default, rename = "privateConnectivityAllowlistedProjects")]
-    pub private_connectivity_allowlisted_projects: Option<Vec<String>>,
+    pub private_connectivity_allowlisted_projects: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Private Connectivity Enabled.
     #[serde(default, rename = "privateConnectivityEnabled")]
-    pub private_connectivity_enabled: Option<bool>,
+    pub private_connectivity_enabled: ::core::option::Option<bool>,
     /// Optional. Proxy for Eventing auto-registration.
     #[serde(default, rename = "proxyDestinationConfig")]
-    pub proxy_destination_config: Option<GoogleCloudConnectorsV1DestinationConfig>,
+    pub proxy_destination_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1DestinationConfig>>,
     /// Optional. Registration endpoint for auto registration.
     #[serde(default, rename = "registrationDestinationConfig")]
-    pub registration_destination_config: Option<GoogleCloudConnectorsV1DestinationConfig>,
+    pub registration_destination_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1DestinationConfig>>,
     /// Optional. Ssl config of a connection
     #[serde(default, rename = "sslConfig")]
-    pub ssl_config: Option<GoogleCloudConnectorsV1SslConfig>,
+    pub ssl_config: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1SslConfig>>,
 }
 
 /// Dead Letter configuration details provided by the user.
@@ -2479,10 +2735,10 @@ pub struct GoogleCloudConnectorsV1EventingConfig {
 pub struct GoogleCloudConnectorsV1EventingConfigDeadLetterConfig {
     /// Optional. Project which has the topic given.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Optional. Topic to push events which couldn''t be processed.
     #[serde(default)]
-    pub topic: Option<String>,
+    pub topic: ::core::option::Option<String>,
 }
 
 /// Eventing runtime data has the details related to eventing managed by the system.
@@ -2490,20 +2746,23 @@ pub struct GoogleCloudConnectorsV1EventingConfigDeadLetterConfig {
 pub struct GoogleCloudConnectorsV1EventingRuntimeData {
     /// Output only. Events listener endpoint. The value will populated after provisioning the events listener.
     #[serde(default, rename = "eventsListenerEndpoint")]
-    pub events_listener_endpoint: Option<String>,
+    pub events_listener_endpoint: ::core::option::Option<String>,
     /// Output only. Events listener PSC Service attachment. The value will be populated after provisioning the events listener with private connectivity enabled.
     #[serde(default, rename = "eventsListenerPscSa")]
-    pub events_listener_psc_sa: Option<String>,
+    pub events_listener_psc_sa: ::core::option::Option<String>,
     /// Output only. Current status of eventing.
     #[serde(default)]
-    pub status: Option<GoogleCloudConnectorsV1EventingStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1EventingStatus>>,
     /// Output only. Webhook data.
     #[serde(default, rename = "webhookData")]
-    pub webhook_data: Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>,
+    pub webhook_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>,
+    >,
     /// Output only. Webhook subscriptions.
     #[serde(default, rename = "webhookSubscriptions")]
-    pub webhook_subscriptions:
-        Option<GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions>,
+    pub webhook_subscriptions: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions>,
+    >,
 }
 
 /// WebhookData has details of webhook configuration.
@@ -2511,22 +2770,24 @@ pub struct GoogleCloudConnectorsV1EventingRuntimeData {
 pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookData {
     /// Output only. Additional webhook related field values.
     #[serde(default, rename = "additionalVariables")]
-    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    pub additional_variables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1ConfigVariable>>,
+    >,
     /// Output only. Timestamp when the webhook was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. ID to uniquely identify webhook.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Name of the Webhook
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Next webhook refresh time. Will be null if refresh is not supported.
     #[serde(default, rename = "nextRefreshTime")]
-    pub next_refresh_time: Option<String>,
+    pub next_refresh_time: ::core::option::Option<String>,
     /// Output only. Timestamp when the webhook was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// WebhookSubscriptions has details of webhook subscriptions.
@@ -2534,7 +2795,9 @@ pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookData {
 pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions {
     /// Output only. Webhook data.
     #[serde(default, rename = "webhookData")]
-    pub webhook_data: Option<Vec<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>>,
+    pub webhook_data: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1EventingRuntimeDataWebhookData>>,
+    >,
 }
 
 /// EventingStatus indicates the state of eventing.
@@ -2542,10 +2805,10 @@ pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions {
 pub struct GoogleCloudConnectorsV1EventingStatus {
     /// Output only. Description of error if State is set to "ERROR".
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. State. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ERROR", "INGRESS_ENDPOINT_REQUIRED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Autoscaling config for connector deployment system metrics.
@@ -2553,10 +2816,10 @@ pub struct GoogleCloudConnectorsV1EventingStatus {
 pub struct GoogleCloudConnectorsV1hPAConfig {
     /// Output only. Percent CPU utilization where HPA triggers autoscaling.
     #[serde(default, rename = "cpuUtilizationThreshold")]
-    pub cpu_utilization_threshold: Option<String>,
+    pub cpu_utilization_threshold: ::core::option::Option<String>,
     /// Output only. Percent Memory utilization where HPA triggers autoscaling.
     #[serde(default, rename = "memoryUtilizationThreshold")]
-    pub memory_utilization_threshold: Option<String>,
+    pub memory_utilization_threshold: ::core::option::Option<String>,
 }
 
 /// Determines whether or no a connection is locked. If locked, a reason must be specified.
@@ -2564,10 +2827,10 @@ pub struct GoogleCloudConnectorsV1hPAConfig {
 pub struct GoogleCloudConnectorsV1LockConfig {
     /// Optional. Indicates whether or not the connection is locked.
     #[serde(default)]
-    pub locked: Option<bool>,
+    pub locked: ::core::option::Option<bool>,
     /// Optional. Describes why a connection is locked.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Log configuration for the connection.
@@ -2575,10 +2838,10 @@ pub struct GoogleCloudConnectorsV1LockConfig {
 pub struct GoogleCloudConnectorsV1LogConfig {
     /// Optional. Enabled represents whether logging is enabled or not for a connection.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Optional. Log configuration level. // TODO: enum values: ["LOG_LEVEL_UNSPECIFIED", "ERROR", "INFO", "DEBUG"]
     #[serde(default)]
-    pub level: Option<String>,
+    pub level: ::core::option::Option<String>,
 }
 
 /// Node configuration for the connection.
@@ -2586,10 +2849,10 @@ pub struct GoogleCloudConnectorsV1LogConfig {
 pub struct GoogleCloudConnectorsV1NodeConfig {
     /// Optional. Maximum number of nodes in the runtime nodes.
     #[serde(default, rename = "maxNodeCount")]
-    pub max_node_count: Option<i32>,
+    pub max_node_count: ::core::option::Option<i32>,
     /// Optional. Minimum number of nodes in the runtime nodes.
     #[serde(default, rename = "minNodeCount")]
-    pub min_node_count: Option<i32>,
+    pub min_node_count: ::core::option::Option<i32>,
 }
 
 /// Resource limits defined for connection pods of a given connector type.
@@ -2597,10 +2860,10 @@ pub struct GoogleCloudConnectorsV1NodeConfig {
 pub struct GoogleCloudConnectorsV1ResourceLimits {
     /// Output only. CPU limit.
     #[serde(default)]
-    pub cpu: Option<String>,
+    pub cpu: ::core::option::Option<String>,
     /// Output only. Memory limit.
     #[serde(default)]
-    pub memory: Option<String>,
+    pub memory: ::core::option::Option<String>,
 }
 
 /// Resource requests defined for connection pods of a given connector type.
@@ -2608,10 +2871,10 @@ pub struct GoogleCloudConnectorsV1ResourceLimits {
 pub struct GoogleCloudConnectorsV1ResourceRequests {
     /// Output only. CPU request.
     #[serde(default)]
-    pub cpu: Option<String>,
+    pub cpu: ::core::option::Option<String>,
     /// Output only. Memory request.
     #[serde(default)]
-    pub memory: Option<String>,
+    pub memory: ::core::option::Option<String>,
 }
 
 /// Secret provides a reference to entries in Secret Manager.
@@ -2619,7 +2882,7 @@ pub struct GoogleCloudConnectorsV1ResourceRequests {
 pub struct GoogleCloudConnectorsV1Secret {
     /// Optional. The resource name of the secret version in the format, format as: projects/*/secrets/*/versions/*.
     #[serde(default, rename = "secretVersion")]
-    pub secret_version: Option<String>,
+    pub secret_version: ::core::option::Option<String>,
 }
 
 /// SSL Configuration of a connection
@@ -2627,34 +2890,40 @@ pub struct GoogleCloudConnectorsV1Secret {
 pub struct GoogleCloudConnectorsV1SslConfig {
     /// Optional. Additional SSL related field values
     #[serde(default, rename = "additionalVariables")]
-    pub additional_variables: Option<Vec<GoogleCloudConnectorsV1ConfigVariable>>,
+    pub additional_variables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1ConfigVariable>>,
+    >,
     /// Optional. Type of Client Cert (PEM/JKS/.. etc.) // TODO: enum values: ["CERT_TYPE_UNSPECIFIED", "PEM"]
     #[serde(default, rename = "clientCertType")]
-    pub client_cert_type: Option<String>,
+    pub client_cert_type: ::core::option::Option<String>,
     /// Optional. Client Certificate
     #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: Option<GoogleCloudConnectorsV1Secret>,
+    pub client_certificate:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Client Private Key
     #[serde(default, rename = "clientPrivateKey")]
-    pub client_private_key: Option<GoogleCloudConnectorsV1Secret>,
+    pub client_private_key:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Secret containing the passphrase protecting the Client Private Key
     #[serde(default, rename = "clientPrivateKeyPass")]
-    pub client_private_key_pass: Option<GoogleCloudConnectorsV1Secret>,
+    pub client_private_key_pass:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Private Server Certificate. Needs to be specified if trust model is PRIVATE.
     #[serde(default, rename = "privateServerCertificate")]
-    pub private_server_certificate: Option<GoogleCloudConnectorsV1Secret>,
+    pub private_server_certificate:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudConnectorsV1Secret>>,
     /// Optional. Type of Server Cert (PEM/JKS/.. etc.) // TODO: enum values: ["CERT_TYPE_UNSPECIFIED", "PEM"]
     #[serde(default, rename = "serverCertType")]
-    pub server_cert_type: Option<String>,
+    pub server_cert_type: ::core::option::Option<String>,
     /// Optional. Trust Model of the SSL connection // TODO: enum values: ["PUBLIC", "PRIVATE", "INSECURE"]
     #[serde(default, rename = "trustModel")]
-    pub trust_model: Option<String>,
+    pub trust_model: ::core::option::Option<String>,
     /// Optional. Controls the ssl type for the given connector version. // TODO: enum values: ["SSL_TYPE_UNSPECIFIED", "TLS", "MTLS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Optional. Bool for enabling SSL
     #[serde(default, rename = "useSsl")]
-    pub use_ssl: Option<bool>,
+    pub use_ssl: ::core::option::Option<bool>,
 }
 
 /// * TrafficShapingConfig defines the configuration for shaping API traffic by specifying a quota limit and the duration over which this limit is enforced. This configuration helps to control and manage the rate at which API calls are made on the client side, preventing service overload on the backend. For example: - if the quota limit is 100 calls per 10 seconds, then the message would be: { quota_limit: 100 duration: { seconds: 10 } } - if the quota limit is 100 calls per 5 minutes, then the message would be: { quota_limit: 100 duration: { seconds: 300 } } - if the quota limit is 10000 calls per day, then the message would be: { quota_limit: 10000 duration: { seconds: 86400 } and so on.
@@ -2662,10 +2931,10 @@ pub struct GoogleCloudConnectorsV1SslConfig {
 pub struct GoogleCloudConnectorsV1TrafficShapingConfig {
     /// Required. Specifies the duration over which the API call quota limits are calculated. This duration is used to define the time window for evaluating if the number of API calls made by a user is within the allowed quota limits. For example: - To define a quota sampled over 16 seconds, set seconds to 16 - To define a quota sampled over 5 minutes, set seconds to 300 (5 * 60) - To define a quota sampled over 1 day, set seconds to 86400 (24 * 60 * 60) and so on. It is important to note that this duration is not the time the quota is valid for, but rather the time window over which the quota is evaluated. For example, if the quota is 100 calls per 10 seconds, then this duration field would be set to 10 seconds.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Required. Maximum number of api calls allowed.
     #[serde(default, rename = "quotaLimit")]
-    pub quota_limit: Option<String>,
+    pub quota_limit: ::core::option::Option<String>,
 }
 
 /// The access token represents the authorization of a specific application to access specific parts of a user’s data.
@@ -2673,19 +2942,19 @@ pub struct GoogleCloudConnectorsV1TrafficShapingConfig {
 pub struct GoogleCloudIntegrationsV1alphaAccessToken {
     /// The access token encapsulating the security identity of a process or thread.
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
     /// Required. The approximate time until the access token retrieved is valid.
     #[serde(default, rename = "accessTokenExpireTime")]
-    pub access_token_expire_time: Option<String>,
+    pub access_token_expire_time: ::core::option::Option<String>,
     /// If the access token will expire, use the refresh token to obtain another access token.
     #[serde(default, rename = "refreshToken")]
-    pub refresh_token: Option<String>,
+    pub refresh_token: ::core::option::Option<String>,
     /// The approximate time until the refresh token retrieved is valid.
     #[serde(default, rename = "refreshTokenExpireTime")]
-    pub refresh_token_expire_time: Option<String>,
+    pub refresh_token_expire_time: ::core::option::Option<String>,
     /// Only support "bearer" token in v1 as bearer token is the predominant type used with OAuth 2.0.
     #[serde(default, rename = "tokenType")]
-    pub token_type: Option<String>,
+    pub token_type: ::core::option::Option<String>,
 }
 
 /// List of API triggerID and their workflow resource name.
@@ -2693,10 +2962,10 @@ pub struct GoogleCloudIntegrationsV1alphaAccessToken {
 pub struct GoogleCloudIntegrationsV1alphaApiTriggerResource {
     /// Required. Integration where the API is published
     #[serde(default, rename = "integrationResource")]
-    pub integration_resource: Option<String>,
+    pub integration_resource: ::core::option::Option<String>,
     /// Required. Trigger Id of the API trigger(s) in the integration
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<Vec<String>>,
+    pub trigger_id: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// An assertion which will check for a condition over task execution status or an expression for task output variables
@@ -2704,16 +2973,17 @@ pub struct GoogleCloudIntegrationsV1alphaApiTriggerResource {
 pub struct GoogleCloudIntegrationsV1alphaAssertion {
     /// Optional. The type of assertion to perform. // TODO: enum values: ["ASSERTION_STRATEGY_UNSPECIFIED", "ASSERT_SUCCESSFUL_EXECUTION", "ASSERT_FAILED_EXECUTION", "ASSERT_NO_EXECUTION", "ASSERT_EQUALS", "ASSERT_NOT_EQUALS", "ASSERT_CONTAINS", "ASSERT_CONDITION"]
     #[serde(default, rename = "assertionStrategy")]
-    pub assertion_strategy: Option<String>,
+    pub assertion_strategy: ::core::option::Option<String>,
     /// Optional. Standard filter expression for ASSERT_CONDITION to succeed
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// Optional. Key-value pair for ASSERT_EQUALS, ASSERT_NOT_EQUALS, ASSERT_CONTAINS to succeed
     #[serde(default)]
-    pub parameter: Option<GoogleCloudIntegrationsV1alphaEventParameter>,
+    pub parameter:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaEventParameter>>,
     /// Number of times given task should be retried in case of ASSERT_FAILED_EXECUTION
     #[serde(default, rename = "retryCount")]
-    pub retry_count: Option<i32>,
+    pub retry_count: ::core::option::Option<i32>,
 }
 
 /// The result of an assertion.
@@ -2721,19 +2991,20 @@ pub struct GoogleCloudIntegrationsV1alphaAssertion {
 pub struct GoogleCloudIntegrationsV1alphaAssertionResult {
     /// Assertion that was run.
     #[serde(default)]
-    pub assertion: Option<GoogleCloudIntegrationsV1alphaAssertion>,
+    pub assertion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAssertion>>,
     /// Details of the assertion failure
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Status of assertion to signify if the assertion succeeded or failed // TODO: enum values: ["ASSERTION_STATUS_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Task name of task where the assertion was run.
     #[serde(default, rename = "taskName")]
-    pub task_name: Option<String>,
+    pub task_name: ::core::option::Option<String>,
     /// Task number of task where the assertion was run.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
 }
 
 /// Status for the execution attempt.
@@ -2741,10 +3012,10 @@ pub struct GoogleCloudIntegrationsV1alphaAssertionResult {
 pub struct GoogleCloudIntegrationsV1alphaAttemptStats {
     /// The end time of the integration execution for current attempt.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The start time of the integration execution for current attempt. This could be in the future if it''s been scheduled.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The AuthConfig resource use to hold channels and connection config data.
@@ -2752,55 +3023,56 @@ pub struct GoogleCloudIntegrationsV1alphaAttemptStats {
 pub struct GoogleCloudIntegrationsV1alphaAuthConfig {
     /// Certificate id for client certificate
     #[serde(default, rename = "certificateId")]
-    pub certificate_id: Option<String>,
+    pub certificate_id: ::core::option::Option<String>,
     /// Output only. The timestamp when the auth config is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The creator''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "creatorEmail")]
-    pub creator_email: Option<String>,
+    pub creator_email: ::core::option::Option<String>,
     /// Required. Credential type of the encrypted credential. // TODO: enum values: ["CREDENTIAL_TYPE_UNSPECIFIED", "USERNAME_AND_PASSWORD", "API_KEY", "OAUTH2_AUTHORIZATION_CODE", "OAUTH2_IMPLICIT", "OAUTH2_CLIENT_CREDENTIALS", "OAUTH2_RESOURCE_OWNER_CREDENTIALS", "JWT", "AUTH_TOKEN", "SERVICE_ACCOUNT", "CLIENT_CERTIFICATE_ONLY", "OIDC_TOKEN"]
     #[serde(default, rename = "credentialType")]
-    pub credential_type: Option<String>,
+    pub credential_type: ::core::option::Option<String>,
     /// Raw auth credentials.
     #[serde(default, rename = "decryptedCredential")]
-    pub decrypted_credential: Option<GoogleCloudIntegrationsV1alphaCredential>,
+    pub decrypted_credential:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCredential>>,
     /// Optional. A description of the auth config.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The name of the auth config.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Auth credential encrypted by Cloud KMS. Can be decrypted as Credential with proper KMS key.
     #[serde(default, rename = "encryptedCredential")]
-    pub encrypted_credential: Option<String>,
+    pub encrypted_credential: ::core::option::Option<String>,
     /// Optional. User can define the time to receive notification after which the auth config becomes invalid. Support up to 30 days. Support granularity in hours.
     #[serde(default, rename = "expiryNotificationDuration")]
-    pub expiry_notification_duration: Option<Vec<String>>,
+    pub expiry_notification_duration: ::core::option::Option<::std::vec::Vec<String>>,
     /// The last modifier''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "lastModifierEmail")]
-    pub last_modifier_email: Option<String>,
+    pub last_modifier_email: ::core::option::Option<String>,
     /// Resource name of the auth config. For more information, see Manage authentication profiles. projects/{project}/locations/{location}/authConfigs/{authConfig}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. User provided expiry time to override. For the example of Salesforce, username/password credentials can be valid for 6 months depending on the instance settings.
     #[serde(default, rename = "overrideValidTime")]
-    pub override_valid_time: Option<String>,
+    pub override_valid_time: ::core::option::Option<String>,
     /// Output only. The reason / details of the current status.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// Output only. The status of the auth config. // TODO: enum values: ["STATE_UNSPECIFIED", "VALID", "INVALID", "SOFT_DELETED", "EXPIRED", "UNAUTHORIZED", "UNSUPPORTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the auth config is modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. The time until the auth config is valid. Empty or max value is considered the auth config won''t expire.
     #[serde(default, rename = "validTime")]
-    pub valid_time: Option<String>,
+    pub valid_time: ::core::option::Option<String>,
     /// Optional. The visibility of the auth config. // TODO: enum values: ["AUTH_CONFIG_VISIBILITY_UNSPECIFIED", "PRIVATE", "CLIENT_VISIBLE"]
     #[serde(default)]
-    pub visibility: Option<String>,
+    pub visibility: ::core::option::Option<String>,
 }
 
 /// The credentials to authenticate a user agent with a server that is put in HTTP Authorization request header.
@@ -2808,10 +3080,10 @@ pub struct GoogleCloudIntegrationsV1alphaAuthConfig {
 pub struct GoogleCloudIntegrationsV1alphaAuthToken {
     /// The token for the auth type.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// Authentication type, e.g. "Basic", "Bearer", etc.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// This message only contains a field of boolean array.
@@ -2819,7 +3091,7 @@ pub struct GoogleCloudIntegrationsV1alphaAuthToken {
 pub struct GoogleCloudIntegrationsV1alphaBooleanParameterArray {
     /// Boolean array.
     #[serde(default, rename = "booleanValues")]
-    pub boolean_values: Option<Vec<bool>>,
+    pub boolean_values: ::core::option::Option<::std::vec::Vec<bool>>,
 }
 
 /// Request for cancelling an execution.
@@ -2827,7 +3099,7 @@ pub struct GoogleCloudIntegrationsV1alphaBooleanParameterArray {
 pub struct GoogleCloudIntegrationsV1alphaCancelExecutionRequest {
     /// Required. Reason for cancelling the execution. This is provided by the client requesting the cancellation, and is not used by the Platform.
     #[serde(default, rename = "cancelReason")]
-    pub cancel_reason: Option<String>,
+    pub cancel_reason: ::core::option::Option<String>,
 }
 
 /// Response for cancelling an execution.
@@ -2835,7 +3107,7 @@ pub struct GoogleCloudIntegrationsV1alphaCancelExecutionRequest {
 pub struct GoogleCloudIntegrationsV1alphaCancelExecutionResponse {
     /// True if cancellation performed successfully.
     #[serde(default, rename = "isCanceled")]
-    pub is_canceled: Option<bool>,
+    pub is_canceled: ::core::option::Option<bool>,
 }
 
 /// The certificate definition
@@ -2843,31 +3115,32 @@ pub struct GoogleCloudIntegrationsV1alphaCancelExecutionResponse {
 pub struct GoogleCloudIntegrationsV1alphaCertificate {
     /// Status of the certificate // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "EXPIRED"]
     #[serde(default, rename = "certificateStatus")]
-    pub certificate_status: Option<String>,
+    pub certificate_status: ::core::option::Option<String>,
     /// Immutable. Credential id that will be used to register with trawler
     #[serde(default, rename = "credentialId")]
-    pub credential_id: Option<String>,
+    pub credential_id: ::core::option::Option<String>,
     /// Description of the certificate
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Name of the certificate
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Auto generated primary key
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Input only. Raw client certificate which would be registered with trawler
     #[serde(default, rename = "rawCertificate")]
-    pub raw_certificate: Option<GoogleCloudIntegrationsV1alphaClientCertificate>,
+    pub raw_certificate:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaClientCertificate>>,
     /// Immutable. Requestor ID to be used to register certificate with trawler
     #[serde(default, rename = "requestorId")]
-    pub requestor_id: Option<String>,
+    pub requestor_id: ::core::option::Option<String>,
     /// Output only. The timestamp after which certificate will expire
     #[serde(default, rename = "validEndTime")]
-    pub valid_end_time: Option<String>,
+    pub valid_end_time: ::core::option::Option<String>,
     /// Output only. The timestamp after which certificate will be valid
     #[serde(default, rename = "validStartTime")]
-    pub valid_start_time: Option<String>,
+    pub valid_start_time: ::core::option::Option<String>,
 }
 
 /// Request for the ChangeCustomerConfig rpc
@@ -2875,10 +3148,11 @@ pub struct GoogleCloudIntegrationsV1alphaCertificate {
 pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest {
     /// Optional. The customer configuration to be updated.
     #[serde(default, rename = "customerConfig")]
-    pub customer_config: Option<GoogleCloudIntegrationsV1alphaCustomerConfig>,
+    pub customer_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCustomerConfig>>,
     /// Required. Field mask specifying the fields in the customer config that have been modified and must be updated. If absent or empty, no fields are updated.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Response for the ChangeCustomerConfig rpc
@@ -2886,7 +3160,8 @@ pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest {
 pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse {
     /// Required. The updated customer configuration.
     #[serde(default, rename = "customerConfig")]
-    pub customer_config: Option<GoogleCloudIntegrationsV1alphaCustomerConfig>,
+    pub customer_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCustomerConfig>>,
 }
 
 /// Contains client certificate information
@@ -2894,13 +3169,13 @@ pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse {
 pub struct GoogleCloudIntegrationsV1alphaClientCertificate {
     /// The ssl certificate encoded in PEM format. This string must include the begin header and end footer lines. For example, -----BEGIN CERTIFICATE----- MIICTTCCAbagAwIBAgIJAPT0tSKNxan/MA0GCSqGSIb3DQEBCwUAMCoxFzAVBgNV BAoTDkdvb2dsZSBURVNUSU5HMQ8wDQYDVQQDEwZ0ZXN0Q0EwHhcNMTUwMTAxMDAw MDAwWhcNMjUwMTAxMDAwMDAwWjAuMRcwFQYDVQQKEw5Hb29nbGUgVEVTVElORzET MBEGA1UEAwwKam9lQGJhbmFuYTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA vDYFgMgxi5W488d9J7UpCInl0NXmZQpJDEHE4hvkaRlH7pnC71H0DLt0/3zATRP1 JzY2+eqBmbGl4/sgZKYv8UrLnNyQNUTsNx1iZAfPUflf5FwgVsai8BM0pUciq1NB xD429VFcrGZNucvFLh72RuRFIKH8WUpiK/iZNFkWhZ0CAwEAAaN3MHUwDgYDVR0P AQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNVHRMB Af8EAjAAMBkGA1UdDgQSBBCVgnFBCWgL/iwCqnGrhTPQMBsGA1UdIwQUMBKAEKey Um2o4k2WiEVA0ldQvNYwDQYJKoZIhvcNAQELBQADgYEAYK986R4E3L1v+Q6esBtW JrUwA9UmJRSQr0N5w3o9XzarU37/bkjOP0Fw0k/A6Vv1n3vlciYfBFaBIam1qRHr 5dMsYf4CZS6w50r7hyzqyrwDoyNxkLnd2PdcHT/sym1QmflsjEs7pejtnohO6N2H wQW6M0H7Zt8claGRla4fKkg= -----END CERTIFICATE-----
     #[serde(default, rename = "encryptedPrivateKey")]
-    pub encrypted_private_key: Option<String>,
+    pub encrypted_private_key: ::core::option::Option<String>,
     /// ''passphrase'' should be left unset if private key is not encrypted. Note that ''passphrase'' is not the password for web server, but an extra layer of security to protected private key.
     #[serde(default)]
-    pub passphrase: Option<String>,
+    pub passphrase: ::core::option::Option<String>,
     /// The ssl certificate encoded in PEM format. This string must include the begin header and end footer lines. For example, -----BEGIN CERTIFICATE----- MIICTTCCAbagAwIBAgIJAPT0tSKNxan/MA0GCSqGSIb3DQEBCwUAMCoxFzAVBgNV BAoTDkdvb2dsZSBURVNUSU5HMQ8wDQYDVQQDEwZ0ZXN0Q0EwHhcNMTUwMTAxMDAw MDAwWhcNMjUwMTAxMDAwMDAwWjAuMRcwFQYDVQQKEw5Hb29nbGUgVEVTVElORzET MBEGA1UEAwwKam9lQGJhbmFuYTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA vDYFgMgxi5W488d9J7UpCInl0NXmZQpJDEHE4hvkaRlH7pnC71H0DLt0/3zATRP1 JzY2+eqBmbGl4/sgZKYv8UrLnNyQNUTsNx1iZAfPUflf5FwgVsai8BM0pUciq1NB xD429VFcrGZNucvFLh72RuRFIKH8WUpiK/iZNFkWhZ0CAwEAAaN3MHUwDgYDVR0P AQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNVHRMB Af8EAjAAMBkGA1UdDgQSBBCVgnFBCWgL/iwCqnGrhTPQMBsGA1UdIwQUMBKAEKey Um2o4k2WiEVA0ldQvNYwDQYJKoZIhvcNAQELBQADgYEAYK986R4E3L1v+Q6esBtW JrUwA9UmJRSQr0N5w3o9XzarU37/bkjOP0Fw0k/A6Vv1n3vlciYfBFaBIam1qRHr 5dMsYf4CZS6w50r7hyzqyrwDoyNxkLnd2PdcHT/sym1QmflsjEs7pejtnohO6N2H wQW6M0H7Zt8claGRla4fKkg= -----END CERTIFICATE-----
     #[serde(default, rename = "sslCertificate")]
-    pub ssl_certificate: Option<String>,
+    pub ssl_certificate: ::core::option::Option<String>,
 }
 
 /// The configuration information for the Client
@@ -2908,50 +3183,52 @@ pub struct GoogleCloudIntegrationsV1alphaClientCertificate {
 pub struct GoogleCloudIntegrationsV1alphaClientConfig {
     /// Indicates the billing type of the client // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "BILLING_TYPE_APIGEE_TRIALS", "BILLING_TYPE_APIGEE_SUBSCRIPTION", "BILLING_TYPE_PAYG"]
     #[serde(default, rename = "billingType")]
-    pub billing_type: Option<String>,
+    pub billing_type: ::core::option::Option<String>,
     /// Indicates the activity state the client // TODO: enum values: ["CLIENT_STATE_UNSPECIFIED", "CLIENT_STATE_ACTIVE", "CLIENT_STATE_DISABLED"]
     #[serde(default, rename = "clientState")]
-    pub client_state: Option<String>,
+    pub client_state: ::core::option::Option<String>,
     #[serde(default, rename = "cloudKmsConfig")]
-    pub cloud_kms_config: Option<GoogleCloudIntegrationsV1alphaCloudKmsConfig>,
+    pub cloud_kms_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCloudKmsConfig>>,
     /// The timestamp when the client was first created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Customer configuration information for the given client.
     #[serde(default, rename = "customerConfig")]
-    pub customer_config: Option<GoogleCloudIntegrationsV1alphaCustomerConfig>,
+    pub customer_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCustomerConfig>>,
     /// Description of what the client is used for
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional.
     #[serde(default, rename = "enableHttpCall")]
-    pub enable_http_call: Option<bool>,
+    pub enable_http_call: ::core::option::Option<bool>,
     /// Optional. Indicates the client enables internal IP feature, this is applicable for internal clients only.
     #[serde(default, rename = "enableInternalIp")]
-    pub enable_internal_ip: Option<bool>,
+    pub enable_internal_ip: ::core::option::Option<bool>,
     /// Optional.
     #[serde(default, rename = "enableManagedAiFeatures")]
-    pub enable_managed_ai_features: Option<bool>,
+    pub enable_managed_ai_features: ::core::option::Option<bool>,
     /// Optional.
     #[serde(default, rename = "enableVariableMasking")]
-    pub enable_variable_masking: Option<bool>,
+    pub enable_variable_masking: ::core::option::Option<bool>,
     /// Globally unique ID (project_id + region)
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. Indicates the client is provisioned with CMEK or GMEK.
     #[serde(default, rename = "isGmek")]
-    pub is_gmek: Option<bool>,
+    pub is_gmek: ::core::option::Option<bool>,
     /// The service agent associated with this client
     #[serde(default, rename = "p4ServiceAccount")]
-    pub p4_service_account: Option<String>,
+    pub p4_service_account: ::core::option::Option<String>,
     /// The GCP project id of the client associated with
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// The region the client is linked to.
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
     #[serde(default, rename = "runAsServiceAccount")]
-    pub run_as_service_account: Option<String>,
+    pub run_as_service_account: ::core::option::Option<String>,
 }
 
 /// Configuration information for Client''s Cloud KMS information
@@ -2959,19 +3236,19 @@ pub struct GoogleCloudIntegrationsV1alphaClientConfig {
 pub struct GoogleCloudIntegrationsV1alphaCloudKmsConfig {
     /// Required. A Cloud KMS key is a named object containing one or more key versions, along with metadata for the key. A key exists on exactly one key ring tied to a specific location.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Optional. Each version of a key contains key material used for encryption or signing. A key''s version is represented by an integer, starting at 1. To decrypt data or verify a signature, you must use the same key version that was used to encrypt or sign the data.
     #[serde(default, rename = "keyVersion")]
-    pub key_version: Option<String>,
+    pub key_version: ::core::option::Option<String>,
     /// Required. Location name of the key ring, e.g. "us-west1".
     #[serde(default, rename = "kmsLocation")]
-    pub kms_location: Option<String>,
+    pub kms_location: ::core::option::Option<String>,
     /// Optional. The gcp project id of the project where the kms key stored. If empty, the kms key is stored at the same project as customer''s project and ecrypted with CMEK, otherwise, the kms key is stored in the tenant project and encrypted with GMEK
     #[serde(default, rename = "kmsProjectId")]
-    pub kms_project_id: Option<String>,
+    pub kms_project_id: ::core::option::Option<String>,
     /// Required. A key ring organizes keys in a specific Google Cloud location and allows you to manage access control on groups of keys. A key ring''s name does not need to be unique across a Google Cloud project, but must be unique within a given location.
     #[serde(default, rename = "kmsRing")]
-    pub kms_ring: Option<String>,
+    pub kms_ring: ::core::option::Option<String>,
 }
 
 /// Cloud Logging details for execution info
@@ -2979,10 +3256,10 @@ pub struct GoogleCloudIntegrationsV1alphaCloudKmsConfig {
 pub struct GoogleCloudIntegrationsV1alphaCloudLoggingDetails {
     /// Optional. Severity selected by the customer for the logs to be sent to Cloud Logging, for the integration version getting executed. // TODO: enum values: ["CLOUD_LOGGING_SEVERITY_UNSPECIFIED", "INFO", "ERROR", "WARNING"]
     #[serde(default, rename = "cloudLoggingSeverity")]
-    pub cloud_logging_severity: Option<String>,
+    pub cloud_logging_severity: ::core::option::Option<String>,
     /// Optional. Status of whether Cloud Logging is enabled or not for the integration version getting executed.
     #[serde(default, rename = "enableCloudLogging")]
-    pub enable_cloud_logging: Option<bool>,
+    pub enable_cloud_logging: ::core::option::Option<bool>,
 }
 
 /// Cloud Scheduler Trigger configuration
@@ -2990,16 +3267,16 @@ pub struct GoogleCloudIntegrationsV1alphaCloudLoggingDetails {
 pub struct GoogleCloudIntegrationsV1alphaCloudSchedulerConfig {
     /// Required. The cron tab of cloud scheduler trigger.
     #[serde(default, rename = "cronTab")]
-    pub cron_tab: Option<String>,
+    pub cron_tab: ::core::option::Option<String>,
     /// Optional. When the job was deleted from Pantheon UI, error_message will be populated when Get/List integrations
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// Required. The location where associated cloud scheduler job will be created
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Required. Service account used by Cloud Scheduler to trigger the integration at scheduled time
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
 }
 
 /// Conditional task failur retry strategies
@@ -3007,10 +3284,13 @@ pub struct GoogleCloudIntegrationsV1alphaCloudSchedulerConfig {
 pub struct GoogleCloudIntegrationsV1alphaConditionalFailurePolicies {
     /// The default failure policy to be applied if no conditional failure policy matches.
     #[serde(default, rename = "defaultFailurePolicy")]
-    pub default_failure_policy: Option<GoogleCloudIntegrationsV1alphaFailurePolicy>,
+    pub default_failure_policy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaFailurePolicy>>,
     /// The list of failure policies that will be applied to the task in order.
     #[serde(default, rename = "failurePolicies")]
-    pub failure_policies: Option<Vec<GoogleCloudIntegrationsV1alphaFailurePolicy>>,
+    pub failure_policies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaFailurePolicy>>,
+    >,
 }
 
 /// Metadata of runtime connection schema.
@@ -3018,10 +3298,10 @@ pub struct GoogleCloudIntegrationsV1alphaConditionalFailurePolicies {
 pub struct GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata {
     /// List of actions.
     #[serde(default)]
-    pub actions: Option<Vec<String>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of entity names.
     #[serde(default)]
-    pub entities: Option<Vec<String>>,
+    pub entities: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration detail of coordinate, it used for UI
@@ -3029,10 +3309,10 @@ pub struct GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata {
 pub struct GoogleCloudIntegrationsV1alphaCoordinate {
     /// Required. X axis of the coordinate
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     /// Required. Y axis of the coordinate
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// Request for CreateAppsScriptProject rpc call.
@@ -3040,10 +3320,10 @@ pub struct GoogleCloudIntegrationsV1alphaCoordinate {
 pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest {
     /// The name of the Apps Script project to be created.
     #[serde(default, rename = "appsScriptProject")]
-    pub apps_script_project: Option<String>,
+    pub apps_script_project: ::core::option::Option<String>,
     /// The auth config id necessary to fetch the necessary credentials to create the project for external clients
     #[serde(default, rename = "authConfigId")]
-    pub auth_config_id: Option<String>,
+    pub auth_config_id: ::core::option::Option<String>,
 }
 
 /// Response for CreateAppsScriptProject rpc call.
@@ -3051,7 +3331,7 @@ pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest {
 pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse {
     /// The created AppsScriptProject ID.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }
 
 /// Request for Creating Cloud Function rpc call.
@@ -3059,16 +3339,16 @@ pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse {
 pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest {
     /// The function name of CF to be created
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
     /// The function region of CF to be created
     #[serde(default, rename = "functionRegion")]
-    pub function_region: Option<String>,
+    pub function_region: ::core::option::Option<String>,
     /// Optional. The api version of CF to be created // TODO: enum values: ["GCF_API_VERSION_UNSPECIFIED", "API_VERSION_V1", "API_VERSION_V2"]
     #[serde(default, rename = "gcfApiVersion")]
-    pub gcf_api_version: Option<String>,
+    pub gcf_api_version: ::core::option::Option<String>,
     /// Indicates the id of the GCP project that the function will be created in.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }
 
 /// Response for Creating Cloud Function rpc call.
@@ -3076,7 +3356,7 @@ pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest {
 pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse {
     /// The trigger url that will be returned
     #[serde(default, rename = "triggerUrl")]
-    pub trigger_url: Option<String>,
+    pub trigger_url: ::core::option::Option<String>,
 }
 
 /// Defines parameters for a single, canonical credential.
@@ -3084,33 +3364,43 @@ pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse {
 pub struct GoogleCloudIntegrationsV1alphaCredential {
     /// Auth token credential
     #[serde(default, rename = "authToken")]
-    pub auth_token: Option<GoogleCloudIntegrationsV1alphaAuthToken>,
+    pub auth_token:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAuthToken>>,
     /// Credential type associated with auth config. // TODO: enum values: ["CREDENTIAL_TYPE_UNSPECIFIED", "USERNAME_AND_PASSWORD", "API_KEY", "OAUTH2_AUTHORIZATION_CODE", "OAUTH2_IMPLICIT", "OAUTH2_CLIENT_CREDENTIALS", "OAUTH2_RESOURCE_OWNER_CREDENTIALS", "JWT", "AUTH_TOKEN", "SERVICE_ACCOUNT", "CLIENT_CERTIFICATE_ONLY", "OIDC_TOKEN"]
     #[serde(default, rename = "credentialType")]
-    pub credential_type: Option<String>,
+    pub credential_type: ::core::option::Option<String>,
     /// JWT credential
     #[serde(default)]
-    pub jwt: Option<GoogleCloudIntegrationsV1alphaJwt>,
+    pub jwt: ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaJwt>>,
     /// The api_key and oauth2_implicit are not covered in v1 and will be picked up once v1 is implemented. ApiKey api_key = 3; OAuth2 authorization code credential
     #[serde(default, rename = "oauth2AuthorizationCode")]
-    pub oauth2_authorization_code: Option<GoogleCloudIntegrationsV1alphaOAuth2AuthorizationCode>,
+    pub oauth2_authorization_code: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaOAuth2AuthorizationCode>,
+    >,
     /// OAuth2Implicit oauth2_implicit = 5; OAuth2 client credentials
     #[serde(default, rename = "oauth2ClientCredentials")]
-    pub oauth2_client_credentials: Option<GoogleCloudIntegrationsV1alphaOAuth2ClientCredentials>,
+    pub oauth2_client_credentials: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaOAuth2ClientCredentials>,
+    >,
     /// OAuth2 resource owner credentials
     #[serde(default, rename = "oauth2ResourceOwnerCredentials")]
-    pub oauth2_resource_owner_credentials:
-        Option<GoogleCloudIntegrationsV1alphaOAuth2ResourceOwnerCredentials>,
+    pub oauth2_resource_owner_credentials: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaOAuth2ResourceOwnerCredentials>,
+    >,
     /// Google OIDC ID Token
     #[serde(default, rename = "oidcToken")]
-    pub oidc_token: Option<GoogleCloudIntegrationsV1alphaOidcToken>,
+    pub oidc_token:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaOidcToken>>,
     /// Service account credential
     #[serde(default, rename = "serviceAccountCredentials")]
-    pub service_account_credentials:
-        Option<GoogleCloudIntegrationsV1alphaServiceAccountCredentials>,
+    pub service_account_credentials: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaServiceAccountCredentials>,
+    >,
     /// Username and password credential
     #[serde(default, rename = "usernameAndPassword")]
-    pub username_and_password: Option<GoogleCloudIntegrationsV1alphaUsernameAndPassword>,
+    pub username_and_password: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaUsernameAndPassword>,
+    >,
 }
 
 /// Customer configuration information for the given client
@@ -3118,19 +3408,20 @@ pub struct GoogleCloudIntegrationsV1alphaCredential {
 pub struct GoogleCloudIntegrationsV1alphaCustomerConfig {
     /// Optional. Cloud KMS config for Auth Module to encrypt/decrypt credentials.
     #[serde(default, rename = "cloudKmsConfig")]
-    pub cloud_kms_config: Option<GoogleCloudIntegrationsV1alphaCloudKmsConfig>,
+    pub cloud_kms_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCloudKmsConfig>>,
     /// Optional. Indicates if the client should be allowed to make HTTP calls. True if http call feature should be turned on for this region.
     #[serde(default, rename = "enableHttpCall")]
-    pub enable_http_call: Option<bool>,
+    pub enable_http_call: ::core::option::Option<bool>,
     /// Optional. Indicates if the client should be allowed to use managed AI features, i.e. using Cloud Companion APIs of the tenant project. This will allow the customers to use features like Troubleshooting, OpenAPI spec enrichment, etc. for free.
     #[serde(default, rename = "enableManagedAiFeatures")]
-    pub enable_managed_ai_features: Option<bool>,
+    pub enable_managed_ai_features: ::core::option::Option<bool>,
     /// Optional. True if variable masking feature should be turned on for this region.
     #[serde(default, rename = "enableVariableMasking")]
-    pub enable_variable_masking: Option<bool>,
+    pub enable_variable_masking: ::core::option::Option<bool>,
     /// Optional. Run-as service account to be updated for the provisioned client.
     #[serde(default, rename = "runAsServiceAccount")]
-    pub run_as_service_account: Option<String>,
+    pub run_as_service_account: ::core::option::Option<String>,
 }
 
 /// This message only contains a field of double number array.
@@ -3138,7 +3429,7 @@ pub struct GoogleCloudIntegrationsV1alphaCustomerConfig {
 pub struct GoogleCloudIntegrationsV1alphaDoubleParameterArray {
     /// Double number array.
     #[serde(default, rename = "doubleValues")]
-    pub double_values: Option<Vec<f64>>,
+    pub double_values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Response for downloading an execution.
@@ -3146,7 +3437,7 @@ pub struct GoogleCloudIntegrationsV1alphaDoubleParameterArray {
 pub struct GoogleCloudIntegrationsV1alphaDownloadExecutionResponse {
     /// The content of downloaded execution.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// Response for DownloadIntegrationVersion.
@@ -3154,10 +3445,12 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadExecutionResponse {
 pub struct GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse {
     /// String representation of the requested file.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// List containing String represendation for multiple file with type.
     #[serde(default)]
-    pub files: Option<Vec<GoogleCloudIntegrationsV1alphaSerializedFile>>,
+    pub files: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaSerializedFile>>,
+    >,
 }
 
 /// Response for DownloadJsonPackage.
@@ -3165,7 +3458,9 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse {
 pub struct GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse {
     /// List containing JSON for multiple file with type information.
     #[serde(default)]
-    pub files: Option<Vec<GoogleCloudIntegrationsV1alphaFile>>,
+    pub files: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaFile>>,
+    >,
 }
 
 /// Response for DownloadTemplate.
@@ -3173,7 +3468,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse {
 pub struct GoogleCloudIntegrationsV1alphaDownloadTemplateResponse {
     /// String representation of the template.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// Response for DownloadTestCase.
@@ -3181,7 +3476,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadTemplateResponse {
 pub struct GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse {
     /// String representation of the test case.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// Response containing all provisioned regions for Connector Platform.
@@ -3189,7 +3484,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse {
 pub struct GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse {
     /// All regions where Connector Platform is provisioned.
     #[serde(default)]
-    pub regions: Option<Vec<String>>,
+    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration detail of a error catch task
@@ -3197,22 +3492,25 @@ pub struct GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsRespon
 pub struct GoogleCloudIntegrationsV1alphaErrorCatcherConfig {
     /// Optional. User-provided description intended to give more business context about the error catcher config.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. An error catcher id is string representation for the error catcher config. Within a workflow, error_catcher_id uniquely identifies an error catcher config among all error catcher configs for the workflow
     #[serde(default, rename = "errorCatcherId")]
-    pub error_catcher_id: Option<String>,
+    pub error_catcher_id: ::core::option::Option<String>,
     /// Required. A number to uniquely identify each error catcher config within the workflow on UI.
     #[serde(default, rename = "errorCatcherNumber")]
-    pub error_catcher_number: Option<String>,
+    pub error_catcher_number: ::core::option::Option<String>,
     /// Optional. The user created label for a particular error catcher. Optional.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Optional. Informs the front-end application where to draw this error catcher config on the UI.
     #[serde(default)]
-    pub position: Option<GoogleCloudIntegrationsV1alphaCoordinate>,
+    pub position:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCoordinate>>,
     /// Required. The set of start tasks that are to be executed for the error catch flow
     #[serde(default, rename = "startErrorTasks")]
-    pub start_error_tasks: Option<Vec<GoogleCloudIntegrationsV1alphaNextTask>>,
+    pub start_error_tasks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaNextTask>>,
+    >,
 }
 
 /// This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Next available id: 4
@@ -3220,13 +3518,13 @@ pub struct GoogleCloudIntegrationsV1alphaErrorCatcherConfig {
 pub struct GoogleCloudIntegrationsV1alphaEventParameter {
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given fired event. These parameters must be predefined in the integration definition.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// True if this parameter should be masked in the logs
     #[serde(default)]
-    pub masked: Option<bool>,
+    pub masked: ::core::option::Option<bool>,
     /// Values for the defined keys. Each value can either be string, int, double or any proto message.
     #[serde(default)]
-    pub value: Option<GoogleCloudIntegrationsV1alphaValueType>,
+    pub value: ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaValueType>>,
 }
 
 /// The response for executing an integration.
@@ -3234,7 +3532,7 @@ pub struct GoogleCloudIntegrationsV1alphaEventParameter {
 pub struct GoogleCloudIntegrationsV1alphaExecuteEventResponse {
     /// The id of the execution corresponding to this run of integration.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
 }
 
 /// The request for executing an integration.
@@ -3242,25 +3540,29 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteEventResponse {
 pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest {
     /// Optional. Flag to determine how to should propagate errors. If this flag is set to be true, it will not throw an exception. Instead, it will return a {@link ExecuteIntegrationsResponse} with an execution id and error messages as PostWithTriggerIdExecutionException in {@link EventParameters}. The flag is set to be false by default.
     #[serde(default, rename = "doNotPropagateError")]
-    pub do_not_propagate_error: Option<bool>,
+    pub do_not_propagate_error: ::core::option::Option<bool>,
     /// Optional. The id of the ON_HOLD execution to be resumed.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     /// Optional. Input parameters used by integration execution.
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. Parameters are a part of Event and can be used to communicate between different tasks that are part of the same integration execution.
     #[serde(default, rename = "parameterEntries")]
-    pub parameter_entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    pub parameter_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    >,
     /// Optional. Passed in as parameters to each integration execution. Redacted
     #[serde(default)]
-    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub parameters: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Optional. This is used to de-dup incoming request: if the duplicate request was detected, the response from the previous execution is returned.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Required. Matched against all {@link TriggerConfig}s across all integrations. i.e. TriggerConfig.trigger_id.equals(trigger_id). The trigger_id is in the format of api_trigger/TRIGGER_NAME.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
 }
 
 /// The response for executing an integration.
@@ -3268,22 +3570,26 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest {
 pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
     /// Details for the integration that were executed.
     #[serde(default, rename = "eventParameters")]
-    pub event_parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub event_parameters: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Is true if any execution in the integration failed. False otherwise.
     #[serde(default, rename = "executionFailed")]
-    pub execution_failed: Option<bool>,
+    pub execution_failed: ::core::option::Option<bool>,
     /// The id of the execution corresponding to this run of integration.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     /// OUTPUT parameters in format of Map. Where Key is the name of the parameter. Note: Name of the system generated parameters are wrapped by backtick() to distinguish them from the user defined parameters.
     #[serde(default, rename = "outputParameters")]
-    pub output_parameters: Option<serde_json::Value>,
+    pub output_parameters: ::core::option::Option<serde_json::Value>,
     /// Parameters are a part of Event and can be used to communicate between different tasks that are part of the same integration execution.
     #[serde(default, rename = "parameterEntries")]
-    pub parameter_entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    pub parameter_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    >,
     /// Optional. OUTPUT parameters from integration execution.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// The response for executing a functional test.
@@ -3291,16 +3597,18 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
 pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse {
     /// Results of each assertions ran during execution of test case.
     #[serde(default, rename = "assertionResults")]
-    pub assertion_results: Option<Vec<GoogleCloudIntegrationsV1alphaAssertionResult>>,
+    pub assertion_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAssertionResult>>,
+    >,
     /// The id of the execution corresponding to this run of integration.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     /// OUTPUT parameters in format of Map. Where Key is the name of the parameter. Note: Name of the system generated parameters are wrapped by backtick() to distinguish them from the user defined parameters.
     #[serde(default, rename = "outputParameters")]
-    pub output_parameters: Option<serde_json::Value>,
+    pub output_parameters: ::core::option::Option<serde_json::Value>,
     /// State of the test case execution // TODO: enum values: ["STATE_UNSPECIFIED", "PASSED", "FAILED"]
     #[serde(default, rename = "testExecutionState")]
-    pub test_execution_state: Option<String>,
+    pub test_execution_state: ::core::option::Option<String>,
 }
 
 /// Response for ExecuteTestCases.
@@ -3308,8 +3616,9 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse {
 pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse {
     /// Results of each execution of test cases in an integration version.
     #[serde(default, rename = "executeTestCaseResponses")]
-    pub execute_test_case_responses:
-        Option<Vec<GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse>>,
+    pub execute_test_case_responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse>>,
+    >,
 }
 
 /// The Execution resource contains detailed information of an individual integration execution.
@@ -3317,54 +3626,66 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse {
 pub struct GoogleCloudIntegrationsV1alphaExecution {
     /// Optional. Cloud KMS resource name for the CMEK encryption key.
     #[serde(default, rename = "cloudKmsKey")]
-    pub cloud_kms_key: Option<String>,
+    pub cloud_kms_key: ::core::option::Option<String>,
     /// Cloud Logging details for the integration version
     #[serde(default, rename = "cloudLoggingDetails")]
-    pub cloud_logging_details: Option<GoogleCloudIntegrationsV1alphaCloudLoggingDetails>,
+    pub cloud_logging_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaCloudLoggingDetails>,
+    >,
     /// Output only. Created time of the execution.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Direct sub executions of the following Execution.
     #[serde(default, rename = "directSubExecutions")]
-    pub direct_sub_executions: Option<Vec<GoogleCloudIntegrationsV1alphaExecution>>,
+    pub direct_sub_executions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecution>>,
+    >,
     /// The execution info about this event.
     #[serde(default, rename = "eventExecutionDetails")]
-    pub event_execution_details: Option<EnterpriseCrmEventbusProtoEventExecutionDetails>,
+    pub event_execution_details:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventExecutionDetails>>,
     /// Detailed info of this execution.
     #[serde(default, rename = "executionDetails")]
-    pub execution_details: Option<GoogleCloudIntegrationsV1alphaExecutionDetails>,
+    pub execution_details:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecutionDetails>>,
     /// The ways user posts this event. // TODO: enum values: ["EXECUTION_METHOD_UNSPECIFIED", "POST", "POST_TO_QUEUE", "SCHEDULE"]
     #[serde(default, rename = "executionMethod")]
-    pub execution_method: Option<String>,
+    pub execution_method: ::core::option::Option<String>,
     /// Output only. State of the integration version // TODO: enum values: ["INTEGRATION_STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "ARCHIVED", "SNAPSHOT"]
     #[serde(default, rename = "integrationVersionState")]
-    pub integration_version_state: Option<String>,
+    pub integration_version_state: ::core::option::Option<String>,
     /// Auto-generated primary key.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Replay info for the execution
     #[serde(default, rename = "replayInfo")]
-    pub replay_info: Option<GoogleCloudIntegrationsV1alphaExecutionReplayInfo>,
+    pub replay_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecutionReplayInfo>,
+    >,
     /// Event parameters come in as part of the request.
     #[serde(default, rename = "requestParameters")]
-    pub request_parameters: Option<serde_json::Value>,
+    pub request_parameters: ::core::option::Option<serde_json::Value>,
     /// Event parameters come in as part of the request.
     #[serde(default, rename = "requestParams")]
-    pub request_params: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    pub request_params: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    >,
     /// Event parameters returned as part of the response. In the case of error, the ErrorInfo field is returned in the following format: { "ErrorInfo": { "message": String, "code": Number } }
     #[serde(default, rename = "responseParameters")]
-    pub response_parameters: Option<serde_json::Value>,
+    pub response_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "responseParams")]
-    pub response_params: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    pub response_params: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    >,
     /// Output only. An increasing sequence that is set when a new snapshot is created
     #[serde(default, rename = "snapshotNumber")]
-    pub snapshot_number: Option<String>,
+    pub snapshot_number: ::core::option::Option<String>,
     /// The trigger id of the integration trigger config. If both trigger_id and client_id is present, the integration is executed from the start tasks provided by the matching trigger config otherwise it is executed from the default start tasks.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// Output only. Last modified time of the execution.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Contains the details of the execution info: this includes the tasks execution details plus the event execution statistics.
@@ -3372,16 +3693,20 @@ pub struct GoogleCloudIntegrationsV1alphaExecution {
 pub struct GoogleCloudIntegrationsV1alphaExecutionDetails {
     /// List of Start and end time of the execution attempts.
     #[serde(default, rename = "attemptStats")]
-    pub attempt_stats: Option<Vec<GoogleCloudIntegrationsV1alphaAttemptStats>>,
+    pub attempt_stats: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAttemptStats>>,
+    >,
     /// Total size of all event_execution_snapshots for an execution
     #[serde(default, rename = "eventExecutionSnapshotsSize")]
-    pub event_execution_snapshots_size: Option<String>,
+    pub event_execution_snapshots_size: ::core::option::Option<String>,
     /// List of snapshots taken during the execution.
     #[serde(default, rename = "executionSnapshots")]
-    pub execution_snapshots: Option<Vec<GoogleCloudIntegrationsV1alphaExecutionSnapshot>>,
+    pub execution_snapshots: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecutionSnapshot>>,
+    >,
     /// Status of the execution. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "PROCESSING", "SUCCEEDED", "FAILED", "CANCELLED", "RETRY_ON_HOLD", "SUSPENDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Contains the details of the execution info: this includes the replay reason and replay tree connecting executions in a parent-child relationship
@@ -3389,16 +3714,16 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionDetails {
 pub struct GoogleCloudIntegrationsV1alphaExecutionReplayInfo {
     /// If this execution is a replay of another execution, then this field contains the original execution id.
     #[serde(default, rename = "originalExecutionInfoId")]
-    pub original_execution_info_id: Option<String>,
+    pub original_execution_info_id: ::core::option::Option<String>,
     /// Replay mode for the execution // TODO: enum values: ["REPLAY_MODE_UNSPECIFIED", "REPLAY_MODE_FROM_BEGINNING", "REPLAY_MODE_POINT_OF_FAILURE"]
     #[serde(default, rename = "replayMode")]
-    pub replay_mode: Option<String>,
+    pub replay_mode: ::core::option::Option<String>,
     /// reason for replay
     #[serde(default, rename = "replayReason")]
-    pub replay_reason: Option<String>,
+    pub replay_reason: ::core::option::Option<String>,
     /// If this execution has been replayed, then this field contains the execution ids of the replayed executions.
     #[serde(default, rename = "replayedExecutionInfoIds")]
-    pub replayed_execution_info_ids: Option<Vec<String>>,
+    pub replayed_execution_info_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Contains the snapshot of the execution for a given checkpoint.
@@ -3406,17 +3731,20 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionReplayInfo {
 pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshot {
     /// Indicates "after which checkpoint task''s execution" this snapshot is taken.
     #[serde(default, rename = "checkpointTaskNumber")]
-    pub checkpoint_task_number: Option<String>,
+    pub checkpoint_task_number: ::core::option::Option<String>,
     /// Metadata of the execution snapshot.
     #[serde(default, rename = "executionSnapshotMetadata")]
-    pub execution_snapshot_metadata:
-        Option<GoogleCloudIntegrationsV1alphaExecutionSnapshotExecutionSnapshotMetadata>,
+    pub execution_snapshot_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecutionSnapshotExecutionSnapshotMetadata>,
+    >,
     /// Parameters used during the execution.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// All of the task execution details at the given point of time.
     #[serde(default, rename = "taskExecutionDetails")]
-    pub task_execution_details: Option<Vec<GoogleCloudIntegrationsV1alphaTaskExecutionDetails>>,
+    pub task_execution_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTaskExecutionDetails>>,
+    >,
 }
 
 /// Metadata of the execution snapshot.
@@ -3424,28 +3752,28 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshot {
 pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshotExecutionSnapshotMetadata {
     /// Ancestor iteration number for the task(it will only be non-empty if the task is under ''private workflow'')
     #[serde(default, rename = "ancestorIterationNumbers")]
-    pub ancestor_iteration_numbers: Option<Vec<String>>,
+    pub ancestor_iteration_numbers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Ancestor task number for the task(it will only be non-empty if the task is under ''private workflow'')
     #[serde(default, rename = "ancestorTaskNumbers")]
-    pub ancestor_task_numbers: Option<Vec<String>>,
+    pub ancestor_task_numbers: ::core::option::Option<::std::vec::Vec<String>>,
     /// the execution attempt number this snapshot belongs to.
     #[serde(default, rename = "executionAttempt")]
-    pub execution_attempt: Option<i32>,
+    pub execution_attempt: ::core::option::Option<i32>,
     /// The direct integration which the event execution snapshots belongs to
     #[serde(default, rename = "integrationName")]
-    pub integration_name: Option<String>,
+    pub integration_name: ::core::option::Option<String>,
     /// the task name associated with this snapshot.
     #[serde(default)]
-    pub task: Option<String>,
+    pub task: ::core::option::Option<String>,
     /// the task attempt number this snapshot belongs to.
     #[serde(default, rename = "taskAttempt")]
-    pub task_attempt: Option<i32>,
+    pub task_attempt: ::core::option::Option<i32>,
     /// the task label associated with this snapshot. Could be empty.
     #[serde(default, rename = "taskLabel")]
-    pub task_label: Option<String>,
+    pub task_label: ::core::option::Option<String>,
     /// The task number associated with this snapshot.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
 }
 
 /// Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a retry_strategy of NONE will be applied).
@@ -3453,16 +3781,16 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshotExecutionSnapshotMetad
 pub struct GoogleCloudIntegrationsV1alphaFailurePolicy {
     /// Optional. The string condition that will be evaluated to determine if the task should be retried with this failure policy.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// Required if retry_strategy is FIXED_INTERVAL or LINEAR/EXPONENTIAL_BACKOFF/RESTART_INTEGRATION_WITH_BACKOFF. Defines the initial interval in seconds for backoff.
     #[serde(default, rename = "intervalTime")]
-    pub interval_time: Option<String>,
+    pub interval_time: ::core::option::Option<String>,
     /// Required if retry_strategy is FIXED_INTERVAL or LINEAR/EXPONENTIAL_BACKOFF/RESTART_INTEGRATION_WITH_BACKOFF. Defines the number of times the task will be retried if failed.
     #[serde(default, rename = "maxRetries")]
-    pub max_retries: Option<i32>,
+    pub max_retries: ::core::option::Option<i32>,
     /// Defines what happens to the task upon failure. // TODO: enum values: ["RETRY_STRATEGY_UNSPECIFIED", "IGNORE", "NONE", "FATAL", "FIXED_INTERVAL", "LINEAR_BACKOFF", "EXPONENTIAL_BACKOFF", "RESTART_INTEGRATION_WITH_BACKOFF"]
     #[serde(default, rename = "retryStrategy")]
-    pub retry_strategy: Option<String>,
+    pub retry_strategy: ::core::option::Option<String>,
 }
 
 /// To store Integration version related file i.e. Integration Version, Config variable etc.
@@ -3470,13 +3798,14 @@ pub struct GoogleCloudIntegrationsV1alphaFailurePolicy {
 pub struct GoogleCloudIntegrationsV1alphaFile {
     /// Integration version config file
     #[serde(default, rename = "integrationConfig")]
-    pub integration_config: Option<serde_json::Value>,
+    pub integration_config: ::core::option::Option<serde_json::Value>,
     /// Integration version
     #[serde(default, rename = "integrationVersion")]
-    pub integration_version: Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+    pub integration_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
     /// File information like Integration version, Integration Config variables etc. // TODO: enum values: ["INTEGRATION_FILE_UNSPECIFIED", "INTEGRATION", "INTEGRATION_CONFIG_VARIABLES"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Request for GenerateOpenApiSpec.
@@ -3484,10 +3813,12 @@ pub struct GoogleCloudIntegrationsV1alphaFile {
 pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest {
     /// Required. List of api triggers
     #[serde(default, rename = "apiTriggerResources")]
-    pub api_trigger_resources: Option<Vec<GoogleCloudIntegrationsV1alphaApiTriggerResource>>,
+    pub api_trigger_resources: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaApiTriggerResource>>,
+    >,
     /// Required. File format for generated spec. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "JSON", "YAML"]
     #[serde(default, rename = "fileFormat")]
-    pub file_format: Option<String>,
+    pub file_format: ::core::option::Option<String>,
 }
 
 /// Response of the GenerateOpenApiSpec API.
@@ -3495,7 +3826,7 @@ pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest {
 pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse {
     /// Open API spec as per the required format
     #[serde(default, rename = "openApiSpec")]
-    pub open_api_spec: Option<String>,
+    pub open_api_spec: ::core::option::Option<String>,
 }
 
 /// Returns success or error message
@@ -3503,7 +3834,7 @@ pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse {
 pub struct GoogleCloudIntegrationsV1alphaGenerateTokenResponse {
     /// The message that notifies the user if the request succeeded or not.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Response for the GetClientMetadata rpc
@@ -3511,7 +3842,8 @@ pub struct GoogleCloudIntegrationsV1alphaGenerateTokenResponse {
 pub struct GoogleCloudIntegrationsV1alphaGetClientMetadataResponse {
     /// Required. Required: The client configuration that was requested
     #[serde(default)]
-    pub properties: Option<GoogleCloudIntegrationsV1alphaProjectProperties>,
+    pub properties:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaProjectProperties>>,
 }
 
 /// Response for the GetClient rpc
@@ -3519,7 +3851,8 @@ pub struct GoogleCloudIntegrationsV1alphaGetClientMetadataResponse {
 pub struct GoogleCloudIntegrationsV1alphaGetClientResponse {
     /// Required. Required: The client configuration that was requested
     #[serde(default)]
-    pub client: Option<GoogleCloudIntegrationsV1alphaClientConfig>,
+    pub client:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaClientConfig>>,
 }
 
 /// Request to Import template
@@ -3527,10 +3860,10 @@ pub struct GoogleCloudIntegrationsV1alphaGetClientResponse {
 pub struct GoogleCloudIntegrationsV1alphaImportTemplateRequest {
     /// Required. Resource Name of the integration where template needs to be imported/inserted.
     #[serde(default)]
-    pub integration: Option<String>,
+    pub integration: ::core::option::Option<String>,
     /// Optional. Sub Integration which would be created via templates.
     #[serde(default, rename = "subIntegrations")]
-    pub sub_integrations: Option<serde_json::Value>,
+    pub sub_integrations: ::core::option::Option<serde_json::Value>,
 }
 
 /// Response for import template
@@ -3538,10 +3871,13 @@ pub struct GoogleCloudIntegrationsV1alphaImportTemplateRequest {
 pub struct GoogleCloudIntegrationsV1alphaImportTemplateResponse {
     /// IntegrationVersion after the import.
     #[serde(default, rename = "integrationVersion")]
-    pub integration_version: Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+    pub integration_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
     /// Sub integration versions which are imported.
     #[serde(default, rename = "subIntegrationVersions")]
-    pub sub_integration_versions: Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
+    pub sub_integration_versions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
+    >,
 }
 
 /// This message only contains a field of integer array.
@@ -3549,7 +3885,7 @@ pub struct GoogleCloudIntegrationsV1alphaImportTemplateResponse {
 pub struct GoogleCloudIntegrationsV1alphaIntParameterArray {
     /// Integer array.
     #[serde(default, rename = "intValues")]
-    pub int_values: Option<Vec<String>>,
+    pub int_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The integration definition.
@@ -3557,25 +3893,25 @@ pub struct GoogleCloudIntegrationsV1alphaIntParameterArray {
 pub struct GoogleCloudIntegrationsV1alphaIntegration {
     /// Required. If any integration version is published.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Required. Output only. Auto-generated.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The creator''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "creatorEmail")]
-    pub creator_email: Option<String>,
+    pub creator_email: ::core::option::Option<String>,
     /// Optional.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The last modifier of this integration
     #[serde(default, rename = "lastModifierEmail")]
-    pub last_modifier_email: Option<String>,
+    pub last_modifier_email: ::core::option::Option<String>,
     /// Required. The resource name of the integration.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Auto-generated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Message to be used to configure custom alerting in the {@code EventConfig} protos for an event.
@@ -3583,31 +3919,33 @@ pub struct GoogleCloudIntegrationsV1alphaIntegration {
 pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfig {
     /// The period over which the metric value should be aggregated and evaluated. Format is , where integer should be a positive integer and unit should be one of (s,m,h,d,w) meaning (second, minute, hour, day, week). For an EXPECTED_MIN threshold, this aggregation_period must be lesser than 24 hours.
     #[serde(default, rename = "aggregationPeriod")]
-    pub aggregation_period: Option<String>,
+    pub aggregation_period: ::core::option::Option<String>,
     /// For how many contiguous aggregation periods should the expected min or max be violated for the alert to be fired.
     #[serde(default, rename = "alertThreshold")]
-    pub alert_threshold: Option<i32>,
+    pub alert_threshold: ::core::option::Option<i32>,
     /// Set to false by default. When set to true, the metrics are not aggregated or pushed to Monarch for this integration alert.
     #[serde(default, rename = "disableAlert")]
-    pub disable_alert: Option<bool>,
+    pub disable_alert: ::core::option::Option<bool>,
     /// Name of the alert. This will be displayed in the alert subject. If set, this name should be unique within the scope of the integration.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Should be specified only for *AVERAGE_DURATION and *PERCENTILE_DURATION metrics. This member should be used to specify what duration value the metrics should exceed for the alert to trigger.
     #[serde(default, rename = "durationThreshold")]
-    pub duration_threshold: Option<String>,
+    pub duration_threshold: ::core::option::Option<String>,
     /// The type of metric. // TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "EVENT_ERROR_RATE", "EVENT_WARNING_RATE", "TASK_ERROR_RATE", "TASK_WARNING_RATE", "TASK_RATE", "EVENT_RATE", "EVENT_AVERAGE_DURATION", "EVENT_PERCENTILE_DURATION", "TASK_AVERAGE_DURATION", "TASK_PERCENTILE_DURATION"]
     #[serde(default, rename = "metricType")]
-    pub metric_type: Option<String>,
+    pub metric_type: ::core::option::Option<String>,
     /// For either events or tasks, depending on the type of alert, count only final attempts, not retries.
     #[serde(default, rename = "onlyFinalAttempt")]
-    pub only_final_attempt: Option<bool>,
+    pub only_final_attempt: ::core::option::Option<bool>,
     /// The threshold type, whether lower(expected_min) or upper(expected_max), for which this alert is being configured. If value falls below expected_min or exceeds expected_max, an alert will be fired. // TODO: enum values: ["THRESHOLD_TYPE_UNSPECIFIED", "EXPECTED_MIN", "EXPECTED_MAX"]
     #[serde(default, rename = "thresholdType")]
-    pub threshold_type: Option<String>,
+    pub threshold_type: ::core::option::Option<String>,
     /// The metric value, above or below which the alert should be triggered.
     #[serde(default, rename = "thresholdValue")]
-    pub threshold_value: Option<GoogleCloudIntegrationsV1alphaIntegrationAlertConfigThresholdValue>,
+    pub threshold_value: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationAlertConfigThresholdValue>,
+    >,
 }
 
 /// The threshold value of the metric, above or below which the alert should be triggered. See EventAlertConfig or TaskAlertConfig for the different alert metric types in each case. For the *RATE metrics, one or both of these fields may be set. Zero is the default value and can be left at that. For *PERCENTILE_DURATION metrics, one or both of these fields may be set, and also, the duration threshold value should be specified in the threshold_duration_ms member below. For *AVERAGE_DURATION metrics, these fields should not be set at all. A different member, threshold_duration_ms, must be set in the EventAlertConfig or the TaskAlertConfig.
@@ -3615,10 +3953,10 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfig {
 pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfigThresholdValue {
     /// Absolute value threshold.
     #[serde(default)]
-    pub absolute: Option<String>,
+    pub absolute: ::core::option::Option<String>,
     /// Percentage threshold.
     #[serde(default)]
-    pub percentage: Option<i32>,
+    pub percentage: ::core::option::Option<i32>,
 }
 
 /// Integration Config Parameter is defined in the integration config and are used to provide external configuration for integration. It provide information about data types of the expected parameters and provide any default values or value. They can also be used to add custom attributes.
@@ -3626,10 +3964,12 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfigThresholdValue {
 pub struct GoogleCloudIntegrationsV1alphaIntegrationConfigParameter {
     /// Optional. Integration Parameter to provide the default value, data type and attributes required for the Integration config variables.
     #[serde(default)]
-    pub parameter: Option<GoogleCloudIntegrationsV1alphaIntegrationParameter>,
+    pub parameter: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationParameter>,
+    >,
     /// Values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.
     #[serde(default)]
-    pub value: Option<GoogleCloudIntegrationsV1alphaValueType>,
+    pub value: ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaValueType>>,
 }
 
 /// Integration Parameter is defined in the integration config and are used to provide information about data types of the expected parameters and provide any default values if needed. They can also be used to add custom attributes. These are static in nature and should not be used for dynamic event definition.
@@ -3637,40 +3977,41 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationConfigParameter {
 pub struct GoogleCloudIntegrationsV1alphaIntegrationParameter {
     /// Indicates whether this variable contains large data and need to be uploaded to Cloud Storage.
     #[serde(default, rename = "containsLargeData")]
-    pub contains_large_data: Option<bool>,
+    pub contains_large_data: ::core::option::Option<bool>,
     /// Type of the parameter. // TODO: enum values: ["INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "BOOLEAN_ARRAY", "JSON_VALUE", "PROTO_VALUE", "PROTO_ARRAY", "NON_SERIALIZABLE_OBJECT", "PROTO_ENUM", "SERIALIZED_OBJECT_VALUE", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// Default values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<GoogleCloudIntegrationsV1alphaValueType>,
+    pub default_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaValueType>>,
     /// Optional. Description of the parameter.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The name (without prefix) to be displayed in the UI for this parameter. E.g. if the key is "foo.bar.myName", then the name would be "myName".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Specifies the input/output type for the parameter. // TODO: enum values: ["IN_OUT_TYPE_UNSPECIFIED", "IN", "OUT", "IN_OUT"]
     #[serde(default, rename = "inputOutputType")]
-    pub input_output_type: Option<String>,
+    pub input_output_type: ::core::option::Option<String>,
     /// Whether this parameter is a transient parameter.
     #[serde(default, rename = "isTransient")]
-    pub is_transient: Option<bool>,
+    pub is_transient: ::core::option::Option<bool>,
     /// This schema will be used to validate runtime JSON-typed values of this parameter.
     #[serde(default, rename = "jsonSchema")]
-    pub json_schema: Option<String>,
+    pub json_schema: ::core::option::Option<String>,
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given fired event. These parameters must be predefined in the integration definition.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// True if this parameter should be masked in the logs
     #[serde(default)]
-    pub masked: Option<bool>,
+    pub masked: ::core::option::Option<bool>,
     /// The identifier of the node (TaskConfig/TriggerConfig) this parameter was produced by, if it is a transient param or a copy of an input param.
     #[serde(default)]
-    pub producer: Option<String>,
+    pub producer: ::core::option::Option<String>,
     /// Searchable in the execution log or not.
     #[serde(default)]
-    pub searchable: Option<bool>,
+    pub searchable: ::core::option::Option<bool>,
 }
 
 /// The integration version definition.
@@ -3678,87 +4019,105 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationParameter {
 pub struct GoogleCloudIntegrationsV1alphaIntegrationVersion {
     /// Optional. Cloud KMS resource name for the CMEK encryption key.
     #[serde(default, rename = "cloudKmsKey")]
-    pub cloud_kms_key: Option<String>,
+    pub cloud_kms_key: ::core::option::Option<String>,
     /// Optional. Cloud Logging details for the integration version
     #[serde(default, rename = "cloudLoggingDetails")]
-    pub cloud_logging_details: Option<GoogleCloudIntegrationsV1alphaCloudLoggingDetails>,
+    pub cloud_logging_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaCloudLoggingDetails>,
+    >,
     /// Output only. Auto-generated.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Optional. The resource name of the template from which the integration is created.
     #[serde(default, rename = "createdFromTemplate")]
-    pub created_from_template: Option<String>,
+    pub created_from_template: ::core::option::Option<String>,
     /// Optional. Flag to disable database persistence for execution data, including event execution info, execution export info, execution metadata index and execution param index. // TODO: enum values: ["DATABASE_PERSISTENCE_POLICY_UNSPECIFIED", "DATABASE_PERSISTENCE_DISABLED", "DATABASE_PERSISTENCE_ASYNC"]
     #[serde(default, rename = "databasePersistencePolicy")]
-    pub database_persistence_policy: Option<String>,
+    pub database_persistence_policy: ::core::option::Option<String>,
     /// Optional. The integration description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. True if variable masking feature should be turned on for this version
     #[serde(default, rename = "enableVariableMasking")]
-    pub enable_variable_masking: Option<bool>,
+    pub enable_variable_masking: ::core::option::Option<bool>,
     /// Optional. Error Catch Task configuration for the integration. It''s optional.
     #[serde(default, rename = "errorCatcherConfigs")]
-    pub error_catcher_configs: Option<Vec<GoogleCloudIntegrationsV1alphaErrorCatcherConfig>>,
+    pub error_catcher_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaErrorCatcherConfig>>,
+    >,
     /// Optional. Config Parameters that are expected to be passed to the integration when an integration is published. This consists of all the parameters that are expected to provide configuration in the integration execution. This gives the user the ability to provide default values, value, add information like connection url, project based configuration value and also provide data types of each parameter.
     #[serde(default, rename = "integrationConfigParameters")]
-    pub integration_config_parameters:
-        Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationConfigParameter>>,
+    pub integration_config_parameters: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationConfigParameter>,
+        >,
+    >,
     /// Optional. Parameters that are expected to be passed to the integration when an event is triggered. This consists of all the parameters that are expected in the integration execution. This gives the user the ability to provide default values, add information like PII and also provide data types of each parameter.
     #[serde(default, rename = "integrationParameters")]
-    pub integration_parameters: Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationParameter>>,
+    pub integration_parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationParameter>>,
+    >,
     /// Optional. Parameters that are expected to be passed to the integration when an event is triggered. This consists of all the parameters that are expected in the integration execution. This gives the user the ability to provide default values, add information like PII and also provide data types of each parameter.
     #[serde(default, rename = "integrationParametersInternal")]
-    pub integration_parameters_internal:
-        Option<EnterpriseCrmFrontendsEventbusProtoWorkflowParameters>,
+    pub integration_parameters_internal: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameters>,
+    >,
     /// Optional. The last modifier''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "lastModifierEmail")]
-    pub last_modifier_email: Option<String>,
+    pub last_modifier_email: ::core::option::Option<String>,
     /// Optional. The edit lock holder''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "lockHolder")]
-    pub lock_holder: Option<String>,
+    pub lock_holder: ::core::option::Option<String>,
     /// Output only. Auto-generated primary key.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The origin that indicates where this integration is coming from. // TODO: enum values: ["UNSPECIFIED", "UI", "PIPER_V2", "PIPER_V3", "APPLICATION_IP_PROVISIONING", "TEST_CASE"]
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
     /// Optional. The id of the template which was used to create this integration_version.
     #[serde(default, rename = "parentTemplateId")]
-    pub parent_template_id: Option<String>,
+    pub parent_template_id: ::core::option::Option<String>,
     /// Optional. The run-as service account email, if set and auth config is not configured, that will be used to generate auth token to be used in Connector task, Rest caller task and Cloud function task.
     #[serde(default, rename = "runAsServiceAccount")]
-    pub run_as_service_account: Option<String>,
+    pub run_as_service_account: ::core::option::Option<String>,
     /// Output only. An increasing sequence that is set when a new snapshot is created. The last created snapshot can be identified by [workflow_name, org_id latest(snapshot_number)]. However, last created snapshot need not be same as the HEAD. So users should always use "HEAD" tag to identify the head.
     #[serde(default, rename = "snapshotNumber")]
-    pub snapshot_number: Option<String>,
+    pub snapshot_number: ::core::option::Option<String>,
     /// Output only. User should not set it as an input. // TODO: enum values: ["INTEGRATION_STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "ARCHIVED", "SNAPSHOT"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Generated by eventbus. User should not set it as an input. // TODO: enum values: ["UNKNOWN", "DRAFT", "ACTIVE", "ARCHIVED", "SNAPSHOT"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Optional. Task configuration for the integration. It''s optional, but the integration doesn''t do anything without task_configs.
     #[serde(default, rename = "taskConfigs")]
-    pub task_configs: Option<Vec<GoogleCloudIntegrationsV1alphaTaskConfig>>,
+    pub task_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTaskConfig>>,
+    >,
     /// Optional. Task configuration for the integration. It''s optional, but the integration doesn''t do anything without task_configs.
     #[serde(default, rename = "taskConfigsInternal")]
-    pub task_configs_internal: Option<Vec<EnterpriseCrmFrontendsEventbusProtoTaskConfig>>,
+    pub task_configs_internal: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoTaskConfig>>,
+    >,
     /// Optional. Contains a graph of tasks that will be executed before putting the event in a terminal state (SUCCEEDED/FAILED/FATAL), regardless of success or failure, similar to "finally" in code.
     #[serde(default)]
-    pub teardown: Option<EnterpriseCrmEventbusProtoTeardown>,
+    pub teardown: ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoTeardown>>,
     /// Optional. Trigger configurations.
     #[serde(default, rename = "triggerConfigs")]
-    pub trigger_configs: Option<Vec<GoogleCloudIntegrationsV1alphaTriggerConfig>>,
+    pub trigger_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTriggerConfig>>,
+    >,
     /// Optional. Trigger configurations.
     #[serde(default, rename = "triggerConfigsInternal")]
-    pub trigger_configs_internal: Option<Vec<EnterpriseCrmFrontendsEventbusProtoTriggerConfig>>,
+    pub trigger_configs_internal: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoTriggerConfig>>,
+    >,
     /// Output only. Auto-generated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. A user-defined label that annotates an integration version. Typically, this is only set when the integration version is created.
     #[serde(default, rename = "userLabel")]
-    pub user_label: Option<String>,
+    pub user_label: ::core::option::Option<String>,
 }
 
 /// Define the template of IntegrationVersion.
@@ -3766,10 +4125,11 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationVersion {
 pub struct GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate {
     /// Required. Templatized version of integration.
     #[serde(default, rename = "integrationVersion")]
-    pub integration_version: Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+    pub integration_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
     /// Required. Unique Key of the IntegrationVersion.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// Represents JSON web token(JWT), which is a compact, URL-safe means of representing claims to be transferred between two parties, enabling the claims to be digitally signed or integrity protected.
@@ -3777,16 +4137,16 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate {
 pub struct GoogleCloudIntegrationsV1alphaJwt {
     /// The token calculated by the header, payload and signature.
     #[serde(default)]
-    pub jwt: Option<String>,
+    pub jwt: ::core::option::Option<String>,
     /// Identifies which algorithm is used to generate the signature.
     #[serde(default, rename = "jwtHeader")]
-    pub jwt_header: Option<String>,
+    pub jwt_header: ::core::option::Option<String>,
     /// Contains a set of claims. The JWT specification defines seven Registered Claim Names which are the standard fields commonly included in tokens. Custom claims are usually also included, depending on the purpose of the token.
     #[serde(default, rename = "jwtPayload")]
-    pub jwt_payload: Option<String>,
+    pub jwt_payload: ::core::option::Option<String>,
     /// User''s pre-shared secret to sign the token.
     #[serde(default)]
-    pub secret: Option<String>,
+    pub secret: ::core::option::Option<String>,
 }
 
 /// Request for lift Suspension
@@ -3794,7 +4154,7 @@ pub struct GoogleCloudIntegrationsV1alphaJwt {
 pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionRequest {
     /// User passed in suspension result and will be used to control workflow execution branching behavior by setting up corresponnding edge condition with suspension result. For example, if you want to lift the suspension, you can pass "Approved", or if you want to reject the suspension and terminate workfloe execution, you can pass "Rejected" and terminate the workflow execution with configuring the edge condition.
     #[serde(default, rename = "suspensionResult")]
-    pub suspension_result: Option<String>,
+    pub suspension_result: ::core::option::Option<String>,
 }
 
 /// Response of lift Suspense
@@ -3802,7 +4162,7 @@ pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionRequest {
 pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionResponse {
     /// Execution Id that will be returned
     #[serde(default, rename = "eventExecutionInfoId")]
-    pub event_execution_info_id: Option<String>,
+    pub event_execution_info_id: ::core::option::Option<String>,
 }
 
 /// Request for LinkAppsScriptProject rpc call.
@@ -3810,7 +4170,7 @@ pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionResponse {
 pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest {
     /// The id of the Apps Script project to be linked.
     #[serde(default, rename = "scriptId")]
-    pub script_id: Option<String>,
+    pub script_id: ::core::option::Option<String>,
 }
 
 /// Response for LinkAppsScriptProject rpc call.
@@ -3818,7 +4178,7 @@ pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest {
 pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse {
     /// The id of the linked Apps Script project.
     #[serde(default, rename = "scriptId")]
-    pub script_id: Option<String>,
+    pub script_id: ::core::option::Option<String>,
 }
 
 /// Response to list AuthConfigs.
@@ -3826,10 +4186,12 @@ pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse {
 pub struct GoogleCloudIntegrationsV1alphaListAuthConfigsResponse {
     /// The list of AuthConfigs retrieved.
     #[serde(default, rename = "authConfigs")]
-    pub auth_configs: Option<Vec<GoogleCloudIntegrationsV1alphaAuthConfig>>,
+    pub auth_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAuthConfig>>,
+    >,
     /// The token used to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response to list Certificates.
@@ -3837,10 +4199,12 @@ pub struct GoogleCloudIntegrationsV1alphaListAuthConfigsResponse {
 pub struct GoogleCloudIntegrationsV1alphaListCertificatesResponse {
     /// The list of Certificates retrieved.
     #[serde(default)]
-    pub certificates: Option<Vec<GoogleCloudIntegrationsV1alphaCertificate>>,
+    pub certificates: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCertificate>>,
+    >,
     /// The token used to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response containing Connections listed by region.
@@ -3848,10 +4212,12 @@ pub struct GoogleCloudIntegrationsV1alphaListCertificatesResponse {
 pub struct GoogleCloudIntegrationsV1alphaListConnectionsResponse {
     /// Connections.
     #[serde(default)]
-    pub connections: Option<Vec<GoogleCloudConnectorsV1Connection>>,
+    pub connections: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudConnectorsV1Connection>>,
+    >,
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for listing the integration execution data.
@@ -3859,13 +4225,17 @@ pub struct GoogleCloudIntegrationsV1alphaListConnectionsResponse {
 pub struct GoogleCloudIntegrationsV1alphaListExecutionsResponse {
     /// Required. The detailed information of requested executions.
     #[serde(default, rename = "executionInfos")]
-    pub execution_infos: Option<Vec<EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo>>,
+    pub execution_infos: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo>>,
+    >,
     /// The detailed information of requested executions
     #[serde(default)]
-    pub executions: Option<Vec<GoogleCloudIntegrationsV1alphaExecution>>,
+    pub executions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecution>>,
+    >,
     /// The token used to retrieve the next page results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for ListIntegrationVersions.
@@ -3873,13 +4243,15 @@ pub struct GoogleCloudIntegrationsV1alphaListExecutionsResponse {
 pub struct GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse {
     /// The integrations which match the request.
     #[serde(default, rename = "integrationVersions")]
-    pub integration_versions: Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
+    pub integration_versions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Whether the user has no permission on the version or not.
     #[serde(default, rename = "noPermission")]
-    pub no_permission: Option<bool>,
+    pub no_permission: ::core::option::Option<bool>,
 }
 
 /// Response for ListIntegrations.
@@ -3887,10 +4259,12 @@ pub struct GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse {
 pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
     /// The integrations which match the request.
     #[serde(default)]
-    pub integrations: Option<Vec<GoogleCloudIntegrationsV1alphaIntegration>>,
+    pub integrations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegration>>,
+    >,
     /// The next page token for the response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for listing RuntimeActionSchemas for a specific Connection.
@@ -3898,10 +4272,12 @@ pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
 pub struct GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse {
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Runtime action schemas.
     #[serde(default, rename = "runtimeActionSchemas")]
-    pub runtime_action_schemas: Option<Vec<GoogleCloudIntegrationsV1alphaRuntimeActionSchema>>,
+    pub runtime_action_schemas: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaRuntimeActionSchema>>,
+    >,
 }
 
 /// Response for listing RuntimeEntitySchemas for a specific Connection.
@@ -3909,10 +4285,12 @@ pub struct GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse {
 pub struct GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse {
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Runtime entity schemas.
     #[serde(default, rename = "runtimeEntitySchemas")]
-    pub runtime_entity_schemas: Option<Vec<GoogleCloudIntegrationsV1alphaRuntimeEntitySchema>>,
+    pub runtime_entity_schemas: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaRuntimeEntitySchema>>,
+    >,
 }
 
 /// Response to list SfdcChannels.
@@ -3920,10 +4298,12 @@ pub struct GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse {
 pub struct GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse {
     /// The token used to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of SfdcChannels retrieved.
     #[serde(default, rename = "sfdcChannels")]
-    pub sfdc_channels: Option<Vec<GoogleCloudIntegrationsV1alphaSfdcChannel>>,
+    pub sfdc_channels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaSfdcChannel>>,
+    >,
 }
 
 /// Response to list SfdcInstances.
@@ -3931,10 +4311,12 @@ pub struct GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse {
 pub struct GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse {
     /// The token used to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of SfdcInstances retrieved.
     #[serde(default, rename = "sfdcInstances")]
-    pub sfdc_instances: Option<Vec<GoogleCloudIntegrationsV1alphaSfdcInstance>>,
+    pub sfdc_instances: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaSfdcInstance>>,
+    >,
 }
 
 /// Response for Suspensions.ListSuspensions.
@@ -3942,10 +4324,12 @@ pub struct GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse {
 pub struct GoogleCloudIntegrationsV1alphaListSuspensionsResponse {
     /// Token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The suspensions for the relevant execution which the caller has permissions to view and resolve.
     #[serde(default)]
-    pub suspensions: Option<Vec<GoogleCloudIntegrationsV1alphaSuspension>>,
+    pub suspensions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaSuspension>>,
+    >,
 }
 
 /// Response for a request to list templates
@@ -3953,10 +4337,12 @@ pub struct GoogleCloudIntegrationsV1alphaListSuspensionsResponse {
 pub struct GoogleCloudIntegrationsV1alphaListTemplatesResponse {
     /// The token used to retrieve the next page results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of templates retrieved.
     #[serde(default)]
-    pub templates: Option<Vec<GoogleCloudIntegrationsV1alphaTemplate>>,
+    pub templates: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTemplate>>,
+    >,
 }
 
 /// Response for ListTestCases
@@ -3964,10 +4350,12 @@ pub struct GoogleCloudIntegrationsV1alphaListTemplatesResponse {
 pub struct GoogleCloudIntegrationsV1alphaListTestCasesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The test cases corresponding to the specified filter
     #[serde(default, rename = "testCases")]
-    pub test_cases: Option<Vec<GoogleCloudIntegrationsV1alphaTestCase>>,
+    pub test_cases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTestCase>>,
+    >,
 }
 
 /// The configuration for mocking of a task during test execution Next available id: 4
@@ -3975,13 +4363,15 @@ pub struct GoogleCloudIntegrationsV1alphaListTestCasesResponse {
 pub struct GoogleCloudIntegrationsV1alphaMockConfig {
     /// Optional. Number of times the given task should fail for failure mock strategy
     #[serde(default, rename = "failedExecutions")]
-    pub failed_executions: Option<String>,
+    pub failed_executions: ::core::option::Option<String>,
     /// Mockstrategy defines how the particular task should be mocked during test execution // TODO: enum values: ["MOCK_STRATEGY_UNSPECIFIED", "NO_MOCK_STRATEGY", "SPECIFIC_MOCK_STRATEGY", "FAILURE_MOCK_STRATEGY", "SKIP_MOCK_STRATEGY"]
     #[serde(default, rename = "mockStrategy")]
-    pub mock_strategy: Option<String>,
+    pub mock_strategy: ::core::option::Option<String>,
     /// Optional. List of key-value pairs for specific mock strategy
     #[serde(default)]
-    pub parameters: Option<Vec<GoogleCloudIntegrationsV1alphaEventParameter>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaEventParameter>>,
+    >,
 }
 
 /// The task that is next in line to be executed, if the condition specified evaluated to true.
@@ -3989,19 +4379,19 @@ pub struct GoogleCloudIntegrationsV1alphaMockConfig {
 pub struct GoogleCloudIntegrationsV1alphaNextTask {
     /// Standard filter expression for this task to become an eligible next task.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// User-provided description intended to give additional business context about the task.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User-provided label that is attached to this edge in the UI.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// ID of the next task.
     #[serde(default, rename = "taskConfigId")]
-    pub task_config_id: Option<String>,
+    pub task_config_id: ::core::option::Option<String>,
     /// Task number of the next task.
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
 }
 
 /// The OAuth Type where the client sends request with the client id and requested scopes to auth endpoint. User sees a consent screen and auth code is received at specified redirect url afterwards. The auth code is then combined with the client id and secret and sent to the token endpoint in exchange for the access and refresh token. The refresh token can be used to fetch new access tokens.
@@ -4009,37 +4399,40 @@ pub struct GoogleCloudIntegrationsV1alphaNextTask {
 pub struct GoogleCloudIntegrationsV1alphaOAuth2AuthorizationCode {
     /// The access token received from the token endpoint.
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<GoogleCloudIntegrationsV1alphaAccessToken>,
+    pub access_token:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAccessToken>>,
     /// Indicates if the user has opted in Google Reauth Policy. If opted in, the refresh token will be valid for 20 hours, after which time users must re-authenticate in order to obtain a new one.
     #[serde(default, rename = "applyReauthPolicy")]
-    pub apply_reauth_policy: Option<bool>,
+    pub apply_reauth_policy: ::core::option::Option<bool>,
     /// The Auth Code that is used to initially retrieve the access token.
     #[serde(default, rename = "authCode")]
-    pub auth_code: Option<String>,
+    pub auth_code: ::core::option::Option<String>,
     /// The auth url endpoint to send the auth code request to.
     #[serde(default, rename = "authEndpoint")]
-    pub auth_endpoint: Option<String>,
+    pub auth_endpoint: ::core::option::Option<String>,
     /// The auth parameters sent along with the auth code request.
     #[serde(default, rename = "authParams")]
-    pub auth_params: Option<GoogleCloudIntegrationsV1alphaParameterMap>,
+    pub auth_params:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaParameterMap>>,
     /// The client''s id.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// The client''s secret.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// Represent how to pass parameters to fetch access token // TODO: enum values: ["REQUEST_TYPE_UNSPECIFIED", "REQUEST_BODY", "QUERY_PARAMETERS", "ENCODED_HEADER"]
     #[serde(default, rename = "requestType")]
-    pub request_type: Option<String>,
+    pub request_type: ::core::option::Option<String>,
     /// A space-delimited list of requested scope permissions.
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// The token url endpoint to send the token request to.
     #[serde(default, rename = "tokenEndpoint")]
-    pub token_endpoint: Option<String>,
+    pub token_endpoint: ::core::option::Option<String>,
     /// The token parameters sent along with the token request.
     #[serde(default, rename = "tokenParams")]
-    pub token_params: Option<GoogleCloudIntegrationsV1alphaParameterMap>,
+    pub token_params:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaParameterMap>>,
 }
 
 /// For client credentials grant, the client sends a POST request with grant_type as ''client_credentials'' to the authorization server. The authorization server will respond with a JSON object containing the access token.
@@ -4047,25 +4440,27 @@ pub struct GoogleCloudIntegrationsV1alphaOAuth2AuthorizationCode {
 pub struct GoogleCloudIntegrationsV1alphaOAuth2ClientCredentials {
     /// Access token fetched from the authorization server.
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<GoogleCloudIntegrationsV1alphaAccessToken>,
+    pub access_token:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAccessToken>>,
     /// The client''s ID.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// The client''s secret.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// Represent how to pass parameters to fetch access token // TODO: enum values: ["REQUEST_TYPE_UNSPECIFIED", "REQUEST_BODY", "QUERY_PARAMETERS", "ENCODED_HEADER"]
     #[serde(default, rename = "requestType")]
-    pub request_type: Option<String>,
+    pub request_type: ::core::option::Option<String>,
     /// A space-delimited list of requested scope permissions.
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// The token endpoint is used by the client to obtain an access token by presenting its authorization grant or refresh token.
     #[serde(default, rename = "tokenEndpoint")]
-    pub token_endpoint: Option<String>,
+    pub token_endpoint: ::core::option::Option<String>,
     /// Token parameters for the auth request.
     #[serde(default, rename = "tokenParams")]
-    pub token_params: Option<GoogleCloudIntegrationsV1alphaParameterMap>,
+    pub token_params:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaParameterMap>>,
 }
 
 /// For resource owner credentials grant, the client will ask the user for their authorization credentials (ususally a username and password) and send a POST request to the authorization server. The authorization server will respond with a JSON object containing the access token.
@@ -4073,31 +4468,33 @@ pub struct GoogleCloudIntegrationsV1alphaOAuth2ClientCredentials {
 pub struct GoogleCloudIntegrationsV1alphaOAuth2ResourceOwnerCredentials {
     /// Access token fetched from the authorization server.
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<GoogleCloudIntegrationsV1alphaAccessToken>,
+    pub access_token:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAccessToken>>,
     /// The client''s ID.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// The client''s secret.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// The user''s password.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// Represent how to pass parameters to fetch access token // TODO: enum values: ["REQUEST_TYPE_UNSPECIFIED", "REQUEST_BODY", "QUERY_PARAMETERS", "ENCODED_HEADER"]
     #[serde(default, rename = "requestType")]
-    pub request_type: Option<String>,
+    pub request_type: ::core::option::Option<String>,
     /// A space-delimited list of requested scope permissions.
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// The token endpoint is used by the client to obtain an access token by presenting its authorization grant or refresh token.
     #[serde(default, rename = "tokenEndpoint")]
-    pub token_endpoint: Option<String>,
+    pub token_endpoint: ::core::option::Option<String>,
     /// Token parameters for the auth request.
     #[serde(default, rename = "tokenParams")]
-    pub token_params: Option<GoogleCloudIntegrationsV1alphaParameterMap>,
+    pub token_params:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaParameterMap>>,
     /// The user''s username.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// OIDC Token
@@ -4105,16 +4502,16 @@ pub struct GoogleCloudIntegrationsV1alphaOAuth2ResourceOwnerCredentials {
 pub struct GoogleCloudIntegrationsV1alphaOidcToken {
     /// Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for.
     #[serde(default)]
-    pub audience: Option<String>,
+    pub audience: ::core::option::Option<String>,
     /// The service account email to be used as the identity for the token.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// ID token obtained for the service account
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// The approximate time until the token retrieved is valid.
     #[serde(default, rename = "tokenExpireTime")]
-    pub token_expire_time: Option<String>,
+    pub token_expire_time: ::core::option::Option<String>,
 }
 
 /// A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.
@@ -4122,13 +4519,15 @@ pub struct GoogleCloudIntegrationsV1alphaOidcToken {
 pub struct GoogleCloudIntegrationsV1alphaParameterMap {
     /// A list of parameter map entries.
     #[serde(default)]
-    pub entries: Option<Vec<GoogleCloudIntegrationsV1alphaParameterMapEntry>>,
+    pub entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaParameterMapEntry>>,
+    >,
     /// Option to specify key type for all entries of the map. If provided then field types for all entries must conform to this. // TODO: enum values: ["INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "BOOLEAN_ARRAY", "JSON_VALUE", "PROTO_VALUE", "PROTO_ARRAY", "NON_SERIALIZABLE_OBJECT", "PROTO_ENUM", "SERIALIZED_OBJECT_VALUE", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY"]
     #[serde(default, rename = "keyType")]
-    pub key_type: Option<String>,
+    pub key_type: ::core::option::Option<String>,
     /// Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this. // TODO: enum values: ["INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "BOOLEAN_ARRAY", "JSON_VALUE", "PROTO_VALUE", "PROTO_ARRAY", "NON_SERIALIZABLE_OBJECT", "PROTO_ENUM", "SERIALIZED_OBJECT_VALUE", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// Entry is a pair of key and value.
@@ -4136,10 +4535,12 @@ pub struct GoogleCloudIntegrationsV1alphaParameterMap {
 pub struct GoogleCloudIntegrationsV1alphaParameterMapEntry {
     /// Key of the map entry.
     #[serde(default)]
-    pub key: Option<GoogleCloudIntegrationsV1alphaParameterMapField>,
+    pub key:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaParameterMapField>>,
     /// Value of the map entry.
     #[serde(default)]
-    pub value: Option<GoogleCloudIntegrationsV1alphaParameterMapField>,
+    pub value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaParameterMapField>>,
 }
 
 /// Field represents either the key or value in an entry.
@@ -4147,10 +4548,11 @@ pub struct GoogleCloudIntegrationsV1alphaParameterMapEntry {
 pub struct GoogleCloudIntegrationsV1alphaParameterMapField {
     /// Passing a literal value.
     #[serde(default, rename = "literalValue")]
-    pub literal_value: Option<GoogleCloudIntegrationsV1alphaValueType>,
+    pub literal_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaValueType>>,
     /// Referencing one of the Integration variables.
     #[serde(default, rename = "referenceKey")]
-    pub reference_key: Option<String>,
+    pub reference_key: ::core::option::Option<String>,
 }
 
 /// Metadata information for the given project
@@ -4158,13 +4560,13 @@ pub struct GoogleCloudIntegrationsV1alphaParameterMapField {
 pub struct GoogleCloudIntegrationsV1alphaProjectProperties {
     /// Required. Required: The client billing type that was requested // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "APIGEE_TRIALS", "APIGEE_SUBSCRIPTION", "PAYG", "SUBSCRIPTION", "NO_BILLING"]
     #[serde(default, rename = "billingType")]
-    pub billing_type: Option<String>,
+    pub billing_type: ::core::option::Option<String>,
     /// An enum value of what the enablement state is for the given project // TODO: enum values: ["IP_ENABLEMENT_STATE_UNSPECIFIED", "IP_ENABLEMENT_STATE_STANDALONE", "IP_ENABLEMENT_STATE_APIGEE", "IP_ENABLEMENT_STATE_APIGEE_ENTITLED"]
     #[serde(default, rename = "ipEnablementState")]
-    pub ip_enablement_state: Option<String>,
+    pub ip_enablement_state: ::core::option::Option<String>,
     /// A list of provisioned regions on the current project
     #[serde(default, rename = "provisionedRegions")]
-    pub provisioned_regions: Option<Vec<String>>,
+    pub provisioned_regions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for PostProvisioning rpc call.
@@ -4172,7 +4574,7 @@ pub struct GoogleCloudIntegrationsV1alphaProjectProperties {
 pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest {
     /// Optional. Indicate which workflows to create
     #[serde(default)]
-    pub workflows: Option<Vec<String>>,
+    pub workflows: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for the Provision rpc
@@ -4180,25 +4582,26 @@ pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest {
 pub struct GoogleCloudIntegrationsV1alphaProvisionClientRequest {
     /// Optional. OPTIONAL: Cloud KMS config for AuthModule to encrypt/decrypt credentials.
     #[serde(default, rename = "cloudKmsConfig")]
-    pub cloud_kms_config: Option<GoogleCloudIntegrationsV1alphaCloudKmsConfig>,
+    pub cloud_kms_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCloudKmsConfig>>,
     /// Optional. Indicates if sample workflow should be created along with provisioning
     #[serde(default, rename = "createSampleWorkflows")]
-    pub create_sample_workflows: Option<bool>,
+    pub create_sample_workflows: ::core::option::Option<bool>,
     /// Optional. Indicates if the client should be allowed to make HTTP calls.
     #[serde(default, rename = "enableHttpCall")]
-    pub enable_http_call: Option<bool>,
+    pub enable_http_call: ::core::option::Option<bool>,
     /// Optional. Indicates if the client should be allowed to use managed AI features, i.e. using Cloud Companion APIs of the tenant project. This will allow the customers to use features like Troubleshooting, OpenAPI spec enrichment, etc. for free.
     #[serde(default, rename = "enableManagedAiFeatures")]
-    pub enable_managed_ai_features: Option<bool>,
+    pub enable_managed_ai_features: ::core::option::Option<bool>,
     /// Optional. Deprecated. Indicates provision with GMEK or CMEK. This field is deprecated and the provision would always be GMEK if cloud_kms_config is not present in the request.
     #[serde(default, rename = "provisionGmek")]
-    pub provision_gmek: Option<bool>,
+    pub provision_gmek: ::core::option::Option<bool>,
     /// Optional. User input run-as service account, if empty, will bring up a new default service account
     #[serde(default, rename = "runAsServiceAccount")]
-    pub run_as_service_account: Option<String>,
+    pub run_as_service_account: ::core::option::Option<String>,
     /// Optional. Indicates if skip CP provision or not
     #[serde(default, rename = "skipCpProvision")]
-    pub skip_cp_provision: Option<bool>,
+    pub skip_cp_provision: ::core::option::Option<bool>,
 }
 
 /// Request for the ReplaceServiceAccount rpc
@@ -4206,7 +4609,7 @@ pub struct GoogleCloudIntegrationsV1alphaProvisionClientRequest {
 pub struct GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest {
     /// Required. REQUIRED: Run-as service account to be updated
     #[serde(default, rename = "runAsServiceAccount")]
-    pub run_as_service_account: Option<String>,
+    pub run_as_service_account: ::core::option::Option<String>,
 }
 
 /// Request for replaying an execution.
@@ -4214,16 +4617,16 @@ pub struct GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest {
 pub struct GoogleCloudIntegrationsV1alphaReplayExecutionRequest {
     /// Optional. The modified input parameters for replay. - Provide values for all the fields in the ''update_mask''. Any field not present in the ''update_mask'' will be ignored and its value will be taken from the original execution. - If the ''update_mask'' is not specified, all the parameters from original execution will be ignored and only the modified_parameters will be used.
     #[serde(default, rename = "modifiedParameters")]
-    pub modified_parameters: Option<serde_json::Value>,
+    pub modified_parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. The mode of the replay. // TODO: enum values: ["REPLAY_MODE_UNSPECIFIED", "REPLAY_MODE_FROM_BEGINNING", "REPLAY_MODE_POINT_OF_FAILURE"]
     #[serde(default, rename = "replayMode")]
-    pub replay_mode: Option<String>,
+    pub replay_mode: ::core::option::Option<String>,
     /// Required. The user provided reason for replaying the execution.
     #[serde(default, rename = "replayReason")]
-    pub replay_reason: Option<String>,
+    pub replay_reason: ::core::option::Option<String>,
     /// Optional. The list of parameters to be updated. - If the update_mask is not specified, all the parameters from original execution will be ignored and only the modified_parameters will be used. - It is an error to include a parameter in update_mask but not in modified_parameters. - Updating nested fields in a JSON parameter is not supported, please provide the complete JSON in the modified_parameters.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Response for replaying an execution.
@@ -4231,13 +4634,13 @@ pub struct GoogleCloudIntegrationsV1alphaReplayExecutionRequest {
 pub struct GoogleCloudIntegrationsV1alphaReplayExecutionResponse {
     /// Next ID: 4 The id of the execution corresponding to this run of the integration.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     /// OUTPUT parameters in format of Map. Where Key is the name of the parameter. The parameters would only be present in case of synchrounous execution. Note: Name of the system generated parameters are wrapped by backtick() to distinguish them from the user defined parameters.
     #[serde(default, rename = "outputParameters")]
-    pub output_parameters: Option<serde_json::Value>,
+    pub output_parameters: ::core::option::Option<serde_json::Value>,
     /// The execution id which is replayed.
     #[serde(default, rename = "replayedExecutionId")]
-    pub replayed_execution_id: Option<String>,
+    pub replayed_execution_id: ::core::option::Option<String>,
 }
 
 /// Request for [Suspensions.ResolveSuspensions].
@@ -4245,7 +4648,8 @@ pub struct GoogleCloudIntegrationsV1alphaReplayExecutionResponse {
 pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionRequest {
     /// Suspension, containing the event_execution_info_id, task_id, and state to set on the corresponding suspension record.
     #[serde(default)]
-    pub suspension: Option<GoogleCloudIntegrationsV1alphaSuspension>,
+    pub suspension:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaSuspension>>,
 }
 
 /// Metadata of an action, including schemas for its inputs and outputs.
@@ -4253,13 +4657,13 @@ pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionRequest {
 pub struct GoogleCloudIntegrationsV1alphaRuntimeActionSchema {
     /// Name of the action.
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Input parameter schema for the action.
     #[serde(default, rename = "inputSchema")]
-    pub input_schema: Option<String>,
+    pub input_schema: ::core::option::Option<String>,
     /// Output parameter schema for the action.
     #[serde(default, rename = "outputSchema")]
-    pub output_schema: Option<String>,
+    pub output_schema: ::core::option::Option<String>,
 }
 
 /// Metadata of an entity, including a schema for its properties.
@@ -4267,13 +4671,13 @@ pub struct GoogleCloudIntegrationsV1alphaRuntimeActionSchema {
 pub struct GoogleCloudIntegrationsV1alphaRuntimeEntitySchema {
     /// The above schema, but for an array of the associated entity.
     #[serde(default, rename = "arrayFieldSchema")]
-    pub array_field_schema: Option<String>,
+    pub array_field_schema: ::core::option::Option<String>,
     /// Name of the entity.
     #[serde(default)]
-    pub entity: Option<String>,
+    pub entity: ::core::option::Option<String>,
     /// List of fields in the entity.
     #[serde(default, rename = "fieldSchema")]
-    pub field_schema: Option<String>,
+    pub field_schema: ::core::option::Option<String>,
 }
 
 /// The request for scheduling an integration.
@@ -4281,25 +4685,28 @@ pub struct GoogleCloudIntegrationsV1alphaRuntimeEntitySchema {
 pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest {
     /// Optional. Input parameters used by integration execution.
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     /// Parameters are a part of Event and can be used to communicate between different tasks that are part of the same integration execution.
     #[serde(default, rename = "parameterEntries")]
-    pub parameter_entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    pub parameter_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    >,
     /// Passed in as parameters to each integration execution.
     #[serde(default)]
-    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    pub parameters:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventParameters>>,
     /// This is used to de-dup incoming request: if the duplicate request was detected, the response from the previous execution is returned.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// The time that the integration should be executed. If the time is less or equal to the current time, the integration is executed immediately.
     #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: Option<String>,
+    pub schedule_time: ::core::option::Option<String>,
     /// Required. Matched against all {@link TriggerConfig}s across all integrations. i.e. TriggerConfig.trigger_id.equals(trigger_id)
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// Optional. This is a unique id provided by the method caller. If provided this will be used as the execution_id when a new execution info is created. This is a string representation of a UUID. Must have no more than 36 characters and contain only alphanumeric characters and hyphens.
     #[serde(default, rename = "userGeneratedExecutionId")]
-    pub user_generated_execution_id: Option<String>,
+    pub user_generated_execution_id: ::core::option::Option<String>,
 }
 
 /// The response for executing an integration.
@@ -4307,7 +4714,7 @@ pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest {
 pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
     /// The execution info id for the executed integrations.
     #[serde(default, rename = "executionInfoIds")]
-    pub execution_info_ids: Option<Vec<String>>,
+    pub execution_info_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for SearchIntegrations.
@@ -4315,12 +4722,16 @@ pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
 pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse {
     /// The list of integrations that match the search criteria.
     #[serde(default)]
-    pub integrations: Option<
-        Vec<GoogleCloudIntegrationsV1alphaSearchIntegrationsResponseIntegrationSearchResult>,
+    pub integrations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudIntegrationsV1alphaSearchIntegrationsResponseIntegrationSearchResult,
+            >,
+        >,
     >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The integration search result with integration level information.
@@ -4328,28 +4739,28 @@ pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse {
 pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponseIntegrationSearchResult {
     /// Output only. The create time of the integration version.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The creator of the integration version.
     #[serde(default)]
-    pub creator: Option<String>,
+    pub creator: ::core::option::Option<String>,
     /// The description of the integration version.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The integration id.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The integration document metadata.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The region of the integration version.
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
     /// Output only. The status of the integration version. // TODO: enum values: ["INTEGRATION_STATE_UNSPECIFIED", "DRAFT", "ACTIVE", "ARCHIVED", "SNAPSHOT"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// The version of the integration version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Response for a request to search templates
@@ -4357,10 +4768,12 @@ pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponseIntegrationSe
 pub struct GoogleCloudIntegrationsV1alphaSearchTemplatesResponse {
     /// The token used to retrieve the next page results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of templates retrieved.
     #[serde(default)]
-    pub templates: Option<Vec<GoogleCloudIntegrationsV1alphaTemplate>>,
+    pub templates: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTemplate>>,
+    >,
 }
 
 /// To store string representation of Integration file.
@@ -4368,10 +4781,10 @@ pub struct GoogleCloudIntegrationsV1alphaSearchTemplatesResponse {
 pub struct GoogleCloudIntegrationsV1alphaSerializedFile {
     /// String representation of the file content.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// File information like Integration version, Integration Config variables etc. // TODO: enum values: ["INTEGRATION_FILE_UNSPECIFIED", "INTEGRATION", "INTEGRATION_CONFIG_VARIABLES"]
     #[serde(default)]
-    pub file: Option<String>,
+    pub file: ::core::option::Option<String>,
 }
 
 /// Represents the service account which can be used to generate access token for authenticating the service call.
@@ -4379,10 +4792,10 @@ pub struct GoogleCloudIntegrationsV1alphaSerializedFile {
 pub struct GoogleCloudIntegrationsV1alphaServiceAccountCredentials {
     /// A space-delimited list of requested scope permissions.
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// Name of the service account that has the permission to make the request.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
 }
 
 /// The SfdcChannel that points to a CDC or Platform Event Channel.
@@ -4390,31 +4803,31 @@ pub struct GoogleCloudIntegrationsV1alphaServiceAccountCredentials {
 pub struct GoogleCloudIntegrationsV1alphaSfdcChannel {
     /// Required. The Channel topic defined by salesforce once an channel is opened
     #[serde(default, rename = "channelTopic")]
-    pub channel_topic: Option<String>,
+    pub channel_topic: ::core::option::Option<String>,
     /// Output only. Time when the channel is created
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time when the channel was deleted. Empty if not deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Optional. The description for this channel
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Client level unique name/alias to easily reference a channel.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Indicated if a channel has any active integrations referencing it. Set to false when the channel is created, and set to true if there is any integration published with the channel configured in it.
     #[serde(default, rename = "isActive")]
-    pub is_active: Option<bool>,
+    pub is_active: ::core::option::Option<bool>,
     /// Output only. Last sfdc messsage replay id for channel
     #[serde(default, rename = "lastReplayId")]
-    pub last_replay_id: Option<String>,
+    pub last_replay_id: ::core::option::Option<String>,
     /// Resource name of the SFDC channel projects/{project}/locations/{location}/sfdcInstances/{sfdc_instance}/sfdcChannels/{sfdc_channel}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Time when the channel was last updated
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The SfdcInstance resource use to hold channels and connection config data.
@@ -4422,31 +4835,31 @@ pub struct GoogleCloudIntegrationsV1alphaSfdcChannel {
 pub struct GoogleCloudIntegrationsV1alphaSfdcInstance {
     /// A list of AuthConfigs that can be tried to open the channel to SFDC
     #[serde(default, rename = "authConfigId")]
-    pub auth_config_id: Option<Vec<String>>,
+    pub auth_config_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Time when the instance is created
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time when the instance was deleted. Empty if not deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Optional. A description of the sfdc instance.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. User selected unique name/alias to easily reference an instance.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Resource name of the SFDC instance projects/{project}/locations/{location}/sfdcInstances/{sfdcInstance}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. URL used for API calls after authentication (the login authority is configured within the referenced AuthConfig).
     #[serde(default, rename = "serviceAuthority")]
-    pub service_authority: Option<String>,
+    pub service_authority: ::core::option::Option<String>,
     /// The SFDC Org Id. This is defined in salesforce.
     #[serde(default, rename = "sfdcOrgId")]
-    pub sfdc_org_id: Option<String>,
+    pub sfdc_org_id: ::core::option::Option<String>,
     /// Output only. Time when the instance was last updated
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request to Share template
@@ -4454,7 +4867,7 @@ pub struct GoogleCloudIntegrationsV1alphaSfdcInstance {
 pub struct GoogleCloudIntegrationsV1alphaShareTemplateRequest {
     /// Optional. Project name resources to share the template. The project names is expected in resource format Ex: projects/{project-number} or organization/{org-id}
     #[serde(default, rename = "resourceNames")]
-    pub resource_names: Option<Vec<String>>,
+    pub resource_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This message only contains a field of string array.
@@ -4462,7 +4875,7 @@ pub struct GoogleCloudIntegrationsV1alphaShareTemplateRequest {
 pub struct GoogleCloudIntegrationsV1alphaStringParameterArray {
     /// String array.
     #[serde(default, rename = "stringValues")]
-    pub string_values: Option<Vec<String>>,
+    pub string_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Policy that dictates the behavior for the task after it completes successfully.
@@ -4470,7 +4883,7 @@ pub struct GoogleCloudIntegrationsV1alphaStringParameterArray {
 pub struct GoogleCloudIntegrationsV1alphaSuccessPolicy {
     /// State to which the execution snapshot status will be set if the task succeeds. // TODO: enum values: ["FINAL_STATE_UNSPECIFIED", "SUCCEEDED", "SUSPENDED"]
     #[serde(default, rename = "finalState")]
-    pub final_state: Option<String>,
+    pub final_state: ::core::option::Option<String>,
 }
 
 /// A record representing a suspension.
@@ -4478,34 +4891,38 @@ pub struct GoogleCloudIntegrationsV1alphaSuccessPolicy {
 pub struct GoogleCloudIntegrationsV1alphaSuspension {
     /// Controls the notifications and approval permissions for this suspension.
     #[serde(default, rename = "approvalConfig")]
-    pub approval_config: Option<GoogleCloudIntegrationsV1alphaSuspensionApprovalConfig>,
+    pub approval_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaSuspensionApprovalConfig>,
+    >,
     /// Metadata pertaining to the resolution of this suspension.
     #[serde(default)]
-    pub audit: Option<GoogleCloudIntegrationsV1alphaSuspensionAudit>,
+    pub audit:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaSuspensionAudit>>,
     /// Output only. Auto-generated.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. ID of the associated execution.
     #[serde(default, rename = "eventExecutionInfoId")]
-    pub event_execution_info_id: Option<String>,
+    pub event_execution_info_id: ::core::option::Option<String>,
     /// Required. The name of the originating integration.
     #[serde(default)]
-    pub integration: Option<String>,
+    pub integration: ::core::option::Option<String>,
     /// Output only. Auto-generated.
     #[serde(default, rename = "lastModifyTime")]
-    pub last_modify_time: Option<String>,
+    pub last_modify_time: ::core::option::Option<String>,
     /// Resource name for suspensions suspension/{suspension_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. State of this suspension, indicating what action a resolver has taken. // TODO: enum values: ["RESOLUTION_STATE_UNSPECIFIED", "PENDING", "REJECTED", "LIFTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Controls the notifications and resolver permissions for this suspension.
     #[serde(default, rename = "suspensionConfig")]
-    pub suspension_config: Option<EnterpriseCrmEventbusProtoSuspensionConfig>,
+    pub suspension_config:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoSuspensionConfig>>,
     /// Required. Task id of the associated SuspensionTask.
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
 }
 
 /// Configurations for approving the Suspension.
@@ -4513,13 +4930,15 @@ pub struct GoogleCloudIntegrationsV1alphaSuspension {
 pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalConfig {
     /// Information to provide for recipients.
     #[serde(default, rename = "customMessage")]
-    pub custom_message: Option<String>,
+    pub custom_message: ::core::option::Option<String>,
     /// Email addresses to send approval request to.
     #[serde(default, rename = "emailAddresses")]
-    pub email_addresses: Option<Vec<String>>,
+    pub email_addresses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Indicates the next steps when no external actions happen on the suspension.
     #[serde(default)]
-    pub expiration: Option<GoogleCloudIntegrationsV1alphaSuspensionApprovalExpiration>,
+    pub expiration: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaSuspensionApprovalExpiration>,
+    >,
 }
 
 /// Expiration configs for the approval request.
@@ -4527,13 +4946,13 @@ pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalConfig {
 pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalExpiration {
     /// Output only. Time after which the suspension expires, if no action taken.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Whether the suspension will be REJECTED or LIFTED upon expiration. REJECTED is the default behavior.
     #[serde(default, rename = "liftWhenExpired")]
-    pub lift_when_expired: Option<bool>,
+    pub lift_when_expired: ::core::option::Option<bool>,
     /// Time after the previous suspension action reminder, if any, is sent using the selected notification option, for a suspension which is still PENDING_UNSPECIFIED.
     #[serde(default, rename = "remindTime")]
-    pub remind_time: Option<String>,
+    pub remind_time: ::core::option::Option<String>,
 }
 
 /// Contains when and by whom the suspension was resolved.
@@ -4541,10 +4960,10 @@ pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalExpiration {
 pub struct GoogleCloudIntegrationsV1alphaSuspensionAudit {
     /// Time at which this suspension was resolved.
     #[serde(default, rename = "resolveTime")]
-    pub resolve_time: Option<String>,
+    pub resolve_time: ::core::option::Option<String>,
     /// Email address of the person who resolved this suspension.
     #[serde(default)]
-    pub resolver: Option<String>,
+    pub resolver: ::core::option::Option<String>,
 }
 
 /// Request for the SwitchEncryption rpc
@@ -4552,7 +4971,8 @@ pub struct GoogleCloudIntegrationsV1alphaSuspensionAudit {
 pub struct GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest {
     /// Required. REQUIRED: Cloud KMS config for AuthModule to encrypt/decrypt credentials.
     #[serde(default, rename = "cloudKmsConfig")]
-    pub cloud_kms_config: Option<GoogleCloudIntegrationsV1alphaCloudKmsConfig>,
+    pub cloud_kms_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCloudKmsConfig>>,
 }
 
 /// Request to enable/disable variable masking for a provisioned client
@@ -4560,7 +4980,7 @@ pub struct GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest {
 pub struct GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest {
     /// Required. REQUIRED: True if variable masking feature should be turned on for this region
     #[serde(default, rename = "enableVariableMasking")]
-    pub enable_variable_masking: Option<bool>,
+    pub enable_variable_masking: ::core::option::Option<bool>,
 }
 
 /// Response for TakeoverEditLock.
@@ -4568,7 +4988,8 @@ pub struct GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest {
 pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
     /// Version after the lock is acquired by the new user.
     #[serde(default, rename = "integrationVersion")]
-    pub integration_version: Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+    pub integration_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
 }
 
 /// The task configuration details. This is not the implementation of Task. There might be multiple TaskConfigs for the same Task.
@@ -4576,56 +4997,63 @@ pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
 pub struct GoogleCloudIntegrationsV1alphaTaskConfig {
     /// Optional. The list of conditional failure policies that will be applied to the task in order.
     #[serde(default, rename = "conditionalFailurePolicies")]
-    pub conditional_failure_policies:
-        Option<GoogleCloudIntegrationsV1alphaConditionalFailurePolicies>,
+    pub conditional_failure_policies: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaConditionalFailurePolicies>,
+    >,
     /// Optional. User-provided description intended to give additional business context about the task.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. User-provided label that is attached to this TaskConfig in the UI.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task
     #[serde(default, rename = "errorCatcherId")]
-    pub error_catcher_id: Option<String>,
+    pub error_catcher_id: ::core::option::Option<String>,
     /// Optional. External task type of the task // TODO: enum values: ["EXTERNAL_TASK_TYPE_UNSPECIFIED", "NORMAL_TASK", "ERROR_TASK"]
     #[serde(default, rename = "externalTaskType")]
-    pub external_task_type: Option<String>,
+    pub external_task_type: ::core::option::Option<String>,
     /// Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).
     #[serde(default, rename = "failurePolicy")]
-    pub failure_policy: Option<GoogleCloudIntegrationsV1alphaFailurePolicy>,
+    pub failure_policy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaFailurePolicy>>,
     /// Optional. If set, overrides the option configured in the Task implementation class. // TODO: enum values: ["JSON_VALIDATION_OPTION_UNSPECIFIED", "SKIP", "PRE_EXECUTION", "POST_EXECUTION", "PRE_POST_EXECUTION"]
     #[serde(default, rename = "jsonValidationOption")]
-    pub json_validation_option: Option<String>,
+    pub json_validation_option: ::core::option::Option<String>,
     /// Optional. The set of tasks that are next in line to be executed as per the execution graph defined for the parent event, specified by event_config_id. Each of these next tasks are executed only if the condition associated with them evaluates to true.
     #[serde(default, rename = "nextTasks")]
-    pub next_tasks: Option<Vec<GoogleCloudIntegrationsV1alphaNextTask>>,
+    pub next_tasks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaNextTask>>,
+    >,
     /// Optional. The policy dictating the execution of the next set of tasks for the current task. // TODO: enum values: ["NEXT_TASKS_EXECUTION_POLICY_UNSPECIFIED", "RUN_ALL_MATCH", "RUN_FIRST_MATCH"]
     #[serde(default, rename = "nextTasksExecutionPolicy")]
-    pub next_tasks_execution_policy: Option<String>,
+    pub next_tasks_execution_policy: ::core::option::Option<String>,
     /// Optional. The customized parameters the user can pass to this task.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. Informs the front-end application where to draw this error catcher config on the UI.
     #[serde(default)]
-    pub position: Option<GoogleCloudIntegrationsV1alphaCoordinate>,
+    pub position:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCoordinate>>,
     /// Optional. Determines what action to take upon successful task completion.
     #[serde(default, rename = "successPolicy")]
-    pub success_policy: Option<GoogleCloudIntegrationsV1alphaSuccessPolicy>,
+    pub success_policy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaSuccessPolicy>>,
     /// Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).
     #[serde(default, rename = "synchronousCallFailurePolicy")]
-    pub synchronous_call_failure_policy: Option<GoogleCloudIntegrationsV1alphaFailurePolicy>,
+    pub synchronous_call_failure_policy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaFailurePolicy>>,
     /// Optional. The name for the task.
     #[serde(default)]
-    pub task: Option<String>,
+    pub task: ::core::option::Option<String>,
     /// Optional. The policy dictating the execution strategy of this task. // TODO: enum values: ["TASK_EXECUTION_STRATEGY_UNSPECIFIED", "WHEN_ALL_SUCCEED", "WHEN_ANY_SUCCEED", "WHEN_ALL_TASKS_AND_CONDITIONS_SUCCEED"]
     #[serde(default, rename = "taskExecutionStrategy")]
-    pub task_execution_strategy: Option<String>,
+    pub task_execution_strategy: ::core::option::Option<String>,
     /// Required. The identifier of this task within its parent event config, specified by the client. This should be unique among all the tasks belong to the same event config. We use this field as the identifier to find next tasks (via field next_tasks.task_id).
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
     /// Optional. Used to define task-template name if task is of type task-template
     #[serde(default, rename = "taskTemplate")]
-    pub task_template: Option<String>,
+    pub task_template: ::core::option::Option<String>,
 }
 
 /// Contains the details of the execution of this task.
@@ -4633,13 +5061,15 @@ pub struct GoogleCloudIntegrationsV1alphaTaskConfig {
 pub struct GoogleCloudIntegrationsV1alphaTaskExecutionDetails {
     /// Status for the current task execution attempt.
     #[serde(default, rename = "taskAttemptStats")]
-    pub task_attempt_stats: Option<Vec<GoogleCloudIntegrationsV1alphaAttemptStats>>,
+    pub task_attempt_stats: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAttemptStats>>,
+    >,
     /// The execution state of this task. // TODO: enum values: ["TASK_EXECUTION_STATE_UNSPECIFIED", "PENDING_EXECUTION", "IN_PROCESS", "SUCCEED", "FAILED", "FATAL", "RETRY_ON_HOLD", "SKIPPED", "CANCELLED", "PENDING_ROLLBACK", "ROLLBACK_IN_PROCESS", "ROLLEDBACK", "SUSPENDED"]
     #[serde(default, rename = "taskExecutionState")]
-    pub task_execution_state: Option<String>,
+    pub task_execution_state: ::core::option::Option<String>,
     /// Pointer to the task config it used for execution.
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
 }
 
 /// Defines the template for Application Integration
@@ -4647,52 +5077,55 @@ pub struct GoogleCloudIntegrationsV1alphaTaskExecutionDetails {
 pub struct GoogleCloudIntegrationsV1alphaTemplate {
     /// Optional. Creator of the template.
     #[serde(default)]
-    pub author: Option<String>,
+    pub author: ::core::option::Option<String>,
     /// Required. Categories associated with the Template. The categories listed below will be utilized for the Template listing.
     #[serde(default)]
-    pub categories: Option<Vec<String>>,
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Components being used in the template. This could be used to categorize and filter.
     #[serde(default)]
-    pub components: Option<Vec<GoogleCloudIntegrationsV1alphaTemplateComponent>>,
+    pub components: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTemplateComponent>>,
+    >,
     /// Output only. Auto-generated.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of the template. The length should not be more than 255 characters
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The name of the template
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. Link to template documentation.
     #[serde(default, rename = "docLink")]
-    pub doc_link: Option<String>,
+    pub doc_link: ::core::option::Option<String>,
     /// Optional. Time the template was last used.
     #[serde(default, rename = "lastUsedTime")]
-    pub last_used_time: Option<String>,
+    pub last_used_time: ::core::option::Option<String>,
     /// Identifier. Resource name of the template.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Resource names with which the template is shared for example ProjectNumber/Ord id
     #[serde(default, rename = "sharedWith")]
-    pub shared_with: Option<Vec<String>>,
+    pub shared_with: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Tags which are used to identify templates. These tags could be for business use case, connectors etc.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Bundle which is part of the templates. The template entities in the bundle would be converted to an actual entity.
     #[serde(default, rename = "templateBundle")]
-    pub template_bundle: Option<GoogleCloudIntegrationsV1alphaTemplateBundle>,
+    pub template_bundle:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTemplateBundle>>,
     /// Output only. Auto-generated
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. Number of template usages.
     #[serde(default, rename = "usageCount")]
-    pub usage_count: Option<String>,
+    pub usage_count: ::core::option::Option<String>,
     /// Optional. Information on how to use the template. This should contain detailed information about usage of the template.
     #[serde(default, rename = "usageInfo")]
-    pub usage_info: Option<String>,
+    pub usage_info: ::core::option::Option<String>,
     /// Required. Visibility of the template. // TODO: enum values: ["VISIBILITY_UNSPECIFIED", "PRIVATE", "SHARED", "PUBLIC"]
     #[serde(default)]
-    pub visibility: Option<String>,
+    pub visibility: ::core::option::Option<String>,
 }
 
 /// Define the bundle of the template.
@@ -4700,12 +5133,16 @@ pub struct GoogleCloudIntegrationsV1alphaTemplate {
 pub struct GoogleCloudIntegrationsV1alphaTemplateBundle {
     /// Required. Main integration templates of the template bundle.
     #[serde(default, rename = "integrationVersionTemplate")]
-    pub integration_version_template:
-        Option<GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate>,
+    pub integration_version_template: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate>,
+    >,
     /// Optional. Sub integration templates which would be added along with main integration.
     #[serde(default, rename = "subIntegrationVersionTemplates")]
-    pub sub_integration_version_templates:
-        Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate>>,
+    pub sub_integration_version_templates: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate>,
+        >,
+    >,
 }
 
 /// Define the components that are present in a template.
@@ -4713,10 +5150,10 @@ pub struct GoogleCloudIntegrationsV1alphaTemplateBundle {
 pub struct GoogleCloudIntegrationsV1alphaTemplateComponent {
     /// Optional. Name of the component.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Type of the component. // TODO: enum values: ["TYPE_UNSPECIFIED", "TRIGGER", "TASK", "CONNECTOR"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Defines the functional test case for Application Integration. Next available id: 15
@@ -4724,43 +5161,48 @@ pub struct GoogleCloudIntegrationsV1alphaTemplateComponent {
 pub struct GoogleCloudIntegrationsV1alphaTestCase {
     /// Auto-generated.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. The creator''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "creatorEmail")]
-    pub creator_email: Option<String>,
+    pub creator_email: ::core::option::Option<String>,
     /// Optional. Various policies for how to persist the test execution info including execution info, execution export info, execution metadata index and execution param index.. // TODO: enum values: ["DATABASE_PERSISTENCE_POLICY_UNSPECIFIED", "DATABASE_PERSISTENCE_DISABLED", "DATABASE_PERSISTENCE_ASYNC"]
     #[serde(default, rename = "databasePersistencePolicy")]
-    pub database_persistence_policy: Option<String>,
+    pub database_persistence_policy: ::core::option::Option<String>,
     /// Optional. Description of the test case.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The display name of test case.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The last modifier''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "lastModifierEmail")]
-    pub last_modifier_email: Option<String>,
+    pub last_modifier_email: ::core::option::Option<String>,
     /// Optional. The edit lock holder''s email address. Generated based on the End User Credentials/LOAS role of the user making the call.
     #[serde(default, rename = "lockHolderEmail")]
-    pub lock_holder_email: Option<String>,
+    pub lock_holder_email: ::core::option::Option<String>,
     /// Output only. Auto-generated primary key.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Parameters that are expected to be passed to the test case when the test case is triggered. This gives the user the ability to provide default values. This should include all the output variables of the trigger as input variables.
     #[serde(default, rename = "testInputParameters")]
-    pub test_input_parameters: Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationParameter>>,
+    pub test_input_parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationParameter>>,
+    >,
     /// Optional. However, the test case doesn''t mock or assert anything without test_task_configs.
     #[serde(default, rename = "testTaskConfigs")]
-    pub test_task_configs: Option<Vec<GoogleCloudIntegrationsV1alphaTestTaskConfig>>,
+    pub test_task_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTestTaskConfig>>,
+    >,
     /// Optional. Auto-generated.
     #[serde(default, rename = "triggerConfig")]
-    pub trigger_config: Option<GoogleCloudIntegrationsV1alphaTriggerConfig>,
+    pub trigger_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTriggerConfig>>,
     /// Required. This defines the trigger ID in workflow which is considered to be executed as starting point of the test case
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// Auto-generated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The request for testing an integration.
@@ -4768,28 +5210,31 @@ pub struct GoogleCloudIntegrationsV1alphaTestCase {
 pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsRequest {
     /// Required. This is used to identify the client on whose behalf the event will be executed.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Optional. Config parameters used during integration execution.
     #[serde(default, rename = "configParameters")]
-    pub config_parameters: Option<serde_json::Value>,
+    pub config_parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. custom deadline of the rpc
     #[serde(default, rename = "deadlineSecondsTime")]
-    pub deadline_seconds_time: Option<String>,
+    pub deadline_seconds_time: ::core::option::Option<String>,
     /// Optional. Input parameters used during integration execution.
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. integration config to execute the workflow
     #[serde(default, rename = "integrationVersion")]
-    pub integration_version: Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+    pub integration_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
     /// Optional. Passed in as parameters to each integration execution.
     #[serde(default)]
-    pub parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub parameters: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Optional. Can be specified in the event request, otherwise false (default). If true, enables tasks with condition "test_mode = true". If false, disables tasks with condition "test_mode = true" if global test mode (set by platform) is also false {@link EventBusConfig}.
     #[serde(default, rename = "testMode")]
-    pub test_mode: Option<bool>,
+    pub test_mode: ::core::option::Option<bool>,
     /// Required. The trigger id of the integration trigger config. If both trigger_id and client_id is present, the integration is executed from the start tasks provided by the matching trigger config otherwise it is executed from the default start tasks.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
 }
 
 /// The response for testing an integration.
@@ -4797,19 +5242,23 @@ pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsRequest {
 pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsResponse {
     /// Details for the integration that were executed.
     #[serde(default, rename = "eventParameters")]
-    pub event_parameters: Option<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    pub event_parameters: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoEventParameters>,
+    >,
     /// Is true if any execution in the integration failed. False otherwise.
     #[serde(default, rename = "executionFailed")]
-    pub execution_failed: Option<bool>,
+    pub execution_failed: ::core::option::Option<bool>,
     /// The id of the execution corresponding to this run of integration.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     /// Parameters are a part of Event and can be used to communicate between different tasks that are part of the same integration execution.
     #[serde(default, rename = "parameterEntries")]
-    pub parameter_entries: Option<Vec<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    pub parameter_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoParameterEntry>>,
+    >,
     /// Optional. Parameters are a part of Event and can be used to communicate between different tasks that are part of the same integration execution.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// The task mock configuration details and assertions for functional tests. Next available id: 6
@@ -4817,19 +5266,23 @@ pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsResponse {
 pub struct GoogleCloudIntegrationsV1alphaTestTaskConfig {
     /// Optional. List of conditions or expressions which should be evaluated to true unless there is a bug/problem in the integration. These are evaluated one the task execution is completed as per the mock strategy in test case
     #[serde(default)]
-    pub assertions: Option<Vec<GoogleCloudIntegrationsV1alphaAssertion>>,
+    pub assertions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaAssertion>>,
+    >,
     /// Optional. Defines how to mock the given task during test execution
     #[serde(default, rename = "mockConfig")]
-    pub mock_config: Option<GoogleCloudIntegrationsV1alphaMockConfig>,
+    pub mock_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaMockConfig>>,
     /// Required. This defines in the test case, the task name in integration which will be mocked by this test task config
     #[serde(default)]
-    pub task: Option<String>,
+    pub task: ::core::option::Option<String>,
     /// Optional. Auto-generated.
     #[serde(default, rename = "taskConfig")]
-    pub task_config: Option<GoogleCloudIntegrationsV1alphaTaskConfig>,
+    pub task_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTaskConfig>>,
     /// Required. This defines in the test case, the task in integration which will be mocked by this test task config
     #[serde(default, rename = "taskNumber")]
-    pub task_number: Option<String>,
+    pub task_number: ::core::option::Option<String>,
 }
 
 /// Request to enable/disable http call for a provisioned client
@@ -4837,7 +5290,7 @@ pub struct GoogleCloudIntegrationsV1alphaTestTaskConfig {
 pub struct GoogleCloudIntegrationsV1alphaToggleHttpRequest {
     /// Required. REQUIRED: True if http call feature should be turned on for this region
     #[serde(default, rename = "enableHttpCall")]
-    pub enable_http_call: Option<bool>,
+    pub enable_http_call: ::core::option::Option<bool>,
 }
 
 /// Configuration detail of a trigger.
@@ -4845,49 +5298,60 @@ pub struct GoogleCloudIntegrationsV1alphaToggleHttpRequest {
 pub struct GoogleCloudIntegrationsV1alphaTriggerConfig {
     /// Optional. An alert threshold configuration for the [trigger + client + integration] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + integration] when published.
     #[serde(default, rename = "alertConfig")]
-    pub alert_config: Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationAlertConfig>>,
+    pub alert_config: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationAlertConfig>>,
+    >,
     /// Optional. Cloud Scheduler Trigger related metadata
     #[serde(default, rename = "cloudSchedulerConfig")]
-    pub cloud_scheduler_config: Option<GoogleCloudIntegrationsV1alphaCloudSchedulerConfig>,
+    pub cloud_scheduler_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaCloudSchedulerConfig>,
+    >,
     /// Optional. User-provided description intended to give additional business context about the task.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task
     #[serde(default, rename = "errorCatcherId")]
-    pub error_catcher_id: Option<String>,
+    pub error_catcher_id: ::core::option::Option<String>,
     /// Optional. List of input variables for the api trigger.
     #[serde(default, rename = "inputVariables")]
-    pub input_variables: Option<GoogleCloudIntegrationsV1alphaTriggerConfigVariables>,
+    pub input_variables: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaTriggerConfigVariables>,
+    >,
     /// Optional. The user created label for a particular trigger.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Optional. Dictates how next tasks will be executed. // TODO: enum values: ["NEXT_TASKS_EXECUTION_POLICY_UNSPECIFIED", "RUN_ALL_MATCH", "RUN_FIRST_MATCH"]
     #[serde(default, rename = "nextTasksExecutionPolicy")]
-    pub next_tasks_execution_policy: Option<String>,
+    pub next_tasks_execution_policy: ::core::option::Option<String>,
     /// Optional. List of output variables for the api trigger.
     #[serde(default, rename = "outputVariables")]
-    pub output_variables: Option<GoogleCloudIntegrationsV1alphaTriggerConfigVariables>,
+    pub output_variables: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaTriggerConfigVariables>,
+    >,
     /// Optional. Informs the front-end application where to draw this error catcher config on the UI.
     #[serde(default)]
-    pub position: Option<GoogleCloudIntegrationsV1alphaCoordinate>,
+    pub position:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaCoordinate>>,
     /// Optional. Configurable properties of the trigger, not to be confused with integration parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Pub/sub triggers.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// Optional. Set of tasks numbers from where the integration execution is started by this trigger. If this is empty, then integration is executed with default start tasks. In the list of start tasks, none of two tasks can have direct ancestor-descendant relationships (i.e. in a same integration execution graph).
     #[serde(default, rename = "startTasks")]
-    pub start_tasks: Option<Vec<GoogleCloudIntegrationsV1alphaNextTask>>,
+    pub start_tasks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaNextTask>>,
+    >,
     /// Optional. Name of the trigger. Example: "API Trigger", "Cloud Pub Sub Trigger" When set will be sent out to monitoring dashabord for tracking purpose.
     #[serde(default)]
-    pub trigger: Option<String>,
+    pub trigger: ::core::option::Option<String>,
     /// Optional. Auto-generated trigger ID. The ID is based on the properties that you define in the trigger config. For example, for an API trigger, the trigger ID follows the format: api_trigger/TRIGGER_NAME Where trigger config has properties with value {"Trigger name": TRIGGER_NAME}
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// Required. A number to uniquely identify each trigger config within the integration on UI.
     #[serde(default, rename = "triggerNumber")]
-    pub trigger_number: Option<String>,
+    pub trigger_number: ::core::option::Option<String>,
     /// Optional. Type of trigger // TODO: enum values: ["TRIGGER_TYPE_UNSPECIFIED", "CRON", "API", "SFDC_CHANNEL", "CLOUD_PUBSUB_EXTERNAL", "SFDC_CDC_CHANNEL", "CLOUD_SCHEDULER", "INTEGRATION_CONNECTOR_TRIGGER", "PRIVATE_TRIGGER", "CLOUD_PUBSUB", "EVENTARC_TRIGGER"]
     #[serde(default, rename = "triggerType")]
-    pub trigger_type: Option<String>,
+    pub trigger_type: ::core::option::Option<String>,
 }
 
 /// Variables names mapped to api trigger.
@@ -4895,7 +5359,7 @@ pub struct GoogleCloudIntegrationsV1alphaTriggerConfig {
 pub struct GoogleCloudIntegrationsV1alphaTriggerConfigVariables {
     /// Optional. List of variable names.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request to Unshare template
@@ -4903,7 +5367,7 @@ pub struct GoogleCloudIntegrationsV1alphaTriggerConfigVariables {
 pub struct GoogleCloudIntegrationsV1alphaUnshareTemplateRequest {
     /// Optional. Project name resources to unshare the template. The project names is expected in resource format Ex: projects/{project-number}
     #[serde(default, rename = "resourceNames")]
-    pub resource_names: Option<Vec<String>>,
+    pub resource_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for UploadIntegrationVersion.
@@ -4911,10 +5375,10 @@ pub struct GoogleCloudIntegrationsV1alphaUnshareTemplateRequest {
 pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest {
     /// The textproto of the IntegrationVersion.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// File format for upload request. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "JSON", "YAML"]
     #[serde(default, rename = "fileFormat")]
-    pub file_format: Option<String>,
+    pub file_format: ::core::option::Option<String>,
 }
 
 /// Response for UploadIntegrationVersion.
@@ -4922,7 +5386,8 @@ pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest {
 pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse {
     /// The uploaded integration.
     #[serde(default, rename = "integrationVersion")]
-    pub integration_version: Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+    pub integration_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
 }
 
 /// Request for UploadTemplate.
@@ -4930,10 +5395,10 @@ pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse {
 pub struct GoogleCloudIntegrationsV1alphaUploadTemplateRequest {
     /// Required. The textproto of the template.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Required. File format for upload request. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "JSON", "YAML"]
     #[serde(default, rename = "fileFormat")]
-    pub file_format: Option<String>,
+    pub file_format: ::core::option::Option<String>,
 }
 
 /// Response for UploadTemplate.
@@ -4941,7 +5406,7 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTemplateRequest {
 pub struct GoogleCloudIntegrationsV1alphaUploadTemplateResponse {
     /// The uploaded Template
     #[serde(default)]
-    pub template: Option<GoogleCloudIntegrationsV1alphaTemplate>,
+    pub template: ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTemplate>>,
 }
 
 /// Request for UploadTestCase.
@@ -4949,10 +5414,10 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTemplateResponse {
 pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseRequest {
     /// The textproto of the test case.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// File format for upload request. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "JSON", "YAML"]
     #[serde(default, rename = "fileFormat")]
-    pub file_format: Option<String>,
+    pub file_format: ::core::option::Option<String>,
 }
 
 /// Response for UploadTestCase.
@@ -4960,7 +5425,8 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseRequest {
 pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseResponse {
     /// The uploaded TestCase
     #[serde(default, rename = "testCase")]
-    pub test_case: Option<GoogleCloudIntegrationsV1alphaTestCase>,
+    pub test_case:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaTestCase>>,
 }
 
 /// Request to Use template
@@ -4968,14 +5434,15 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseResponse {
 pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequest {
     /// Required. Integration details which would be created via templates.
     #[serde(default, rename = "integrationDetails")]
-    pub integration_details:
-        Option<GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails>,
+    pub integration_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails>,
+    >,
     /// Required. The region of the Integration to be created.
     #[serde(default, rename = "integrationRegion")]
-    pub integration_region: Option<String>,
+    pub integration_region: ::core::option::Option<String>,
     /// Optional. Sub Integration which would be created via templates.
     #[serde(default, rename = "subIntegrations")]
-    pub sub_integrations: Option<serde_json::Value>,
+    pub sub_integrations: ::core::option::Option<serde_json::Value>,
 }
 
 /// Sub Integration which would be created via templates.
@@ -4983,10 +5450,10 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequest {
 pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails {
     /// Required. Name of the sub integration which would be created via templates.
     #[serde(default)]
-    pub integration: Option<String>,
+    pub integration: ::core::option::Option<String>,
     /// Optional. Description of the sub integration which would be created via templates.
     #[serde(default, rename = "integrationDescription")]
-    pub integration_description: Option<String>,
+    pub integration_description: ::core::option::Option<String>,
 }
 
 /// Response for use template
@@ -4994,10 +5461,13 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails {
 pub struct GoogleCloudIntegrationsV1alphaUseTemplateResponse {
     /// IntegrationVersion which is created.
     #[serde(default, rename = "integrationVersion")]
-    pub integration_version: Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
+    pub integration_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
     /// Sub integration versions which are created.
     #[serde(default, rename = "subIntegrationVersions")]
-    pub sub_integration_versions: Option<Vec<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
+    pub sub_integration_versions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
+    >,
 }
 
 /// Username and password pair.
@@ -5005,10 +5475,10 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateResponse {
 pub struct GoogleCloudIntegrationsV1alphaUsernameAndPassword {
     /// Password to be used
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// Username to be used
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// The type of the parameter.
@@ -5016,31 +5486,38 @@ pub struct GoogleCloudIntegrationsV1alphaUsernameAndPassword {
 pub struct GoogleCloudIntegrationsV1alphaValueType {
     /// Boolean Array.
     #[serde(default, rename = "booleanArray")]
-    pub boolean_array: Option<GoogleCloudIntegrationsV1alphaBooleanParameterArray>,
+    pub boolean_array: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaBooleanParameterArray>,
+    >,
     /// Boolean.
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     /// Double Number Array.
     #[serde(default, rename = "doubleArray")]
-    pub double_array: Option<GoogleCloudIntegrationsV1alphaDoubleParameterArray>,
+    pub double_array: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaDoubleParameterArray>,
+    >,
     /// Double Number.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// Integer Array.
     #[serde(default, rename = "intArray")]
-    pub int_array: Option<GoogleCloudIntegrationsV1alphaIntParameterArray>,
+    pub int_array:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudIntegrationsV1alphaIntParameterArray>>,
     /// Integer.
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// Json.
     #[serde(default, rename = "jsonValue")]
-    pub json_value: Option<String>,
+    pub json_value: ::core::option::Option<String>,
     /// String Array.
     #[serde(default, rename = "stringArray")]
-    pub string_array: Option<GoogleCloudIntegrationsV1alphaStringParameterArray>,
+    pub string_array: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudIntegrationsV1alphaStringParameterArray>,
+    >,
     /// String.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// LINT.IfChange Use this request to post all workflows associated with a given trigger id. Next available id: 13
@@ -5048,38 +5525,39 @@ pub struct GoogleCloudIntegrationsV1alphaValueType {
 pub struct GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest {
     /// Optional. If the client id is provided, then the combination of trigger id and client id is matched across all the workflows. If the client id is not provided, then workflows with matching trigger id are executed for each client id in the {@link TriggerConfig}. For Api Trigger, the client id is required and will be validated against the allowed clients.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Optional. Flag to determine whether clients would suppress a warning when no ACTIVE workflows are not found. If this flag is set to be true, an error will not be thrown if the requested trigger_id or client_id is not found in any ACTIVE workflow. Otherwise, the error is always thrown. The flag is set to be false by default.
     #[serde(default, rename = "ignoreErrorIfNoActiveWorkflow")]
-    pub ignore_error_if_no_active_workflow: Option<bool>,
+    pub ignore_error_if_no_active_workflow: ::core::option::Option<bool>,
     /// Passed in as parameters to each workflow execution. Optional.
     #[serde(default)]
-    pub parameters: Option<EnterpriseCrmEventbusProtoEventParameters>,
+    pub parameters:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoEventParameters>>,
     /// The request priority this request should be processed at. For internal users: // TODO: enum values: ["UNSPCIFIED", "SHEDDABLE", "SHEDDABLE_PLUS", "CRITICAL", "CRITICAL_PLUS"]
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
     /// Optional. This is a field to see the quota retry count for integration execution
     #[serde(default, rename = "quotaRetryCount")]
-    pub quota_retry_count: Option<i32>,
+    pub quota_retry_count: ::core::option::Option<i32>,
     /// Optional. This is used to de-dup incoming request: if the duplicate request was detected, the response from the previous execution is returned. Must have no more than 36 characters and contain only alphanumeric characters and hyphens.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// This field is only required when using Admin Access. The resource name of target, or the parent resource name. For example: "projects/*/locations/*/integrations/*"
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Optional. Time in milliseconds since epoch when the given event would be scheduled.
     #[serde(default, rename = "scheduledTime")]
-    pub scheduled_time: Option<String>,
+    pub scheduled_time: ::core::option::Option<String>,
     /// Optional. Sets test mode in {@link enterprise/crm/eventbus/event_message.proto}.
     #[serde(default, rename = "testMode")]
-    pub test_mode: Option<bool>,
+    pub test_mode: ::core::option::Option<bool>,
     /// Matched against all {@link TriggerConfig}s across all workflows. i.e. TriggerConfig.trigger_id.equals(trigger_id) Required.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
     /// This is a unique id provided by the method caller. If provided this will be used as the execution_id when a new execution info is created. This is a string representation of a UUID. Must have no more than 36 characters and contain only alphanumeric characters and hyphens.
     #[serde(default, rename = "userGeneratedExecutionId")]
-    pub user_generated_execution_id: Option<String>,
+    pub user_generated_execution_id: ::core::option::Option<String>,
     /// Optional. If provided, the workflow_name is used to filter all the matched workflows having same trigger_id+client_id. A combination of trigger_id, client_id and workflow_name identifies a unique workflow.
     #[serde(default, rename = "workflowName")]
-    pub workflow_name: Option<String>,
+    pub workflow_name: ::core::option::Option<String>,
 }

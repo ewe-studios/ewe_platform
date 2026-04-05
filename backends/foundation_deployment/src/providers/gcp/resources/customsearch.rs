@@ -10,80 +10,80 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Promotion result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Promotion {
     /// An array of block objects for this promotion.
     #[serde(default, rename = "bodyLines")]
-    pub body_lines: Option<Vec<serde_json::Value>>,
+    pub body_lines: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// An abridged version of this search''s result URL, e.g. www.example.com.
     #[serde(default, rename = "displayLink")]
-    pub display_link: Option<String>,
+    pub display_link: ::core::option::Option<String>,
     /// The title of the promotion, in HTML.
     #[serde(default, rename = "htmlTitle")]
-    pub html_title: Option<String>,
+    pub html_title: ::core::option::Option<String>,
     /// Image belonging to a promotion.
     #[serde(default)]
-    pub image: Option<serde_json::Value>,
+    pub image: ::core::option::Option<serde_json::Value>,
     /// The URL of the promotion.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// The title of the promotion.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A custom search result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Result {
+pub struct ApiResult {
     /// Indicates the ID of Google''s cached version of the search result.
     #[serde(default, rename = "cacheId")]
-    pub cache_id: Option<String>,
+    pub cache_id: ::core::option::Option<String>,
     /// An abridged version of this search result’s URL, e.g. www.example.com.
     #[serde(default, rename = "displayLink")]
-    pub display_link: Option<String>,
+    pub display_link: ::core::option::Option<String>,
     /// The file format of the search result.
     #[serde(default, rename = "fileFormat")]
-    pub file_format: Option<String>,
+    pub file_format: ::core::option::Option<String>,
     /// The URL displayed after the snippet for each search result.
     #[serde(default, rename = "formattedUrl")]
-    pub formatted_url: Option<String>,
+    pub formatted_url: ::core::option::Option<String>,
     /// The HTML-formatted URL displayed after the snippet for each search result.
     #[serde(default, rename = "htmlFormattedUrl")]
-    pub html_formatted_url: Option<String>,
+    pub html_formatted_url: ::core::option::Option<String>,
     /// The snippet of the search result, in HTML.
     #[serde(default, rename = "htmlSnippet")]
-    pub html_snippet: Option<String>,
+    pub html_snippet: ::core::option::Option<String>,
     /// The title of the search result, in HTML.
     #[serde(default, rename = "htmlTitle")]
-    pub html_title: Option<String>,
+    pub html_title: ::core::option::Option<String>,
     /// Image belonging to a custom search result.
     #[serde(default)]
-    pub image: Option<serde_json::Value>,
+    pub image: ::core::option::Option<serde_json::Value>,
     /// A unique identifier for the type of current object. For this API, it is customsearch#result.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Encapsulates all information about refinement labels.
     #[serde(default)]
-    pub labels: Option<Vec<serde_json::Value>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// The full URL to which the search result is pointing, e.g. http://www.example.com/foo/bar.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// The MIME type of the search result.
     #[serde(default)]
-    pub mime: Option<String>,
+    pub mime: ::core::option::Option<String>,
     /// Contains [PageMap](https://developers.google.com/custom-search/docs/structured_data#pagemaps) information for this search result.
     #[serde(default)]
-    pub pagemap: Option<serde_json::Value>,
+    pub pagemap: ::core::option::Option<serde_json::Value>,
     /// The snippet of the search result, in plain text.
     #[serde(default)]
-    pub snippet: Option<String>,
+    pub snippet: ::core::option::Option<String>,
     /// The title of the search result, in plain text.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Response to a custom search request.
@@ -91,26 +91,26 @@ pub struct Result {
 pub struct Search {
     /// Metadata and refinements associated with the given search engine, including: * The name of the search engine that was used for the query. * A set of [facet objects](https://developers.google.com/custom-search/docs/refinements#create) (refinements) you can use for refining a search.
     #[serde(default)]
-    pub context: Option<serde_json::Value>,
+    pub context: ::core::option::Option<serde_json::Value>,
     /// The current set of custom search results.
     #[serde(default)]
-    pub items: Option<Vec<Result>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiResult>>>,
     /// Unique identifier for the type of current object. For this API, it is customsearch#search.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The set of [promotions](https://developers.google.com/custom-search/docs/promotions). Present only if the custom search engine''s configuration files define any promotions for the given query.
     #[serde(default)]
-    pub promotions: Option<Vec<Promotion>>,
+    pub promotions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Promotion>>>,
     /// Query metadata for the previous, current, and next pages of results.
     #[serde(default)]
-    pub queries: Option<serde_json::Value>,
+    pub queries: ::core::option::Option<serde_json::Value>,
     /// Metadata about a search operation.
     #[serde(default, rename = "searchInformation")]
-    pub search_information: Option<serde_json::Value>,
+    pub search_information: ::core::option::Option<serde_json::Value>,
     /// Spell correction information for a query.
     #[serde(default)]
-    pub spelling: Option<serde_json::Value>,
+    pub spelling: ::core::option::Option<serde_json::Value>,
     /// OpenSearch template and URL.
     #[serde(default)]
-    pub url: Option<serde_json::Value>,
+    pub url: ::core::option::Option<serde_json::Value>,
 }

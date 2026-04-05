@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Request message for CreateOrUpdateTags. VerifyToken.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateOrUpdateTagsRequest {
     /// Tags to be inserted or updated.
     #[serde(default)]
-    pub tags: Option<Vec<Tag>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
 }
 
 /// Response message for CreateOrUpdateTags.
@@ -26,7 +26,7 @@ pub struct CreateOrUpdateTagsRequest {
 pub struct CreateOrUpdateTagsResponse {
     /// All requested tags are returned, including pre-existing ones.
     #[serde(default)]
-    pub tags: Option<Vec<Tag>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tag>>>,
 }
 
 /// A tag is associated with exactly one package name and user.
@@ -34,19 +34,19 @@ pub struct CreateOrUpdateTagsResponse {
 pub struct Tag {
     /// A boolean value of the tag.
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     /// A signed 64-bit integer value of the tag.
     #[serde(default, rename = "int64Value")]
-    pub int64_value: Option<String>,
+    pub int64_value: ::core::option::Option<String>,
     /// Required. Key for the tag.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// A string value of the tag.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
     /// A time value of the tag.
     #[serde(default, rename = "timeValue")]
-    pub time_value: Option<String>,
+    pub time_value: ::core::option::Option<String>,
 }
 
 /// Request message for VerifyToken.
@@ -54,5 +54,5 @@ pub struct Tag {
 pub struct VerifyTokenRequest {
     /// Required. Persona represented by the token. Format: personas/{persona}
     #[serde(default)]
-    pub persona: Option<String>,
+    pub persona: ::core::option::Option<String>,
 }

@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FixedOrPercent {
     /// Specifies a fixed value.
     #[serde(default)]
-    pub fixed: Option<i32>,
+    pub fixed: ::core::option::Option<i32>,
     /// Specifies the relative value defined as a percentage, which will be multiplied by a reference value.
     #[serde(default)]
-    pub percent: Option<i32>,
+    pub percent: ::core::option::Option<i32>,
 }
 
 /// Represents the metadata of a generic long-running operation.
@@ -29,25 +29,25 @@ pub struct FixedOrPercent {
 pub struct GoogleCloudOsconfigCommonV1OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of a generic long-running operation.
@@ -55,25 +55,25 @@ pub struct GoogleCloudOsconfigCommonV1OperationMetadata {
 pub struct GoogleCloudOsconfigCommonV1alphaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of a generic long-running operation.
@@ -81,25 +81,25 @@ pub struct GoogleCloudOsconfigCommonV1alphaOperationMetadata {
 pub struct GoogleCloudOsconfigCommonV1mainOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// OS policy assignment operation metadata provided by OS policy assignment API methods that return long running operations.
@@ -107,19 +107,19 @@ pub struct GoogleCloudOsconfigCommonV1mainOperationMetadata {
 pub struct GoogleCloudOsconfigV1OSPolicyAssignmentOperationMetadata {
     /// The OS policy assignment API method. // TODO: enum values: ["API_METHOD_UNSPECIFIED", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "apiMethod")]
-    pub api_method: Option<String>,
+    pub api_method: ::core::option::Option<String>,
     /// Reference to the OSPolicyAssignment API resource. Format: projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id@revision_id}
     #[serde(default, rename = "osPolicyAssignment")]
-    pub os_policy_assignment: Option<String>,
+    pub os_policy_assignment: ::core::option::Option<String>,
     /// Rollout start time
     #[serde(default, rename = "rolloutStartTime")]
-    pub rollout_start_time: Option<String>,
+    pub rollout_start_time: ::core::option::Option<String>,
     /// State of the rollout // TODO: enum values: ["ROLLOUT_STATE_UNSPECIFIED", "IN_PROGRESS", "CANCELLING", "CANCELLED", "SUCCEEDED"]
     #[serde(default, rename = "rolloutState")]
-    pub rollout_state: Option<String>,
+    pub rollout_state: ::core::option::Option<String>,
     /// Rollout update time
     #[serde(default, rename = "rolloutUpdateTime")]
-    pub rollout_update_time: Option<String>,
+    pub rollout_update_time: ::core::option::Option<String>,
 }
 
 /// Selector containing locations in scope.
@@ -127,7 +127,7 @@ pub struct GoogleCloudOsconfigV1OSPolicyAssignmentOperationMetadata {
 pub struct GoogleCloudOsconfigV2OrchestrationScopeLocationSelector {
     /// Optional. Names of the locations in scope. Format: us-central1-a
     #[serde(default, rename = "includedLocations")]
-    pub included_locations: Option<Vec<String>>,
+    pub included_locations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Selector containing Cloud Resource Manager resource hierarchy nodes.
@@ -135,10 +135,10 @@ pub struct GoogleCloudOsconfigV2OrchestrationScopeLocationSelector {
 pub struct GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector {
     /// Optional. Names of the folders in scope. Format: folders/{folder_id}
     #[serde(default, rename = "includedFolders")]
-    pub included_folders: Option<Vec<String>>,
+    pub included_folders: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Names of the projects in scope. Format: projects/{project_number}
     #[serde(default, rename = "includedProjects")]
-    pub included_projects: Option<Vec<String>>,
+    pub included_projects: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Selector for the resources in scope of orchestration.
@@ -146,11 +146,14 @@ pub struct GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector {
 pub struct GoogleCloudOsconfigV2OrchestrationScopeSelector {
     /// Selector for selecting locations.
     #[serde(default, rename = "locationSelector")]
-    pub location_selector: Option<GoogleCloudOsconfigV2OrchestrationScopeLocationSelector>,
+    pub location_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOsconfigV2OrchestrationScopeLocationSelector>,
+    >,
     /// Selector for selecting resource hierarchy.
     #[serde(default, rename = "resourceHierarchySelector")]
-    pub resource_hierarchy_selector:
-        Option<GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector>,
+    pub resource_hierarchy_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector>,
+    >,
 }
 
 /// Describes the state of a single iteration of the orchestrator.
@@ -158,28 +161,28 @@ pub struct GoogleCloudOsconfigV2OrchestrationScopeSelector {
 pub struct GoogleCloudOsconfigV2PolicyOrchestratorIterationState {
     /// Output only. Error thrown in the wave iteration.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. Number of orchestration actions which failed so far. For more details, query the Cloud Logs.
     #[serde(default, rename = "failedActions")]
-    pub failed_actions: Option<String>,
+    pub failed_actions: ::core::option::Option<String>,
     /// Output only. Finish time of the wave iteration.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// Output only. Unique identifier of the iteration.
     #[serde(default, rename = "iterationId")]
-    pub iteration_id: Option<String>,
+    pub iteration_id: ::core::option::Option<String>,
     /// Output only. Overall number of actions done by the orchestrator so far.
     #[serde(default, rename = "performedActions")]
-    pub performed_actions: Option<String>,
+    pub performed_actions: ::core::option::Option<String>,
     /// Output only. An estimated percentage of the progress. Number between 0 and 100.
     #[serde(default)]
-    pub progress: Option<f32>,
+    pub progress: ::core::option::Option<f32>,
     /// Output only. Start time of the wave iteration.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. State of the iteration. // TODO: enum values: ["STATE_UNSPECIFIED", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "UNKNOWN"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Describes the state of the orchestration process.
@@ -187,10 +190,14 @@ pub struct GoogleCloudOsconfigV2PolicyOrchestratorIterationState {
 pub struct GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState {
     /// Output only. Current Wave iteration state.
     #[serde(default, rename = "currentIterationState")]
-    pub current_iteration_state: Option<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
+    pub current_iteration_state: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
+    >,
     /// Output only. Previous Wave iteration state.
     #[serde(default, rename = "previousIterationState")]
-    pub previous_iteration_state: Option<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
+    pub previous_iteration_state: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
+    >,
 }
 
 /// Response for the list policy orchestrator resources.
@@ -198,13 +205,15 @@ pub struct GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState {
 pub struct GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The policy orchestrators for the specified parent resource.
     #[serde(default, rename = "policyOrchestrators")]
-    pub policy_orchestrators: Option<Vec<GoogleCloudOsconfigV2PolicyOrchestrator>>,
+    pub policy_orchestrators: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudOsconfigV2PolicyOrchestrator>>,
+    >,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -212,25 +221,25 @@ pub struct GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse {
 pub struct GoogleCloudOsconfigV2OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents a resource that is being orchestrated by the policy orchestrator.
@@ -238,10 +247,11 @@ pub struct GoogleCloudOsconfigV2OperationMetadata {
 pub struct GoogleCloudOsconfigV2OrchestratedResource {
     /// Optional. ID of the resource to be used while generating set of affected resources. For UPSERT action the value is auto-generated during PolicyOrchestrator creation when not set. When the value is set it should following next restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project. For DELETE action, ID must be specified explicitly during PolicyOrchestrator creation.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. OSPolicyAssignment resource to be created, updated or deleted. Name field is ignored and replace with a generated value. With this field set, orchestrator will perform actions on project/{project}/locations/{zone}/osPolicyAssignments/{resource_id} resources, where project and zone pairs come from the expanded scope, and resource_id comes from the resource_id field of orchestrator resource.
     #[serde(default, rename = "osPolicyAssignmentV1Payload")]
-    pub os_policy_assignment_v1_payload: Option<OSPolicyAssignment>,
+    pub os_policy_assignment_v1_payload:
+        ::core::option::Option<::std::boxed::Box<OSPolicyAssignment>>,
 }
 
 /// Defines a set of selectors which drive which resources are in scope of policy orchestration.
@@ -249,7 +259,9 @@ pub struct GoogleCloudOsconfigV2OrchestratedResource {
 pub struct GoogleCloudOsconfigV2OrchestrationScope {
     /// Optional. Selectors of the orchestration scope. There is a logical AND between each selector defined. When there is no explicit ResourceHierarchySelector selector specified, the scope is by default bounded to the parent of the policy orchestrator resource.
     #[serde(default)]
-    pub selectors: Option<Vec<GoogleCloudOsconfigV2OrchestrationScopeSelector>>,
+    pub selectors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudOsconfigV2OrchestrationScopeSelector>>,
+    >,
 }
 
 /// PolicyOrchestrator helps managing project+zone level policy resources (e.g. OS Policy Assignments), by providing tools to create, update and delete them across projects and locations, at scale. Policy orchestrator functions as an endless loop. Each iteration orchestrator computes a set of resources that should be affected, then progressively applies changes to them. If for some reason this set of resources changes over time (e.g. new projects are added), the future loop iterations will address that. Orchestrator can either upsert or delete policy resources. For more details, see the description of the action, and orchestrated_resource fields. Note that policy orchestrator do not "manage" the resources it creates. Every iteration is independent and only minimal history of past actions is retained (apart from Cloud Logging). If orchestrator gets deleted, it does not affect the resources it created in the past. Those will remain where they were. Same applies if projects are removed from the orchestrator''s scope.
@@ -257,40 +269,44 @@ pub struct GoogleCloudOsconfigV2OrchestrationScope {
 pub struct GoogleCloudOsconfigV2PolicyOrchestrator {
     /// Required. Action to be done by the orchestrator in projects/{project_id}/zones/{zone_id} locations defined by the orchestration_scope. Allowed values: - UPSERT - Orchestrator will create or update target resources. - DELETE - Orchestrator will delete target resources, if they exist
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Output only. Timestamp when the policy orchestrator resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Freeform text describing the purpose of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. In form of * organizations/{organization_id}/locations/global/policyOrchestrators/{orchestrator_id} * folders/{folder_id}/locations/global/policyOrchestrators/{orchestrator_id} * projects/{project_id_or_number}/locations/global/policyOrchestrators/{orchestrator_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Resource to be orchestrated by the policy orchestrator.
     #[serde(default, rename = "orchestratedResource")]
-    pub orchestrated_resource: Option<GoogleCloudOsconfigV2OrchestratedResource>,
+    pub orchestrated_resource:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudOsconfigV2OrchestratedResource>>,
     /// Optional. Defines scope for the orchestration, in context of the enclosing PolicyOrchestrator resource. Scope is expanded into a list of pairs, in which the rollout action will take place. Expansion starts with a Folder resource parenting the PolicyOrchestrator resource: - All the descendant projects are listed. - List of project is cross joined with a list of all available zones. - Resulting list of pairs is filtered according to the selectors.
     #[serde(default, rename = "orchestrationScope")]
-    pub orchestration_scope: Option<GoogleCloudOsconfigV2OrchestrationScope>,
+    pub orchestration_scope:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudOsconfigV2OrchestrationScope>>,
     /// Output only. State of the orchestration.
     #[serde(default, rename = "orchestrationState")]
-    pub orchestration_state: Option<GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState>,
+    pub orchestration_state: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState>,
+    >,
     /// Output only. Set to true, if there are ongoing changes being applied by the orchestrator.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Optional. State of the orchestrator. Can be updated to change orchestrator behaviour. Allowed values: - ACTIVE - orchestrator is actively looking for actions to be taken. - STOPPED - orchestrator won''t make any changes. Note: There might be more states added in the future. We use string here instead of an enum, to avoid the need of propagating new states to all the client code.
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Timestamp when the policy orchestrator resource was last modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -298,25 +314,25 @@ pub struct GoogleCloudOsconfigV2PolicyOrchestrator {
 pub struct GoogleCloudOsconfigV2betaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -324,13 +340,13 @@ pub struct GoogleCloudOsconfigV2betaOperationMetadata {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// An OS policy defines the desired state configuration for a VM.
@@ -338,19 +354,20 @@ pub struct ListOperationsResponse {
 pub struct OSPolicy {
     /// This flag determines the OS policy compliance status when none of the resource groups within the policy are applicable for a VM. Set this value to true if the policy needs to be reported as compliant even if the policy has nothing to validate or enforce.
     #[serde(default, rename = "allowNoResourceGroupMatch")]
-    pub allow_no_resource_group_match: Option<bool>,
+    pub allow_no_resource_group_match: ::core::option::Option<bool>,
     /// Policy description. Length of the description is limited to 1024 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The id of the OS policy with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the assignment.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. Policy mode // TODO: enum values: ["MODE_UNSPECIFIED", "VALIDATION", "ENFORCEMENT"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Required. List of resource groups for the policy. For a particular VM, resource groups are evaluated in the order specified and the first resource group that is applicable is selected and the rest are ignored. If none of the resource groups are applicable for a VM, the VM is considered to be non-compliant w.r.t this policy. This behavior can be toggled by the flag allow_no_resource_group_match
     #[serde(default, rename = "resourceGroups")]
-    pub resource_groups: Option<Vec<OSPolicyResourceGroup>>,
+    pub resource_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OSPolicyResourceGroup>>>,
 }
 
 /// OS policy assignment is an API resource that is used to apply a set of OS policies to a dynamically targeted group of Compute Engine VM instances. An OS policy is used to define the desired state configuration for a Compute Engine VM instance through a set of configuration resources that provide capabilities such as installing or removing software packages, or executing a script. For more information about the OS policy resource definitions and examples, see [OS policy and OS policy assignment](https://cloud.google.com/compute/docs/os-configuration-management/working-with-os-policies).
@@ -358,43 +375,44 @@ pub struct OSPolicy {
 pub struct OSPolicyAssignment {
     /// Output only. Indicates that this revision has been successfully rolled out in this zone and new VMs will be assigned OS policies from this revision. For a given OS policy assignment, there is only one revision with a value of true for this field.
     #[serde(default)]
-    pub baseline: Option<bool>,
+    pub baseline: ::core::option::Option<bool>,
     /// Output only. Indicates that this revision deletes the OS policy assignment.
     #[serde(default)]
-    pub deleted: Option<bool>,
+    pub deleted: ::core::option::Option<bool>,
     /// OS policy assignment description. Length of the description is limited to 1024 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The etag for this OS policy assignment. If this is provided on update, it must match the server''s etag.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Required. Filter to select VMs.
     #[serde(default, rename = "instanceFilter")]
-    pub instance_filter: Option<OSPolicyAssignmentInstanceFilter>,
+    pub instance_filter:
+        ::core::option::Option<::std::boxed::Box<OSPolicyAssignmentInstanceFilter>>,
     /// Resource name. Format: projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id} This field is ignored when you create an OS policy assignment.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. List of OS policies to be applied to the VMs.
     #[serde(default, rename = "osPolicies")]
-    pub os_policies: Option<Vec<OSPolicy>>,
+    pub os_policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OSPolicy>>>,
     /// Output only. Indicates that reconciliation is in progress for the revision. This value is true when the rollout_state is one of: * IN_PROGRESS * CANCELLING
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The timestamp that the revision was created.
     #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: Option<String>,
+    pub revision_create_time: ::core::option::Option<String>,
     /// Output only. The assignment revision ID A new revision is committed whenever a rollout is triggered for a OS policy assignment
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Required. Rollout to deploy the OS policy assignment. A rollout is triggered in the following situations: 1) OSPolicyAssignment is created. 2) OSPolicyAssignment is updated and the update contains changes to one of the following fields: - instance_filter - os_policies 3) OSPolicyAssignment is deleted.
     #[serde(default)]
-    pub rollout: Option<OSPolicyAssignmentRollout>,
+    pub rollout: ::core::option::Option<::std::boxed::Box<OSPolicyAssignmentRollout>>,
     /// Output only. OS policy assignment rollout state // TODO: enum values: ["ROLLOUT_STATE_UNSPECIFIED", "IN_PROGRESS", "CANCELLING", "CANCELLED", "SUCCEEDED"]
     #[serde(default, rename = "rolloutState")]
-    pub rollout_state: Option<String>,
+    pub rollout_state: ::core::option::Option<String>,
     /// Output only. Server generated unique id for the OS policy assignment resource.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// Filters to select target VMs for an assignment. If more than one filter criteria is specified below, a VM will be selected if and only if it satisfies all of them.
@@ -402,16 +420,20 @@ pub struct OSPolicyAssignment {
 pub struct OSPolicyAssignmentInstanceFilter {
     /// Target all VMs in the project. If true, no other criteria is permitted.
     #[serde(default)]
-    pub all: Option<bool>,
+    pub all: ::core::option::Option<bool>,
     /// List of label sets used for VM exclusion. If the list has more than one label set, the VM is excluded if any of the label sets are applicable for the VM.
     #[serde(default, rename = "exclusionLabels")]
-    pub exclusion_labels: Option<Vec<OSPolicyAssignmentLabelSet>>,
+    pub exclusion_labels:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OSPolicyAssignmentLabelSet>>>,
     /// List of label sets used for VM inclusion. If the list has more than one LabelSet, the VM is included if any of the label sets are applicable for the VM.
     #[serde(default, rename = "inclusionLabels")]
-    pub inclusion_labels: Option<Vec<OSPolicyAssignmentLabelSet>>,
+    pub inclusion_labels:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OSPolicyAssignmentLabelSet>>>,
     /// List of inventories to select VMs. A VM is selected if its inventory data matches at least one of the following inventories.
     #[serde(default)]
-    pub inventories: Option<Vec<OSPolicyAssignmentInstanceFilterInventory>>,
+    pub inventories: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<OSPolicyAssignmentInstanceFilterInventory>>,
+    >,
 }
 
 /// VM inventory details.
@@ -419,10 +441,10 @@ pub struct OSPolicyAssignmentInstanceFilter {
 pub struct OSPolicyAssignmentInstanceFilterInventory {
     /// Required. The OS short name
     #[serde(default, rename = "osShortName")]
-    pub os_short_name: Option<String>,
+    pub os_short_name: ::core::option::Option<String>,
     /// The OS version Prefix matches are supported if asterisk(*) is provided as the last character. For example, to match all versions with a major version of 7, specify the following value for this field 7.* An empty string matches all OS versions.
     #[serde(default, rename = "osVersion")]
-    pub os_version: Option<String>,
+    pub os_version: ::core::option::Option<String>,
 }
 
 /// OS policy assignment operation metadata provided by OS policy assignment API methods that return long running operations.
@@ -430,19 +452,19 @@ pub struct OSPolicyAssignmentInstanceFilterInventory {
 pub struct OSPolicyAssignmentOperationMetadata {
     /// The OS policy assignment API method. // TODO: enum values: ["API_METHOD_UNSPECIFIED", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "apiMethod")]
-    pub api_method: Option<String>,
+    pub api_method: ::core::option::Option<String>,
     /// Reference to the OSPolicyAssignment API resource. Format: projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id@revision_id}
     #[serde(default, rename = "osPolicyAssignment")]
-    pub os_policy_assignment: Option<String>,
+    pub os_policy_assignment: ::core::option::Option<String>,
     /// Rollout start time
     #[serde(default, rename = "rolloutStartTime")]
-    pub rollout_start_time: Option<String>,
+    pub rollout_start_time: ::core::option::Option<String>,
     /// State of the rollout // TODO: enum values: ["ROLLOUT_STATE_UNSPECIFIED", "IN_PROGRESS", "CANCELLING", "CANCELLED", "SUCCEEDED"]
     #[serde(default, rename = "rolloutState")]
-    pub rollout_state: Option<String>,
+    pub rollout_state: ::core::option::Option<String>,
     /// Rollout update time
     #[serde(default, rename = "rolloutUpdateTime")]
-    pub rollout_update_time: Option<String>,
+    pub rollout_update_time: ::core::option::Option<String>,
 }
 
 /// Message to configure the rollout at the zonal level for the OS policy assignment.
@@ -450,10 +472,10 @@ pub struct OSPolicyAssignmentOperationMetadata {
 pub struct OSPolicyAssignmentRollout {
     /// Required. The maximum number (or percentage) of VMs per zone to disrupt at any given moment.
     #[serde(default, rename = "disruptionBudget")]
-    pub disruption_budget: Option<FixedOrPercent>,
+    pub disruption_budget: ::core::option::Option<::std::boxed::Box<FixedOrPercent>>,
     /// Required. This determines the minimum duration of time to wait after the configuration changes are applied through the current rollout. A VM continues to count towards the disruption_budget at least until this duration of time has passed after configuration changes are applied.
     #[serde(default, rename = "minWaitDuration")]
-    pub min_wait_duration: Option<String>,
+    pub min_wait_duration: ::core::option::Option<String>,
 }
 
 /// Filtering criteria to select VMs based on inventory details.
@@ -461,10 +483,10 @@ pub struct OSPolicyAssignmentRollout {
 pub struct OSPolicyInventoryFilter {
     /// Required. The OS short name
     #[serde(default, rename = "osShortName")]
-    pub os_short_name: Option<String>,
+    pub os_short_name: ::core::option::Option<String>,
     /// The OS version Prefix matches are supported if asterisk(*) is provided as the last character. For example, to match all versions with a major version of 7, specify the following value for this field 7.* An empty string matches all OS versions.
     #[serde(default, rename = "osVersion")]
-    pub os_version: Option<String>,
+    pub os_version: ::core::option::Option<String>,
 }
 
 /// An OS policy resource is used to define the desired state configuration and provides a specific functionality like installing/removing packages, executing a script etc. The system ensures that resources are always in their desired state by taking necessary actions if they have drifted from their desired state.
@@ -472,19 +494,19 @@ pub struct OSPolicyInventoryFilter {
 pub struct OSPolicyResource {
     /// Exec resource
     #[serde(default)]
-    pub exec: Option<OSPolicyResourceExecResource>,
+    pub exec: ::core::option::Option<::std::boxed::Box<OSPolicyResourceExecResource>>,
     /// File resource
     #[serde(default)]
-    pub file: Option<OSPolicyResourceFileResource>,
+    pub file: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFileResource>>,
     /// Required. The id of the resource with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the OS policy.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Package resource
     #[serde(default)]
-    pub pkg: Option<OSPolicyResourcePackageResource>,
+    pub pkg: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResource>>,
     /// Package repository resource
     #[serde(default)]
-    pub repository: Option<OSPolicyResourceRepositoryResource>,
+    pub repository: ::core::option::Option<::std::boxed::Box<OSPolicyResourceRepositoryResource>>,
 }
 
 /// A resource that allows executing scripts on the VM. The ExecResource has 2 stages: validate and enforce and both stages accept a script as an argument to execute. When the ExecResource is applied by the agent, it first executes the script in the validate stage. The validate stage can signal that the ExecResource is already in the desired state by returning an exit code of 100. If the ExecResource is not in the desired state, it should return an exit code of 101. Any other exit code returned by this stage is considered an error. If the ExecResource is not in the desired state based on the exit code from the validate stage, the agent proceeds to execute the script from the enforce stage. If the ExecResource is already in the desired state, the enforce stage will not be run. Similar to validate stage, the enforce stage should return an exit code of 100 to indicate that the resource in now in its desired state. Any other exit code is considered an error. NOTE: An exit code of 100 was chosen over 0 (and 101 vs 1) to have an explicit indicator of in desired state, not in desired state and errors. Because, for example, Powershell will always return an exit code of 0 unless an exit statement is provided in the script. So, for reasons of consistency and being explicit, exit codes 100 and 101 were chosen.
@@ -492,10 +514,10 @@ pub struct OSPolicyResource {
 pub struct OSPolicyResourceExecResource {
     /// What to run to bring this resource into the desired state. An exit code of 100 indicates "success", any other exit code indicates a failure running enforce.
     #[serde(default)]
-    pub enforce: Option<OSPolicyResourceExecResourceExec>,
+    pub enforce: ::core::option::Option<::std::boxed::Box<OSPolicyResourceExecResourceExec>>,
     /// Required. What to run to validate this resource is in the desired state. An exit code of 100 indicates "in desired state", and exit code of 101 indicates "not in desired state". Any other exit code indicates a failure running validate.
     #[serde(default)]
-    pub validate: Option<OSPolicyResourceExecResourceExec>,
+    pub validate: ::core::option::Option<::std::boxed::Box<OSPolicyResourceExecResourceExec>>,
 }
 
 /// A file or script to execute.
@@ -503,19 +525,19 @@ pub struct OSPolicyResourceExecResource {
 pub struct OSPolicyResourceExecResourceExec {
     /// Optional arguments to pass to the source during execution.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// A remote or local file.
     #[serde(default)]
-    pub file: Option<OSPolicyResourceFile>,
+    pub file: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFile>>,
     /// Required. The script interpreter to use. // TODO: enum values: ["INTERPRETER_UNSPECIFIED", "NONE", "SHELL", "POWERSHELL"]
     #[serde(default)]
-    pub interpreter: Option<String>,
+    pub interpreter: ::core::option::Option<String>,
     /// Only recorded for enforce Exec. Path to an output file (that is created by this Exec) whose content will be recorded in OSPolicyResourceCompliance after a successful run. Absence or failure to read this file will result in this ExecResource being non-compliant. Output file size is limited to 500K bytes.
     #[serde(default, rename = "outputFilePath")]
-    pub output_file_path: Option<String>,
+    pub output_file_path: ::core::option::Option<String>,
     /// An inline script. The size of the script is limited to 32KiB.
     #[serde(default)]
-    pub script: Option<String>,
+    pub script: ::core::option::Option<String>,
 }
 
 /// A remote or local file.
@@ -523,16 +545,16 @@ pub struct OSPolicyResourceExecResourceExec {
 pub struct OSPolicyResourceFile {
     /// Defaults to false. When false, files are subject to validations based on the file type: Remote: A checksum must be specified. Cloud Storage: An object generation number must be specified.
     #[serde(default, rename = "allowInsecure")]
-    pub allow_insecure: Option<bool>,
+    pub allow_insecure: ::core::option::Option<bool>,
     /// A Cloud Storage object.
     #[serde(default)]
-    pub gcs: Option<OSPolicyResourceFileGcs>,
+    pub gcs: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFileGcs>>,
     /// A local path within the VM to use.
     #[serde(default, rename = "localPath")]
-    pub local_path: Option<String>,
+    pub local_path: ::core::option::Option<String>,
     /// A generic remote file.
     #[serde(default)]
-    pub remote: Option<OSPolicyResourceFileRemote>,
+    pub remote: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFileRemote>>,
 }
 
 /// Specifies a file available as a Cloud Storage Object.
@@ -540,13 +562,13 @@ pub struct OSPolicyResourceFile {
 pub struct OSPolicyResourceFileGcs {
     /// Required. Bucket of the Cloud Storage object.
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Generation number of the Cloud Storage object.
     #[serde(default)]
-    pub generation: Option<String>,
+    pub generation: ::core::option::Option<String>,
     /// Required. Name of the Cloud Storage object.
     #[serde(default)]
-    pub object: Option<String>,
+    pub object: ::core::option::Option<String>,
 }
 
 /// Specifies a file available via some URI.
@@ -554,10 +576,10 @@ pub struct OSPolicyResourceFileGcs {
 pub struct OSPolicyResourceFileRemote {
     /// SHA256 checksum of the remote file.
     #[serde(default, rename = "sha256Checksum")]
-    pub sha256_checksum: Option<String>,
+    pub sha256_checksum: ::core::option::Option<String>,
     /// Required. URI from which to fetch the object. It should contain both the protocol and path following the format {protocol}://{location}.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// A resource that manages the state of a file.
@@ -565,19 +587,19 @@ pub struct OSPolicyResourceFileRemote {
 pub struct OSPolicyResourceFileResource {
     /// A file with this content. The size of the content is limited to 32KiB.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// A remote or local source.
     #[serde(default)]
-    pub file: Option<OSPolicyResourceFile>,
+    pub file: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFile>>,
     /// Required. The absolute path of the file within the VM.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Consists of three octal digits which represent, in order, the permissions of the owner, group, and other users for the file (similarly to the numeric mode used in the linux chmod utility). Each digit represents a three bit number with the 4 bit corresponding to the read permissions, the 2 bit corresponds to the write bit, and the one bit corresponds to the execute permission. Default behavior is 755. Below are some examples of permissions and their associated values: read, write, and execute: 7 read and execute: 5 read and write: 6 read only: 4
     #[serde(default)]
-    pub permissions: Option<String>,
+    pub permissions: ::core::option::Option<String>,
     /// Required. Desired state of the file. // TODO: enum values: ["DESIRED_STATE_UNSPECIFIED", "PRESENT", "ABSENT", "CONTENTS_MATCH"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Resource groups provide a mechanism to group OS policy resources. Resource groups enable OS policy authors to create a single OS policy to be applied to VMs running different operating Systems. When the OS policy is applied to a target VM, the appropriate resource group within the OS policy is selected based on the OSFilter specified within the resource group.
@@ -585,10 +607,11 @@ pub struct OSPolicyResourceFileResource {
 pub struct OSPolicyResourceGroup {
     /// List of inventory filters for the resource group. The resources in this resource group are applied to the target VM if it satisfies at least one of the following inventory filters. For example, to apply this resource group to VMs running either RHEL or CentOS operating systems, specify 2 items for the list with following values: inventory_filters[0].os_short_name=''rhel'' and inventory_filters[1].os_short_name=''centos'' If the list is empty, this resource group will be applied to the target VM unconditionally.
     #[serde(default, rename = "inventoryFilters")]
-    pub inventory_filters: Option<Vec<OSPolicyInventoryFilter>>,
+    pub inventory_filters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OSPolicyInventoryFilter>>>,
     /// Required. List of resources configured for this resource group. The resources are executed in the exact order specified here.
     #[serde(default)]
-    pub resources: Option<Vec<OSPolicyResource>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OSPolicyResource>>>,
 }
 
 /// A resource that manages a system package.
@@ -596,28 +619,28 @@ pub struct OSPolicyResourceGroup {
 pub struct OSPolicyResourcePackageResource {
     /// A package managed by Apt.
     #[serde(default)]
-    pub apt: Option<OSPolicyResourcePackageResourceAPT>,
+    pub apt: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResourceAPT>>,
     /// A deb package file.
     #[serde(default)]
-    pub deb: Option<OSPolicyResourcePackageResourceDeb>,
+    pub deb: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResourceDeb>>,
     /// Required. The desired state the agent should maintain for this package. // TODO: enum values: ["DESIRED_STATE_UNSPECIFIED", "INSTALLED", "REMOVED"]
     #[serde(default, rename = "desiredState")]
-    pub desired_state: Option<String>,
+    pub desired_state: ::core::option::Option<String>,
     /// A package managed by GooGet.
     #[serde(default)]
-    pub googet: Option<OSPolicyResourcePackageResourceGooGet>,
+    pub googet: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResourceGooGet>>,
     /// An MSI package.
     #[serde(default)]
-    pub msi: Option<OSPolicyResourcePackageResourceMSI>,
+    pub msi: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResourceMSI>>,
     /// An rpm package file.
     #[serde(default)]
-    pub rpm: Option<OSPolicyResourcePackageResourceRPM>,
+    pub rpm: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResourceRPM>>,
     /// A package managed by YUM.
     #[serde(default)]
-    pub yum: Option<OSPolicyResourcePackageResourceYUM>,
+    pub yum: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResourceYUM>>,
     /// A package managed by Zypper.
     #[serde(default)]
-    pub zypper: Option<OSPolicyResourcePackageResourceZypper>,
+    pub zypper: ::core::option::Option<::std::boxed::Box<OSPolicyResourcePackageResourceZypper>>,
 }
 
 /// A package managed by APT. - install: apt-get update && apt-get -y install [name] - remove: apt-get -y remove [name]
@@ -625,7 +648,7 @@ pub struct OSPolicyResourcePackageResource {
 pub struct OSPolicyResourcePackageResourceAPT {
     /// Required. Package name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A deb package file. dpkg packages only support INSTALLED state.
@@ -633,10 +656,10 @@ pub struct OSPolicyResourcePackageResourceAPT {
 pub struct OSPolicyResourcePackageResourceDeb {
     /// Whether dependencies should also be installed. - install when false: dpkg -i package - install when true: apt-get update && apt-get -y install package.deb
     #[serde(default, rename = "pullDeps")]
-    pub pull_deps: Option<bool>,
+    pub pull_deps: ::core::option::Option<bool>,
     /// Required. A deb package.
     #[serde(default)]
-    pub source: Option<OSPolicyResourceFile>,
+    pub source: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFile>>,
 }
 
 /// A package managed by GooGet. - install: googet -noconfirm install package - remove: googet -noconfirm remove package
@@ -644,7 +667,7 @@ pub struct OSPolicyResourcePackageResourceDeb {
 pub struct OSPolicyResourcePackageResourceGooGet {
     /// Required. Package name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An MSI package. MSI packages only support INSTALLED state.
@@ -652,10 +675,10 @@ pub struct OSPolicyResourcePackageResourceGooGet {
 pub struct OSPolicyResourcePackageResourceMSI {
     /// Additional properties to use during installation. This should be in the format of Property=Setting. Appended to the defaults of ACTION=INSTALL REBOOT=ReallySuppress.
     #[serde(default)]
-    pub properties: Option<Vec<String>>,
+    pub properties: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The MSI package.
     #[serde(default)]
-    pub source: Option<OSPolicyResourceFile>,
+    pub source: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFile>>,
 }
 
 /// An RPM package file. RPM packages only support INSTALLED state.
@@ -663,10 +686,10 @@ pub struct OSPolicyResourcePackageResourceMSI {
 pub struct OSPolicyResourcePackageResourceRPM {
     /// Whether dependencies should also be installed. - install when false: rpm --upgrade --replacepkgs package.rpm - install when true: yum -y install package.rpm or zypper -y install package.rpm
     #[serde(default, rename = "pullDeps")]
-    pub pull_deps: Option<bool>,
+    pub pull_deps: ::core::option::Option<bool>,
     /// Required. An rpm package.
     #[serde(default)]
-    pub source: Option<OSPolicyResourceFile>,
+    pub source: ::core::option::Option<::std::boxed::Box<OSPolicyResourceFile>>,
 }
 
 /// A package managed by YUM. - install: yum -y install package - remove: yum -y remove package
@@ -674,7 +697,7 @@ pub struct OSPolicyResourcePackageResourceRPM {
 pub struct OSPolicyResourcePackageResourceYUM {
     /// Required. Package name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A package managed by Zypper. - install: zypper -y install package - remove: zypper -y rm package
@@ -682,7 +705,7 @@ pub struct OSPolicyResourcePackageResourceYUM {
 pub struct OSPolicyResourcePackageResourceZypper {
     /// Required. Package name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A resource that manages a package repository.
@@ -690,16 +713,21 @@ pub struct OSPolicyResourcePackageResourceZypper {
 pub struct OSPolicyResourceRepositoryResource {
     /// An Apt Repository.
     #[serde(default)]
-    pub apt: Option<OSPolicyResourceRepositoryResourceAptRepository>,
+    pub apt:
+        ::core::option::Option<::std::boxed::Box<OSPolicyResourceRepositoryResourceAptRepository>>,
     /// A Goo Repository.
     #[serde(default)]
-    pub goo: Option<OSPolicyResourceRepositoryResourceGooRepository>,
+    pub goo:
+        ::core::option::Option<::std::boxed::Box<OSPolicyResourceRepositoryResourceGooRepository>>,
     /// A Yum Repository.
     #[serde(default)]
-    pub yum: Option<OSPolicyResourceRepositoryResourceYumRepository>,
+    pub yum:
+        ::core::option::Option<::std::boxed::Box<OSPolicyResourceRepositoryResourceYumRepository>>,
     /// A Zypper Repository.
     #[serde(default)]
-    pub zypper: Option<OSPolicyResourceRepositoryResourceZypperRepository>,
+    pub zypper: ::core::option::Option<
+        ::std::boxed::Box<OSPolicyResourceRepositoryResourceZypperRepository>,
+    >,
 }
 
 /// Represents a single apt package repository. These will be added to a repo file that will be managed at /etc/apt/sources.list.d/google_osconfig.list.
@@ -707,19 +735,19 @@ pub struct OSPolicyResourceRepositoryResource {
 pub struct OSPolicyResourceRepositoryResourceAptRepository {
     /// Required. Type of archive files in this repository. // TODO: enum values: ["ARCHIVE_TYPE_UNSPECIFIED", "DEB", "DEB_SRC"]
     #[serde(default, rename = "archiveType")]
-    pub archive_type: Option<String>,
+    pub archive_type: ::core::option::Option<String>,
     /// Required. List of components for this repository. Must contain at least one item.
     #[serde(default)]
-    pub components: Option<Vec<String>>,
+    pub components: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Distribution of this repository.
     #[serde(default)]
-    pub distribution: Option<String>,
+    pub distribution: ::core::option::Option<String>,
     /// URI of the key file for this repository. The agent maintains a keyring at /etc/apt/trusted.gpg.d/osconfig_agent_managed.gpg.
     #[serde(default, rename = "gpgKey")]
-    pub gpg_key: Option<String>,
+    pub gpg_key: ::core::option::Option<String>,
     /// Required. URI for this repository.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Represents a Goo package repository. These are added to a repo file that is managed at C:/ProgramData/GooGet/repos/google_osconfig.repo.
@@ -727,10 +755,10 @@ pub struct OSPolicyResourceRepositoryResourceAptRepository {
 pub struct OSPolicyResourceRepositoryResourceGooRepository {
     /// Required. The name of the repository.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The url of the repository.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Represents a single yum package repository. These are added to a repo file that is managed at /etc/yum.repos.d/google_osconfig.repo.
@@ -738,16 +766,16 @@ pub struct OSPolicyResourceRepositoryResourceGooRepository {
 pub struct OSPolicyResourceRepositoryResourceYumRepository {
     /// Required. The location of the repository directory.
     #[serde(default, rename = "baseUrl")]
-    pub base_url: Option<String>,
+    pub base_url: ::core::option::Option<String>,
     /// The display name of the repository.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// URIs of GPG keys.
     #[serde(default, rename = "gpgKeys")]
-    pub gpg_keys: Option<Vec<String>>,
+    pub gpg_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. A one word, unique name for this repository. This is the repo id in the yum config file and also the display_name if display_name is omitted. This id is also used as the unique identifier when checking for resource conflicts.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Represents a single zypper package repository. These are added to a repo file that is managed at /etc/zypp/repos.d/google_osconfig.repo.
@@ -755,16 +783,16 @@ pub struct OSPolicyResourceRepositoryResourceYumRepository {
 pub struct OSPolicyResourceRepositoryResourceZypperRepository {
     /// Required. The location of the repository directory.
     #[serde(default, rename = "baseUrl")]
-    pub base_url: Option<String>,
+    pub base_url: ::core::option::Option<String>,
     /// The display name of the repository.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// URIs of GPG keys.
     #[serde(default, rename = "gpgKeys")]
-    pub gpg_keys: Option<Vec<String>>,
+    pub gpg_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. A one word, unique name for this repository. This is the repo id in the zypper config file and also the display_name if display_name is omitted. This id is also used as the unique identifier when checking for GuestPolicy conflicts.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -772,19 +800,19 @@ pub struct OSPolicyResourceRepositoryResourceZypperRepository {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -792,13 +820,13 @@ pub struct Operation {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Wire-format for a Status object
@@ -806,17 +834,17 @@ pub struct Status {
 pub struct StatusProto {
     /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
     #[serde(default, rename = "canonicalCode")]
-    pub canonical_code: Option<i32>,
+    pub canonical_code: ::core::option::Option<i32>,
     /// Numeric code drawn from the space specified below. Often, this is the canonical error space, and code is drawn from google3/util/task/codes.proto copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 code = 1;
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// Detail message copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional string message = 3;
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
     #[serde(default, rename = "messageSet")]
-    pub message_set: Option<serde_json::Value>,
+    pub message_set: ::core::option::Option<serde_json::Value>,
     /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
     #[serde(default)]
-    pub space: Option<String>,
+    pub space: ::core::option::Option<String>,
 }

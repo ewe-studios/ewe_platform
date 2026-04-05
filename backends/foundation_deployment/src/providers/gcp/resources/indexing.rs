@@ -10,15 +10,16 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Output for PublishUrlNotification
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishUrlNotificationResponse {
     /// Description of the notification events received for this URL.
     #[serde(default, rename = "urlNotificationMetadata")]
-    pub url_notification_metadata: Option<UrlNotificationMetadata>,
+    pub url_notification_metadata:
+        ::core::option::Option<::std::boxed::Box<UrlNotificationMetadata>>,
 }
 
 /// UrlNotification is the resource used in all Indexing API calls. It describes one event in the life cycle of a Web Document.
@@ -26,13 +27,13 @@ pub struct PublishUrlNotificationResponse {
 pub struct UrlNotification {
     /// Creation timestamp for this notification. Users should _not_ specify it, the field is ignored at the request time.
     #[serde(default, rename = "notifyTime")]
-    pub notify_time: Option<String>,
+    pub notify_time: ::core::option::Option<String>,
     /// The URL life cycle event that Google is being notified about. // TODO: enum values: ["URL_NOTIFICATION_TYPE_UNSPECIFIED", "URL_UPDATED", "URL_DELETED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The object of this notification. The URL must be owned by the publisher of this notification and, in case of URL_UPDATED notifications, it _must_ be crawlable by Google.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Summary of the most recent Indexing API notifications successfully received, for a given URL.
@@ -40,11 +41,11 @@ pub struct UrlNotification {
 pub struct UrlNotificationMetadata {
     /// Latest notification received with type URL_REMOVED.
     #[serde(default, rename = "latestRemove")]
-    pub latest_remove: Option<UrlNotification>,
+    pub latest_remove: ::core::option::Option<::std::boxed::Box<UrlNotification>>,
     /// Latest notification received with type URL_UPDATED.
     #[serde(default, rename = "latestUpdate")]
-    pub latest_update: Option<UrlNotification>,
+    pub latest_update: ::core::option::Option<::std::boxed::Box<UrlNotification>>,
     /// URL to which this metadata refers.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }

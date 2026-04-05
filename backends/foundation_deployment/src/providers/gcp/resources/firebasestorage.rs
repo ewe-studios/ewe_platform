@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A storage bucket and its relation to a parent Firebase project.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bucket {
     /// Output only. Resource name of the bucket.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Spark tier-eligible Cloud Storage bucket. One per project. This resource exists if the underlying Cloud Storage bucket exists and it is linked to your Firebase project. See https://firebase.google.com/pricing for pricing details.
@@ -26,16 +26,16 @@ pub struct Bucket {
 pub struct DefaultBucket {
     /// Output only. Underlying bucket resource.
     #[serde(default)]
-    pub bucket: Option<Bucket>,
+    pub bucket: ::core::option::Option<::std::boxed::Box<Bucket>>,
     /// Immutable. Location of the default bucket.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Identifier. Resource name of the default bucket.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. Storage class of the default bucket. Supported values are available at https://cloud.google.com/storage/docs/storage-classes#classes.
     #[serde(default, rename = "storageClass")]
-    pub storage_class: Option<String>,
+    pub storage_class: ::core::option::Option<String>,
 }
 
 /// The response returned by ListBuckets.
@@ -43,8 +43,8 @@ pub struct DefaultBucket {
 pub struct ListBucketsResponse {
     /// The list of linked buckets.
     #[serde(default)]
-    pub buckets: Option<Vec<Bucket>>,
+    pub buckets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Bucket>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }

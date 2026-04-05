@@ -10,24 +10,26 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Information about the claim.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1Claim {
     /// The date that the claim was made.
     #[serde(default, rename = "claimDate")]
-    pub claim_date: Option<String>,
+    pub claim_date: ::core::option::Option<String>,
     /// One or more reviews of this claim (namely, a fact-checking article).
     #[serde(default, rename = "claimReview")]
-    pub claim_review: Option<Vec<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReview>>,
+    pub claim_review: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReview>>,
+    >,
     /// A person or organization stating the claim. For instance, "John Doe".
     #[serde(default)]
-    pub claimant: Option<String>,
+    pub claimant: ::core::option::Option<String>,
     /// The claim text. For instance, "Crime has doubled in the last 2 years."
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Information about the claim author.
@@ -35,16 +37,16 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1Claim {
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimAuthor {
     /// Corresponds to ClaimReview.itemReviewed.author.image.
     #[serde(default, rename = "imageUrl")]
-    pub image_url: Option<String>,
+    pub image_url: ::core::option::Option<String>,
     /// Corresponds to ClaimReview.itemReviewed.author.jobTitle.
     #[serde(default, rename = "jobTitle")]
-    pub job_title: Option<String>,
+    pub job_title: ::core::option::Option<String>,
     /// A person or organization stating the claim. For instance, "John Doe". Corresponds to ClaimReview.itemReviewed.author.name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Corresponds to ClaimReview.itemReviewed.author.sameAs.
     #[serde(default, rename = "sameAs")]
-    pub same_as: Option<String>,
+    pub same_as: ::core::option::Option<String>,
 }
 
 /// Information about the claim rating.
@@ -52,22 +54,22 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimAuthor {
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimRating {
     /// For numeric ratings, the best value possible in the scale from worst to best. Corresponds to ClaimReview.reviewRating.bestRating.
     #[serde(default, rename = "bestRating")]
-    pub best_rating: Option<i32>,
+    pub best_rating: ::core::option::Option<i32>,
     /// Corresponds to ClaimReview.reviewRating.image.
     #[serde(default, rename = "imageUrl")]
-    pub image_url: Option<String>,
+    pub image_url: ::core::option::Option<String>,
     /// Corresponds to ClaimReview.reviewRating.ratingExplanation.
     #[serde(default, rename = "ratingExplanation")]
-    pub rating_explanation: Option<String>,
+    pub rating_explanation: ::core::option::Option<String>,
     /// A numeric rating of this claim, in the range worstRating — bestRating inclusive. Corresponds to ClaimReview.reviewRating.ratingValue.
     #[serde(default, rename = "ratingValue")]
-    pub rating_value: Option<i32>,
+    pub rating_value: ::core::option::Option<i32>,
     /// The truthfulness rating as a human-readible short word or phrase. Corresponds to ClaimReview.reviewRating.alternateName.
     #[serde(default, rename = "textualRating")]
-    pub textual_rating: Option<String>,
+    pub textual_rating: ::core::option::Option<String>,
     /// For numeric ratings, the worst value possible in the scale from worst to best. Corresponds to ClaimReview.reviewRating.worstRating.
     #[serde(default, rename = "worstRating")]
-    pub worst_rating: Option<i32>,
+    pub worst_rating: ::core::option::Option<i32>,
 }
 
 /// Information about a claim review.
@@ -75,22 +77,24 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimRating {
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReview {
     /// The language this review was written in. For instance, "en" or "de".
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// The publisher of this claim review.
     #[serde(default)]
-    pub publisher: Option<GoogleFactcheckingFactchecktoolsV1alpha1Publisher>,
+    pub publisher: ::core::option::Option<
+        ::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1Publisher>,
+    >,
     /// The date the claim was reviewed.
     #[serde(default, rename = "reviewDate")]
-    pub review_date: Option<String>,
+    pub review_date: ::core::option::Option<String>,
     /// Textual rating. For instance, "Mostly false".
     #[serde(default, rename = "textualRating")]
-    pub textual_rating: Option<String>,
+    pub textual_rating: ::core::option::Option<String>,
     /// The title of this claim review, if it can be determined.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The URL of this claim review.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Information about the claim review author.
@@ -98,10 +102,10 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReview {
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewAuthor {
     /// Corresponds to ClaimReview.author.image.
     #[serde(default, rename = "imageUrl")]
-    pub image_url: Option<String>,
+    pub image_url: ::core::option::Option<String>,
     /// Name of the organization that is publishing the fact check. Corresponds to ClaimReview.author.name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Fields for an individual ClaimReview element. Except for sub-messages that group fields together, each of these fields correspond those in https://schema.org/ClaimReview. We list the precise mapping for each field.
@@ -109,28 +113,32 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewAuthor {
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkup {
     /// A list of links to works in which this claim appears, aside from the one specified in claim_first_appearance. Corresponds to ClaimReview.itemReviewed[@type=Claim].appearance.url.
     #[serde(default, rename = "claimAppearances")]
-    pub claim_appearances: Option<Vec<String>>,
+    pub claim_appearances: ::core::option::Option<::std::vec::Vec<String>>,
     /// Info about the author of this claim.
     #[serde(default, rename = "claimAuthor")]
-    pub claim_author: Option<GoogleFactcheckingFactchecktoolsV1alpha1ClaimAuthor>,
+    pub claim_author: ::core::option::Option<
+        ::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1ClaimAuthor>,
+    >,
     /// The date when the claim was made or entered public discourse. Corresponds to ClaimReview.itemReviewed.datePublished.
     #[serde(default, rename = "claimDate")]
-    pub claim_date: Option<String>,
+    pub claim_date: ::core::option::Option<String>,
     /// A link to a work in which this claim first appears. Corresponds to ClaimReview.itemReviewed[@type=Claim].firstAppearance.url.
     #[serde(default, rename = "claimFirstAppearance")]
-    pub claim_first_appearance: Option<String>,
+    pub claim_first_appearance: ::core::option::Option<String>,
     /// The location where this claim was made. Corresponds to ClaimReview.itemReviewed.name.
     #[serde(default, rename = "claimLocation")]
-    pub claim_location: Option<String>,
+    pub claim_location: ::core::option::Option<String>,
     /// A short summary of the claim being evaluated. Corresponds to ClaimReview.claimReviewed.
     #[serde(default, rename = "claimReviewed")]
-    pub claim_reviewed: Option<String>,
+    pub claim_reviewed: ::core::option::Option<String>,
     /// Info about the rating of this claim review.
     #[serde(default)]
-    pub rating: Option<GoogleFactcheckingFactchecktoolsV1alpha1ClaimRating>,
+    pub rating: ::core::option::Option<
+        ::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1ClaimRating>,
+    >,
     /// This field is optional, and will default to the page URL. We provide this field to allow you the override the default value, but the only permitted override is the page URL plus an optional anchor link ("page jump"). Corresponds to ClaimReview.url
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Holds one or more instances of ClaimReview markup for a webpage.
@@ -138,23 +146,28 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkup {
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage {
     /// Info about the author of this claim review. Similar to the above, semantically these are page-level fields, and each ClaimReview on this page will contain the same values.
     #[serde(default, rename = "claimReviewAuthor")]
-    pub claim_review_author: Option<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewAuthor>,
+    pub claim_review_author: ::core::option::Option<
+        ::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewAuthor>,
+    >,
     /// A list of individual claim reviews for this page. Each item in the list corresponds to one ClaimReview element.
     #[serde(default, rename = "claimReviewMarkups")]
-    pub claim_review_markups:
-        Option<Vec<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkup>>,
+    pub claim_review_markups: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkup>,
+        >,
+    >,
     /// The name of this ClaimReview markup page resource, in the form of pages/{page_id}. Except for update requests, this field is output-only and should not be set by the user.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The URL of the page associated with this ClaimReview markup. While every individual ClaimReview has its own URL field, semantically this is a page-level field, and each ClaimReview on this page will use this value unless individually overridden. Corresponds to ClaimReview.url
     #[serde(default, rename = "pageUrl")]
-    pub page_url: Option<String>,
+    pub page_url: ::core::option::Option<String>,
     /// The date when the fact check was published. Similar to the URL, semantically this is a page-level field, and each ClaimReview on this page will contain the same value. Corresponds to ClaimReview.datePublished
     #[serde(default, rename = "publishDate")]
-    pub publish_date: Option<String>,
+    pub publish_date: ::core::option::Option<String>,
     /// The version ID for this markup. Except for update requests, this field is output-only and should not be set by the user.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
 }
 
 /// Response from searching fact-checked claims by image.
@@ -162,11 +175,15 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage {
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse {
     /// The next pagination token in the Search response. It should be used as the page_token for the following request. An empty value means no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of claims and all of their associated information.
     #[serde(default)]
-    pub results: Option<
-        Vec<GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponseResult>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponseResult,
+            >,
+        >,
     >,
 }
 
@@ -175,7 +192,8 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchRe
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponseResult {
     /// A claim which matched the query.
     #[serde(default)]
-    pub claim: Option<GoogleFactcheckingFactchecktoolsV1alpha1Claim>,
+    pub claim:
+        ::core::option::Option<::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1Claim>>,
 }
 
 /// Response from searching fact-checked claims.
@@ -183,10 +201,12 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchRe
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse {
     /// The list of claims and all of their associated information.
     #[serde(default)]
-    pub claims: Option<Vec<GoogleFactcheckingFactchecktoolsV1alpha1Claim>>,
+    pub claims: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1Claim>>,
+    >,
     /// The next pagination token in the Search response. It should be used as the page_token for the following request. An empty value means no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response from listing ClaimReview markup.
@@ -194,11 +214,14 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchRespons
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse {
     /// The result list of pages of ClaimReview markup.
     #[serde(default, rename = "claimReviewMarkupPages")]
-    pub claim_review_markup_pages:
-        Option<Vec<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>>,
+    pub claim_review_markup_pages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
+        >,
+    >,
     /// The next pagination token in the Search response. It should be used as the page_token for the following request. An empty value means no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Information about the publisher.
@@ -206,8 +229,8 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesRes
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1Publisher {
     /// The name of this publisher. For instance, "Awesome Fact Checks".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Host-level site name, without the protocol or "www" prefix. For instance, "awesomefactchecks.com". This value of this field is based purely on the claim review URL.
     #[serde(default)]
-    pub site: Option<String>,
+    pub site: ::core::option::Option<String>,
 }

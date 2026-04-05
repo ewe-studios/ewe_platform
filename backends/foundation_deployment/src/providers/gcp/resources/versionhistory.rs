@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Each Channel is owned by a Platform and owns a collection of versions. Possible Channels are listed in the Channel enum below. Not all Channels are available for every Platform (e.g. CANARY does not exist for LINUX).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Channel {
     /// Type of channel. // TODO: enum values: ["CHANNEL_TYPE_UNSPECIFIED", "STABLE", "BETA", "DEV", "CANARY", "CANARY_ASAN", "ALL", "EXTENDED", "LTS", "LTC"]
     #[serde(default, rename = "channelType")]
-    pub channel_type: Option<String>,
+    pub channel_type: ::core::option::Option<String>,
     /// Channel name. Format is "{product}/platforms/{platform}/channels/{channel}"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
@@ -29,10 +29,10 @@ pub struct Channel {
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Response message for ListChannels.
@@ -40,10 +40,10 @@ pub struct Interval {
 pub struct ListChannelsResponse {
     /// The list of channels.
     #[serde(default)]
-    pub channels: Option<Vec<Channel>>,
+    pub channels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Channel>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListPlatforms.
@@ -51,10 +51,10 @@ pub struct ListChannelsResponse {
 pub struct ListPlatformsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of platforms.
     #[serde(default)]
-    pub platforms: Option<Vec<Platform>>,
+    pub platforms: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Platform>>>,
 }
 
 /// Response message for ListReleases.
@@ -62,10 +62,10 @@ pub struct ListPlatformsResponse {
 pub struct ListReleasesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of releases.
     #[serde(default)]
-    pub releases: Option<Vec<Release>>,
+    pub releases: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Release>>>,
 }
 
 /// Response message for ListVersions.
@@ -73,10 +73,10 @@ pub struct ListReleasesResponse {
 pub struct ListVersionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of versions.
     #[serde(default)]
-    pub versions: Option<Vec<Version>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Version>>>,
 }
 
 /// Each Platform is owned by a Product and owns a collection of channels. Available platforms are listed in Platform enum below. Not all Channels are available for every Platform (e.g. CANARY does not exist for LINUX).
@@ -84,10 +84,10 @@ pub struct ListVersionsResponse {
 pub struct Platform {
     /// Platform name. Format is "{product}/platforms/{platform}"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Type of platform. // TODO: enum values: ["PLATFORM_TYPE_UNSPECIFIED", "WIN", "WIN64", "MAC", "LINUX", "ANDROID", "WEBVIEW", "IOS", "ALL", "MAC_ARM64", "LACROS", "LACROS_ARM32", "CHROMEOS", "LACROS_ARM64", "FUCHSIA", "WIN_ARM64"]
     #[serde(default, rename = "platformType")]
-    pub platform_type: Option<String>,
+    pub platform_type: ::core::option::Option<String>,
 }
 
 /// A Release is owned by a Version. A Release contains information about the release(s) of its parent version. This includes when the release began and ended, as well as what percentage it was released at. If the version is released again, or if the serving percentage changes, it will create another release under the version.
@@ -95,25 +95,25 @@ pub struct Platform {
 pub struct Release {
     /// Rollout fraction. This fraction indicates the fraction of people that should receive this version in this release. If the fraction is not specified in ReleaseManager, the API will assume fraction is 1.
     #[serde(default)]
-    pub fraction: Option<f64>,
+    pub fraction: ::core::option::Option<f64>,
     /// Rollout fraction group. Only fractions with the same fraction_group are statistically comparable: there may be non-fractional differences between different fraction groups.
     #[serde(default, rename = "fractionGroup")]
-    pub fraction_group: Option<String>,
+    pub fraction_group: ::core::option::Option<String>,
     /// Release name. Format is "{product}/platforms/{platform}/channels/{channel}/versions/{version}/releases/{release}"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Whether or not the release was available for version pinning.
     #[serde(default)]
-    pub pinnable: Option<bool>,
+    pub pinnable: ::core::option::Option<bool>,
     /// Rollout-related metadata. Some releases are part of one or more A/B rollouts. This field contains the names and data describing this release''s role in any rollouts.
     #[serde(default, rename = "rolloutData")]
-    pub rollout_data: Option<Vec<RolloutData>>,
+    pub rollout_data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RolloutData>>>,
     /// Timestamp interval of when the release was live. If end_time is unspecified, the release is currently live.
     #[serde(default)]
-    pub serving: Option<Interval>,
+    pub serving: ::core::option::Option<::std::boxed::Box<Interval>>,
     /// String containing just the version number. e.g. "84.0.4147.38"
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Rollout-related metadata for a release.
@@ -121,10 +121,10 @@ pub struct Release {
 pub struct RolloutData {
     /// The name of the rollout.
     #[serde(default, rename = "rolloutName")]
-    pub rollout_name: Option<String>,
+    pub rollout_name: ::core::option::Option<String>,
     /// Tags associated with a release''s role in a rollout. Most rollouts will have at least one release with a "rollout" tag and another release with a "control" tag. Some rollouts may have additional named arms.
     #[serde(default)]
-    pub tag: Option<Vec<String>>,
+    pub tag: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Each Version is owned by a Channel. A Version only displays the Version number (e.g. 84.0.4147.38). A Version owns a collection of releases.
@@ -132,8 +132,8 @@ pub struct RolloutData {
 pub struct Version {
     /// Version name. Format is "{product}/platforms/{platform}/channels/{channel}/versions/{version}" e.g. "chrome/platforms/win/channels/beta/versions/84.0.4147.38"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// String containing just the version number. e.g. "84.0.4147.38"
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }

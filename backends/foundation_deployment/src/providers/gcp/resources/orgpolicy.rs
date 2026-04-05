@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Similar to PolicySpec but with an extra ''launch'' field for launch reference. The PolicySpec here is specific for dry-run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
     /// Reference to the launch that will be used while audit logging and to control the launch. Should be set only in the alternate policy.
     #[serde(default)]
-    pub launch: Option<String>,
+    pub launch: ::core::option::Option<String>,
     /// Specify constraint for configurations of Google Cloud resources.
     #[serde(default)]
-    pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<GoogleCloudOrgpolicyV2PolicySpec>>,
 }
 
 /// A constraint describes a way to restrict a resource''s configuration. For example, you could enforce a constraint that controls which Google Cloud services can be activated across an organization, or whether a Compute Engine instance can have serial port connections established. Constraints can be configured by the organization policy administrator to fit the needs of the organization by setting a policy that includes constraints at different locations in the organization''s resource hierarchy. Policies are inherited down the resource hierarchy from higher levels, but can also be overridden. For details about the inheritance rules, see Policy. Constraints have a default behavior determined by the constraint_default field, which is the enforcement behavior that is used in the absence of a policy being defined or inherited for the resource in question.
@@ -29,31 +29,34 @@ pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
 pub struct GoogleCloudOrgpolicyV2Constraint {
     /// Defines this constraint as being a boolean constraint.
     #[serde(default, rename = "booleanConstraint")]
-    pub boolean_constraint: Option<GoogleCloudOrgpolicyV2ConstraintBooleanConstraint>,
+    pub boolean_constraint: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOrgpolicyV2ConstraintBooleanConstraint>,
+    >,
     /// The evaluation behavior of this constraint in the absence of a policy. // TODO: enum values: ["CONSTRAINT_DEFAULT_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "constraintDefault")]
-    pub constraint_default: Option<String>,
+    pub constraint_default: ::core::option::Option<String>,
     /// Detailed description of what this constraint controls as well as how and where it is enforced. Mutable.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The human readable name. Mutable.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Defines the equivalent constraint name, if it exists. Managed constraints can have an equivalent legacy managed constraint, and legacy managed constraints can have an equivalent managed constraint. For example, "constraints/iam.disableServiceAccountKeyUpload" is equivalent to "constraints/iam.managed.disableServiceAccountKeyUpload".
     #[serde(default, rename = "equivalentConstraint")]
-    pub equivalent_constraint: Option<String>,
+    pub equivalent_constraint: ::core::option::Option<String>,
     /// Defines this constraint as being a list constraint.
     #[serde(default, rename = "listConstraint")]
-    pub list_constraint: Option<GoogleCloudOrgpolicyV2ConstraintListConstraint>,
+    pub list_constraint:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudOrgpolicyV2ConstraintListConstraint>>,
     /// Immutable. The resource name of the constraint. Must be in one of the following forms: * projects/{project_number}/constraints/{constraint_name} * folders/{folder_id}/constraints/{constraint_name} * organizations/{organization_id}/constraints/{constraint_name} For example, "/projects/123/constraints/compute.disableSerialPortAccess".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Shows if dry run is supported for this constraint or not.
     #[serde(default, rename = "supportsDryRun")]
-    pub supports_dry_run: Option<bool>,
+    pub supports_dry_run: ::core::option::Option<bool>,
     /// Shows if simulation is supported for this constraint or not.
     #[serde(default, rename = "supportsSimulation")]
-    pub supports_simulation: Option<bool>,
+    pub supports_simulation: ::core::option::Option<bool>,
 }
 
 /// A constraint type is enforced or not enforced, which is configured in the PolicyRule. If customConstraintDefinition is defined, this constraint is a managed constraint.
@@ -61,8 +64,9 @@ pub struct GoogleCloudOrgpolicyV2Constraint {
 pub struct GoogleCloudOrgpolicyV2ConstraintBooleanConstraint {
     /// Custom constraint definition. Defines this as a managed constraint.
     #[serde(default, rename = "customConstraintDefinition")]
-    pub custom_constraint_definition:
-        Option<GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition>,
+    pub custom_constraint_definition: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition>,
+    >,
 }
 
 /// Custom constraint definition. Defines this as a managed constraint.
@@ -70,19 +74,19 @@ pub struct GoogleCloudOrgpolicyV2ConstraintBooleanConstraint {
 pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition {
     /// Allow or deny type. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
-    pub action_type: Option<String>,
+    pub action_type: ::core::option::Option<String>,
     /// Org policy condition/expression. For example: resource.instanceName.matches("(production|test)_(.+_)?[\d]+") or, resource.management.auto_upgrade == true The max length of the condition is 1000 characters.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// All the operations being applied for this constraint.
     #[serde(default, rename = "methodTypes")]
-    pub method_types: Option<Vec<String>>,
+    pub method_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Stores the structure of Parameters used by the constraint condition. The key of map represents the name of the parameter.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// The resource instance type that this policy applies to, in the format /. Example: * compute.googleapis.com/Instance.
     #[serde(default, rename = "resourceTypes")]
-    pub resource_types: Option<Vec<String>>,
+    pub resource_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Defines a parameter structure.
@@ -90,20 +94,23 @@ pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition {
 pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameter {
     /// Sets the value of the parameter in an assignment if no value is given.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<serde_json::Value>,
+    pub default_value: ::core::option::Option<serde_json::Value>,
     /// Determines the parameter''s value structure. For example, LIST can be specified by defining type: LIST, and item: STRING. // TODO: enum values: ["TYPE_UNSPECIFIED", "LIST", "STRING", "BOOLEAN"]
     #[serde(default)]
-    pub item: Option<String>,
+    pub item: ::core::option::Option<String>,
     /// Defines subproperties primarily used by the UI to display user-friendly information.
     #[serde(default)]
-    pub metadata:
-        Option<GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameterMetadata>,
+    pub metadata: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameterMetadata,
+        >,
+    >,
     /// Type of the parameter. // TODO: enum values: ["TYPE_UNSPECIFIED", "LIST", "STRING", "BOOLEAN"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Provides a CEL expression to specify the acceptable parameter values during assignment. For example, parameterName in ("parameterValue1", "parameterValue2").
     #[serde(default, rename = "validValuesExpr")]
-    pub valid_values_expr: Option<String>,
+    pub valid_values_expr: ::core::option::Option<String>,
 }
 
 /// Defines Metadata structure.
@@ -111,7 +118,7 @@ pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameter {
 pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameterMetadata {
     /// Detailed description of what this parameter is and its use. Mutable.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// A constraint type that allows or disallows a list of string values, which are configured in the PolicyRule.
@@ -119,10 +126,10 @@ pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameterMe
 pub struct GoogleCloudOrgpolicyV2ConstraintListConstraint {
     /// Indicates whether values grouped into categories can be used in Policy.allowed_values and Policy.denied_values. For example, "in:Python" would match any value in the ''Python'' group.
     #[serde(default, rename = "supportsIn")]
-    pub supports_in: Option<bool>,
+    pub supports_in: ::core::option::Option<bool>,
     /// Indicates whether subtrees of the Resource Manager resource hierarchy can be used in Policy.allowed_values and Policy.denied_values. For example, "under:folders/123" would match any resource under the ''folders/123'' folder.
     #[serde(default, rename = "supportsUnder")]
-    pub supports_under: Option<bool>,
+    pub supports_under: ::core::option::Option<bool>,
 }
 
 /// A custom constraint defined by customers which can *only* be applied to the given resource types and organization. By creating a custom constraint, customers can apply policies of this custom constraint. *Creating a custom constraint itself does NOT apply any policy enforcement*.
@@ -130,28 +137,28 @@ pub struct GoogleCloudOrgpolicyV2ConstraintListConstraint {
 pub struct GoogleCloudOrgpolicyV2CustomConstraint {
     /// Allow or deny type. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
-    pub action_type: Option<String>,
+    pub action_type: ::core::option::Option<String>,
     /// A Common Expression Language (CEL) condition which is used in the evaluation of the constraint. For example: resource.instanceName.matches("(production|test)_(.+_)?[\d]+") or, resource.management.auto_upgrade == true The max length of the condition is 1000 characters.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// Detailed information about this custom policy constraint. The max length of the description is 2000 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// One line display name for the UI. The max length of the display_name is 200 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// All the operations being applied for this constraint.
     #[serde(default, rename = "methodTypes")]
-    pub method_types: Option<Vec<String>>,
+    pub method_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Immutable. Name of the constraint. This is unique within the organization. Format of the name should be * organizations/{organization_id}/customConstraints/{custom_constraint_id} Example: organizations/123/customConstraints/custom.createOnlyE2TypeVms The max length is 71 characters and the minimum length is 1. Note that the prefix organizations/{organization_id}/customConstraints/custom. is not counted.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The resource instance type on which this policy applies. Format will be of the form : / Example: * compute.googleapis.com/Instance.
     #[serde(default, rename = "resourceTypes")]
-    pub resource_types: Option<Vec<String>>,
+    pub resource_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The last time this custom constraint was updated. This represents the last time that the CreateCustomConstraint or UpdateCustomConstraint methods were called.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The response returned from the ListConstraints method.
@@ -159,10 +166,12 @@ pub struct GoogleCloudOrgpolicyV2CustomConstraint {
 pub struct GoogleCloudOrgpolicyV2ListConstraintsResponse {
     /// The collection of constraints that are available on the targeted resource.
     #[serde(default)]
-    pub constraints: Option<Vec<GoogleCloudOrgpolicyV2Constraint>>,
+    pub constraints: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudOrgpolicyV2Constraint>>,
+    >,
     /// Page token used to retrieve the next page. This is currently not used.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response returned from the ListCustomConstraints method. It will be empty if no custom or managed constraints are set on the organization resource.
@@ -170,10 +179,12 @@ pub struct GoogleCloudOrgpolicyV2ListConstraintsResponse {
 pub struct GoogleCloudOrgpolicyV2ListCustomConstraintsResponse {
     /// All custom and managed constraints that exist on the organization resource. It will be empty if no custom constraints are set.
     #[serde(default, rename = "customConstraints")]
-    pub custom_constraints: Option<Vec<GoogleCloudOrgpolicyV2CustomConstraint>>,
+    pub custom_constraints: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudOrgpolicyV2CustomConstraint>>,
+    >,
     /// Page token used to retrieve the next page. This is currently not used, but the server may at any point start supplying a valid token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response returned from the ListPolicies method. It will be empty if no policies are set on the resource.
@@ -181,10 +192,11 @@ pub struct GoogleCloudOrgpolicyV2ListCustomConstraintsResponse {
 pub struct GoogleCloudOrgpolicyV2ListPoliciesResponse {
     /// Page token used to retrieve the next page. This is currently not used, but the server may at any point start supplying a valid token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All policies that exist on the resource. It will be empty if no policies are set.
     #[serde(default)]
-    pub policies: Option<Vec<GoogleCloudOrgpolicyV2Policy>>,
+    pub policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudOrgpolicyV2Policy>>>,
 }
 
 /// Defines an organization policy that is used to specify constraints for configurations of Google Cloud resources.
@@ -192,19 +204,20 @@ pub struct GoogleCloudOrgpolicyV2ListPoliciesResponse {
 pub struct GoogleCloudOrgpolicyV2Policy {
     /// Deprecated.
     #[serde(default)]
-    pub alternate: Option<GoogleCloudOrgpolicyV2AlternatePolicySpec>,
+    pub alternate:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudOrgpolicyV2AlternatePolicySpec>>,
     /// Dry-run policy. Audit-only policy, can be used to monitor how the policy would have impacted the existing and future resources if it''s enforced.
     #[serde(default, rename = "dryRunSpec")]
-    pub dry_run_spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
+    pub dry_run_spec: ::core::option::Option<::std::boxed::Box<GoogleCloudOrgpolicyV2PolicySpec>>,
     /// Optional. An opaque tag indicating the current state of the policy, used for concurrency control. This entity tag (ETag) is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Immutable. The resource name of the policy. Must be one of the following forms, where constraint_name is the name of the constraint that this policy configures: * projects/{project_number}/policies/{constraint_name} * folders/{folder_id}/policies/{constraint_name} * organizations/{organization_id}/policies/{constraint_name} For example, projects/123/policies/compute.disableSerialPortAccess. Note: projects/{project_id}/policies/{constraint_name} is also an acceptable name for API requests, but responses will return the name using the equivalent project number.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Basic information about the organization policy.
     #[serde(default)]
-    pub spec: Option<GoogleCloudOrgpolicyV2PolicySpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<GoogleCloudOrgpolicyV2PolicySpec>>,
 }
 
 /// Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.
@@ -212,19 +225,21 @@ pub struct GoogleCloudOrgpolicyV2Policy {
 pub struct GoogleCloudOrgpolicyV2PolicySpec {
     /// An opaque tag indicating the current version of the policySpec, used for concurrency control. This field is ignored if used in a CreatePolicy request. When the policy is returned from either a GetPolicy or a ListPolicies request, this entity tag (ETag) indicates the version of the current policySpec to use when executing a read-modify-write loop. When the policy is returned from a GetEffectivePolicy request, the ETag will be unset.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Determines the inheritance behavior for this policy. If inherit_from_parent is true, policy rules set higher up in the hierarchy (up to the closest root) are inherited and present in the effective policy. If it is false, then no rules are inherited, and this policy becomes the new root for evaluation. This field can be set only for policies that configure list constraints.
     #[serde(default, rename = "inheritFromParent")]
-    pub inherit_from_parent: Option<bool>,
+    pub inherit_from_parent: ::core::option::Option<bool>,
     /// Ignores policies set above this resource and restores the constraint_default enforcement behavior of the specific constraint at this resource. This field can be set in policies for either list or boolean constraints. If set, rules must be empty and inherit_from_parent must be set to false.
     #[serde(default)]
-    pub reset: Option<bool>,
+    pub reset: ::core::option::Option<bool>,
     /// In policies for boolean constraints, the following requirements apply: - There must be exactly one policy rule where a condition is unset. - Boolean policy rules with conditions must set enforced to the opposite of the policy rule without a condition. - During policy evaluation, policy rules with conditions that are true for a target resource take precedence.
     #[serde(default)]
-    pub rules: Option<Vec<GoogleCloudOrgpolicyV2PolicySpecPolicyRule>>,
+    pub rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudOrgpolicyV2PolicySpecPolicyRule>>,
+    >,
     /// Output only. The time stamp this was previously updated. This represents the last time a call to CreatePolicy or UpdatePolicy was made for that policy.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A rule used to express this policy.
@@ -232,22 +247,24 @@ pub struct GoogleCloudOrgpolicyV2PolicySpec {
 pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
     /// Setting this to true means that all values are allowed. This field can be set only in policies for list constraints.
     #[serde(default, rename = "allowAll")]
-    pub allow_all: Option<bool>,
+    pub allow_all: ::core::option::Option<bool>,
     /// A condition that determines whether this rule is used to evaluate the policy. When set, the google.type.Expr.expression field must contain 1 to 10 subexpressions, joined by the || or && operators. Each subexpression must use the resource.matchTag(), resource.matchTagId(), resource.hasTagKey(), or resource.hasTagKeyId() Common Expression Language (CEL) function. The resource.matchTag() function takes the following arguments: * key_name: the namespaced name of the tag key, with the organization ID and a slash (/) as a prefix; for example, 123456789012/environment * value_name: the short name of the tag value For example: resource.matchTag(''123456789012/environment, ''prod'') The resource.matchTagId() function takes the following arguments: * key_id: the permanent ID of the tag key; for example, tagKeys/123456789012 * value_id: the permanent ID of the tag value; for example, tagValues/567890123456 For example: resource.matchTagId(''tagKeys/123456789012'', ''tagValues/567890123456'') The resource.hasTagKey() function takes the following argument: * key_name: the namespaced name of the tag key, with the organization ID and a slash (/) as a prefix; for example, 123456789012/environment For example: resource.hasTagKey(''123456789012/environment'') The resource.hasTagKeyId() function takes the following arguments: * key_id: the permanent ID of the tag key; for example, tagKeys/123456789012 For example: resource.hasTagKeyId(''tagKeys/123456789012'')
     #[serde(default)]
-    pub condition: Option<GoogleTypeExpr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<GoogleTypeExpr>>,
     /// Setting this to true means that all values are denied. This field can be set only in policies for list constraints.
     #[serde(default, rename = "denyAll")]
-    pub deny_all: Option<bool>,
+    pub deny_all: ::core::option::Option<bool>,
     /// If true, then the policy is enforced. If false, then any configuration is acceptable. This field can be set in policies for boolean constraints, custom constraints and managed constraints.
     #[serde(default)]
-    pub enforce: Option<bool>,
+    pub enforce: ::core::option::Option<bool>,
     /// Optional. Required for managed constraints if parameters are defined. Passes parameter values when policy enforcement is enabled. Ensure that parameter value types match those defined in the constraint definition. For example:  { "allowedLocations" : ["us-east1", "us-west1"], "allowAll" : true }
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// List of values to be used for this policy rule. This field can be set only in policies for list constraints.
     #[serde(default)]
-    pub values: Option<GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues>,
+    pub values: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues>,
+    >,
 }
 
 /// A message that holds specific allowed and denied values. This message can define specific values and subtrees of the Resource Manager resource hierarchy (Organizations, Folders, Projects) that are allowed or denied. This is achieved by using the under: and optional is: prefixes. The under: prefix is used to denote resource subtree values. The is: prefix is used to denote specific values, and is required only if the value contains a ":". Values prefixed with "is:" are treated the same as values with no prefix. Ancestry subtrees must be in one of the following formats: - projects/ (for example, projects/tokyo-rain-123) - folders/ (for example, folders/1234) - organizations/ (for example, organizations/1234) The supports_under field of the associated Constraint defines whether ancestry prefixes can be used.
@@ -255,10 +272,10 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
 pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
     /// List of values allowed at this resource.
     #[serde(default, rename = "allowedValues")]
-    pub allowed_values: Option<Vec<String>>,
+    pub allowed_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of values denied at this resource.
     #[serde(default, rename = "deniedValues")]
-    pub denied_values: Option<Vec<String>>,
+    pub denied_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -266,14 +283,14 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }

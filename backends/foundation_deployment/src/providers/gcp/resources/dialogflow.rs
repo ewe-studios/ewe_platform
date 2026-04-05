@@ -10,283 +10,322 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// GoogleCloudDialogflowCxV3Action resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Action {
     #[serde(default, rename = "agentUtterance")]
-    pub agent_utterance: Option<GoogleCloudDialogflowCxV3AgentUtterance>,
+    pub agent_utterance:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AgentUtterance>>,
     #[serde(default, rename = "flowInvocation")]
-    pub flow_invocation: Option<GoogleCloudDialogflowCxV3FlowInvocation>,
+    pub flow_invocation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3FlowInvocation>>,
     #[serde(default, rename = "flowTransition")]
-    pub flow_transition: Option<GoogleCloudDialogflowCxV3FlowTransition>,
+    pub flow_transition:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3FlowTransition>>,
     #[serde(default, rename = "playbookInvocation")]
-    pub playbook_invocation: Option<GoogleCloudDialogflowCxV3PlaybookInvocation>,
+    pub playbook_invocation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookInvocation>>,
     #[serde(default, rename = "playbookTransition")]
-    pub playbook_transition: Option<GoogleCloudDialogflowCxV3PlaybookTransition>,
+    pub playbook_transition:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookTransition>>,
     #[serde(default, rename = "toolUse")]
-    pub tool_use: Option<GoogleCloudDialogflowCxV3ToolUse>,
+    pub tool_use: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolUse>>,
     #[serde(default, rename = "userUtterance")]
-    pub user_utterance: Option<GoogleCloudDialogflowCxV3UserUtterance>,
+    pub user_utterance:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3UserUtterance>>,
 }
 
 /// GoogleCloudDialogflowCxV3AdvancedSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AdvancedSettings {
     #[serde(default, rename = "audioExportGcsDestination")]
-    pub audio_export_gcs_destination: Option<GoogleCloudDialogflowCxV3GcsDestination>,
+    pub audio_export_gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3GcsDestination>>,
     #[serde(default, rename = "dtmfSettings")]
-    pub dtmf_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings>,
+    pub dtmf_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings>,
+    >,
     #[serde(default, rename = "loggingSettings")]
-    pub logging_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings>,
+    pub logging_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings>,
+    >,
     #[serde(default, rename = "speechSettings")]
-    pub speech_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings>,
+    pub speech_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AdvancedSettingsDtmfSettings {
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     #[serde(default, rename = "endpointingTimeoutDuration")]
-    pub endpointing_timeout_duration: Option<String>,
+    pub endpointing_timeout_duration: ::core::option::Option<String>,
     #[serde(default, rename = "finishDigit")]
-    pub finish_digit: Option<String>,
+    pub finish_digit: ::core::option::Option<String>,
     #[serde(default, rename = "interdigitTimeoutDuration")]
-    pub interdigit_timeout_duration: Option<String>,
+    pub interdigit_timeout_duration: ::core::option::Option<String>,
     #[serde(default, rename = "maxDigits")]
-    pub max_digits: Option<i32>,
+    pub max_digits: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AdvancedSettingsLoggingSettings {
     #[serde(default, rename = "enableConsentBasedRedaction")]
-    pub enable_consent_based_redaction: Option<bool>,
+    pub enable_consent_based_redaction: ::core::option::Option<bool>,
     #[serde(default, rename = "enableInteractionLogging")]
-    pub enable_interaction_logging: Option<bool>,
+    pub enable_interaction_logging: ::core::option::Option<bool>,
     #[serde(default, rename = "enableStackdriverLogging")]
-    pub enable_stackdriver_logging: Option<bool>,
+    pub enable_stackdriver_logging: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AdvancedSettingsSpeechSettings {
     #[serde(default, rename = "endpointerSensitivity")]
-    pub endpointer_sensitivity: Option<i32>,
+    pub endpointer_sensitivity: ::core::option::Option<i32>,
     #[serde(default)]
-    pub models: Option<serde_json::Value>,
+    pub models: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "noSpeechTimeout")]
-    pub no_speech_timeout: Option<String>,
+    pub no_speech_timeout: ::core::option::Option<String>,
     #[serde(default, rename = "useTimeoutBasedEndpointing")]
-    pub use_timeout_based_endpointing: Option<bool>,
+    pub use_timeout_based_endpointing: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3Agent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Agent {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettings>>,
     #[serde(default, rename = "answerFeedbackSettings")]
-    pub answer_feedback_settings: Option<GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings>,
+    pub answer_feedback_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings>,
+    >,
     #[serde(default, rename = "avatarUri")]
-    pub avatar_uri: Option<String>,
+    pub avatar_uri: ::core::option::Option<String>,
     #[serde(default, rename = "clientCertificateSettings")]
-    pub client_certificate_settings:
-        Option<GoogleCloudDialogflowCxV3AgentClientCertificateSettings>,
+    pub client_certificate_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AgentClientCertificateSettings>,
+    >,
     #[serde(default, rename = "defaultLanguageCode")]
-    pub default_language_code: Option<String>,
+    pub default_language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "enableMultiLanguageTraining")]
-    pub enable_multi_language_training: Option<bool>,
+    pub enable_multi_language_training: ::core::option::Option<bool>,
     #[serde(default, rename = "enableSpellCorrection")]
-    pub enable_spell_correction: Option<bool>,
+    pub enable_spell_correction: ::core::option::Option<bool>,
     #[serde(default, rename = "enableStackdriverLogging")]
-    pub enable_stackdriver_logging: Option<bool>,
+    pub enable_stackdriver_logging: ::core::option::Option<bool>,
     #[serde(default, rename = "genAppBuilderSettings")]
-    pub gen_app_builder_settings: Option<GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings>,
+    pub gen_app_builder_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings>,
+    >,
     #[serde(default, rename = "gitIntegrationSettings")]
-    pub git_integration_settings: Option<GoogleCloudDialogflowCxV3AgentGitIntegrationSettings>,
+    pub git_integration_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AgentGitIntegrationSettings>,
+    >,
     #[serde(default)]
-    pub locked: Option<bool>,
+    pub locked: ::core::option::Option<bool>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "personalizationSettings")]
-    pub personalization_settings: Option<GoogleCloudDialogflowCxV3AgentPersonalizationSettings>,
+    pub personalization_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AgentPersonalizationSettings>,
+    >,
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     #[serde(default, rename = "securitySettings")]
-    pub security_settings: Option<String>,
+    pub security_settings: ::core::option::Option<String>,
     #[serde(default, rename = "speechToTextSettings")]
-    pub speech_to_text_settings: Option<GoogleCloudDialogflowCxV3SpeechToTextSettings>,
+    pub speech_to_text_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3SpeechToTextSettings>>,
     #[serde(default, rename = "startFlow")]
-    pub start_flow: Option<String>,
+    pub start_flow: ::core::option::Option<String>,
     #[serde(default, rename = "startPlaybook")]
-    pub start_playbook: Option<String>,
+    pub start_playbook: ::core::option::Option<String>,
     #[serde(default, rename = "supportedLanguageCodes")]
-    pub supported_language_codes: Option<Vec<String>>,
+    pub supported_language_codes: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "textToSpeechSettings")]
-    pub text_to_speech_settings: Option<GoogleCloudDialogflowCxV3TextToSpeechSettings>,
+    pub text_to_speech_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TextToSpeechSettings>>,
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings {
     #[serde(default, rename = "enableAnswerFeedback")]
-    pub enable_answer_feedback: Option<bool>,
+    pub enable_answer_feedback: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3AgentClientCertificateSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AgentClientCertificateSettings {
     #[serde(default)]
-    pub passphrase: Option<String>,
+    pub passphrase: ::core::option::Option<String>,
     #[serde(default, rename = "privateKey")]
-    pub private_key: Option<String>,
+    pub private_key: ::core::option::Option<String>,
     #[serde(default, rename = "sslCertificate")]
-    pub ssl_certificate: Option<String>,
+    pub ssl_certificate: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings {
     #[serde(default)]
-    pub engine: Option<String>,
+    pub engine: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3AgentGitIntegrationSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AgentGitIntegrationSettings {
     #[serde(default, rename = "githubSettings")]
-    pub github_settings: Option<GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings>,
+    pub github_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AgentGitIntegrationSettingsGithubSettings {
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub branches: Option<Vec<String>>,
+    pub branches: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "repositoryUri")]
-    pub repository_uri: Option<String>,
+    pub repository_uri: ::core::option::Option<String>,
     #[serde(default, rename = "trackingBranch")]
-    pub tracking_branch: Option<String>,
+    pub tracking_branch: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3AgentUtterance resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AgentUtterance {
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3AgentValidationResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AgentValidationResult {
     #[serde(default, rename = "flowValidationResults")]
-    pub flow_validation_results: Option<Vec<GoogleCloudDialogflowCxV3FlowValidationResult>>,
+    pub flow_validation_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3FlowValidationResult>>,
+    >,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3AnswerFeedback resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AnswerFeedback {
     #[serde(default, rename = "customRating")]
-    pub custom_rating: Option<String>,
+    pub custom_rating: ::core::option::Option<String>,
     /// TODO: enum values: ["RATING_UNSPECIFIED", "THUMBS_UP", "THUMBS_DOWN"]
     #[serde(default)]
-    pub rating: Option<String>,
+    pub rating: ::core::option::Option<String>,
     #[serde(default, rename = "ratingReason")]
-    pub rating_reason: Option<GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason>,
+    pub rating_reason: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AnswerFeedbackRatingReason {
     #[serde(default)]
-    pub feedback: Option<String>,
+    pub feedback: ::core::option::Option<String>,
     #[serde(default, rename = "reasonLabels")]
-    pub reason_labels: Option<Vec<String>>,
+    pub reason_labels: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3AudioInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3AudioInput {
     #[serde(default)]
-    pub audio: Option<String>,
+    pub audio: ::core::option::Option<String>,
     #[serde(default)]
-    pub config: Option<GoogleCloudDialogflowCxV3InputAudioConfig>,
+    pub config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3InputAudioConfig>>,
 }
 
 /// GoogleCloudDialogflowCxV3BargeInConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BargeInConfig {
     #[serde(default, rename = "noBargeInDuration")]
-    pub no_barge_in_duration: Option<String>,
+    pub no_barge_in_duration: ::core::option::Option<String>,
     #[serde(default, rename = "totalDuration")]
-    pub total_duration: Option<String>,
+    pub total_duration: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3BatchDeleteTestCasesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BatchDeleteTestCasesRequest {
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3BatchRunTestCasesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BatchRunTestCasesMetadata {
     #[serde(default)]
-    pub errors: Option<Vec<GoogleCloudDialogflowCxV3TestError>>,
+    pub errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3BatchRunTestCasesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BatchRunTestCasesRequest {
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     #[serde(default, rename = "testCases")]
-    pub test_cases: Option<Vec<String>>,
+    pub test_cases: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3BatchRunTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BatchRunTestCasesResponse {
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudDialogflowCxV3TestCaseResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestCaseResult>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3BoostSpec resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BoostSpec {
     #[serde(default, rename = "conditionBoostSpecs")]
-    pub condition_boost_specs: Option<Vec<GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpec>>,
+    pub condition_boost_specs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpec>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpec resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpec {
     #[serde(default)]
-    pub boost: Option<f32>,
+    pub boost: ::core::option::Option<f32>,
     #[serde(default, rename = "boostControlSpec")]
-    pub boost_control_spec:
-        Option<GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpec>,
+    pub boost_control_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpec>,
+    >,
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpec resource type.
@@ -294,234 +333,275 @@ pub struct GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpec {
 pub struct GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpec {
     /// TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
-    pub attribute_type: Option<String>,
+    pub attribute_type: ::core::option::Option<String>,
     #[serde(default, rename = "controlPoints")]
-    pub control_points: Option<
-        Vec<GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpecControlPoint>,
+    pub control_points: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpecControlPoint,
+            >,
+        >,
     >,
     #[serde(default, rename = "fieldName")]
-    pub field_name: Option<String>,
+    pub field_name: ::core::option::Option<String>,
     /// TODO: enum values: ["INTERPOLATION_TYPE_UNSPECIFIED", "LINEAR"]
     #[serde(default, rename = "interpolationType")]
-    pub interpolation_type: Option<String>,
+    pub interpolation_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpecControlPoint resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpecControlPoint {
     #[serde(default, rename = "attributeValue")]
-    pub attribute_value: Option<String>,
+    pub attribute_value: ::core::option::Option<String>,
     #[serde(default, rename = "boostAmount")]
-    pub boost_amount: Option<f32>,
+    pub boost_amount: ::core::option::Option<f32>,
 }
 
 /// GoogleCloudDialogflowCxV3BoostSpecs resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3BoostSpecs {
     #[serde(default, rename = "dataStores")]
-    pub data_stores: Option<Vec<String>>,
+    pub data_stores: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub spec: Option<Vec<GoogleCloudDialogflowCxV3BoostSpec>>,
+    pub spec: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3BoostSpec>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3CalculateCoverageResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3CalculateCoverageResponse {
     #[serde(default)]
-    pub agent: Option<String>,
+    pub agent: ::core::option::Option<String>,
     #[serde(default, rename = "intentCoverage")]
-    pub intent_coverage: Option<GoogleCloudDialogflowCxV3IntentCoverage>,
+    pub intent_coverage:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3IntentCoverage>>,
     #[serde(default, rename = "routeGroupCoverage")]
-    pub route_group_coverage: Option<GoogleCloudDialogflowCxV3TransitionRouteGroupCoverage>,
+    pub route_group_coverage: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRouteGroupCoverage>,
+    >,
     #[serde(default, rename = "transitionCoverage")]
-    pub transition_coverage: Option<GoogleCloudDialogflowCxV3TransitionCoverage>,
+    pub transition_coverage:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionCoverage>>,
 }
 
 /// GoogleCloudDialogflowCxV3Changelog resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Changelog {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub resource: Option<String>,
+    pub resource: ::core::option::Option<String>,
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3CodeBlock resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3CodeBlock {
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3CompareVersionsRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3CompareVersionsRequest {
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "targetVersion")]
-    pub target_version: Option<String>,
+    pub target_version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3CompareVersionsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3CompareVersionsResponse {
     #[serde(default, rename = "baseVersionContentJson")]
-    pub base_version_content_json: Option<String>,
+    pub base_version_content_json: ::core::option::Option<String>,
     #[serde(default, rename = "compareTime")]
-    pub compare_time: Option<String>,
+    pub compare_time: ::core::option::Option<String>,
     #[serde(default, rename = "targetVersionContentJson")]
-    pub target_version_content_json: Option<String>,
+    pub target_version_content_json: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ContinuousTestResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ContinuousTestResult {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["AGGREGATED_TEST_RESULT_UNSPECIFIED", "PASSED", "FAILED"]
     #[serde(default)]
-    pub result: Option<String>,
+    pub result: ::core::option::Option<String>,
     #[serde(default, rename = "runTime")]
-    pub run_time: Option<String>,
+    pub run_time: ::core::option::Option<String>,
     #[serde(default, rename = "testCaseResults")]
-    pub test_case_results: Option<Vec<String>>,
+    pub test_case_results: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3ConversationSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ConversationSignals {
     #[serde(default, rename = "turnSignals")]
-    pub turn_signals: Option<GoogleCloudDialogflowCxV3TurnSignals>,
+    pub turn_signals:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TurnSignals>>,
 }
 
 /// GoogleCloudDialogflowCxV3ConversationTurn resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ConversationTurn {
     #[serde(default, rename = "userInput")]
-    pub user_input: Option<GoogleCloudDialogflowCxV3ConversationTurnUserInput>,
+    pub user_input: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ConversationTurnUserInput>,
+    >,
     #[serde(default, rename = "virtualAgentOutput")]
-    pub virtual_agent_output: Option<GoogleCloudDialogflowCxV3ConversationTurnVirtualAgentOutput>,
+    pub virtual_agent_output: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ConversationTurnVirtualAgentOutput>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ConversationTurnUserInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ConversationTurnUserInput {
     #[serde(default, rename = "enableSentimentAnalysis")]
-    pub enable_sentiment_analysis: Option<bool>,
+    pub enable_sentiment_analysis: ::core::option::Option<bool>,
     #[serde(default, rename = "injectedParameters")]
-    pub injected_parameters: Option<serde_json::Value>,
+    pub injected_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub input: Option<GoogleCloudDialogflowCxV3QueryInput>,
+    pub input: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3QueryInput>>,
     #[serde(default, rename = "isWebhookEnabled")]
-    pub is_webhook_enabled: Option<bool>,
+    pub is_webhook_enabled: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3ConversationTurnVirtualAgentOutput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ConversationTurnVirtualAgentOutput {
     #[serde(default, rename = "currentPage")]
-    pub current_page: Option<GoogleCloudDialogflowCxV3Page>,
+    pub current_page: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Page>>,
     #[serde(default, rename = "diagnosticInfo")]
-    pub diagnostic_info: Option<serde_json::Value>,
+    pub diagnostic_info: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub differences: Option<Vec<GoogleCloudDialogflowCxV3TestRunDifference>>,
+    pub differences: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestRunDifference>>,
+    >,
     #[serde(default, rename = "sessionParameters")]
-    pub session_parameters: Option<serde_json::Value>,
+    pub session_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "textResponses")]
-    pub text_responses: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessageText>>,
+    pub text_responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageText>>,
+    >,
     #[serde(default, rename = "triggeredIntent")]
-    pub triggered_intent: Option<GoogleCloudDialogflowCxV3Intent>,
+    pub triggered_intent:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Intent>>,
 }
 
 /// GoogleCloudDialogflowCxV3CreateVersionOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3CreateVersionOperationMetadata {
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DataStoreConnection {
     #[serde(default, rename = "dataStore")]
-    pub data_store: Option<String>,
+    pub data_store: ::core::option::Option<String>,
     /// TODO: enum values: ["DATA_STORE_TYPE_UNSPECIFIED", "PUBLIC_WEB", "UNSTRUCTURED", "STRUCTURED"]
     #[serde(default, rename = "dataStoreType")]
-    pub data_store_type: Option<String>,
+    pub data_store_type: ::core::option::Option<String>,
     /// TODO: enum values: ["DOCUMENT_PROCESSING_MODE_UNSPECIFIED", "DOCUMENTS", "CHUNKS"]
     #[serde(default, rename = "documentProcessingMode")]
-    pub document_processing_mode: Option<String>,
+    pub document_processing_mode: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignals {
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     #[serde(default, rename = "answerGenerationModelCallSignals")]
-    pub answer_generation_model_call_signals:
-        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals>,
+    pub answer_generation_model_call_signals: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals,
+        >,
+    >,
     #[serde(default, rename = "answerParts")]
-    pub answer_parts: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart>>,
+    pub answer_parts: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart>,
+        >,
+    >,
     #[serde(default, rename = "citedSnippets")]
-    pub cited_snippets:
-        Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet>>,
+    pub cited_snippets: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet>,
+        >,
+    >,
     #[serde(default, rename = "groundingSignals")]
-    pub grounding_signals:
-        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals>,
+    pub grounding_signals: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals>,
+    >,
     #[serde(default, rename = "rewriterModelCallSignals")]
-    pub rewriter_model_call_signals:
-        Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals>,
+    pub rewriter_model_call_signals: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals,
+        >,
+    >,
     #[serde(default, rename = "rewrittenQuery")]
-    pub rewritten_query: Option<String>,
+    pub rewritten_query: ::core::option::Option<String>,
     #[serde(default, rename = "safetySignals")]
-    pub safety_signals: Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals>,
+    pub safety_signals: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals>,
+    >,
     #[serde(default, rename = "searchSnippets")]
-    pub search_snippets:
-        Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>>,
+    pub search_snippets: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerGenerationModelCallSignals {
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     #[serde(default, rename = "modelOutput")]
-    pub model_output: Option<String>,
+    pub model_output: ::core::option::Option<String>,
     #[serde(default, rename = "renderedPrompt")]
-    pub rendered_prompt: Option<String>,
+    pub rendered_prompt: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsAnswerPart {
     #[serde(default, rename = "supportingIndices")]
-    pub supporting_indices: Option<Vec<i32>>,
+    pub supporting_indices: ::core::option::Option<::std::vec::Vec<i32>>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet {
     #[serde(default, rename = "searchSnippet")]
-    pub search_snippet: Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>,
+    pub search_snippet: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet>,
+    >,
     #[serde(default, rename = "snippetIndex")]
-    pub snippet_index: Option<i32>,
+    pub snippet_index: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals resource type.
@@ -529,21 +609,21 @@ pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsCitedSnippet {
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsGroundingSignals {
     /// TODO: enum values: ["GROUNDING_DECISION_UNSPECIFIED", "ACCEPTED_BY_GROUNDING", "REJECTED_BY_GROUNDING"]
     #[serde(default)]
-    pub decision: Option<String>,
+    pub decision: ::core::option::Option<String>,
     /// TODO: enum values: ["GROUNDING_SCORE_BUCKET_UNSPECIFIED", "VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH"]
     #[serde(default)]
-    pub score: Option<String>,
+    pub score: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallSignals {
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     #[serde(default, rename = "modelOutput")]
-    pub model_output: Option<String>,
+    pub model_output: ::core::option::Option<String>,
     #[serde(default, rename = "renderedPrompt")]
-    pub rendered_prompt: Option<String>,
+    pub rendered_prompt: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals resource type.
@@ -551,116 +631,124 @@ pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsRewriterModelCallS
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals {
     /// TODO: enum values: ["BANNED_PHRASE_MATCH_UNSPECIFIED", "BANNED_PHRASE_MATCH_NONE", "BANNED_PHRASE_MATCH_QUERY", "BANNED_PHRASE_MATCH_RESPONSE"]
     #[serde(default, rename = "bannedPhraseMatch")]
-    pub banned_phrase_match: Option<String>,
+    pub banned_phrase_match: ::core::option::Option<String>,
     /// TODO: enum values: ["SAFETY_DECISION_UNSPECIFIED", "ACCEPTED_BY_SAFETY_CHECK", "REJECTED_BY_SAFETY_CHECK"]
     #[serde(default)]
-    pub decision: Option<String>,
+    pub decision: ::core::option::Option<String>,
     #[serde(default, rename = "matchedBannedPhrase")]
-    pub matched_banned_phrase: Option<String>,
+    pub matched_banned_phrase: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSearchSnippet {
     #[serde(default, rename = "documentTitle")]
-    pub document_title: Option<String>,
+    pub document_title: ::core::option::Option<String>,
     #[serde(default, rename = "documentUri")]
-    pub document_uri: Option<String>,
+    pub document_uri: ::core::option::Option<String>,
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DeployFlowMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DeployFlowMetadata {
     #[serde(default, rename = "testErrors")]
-    pub test_errors: Option<Vec<GoogleCloudDialogflowCxV3TestError>>,
+    pub test_errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3DeployFlowRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DeployFlowRequest {
     #[serde(default, rename = "flowVersion")]
-    pub flow_version: Option<String>,
+    pub flow_version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DeployFlowResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DeployFlowResponse {
     #[serde(default)]
-    pub deployment: Option<String>,
+    pub deployment: ::core::option::Option<String>,
     #[serde(default)]
-    pub environment: Option<GoogleCloudDialogflowCxV3Environment>,
+    pub environment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Environment>>,
 }
 
 /// GoogleCloudDialogflowCxV3Deployment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Deployment {
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     #[serde(default, rename = "flowVersion")]
-    pub flow_version: Option<String>,
+    pub flow_version: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub result: Option<GoogleCloudDialogflowCxV3DeploymentResult>,
+    pub result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3DeploymentResult>>,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DeploymentResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DeploymentResult {
     #[serde(default, rename = "deploymentTestResults")]
-    pub deployment_test_results: Option<Vec<String>>,
+    pub deployment_test_results: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub experiment: Option<String>,
+    pub experiment: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DetectIntentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DetectIntentRequest {
     #[serde(default, rename = "outputAudioConfig")]
-    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
+    pub output_audio_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3OutputAudioConfig>>,
     #[serde(default, rename = "queryInput")]
-    pub query_input: Option<GoogleCloudDialogflowCxV3QueryInput>,
+    pub query_input: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3QueryInput>>,
     #[serde(default, rename = "queryParams")]
-    pub query_params: Option<GoogleCloudDialogflowCxV3QueryParameters>,
+    pub query_params:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3QueryParameters>>,
     /// TODO: enum values: ["DETECT_INTENT_RESPONSE_VIEW_UNSPECIFIED", "DETECT_INTENT_RESPONSE_VIEW_FULL", "DETECT_INTENT_RESPONSE_VIEW_BASIC", "DETECT_INTENT_RESPONSE_VIEW_DEFAULT"]
     #[serde(default, rename = "responseView")]
-    pub response_view: Option<String>,
+    pub response_view: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DetectIntentResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DetectIntentResponse {
     #[serde(default, rename = "allowCancellation")]
-    pub allow_cancellation: Option<bool>,
+    pub allow_cancellation: ::core::option::Option<bool>,
     #[serde(default, rename = "outputAudio")]
-    pub output_audio: Option<String>,
+    pub output_audio: ::core::option::Option<String>,
     #[serde(default, rename = "outputAudioConfig")]
-    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
+    pub output_audio_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3OutputAudioConfig>>,
     #[serde(default, rename = "queryResult")]
-    pub query_result: Option<GoogleCloudDialogflowCxV3QueryResult>,
+    pub query_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3QueryResult>>,
     #[serde(default, rename = "responseId")]
-    pub response_id: Option<String>,
+    pub response_id: ::core::option::Option<String>,
     /// TODO: enum values: ["RESPONSE_TYPE_UNSPECIFIED", "PARTIAL", "FINAL"]
     #[serde(default, rename = "responseType")]
-    pub response_type: Option<String>,
+    pub response_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3DtmfInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3DtmfInput {
     #[serde(default)]
-    pub digits: Option<String>,
+    pub digits: ::core::option::Option<String>,
     #[serde(default, rename = "finishDigit")]
-    pub finish_digit: Option<String>,
+    pub finish_digit: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3EntityType resource type.
@@ -668,265 +756,296 @@ pub struct GoogleCloudDialogflowCxV3DtmfInput {
 pub struct GoogleCloudDialogflowCxV3EntityType {
     /// TODO: enum values: ["AUTO_EXPANSION_MODE_UNSPECIFIED", "AUTO_EXPANSION_MODE_DEFAULT"]
     #[serde(default, rename = "autoExpansionMode")]
-    pub auto_expansion_mode: Option<String>,
+    pub auto_expansion_mode: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "enableFuzzyExtraction")]
-    pub enable_fuzzy_extraction: Option<bool>,
+    pub enable_fuzzy_extraction: ::core::option::Option<bool>,
     #[serde(default)]
-    pub entities: Option<Vec<GoogleCloudDialogflowCxV3EntityTypeEntity>>,
+    pub entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EntityTypeEntity>>,
+    >,
     #[serde(default, rename = "excludedPhrases")]
-    pub excluded_phrases: Option<Vec<GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase>>,
+    pub excluded_phrases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase>>,
+    >,
     /// TODO: enum values: ["KIND_UNSPECIFIED", "KIND_MAP", "KIND_LIST", "KIND_REGEXP"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub redact: Option<bool>,
+    pub redact: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3EntityTypeEntity resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3EntityTypeEntity {
     #[serde(default)]
-    pub synonyms: Option<Vec<String>>,
+    pub synonyms: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3EntityTypeExcludedPhrase {
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Environment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Environment {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "testCasesConfig")]
-    pub test_cases_config: Option<GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig>,
+    pub test_cases_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig>,
+    >,
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     #[serde(default, rename = "versionConfigs")]
-    pub version_configs: Option<Vec<GoogleCloudDialogflowCxV3EnvironmentVersionConfig>>,
+    pub version_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EnvironmentVersionConfig>>,
+    >,
     #[serde(default, rename = "webhookConfig")]
-    pub webhook_config: Option<GoogleCloudDialogflowCxV3EnvironmentWebhookConfig>,
+    pub webhook_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3EnvironmentWebhookConfig>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3EnvironmentTestCasesConfig {
     #[serde(default, rename = "enableContinuousRun")]
-    pub enable_continuous_run: Option<bool>,
+    pub enable_continuous_run: ::core::option::Option<bool>,
     #[serde(default, rename = "enablePredeploymentRun")]
-    pub enable_predeployment_run: Option<bool>,
+    pub enable_predeployment_run: ::core::option::Option<bool>,
     #[serde(default, rename = "testCases")]
-    pub test_cases: Option<Vec<String>>,
+    pub test_cases: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3EnvironmentVersionConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3EnvironmentVersionConfig {
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3EnvironmentWebhookConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3EnvironmentWebhookConfig {
     #[serde(default, rename = "webhookOverrides")]
-    pub webhook_overrides: Option<Vec<GoogleCloudDialogflowCxV3Webhook>>,
+    pub webhook_overrides: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Webhook>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3EventHandler resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3EventHandler {
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
     #[serde(default, rename = "targetPlaybook")]
-    pub target_playbook: Option<String>,
+    pub target_playbook: ::core::option::Option<String>,
     #[serde(default, rename = "triggerFulfillment")]
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    pub trigger_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Fulfillment>>,
 }
 
 /// GoogleCloudDialogflowCxV3EventInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3EventInput {
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Example resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Example {
     #[serde(default)]
-    pub actions: Option<Vec<GoogleCloudDialogflowCxV3Action>>,
+    pub actions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Action>>>,
     /// TODO: enum values: ["OUTPUT_STATE_UNSPECIFIED", "OUTPUT_STATE_OK", "OUTPUT_STATE_CANCELLED", "OUTPUT_STATE_FAILED", "OUTPUT_STATE_ESCALATED", "OUTPUT_STATE_PENDING"]
     #[serde(default, rename = "conversationState")]
-    pub conversation_state: Option<String>,
+    pub conversation_state: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "playbookInput")]
-    pub playbook_input: Option<GoogleCloudDialogflowCxV3PlaybookInput>,
+    pub playbook_input:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookInput>>,
     #[serde(default, rename = "playbookOutput")]
-    pub playbook_output: Option<GoogleCloudDialogflowCxV3PlaybookOutput>,
+    pub playbook_output:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookOutput>>,
     #[serde(default, rename = "tokenCount")]
-    pub token_count: Option<String>,
+    pub token_count: ::core::option::Option<String>,
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Experiment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Experiment {
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub definition: Option<GoogleCloudDialogflowCxV3ExperimentDefinition>,
+    pub definition:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ExperimentDefinition>>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     #[serde(default, rename = "experimentLength")]
-    pub experiment_length: Option<String>,
+    pub experiment_length: ::core::option::Option<String>,
     #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: Option<String>,
+    pub last_update_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub result: Option<GoogleCloudDialogflowCxV3ExperimentResult>,
+    pub result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ExperimentResult>>,
     #[serde(default, rename = "rolloutConfig")]
-    pub rollout_config: Option<GoogleCloudDialogflowCxV3RolloutConfig>,
+    pub rollout_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3RolloutConfig>>,
     #[serde(default, rename = "rolloutFailureReason")]
-    pub rollout_failure_reason: Option<String>,
+    pub rollout_failure_reason: ::core::option::Option<String>,
     #[serde(default, rename = "rolloutState")]
-    pub rollout_state: Option<GoogleCloudDialogflowCxV3RolloutState>,
+    pub rollout_state:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3RolloutState>>,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "RUNNING", "DONE", "ROLLOUT_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     #[serde(default, rename = "variantsHistory")]
-    pub variants_history: Option<Vec<GoogleCloudDialogflowCxV3VariantsHistory>>,
+    pub variants_history: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3VariantsHistory>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ExperimentDefinition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExperimentDefinition {
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     #[serde(default, rename = "versionVariants")]
-    pub version_variants: Option<GoogleCloudDialogflowCxV3VersionVariants>,
+    pub version_variants:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3VersionVariants>>,
 }
 
 /// GoogleCloudDialogflowCxV3ExperimentResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExperimentResult {
     #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: Option<String>,
+    pub last_update_time: ::core::option::Option<String>,
     #[serde(default, rename = "versionMetrics")]
-    pub version_metrics: Option<Vec<GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics>>,
+    pub version_metrics: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ExperimentResultConfidenceInterval resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExperimentResultConfidenceInterval {
     #[serde(default, rename = "confidenceLevel")]
-    pub confidence_level: Option<f64>,
+    pub confidence_level: ::core::option::Option<f64>,
     #[serde(default, rename = "lowerBound")]
-    pub lower_bound: Option<f64>,
+    pub lower_bound: ::core::option::Option<f64>,
     #[serde(default)]
-    pub ratio: Option<f64>,
+    pub ratio: ::core::option::Option<f64>,
     #[serde(default, rename = "upperBound")]
-    pub upper_bound: Option<f64>,
+    pub upper_bound: ::core::option::Option<f64>,
 }
 
 /// GoogleCloudDialogflowCxV3ExperimentResultMetric resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExperimentResultMetric {
     #[serde(default, rename = "confidenceInterval")]
-    pub confidence_interval: Option<GoogleCloudDialogflowCxV3ExperimentResultConfidenceInterval>,
+    pub confidence_interval: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ExperimentResultConfidenceInterval>,
+    >,
     #[serde(default)]
-    pub count: Option<f64>,
+    pub count: ::core::option::Option<f64>,
     /// TODO: enum values: ["COUNT_TYPE_UNSPECIFIED", "TOTAL_NO_MATCH_COUNT", "TOTAL_TURN_COUNT", "AVERAGE_TURN_COUNT"]
     #[serde(default, rename = "countType")]
-    pub count_type: Option<String>,
+    pub count_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub ratio: Option<f64>,
+    pub ratio: ::core::option::Option<f64>,
     /// TODO: enum values: ["METRIC_UNSPECIFIED", "CONTAINED_SESSION_NO_CALLBACK_RATE", "LIVE_AGENT_HANDOFF_RATE", "CALLBACK_SESSION_RATE", "ABANDONED_SESSION_RATE", "SESSION_END_RATE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExperimentResultVersionMetrics {
     #[serde(default)]
-    pub metrics: Option<Vec<GoogleCloudDialogflowCxV3ExperimentResultMetric>>,
+    pub metrics: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ExperimentResultMetric>>,
+    >,
     #[serde(default, rename = "sessionCount")]
-    pub session_count: Option<i32>,
+    pub session_count: ::core::option::Option<i32>,
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportAgentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportAgentRequest {
     #[serde(default, rename = "agentUri")]
-    pub agent_uri: Option<String>,
+    pub agent_uri: ::core::option::Option<String>,
     /// TODO: enum values: ["DATA_FORMAT_UNSPECIFIED", "BLOB", "JSON_PACKAGE"]
     #[serde(default, rename = "dataFormat")]
-    pub data_format: Option<String>,
+    pub data_format: ::core::option::Option<String>,
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     #[serde(default, rename = "gitDestination")]
-    pub git_destination: Option<GoogleCloudDialogflowCxV3ExportAgentRequestGitDestination>,
+    pub git_destination: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ExportAgentRequestGitDestination>,
+    >,
     #[serde(default, rename = "includeBigqueryExportSettings")]
-    pub include_bigquery_export_settings: Option<bool>,
+    pub include_bigquery_export_settings: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportAgentRequestGitDestination resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportAgentRequestGitDestination {
     #[serde(default, rename = "commitMessage")]
-    pub commit_message: Option<String>,
+    pub commit_message: ::core::option::Option<String>,
     #[serde(default, rename = "trackingBranch")]
-    pub tracking_branch: Option<String>,
+    pub tracking_branch: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportAgentResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportAgentResponse {
     #[serde(default, rename = "agentContent")]
-    pub agent_content: Option<String>,
+    pub agent_content: ::core::option::Option<String>,
     #[serde(default, rename = "agentUri")]
-    pub agent_uri: Option<String>,
+    pub agent_uri: ::core::option::Option<String>,
     #[serde(default, rename = "commitSha")]
-    pub commit_sha: Option<String>,
+    pub commit_sha: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportEntityTypesRequest resource type.
@@ -934,42 +1053,43 @@ pub struct GoogleCloudDialogflowCxV3ExportAgentResponse {
 pub struct GoogleCloudDialogflowCxV3ExportEntityTypesRequest {
     /// TODO: enum values: ["DATA_FORMAT_UNSPECIFIED", "BLOB", "JSON_PACKAGE"]
     #[serde(default, rename = "dataFormat")]
-    pub data_format: Option<String>,
+    pub data_format: ::core::option::Option<String>,
     #[serde(default, rename = "entityTypes")]
-    pub entity_types: Option<Vec<String>>,
+    pub entity_types: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "entityTypesContentInline")]
-    pub entity_types_content_inline: Option<bool>,
+    pub entity_types_content_inline: ::core::option::Option<bool>,
     #[serde(default, rename = "entityTypesUri")]
-    pub entity_types_uri: Option<String>,
+    pub entity_types_uri: ::core::option::Option<String>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportEntityTypesResponse {
     #[serde(default, rename = "entityTypesContent")]
-    pub entity_types_content: Option<GoogleCloudDialogflowCxV3InlineDestination>,
+    pub entity_types_content:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3InlineDestination>>,
     #[serde(default, rename = "entityTypesUri")]
-    pub entity_types_uri: Option<String>,
+    pub entity_types_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportFlowRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportFlowRequest {
     #[serde(default, rename = "flowUri")]
-    pub flow_uri: Option<String>,
+    pub flow_uri: ::core::option::Option<String>,
     #[serde(default, rename = "includeReferencedFlows")]
-    pub include_referenced_flows: Option<bool>,
+    pub include_referenced_flows: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportFlowResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportFlowResponse {
     #[serde(default, rename = "flowContent")]
-    pub flow_content: Option<String>,
+    pub flow_content: ::core::option::Option<String>,
     #[serde(default, rename = "flowUri")]
-    pub flow_uri: Option<String>,
+    pub flow_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportIntentsRequest resource type.
@@ -977,22 +1097,23 @@ pub struct GoogleCloudDialogflowCxV3ExportFlowResponse {
 pub struct GoogleCloudDialogflowCxV3ExportIntentsRequest {
     /// TODO: enum values: ["DATA_FORMAT_UNSPECIFIED", "BLOB", "JSON", "CSV"]
     #[serde(default, rename = "dataFormat")]
-    pub data_format: Option<String>,
+    pub data_format: ::core::option::Option<String>,
     #[serde(default)]
-    pub intents: Option<Vec<String>>,
+    pub intents: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "intentsContentInline")]
-    pub intents_content_inline: Option<bool>,
+    pub intents_content_inline: ::core::option::Option<bool>,
     #[serde(default, rename = "intentsUri")]
-    pub intents_uri: Option<String>,
+    pub intents_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportIntentsResponse {
     #[serde(default, rename = "intentsContent")]
-    pub intents_content: Option<GoogleCloudDialogflowCxV3InlineDestination>,
+    pub intents_content:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3InlineDestination>>,
     #[serde(default, rename = "intentsUri")]
-    pub intents_uri: Option<String>,
+    pub intents_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportPlaybookRequest resource type.
@@ -1000,9 +1121,9 @@ pub struct GoogleCloudDialogflowCxV3ExportIntentsResponse {
 pub struct GoogleCloudDialogflowCxV3ExportPlaybookRequest {
     /// TODO: enum values: ["DATA_FORMAT_UNSPECIFIED", "BLOB", "JSON"]
     #[serde(default, rename = "dataFormat")]
-    pub data_format: Option<String>,
+    pub data_format: ::core::option::Option<String>,
     #[serde(default, rename = "playbookUri")]
-    pub playbook_uri: Option<String>,
+    pub playbook_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportTestCasesRequest resource type.
@@ -1010,60 +1131,74 @@ pub struct GoogleCloudDialogflowCxV3ExportPlaybookRequest {
 pub struct GoogleCloudDialogflowCxV3ExportTestCasesRequest {
     /// TODO: enum values: ["DATA_FORMAT_UNSPECIFIED", "BLOB", "JSON"]
     #[serde(default, rename = "dataFormat")]
-    pub data_format: Option<String>,
+    pub data_format: ::core::option::Option<String>,
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ExportTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportTestCasesResponse {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FilterSpecs resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FilterSpecs {
     #[serde(default, rename = "dataStores")]
-    pub data_stores: Option<Vec<String>>,
+    pub data_stores: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Flow resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Flow {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettings>>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "eventHandlers")]
-    pub event_handlers: Option<Vec<GoogleCloudDialogflowCxV3EventHandler>>,
+    pub event_handlers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EventHandler>>,
+    >,
     #[serde(default, rename = "inputParameterDefinitions")]
-    pub input_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    pub input_parameter_definitions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    >,
     #[serde(default, rename = "knowledgeConnectorSettings")]
-    pub knowledge_connector_settings: Option<GoogleCloudDialogflowCxV3KnowledgeConnectorSettings>,
+    pub knowledge_connector_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3KnowledgeConnectorSettings>,
+    >,
     #[serde(default)]
-    pub locked: Option<bool>,
+    pub locked: ::core::option::Option<bool>,
     #[serde(default, rename = "multiLanguageSettings")]
-    pub multi_language_settings: Option<GoogleCloudDialogflowCxV3FlowMultiLanguageSettings>,
+    pub multi_language_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3FlowMultiLanguageSettings>,
+    >,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "nluSettings")]
-    pub nlu_settings: Option<GoogleCloudDialogflowCxV3NluSettings>,
+    pub nlu_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3NluSettings>>,
     #[serde(default, rename = "outputParameterDefinitions")]
-    pub output_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    pub output_parameter_definitions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    >,
     #[serde(default, rename = "transitionRouteGroups")]
-    pub transition_route_groups: Option<Vec<String>>,
+    pub transition_route_groups: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "transitionRoutes")]
-    pub transition_routes: Option<Vec<GoogleCloudDialogflowCxV3TransitionRoute>>,
+    pub transition_routes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRoute>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3FlowImportStrategy resource type.
@@ -1071,463 +1206,522 @@ pub struct GoogleCloudDialogflowCxV3Flow {
 pub struct GoogleCloudDialogflowCxV3FlowImportStrategy {
     /// TODO: enum values: ["IMPORT_STRATEGY_UNSPECIFIED", "IMPORT_STRATEGY_CREATE_NEW", "IMPORT_STRATEGY_REPLACE", "IMPORT_STRATEGY_KEEP", "IMPORT_STRATEGY_MERGE", "IMPORT_STRATEGY_THROW_ERROR"]
     #[serde(default, rename = "globalImportStrategy")]
-    pub global_import_strategy: Option<String>,
+    pub global_import_strategy: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FlowInvocation resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FlowInvocation {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub flow: Option<String>,
+    pub flow: ::core::option::Option<String>,
     /// TODO: enum values: ["OUTPUT_STATE_UNSPECIFIED", "OUTPUT_STATE_OK", "OUTPUT_STATE_CANCELLED", "OUTPUT_STATE_FAILED", "OUTPUT_STATE_ESCALATED", "OUTPUT_STATE_PENDING"]
     #[serde(default, rename = "flowState")]
-    pub flow_state: Option<String>,
+    pub flow_state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FlowMultiLanguageSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FlowMultiLanguageSettings {
     #[serde(default, rename = "enableMultiLanguageDetection")]
-    pub enable_multi_language_detection: Option<bool>,
+    pub enable_multi_language_detection: ::core::option::Option<bool>,
     #[serde(default, rename = "supportedResponseLanguageCodes")]
-    pub supported_response_language_codes: Option<Vec<String>>,
+    pub supported_response_language_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3FlowTraceMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FlowTraceMetadata {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub flow: Option<String>,
+    pub flow: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FlowTransition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FlowTransition {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub flow: Option<String>,
+    pub flow: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FlowValidationResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FlowValidationResult {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     #[serde(default, rename = "validationMessages")]
-    pub validation_messages: Option<Vec<GoogleCloudDialogflowCxV3ValidationMessage>>,
+    pub validation_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ValidationMessage>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3Form resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Form {
     #[serde(default)]
-    pub parameters: Option<Vec<GoogleCloudDialogflowCxV3FormParameter>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3FormParameter>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3FormParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FormParameter {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettings>>,
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<serde_json::Value>,
+    pub default_value: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default, rename = "fillBehavior")]
-    pub fill_behavior: Option<GoogleCloudDialogflowCxV3FormParameterFillBehavior>,
+    pub fill_behavior: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3FormParameterFillBehavior>,
+    >,
     #[serde(default, rename = "isList")]
-    pub is_list: Option<bool>,
+    pub is_list: ::core::option::Option<bool>,
     #[serde(default)]
-    pub redact: Option<bool>,
+    pub redact: ::core::option::Option<bool>,
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3FormParameterFillBehavior resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FormParameterFillBehavior {
     #[serde(default, rename = "initialPromptFulfillment")]
-    pub initial_prompt_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    pub initial_prompt_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Fulfillment>>,
     #[serde(default, rename = "repromptEventHandlers")]
-    pub reprompt_event_handlers: Option<Vec<GoogleCloudDialogflowCxV3EventHandler>>,
+    pub reprompt_event_handlers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EventHandler>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3FulfillIntentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FulfillIntentRequest {
     #[serde(default, rename = "match")]
-    pub match_: Option<GoogleCloudDialogflowCxV3Match>,
+    pub match_: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Match>>,
     #[serde(default, rename = "matchIntentRequest")]
-    pub match_intent_request: Option<GoogleCloudDialogflowCxV3MatchIntentRequest>,
+    pub match_intent_request:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3MatchIntentRequest>>,
     #[serde(default, rename = "outputAudioConfig")]
-    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
+    pub output_audio_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3OutputAudioConfig>>,
 }
 
 /// GoogleCloudDialogflowCxV3FulfillIntentResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FulfillIntentResponse {
     #[serde(default, rename = "outputAudio")]
-    pub output_audio: Option<String>,
+    pub output_audio: ::core::option::Option<String>,
     #[serde(default, rename = "outputAudioConfig")]
-    pub output_audio_config: Option<GoogleCloudDialogflowCxV3OutputAudioConfig>,
+    pub output_audio_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3OutputAudioConfig>>,
     #[serde(default, rename = "queryResult")]
-    pub query_result: Option<GoogleCloudDialogflowCxV3QueryResult>,
+    pub query_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3QueryResult>>,
     #[serde(default, rename = "responseId")]
-    pub response_id: Option<String>,
+    pub response_id: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Fulfillment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Fulfillment {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettings>>,
     #[serde(default, rename = "conditionalCases")]
-    pub conditional_cases: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>>,
+    pub conditional_cases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>>,
+    >,
     #[serde(default, rename = "enableGenerativeFallback")]
-    pub enable_generative_fallback: Option<bool>,
+    pub enable_generative_fallback: ::core::option::Option<bool>,
     #[serde(default)]
-    pub generators: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings>>,
+    pub generators: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings>>,
+    >,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    >,
     #[serde(default, rename = "returnPartialResponses")]
-    pub return_partial_responses: Option<bool>,
+    pub return_partial_responses: ::core::option::Option<bool>,
     #[serde(default, rename = "setParameterActions")]
-    pub set_parameter_actions: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentSetParameterAction>>,
+    pub set_parameter_actions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3FulfillmentSetParameterAction>>,
+    >,
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
     #[serde(default)]
-    pub webhook: Option<String>,
+    pub webhook: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FulfillmentConditionalCases resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCases {
     #[serde(default)]
-    pub cases: Option<Vec<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase>>,
+    pub cases: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCase {
     #[serde(default, rename = "caseContent")]
-    pub case_content:
-        Option<Vec<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent>>,
+    pub case_content: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent>,
+        >,
+    >,
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FulfillmentConditionalCasesCaseCaseContent {
     #[serde(default, rename = "additionalCases")]
-    pub additional_cases: Option<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>,
+    pub additional_cases: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3FulfillmentConditionalCases>,
+    >,
     #[serde(default)]
-    pub message: Option<GoogleCloudDialogflowCxV3ResponseMessage>,
+    pub message:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessage>>,
 }
 
 /// GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FulfillmentGeneratorSettings {
     #[serde(default)]
-    pub generator: Option<String>,
+    pub generator: ::core::option::Option<String>,
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "outputParameter")]
-    pub output_parameter: Option<String>,
+    pub output_parameter: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3FulfillmentSetParameterAction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3FulfillmentSetParameterAction {
     #[serde(default)]
-    pub parameter: Option<String>,
+    pub parameter: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3GcsDestination resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3GcsDestination {
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3GenerativeSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3GenerativeSettings {
     #[serde(default, rename = "fallbackSettings")]
-    pub fallback_settings: Option<GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings>,
+    pub fallback_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings>,
+    >,
     #[serde(default, rename = "generativeSafetySettings")]
-    pub generative_safety_settings: Option<GoogleCloudDialogflowCxV3SafetySettings>,
+    pub generative_safety_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3SafetySettings>>,
     #[serde(default, rename = "knowledgeConnectorSettings")]
-    pub knowledge_connector_settings:
-        Option<GoogleCloudDialogflowCxV3GenerativeSettingsKnowledgeConnectorSettings>,
+    pub knowledge_connector_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3GenerativeSettingsKnowledgeConnectorSettings>,
+    >,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "llmModelSettings")]
-    pub llm_model_settings: Option<GoogleCloudDialogflowCxV3LlmModelSettings>,
+    pub llm_model_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3LlmModelSettings>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettings {
     #[serde(default, rename = "promptTemplates")]
-    pub prompt_templates:
-        Option<Vec<GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate>>,
+    pub prompt_templates: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate,
+            >,
+        >,
+    >,
     #[serde(default, rename = "selectedPrompt")]
-    pub selected_prompt: Option<String>,
+    pub selected_prompt: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3GenerativeSettingsFallbackSettingsPromptTemplate {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub frozen: Option<bool>,
+    pub frozen: ::core::option::Option<bool>,
     #[serde(default, rename = "promptText")]
-    pub prompt_text: Option<String>,
+    pub prompt_text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3GenerativeSettingsKnowledgeConnectorSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3GenerativeSettingsKnowledgeConnectorSettings {
     #[serde(default)]
-    pub agent: Option<String>,
+    pub agent: ::core::option::Option<String>,
     #[serde(default, rename = "agentIdentity")]
-    pub agent_identity: Option<String>,
+    pub agent_identity: ::core::option::Option<String>,
     #[serde(default, rename = "agentScope")]
-    pub agent_scope: Option<String>,
+    pub agent_scope: ::core::option::Option<String>,
     #[serde(default)]
-    pub business: Option<String>,
+    pub business: ::core::option::Option<String>,
     #[serde(default, rename = "businessDescription")]
-    pub business_description: Option<String>,
+    pub business_description: ::core::option::Option<String>,
     #[serde(default, rename = "disableDataStoreFallback")]
-    pub disable_data_store_fallback: Option<bool>,
+    pub disable_data_store_fallback: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3Generator resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Generator {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "llmModelSettings")]
-    pub llm_model_settings: Option<GoogleCloudDialogflowCxV3LlmModelSettings>,
+    pub llm_model_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3LlmModelSettings>>,
     #[serde(default, rename = "modelParameter")]
-    pub model_parameter: Option<GoogleCloudDialogflowCxV3GeneratorModelParameter>,
+    pub model_parameter:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3GeneratorModelParameter>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub placeholders: Option<Vec<GoogleCloudDialogflowCxV3GeneratorPlaceholder>>,
+    pub placeholders: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3GeneratorPlaceholder>>,
+    >,
     #[serde(default, rename = "promptText")]
-    pub prompt_text: Option<GoogleCloudDialogflowCxV3Phrase>,
+    pub prompt_text: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Phrase>>,
 }
 
 /// GoogleCloudDialogflowCxV3GeneratorModelParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3GeneratorModelParameter {
     #[serde(default, rename = "maxDecodeSteps")]
-    pub max_decode_steps: Option<i32>,
+    pub max_decode_steps: ::core::option::Option<i32>,
     #[serde(default)]
-    pub temperature: Option<f32>,
+    pub temperature: ::core::option::Option<f32>,
     #[serde(default, rename = "topK")]
-    pub top_k: Option<i32>,
+    pub top_k: ::core::option::Option<i32>,
     #[serde(default, rename = "topP")]
-    pub top_p: Option<f32>,
+    pub top_p: ::core::option::Option<f32>,
 }
 
 /// GoogleCloudDialogflowCxV3GeneratorPlaceholder resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3GeneratorPlaceholder {
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Handler resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Handler {
     #[serde(default, rename = "eventHandler")]
-    pub event_handler: Option<GoogleCloudDialogflowCxV3HandlerEventHandler>,
+    pub event_handler:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3HandlerEventHandler>>,
     #[serde(default, rename = "lifecycleHandler")]
-    pub lifecycle_handler: Option<GoogleCloudDialogflowCxV3HandlerLifecycleHandler>,
+    pub lifecycle_handler:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3HandlerLifecycleHandler>>,
 }
 
 /// GoogleCloudDialogflowCxV3HandlerEventHandler resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3HandlerEventHandler {
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
     #[serde(default)]
-    pub fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    pub fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Fulfillment>>,
 }
 
 /// GoogleCloudDialogflowCxV3HandlerLifecycleHandler resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3HandlerLifecycleHandler {
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     #[serde(default)]
-    pub fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    pub fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Fulfillment>>,
     #[serde(default, rename = "lifecycleStage")]
-    pub lifecycle_stage: Option<String>,
+    pub lifecycle_stage: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportEntityTypesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportEntityTypesRequest {
     #[serde(default, rename = "entityTypesContent")]
-    pub entity_types_content: Option<GoogleCloudDialogflowCxV3InlineSource>,
+    pub entity_types_content:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3InlineSource>>,
     #[serde(default, rename = "entityTypesUri")]
-    pub entity_types_uri: Option<String>,
+    pub entity_types_uri: ::core::option::Option<String>,
     /// TODO: enum values: ["MERGE_OPTION_UNSPECIFIED", "REPLACE", "MERGE", "RENAME", "REPORT_CONFLICT", "KEEP"]
     #[serde(default, rename = "mergeOption")]
-    pub merge_option: Option<String>,
+    pub merge_option: ::core::option::Option<String>,
     #[serde(default, rename = "targetEntityType")]
-    pub target_entity_type: Option<String>,
+    pub target_entity_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportEntityTypesResponse {
     #[serde(default, rename = "conflictingResources")]
-    pub conflicting_resources:
-        Option<GoogleCloudDialogflowCxV3ImportEntityTypesResponseConflictingResources>,
+    pub conflicting_resources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ImportEntityTypesResponseConflictingResources>,
+    >,
     #[serde(default, rename = "entityTypes")]
-    pub entity_types: Option<Vec<String>>,
+    pub entity_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportEntityTypesResponseConflictingResources resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportEntityTypesResponseConflictingResources {
     #[serde(default, rename = "entityDisplayNames")]
-    pub entity_display_names: Option<Vec<String>>,
+    pub entity_display_names: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "entityTypeDisplayNames")]
-    pub entity_type_display_names: Option<Vec<String>>,
+    pub entity_type_display_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportFlowRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportFlowRequest {
     #[serde(default, rename = "flowContent")]
-    pub flow_content: Option<String>,
+    pub flow_content: ::core::option::Option<String>,
     #[serde(default, rename = "flowImportStrategy")]
-    pub flow_import_strategy: Option<GoogleCloudDialogflowCxV3FlowImportStrategy>,
+    pub flow_import_strategy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3FlowImportStrategy>>,
     #[serde(default, rename = "flowUri")]
-    pub flow_uri: Option<String>,
+    pub flow_uri: ::core::option::Option<String>,
     /// TODO: enum values: ["IMPORT_OPTION_UNSPECIFIED", "KEEP", "FALLBACK"]
     #[serde(default, rename = "importOption")]
-    pub import_option: Option<String>,
+    pub import_option: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportFlowResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportFlowResponse {
     #[serde(default)]
-    pub flow: Option<String>,
+    pub flow: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportIntentsRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportIntentsRequest {
     #[serde(default, rename = "intentsContent")]
-    pub intents_content: Option<GoogleCloudDialogflowCxV3InlineSource>,
+    pub intents_content:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3InlineSource>>,
     #[serde(default, rename = "intentsUri")]
-    pub intents_uri: Option<String>,
+    pub intents_uri: ::core::option::Option<String>,
     /// TODO: enum values: ["MERGE_OPTION_UNSPECIFIED", "REJECT", "REPLACE", "MERGE", "RENAME", "REPORT_CONFLICT", "KEEP"]
     #[serde(default, rename = "mergeOption")]
-    pub merge_option: Option<String>,
+    pub merge_option: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportIntentsResponse {
     #[serde(default, rename = "conflictingResources")]
-    pub conflicting_resources:
-        Option<GoogleCloudDialogflowCxV3ImportIntentsResponseConflictingResources>,
+    pub conflicting_resources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ImportIntentsResponseConflictingResources>,
+    >,
     #[serde(default)]
-    pub intents: Option<Vec<String>>,
+    pub intents: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportIntentsResponseConflictingResources resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportIntentsResponseConflictingResources {
     #[serde(default, rename = "entityDisplayNames")]
-    pub entity_display_names: Option<Vec<String>>,
+    pub entity_display_names: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "intentDisplayNames")]
-    pub intent_display_names: Option<Vec<String>>,
+    pub intent_display_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportPlaybookRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportPlaybookRequest {
     #[serde(default, rename = "importStrategy")]
-    pub import_strategy: Option<GoogleCloudDialogflowCxV3PlaybookImportStrategy>,
+    pub import_strategy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookImportStrategy>>,
     #[serde(default, rename = "playbookContent")]
-    pub playbook_content: Option<String>,
+    pub playbook_content: ::core::option::Option<String>,
     #[serde(default, rename = "playbookUri")]
-    pub playbook_uri: Option<String>,
+    pub playbook_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportTestCasesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportTestCasesMetadata {
     #[serde(default)]
-    pub errors: Option<Vec<GoogleCloudDialogflowCxV3TestCaseError>>,
+    pub errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestCaseError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ImportTestCasesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportTestCasesRequest {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ImportTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportTestCasesResponse {
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3InlineDestination resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3InlineDestination {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3InlineSchema resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3InlineSchema {
     #[serde(default)]
-    pub items: Option<GoogleCloudDialogflowCxV3TypeSchema>,
+    pub items: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TypeSchema>>,
     /// TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING", "NUMBER", "BOOLEAN", "ARRAY"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3InlineSource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3InlineSource {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3InputAudioConfig resource type.
@@ -1535,422 +1729,479 @@ pub struct GoogleCloudDialogflowCxV3InlineSource {
 pub struct GoogleCloudDialogflowCxV3InputAudioConfig {
     /// TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "AUDIO_ENCODING_LINEAR_16", "AUDIO_ENCODING_FLAC", "AUDIO_ENCODING_MULAW", "AUDIO_ENCODING_AMR", "AUDIO_ENCODING_AMR_WB", "AUDIO_ENCODING_OGG_OPUS", "AUDIO_ENCODING_SPEEX_WITH_HEADER_BYTE", "AUDIO_ENCODING_ALAW"]
     #[serde(default, rename = "audioEncoding")]
-    pub audio_encoding: Option<String>,
+    pub audio_encoding: ::core::option::Option<String>,
     #[serde(default, rename = "bargeInConfig")]
-    pub barge_in_config: Option<GoogleCloudDialogflowCxV3BargeInConfig>,
+    pub barge_in_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3BargeInConfig>>,
     #[serde(default, rename = "enableWordInfo")]
-    pub enable_word_info: Option<bool>,
+    pub enable_word_info: ::core::option::Option<bool>,
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// TODO: enum values: ["SPEECH_MODEL_VARIANT_UNSPECIFIED", "USE_BEST_AVAILABLE", "USE_STANDARD", "USE_ENHANCED"]
     #[serde(default, rename = "modelVariant")]
-    pub model_variant: Option<String>,
+    pub model_variant: ::core::option::Option<String>,
     #[serde(default, rename = "optOutConformerModelMigration")]
-    pub opt_out_conformer_model_migration: Option<bool>,
+    pub opt_out_conformer_model_migration: ::core::option::Option<bool>,
     #[serde(default, rename = "phraseHints")]
-    pub phrase_hints: Option<Vec<String>>,
+    pub phrase_hints: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "sampleRateHertz")]
-    pub sample_rate_hertz: Option<i32>,
+    pub sample_rate_hertz: ::core::option::Option<i32>,
     #[serde(default, rename = "singleUtterance")]
-    pub single_utterance: Option<bool>,
+    pub single_utterance: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3Intent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Intent {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "dtmfPattern")]
-    pub dtmf_pattern: Option<String>,
+    pub dtmf_pattern: ::core::option::Option<String>,
     #[serde(default, rename = "isFallback")]
-    pub is_fallback: Option<bool>,
+    pub is_fallback: ::core::option::Option<bool>,
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<Vec<GoogleCloudDialogflowCxV3IntentParameter>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3IntentParameter>>,
+    >,
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     #[serde(default, rename = "trainingPhrases")]
-    pub training_phrases: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrase>>,
+    pub training_phrases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3IntentTrainingPhrase>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3IntentCoverage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3IntentCoverage {
     #[serde(default, rename = "coverageScore")]
-    pub coverage_score: Option<f32>,
+    pub coverage_score: ::core::option::Option<f32>,
     #[serde(default)]
-    pub intents: Option<Vec<GoogleCloudDialogflowCxV3IntentCoverageIntent>>,
+    pub intents: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3IntentCoverageIntent>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3IntentCoverageIntent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3IntentCoverageIntent {
     #[serde(default)]
-    pub covered: Option<bool>,
+    pub covered: ::core::option::Option<bool>,
     #[serde(default)]
-    pub intent: Option<String>,
+    pub intent: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3IntentInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3IntentInput {
     #[serde(default)]
-    pub intent: Option<String>,
+    pub intent: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3IntentParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3IntentParameter {
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     #[serde(default, rename = "isList")]
-    pub is_list: Option<bool>,
+    pub is_list: ::core::option::Option<bool>,
     #[serde(default)]
-    pub redact: Option<bool>,
+    pub redact: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3IntentTrainingPhrase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrase {
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     #[serde(default)]
-    pub parts: Option<Vec<GoogleCloudDialogflowCxV3IntentTrainingPhrasePart>>,
+    pub parts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3IntentTrainingPhrasePart>>,
+    >,
     #[serde(default, rename = "repeatCount")]
-    pub repeat_count: Option<i32>,
+    pub repeat_count: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3IntentTrainingPhrasePart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3IntentTrainingPhrasePart {
     #[serde(default, rename = "parameterId")]
-    pub parameter_id: Option<String>,
+    pub parameter_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3KnowledgeConnectorSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3KnowledgeConnectorSettings {
     #[serde(default, rename = "dataStoreConnections")]
-    pub data_store_connections: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnection>>,
+    pub data_store_connections: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnection>>,
+    >,
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
     #[serde(default, rename = "triggerFulfillment")]
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    pub trigger_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Fulfillment>>,
 }
 
 /// GoogleCloudDialogflowCxV3LanguageInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3LanguageInfo {
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     #[serde(default, rename = "inputLanguageCode")]
-    pub input_language_code: Option<String>,
+    pub input_language_code: ::core::option::Option<String>,
     #[serde(default, rename = "resolvedLanguageCode")]
-    pub resolved_language_code: Option<String>,
+    pub resolved_language_code: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListAgentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListAgentsResponse {
     #[serde(default)]
-    pub agents: Option<Vec<GoogleCloudDialogflowCxV3Agent>>,
+    pub agents:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Agent>>>,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListChangelogsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListChangelogsResponse {
     #[serde(default)]
-    pub changelogs: Option<Vec<GoogleCloudDialogflowCxV3Changelog>>,
+    pub changelogs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Changelog>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse {
     #[serde(default, rename = "continuousTestResults")]
-    pub continuous_test_results: Option<Vec<GoogleCloudDialogflowCxV3ContinuousTestResult>>,
+    pub continuous_test_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ContinuousTestResult>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListDeploymentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListDeploymentsResponse {
     #[serde(default)]
-    pub deployments: Option<Vec<GoogleCloudDialogflowCxV3Deployment>>,
+    pub deployments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Deployment>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListEntityTypesResponse {
     #[serde(default, rename = "entityTypes")]
-    pub entity_types: Option<Vec<GoogleCloudDialogflowCxV3EntityType>>,
+    pub entity_types: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EntityType>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListEnvironmentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListEnvironmentsResponse {
     #[serde(default)]
-    pub environments: Option<Vec<GoogleCloudDialogflowCxV3Environment>>,
+    pub environments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Environment>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListExamplesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListExamplesResponse {
     #[serde(default)]
-    pub examples: Option<Vec<GoogleCloudDialogflowCxV3Example>>,
+    pub examples: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Example>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListExperimentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListExperimentsResponse {
     #[serde(default)]
-    pub experiments: Option<Vec<GoogleCloudDialogflowCxV3Experiment>>,
+    pub experiments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Experiment>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListFlowsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListFlowsResponse {
     #[serde(default)]
-    pub flows: Option<Vec<GoogleCloudDialogflowCxV3Flow>>,
+    pub flows:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Flow>>>,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListGeneratorsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListGeneratorsResponse {
     #[serde(default)]
-    pub generators: Option<Vec<GoogleCloudDialogflowCxV3Generator>>,
+    pub generators: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Generator>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListIntentsResponse {
     #[serde(default)]
-    pub intents: Option<Vec<GoogleCloudDialogflowCxV3Intent>>,
+    pub intents:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Intent>>>,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ListPagesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListPagesResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub pages: Option<Vec<GoogleCloudDialogflowCxV3Page>>,
+    pub pages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Page>>>,
 }
 
 /// GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "playbookVersions")]
-    pub playbook_versions: Option<Vec<GoogleCloudDialogflowCxV3PlaybookVersion>>,
+    pub playbook_versions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookVersion>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListPlaybooksResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListPlaybooksResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub playbooks: Option<Vec<GoogleCloudDialogflowCxV3Playbook>>,
+    pub playbooks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Playbook>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListSecuritySettingsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListSecuritySettingsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "securitySettings")]
-    pub security_settings: Option<Vec<GoogleCloudDialogflowCxV3SecuritySettings>>,
+    pub security_settings: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3SecuritySettings>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "sessionEntityTypes")]
-    pub session_entity_types: Option<Vec<GoogleCloudDialogflowCxV3SessionEntityType>>,
+    pub session_entity_types: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3SessionEntityType>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListTestCaseResultsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListTestCaseResultsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "testCaseResults")]
-    pub test_case_results: Option<Vec<GoogleCloudDialogflowCxV3TestCaseResult>>,
+    pub test_case_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestCaseResult>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListTestCasesResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "testCases")]
-    pub test_cases: Option<Vec<GoogleCloudDialogflowCxV3TestCase>>,
+    pub test_cases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestCase>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListToolVersionsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListToolVersionsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "toolVersions")]
-    pub tool_versions: Option<Vec<GoogleCloudDialogflowCxV3ToolVersion>>,
+    pub tool_versions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolVersion>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListToolsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListToolsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub tools: Option<Vec<GoogleCloudDialogflowCxV3Tool>>,
+    pub tools:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Tool>>>,
 }
 
 /// GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "transitionRouteGroups")]
-    pub transition_route_groups: Option<Vec<GoogleCloudDialogflowCxV3TransitionRouteGroup>>,
+    pub transition_route_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRouteGroup>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListVersionsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListVersionsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub versions: Option<Vec<GoogleCloudDialogflowCxV3Version>>,
+    pub versions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Version>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ListWebhooksResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ListWebhooksResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub webhooks: Option<Vec<GoogleCloudDialogflowCxV3Webhook>>,
+    pub webhooks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Webhook>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3LlmModelSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3LlmModelSettings {
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     #[serde(default, rename = "promptText")]
-    pub prompt_text: Option<String>,
+    pub prompt_text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3LoadVersionRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3LoadVersionRequest {
     #[serde(default, rename = "allowOverrideAgentResources")]
-    pub allow_override_agent_resources: Option<bool>,
+    pub allow_override_agent_resources: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse {
     #[serde(default)]
-    pub environments: Option<Vec<GoogleCloudDialogflowCxV3Environment>>,
+    pub environments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Environment>>,
+    >,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Match resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Match {
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
     #[serde(default)]
-    pub intent: Option<GoogleCloudDialogflowCxV3Intent>,
+    pub intent: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Intent>>,
     /// TODO: enum values: ["MATCH_TYPE_UNSPECIFIED", "INTENT", "DIRECT_INTENT", "PARAMETER_FILLING", "NO_MATCH", "NO_INPUT", "EVENT", "KNOWLEDGE_CONNECTOR", "PLAYBOOK"]
     #[serde(default, rename = "matchType")]
-    pub match_type: Option<String>,
+    pub match_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "resolvedInput")]
-    pub resolved_input: Option<String>,
+    pub resolved_input: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3MatchIntentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3MatchIntentRequest {
     #[serde(default, rename = "persistParameterChanges")]
-    pub persist_parameter_changes: Option<bool>,
+    pub persist_parameter_changes: ::core::option::Option<bool>,
     #[serde(default, rename = "queryInput")]
-    pub query_input: Option<GoogleCloudDialogflowCxV3QueryInput>,
+    pub query_input: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3QueryInput>>,
     #[serde(default, rename = "queryParams")]
-    pub query_params: Option<GoogleCloudDialogflowCxV3QueryParameters>,
+    pub query_params:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3QueryParameters>>,
 }
 
 /// GoogleCloudDialogflowCxV3MatchIntentResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3MatchIntentResponse {
     #[serde(default, rename = "currentPage")]
-    pub current_page: Option<GoogleCloudDialogflowCxV3Page>,
+    pub current_page: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Page>>,
     #[serde(default)]
-    pub matches: Option<Vec<GoogleCloudDialogflowCxV3Match>>,
+    pub matches:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Match>>>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     #[serde(default, rename = "triggerEvent")]
-    pub trigger_event: Option<String>,
+    pub trigger_event: ::core::option::Option<String>,
     #[serde(default, rename = "triggerIntent")]
-    pub trigger_intent: Option<String>,
+    pub trigger_intent: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3NluSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3NluSettings {
     #[serde(default, rename = "classificationThreshold")]
-    pub classification_threshold: Option<f32>,
+    pub classification_threshold: ::core::option::Option<f32>,
     /// TODO: enum values: ["MODEL_TRAINING_MODE_UNSPECIFIED", "MODEL_TRAINING_MODE_AUTOMATIC", "MODEL_TRAINING_MODE_MANUAL"]
     #[serde(default, rename = "modelTrainingMode")]
-    pub model_training_mode: Option<String>,
+    pub model_training_mode: ::core::option::Option<String>,
     /// TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "MODEL_TYPE_STANDARD", "MODEL_TYPE_ADVANCED"]
     #[serde(default, rename = "modelType")]
-    pub model_type: Option<String>,
+    pub model_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3OutputAudioConfig resource type.
@@ -1958,131 +2209,151 @@ pub struct GoogleCloudDialogflowCxV3NluSettings {
 pub struct GoogleCloudDialogflowCxV3OutputAudioConfig {
     /// TODO: enum values: ["OUTPUT_AUDIO_ENCODING_UNSPECIFIED", "OUTPUT_AUDIO_ENCODING_LINEAR_16", "OUTPUT_AUDIO_ENCODING_MP3", "OUTPUT_AUDIO_ENCODING_MP3_64_KBPS", "OUTPUT_AUDIO_ENCODING_OGG_OPUS", "OUTPUT_AUDIO_ENCODING_MULAW", "OUTPUT_AUDIO_ENCODING_ALAW"]
     #[serde(default, rename = "audioEncoding")]
-    pub audio_encoding: Option<String>,
+    pub audio_encoding: ::core::option::Option<String>,
     #[serde(default, rename = "sampleRateHertz")]
-    pub sample_rate_hertz: Option<i32>,
+    pub sample_rate_hertz: ::core::option::Option<i32>,
     #[serde(default, rename = "synthesizeSpeechConfig")]
-    pub synthesize_speech_config: Option<GoogleCloudDialogflowCxV3SynthesizeSpeechConfig>,
+    pub synthesize_speech_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3SynthesizeSpeechConfig>>,
 }
 
 /// GoogleCloudDialogflowCxV3Page resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Page {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettings>>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "entryFulfillment")]
-    pub entry_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    pub entry_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Fulfillment>>,
     #[serde(default, rename = "eventHandlers")]
-    pub event_handlers: Option<Vec<GoogleCloudDialogflowCxV3EventHandler>>,
+    pub event_handlers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EventHandler>>,
+    >,
     #[serde(default)]
-    pub form: Option<GoogleCloudDialogflowCxV3Form>,
+    pub form: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Form>>,
     #[serde(default, rename = "knowledgeConnectorSettings")]
-    pub knowledge_connector_settings: Option<GoogleCloudDialogflowCxV3KnowledgeConnectorSettings>,
+    pub knowledge_connector_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3KnowledgeConnectorSettings>,
+    >,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "transitionRouteGroups")]
-    pub transition_route_groups: Option<Vec<String>>,
+    pub transition_route_groups: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "transitionRoutes")]
-    pub transition_routes: Option<Vec<GoogleCloudDialogflowCxV3TransitionRoute>>,
+    pub transition_routes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRoute>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3PageInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PageInfo {
     #[serde(default, rename = "currentPage")]
-    pub current_page: Option<String>,
+    pub current_page: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "formInfo")]
-    pub form_info: Option<GoogleCloudDialogflowCxV3PageInfoFormInfo>,
+    pub form_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PageInfoFormInfo>>,
 }
 
 /// GoogleCloudDialogflowCxV3PageInfoFormInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PageInfoFormInfo {
     #[serde(default, rename = "parameterInfo")]
-    pub parameter_info: Option<Vec<GoogleCloudDialogflowCxV3PageInfoFormInfoParameterInfo>>,
+    pub parameter_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3PageInfoFormInfoParameterInfo>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3PageInfoFormInfoParameterInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PageInfoFormInfoParameterInfo {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "justCollected")]
-    pub just_collected: Option<bool>,
+    pub just_collected: ::core::option::Option<bool>,
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
     /// TODO: enum values: ["PARAMETER_STATE_UNSPECIFIED", "EMPTY", "INVALID", "FILLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3ParameterDefinition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ParameterDefinition {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["PARAMETER_TYPE_UNSPECIFIED", "STRING", "NUMBER", "BOOLEAN", "NULL", "OBJECT", "LIST"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     #[serde(default, rename = "typeSchema")]
-    pub type_schema: Option<GoogleCloudDialogflowCxV3TypeSchema>,
+    pub type_schema: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TypeSchema>>,
 }
 
 /// GoogleCloudDialogflowCxV3Phrase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Phrase {
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Playbook resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Playbook {
     #[serde(default, rename = "codeBlock")]
-    pub code_block: Option<GoogleCloudDialogflowCxV3CodeBlock>,
+    pub code_block: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3CodeBlock>>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub goal: Option<String>,
+    pub goal: ::core::option::Option<String>,
     #[serde(default)]
-    pub handlers: Option<Vec<GoogleCloudDialogflowCxV3Handler>>,
+    pub handlers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Handler>>,
+    >,
     #[serde(default, rename = "inlineActions")]
-    pub inline_actions: Option<Vec<String>>,
+    pub inline_actions: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "inputParameterDefinitions")]
-    pub input_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    pub input_parameter_definitions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    >,
     #[serde(default)]
-    pub instruction: Option<GoogleCloudDialogflowCxV3PlaybookInstruction>,
+    pub instruction:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookInstruction>>,
     #[serde(default, rename = "llmModelSettings")]
-    pub llm_model_settings: Option<GoogleCloudDialogflowCxV3LlmModelSettings>,
+    pub llm_model_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3LlmModelSettings>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "outputParameterDefinitions")]
-    pub output_parameter_definitions: Option<Vec<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    pub output_parameter_definitions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ParameterDefinition>>,
+    >,
     /// TODO: enum values: ["PLAYBOOK_TYPE_UNSPECIFIED", "TASK", "ROUTINE"]
     #[serde(default, rename = "playbookType")]
-    pub playbook_type: Option<String>,
+    pub playbook_type: ::core::option::Option<String>,
     #[serde(default, rename = "referencedFlows")]
-    pub referenced_flows: Option<Vec<String>>,
+    pub referenced_flows: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "referencedPlaybooks")]
-    pub referenced_playbooks: Option<Vec<String>>,
+    pub referenced_playbooks: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "referencedTools")]
-    pub referenced_tools: Option<Vec<String>>,
+    pub referenced_tools: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "tokenCount")]
-    pub token_count: Option<String>,
+    pub token_count: ::core::option::Option<String>,
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookImportStrategy resource type.
@@ -2090,434 +2361,489 @@ pub struct GoogleCloudDialogflowCxV3Playbook {
 pub struct GoogleCloudDialogflowCxV3PlaybookImportStrategy {
     /// TODO: enum values: ["IMPORT_STRATEGY_UNSPECIFIED", "IMPORT_STRATEGY_CREATE_NEW", "IMPORT_STRATEGY_REPLACE", "IMPORT_STRATEGY_KEEP", "IMPORT_STRATEGY_MERGE", "IMPORT_STRATEGY_THROW_ERROR"]
     #[serde(default, rename = "mainPlaybookImportStrategy")]
-    pub main_playbook_import_strategy: Option<String>,
+    pub main_playbook_import_strategy: ::core::option::Option<String>,
     /// TODO: enum values: ["IMPORT_STRATEGY_UNSPECIFIED", "IMPORT_STRATEGY_CREATE_NEW", "IMPORT_STRATEGY_REPLACE", "IMPORT_STRATEGY_KEEP", "IMPORT_STRATEGY_MERGE", "IMPORT_STRATEGY_THROW_ERROR"]
     #[serde(default, rename = "nestedResourceImportStrategy")]
-    pub nested_resource_import_strategy: Option<String>,
+    pub nested_resource_import_strategy: ::core::option::Option<String>,
     /// TODO: enum values: ["IMPORT_STRATEGY_UNSPECIFIED", "IMPORT_STRATEGY_CREATE_NEW", "IMPORT_STRATEGY_REPLACE", "IMPORT_STRATEGY_KEEP", "IMPORT_STRATEGY_MERGE", "IMPORT_STRATEGY_THROW_ERROR"]
     #[serde(default, rename = "toolImportStrategy")]
-    pub tool_import_strategy: Option<String>,
+    pub tool_import_strategy: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookInput {
     #[serde(default, rename = "precedingConversationSummary")]
-    pub preceding_conversation_summary: Option<String>,
+    pub preceding_conversation_summary: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookInstruction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookInstruction {
     #[serde(default)]
-    pub guidelines: Option<String>,
+    pub guidelines: ::core::option::Option<String>,
     #[serde(default)]
-    pub steps: Option<Vec<GoogleCloudDialogflowCxV3PlaybookStep>>,
+    pub steps: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookStep>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookInvocation resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookInvocation {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub playbook: Option<String>,
+    pub playbook: ::core::option::Option<String>,
     #[serde(default, rename = "playbookInput")]
-    pub playbook_input: Option<GoogleCloudDialogflowCxV3PlaybookInput>,
+    pub playbook_input:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookInput>>,
     #[serde(default, rename = "playbookOutput")]
-    pub playbook_output: Option<GoogleCloudDialogflowCxV3PlaybookOutput>,
+    pub playbook_output:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookOutput>>,
     /// TODO: enum values: ["OUTPUT_STATE_UNSPECIFIED", "OUTPUT_STATE_OK", "OUTPUT_STATE_CANCELLED", "OUTPUT_STATE_FAILED", "OUTPUT_STATE_ESCALATED", "OUTPUT_STATE_PENDING"]
     #[serde(default, rename = "playbookState")]
-    pub playbook_state: Option<String>,
+    pub playbook_state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookOutput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookOutput {
     #[serde(default, rename = "executionSummary")]
-    pub execution_summary: Option<String>,
+    pub execution_summary: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookStep resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookStep {
     #[serde(default)]
-    pub steps: Option<Vec<GoogleCloudDialogflowCxV3PlaybookStep>>,
+    pub steps: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookStep>>,
+    >,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookTraceMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookTraceMetadata {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub playbook: Option<String>,
+    pub playbook: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookTransition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookTransition {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub playbook: Option<String>,
+    pub playbook: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3PlaybookVersion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3PlaybookVersion {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub examples: Option<Vec<GoogleCloudDialogflowCxV3Example>>,
+    pub examples: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Example>>,
+    >,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub playbook: Option<GoogleCloudDialogflowCxV3Playbook>,
+    pub playbook: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Playbook>>,
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3QueryInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3QueryInput {
     #[serde(default)]
-    pub audio: Option<GoogleCloudDialogflowCxV3AudioInput>,
+    pub audio: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AudioInput>>,
     #[serde(default)]
-    pub dtmf: Option<GoogleCloudDialogflowCxV3DtmfInput>,
+    pub dtmf: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3DtmfInput>>,
     #[serde(default)]
-    pub event: Option<GoogleCloudDialogflowCxV3EventInput>,
+    pub event: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3EventInput>>,
     #[serde(default)]
-    pub intent: Option<GoogleCloudDialogflowCxV3IntentInput>,
+    pub intent: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3IntentInput>>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<GoogleCloudDialogflowCxV3TextInput>,
+    pub text: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TextInput>>,
     #[serde(default, rename = "toolCallResult")]
-    pub tool_call_result: Option<GoogleCloudDialogflowCxV3ToolCallResult>,
+    pub tool_call_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolCallResult>>,
 }
 
 /// GoogleCloudDialogflowCxV3QueryParameters resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3QueryParameters {
     #[serde(default, rename = "analyzeQueryTextSentiment")]
-    pub analyze_query_text_sentiment: Option<bool>,
+    pub analyze_query_text_sentiment: ::core::option::Option<bool>,
     #[serde(default)]
-    pub channel: Option<String>,
+    pub channel: ::core::option::Option<String>,
     #[serde(default, rename = "currentPage")]
-    pub current_page: Option<String>,
+    pub current_page: ::core::option::Option<String>,
     #[serde(default, rename = "currentPlaybook")]
-    pub current_playbook: Option<String>,
+    pub current_playbook: ::core::option::Option<String>,
     #[serde(default, rename = "disableWebhook")]
-    pub disable_webhook: Option<bool>,
+    pub disable_webhook: ::core::option::Option<bool>,
     #[serde(default, rename = "endUserMetadata")]
-    pub end_user_metadata: Option<serde_json::Value>,
+    pub end_user_metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "flowVersions")]
-    pub flow_versions: Option<Vec<String>>,
+    pub flow_versions: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "geoLocation")]
-    pub geo_location: Option<GoogleTypeLatLng>,
+    pub geo_location: ::core::option::Option<::std::boxed::Box<GoogleTypeLatLng>>,
     #[serde(default, rename = "llmModelSettings")]
-    pub llm_model_settings: Option<GoogleCloudDialogflowCxV3LlmModelSettings>,
+    pub llm_model_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3LlmModelSettings>>,
     #[serde(default, rename = "parameterScope")]
-    pub parameter_scope: Option<String>,
+    pub parameter_scope: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "populateDataStoreConnectionSignals")]
-    pub populate_data_store_connection_signals: Option<bool>,
+    pub populate_data_store_connection_signals: ::core::option::Option<bool>,
     #[serde(default, rename = "searchConfig")]
-    pub search_config: Option<GoogleCloudDialogflowCxV3SearchConfig>,
+    pub search_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3SearchConfig>>,
     #[serde(default, rename = "sessionEntityTypes")]
-    pub session_entity_types: Option<Vec<GoogleCloudDialogflowCxV3SessionEntityType>>,
+    pub session_entity_types: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3SessionEntityType>>,
+    >,
     #[serde(default, rename = "sessionTtl")]
-    pub session_ttl: Option<String>,
+    pub session_ttl: ::core::option::Option<String>,
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     #[serde(default, rename = "webhookHeaders")]
-    pub webhook_headers: Option<serde_json::Value>,
+    pub webhook_headers: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3QueryResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3QueryResult {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AdvancedSettings>>,
     #[serde(default, rename = "allowAnswerFeedback")]
-    pub allow_answer_feedback: Option<bool>,
+    pub allow_answer_feedback: ::core::option::Option<bool>,
     #[serde(default, rename = "currentFlow")]
-    pub current_flow: Option<GoogleCloudDialogflowCxV3Flow>,
+    pub current_flow: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Flow>>,
     #[serde(default, rename = "currentPage")]
-    pub current_page: Option<GoogleCloudDialogflowCxV3Page>,
+    pub current_page: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Page>>,
     #[serde(default, rename = "dataStoreConnectionSignals")]
-    pub data_store_connection_signals: Option<GoogleCloudDialogflowCxV3DataStoreConnectionSignals>,
+    pub data_store_connection_signals: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnectionSignals>,
+    >,
     #[serde(default, rename = "diagnosticInfo")]
-    pub diagnostic_info: Option<serde_json::Value>,
+    pub diagnostic_info: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub dtmf: Option<GoogleCloudDialogflowCxV3DtmfInput>,
+    pub dtmf: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3DtmfInput>>,
     #[serde(default)]
-    pub intent: Option<GoogleCloudDialogflowCxV3Intent>,
+    pub intent: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Intent>>,
     #[serde(default, rename = "intentDetectionConfidence")]
-    pub intent_detection_confidence: Option<f32>,
+    pub intent_detection_confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "match")]
-    pub match_: Option<GoogleCloudDialogflowCxV3Match>,
+    pub match_: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Match>>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "responseMessages")]
-    pub response_messages: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    pub response_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    >,
     #[serde(default, rename = "sentimentAnalysisResult")]
-    pub sentiment_analysis_result: Option<GoogleCloudDialogflowCxV3SentimentAnalysisResult>,
+    pub sentiment_analysis_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3SentimentAnalysisResult>>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default, rename = "traceBlocks")]
-    pub trace_blocks: Option<Vec<GoogleCloudDialogflowCxV3TraceBlock>>,
+    pub trace_blocks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TraceBlock>>,
+    >,
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     #[serde(default, rename = "triggerEvent")]
-    pub trigger_event: Option<String>,
+    pub trigger_event: ::core::option::Option<String>,
     #[serde(default, rename = "triggerIntent")]
-    pub trigger_intent: Option<String>,
+    pub trigger_intent: ::core::option::Option<String>,
     #[serde(default, rename = "webhookPayloads")]
-    pub webhook_payloads: Option<Vec<serde_json::Value>>,
+    pub webhook_payloads: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     #[serde(default, rename = "webhookStatuses")]
-    pub webhook_statuses: Option<Vec<GoogleRpcStatus>>,
+    pub webhook_statuses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// GoogleCloudDialogflowCxV3ResourceName resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResourceName {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessage {
     #[serde(default)]
-    pub channel: Option<String>,
+    pub channel: ::core::option::Option<String>,
     #[serde(default, rename = "conversationSuccess")]
-    pub conversation_success: Option<GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess>,
+    pub conversation_success: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess>,
+    >,
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: Option<serde_json::Value>,
+    pub end_interaction: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "knowledgeInfoCard")]
-    pub knowledge_info_card: Option<serde_json::Value>,
+    pub knowledge_info_card: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "liveAgentHandoff")]
-    pub live_agent_handoff: Option<GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff>,
+    pub live_agent_handoff: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff>,
+    >,
     #[serde(default, rename = "mixedAudio")]
-    pub mixed_audio: Option<GoogleCloudDialogflowCxV3ResponseMessageMixedAudio>,
+    pub mixed_audio: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageMixedAudio>,
+    >,
     #[serde(default, rename = "outputAudioText")]
-    pub output_audio_text: Option<GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText>,
+    pub output_audio_text: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText>,
+    >,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "playAudio")]
-    pub play_audio: Option<GoogleCloudDialogflowCxV3ResponseMessagePlayAudio>,
+    pub play_audio: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessagePlayAudio>,
+    >,
     /// TODO: enum values: ["RESPONSE_TYPE_UNSPECIFIED", "ENTRY_PROMPT", "PARAMETER_PROMPT", "HANDLER_PROMPT"]
     #[serde(default, rename = "responseType")]
-    pub response_type: Option<String>,
+    pub response_type: ::core::option::Option<String>,
     #[serde(default, rename = "telephonyTransferCall")]
-    pub telephony_transfer_call:
-        Option<GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall>,
+    pub telephony_transfer_call: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall>,
+    >,
     #[serde(default)]
-    pub text: Option<GoogleCloudDialogflowCxV3ResponseMessageText>,
+    pub text:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageText>>,
     #[serde(default, rename = "toolCall")]
-    pub tool_call: Option<GoogleCloudDialogflowCxV3ToolCall>,
+    pub tool_call: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolCall>>,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessageMixedAudio resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessageMixedAudio {
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessageMixedAudioSegment {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default)]
-    pub audio: Option<String>,
+    pub audio: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessageOutputAudioText {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default)]
-    pub ssml: Option<String>,
+    pub ssml: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessagePlayAudio resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessagePlayAudio {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessageTelephonyTransferCall {
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessageText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ResponseMessageText {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3RestoreAgentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RestoreAgentRequest {
     #[serde(default, rename = "agentContent")]
-    pub agent_content: Option<String>,
+    pub agent_content: ::core::option::Option<String>,
     #[serde(default, rename = "agentUri")]
-    pub agent_uri: Option<String>,
+    pub agent_uri: ::core::option::Option<String>,
     #[serde(default, rename = "gitSource")]
-    pub git_source: Option<GoogleCloudDialogflowCxV3RestoreAgentRequestGitSource>,
+    pub git_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3RestoreAgentRequestGitSource>,
+    >,
     /// TODO: enum values: ["RESTORE_OPTION_UNSPECIFIED", "KEEP", "FALLBACK"]
     #[serde(default, rename = "restoreOption")]
-    pub restore_option: Option<String>,
+    pub restore_option: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3RestoreAgentRequestGitSource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RestoreAgentRequestGitSource {
     #[serde(default, rename = "trackingBranch")]
-    pub tracking_branch: Option<String>,
+    pub tracking_branch: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse {
     #[serde(default)]
-    pub playbook: Option<GoogleCloudDialogflowCxV3Playbook>,
+    pub playbook: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Playbook>>,
 }
 
 /// GoogleCloudDialogflowCxV3RestoreToolVersionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RestoreToolVersionResponse {
     #[serde(default)]
-    pub tool: Option<GoogleCloudDialogflowCxV3Tool>,
+    pub tool: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Tool>>,
 }
 
 /// GoogleCloudDialogflowCxV3RolloutConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RolloutConfig {
     #[serde(default, rename = "failureCondition")]
-    pub failure_condition: Option<String>,
+    pub failure_condition: ::core::option::Option<String>,
     #[serde(default, rename = "rolloutCondition")]
-    pub rollout_condition: Option<String>,
+    pub rollout_condition: ::core::option::Option<String>,
     #[serde(default, rename = "rolloutSteps")]
-    pub rollout_steps: Option<Vec<GoogleCloudDialogflowCxV3RolloutConfigRolloutStep>>,
+    pub rollout_steps: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3RolloutConfigRolloutStep>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3RolloutConfigRolloutStep resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RolloutConfigRolloutStep {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "minDuration")]
-    pub min_duration: Option<String>,
+    pub min_duration: ::core::option::Option<String>,
     #[serde(default, rename = "trafficPercent")]
-    pub traffic_percent: Option<i32>,
+    pub traffic_percent: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3RolloutState resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RolloutState {
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
     #[serde(default, rename = "stepIndex")]
-    pub step_index: Option<i32>,
+    pub step_index: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3RunContinuousTestMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RunContinuousTestMetadata {
     #[serde(default)]
-    pub errors: Option<Vec<GoogleCloudDialogflowCxV3TestError>>,
+    pub errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TestError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3RunContinuousTestResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RunContinuousTestResponse {
     #[serde(default, rename = "continuousTestResult")]
-    pub continuous_test_result: Option<GoogleCloudDialogflowCxV3ContinuousTestResult>,
+    pub continuous_test_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ContinuousTestResult>>,
 }
 
 /// GoogleCloudDialogflowCxV3RunTestCaseRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RunTestCaseRequest {
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3RunTestCaseResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RunTestCaseResponse {
     #[serde(default)]
-    pub result: Option<GoogleCloudDialogflowCxV3TestCaseResult>,
+    pub result: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TestCaseResult>>,
 }
 
 /// GoogleCloudDialogflowCxV3SafetySettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SafetySettings {
     #[serde(default, rename = "bannedPhrases")]
-    pub banned_phrases: Option<Vec<GoogleCloudDialogflowCxV3SafetySettingsPhrase>>,
+    pub banned_phrases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3SafetySettingsPhrase>>,
+    >,
     /// TODO: enum values: ["PHRASE_MATCH_STRATEGY_UNSPECIFIED", "PARTIAL_MATCH", "WORD_MATCH"]
     #[serde(default, rename = "defaultBannedPhraseMatchStrategy")]
-    pub default_banned_phrase_match_strategy: Option<String>,
+    pub default_banned_phrase_match_strategy: ::core::option::Option<String>,
     #[serde(default, rename = "defaultRaiSettings")]
-    pub default_rai_settings: Option<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
+    pub default_rai_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
+    >,
     #[serde(default, rename = "promptSecuritySettings")]
-    pub prompt_security_settings:
-        Option<GoogleCloudDialogflowCxV3SafetySettingsPromptSecuritySettings>,
+    pub prompt_security_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3SafetySettingsPromptSecuritySettings>,
+    >,
     #[serde(default, rename = "raiSettings")]
-    pub rai_settings: Option<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
+    pub rai_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3SafetySettingsRaiSettings>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3SafetySettingsPhrase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SafetySettingsPhrase {
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3SafetySettingsPromptSecuritySettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SafetySettingsPromptSecuritySettings {
     #[serde(default, rename = "enablePromptSecurity")]
-    pub enable_prompt_security: Option<bool>,
+    pub enable_prompt_security: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3SafetySettingsRaiSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SafetySettingsRaiSettings {
     #[serde(default, rename = "categoryFilters")]
-    pub category_filters:
-        Option<Vec<GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter>>,
+    pub category_filters: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter resource type.
@@ -2525,313 +2851,340 @@ pub struct GoogleCloudDialogflowCxV3SafetySettingsRaiSettings {
 pub struct GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter {
     /// TODO: enum values: ["SAFETY_CATEGORY_UNSPECIFIED", "DANGEROUS_CONTENT", "HATE_SPEECH", "HARASSMENT", "SEXUALLY_EXPLICIT_CONTENT"]
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// TODO: enum values: ["SAFETY_FILTER_LEVEL_UNSPECIFIED", "BLOCK_NONE", "BLOCK_FEW", "BLOCK_SOME", "BLOCK_MOST"]
     #[serde(default, rename = "filterLevel")]
-    pub filter_level: Option<String>,
+    pub filter_level: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3SearchConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SearchConfig {
     #[serde(default, rename = "boostSpecs")]
-    pub boost_specs: Option<Vec<GoogleCloudDialogflowCxV3BoostSpecs>>,
+    pub boost_specs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3BoostSpecs>>,
+    >,
     #[serde(default, rename = "filterSpecs")]
-    pub filter_specs: Option<Vec<GoogleCloudDialogflowCxV3FilterSpecs>>,
+    pub filter_specs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3FilterSpecs>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3SecuritySettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SecuritySettings {
     #[serde(default, rename = "audioExportSettings")]
-    pub audio_export_settings: Option<GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings>,
+    pub audio_export_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings>,
+    >,
     #[serde(default, rename = "deidentifyTemplate")]
-    pub deidentify_template: Option<String>,
+    pub deidentify_template: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "insightsExportSettings")]
-    pub insights_export_settings:
-        Option<GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings>,
+    pub insights_export_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings>,
+    >,
     #[serde(default, rename = "inspectTemplate")]
-    pub inspect_template: Option<String>,
+    pub inspect_template: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "purgeDataTypes")]
-    pub purge_data_types: Option<Vec<String>>,
+    pub purge_data_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// TODO: enum values: ["REDACTION_SCOPE_UNSPECIFIED", "REDACT_DISK_STORAGE"]
     #[serde(default, rename = "redactionScope")]
-    pub redaction_scope: Option<String>,
+    pub redaction_scope: ::core::option::Option<String>,
     /// TODO: enum values: ["REDACTION_STRATEGY_UNSPECIFIED", "REDACT_WITH_SERVICE"]
     #[serde(default, rename = "redactionStrategy")]
-    pub redaction_strategy: Option<String>,
+    pub redaction_strategy: ::core::option::Option<String>,
     /// TODO: enum values: ["RETENTION_STRATEGY_UNSPECIFIED", "REMOVE_AFTER_CONVERSATION"]
     #[serde(default, rename = "retentionStrategy")]
-    pub retention_strategy: Option<String>,
+    pub retention_strategy: ::core::option::Option<String>,
     #[serde(default, rename = "retentionWindowDays")]
-    pub retention_window_days: Option<i32>,
+    pub retention_window_days: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings {
     #[serde(default, rename = "audioExportPattern")]
-    pub audio_export_pattern: Option<String>,
+    pub audio_export_pattern: ::core::option::Option<String>,
     /// TODO: enum values: ["AUDIO_FORMAT_UNSPECIFIED", "MULAW", "MP3", "OGG"]
     #[serde(default, rename = "audioFormat")]
-    pub audio_format: Option<String>,
+    pub audio_format: ::core::option::Option<String>,
     #[serde(default, rename = "enableAudioRedaction")]
-    pub enable_audio_redaction: Option<bool>,
+    pub enable_audio_redaction: ::core::option::Option<bool>,
     #[serde(default, rename = "gcsBucket")]
-    pub gcs_bucket: Option<String>,
+    pub gcs_bucket: ::core::option::Option<String>,
     #[serde(default, rename = "storeTtsAudio")]
-    pub store_tts_audio: Option<bool>,
+    pub store_tts_audio: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings {
     #[serde(default, rename = "enableInsightsExport")]
-    pub enable_insights_export: Option<bool>,
+    pub enable_insights_export: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3SentimentAnalysisResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SentimentAnalysisResult {
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// GoogleCloudDialogflowCxV3SessionEntityType resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SessionEntityType {
     #[serde(default)]
-    pub entities: Option<Vec<GoogleCloudDialogflowCxV3EntityTypeEntity>>,
+    pub entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3EntityTypeEntity>>,
+    >,
     /// TODO: enum values: ["ENTITY_OVERRIDE_MODE_UNSPECIFIED", "ENTITY_OVERRIDE_MODE_OVERRIDE", "ENTITY_OVERRIDE_MODE_SUPPLEMENT"]
     #[serde(default, rename = "entityOverrideMode")]
-    pub entity_override_mode: Option<String>,
+    pub entity_override_mode: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3SessionInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SessionInfo {
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub session: Option<String>,
+    pub session: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3SpeechProcessingMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SpeechProcessingMetadata {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3SpeechToTextSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SpeechToTextSettings {
     #[serde(default, rename = "enableSpeechAdaptation")]
-    pub enable_speech_adaptation: Option<bool>,
+    pub enable_speech_adaptation: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest {
     #[serde(default, rename = "answerFeedback")]
-    pub answer_feedback: Option<GoogleCloudDialogflowCxV3AnswerFeedback>,
+    pub answer_feedback:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3AnswerFeedback>>,
     #[serde(default, rename = "responseId")]
-    pub response_id: Option<String>,
+    pub response_id: ::core::option::Option<String>,
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3SynthesizeSpeechConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SynthesizeSpeechConfig {
     #[serde(default, rename = "effectsProfileId")]
-    pub effects_profile_id: Option<Vec<String>>,
+    pub effects_profile_id: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub pitch: Option<f64>,
+    pub pitch: ::core::option::Option<f64>,
     #[serde(default, rename = "speakingRate")]
-    pub speaking_rate: Option<f64>,
+    pub speaking_rate: ::core::option::Option<f64>,
     #[serde(default)]
-    pub voice: Option<GoogleCloudDialogflowCxV3VoiceSelectionParams>,
+    pub voice:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3VoiceSelectionParams>>,
     #[serde(default, rename = "volumeGainDb")]
-    pub volume_gain_db: Option<f64>,
+    pub volume_gain_db: ::core::option::Option<f64>,
 }
 
 /// GoogleCloudDialogflowCxV3TestCase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TestCase {
     #[serde(default, rename = "creationTime")]
-    pub creation_time: Option<String>,
+    pub creation_time: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "lastTestResult")]
-    pub last_test_result: Option<GoogleCloudDialogflowCxV3TestCaseResult>,
+    pub last_test_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TestCaseResult>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "testCaseConversationTurns")]
-    pub test_case_conversation_turns: Option<Vec<GoogleCloudDialogflowCxV3ConversationTurn>>,
+    pub test_case_conversation_turns: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ConversationTurn>>,
+    >,
     #[serde(default, rename = "testConfig")]
-    pub test_config: Option<GoogleCloudDialogflowCxV3TestConfig>,
+    pub test_config: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TestConfig>>,
 }
 
 /// GoogleCloudDialogflowCxV3TestCaseError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TestCaseError {
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "testCase")]
-    pub test_case: Option<GoogleCloudDialogflowCxV3TestCase>,
+    pub test_case: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TestCase>>,
 }
 
 /// GoogleCloudDialogflowCxV3TestCaseResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TestCaseResult {
     #[serde(default, rename = "conversationTurns")]
-    pub conversation_turns: Option<Vec<GoogleCloudDialogflowCxV3ConversationTurn>>,
+    pub conversation_turns: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ConversationTurn>>,
+    >,
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["TEST_RESULT_UNSPECIFIED", "PASSED", "FAILED"]
     #[serde(default, rename = "testResult")]
-    pub test_result: Option<String>,
+    pub test_result: ::core::option::Option<String>,
     #[serde(default, rename = "testTime")]
-    pub test_time: Option<String>,
+    pub test_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3TestConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TestConfig {
     #[serde(default)]
-    pub flow: Option<String>,
+    pub flow: ::core::option::Option<String>,
     #[serde(default)]
-    pub page: Option<String>,
+    pub page: ::core::option::Option<String>,
     #[serde(default, rename = "trackingParameters")]
-    pub tracking_parameters: Option<Vec<String>>,
+    pub tracking_parameters: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3TestError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TestError {
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "testCase")]
-    pub test_case: Option<String>,
+    pub test_case: ::core::option::Option<String>,
     #[serde(default, rename = "testTime")]
-    pub test_time: Option<String>,
+    pub test_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3TestRunDifference resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TestRunDifference {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// TODO: enum values: ["DIFF_TYPE_UNSPECIFIED", "INTENT", "PAGE", "PARAMETERS", "UTTERANCE", "FLOW"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3TextInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TextInput {
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Tool resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Tool {
     #[serde(default, rename = "dataStoreSpec")]
-    pub data_store_spec: Option<GoogleCloudDialogflowCxV3ToolDataStoreTool>,
+    pub data_store_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolDataStoreTool>>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "functionSpec")]
-    pub function_spec: Option<GoogleCloudDialogflowCxV3ToolFunctionTool>,
+    pub function_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolFunctionTool>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "openApiSpec")]
-    pub open_api_spec: Option<GoogleCloudDialogflowCxV3ToolOpenApiTool>,
+    pub open_api_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolOpenApiTool>>,
     /// TODO: enum values: ["TOOL_TYPE_UNSPECIFIED", "CUSTOMIZED_TOOL", "BUILTIN_TOOL"]
     #[serde(default, rename = "toolType")]
-    pub tool_type: Option<String>,
+    pub tool_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolAuthentication resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolAuthentication {
     #[serde(default, rename = "apiKeyConfig")]
-    pub api_key_config: Option<GoogleCloudDialogflowCxV3ToolAuthenticationApiKeyConfig>,
+    pub api_key_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ToolAuthenticationApiKeyConfig>,
+    >,
     #[serde(default, rename = "bearerTokenConfig")]
-    pub bearer_token_config: Option<GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig>,
+    pub bearer_token_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig>,
+    >,
     #[serde(default, rename = "oauthConfig")]
-    pub oauth_config: Option<GoogleCloudDialogflowCxV3ToolAuthenticationOAuthConfig>,
+    pub oauth_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ToolAuthenticationOAuthConfig>,
+    >,
     #[serde(default, rename = "serviceAccountAuthConfig")]
-    pub service_account_auth_config:
-        Option<GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig>,
+    pub service_account_auth_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig>,
+    >,
     #[serde(default, rename = "serviceAgentAuthConfig")]
-    pub service_agent_auth_config:
-        Option<GoogleCloudDialogflowCxV3ToolAuthenticationServiceAgentAuthConfig>,
+    pub service_agent_auth_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ToolAuthenticationServiceAgentAuthConfig>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ToolAuthenticationApiKeyConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolAuthenticationApiKeyConfig {
     #[serde(default, rename = "apiKey")]
-    pub api_key: Option<String>,
+    pub api_key: ::core::option::Option<String>,
     #[serde(default, rename = "keyName")]
-    pub key_name: Option<String>,
+    pub key_name: ::core::option::Option<String>,
     /// TODO: enum values: ["REQUEST_LOCATION_UNSPECIFIED", "HEADER", "QUERY_STRING"]
     #[serde(default, rename = "requestLocation")]
-    pub request_location: Option<String>,
+    pub request_location: ::core::option::Option<String>,
     #[serde(default, rename = "secretVersionForApiKey")]
-    pub secret_version_for_api_key: Option<String>,
+    pub secret_version_for_api_key: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig {
     #[serde(default, rename = "secretVersionForToken")]
-    pub secret_version_for_token: Option<String>,
+    pub secret_version_for_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolAuthenticationOAuthConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolAuthenticationOAuthConfig {
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// TODO: enum values: ["OAUTH_GRANT_TYPE_UNSPECIFIED", "CLIENT_CREDENTIAL"]
     #[serde(default, rename = "oauthGrantType")]
-    pub oauth_grant_type: Option<String>,
+    pub oauth_grant_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "secretVersionForClientSecret")]
-    pub secret_version_for_client_secret: Option<String>,
+    pub secret_version_for_client_secret: ::core::option::Option<String>,
     #[serde(default, rename = "tokenEndpoint")]
-    pub token_endpoint: Option<String>,
+    pub token_endpoint: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig {
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolAuthenticationServiceAgentAuthConfig resource type.
@@ -2839,551 +3192,617 @@ pub struct GoogleCloudDialogflowCxV3ToolAuthenticationServiceAccountAuthConfig {
 pub struct GoogleCloudDialogflowCxV3ToolAuthenticationServiceAgentAuthConfig {
     /// TODO: enum values: ["SERVICE_AGENT_AUTH_UNSPECIFIED", "ID_TOKEN", "ACCESS_TOKEN"]
     #[serde(default, rename = "serviceAgentAuth")]
-    pub service_agent_auth: Option<String>,
+    pub service_agent_auth: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolCall {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolCallResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolCallResult {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default)]
-    pub error: Option<GoogleCloudDialogflowCxV3ToolCallResultError>,
+    pub error:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolCallResultError>>,
     #[serde(default, rename = "outputParameters")]
-    pub output_parameters: Option<serde_json::Value>,
+    pub output_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolCallResultError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolCallResultError {
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolDataStoreTool resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolDataStoreTool {
     #[serde(default, rename = "dataStoreConnections")]
-    pub data_store_connections: Option<Vec<GoogleCloudDialogflowCxV3DataStoreConnection>>,
+    pub data_store_connections: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3DataStoreConnection>>,
+    >,
     #[serde(default, rename = "fallbackPrompt")]
-    pub fallback_prompt: Option<serde_json::Value>,
+    pub fallback_prompt: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolFunctionTool resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolFunctionTool {
     #[serde(default, rename = "inputSchema")]
-    pub input_schema: Option<serde_json::Value>,
+    pub input_schema: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "outputSchema")]
-    pub output_schema: Option<serde_json::Value>,
+    pub output_schema: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolOpenApiTool resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolOpenApiTool {
     #[serde(default)]
-    pub authentication: Option<GoogleCloudDialogflowCxV3ToolAuthentication>,
+    pub authentication:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolAuthentication>>,
     #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: Option<GoogleCloudDialogflowCxV3ToolServiceDirectoryConfig>,
+    pub service_directory_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ToolServiceDirectoryConfig>,
+    >,
     #[serde(default, rename = "textSchema")]
-    pub text_schema: Option<String>,
+    pub text_schema: ::core::option::Option<String>,
     #[serde(default, rename = "tlsConfig")]
-    pub tls_config: Option<GoogleCloudDialogflowCxV3ToolTLSConfig>,
+    pub tls_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolTLSConfig>>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolServiceDirectoryConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolServiceDirectoryConfig {
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolTLSConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolTLSConfig {
     #[serde(default, rename = "caCerts")]
-    pub ca_certs: Option<Vec<GoogleCloudDialogflowCxV3ToolTLSConfigCACert>>,
+    pub ca_certs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ToolTLSConfigCACert>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3ToolTLSConfigCACert resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolTLSConfigCACert {
     #[serde(default)]
-    pub cert: Option<String>,
+    pub cert: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolUse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolUse {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "inputActionParameters")]
-    pub input_action_parameters: Option<serde_json::Value>,
+    pub input_action_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "outputActionParameters")]
-    pub output_action_parameters: Option<serde_json::Value>,
+    pub output_action_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolVersion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ToolVersion {
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub tool: Option<GoogleCloudDialogflowCxV3Tool>,
+    pub tool: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Tool>>,
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3TraceBlock resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TraceBlock {
     #[serde(default)]
-    pub actions: Option<Vec<GoogleCloudDialogflowCxV3Action>>,
+    pub actions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3Action>>>,
     #[serde(default, rename = "completeTime")]
-    pub complete_time: Option<String>,
+    pub complete_time: ::core::option::Option<String>,
     /// TODO: enum values: ["OUTPUT_STATE_UNSPECIFIED", "OUTPUT_STATE_OK", "OUTPUT_STATE_CANCELLED", "OUTPUT_STATE_FAILED", "OUTPUT_STATE_ESCALATED", "OUTPUT_STATE_PENDING"]
     #[serde(default, rename = "endState")]
-    pub end_state: Option<String>,
+    pub end_state: ::core::option::Option<String>,
     #[serde(default, rename = "flowTraceMetadata")]
-    pub flow_trace_metadata: Option<GoogleCloudDialogflowCxV3FlowTraceMetadata>,
+    pub flow_trace_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3FlowTraceMetadata>>,
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "outputParameters")]
-    pub output_parameters: Option<serde_json::Value>,
+    pub output_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "playbookTraceMetadata")]
-    pub playbook_trace_metadata: Option<GoogleCloudDialogflowCxV3PlaybookTraceMetadata>,
+    pub playbook_trace_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookTraceMetadata>>,
     #[serde(default, rename = "speechProcessingMetadata")]
-    pub speech_processing_metadata: Option<GoogleCloudDialogflowCxV3SpeechProcessingMetadata>,
+    pub speech_processing_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3SpeechProcessingMetadata>,
+    >,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionCoverage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionCoverage {
     #[serde(default, rename = "coverageScore")]
-    pub coverage_score: Option<f32>,
+    pub coverage_score: ::core::option::Option<f32>,
     #[serde(default)]
-    pub transitions: Option<Vec<GoogleCloudDialogflowCxV3TransitionCoverageTransition>>,
+    pub transitions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionCoverageTransition>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionCoverageTransition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionCoverageTransition {
     #[serde(default)]
-    pub covered: Option<bool>,
+    pub covered: ::core::option::Option<bool>,
     #[serde(default, rename = "eventHandler")]
-    pub event_handler: Option<GoogleCloudDialogflowCxV3EventHandler>,
+    pub event_handler:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3EventHandler>>,
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     #[serde(default)]
-    pub source: Option<GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode>,
+    pub source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode>,
+    >,
     #[serde(default)]
-    pub target: Option<GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode>,
+    pub target: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode>,
+    >,
     #[serde(default, rename = "transitionRoute")]
-    pub transition_route: Option<GoogleCloudDialogflowCxV3TransitionRoute>,
+    pub transition_route:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRoute>>,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode {
     #[serde(default)]
-    pub flow: Option<GoogleCloudDialogflowCxV3Flow>,
+    pub flow: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Flow>>,
     #[serde(default)]
-    pub page: Option<GoogleCloudDialogflowCxV3Page>,
+    pub page: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Page>>,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionRoute resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionRoute {
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub intent: Option<String>,
+    pub intent: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
     #[serde(default, rename = "triggerFulfillment")]
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3Fulfillment>,
+    pub trigger_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3Fulfillment>>,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionRouteGroup resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionRouteGroup {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "transitionRoutes")]
-    pub transition_routes: Option<Vec<GoogleCloudDialogflowCxV3TransitionRoute>>,
+    pub transition_routes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRoute>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionRouteGroupCoverage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionRouteGroupCoverage {
     #[serde(default, rename = "coverageScore")]
-    pub coverage_score: Option<f32>,
+    pub coverage_score: ::core::option::Option<f32>,
     #[serde(default)]
-    pub coverages: Option<Vec<GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage>>,
+    pub coverages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage {
     #[serde(default, rename = "coverageScore")]
-    pub coverage_score: Option<f32>,
+    pub coverage_score: ::core::option::Option<f32>,
     #[serde(default, rename = "routeGroup")]
-    pub route_group: Option<GoogleCloudDialogflowCxV3TransitionRouteGroup>,
+    pub route_group:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRouteGroup>>,
     #[serde(default)]
-    pub transitions:
-        Option<Vec<GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverageTransition>>,
+    pub transitions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverageTransition,
+            >,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverageTransition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverageTransition {
     #[serde(default)]
-    pub covered: Option<bool>,
+    pub covered: ::core::option::Option<bool>,
     #[serde(default, rename = "transitionRoute")]
-    pub transition_route: Option<GoogleCloudDialogflowCxV3TransitionRoute>,
+    pub transition_route:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3TransitionRoute>>,
 }
 
 /// GoogleCloudDialogflowCxV3TurnSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TurnSignals {
     #[serde(default, rename = "agentEscalated")]
-    pub agent_escalated: Option<bool>,
+    pub agent_escalated: ::core::option::Option<bool>,
     #[serde(default, rename = "dtmfUsed")]
-    pub dtmf_used: Option<bool>,
+    pub dtmf_used: ::core::option::Option<bool>,
     #[serde(default, rename = "failureReasons")]
-    pub failure_reasons: Option<Vec<String>>,
+    pub failure_reasons: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "noMatch")]
-    pub no_match: Option<bool>,
+    pub no_match: ::core::option::Option<bool>,
     #[serde(default, rename = "noUserInput")]
-    pub no_user_input: Option<bool>,
+    pub no_user_input: ::core::option::Option<bool>,
     #[serde(default, rename = "reachedEndPage")]
-    pub reached_end_page: Option<bool>,
+    pub reached_end_page: ::core::option::Option<bool>,
     #[serde(default, rename = "sentimentMagnitude")]
-    pub sentiment_magnitude: Option<f32>,
+    pub sentiment_magnitude: ::core::option::Option<f32>,
     #[serde(default, rename = "sentimentScore")]
-    pub sentiment_score: Option<f32>,
+    pub sentiment_score: ::core::option::Option<f32>,
     #[serde(default, rename = "userEscalated")]
-    pub user_escalated: Option<bool>,
+    pub user_escalated: ::core::option::Option<bool>,
     #[serde(default, rename = "webhookStatuses")]
-    pub webhook_statuses: Option<Vec<String>>,
+    pub webhook_statuses: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3TypeSchema resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TypeSchema {
     #[serde(default, rename = "inlineSchema")]
-    pub inline_schema: Option<GoogleCloudDialogflowCxV3InlineSchema>,
+    pub inline_schema:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3InlineSchema>>,
     #[serde(default, rename = "schemaReference")]
-    pub schema_reference: Option<GoogleCloudDialogflowCxV3TypeSchemaSchemaReference>,
+    pub schema_reference: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3TypeSchemaSchemaReference>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3TypeSchemaSchemaReference resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3TypeSchemaSchemaReference {
     #[serde(default)]
-    pub schema: Option<String>,
+    pub schema: ::core::option::Option<String>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3UserUtterance resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3UserUtterance {
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ValidateAgentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ValidateAgentRequest {
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ValidateFlowRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ValidateFlowRequest {
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3ValidationMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ValidationMessage {
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     #[serde(default, rename = "resourceNames")]
-    pub resource_names: Option<Vec<GoogleCloudDialogflowCxV3ResourceName>>,
+    pub resource_names: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ResourceName>>,
+    >,
     /// TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "AGENT", "INTENT", "INTENT_TRAINING_PHRASE", "INTENT_PARAMETER", "INTENTS", "INTENT_TRAINING_PHRASES", "ENTITY_TYPE", "ENTITY_TYPES", "WEBHOOK", "FLOW", "PAGE", "PAGES", "TRANSITION_ROUTE_GROUP", "AGENT_TRANSITION_ROUTE_GROUP"]
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub resources: Option<Vec<String>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// TODO: enum values: ["SEVERITY_UNSPECIFIED", "INFO", "WARNING", "ERROR"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3VariantsHistory resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3VariantsHistory {
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     #[serde(default, rename = "versionVariants")]
-    pub version_variants: Option<GoogleCloudDialogflowCxV3VersionVariants>,
+    pub version_variants:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3VersionVariants>>,
 }
 
 /// GoogleCloudDialogflowCxV3Version resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Version {
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "nluSettings")]
-    pub nlu_settings: Option<GoogleCloudDialogflowCxV3NluSettings>,
+    pub nlu_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3NluSettings>>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3VersionVariants resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3VersionVariants {
     #[serde(default)]
-    pub variants: Option<Vec<GoogleCloudDialogflowCxV3VersionVariantsVariant>>,
+    pub variants: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3VersionVariantsVariant>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3VersionVariantsVariant resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3VersionVariantsVariant {
     #[serde(default, rename = "isControlGroup")]
-    pub is_control_group: Option<bool>,
+    pub is_control_group: ::core::option::Option<bool>,
     #[serde(default, rename = "trafficAllocation")]
-    pub traffic_allocation: Option<f32>,
+    pub traffic_allocation: ::core::option::Option<f32>,
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3VoiceSelectionParams resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3VoiceSelectionParams {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["SSML_VOICE_GENDER_UNSPECIFIED", "SSML_VOICE_GENDER_MALE", "SSML_VOICE_GENDER_FEMALE", "SSML_VOICE_GENDER_NEUTRAL"]
     #[serde(default, rename = "ssmlGender")]
-    pub ssml_gender: Option<String>,
+    pub ssml_gender: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3Webhook resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3Webhook {
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "genericWebService")]
-    pub generic_web_service: Option<GoogleCloudDialogflowCxV3WebhookGenericWebService>,
+    pub generic_web_service: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookGenericWebService>,
+    >,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "serviceDirectory")]
-    pub service_directory: Option<GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig>,
+    pub service_directory: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig>,
+    >,
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookGenericWebService resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookGenericWebService {
     #[serde(default, rename = "allowedCaCerts")]
-    pub allowed_ca_certs: Option<Vec<String>>,
+    pub allowed_ca_certs: ::core::option::Option<::std::vec::Vec<String>>,
     /// TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
     #[serde(default, rename = "httpMethod")]
-    pub http_method: Option<String>,
+    pub http_method: ::core::option::Option<String>,
     #[serde(default, rename = "oauthConfig")]
-    pub oauth_config: Option<GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig>,
+    pub oauth_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig>,
+    >,
     #[serde(default, rename = "parameterMapping")]
-    pub parameter_mapping: Option<serde_json::Value>,
+    pub parameter_mapping: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     #[serde(default, rename = "requestBody")]
-    pub request_body: Option<String>,
+    pub request_body: ::core::option::Option<String>,
     #[serde(default, rename = "requestHeaders")]
-    pub request_headers: Option<serde_json::Value>,
+    pub request_headers: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "secretVersionForUsernamePassword")]
-    pub secret_version_for_username_password: Option<String>,
+    pub secret_version_for_username_password: ::core::option::Option<String>,
     #[serde(default, rename = "secretVersionsForRequestHeaders")]
-    pub secret_versions_for_request_headers: Option<serde_json::Value>,
+    pub secret_versions_for_request_headers: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "serviceAccountAuthConfig")]
-    pub service_account_auth_config:
-        Option<GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig>,
+    pub service_account_auth_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig,
+        >,
+    >,
     /// TODO: enum values: ["SERVICE_AGENT_AUTH_UNSPECIFIED", "NONE", "ID_TOKEN", "ACCESS_TOKEN"]
     #[serde(default, rename = "serviceAgentAuth")]
-    pub service_agent_auth: Option<String>,
+    pub service_agent_auth: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
     /// TODO: enum values: ["WEBHOOK_TYPE_UNSPECIFIED", "STANDARD", "FLEXIBLE"]
     #[serde(default, rename = "webhookType")]
-    pub webhook_type: Option<String>,
+    pub webhook_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceOAuthConfig {
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "secretVersionForClientSecret")]
-    pub secret_version_for_client_secret: Option<String>,
+    pub secret_version_for_client_secret: ::core::option::Option<String>,
     #[serde(default, rename = "tokenEndpoint")]
-    pub token_endpoint: Option<String>,
+    pub token_endpoint: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookGenericWebServiceSecretVersionHeaderValue resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceSecretVersionHeaderValue {
     #[serde(default, rename = "secretVersion")]
-    pub secret_version: Option<String>,
+    pub secret_version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookGenericWebServiceServiceAccountAuthConfig {
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookRequest {
     #[serde(default, rename = "detectIntentResponseId")]
-    pub detect_intent_response_id: Option<String>,
+    pub detect_intent_response_id: ::core::option::Option<String>,
     #[serde(default, rename = "dtmfDigits")]
-    pub dtmf_digits: Option<String>,
+    pub dtmf_digits: ::core::option::Option<String>,
     #[serde(default, rename = "fulfillmentInfo")]
-    pub fulfillment_info: Option<GoogleCloudDialogflowCxV3WebhookRequestFulfillmentInfo>,
+    pub fulfillment_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookRequestFulfillmentInfo>,
+    >,
     #[serde(default, rename = "intentInfo")]
-    pub intent_info: Option<GoogleCloudDialogflowCxV3WebhookRequestIntentInfo>,
+    pub intent_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookRequestIntentInfo>,
+    >,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "languageInfo")]
-    pub language_info: Option<GoogleCloudDialogflowCxV3LanguageInfo>,
+    pub language_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3LanguageInfo>>,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    >,
     #[serde(default, rename = "pageInfo")]
-    pub page_info: Option<GoogleCloudDialogflowCxV3PageInfo>,
+    pub page_info: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PageInfo>>,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "sentimentAnalysisResult")]
-    pub sentiment_analysis_result:
-        Option<GoogleCloudDialogflowCxV3WebhookRequestSentimentAnalysisResult>,
+    pub sentiment_analysis_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookRequestSentimentAnalysisResult>,
+    >,
     #[serde(default, rename = "sessionInfo")]
-    pub session_info: Option<GoogleCloudDialogflowCxV3SessionInfo>,
+    pub session_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3SessionInfo>>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     #[serde(default, rename = "triggerEvent")]
-    pub trigger_event: Option<String>,
+    pub trigger_event: ::core::option::Option<String>,
     #[serde(default, rename = "triggerIntent")]
-    pub trigger_intent: Option<String>,
+    pub trigger_intent: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookRequestFulfillmentInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookRequestFulfillmentInfo {
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookRequestIntentInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookRequestIntentInfo {
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "lastMatchedIntent")]
-    pub last_matched_intent: Option<String>,
+    pub last_matched_intent: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookRequestIntentInfoIntentParameterValue resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookRequestIntentInfoIntentParameterValue {
     #[serde(default, rename = "originalValue")]
-    pub original_value: Option<String>,
+    pub original_value: ::core::option::Option<String>,
     #[serde(default, rename = "resolvedValue")]
-    pub resolved_value: Option<serde_json::Value>,
+    pub resolved_value: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookRequestSentimentAnalysisResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookRequestSentimentAnalysisResult {
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookResponse {
     #[serde(default, rename = "fulfillmentResponse")]
-    pub fulfillment_response: Option<GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse>,
+    pub fulfillment_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse>,
+    >,
     #[serde(default, rename = "pageInfo")]
-    pub page_info: Option<GoogleCloudDialogflowCxV3PageInfo>,
+    pub page_info: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3PageInfo>>,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "sessionInfo")]
-    pub session_info: Option<GoogleCloudDialogflowCxV3SessionInfo>,
+    pub session_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3SessionInfo>>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse resource type.
@@ -3391,505 +3810,584 @@ pub struct GoogleCloudDialogflowCxV3WebhookResponse {
 pub struct GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse {
     /// TODO: enum values: ["MERGE_BEHAVIOR_UNSPECIFIED", "APPEND", "REPLACE"]
     #[serde(default, rename = "mergeBehavior")]
-    pub merge_behavior: Option<String>,
+    pub merge_behavior: ::core::option::Option<String>,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessage>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3WebhookServiceDirectoryConfig {
     #[serde(default, rename = "genericWebService")]
-    pub generic_web_service: Option<GoogleCloudDialogflowCxV3WebhookGenericWebService>,
+    pub generic_web_service: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3WebhookGenericWebService>,
+    >,
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1AdvancedSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1AdvancedSettings {
     #[serde(default, rename = "audioExportGcsDestination")]
-    pub audio_export_gcs_destination: Option<GoogleCloudDialogflowCxV3beta1GcsDestination>,
+    pub audio_export_gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1GcsDestination>>,
     #[serde(default, rename = "dtmfSettings")]
-    pub dtmf_settings: Option<GoogleCloudDialogflowCxV3beta1AdvancedSettingsDtmfSettings>,
+    pub dtmf_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1AdvancedSettingsDtmfSettings>,
+    >,
     #[serde(default, rename = "loggingSettings")]
-    pub logging_settings: Option<GoogleCloudDialogflowCxV3beta1AdvancedSettingsLoggingSettings>,
+    pub logging_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1AdvancedSettingsLoggingSettings>,
+    >,
     #[serde(default, rename = "speechSettings")]
-    pub speech_settings: Option<GoogleCloudDialogflowCxV3beta1AdvancedSettingsSpeechSettings>,
+    pub speech_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1AdvancedSettingsSpeechSettings>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1AdvancedSettingsDtmfSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1AdvancedSettingsDtmfSettings {
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     #[serde(default, rename = "endpointingTimeoutDuration")]
-    pub endpointing_timeout_duration: Option<String>,
+    pub endpointing_timeout_duration: ::core::option::Option<String>,
     #[serde(default, rename = "finishDigit")]
-    pub finish_digit: Option<String>,
+    pub finish_digit: ::core::option::Option<String>,
     #[serde(default, rename = "interdigitTimeoutDuration")]
-    pub interdigit_timeout_duration: Option<String>,
+    pub interdigit_timeout_duration: ::core::option::Option<String>,
     #[serde(default, rename = "maxDigits")]
-    pub max_digits: Option<i32>,
+    pub max_digits: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1AdvancedSettingsLoggingSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1AdvancedSettingsLoggingSettings {
     #[serde(default, rename = "enableConsentBasedRedaction")]
-    pub enable_consent_based_redaction: Option<bool>,
+    pub enable_consent_based_redaction: ::core::option::Option<bool>,
     #[serde(default, rename = "enableInteractionLogging")]
-    pub enable_interaction_logging: Option<bool>,
+    pub enable_interaction_logging: ::core::option::Option<bool>,
     #[serde(default, rename = "enableStackdriverLogging")]
-    pub enable_stackdriver_logging: Option<bool>,
+    pub enable_stackdriver_logging: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1AdvancedSettingsSpeechSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1AdvancedSettingsSpeechSettings {
     #[serde(default, rename = "endpointerSensitivity")]
-    pub endpointer_sensitivity: Option<i32>,
+    pub endpointer_sensitivity: ::core::option::Option<i32>,
     #[serde(default)]
-    pub models: Option<serde_json::Value>,
+    pub models: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "noSpeechTimeout")]
-    pub no_speech_timeout: Option<String>,
+    pub no_speech_timeout: ::core::option::Option<String>,
     #[serde(default, rename = "useTimeoutBasedEndpointing")]
-    pub use_timeout_based_endpointing: Option<bool>,
+    pub use_timeout_based_endpointing: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1AudioInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1AudioInput {
     #[serde(default)]
-    pub audio: Option<String>,
+    pub audio: ::core::option::Option<String>,
     #[serde(default)]
-    pub config: Option<GoogleCloudDialogflowCxV3beta1InputAudioConfig>,
+    pub config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1InputAudioConfig>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1BargeInConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1BargeInConfig {
     #[serde(default, rename = "noBargeInDuration")]
-    pub no_barge_in_duration: Option<String>,
+    pub no_barge_in_duration: ::core::option::Option<String>,
     #[serde(default, rename = "totalDuration")]
-    pub total_duration: Option<String>,
+    pub total_duration: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1BatchRunTestCasesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1BatchRunTestCasesMetadata {
     #[serde(default)]
-    pub errors: Option<Vec<GoogleCloudDialogflowCxV3beta1TestError>>,
+    pub errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1BatchRunTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1BatchRunTestCasesResponse {
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudDialogflowCxV3beta1TestCaseResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestCaseResult>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ContinuousTestResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ContinuousTestResult {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["AGGREGATED_TEST_RESULT_UNSPECIFIED", "PASSED", "FAILED"]
     #[serde(default)]
-    pub result: Option<String>,
+    pub result: ::core::option::Option<String>,
     #[serde(default, rename = "runTime")]
-    pub run_time: Option<String>,
+    pub run_time: ::core::option::Option<String>,
     #[serde(default, rename = "testCaseResults")]
-    pub test_case_results: Option<Vec<String>>,
+    pub test_case_results: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ConversationSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ConversationSignals {
     #[serde(default, rename = "turnSignals")]
-    pub turn_signals: Option<GoogleCloudDialogflowCxV3beta1TurnSignals>,
+    pub turn_signals:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TurnSignals>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ConversationTurn resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ConversationTurn {
     #[serde(default, rename = "userInput")]
-    pub user_input: Option<GoogleCloudDialogflowCxV3beta1ConversationTurnUserInput>,
+    pub user_input: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ConversationTurnUserInput>,
+    >,
     #[serde(default, rename = "virtualAgentOutput")]
-    pub virtual_agent_output:
-        Option<GoogleCloudDialogflowCxV3beta1ConversationTurnVirtualAgentOutput>,
+    pub virtual_agent_output: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ConversationTurnVirtualAgentOutput>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ConversationTurnUserInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ConversationTurnUserInput {
     #[serde(default, rename = "enableSentimentAnalysis")]
-    pub enable_sentiment_analysis: Option<bool>,
+    pub enable_sentiment_analysis: ::core::option::Option<bool>,
     #[serde(default, rename = "injectedParameters")]
-    pub injected_parameters: Option<serde_json::Value>,
+    pub injected_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub input: Option<GoogleCloudDialogflowCxV3beta1QueryInput>,
+    pub input: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1QueryInput>>,
     #[serde(default, rename = "isWebhookEnabled")]
-    pub is_webhook_enabled: Option<bool>,
+    pub is_webhook_enabled: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ConversationTurnVirtualAgentOutput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ConversationTurnVirtualAgentOutput {
     #[serde(default, rename = "currentPage")]
-    pub current_page: Option<GoogleCloudDialogflowCxV3beta1Page>,
+    pub current_page: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Page>>,
     #[serde(default, rename = "diagnosticInfo")]
-    pub diagnostic_info: Option<serde_json::Value>,
+    pub diagnostic_info: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub differences: Option<Vec<GoogleCloudDialogflowCxV3beta1TestRunDifference>>,
+    pub differences: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestRunDifference>>,
+    >,
     #[serde(default, rename = "sessionParameters")]
-    pub session_parameters: Option<serde_json::Value>,
+    pub session_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "textResponses")]
-    pub text_responses: Option<Vec<GoogleCloudDialogflowCxV3beta1ResponseMessageText>>,
+    pub text_responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageText>>,
+    >,
     #[serde(default, rename = "triggeredIntent")]
-    pub triggered_intent: Option<GoogleCloudDialogflowCxV3beta1Intent>,
+    pub triggered_intent:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Intent>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1CreateVersionOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1CreateVersionOperationMetadata {
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1DataStoreConnection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1DataStoreConnection {
     #[serde(default, rename = "dataStore")]
-    pub data_store: Option<String>,
+    pub data_store: ::core::option::Option<String>,
     /// TODO: enum values: ["DATA_STORE_TYPE_UNSPECIFIED", "PUBLIC_WEB", "UNSTRUCTURED", "STRUCTURED"]
     #[serde(default, rename = "dataStoreType")]
-    pub data_store_type: Option<String>,
+    pub data_store_type: ::core::option::Option<String>,
     /// TODO: enum values: ["DOCUMENT_PROCESSING_MODE_UNSPECIFIED", "DOCUMENTS", "CHUNKS"]
     #[serde(default, rename = "documentProcessingMode")]
-    pub document_processing_mode: Option<String>,
+    pub document_processing_mode: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1DeployFlowMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1DeployFlowMetadata {
     #[serde(default, rename = "testErrors")]
-    pub test_errors: Option<Vec<GoogleCloudDialogflowCxV3beta1TestError>>,
+    pub test_errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1DeployFlowResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1DeployFlowResponse {
     #[serde(default)]
-    pub deployment: Option<String>,
+    pub deployment: ::core::option::Option<String>,
     #[serde(default)]
-    pub environment: Option<GoogleCloudDialogflowCxV3beta1Environment>,
+    pub environment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Environment>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1DtmfInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1DtmfInput {
     #[serde(default)]
-    pub digits: Option<String>,
+    pub digits: ::core::option::Option<String>,
     #[serde(default, rename = "finishDigit")]
-    pub finish_digit: Option<String>,
+    pub finish_digit: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1Environment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1Environment {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "testCasesConfig")]
-    pub test_cases_config: Option<GoogleCloudDialogflowCxV3beta1EnvironmentTestCasesConfig>,
+    pub test_cases_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1EnvironmentTestCasesConfig>,
+    >,
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     #[serde(default, rename = "versionConfigs")]
-    pub version_configs: Option<Vec<GoogleCloudDialogflowCxV3beta1EnvironmentVersionConfig>>,
+    pub version_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1EnvironmentVersionConfig>>,
+    >,
     #[serde(default, rename = "webhookConfig")]
-    pub webhook_config: Option<GoogleCloudDialogflowCxV3beta1EnvironmentWebhookConfig>,
+    pub webhook_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1EnvironmentWebhookConfig>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1EnvironmentTestCasesConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1EnvironmentTestCasesConfig {
     #[serde(default, rename = "enableContinuousRun")]
-    pub enable_continuous_run: Option<bool>,
+    pub enable_continuous_run: ::core::option::Option<bool>,
     #[serde(default, rename = "enablePredeploymentRun")]
-    pub enable_predeployment_run: Option<bool>,
+    pub enable_predeployment_run: ::core::option::Option<bool>,
     #[serde(default, rename = "testCases")]
-    pub test_cases: Option<Vec<String>>,
+    pub test_cases: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1EnvironmentVersionConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1EnvironmentVersionConfig {
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1EnvironmentWebhookConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1EnvironmentWebhookConfig {
     #[serde(default, rename = "webhookOverrides")]
-    pub webhook_overrides: Option<Vec<GoogleCloudDialogflowCxV3beta1Webhook>>,
+    pub webhook_overrides: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Webhook>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1EventHandler resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1EventHandler {
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
     #[serde(default, rename = "targetPlaybook")]
-    pub target_playbook: Option<String>,
+    pub target_playbook: ::core::option::Option<String>,
     #[serde(default, rename = "triggerFulfillment")]
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3beta1Fulfillment>,
+    pub trigger_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Fulfillment>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1EventInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1EventInput {
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ExportAgentResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportAgentResponse {
     #[serde(default, rename = "agentContent")]
-    pub agent_content: Option<String>,
+    pub agent_content: ::core::option::Option<String>,
     #[serde(default, rename = "agentUri")]
-    pub agent_uri: Option<String>,
+    pub agent_uri: ::core::option::Option<String>,
     #[serde(default, rename = "commitSha")]
-    pub commit_sha: Option<String>,
+    pub commit_sha: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ExportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportEntityTypesResponse {
     #[serde(default, rename = "entityTypesContent")]
-    pub entity_types_content: Option<GoogleCloudDialogflowCxV3beta1InlineDestination>,
+    pub entity_types_content:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1InlineDestination>>,
     #[serde(default, rename = "entityTypesUri")]
-    pub entity_types_uri: Option<String>,
+    pub entity_types_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ExportFlowResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportFlowResponse {
     #[serde(default, rename = "flowContent")]
-    pub flow_content: Option<String>,
+    pub flow_content: ::core::option::Option<String>,
     #[serde(default, rename = "flowUri")]
-    pub flow_uri: Option<String>,
+    pub flow_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ExportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportIntentsResponse {
     #[serde(default, rename = "intentsContent")]
-    pub intents_content: Option<GoogleCloudDialogflowCxV3beta1InlineDestination>,
+    pub intents_content:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1InlineDestination>>,
     #[serde(default, rename = "intentsUri")]
-    pub intents_uri: Option<String>,
+    pub intents_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ExportTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportTestCasesResponse {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1Form resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1Form {
     #[serde(default)]
-    pub parameters: Option<Vec<GoogleCloudDialogflowCxV3beta1FormParameter>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1FormParameter>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1FormParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1FormParameter {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3beta1AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1AdvancedSettings>>,
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<serde_json::Value>,
+    pub default_value: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default, rename = "fillBehavior")]
-    pub fill_behavior: Option<GoogleCloudDialogflowCxV3beta1FormParameterFillBehavior>,
+    pub fill_behavior: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1FormParameterFillBehavior>,
+    >,
     #[serde(default, rename = "isList")]
-    pub is_list: Option<bool>,
+    pub is_list: ::core::option::Option<bool>,
     #[serde(default)]
-    pub redact: Option<bool>,
+    pub redact: ::core::option::Option<bool>,
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1FormParameterFillBehavior resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1FormParameterFillBehavior {
     #[serde(default, rename = "initialPromptFulfillment")]
-    pub initial_prompt_fulfillment: Option<GoogleCloudDialogflowCxV3beta1Fulfillment>,
+    pub initial_prompt_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Fulfillment>>,
     #[serde(default, rename = "repromptEventHandlers")]
-    pub reprompt_event_handlers: Option<Vec<GoogleCloudDialogflowCxV3beta1EventHandler>>,
+    pub reprompt_event_handlers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1EventHandler>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1Fulfillment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1Fulfillment {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3beta1AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1AdvancedSettings>>,
     #[serde(default, rename = "conditionalCases")]
-    pub conditional_cases: Option<Vec<GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases>>,
+    pub conditional_cases: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases>,
+        >,
+    >,
     #[serde(default, rename = "enableGenerativeFallback")]
-    pub enable_generative_fallback: Option<bool>,
+    pub enable_generative_fallback: ::core::option::Option<bool>,
     #[serde(default)]
-    pub generators: Option<Vec<GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings>>,
+    pub generators: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings>,
+        >,
+    >,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowCxV3beta1ResponseMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessage>>,
+    >,
     #[serde(default, rename = "returnPartialResponses")]
-    pub return_partial_responses: Option<bool>,
+    pub return_partial_responses: ::core::option::Option<bool>,
     #[serde(default, rename = "setParameterActions")]
-    pub set_parameter_actions:
-        Option<Vec<GoogleCloudDialogflowCxV3beta1FulfillmentSetParameterAction>>,
+    pub set_parameter_actions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1FulfillmentSetParameterAction>,
+        >,
+    >,
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
     #[serde(default)]
-    pub webhook: Option<String>,
+    pub webhook: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases {
     #[serde(default)]
-    pub cases: Option<Vec<GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCase>>,
+    pub cases: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCase>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCase {
     #[serde(default, rename = "caseContent")]
-    pub case_content:
-        Option<Vec<GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCaseCaseContent>>,
+    pub case_content: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCaseCaseContent,
+            >,
+        >,
+    >,
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCaseCaseContent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCasesCaseCaseContent {
     #[serde(default, rename = "additionalCases")]
-    pub additional_cases: Option<GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases>,
+    pub additional_cases: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases>,
+    >,
     #[serde(default)]
-    pub message: Option<GoogleCloudDialogflowCxV3beta1ResponseMessage>,
+    pub message:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessage>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings {
     #[serde(default)]
-    pub generator: Option<String>,
+    pub generator: ::core::option::Option<String>,
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "outputParameter")]
-    pub output_parameter: Option<String>,
+    pub output_parameter: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1FulfillmentSetParameterAction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1FulfillmentSetParameterAction {
     #[serde(default)]
-    pub parameter: Option<String>,
+    pub parameter: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1GcsDestination resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1GcsDestination {
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponse {
     #[serde(default, rename = "conflictingResources")]
-    pub conflicting_resources:
-        Option<GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponseConflictingResources>,
+    pub conflicting_resources: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponseConflictingResources,
+        >,
+    >,
     #[serde(default, rename = "entityTypes")]
-    pub entity_types: Option<Vec<String>>,
+    pub entity_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponseConflictingResources resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponseConflictingResources {
     #[serde(default, rename = "entityDisplayNames")]
-    pub entity_display_names: Option<Vec<String>>,
+    pub entity_display_names: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "entityTypeDisplayNames")]
-    pub entity_type_display_names: Option<Vec<String>>,
+    pub entity_type_display_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ImportFlowResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ImportFlowResponse {
     #[serde(default)]
-    pub flow: Option<String>,
+    pub flow: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ImportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ImportIntentsResponse {
     #[serde(default, rename = "conflictingResources")]
-    pub conflicting_resources:
-        Option<GoogleCloudDialogflowCxV3beta1ImportIntentsResponseConflictingResources>,
+    pub conflicting_resources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ImportIntentsResponseConflictingResources>,
+    >,
     #[serde(default)]
-    pub intents: Option<Vec<String>>,
+    pub intents: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ImportIntentsResponseConflictingResources resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ImportIntentsResponseConflictingResources {
     #[serde(default, rename = "entityDisplayNames")]
-    pub entity_display_names: Option<Vec<String>>,
+    pub entity_display_names: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "intentDisplayNames")]
-    pub intent_display_names: Option<Vec<String>>,
+    pub intent_display_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ImportTestCasesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ImportTestCasesMetadata {
     #[serde(default)]
-    pub errors: Option<Vec<GoogleCloudDialogflowCxV3beta1TestCaseError>>,
+    pub errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestCaseError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ImportTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ImportTestCasesResponse {
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1InlineDestination resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1InlineDestination {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1InputAudioConfig resource type.
@@ -3897,642 +4395,720 @@ pub struct GoogleCloudDialogflowCxV3beta1InlineDestination {
 pub struct GoogleCloudDialogflowCxV3beta1InputAudioConfig {
     /// TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "AUDIO_ENCODING_LINEAR_16", "AUDIO_ENCODING_FLAC", "AUDIO_ENCODING_MULAW", "AUDIO_ENCODING_AMR", "AUDIO_ENCODING_AMR_WB", "AUDIO_ENCODING_OGG_OPUS", "AUDIO_ENCODING_SPEEX_WITH_HEADER_BYTE", "AUDIO_ENCODING_ALAW"]
     #[serde(default, rename = "audioEncoding")]
-    pub audio_encoding: Option<String>,
+    pub audio_encoding: ::core::option::Option<String>,
     #[serde(default, rename = "bargeInConfig")]
-    pub barge_in_config: Option<GoogleCloudDialogflowCxV3beta1BargeInConfig>,
+    pub barge_in_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1BargeInConfig>>,
     #[serde(default, rename = "enableWordInfo")]
-    pub enable_word_info: Option<bool>,
+    pub enable_word_info: ::core::option::Option<bool>,
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// TODO: enum values: ["SPEECH_MODEL_VARIANT_UNSPECIFIED", "USE_BEST_AVAILABLE", "USE_STANDARD", "USE_ENHANCED"]
     #[serde(default, rename = "modelVariant")]
-    pub model_variant: Option<String>,
+    pub model_variant: ::core::option::Option<String>,
     #[serde(default, rename = "optOutConformerModelMigration")]
-    pub opt_out_conformer_model_migration: Option<bool>,
+    pub opt_out_conformer_model_migration: ::core::option::Option<bool>,
     #[serde(default, rename = "phraseHints")]
-    pub phrase_hints: Option<Vec<String>>,
+    pub phrase_hints: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "sampleRateHertz")]
-    pub sample_rate_hertz: Option<i32>,
+    pub sample_rate_hertz: ::core::option::Option<i32>,
     #[serde(default, rename = "singleUtterance")]
-    pub single_utterance: Option<bool>,
+    pub single_utterance: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1Intent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1Intent {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "dtmfPattern")]
-    pub dtmf_pattern: Option<String>,
+    pub dtmf_pattern: ::core::option::Option<String>,
     #[serde(default, rename = "isFallback")]
-    pub is_fallback: Option<bool>,
+    pub is_fallback: ::core::option::Option<bool>,
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<Vec<GoogleCloudDialogflowCxV3beta1IntentParameter>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1IntentParameter>>,
+    >,
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     #[serde(default, rename = "trainingPhrases")]
-    pub training_phrases: Option<Vec<GoogleCloudDialogflowCxV3beta1IntentTrainingPhrase>>,
+    pub training_phrases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1IntentTrainingPhrase>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1IntentInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1IntentInput {
     #[serde(default)]
-    pub intent: Option<String>,
+    pub intent: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1IntentParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1IntentParameter {
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     #[serde(default, rename = "isList")]
-    pub is_list: Option<bool>,
+    pub is_list: ::core::option::Option<bool>,
     #[serde(default)]
-    pub redact: Option<bool>,
+    pub redact: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1IntentTrainingPhrase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1IntentTrainingPhrase {
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     #[serde(default)]
-    pub parts: Option<Vec<GoogleCloudDialogflowCxV3beta1IntentTrainingPhrasePart>>,
+    pub parts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1IntentTrainingPhrasePart>>,
+    >,
     #[serde(default, rename = "repeatCount")]
-    pub repeat_count: Option<i32>,
+    pub repeat_count: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1IntentTrainingPhrasePart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1IntentTrainingPhrasePart {
     #[serde(default, rename = "parameterId")]
-    pub parameter_id: Option<String>,
+    pub parameter_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1KnowledgeConnectorSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1KnowledgeConnectorSettings {
     #[serde(default, rename = "dataStoreConnections")]
-    pub data_store_connections: Option<Vec<GoogleCloudDialogflowCxV3beta1DataStoreConnection>>,
+    pub data_store_connections: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1DataStoreConnection>>,
+    >,
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
     #[serde(default, rename = "triggerFulfillment")]
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3beta1Fulfillment>,
+    pub trigger_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Fulfillment>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1LanguageInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1LanguageInfo {
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     #[serde(default, rename = "inputLanguageCode")]
-    pub input_language_code: Option<String>,
+    pub input_language_code: ::core::option::Option<String>,
     #[serde(default, rename = "resolvedLanguageCode")]
-    pub resolved_language_code: Option<String>,
+    pub resolved_language_code: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1Page resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1Page {
     #[serde(default, rename = "advancedSettings")]
-    pub advanced_settings: Option<GoogleCloudDialogflowCxV3beta1AdvancedSettings>,
+    pub advanced_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1AdvancedSettings>>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "entryFulfillment")]
-    pub entry_fulfillment: Option<GoogleCloudDialogflowCxV3beta1Fulfillment>,
+    pub entry_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Fulfillment>>,
     #[serde(default, rename = "eventHandlers")]
-    pub event_handlers: Option<Vec<GoogleCloudDialogflowCxV3beta1EventHandler>>,
+    pub event_handlers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1EventHandler>>,
+    >,
     #[serde(default)]
-    pub form: Option<GoogleCloudDialogflowCxV3beta1Form>,
+    pub form: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Form>>,
     #[serde(default, rename = "knowledgeConnectorSettings")]
-    pub knowledge_connector_settings:
-        Option<GoogleCloudDialogflowCxV3beta1KnowledgeConnectorSettings>,
+    pub knowledge_connector_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1KnowledgeConnectorSettings>,
+    >,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "transitionRouteGroups")]
-    pub transition_route_groups: Option<Vec<String>>,
+    pub transition_route_groups: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "transitionRoutes")]
-    pub transition_routes: Option<Vec<GoogleCloudDialogflowCxV3beta1TransitionRoute>>,
+    pub transition_routes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TransitionRoute>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1PageInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1PageInfo {
     #[serde(default, rename = "currentPage")]
-    pub current_page: Option<String>,
+    pub current_page: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "formInfo")]
-    pub form_info: Option<GoogleCloudDialogflowCxV3beta1PageInfoFormInfo>,
+    pub form_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1PageInfoFormInfo>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1PageInfoFormInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1PageInfoFormInfo {
     #[serde(default, rename = "parameterInfo")]
-    pub parameter_info: Option<Vec<GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo>>,
+    pub parameter_info: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "justCollected")]
-    pub just_collected: Option<bool>,
+    pub just_collected: ::core::option::Option<bool>,
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
     /// TODO: enum values: ["PARAMETER_STATE_UNSPECIFIED", "EMPTY", "INVALID", "FILLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1QueryInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1QueryInput {
     #[serde(default)]
-    pub audio: Option<GoogleCloudDialogflowCxV3beta1AudioInput>,
+    pub audio: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1AudioInput>>,
     #[serde(default)]
-    pub dtmf: Option<GoogleCloudDialogflowCxV3beta1DtmfInput>,
+    pub dtmf: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1DtmfInput>>,
     #[serde(default)]
-    pub event: Option<GoogleCloudDialogflowCxV3beta1EventInput>,
+    pub event: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1EventInput>>,
     #[serde(default)]
-    pub intent: Option<GoogleCloudDialogflowCxV3beta1IntentInput>,
+    pub intent:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1IntentInput>>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<GoogleCloudDialogflowCxV3beta1TextInput>,
+    pub text: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TextInput>>,
     #[serde(default, rename = "toolCallResult")]
-    pub tool_call_result: Option<GoogleCloudDialogflowCxV3beta1ToolCallResult>,
+    pub tool_call_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ToolCallResult>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessage {
     #[serde(default)]
-    pub channel: Option<String>,
+    pub channel: ::core::option::Option<String>,
     #[serde(default, rename = "conversationSuccess")]
-    pub conversation_success:
-        Option<GoogleCloudDialogflowCxV3beta1ResponseMessageConversationSuccess>,
+    pub conversation_success: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageConversationSuccess>,
+    >,
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: Option<serde_json::Value>,
+    pub end_interaction: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "knowledgeInfoCard")]
-    pub knowledge_info_card: Option<serde_json::Value>,
+    pub knowledge_info_card: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "liveAgentHandoff")]
-    pub live_agent_handoff: Option<GoogleCloudDialogflowCxV3beta1ResponseMessageLiveAgentHandoff>,
+    pub live_agent_handoff: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageLiveAgentHandoff>,
+    >,
     #[serde(default, rename = "mixedAudio")]
-    pub mixed_audio: Option<GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudio>,
+    pub mixed_audio: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudio>,
+    >,
     #[serde(default, rename = "outputAudioText")]
-    pub output_audio_text: Option<GoogleCloudDialogflowCxV3beta1ResponseMessageOutputAudioText>,
+    pub output_audio_text: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageOutputAudioText>,
+    >,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "playAudio")]
-    pub play_audio: Option<GoogleCloudDialogflowCxV3beta1ResponseMessagePlayAudio>,
+    pub play_audio: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessagePlayAudio>,
+    >,
     #[serde(default, rename = "telephonyTransferCall")]
-    pub telephony_transfer_call:
-        Option<GoogleCloudDialogflowCxV3beta1ResponseMessageTelephonyTransferCall>,
+    pub telephony_transfer_call: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageTelephonyTransferCall>,
+    >,
     #[serde(default)]
-    pub text: Option<GoogleCloudDialogflowCxV3beta1ResponseMessageText>,
+    pub text: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageText>,
+    >,
     #[serde(default, rename = "toolCall")]
-    pub tool_call: Option<GoogleCloudDialogflowCxV3beta1ToolCall>,
+    pub tool_call:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ToolCall>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudio resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudio {
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudioSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudioSegment>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudioSegment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageMixedAudioSegment {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default)]
-    pub audio: Option<String>,
+    pub audio: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessageOutputAudioText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageOutputAudioText {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default)]
-    pub ssml: Option<String>,
+    pub ssml: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessagePlayAudio resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessagePlayAudio {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessageTelephonyTransferCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageTelephonyTransferCall {
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessageText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageText {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1RunContinuousTestMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1RunContinuousTestMetadata {
     #[serde(default)]
-    pub errors: Option<Vec<GoogleCloudDialogflowCxV3beta1TestError>>,
+    pub errors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestError>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1RunContinuousTestResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1RunContinuousTestResponse {
     #[serde(default, rename = "continuousTestResult")]
-    pub continuous_test_result: Option<GoogleCloudDialogflowCxV3beta1ContinuousTestResult>,
+    pub continuous_test_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ContinuousTestResult>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1RunTestCaseResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1RunTestCaseResponse {
     #[serde(default)]
-    pub result: Option<GoogleCloudDialogflowCxV3beta1TestCaseResult>,
+    pub result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestCaseResult>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1SessionInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1SessionInfo {
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub session: Option<String>,
+    pub session: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TestCase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TestCase {
     #[serde(default, rename = "creationTime")]
-    pub creation_time: Option<String>,
+    pub creation_time: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "lastTestResult")]
-    pub last_test_result: Option<GoogleCloudDialogflowCxV3beta1TestCaseResult>,
+    pub last_test_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestCaseResult>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "testCaseConversationTurns")]
-    pub test_case_conversation_turns: Option<Vec<GoogleCloudDialogflowCxV3beta1ConversationTurn>>,
+    pub test_case_conversation_turns: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ConversationTurn>>,
+    >,
     #[serde(default, rename = "testConfig")]
-    pub test_config: Option<GoogleCloudDialogflowCxV3beta1TestConfig>,
+    pub test_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestConfig>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TestCaseError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TestCaseError {
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "testCase")]
-    pub test_case: Option<GoogleCloudDialogflowCxV3beta1TestCase>,
+    pub test_case:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1TestCase>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TestCaseResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TestCaseResult {
     #[serde(default, rename = "conversationTurns")]
-    pub conversation_turns: Option<Vec<GoogleCloudDialogflowCxV3beta1ConversationTurn>>,
+    pub conversation_turns: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ConversationTurn>>,
+    >,
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["TEST_RESULT_UNSPECIFIED", "PASSED", "FAILED"]
     #[serde(default, rename = "testResult")]
-    pub test_result: Option<String>,
+    pub test_result: ::core::option::Option<String>,
     #[serde(default, rename = "testTime")]
-    pub test_time: Option<String>,
+    pub test_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TestConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TestConfig {
     #[serde(default)]
-    pub flow: Option<String>,
+    pub flow: ::core::option::Option<String>,
     #[serde(default)]
-    pub page: Option<String>,
+    pub page: ::core::option::Option<String>,
     #[serde(default, rename = "trackingParameters")]
-    pub tracking_parameters: Option<Vec<String>>,
+    pub tracking_parameters: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TestError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TestError {
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "testCase")]
-    pub test_case: Option<String>,
+    pub test_case: ::core::option::Option<String>,
     #[serde(default, rename = "testTime")]
-    pub test_time: Option<String>,
+    pub test_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TestRunDifference resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TestRunDifference {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// TODO: enum values: ["DIFF_TYPE_UNSPECIFIED", "INTENT", "PAGE", "PARAMETERS", "UTTERANCE", "FLOW"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TextInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TextInput {
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ToolCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ToolCall {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ToolCallResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ToolCallResult {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default)]
-    pub error: Option<GoogleCloudDialogflowCxV3beta1ToolCallResultError>,
+    pub error: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ToolCallResultError>,
+    >,
     #[serde(default, rename = "outputParameters")]
-    pub output_parameters: Option<serde_json::Value>,
+    pub output_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ToolCallResultError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ToolCallResultError {
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TransitionRoute resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TransitionRoute {
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub intent: Option<String>,
+    pub intent: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
     #[serde(default, rename = "triggerFulfillment")]
-    pub trigger_fulfillment: Option<GoogleCloudDialogflowCxV3beta1Fulfillment>,
+    pub trigger_fulfillment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1Fulfillment>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1TurnSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1TurnSignals {
     #[serde(default, rename = "agentEscalated")]
-    pub agent_escalated: Option<bool>,
+    pub agent_escalated: ::core::option::Option<bool>,
     #[serde(default, rename = "dtmfUsed")]
-    pub dtmf_used: Option<bool>,
+    pub dtmf_used: ::core::option::Option<bool>,
     #[serde(default, rename = "failureReasons")]
-    pub failure_reasons: Option<Vec<String>>,
+    pub failure_reasons: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "noMatch")]
-    pub no_match: Option<bool>,
+    pub no_match: ::core::option::Option<bool>,
     #[serde(default, rename = "noUserInput")]
-    pub no_user_input: Option<bool>,
+    pub no_user_input: ::core::option::Option<bool>,
     #[serde(default, rename = "reachedEndPage")]
-    pub reached_end_page: Option<bool>,
+    pub reached_end_page: ::core::option::Option<bool>,
     #[serde(default, rename = "sentimentMagnitude")]
-    pub sentiment_magnitude: Option<f32>,
+    pub sentiment_magnitude: ::core::option::Option<f32>,
     #[serde(default, rename = "sentimentScore")]
-    pub sentiment_score: Option<f32>,
+    pub sentiment_score: ::core::option::Option<f32>,
     #[serde(default, rename = "userEscalated")]
-    pub user_escalated: Option<bool>,
+    pub user_escalated: ::core::option::Option<bool>,
     #[serde(default, rename = "webhookStatuses")]
-    pub webhook_statuses: Option<Vec<String>>,
+    pub webhook_statuses: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1Webhook resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1Webhook {
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "genericWebService")]
-    pub generic_web_service: Option<GoogleCloudDialogflowCxV3beta1WebhookGenericWebService>,
+    pub generic_web_service: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookGenericWebService>,
+    >,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "serviceDirectory")]
-    pub service_directory: Option<GoogleCloudDialogflowCxV3beta1WebhookServiceDirectoryConfig>,
+    pub service_directory: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookServiceDirectoryConfig>,
+    >,
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookGenericWebService resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookGenericWebService {
     #[serde(default, rename = "allowedCaCerts")]
-    pub allowed_ca_certs: Option<Vec<String>>,
+    pub allowed_ca_certs: ::core::option::Option<::std::vec::Vec<String>>,
     /// TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "POST", "GET", "HEAD", "PUT", "DELETE", "PATCH", "OPTIONS"]
     #[serde(default, rename = "httpMethod")]
-    pub http_method: Option<String>,
+    pub http_method: ::core::option::Option<String>,
     #[serde(default, rename = "oauthConfig")]
-    pub oauth_config: Option<GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceOAuthConfig>,
+    pub oauth_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceOAuthConfig>,
+    >,
     #[serde(default, rename = "parameterMapping")]
-    pub parameter_mapping: Option<serde_json::Value>,
+    pub parameter_mapping: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     #[serde(default, rename = "requestBody")]
-    pub request_body: Option<String>,
+    pub request_body: ::core::option::Option<String>,
     #[serde(default, rename = "requestHeaders")]
-    pub request_headers: Option<serde_json::Value>,
+    pub request_headers: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "secretVersionForUsernamePassword")]
-    pub secret_version_for_username_password: Option<String>,
+    pub secret_version_for_username_password: ::core::option::Option<String>,
     #[serde(default, rename = "secretVersionsForRequestHeaders")]
-    pub secret_versions_for_request_headers: Option<serde_json::Value>,
+    pub secret_versions_for_request_headers: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "serviceAccountAuthConfig")]
-    pub service_account_auth_config:
-        Option<GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceServiceAccountAuthConfig>,
+    pub service_account_auth_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceServiceAccountAuthConfig,
+        >,
+    >,
     /// TODO: enum values: ["SERVICE_AGENT_AUTH_UNSPECIFIED", "NONE", "ID_TOKEN", "ACCESS_TOKEN"]
     #[serde(default, rename = "serviceAgentAuth")]
-    pub service_agent_auth: Option<String>,
+    pub service_agent_auth: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
     /// TODO: enum values: ["WEBHOOK_TYPE_UNSPECIFIED", "STANDARD", "FLEXIBLE"]
     #[serde(default, rename = "webhookType")]
-    pub webhook_type: Option<String>,
+    pub webhook_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceOAuthConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceOAuthConfig {
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "secretVersionForClientSecret")]
-    pub secret_version_for_client_secret: Option<String>,
+    pub secret_version_for_client_secret: ::core::option::Option<String>,
     #[serde(default, rename = "tokenEndpoint")]
-    pub token_endpoint: Option<String>,
+    pub token_endpoint: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceSecretVersionHeaderValue resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceSecretVersionHeaderValue {
     #[serde(default, rename = "secretVersion")]
-    pub secret_version: Option<String>,
+    pub secret_version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceServiceAccountAuthConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceServiceAccountAuthConfig {
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookRequest {
     #[serde(default, rename = "detectIntentResponseId")]
-    pub detect_intent_response_id: Option<String>,
+    pub detect_intent_response_id: ::core::option::Option<String>,
     #[serde(default, rename = "dtmfDigits")]
-    pub dtmf_digits: Option<String>,
+    pub dtmf_digits: ::core::option::Option<String>,
     #[serde(default, rename = "fulfillmentInfo")]
-    pub fulfillment_info: Option<GoogleCloudDialogflowCxV3beta1WebhookRequestFulfillmentInfo>,
+    pub fulfillment_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookRequestFulfillmentInfo>,
+    >,
     #[serde(default, rename = "intentInfo")]
-    pub intent_info: Option<GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfo>,
+    pub intent_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfo>,
+    >,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "languageInfo")]
-    pub language_info: Option<GoogleCloudDialogflowCxV3beta1LanguageInfo>,
+    pub language_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1LanguageInfo>>,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowCxV3beta1ResponseMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessage>>,
+    >,
     #[serde(default, rename = "pageInfo")]
-    pub page_info: Option<GoogleCloudDialogflowCxV3beta1PageInfo>,
+    pub page_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1PageInfo>>,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "sentimentAnalysisResult")]
-    pub sentiment_analysis_result:
-        Option<GoogleCloudDialogflowCxV3beta1WebhookRequestSentimentAnalysisResult>,
+    pub sentiment_analysis_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookRequestSentimentAnalysisResult>,
+    >,
     #[serde(default, rename = "sessionInfo")]
-    pub session_info: Option<GoogleCloudDialogflowCxV3beta1SessionInfo>,
+    pub session_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1SessionInfo>>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     #[serde(default, rename = "triggerEvent")]
-    pub trigger_event: Option<String>,
+    pub trigger_event: ::core::option::Option<String>,
     #[serde(default, rename = "triggerIntent")]
-    pub trigger_intent: Option<String>,
+    pub trigger_intent: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookRequestFulfillmentInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookRequestFulfillmentInfo {
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfo {
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "lastMatchedIntent")]
-    pub last_matched_intent: Option<String>,
+    pub last_matched_intent: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfoIntentParameterValue resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfoIntentParameterValue {
     #[serde(default, rename = "originalValue")]
-    pub original_value: Option<String>,
+    pub original_value: ::core::option::Option<String>,
     #[serde(default, rename = "resolvedValue")]
-    pub resolved_value: Option<serde_json::Value>,
+    pub resolved_value: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookRequestSentimentAnalysisResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookRequestSentimentAnalysisResult {
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookResponse {
     #[serde(default, rename = "fulfillmentResponse")]
-    pub fulfillment_response:
-        Option<GoogleCloudDialogflowCxV3beta1WebhookResponseFulfillmentResponse>,
+    pub fulfillment_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookResponseFulfillmentResponse>,
+    >,
     #[serde(default, rename = "pageInfo")]
-    pub page_info: Option<GoogleCloudDialogflowCxV3beta1PageInfo>,
+    pub page_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1PageInfo>>,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "sessionInfo")]
-    pub session_info: Option<GoogleCloudDialogflowCxV3beta1SessionInfo>,
+    pub session_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1SessionInfo>>,
     #[serde(default, rename = "targetFlow")]
-    pub target_flow: Option<String>,
+    pub target_flow: ::core::option::Option<String>,
     #[serde(default, rename = "targetPage")]
-    pub target_page: Option<String>,
+    pub target_page: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookResponseFulfillmentResponse resource type.
@@ -4540,152 +5116,170 @@ pub struct GoogleCloudDialogflowCxV3beta1WebhookResponse {
 pub struct GoogleCloudDialogflowCxV3beta1WebhookResponseFulfillmentResponse {
     /// TODO: enum values: ["MERGE_BEHAVIOR_UNSPECIFIED", "APPEND", "REPLACE"]
     #[serde(default, rename = "mergeBehavior")]
-    pub merge_behavior: Option<String>,
+    pub merge_behavior: ::core::option::Option<String>,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowCxV3beta1ResponseMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessage>>,
+    >,
 }
 
 /// GoogleCloudDialogflowCxV3beta1WebhookServiceDirectoryConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1WebhookServiceDirectoryConfig {
     #[serde(default, rename = "genericWebService")]
-    pub generic_web_service: Option<GoogleCloudDialogflowCxV3beta1WebhookGenericWebService>,
+    pub generic_web_service: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1WebhookGenericWebService>,
+    >,
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingInstruction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingInstruction {
     #[serde(default, rename = "agentAction")]
-    pub agent_action: Option<String>,
+    pub agent_action: ::core::option::Option<String>,
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     #[serde(default, rename = "displayDetails")]
-    pub display_details: Option<String>,
+    pub display_details: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "duplicateCheckResult")]
-    pub duplicate_check_result:
-        Option<GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResult>,
+    pub duplicate_check_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResult>,
+    >,
     #[serde(default, rename = "systemAction")]
-    pub system_action: Option<String>,
+    pub system_action: ::core::option::Option<String>,
     /// TODO: enum values: ["TRIGGER_EVENT_UNSPECIFIED", "END_OF_UTTERANCE", "MANUAL_CALL", "CUSTOMER_MESSAGE", "AGENT_MESSAGE", "TOOL_CALL_COMPLETION"]
     #[serde(default, rename = "triggeringEvent")]
-    pub triggering_event: Option<String>,
+    pub triggering_event: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResult {
     #[serde(default, rename = "duplicateSuggestions")]
-    pub duplicate_suggestions: Option<
-        Vec<GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion>,
-    >,
+    pub duplicate_suggestions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion>>>,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "similarityScore")]
-    pub similarity_score: Option<f32>,
+    pub similarity_score: ::core::option::Option<f32>,
     #[serde(default, rename = "suggestionIndex")]
-    pub suggestion_index: Option<i32>,
+    pub suggestion_index: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingSuggestion {
     #[serde(default, rename = "agentActionSuggestions")]
-    pub agent_action_suggestions:
-        Option<Vec<GoogleCloudDialogflowV2AgentCoachingSuggestionAgentActionSuggestion>>,
+    pub agent_action_suggestions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionAgentActionSuggestion>,
+        >,
+    >,
     #[serde(default, rename = "applicableInstructions")]
-    pub applicable_instructions: Option<Vec<GoogleCloudDialogflowV2AgentCoachingInstruction>>,
+    pub applicable_instructions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingInstruction>>,
+    >,
     #[serde(default, rename = "sampleResponses")]
-    pub sample_responses: Option<Vec<GoogleCloudDialogflowV2AgentCoachingSuggestionSampleResponse>>,
+    pub sample_responses: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionSampleResponse>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingSuggestionAgentActionSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingSuggestionAgentActionSuggestion {
     #[serde(default, rename = "agentAction")]
-    pub agent_action: Option<String>,
+    pub agent_action: ::core::option::Option<String>,
     #[serde(default, rename = "duplicateCheckResult")]
-    pub duplicate_check_result:
-        Option<GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResult>,
+    pub duplicate_check_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResult>,
+    >,
     #[serde(default)]
-    pub sources: Option<GoogleCloudDialogflowV2AgentCoachingSuggestionSources>,
+    pub sources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionSources>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResult {
     #[serde(default, rename = "duplicateSuggestions")]
-    pub duplicate_suggestions: Option<
-        Vec<GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion>,
-    >,
+    pub duplicate_suggestions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion>>>,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "similarityScore")]
-    pub similarity_score: Option<f32>,
+    pub similarity_score: ::core::option::Option<f32>,
     #[serde(default)]
-    pub sources: Option<GoogleCloudDialogflowV2AgentCoachingSuggestionSources>,
+    pub sources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionSources>,
+    >,
     #[serde(default, rename = "suggestionIndex")]
-    pub suggestion_index: Option<i32>,
+    pub suggestion_index: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingSuggestionSampleResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingSuggestionSampleResponse {
     #[serde(default, rename = "duplicateCheckResult")]
-    pub duplicate_check_result:
-        Option<GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResult>,
+    pub duplicate_check_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionDuplicateCheckResult>,
+    >,
     #[serde(default, rename = "responseText")]
-    pub response_text: Option<String>,
+    pub response_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub sources: Option<GoogleCloudDialogflowV2AgentCoachingSuggestionSources>,
+    pub sources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestionSources>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2AgentCoachingSuggestionSources resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AgentCoachingSuggestionSources {
     #[serde(default, rename = "instructionIndexes")]
-    pub instruction_indexes: Option<Vec<i32>>,
+    pub instruction_indexes: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// GoogleCloudDialogflowV2AnnotatedMessagePart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2AnnotatedMessagePart {
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default, rename = "formattedValue")]
-    pub formatted_value: Option<serde_json::Value>,
+    pub formatted_value: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2ArticleAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ArticleAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub snippets: Option<Vec<String>>,
+    pub snippets: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2ArticleSuggestionModelMetadata resource type.
@@ -4693,156 +5287,166 @@ pub struct GoogleCloudDialogflowV2ArticleAnswer {
 pub struct GoogleCloudDialogflowV2ArticleSuggestionModelMetadata {
     /// TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "SMART_REPLY_DUAL_ENCODER_MODEL", "SMART_REPLY_BERT_MODEL"]
     #[serde(default, rename = "trainingModelType")]
-    pub training_model_type: Option<String>,
+    pub training_model_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2BatchUpdateEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2BatchUpdateEntityTypesResponse {
     #[serde(default, rename = "entityTypes")]
-    pub entity_types: Option<Vec<GoogleCloudDialogflowV2EntityType>>,
+    pub entity_types: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2EntityType>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2BatchUpdateIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2BatchUpdateIntentsResponse {
     #[serde(default)]
-    pub intents: Option<Vec<GoogleCloudDialogflowV2Intent>>,
+    pub intents:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2Intent>>>,
 }
 
 /// GoogleCloudDialogflowV2ClearSuggestionFeatureConfigOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ClearSuggestionFeatureConfigOperationMetadata {
     #[serde(default, rename = "conversationProfile")]
-    pub conversation_profile: Option<String>,
+    pub conversation_profile: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER"]
     #[serde(default, rename = "participantRole")]
-    pub participant_role: Option<String>,
+    pub participant_role: ::core::option::Option<String>,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "ARTICLE_SUGGESTION", "FAQ", "SMART_REPLY", "CONVERSATION_SUMMARIZATION", "KNOWLEDGE_SEARCH", "KNOWLEDGE_ASSIST"]
     #[serde(default, rename = "suggestionFeatureType")]
-    pub suggestion_feature_type: Option<String>,
+    pub suggestion_feature_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2Context resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2Context {
     #[serde(default, rename = "lifespanCount")]
-    pub lifespan_count: Option<i32>,
+    pub lifespan_count: ::core::option::Option<i32>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowV2ConversationEvent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ConversationEvent {
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     #[serde(default, rename = "errorStatus")]
-    pub error_status: Option<GoogleRpcStatus>,
+    pub error_status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "newMessagePayload")]
-    pub new_message_payload: Option<GoogleCloudDialogflowV2Message>,
+    pub new_message_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2Message>>,
     #[serde(default, rename = "newRecognitionResultPayload")]
-    pub new_recognition_result_payload: Option<GoogleCloudDialogflowV2StreamingRecognitionResult>,
+    pub new_recognition_result_payload: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2StreamingRecognitionResult>,
+    >,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "CONVERSATION_STARTED", "CONVERSATION_FINISHED", "HUMAN_INTERVENTION_NEEDED", "NEW_MESSAGE", "NEW_RECOGNITION_RESULT", "UNRECOVERABLE_ERROR"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2ConversationModel resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ConversationModel {
     #[serde(default, rename = "articleSuggestionModelMetadata")]
-    pub article_suggestion_model_metadata:
-        Option<GoogleCloudDialogflowV2ArticleSuggestionModelMetadata>,
+    pub article_suggestion_model_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2ArticleSuggestionModelMetadata>,
+    >,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub datasets: Option<Vec<GoogleCloudDialogflowV2InputDataset>>,
+    pub datasets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2InputDataset>>,
+    >,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     #[serde(default, rename = "smartReplyModelMetadata")]
-    pub smart_reply_model_metadata: Option<GoogleCloudDialogflowV2SmartReplyModelMetadata>,
+    pub smart_reply_model_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2SmartReplyModelMetadata>>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "UNDEPLOYED", "DEPLOYING", "DEPLOYED", "UNDEPLOYING", "DELETING", "FAILED", "PENDING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2CreateConversationDatasetOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2CreateConversationDatasetOperationMetadata {
     #[serde(default, rename = "conversationDataset")]
-    pub conversation_dataset: Option<String>,
+    pub conversation_dataset: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2CreateConversationModelEvaluationOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2CreateConversationModelEvaluationOperationMetadata {
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     #[serde(default, rename = "conversationModelEvaluation")]
-    pub conversation_model_evaluation: Option<String>,
+    pub conversation_model_evaluation: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "INITIALIZING", "RUNNING", "CANCELLED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2CreateConversationModelOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2CreateConversationModelOperationMetadata {
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED", "CANCELLED", "CANCELLING", "TRAINING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2DeleteConversationModelOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2DeleteConversationModelOperationMetadata {
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2DeployConversationModelOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2DeployConversationModelOperationMetadata {
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2EncryptionSpec resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2EncryptionSpec {
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2EntityType resource type.
@@ -4850,179 +5454,201 @@ pub struct GoogleCloudDialogflowV2EncryptionSpec {
 pub struct GoogleCloudDialogflowV2EntityType {
     /// TODO: enum values: ["AUTO_EXPANSION_MODE_UNSPECIFIED", "AUTO_EXPANSION_MODE_DEFAULT"]
     #[serde(default, rename = "autoExpansionMode")]
-    pub auto_expansion_mode: Option<String>,
+    pub auto_expansion_mode: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "enableFuzzyExtraction")]
-    pub enable_fuzzy_extraction: Option<bool>,
+    pub enable_fuzzy_extraction: ::core::option::Option<bool>,
     #[serde(default)]
-    pub entities: Option<Vec<GoogleCloudDialogflowV2EntityTypeEntity>>,
+    pub entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2EntityTypeEntity>>,
+    >,
     /// TODO: enum values: ["KIND_UNSPECIFIED", "KIND_MAP", "KIND_LIST", "KIND_REGEXP"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2EntityTypeEntity resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2EntityTypeEntity {
     #[serde(default)]
-    pub synonyms: Option<Vec<String>>,
+    pub synonyms: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2EventInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2EventInput {
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowV2ExportAgentResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ExportAgentResponse {
     #[serde(default, rename = "agentContent")]
-    pub agent_content: Option<String>,
+    pub agent_content: ::core::option::Option<String>,
     #[serde(default, rename = "agentUri")]
-    pub agent_uri: Option<String>,
+    pub agent_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2ExportOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ExportOperationMetadata {
     #[serde(default, rename = "exportedGcsDestination")]
-    pub exported_gcs_destination: Option<GoogleCloudDialogflowV2GcsDestination>,
+    pub exported_gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2GcsDestination>>,
 }
 
 /// GoogleCloudDialogflowV2FaqAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2FaqAnswer {
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub question: Option<String>,
+    pub question: ::core::option::Option<String>,
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2FreeFormSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2FreeFormSuggestion {
     #[serde(default)]
-    pub response: Option<String>,
+    pub response: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2GcsDestination resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2GcsDestination {
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2GenerateSuggestionsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2GenerateSuggestionsResponse {
     #[serde(default, rename = "generatorSuggestionAnswers")]
-    pub generator_suggestion_answers:
-        Option<Vec<GoogleCloudDialogflowV2GenerateSuggestionsResponseGeneratorSuggestionAnswer>>,
+    pub generator_suggestion_answers: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2GenerateSuggestionsResponseGeneratorSuggestionAnswer,
+            >,
+        >,
+    >,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2GenerateSuggestionsResponseGeneratorSuggestionAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2GenerateSuggestionsResponseGeneratorSuggestionAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "generatorSuggestion")]
-    pub generator_suggestion: Option<GoogleCloudDialogflowV2GeneratorSuggestion>,
+    pub generator_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2GeneratorSuggestion>>,
     #[serde(default, rename = "sourceGenerator")]
-    pub source_generator: Option<String>,
+    pub source_generator: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2GeneratorSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2GeneratorSuggestion {
     #[serde(default, rename = "agentCoachingSuggestion")]
-    pub agent_coaching_suggestion: Option<GoogleCloudDialogflowV2AgentCoachingSuggestion>,
+    pub agent_coaching_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2AgentCoachingSuggestion>>,
     #[serde(default, rename = "freeFormSuggestion")]
-    pub free_form_suggestion: Option<GoogleCloudDialogflowV2FreeFormSuggestion>,
+    pub free_form_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2FreeFormSuggestion>>,
     #[serde(default, rename = "summarySuggestion")]
-    pub summary_suggestion: Option<GoogleCloudDialogflowV2SummarySuggestion>,
+    pub summary_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2SummarySuggestion>>,
     #[serde(default, rename = "toolCallInfo")]
-    pub tool_call_info: Option<Vec<GoogleCloudDialogflowV2GeneratorSuggestionToolCallInfo>>,
+    pub tool_call_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2GeneratorSuggestionToolCallInfo>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2GeneratorSuggestionToolCallInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2GeneratorSuggestionToolCallInfo {
     #[serde(default, rename = "toolCall")]
-    pub tool_call: Option<GoogleCloudDialogflowV2ToolCall>,
+    pub tool_call: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2ToolCall>>,
     #[serde(default, rename = "toolCallResult")]
-    pub tool_call_result: Option<GoogleCloudDialogflowV2ToolCallResult>,
+    pub tool_call_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2ToolCallResult>>,
 }
 
 /// GoogleCloudDialogflowV2HumanAgentAssistantEvent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2HumanAgentAssistantEvent {
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     #[serde(default)]
-    pub participant: Option<String>,
+    pub participant: ::core::option::Option<String>,
     #[serde(default, rename = "suggestionResults")]
-    pub suggestion_results: Option<Vec<GoogleCloudDialogflowV2SuggestionResult>>,
+    pub suggestion_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2SuggestionResult>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2ImportConversationDataOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ImportConversationDataOperationMetadata {
     #[serde(default, rename = "conversationDataset")]
-    pub conversation_dataset: Option<String>,
+    pub conversation_dataset: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// GoogleCloudDialogflowV2ImportConversationDataOperationResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ImportConversationDataOperationResponse {
     #[serde(default, rename = "conversationDataset")]
-    pub conversation_dataset: Option<String>,
+    pub conversation_dataset: ::core::option::Option<String>,
     #[serde(default, rename = "importCount")]
-    pub import_count: Option<i32>,
+    pub import_count: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowV2ImportDocumentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ImportDocumentsResponse {
     #[serde(default)]
-    pub warnings: Option<Vec<GoogleRpcStatus>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// GoogleCloudDialogflowV2IngestedContextReferenceDebugInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IngestedContextReferenceDebugInfo {
     #[serde(default, rename = "contextReferenceRetrieved")]
-    pub context_reference_retrieved: Option<bool>,
+    pub context_reference_retrieved: ::core::option::Option<bool>,
     #[serde(default, rename = "ingestedParametersDebugInfo")]
-    pub ingested_parameters_debug_info: Option<
-        Vec<GoogleCloudDialogflowV2IngestedContextReferenceDebugInfoIngestedParameterDebugInfo>,
+    pub ingested_parameters_debug_info: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2IngestedContextReferenceDebugInfoIngestedParameterDebugInfo,
+            >,
+        >,
     >,
     #[serde(default, rename = "projectNotAllowlisted")]
-    pub project_not_allowlisted: Option<bool>,
+    pub project_not_allowlisted: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2IngestedContextReferenceDebugInfoIngestedParameterDebugInfo resource type.
@@ -5030,152 +5656,182 @@ pub struct GoogleCloudDialogflowV2IngestedContextReferenceDebugInfo {
 pub struct GoogleCloudDialogflowV2IngestedContextReferenceDebugInfoIngestedParameterDebugInfo {
     /// TODO: enum values: ["INGESTION_STATUS_UNSPECIFIED", "INGESTION_STATUS_SUCCEEDED", "INGESTION_STATUS_CONTEXT_NOT_AVAILABLE", "INGESTION_STATUS_PARSE_FAILED", "INGESTION_STATUS_INVALID_ENTRY", "INGESTION_STATUS_INVALID_FORMAT", "INGESTION_STATUS_LANGUAGE_MISMATCH"]
     #[serde(default, rename = "ingestionStatus")]
-    pub ingestion_status: Option<String>,
+    pub ingestion_status: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameter: Option<String>,
+    pub parameter: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2InitializeEncryptionSpecMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2InitializeEncryptionSpecMetadata {
     #[serde(default)]
-    pub request: Option<GoogleCloudDialogflowV2InitializeEncryptionSpecRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2InitializeEncryptionSpecRequest>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2InitializeEncryptionSpecRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2InitializeEncryptionSpecRequest {
     #[serde(default, rename = "encryptionSpec")]
-    pub encryption_spec: Option<GoogleCloudDialogflowV2EncryptionSpec>,
+    pub encryption_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2EncryptionSpec>>,
 }
 
 /// GoogleCloudDialogflowV2InputDataset resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2InputDataset {
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2Intent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2Intent {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "defaultResponsePlatforms")]
-    pub default_response_platforms: Option<Vec<String>>,
+    pub default_response_platforms: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: Option<bool>,
+    pub end_interaction: ::core::option::Option<bool>,
     #[serde(default)]
-    pub events: Option<Vec<String>>,
+    pub events: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "followupIntentInfo")]
-    pub followup_intent_info: Option<Vec<GoogleCloudDialogflowV2IntentFollowupIntentInfo>>,
+    pub followup_intent_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentFollowupIntentInfo>>,
+    >,
     #[serde(default, rename = "inputContextNames")]
-    pub input_context_names: Option<Vec<String>>,
+    pub input_context_names: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "isFallback")]
-    pub is_fallback: Option<bool>,
+    pub is_fallback: ::core::option::Option<bool>,
     #[serde(default, rename = "liveAgentHandoff")]
-    pub live_agent_handoff: Option<bool>,
+    pub live_agent_handoff: ::core::option::Option<bool>,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowV2IntentMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessage>>,
+    >,
     #[serde(default, rename = "mlDisabled")]
-    pub ml_disabled: Option<bool>,
+    pub ml_disabled: ::core::option::Option<bool>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "outputContexts")]
-    pub output_contexts: Option<Vec<GoogleCloudDialogflowV2Context>>,
+    pub output_contexts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2Context>>>,
     #[serde(default)]
-    pub parameters: Option<Vec<GoogleCloudDialogflowV2IntentParameter>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentParameter>>,
+    >,
     #[serde(default, rename = "parentFollowupIntentName")]
-    pub parent_followup_intent_name: Option<String>,
+    pub parent_followup_intent_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     #[serde(default, rename = "resetContexts")]
-    pub reset_contexts: Option<bool>,
+    pub reset_contexts: ::core::option::Option<bool>,
     #[serde(default, rename = "rootFollowupIntentName")]
-    pub root_followup_intent_name: Option<String>,
+    pub root_followup_intent_name: ::core::option::Option<String>,
     #[serde(default, rename = "trainingPhrases")]
-    pub training_phrases: Option<Vec<GoogleCloudDialogflowV2IntentTrainingPhrase>>,
+    pub training_phrases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentTrainingPhrase>>,
+    >,
     /// TODO: enum values: ["WEBHOOK_STATE_UNSPECIFIED", "WEBHOOK_STATE_ENABLED", "WEBHOOK_STATE_ENABLED_FOR_SLOT_FILLING"]
     #[serde(default, rename = "webhookState")]
-    pub webhook_state: Option<String>,
+    pub webhook_state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentFollowupIntentInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentFollowupIntentInfo {
     #[serde(default, rename = "followupIntentName")]
-    pub followup_intent_name: Option<String>,
+    pub followup_intent_name: ::core::option::Option<String>,
     #[serde(default, rename = "parentFollowupIntentName")]
-    pub parent_followup_intent_name: Option<String>,
+    pub parent_followup_intent_name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessage {
     #[serde(default, rename = "basicCard")]
-    pub basic_card: Option<GoogleCloudDialogflowV2IntentMessageBasicCard>,
+    pub basic_card:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageBasicCard>>,
     #[serde(default, rename = "browseCarouselCard")]
-    pub browse_carousel_card: Option<GoogleCloudDialogflowV2IntentMessageBrowseCarouselCard>,
+    pub browse_carousel_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageBrowseCarouselCard>,
+    >,
     #[serde(default)]
-    pub card: Option<GoogleCloudDialogflowV2IntentMessageCard>,
+    pub card: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageCard>>,
     #[serde(default, rename = "carouselSelect")]
-    pub carousel_select: Option<GoogleCloudDialogflowV2IntentMessageCarouselSelect>,
+    pub carousel_select: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageCarouselSelect>,
+    >,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default, rename = "linkOutSuggestion")]
-    pub link_out_suggestion: Option<GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion>,
+    pub link_out_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion>,
+    >,
     #[serde(default, rename = "listSelect")]
-    pub list_select: Option<GoogleCloudDialogflowV2IntentMessageListSelect>,
+    pub list_select:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageListSelect>>,
     #[serde(default, rename = "mediaContent")]
-    pub media_content: Option<GoogleCloudDialogflowV2IntentMessageMediaContent>,
+    pub media_content:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageMediaContent>>,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     /// TODO: enum values: ["PLATFORM_UNSPECIFIED", "FACEBOOK", "SLACK", "TELEGRAM", "KIK", "SKYPE", "LINE", "VIBER", "ACTIONS_ON_GOOGLE", "GOOGLE_HANGOUTS"]
     #[serde(default)]
-    pub platform: Option<String>,
+    pub platform: ::core::option::Option<String>,
     #[serde(default, rename = "quickReplies")]
-    pub quick_replies: Option<GoogleCloudDialogflowV2IntentMessageQuickReplies>,
+    pub quick_replies:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageQuickReplies>>,
     #[serde(default, rename = "simpleResponses")]
-    pub simple_responses: Option<GoogleCloudDialogflowV2IntentMessageSimpleResponses>,
+    pub simple_responses: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageSimpleResponses>,
+    >,
     #[serde(default)]
-    pub suggestions: Option<GoogleCloudDialogflowV2IntentMessageSuggestions>,
+    pub suggestions:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageSuggestions>>,
     #[serde(default, rename = "tableCard")]
-    pub table_card: Option<GoogleCloudDialogflowV2IntentMessageTableCard>,
+    pub table_card:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageTableCard>>,
     #[serde(default)]
-    pub text: Option<GoogleCloudDialogflowV2IntentMessageText>,
+    pub text: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageText>>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageBasicCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageBasicCard {
     #[serde(default)]
-    pub buttons: Option<Vec<GoogleCloudDialogflowV2IntentMessageBasicCardButton>>,
+    pub buttons: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageBasicCardButton>>,
+    >,
     #[serde(default, rename = "formattedText")]
-    pub formatted_text: Option<String>,
+    pub formatted_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageBasicCardButton resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageBasicCardButton {
     #[serde(default, rename = "openUriAction")]
-    pub open_uri_action: Option<GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction>,
+    pub open_uri_action: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction>,
+    >,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction {
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageBrowseCarouselCard resource type.
@@ -5183,27 +5839,30 @@ pub struct GoogleCloudDialogflowV2IntentMessageBasicCardButtonOpenUriAction {
 pub struct GoogleCloudDialogflowV2IntentMessageBrowseCarouselCard {
     /// TODO: enum values: ["IMAGE_DISPLAY_OPTIONS_UNSPECIFIED", "GRAY", "WHITE", "CROPPED", "BLURRED_BACKGROUND"]
     #[serde(default, rename = "imageDisplayOptions")]
-    pub image_display_options: Option<String>,
+    pub image_display_options: ::core::option::Option<String>,
     #[serde(default)]
-    pub items:
-        Option<Vec<GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItem>>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItem,
+            >,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItem resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItem {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub footer: Option<String>,
+    pub footer: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default, rename = "openUriAction")]
-    pub open_uri_action: Option<
-        GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction,
-    >,
+    pub open_uri_action: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction>>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction resource type.
@@ -5211,308 +5870,350 @@ pub struct GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselC
 pub struct GoogleCloudDialogflowV2IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction
 {
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// TODO: enum values: ["URL_TYPE_HINT_UNSPECIFIED", "AMP_ACTION", "AMP_CONTENT"]
     #[serde(default, rename = "urlTypeHint")]
-    pub url_type_hint: Option<String>,
+    pub url_type_hint: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageCard {
     #[serde(default)]
-    pub buttons: Option<Vec<GoogleCloudDialogflowV2IntentMessageCardButton>>,
+    pub buttons: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageCardButton>>,
+    >,
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageCardButton resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageCardButton {
     #[serde(default)]
-    pub postback: Option<String>,
+    pub postback: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageCarouselSelect resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageCarouselSelect {
     #[serde(default)]
-    pub items: Option<Vec<GoogleCloudDialogflowV2IntentMessageCarouselSelectItem>>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageCarouselSelectItem>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageCarouselSelectItem resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageCarouselSelectItem {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default)]
-    pub info: Option<GoogleCloudDialogflowV2IntentMessageSelectItemInfo>,
+    pub info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageSelectItemInfo>,
+    >,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageColumnProperties resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageColumnProperties {
     #[serde(default)]
-    pub header: Option<String>,
+    pub header: ::core::option::Option<String>,
     /// TODO: enum values: ["HORIZONTAL_ALIGNMENT_UNSPECIFIED", "LEADING", "CENTER", "TRAILING"]
     #[serde(default, rename = "horizontalAlignment")]
-    pub horizontal_alignment: Option<String>,
+    pub horizontal_alignment: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageImage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageImage {
     #[serde(default, rename = "accessibilityText")]
-    pub accessibility_text: Option<String>,
+    pub accessibility_text: ::core::option::Option<String>,
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageLinkOutSuggestion {
     #[serde(default, rename = "destinationName")]
-    pub destination_name: Option<String>,
+    pub destination_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageListSelect resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageListSelect {
     #[serde(default)]
-    pub items: Option<Vec<GoogleCloudDialogflowV2IntentMessageListSelectItem>>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageListSelectItem>>,
+    >,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageListSelectItem resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageListSelectItem {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default)]
-    pub info: Option<GoogleCloudDialogflowV2IntentMessageSelectItemInfo>,
+    pub info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageSelectItemInfo>,
+    >,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageMediaContent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageMediaContent {
     #[serde(default, rename = "mediaObjects")]
-    pub media_objects:
-        Option<Vec<GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject>>,
+    pub media_objects: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject>,
+        >,
+    >,
     /// TODO: enum values: ["RESPONSE_MEDIA_TYPE_UNSPECIFIED", "AUDIO"]
     #[serde(default, rename = "mediaType")]
-    pub media_type: Option<String>,
+    pub media_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject {
     #[serde(default, rename = "contentUrl")]
-    pub content_url: Option<String>,
+    pub content_url: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub icon: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub icon: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default, rename = "largeImage")]
-    pub large_image: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub large_image:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageQuickReplies resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageQuickReplies {
     #[serde(default, rename = "quickReplies")]
-    pub quick_replies: Option<Vec<String>>,
+    pub quick_replies: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageSelectItemInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageSelectItemInfo {
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     #[serde(default)]
-    pub synonyms: Option<Vec<String>>,
+    pub synonyms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageSimpleResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageSimpleResponse {
     #[serde(default, rename = "displayText")]
-    pub display_text: Option<String>,
+    pub display_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub ssml: Option<String>,
+    pub ssml: ::core::option::Option<String>,
     #[serde(default, rename = "textToSpeech")]
-    pub text_to_speech: Option<String>,
+    pub text_to_speech: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageSimpleResponses resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageSimpleResponses {
     #[serde(default, rename = "simpleResponses")]
-    pub simple_responses: Option<Vec<GoogleCloudDialogflowV2IntentMessageSimpleResponse>>,
+    pub simple_responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageSimpleResponse>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageSuggestion {
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageSuggestions resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageSuggestions {
     #[serde(default)]
-    pub suggestions: Option<Vec<GoogleCloudDialogflowV2IntentMessageSuggestion>>,
+    pub suggestions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageSuggestion>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageTableCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageTableCard {
     #[serde(default)]
-    pub buttons: Option<Vec<GoogleCloudDialogflowV2IntentMessageBasicCardButton>>,
+    pub buttons: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageBasicCardButton>>,
+    >,
     #[serde(default, rename = "columnProperties")]
-    pub column_properties: Option<Vec<GoogleCloudDialogflowV2IntentMessageColumnProperties>>,
+    pub column_properties: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageColumnProperties>>,
+    >,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2IntentMessageImage>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageImage>>,
     #[serde(default)]
-    pub rows: Option<Vec<GoogleCloudDialogflowV2IntentMessageTableCardRow>>,
+    pub rows: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageTableCardRow>>,
+    >,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageTableCardCell resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageTableCardCell {
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageTableCardRow resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageTableCardRow {
     #[serde(default)]
-    pub cells: Option<Vec<GoogleCloudDialogflowV2IntentMessageTableCardCell>>,
+    pub cells: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessageTableCardCell>>,
+    >,
     #[serde(default, rename = "dividerAfter")]
-    pub divider_after: Option<bool>,
+    pub divider_after: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2IntentMessageText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentMessageText {
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowV2IntentParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentParameter {
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<String>,
+    pub default_value: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "entityTypeDisplayName")]
-    pub entity_type_display_name: Option<String>,
+    pub entity_type_display_name: ::core::option::Option<String>,
     #[serde(default, rename = "isList")]
-    pub is_list: Option<bool>,
+    pub is_list: ::core::option::Option<bool>,
     #[serde(default)]
-    pub mandatory: Option<bool>,
+    pub mandatory: ::core::option::Option<bool>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub prompts: Option<Vec<String>>,
+    pub prompts: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentTrainingPhrase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentTrainingPhrase {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parts: Option<Vec<GoogleCloudDialogflowV2IntentTrainingPhrasePart>>,
+    pub parts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentTrainingPhrasePart>>,
+    >,
     #[serde(default, rename = "timesAddedCount")]
-    pub times_added_count: Option<i32>,
+    pub times_added_count: ::core::option::Option<i32>,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "EXAMPLE", "TEMPLATE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2IntentTrainingPhrasePart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2IntentTrainingPhrasePart {
     #[serde(default)]
-    pub alias: Option<String>,
+    pub alias: ::core::option::Option<String>,
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default, rename = "userDefined")]
-    pub user_defined: Option<bool>,
+    pub user_defined: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeAssistAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "knowledgeAssistDebugInfo")]
-    pub knowledge_assist_debug_info: Option<GoogleCloudDialogflowV2KnowledgeAssistDebugInfo>,
+    pub knowledge_assist_debug_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2KnowledgeAssistDebugInfo>>,
     #[serde(default, rename = "suggestedQuery")]
-    pub suggested_query: Option<GoogleCloudDialogflowV2KnowledgeAssistAnswerSuggestedQuery>,
+    pub suggested_query: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2KnowledgeAssistAnswerSuggestedQuery>,
+    >,
     #[serde(default, rename = "suggestedQueryAnswer")]
-    pub suggested_query_answer: Option<GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswer>,
+    pub suggested_query_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswer>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswer {
     #[serde(default, rename = "answerText")]
-    pub answer_text: Option<String>,
+    pub answer_text: ::core::option::Option<String>,
     #[serde(default, rename = "faqSource")]
-    pub faq_source: Option<GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerFaqSource>,
+    pub faq_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerFaqSource>,
+    >,
     #[serde(default, rename = "generativeSource")]
-    pub generative_source:
-        Option<GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource>,
+    pub generative_source: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerFaqSource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerFaqSource {
     #[serde(default)]
-    pub question: Option<String>,
+    pub question: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource {
     #[serde(default)]
-    pub snippets: Option<
-        Vec<GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet>,
+    pub snippets: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet,
+            >,
+        >,
     >,
 }
 
@@ -5520,20 +6221,20 @@ pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerative
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet {
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeAssistAnswerSuggestedQuery resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswerSuggestedQuery {
     #[serde(default, rename = "queryText")]
-    pub query_text: Option<String>,
+    pub query_text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeAssistDebugInfo resource type.
@@ -5541,230 +6242,248 @@ pub struct GoogleCloudDialogflowV2KnowledgeAssistAnswerSuggestedQuery {
 pub struct GoogleCloudDialogflowV2KnowledgeAssistDebugInfo {
     /// TODO: enum values: ["DATASTORE_RESPONSE_REASON_UNSPECIFIED", "NONE", "SEARCH_OUT_OF_QUOTA", "SEARCH_EMPTY_RESULTS", "ANSWER_GENERATION_GEN_AI_DISABLED", "ANSWER_GENERATION_OUT_OF_QUOTA", "ANSWER_GENERATION_ERROR", "ANSWER_GENERATION_NOT_ENOUGH_INFO", "ANSWER_GENERATION_RAI_FAILED", "ANSWER_GENERATION_NOT_GROUNDED"]
     #[serde(default, rename = "datastoreResponseReason")]
-    pub datastore_response_reason: Option<String>,
+    pub datastore_response_reason: ::core::option::Option<String>,
     #[serde(default, rename = "ingestedContextReferenceDebugInfo")]
-    pub ingested_context_reference_debug_info:
-        Option<GoogleCloudDialogflowV2IngestedContextReferenceDebugInfo>,
+    pub ingested_context_reference_debug_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2IngestedContextReferenceDebugInfo>,
+    >,
     #[serde(default, rename = "knowledgeAssistBehavior")]
-    pub knowledge_assist_behavior:
-        Option<GoogleCloudDialogflowV2KnowledgeAssistDebugInfoKnowledgeAssistBehavior>,
+    pub knowledge_assist_behavior: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2KnowledgeAssistDebugInfoKnowledgeAssistBehavior>,
+    >,
     /// TODO: enum values: ["QUERY_CATEGORIZATION_FAILURE_REASON_UNSPECIFIED", "QUERY_CATEGORIZATION_INVALID_CONFIG", "QUERY_CATEGORIZATION_RESULT_NOT_FOUND", "QUERY_CATEGORIZATION_FAILED"]
     #[serde(default, rename = "queryCategorizationFailureReason")]
-    pub query_categorization_failure_reason: Option<String>,
+    pub query_categorization_failure_reason: ::core::option::Option<String>,
     /// TODO: enum values: ["QUERY_GENERATION_FAILURE_REASON_UNSPECIFIED", "QUERY_GENERATION_OUT_OF_QUOTA", "QUERY_GENERATION_FAILED", "QUERY_GENERATION_NO_QUERY_GENERATED", "QUERY_GENERATION_RAI_FAILED", "NOT_IN_ALLOWLIST", "QUERY_GENERATION_QUERY_REDACTED", "QUERY_GENERATION_LLM_RESPONSE_PARSE_FAILED", "QUERY_GENERATION_EMPTY_CONVERSATION", "QUERY_GENERATION_EMPTY_LAST_MESSAGE", "QUERY_GENERATION_TRIGGERING_EVENT_CONDITION_NOT_MET"]
     #[serde(default, rename = "queryGenerationFailureReason")]
-    pub query_generation_failure_reason: Option<String>,
+    pub query_generation_failure_reason: ::core::option::Option<String>,
     #[serde(default, rename = "serviceLatency")]
-    pub service_latency: Option<GoogleCloudDialogflowV2ServiceLatency>,
+    pub service_latency:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2ServiceLatency>>,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeAssistDebugInfoKnowledgeAssistBehavior resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeAssistDebugInfoKnowledgeAssistBehavior {
     #[serde(default, rename = "answerGenerationRewriterOn")]
-    pub answer_generation_rewriter_on: Option<bool>,
+    pub answer_generation_rewriter_on: ::core::option::Option<bool>,
     #[serde(default, rename = "appendedSearchContextCount")]
-    pub appended_search_context_count: Option<i32>,
+    pub appended_search_context_count: ::core::option::Option<i32>,
     #[serde(default, rename = "conversationTranscriptHasMixedLanguages")]
-    pub conversation_transcript_has_mixed_languages: Option<bool>,
+    pub conversation_transcript_has_mixed_languages: ::core::option::Option<bool>,
     #[serde(default, rename = "disableSyncDelivery")]
-    pub disable_sync_delivery: Option<bool>,
+    pub disable_sync_delivery: ::core::option::Option<bool>,
     #[serde(default, rename = "endUserMetadataIncluded")]
-    pub end_user_metadata_included: Option<bool>,
+    pub end_user_metadata_included: ::core::option::Option<bool>,
     #[serde(default, rename = "invalidItemsQuerySuggestionSkipped")]
-    pub invalid_items_query_suggestion_skipped: Option<bool>,
+    pub invalid_items_query_suggestion_skipped: ::core::option::Option<bool>,
     #[serde(default, rename = "multipleQueriesGenerated")]
-    pub multiple_queries_generated: Option<bool>,
+    pub multiple_queries_generated: ::core::option::Option<bool>,
     #[serde(default, rename = "previousQueriesIncluded")]
-    pub previous_queries_included: Option<bool>,
+    pub previous_queries_included: ::core::option::Option<bool>,
     #[serde(default, rename = "primaryQueryRedactedAndReplaced")]
-    pub primary_query_redacted_and_replaced: Option<bool>,
+    pub primary_query_redacted_and_replaced: ::core::option::Option<bool>,
     #[serde(default, rename = "queryContainedSearchContext")]
-    pub query_contained_search_context: Option<bool>,
+    pub query_contained_search_context: ::core::option::Option<bool>,
     #[serde(default, rename = "queryGenerationAgentLanguageMismatch")]
-    pub query_generation_agent_language_mismatch: Option<bool>,
+    pub query_generation_agent_language_mismatch: ::core::option::Option<bool>,
     #[serde(default, rename = "queryGenerationEndUserLanguageMismatch")]
-    pub query_generation_end_user_language_mismatch: Option<bool>,
+    pub query_generation_end_user_language_mismatch: ::core::option::Option<bool>,
     #[serde(default, rename = "returnQueryOnly")]
-    pub return_query_only: Option<bool>,
+    pub return_query_only: ::core::option::Option<bool>,
     #[serde(default, rename = "thirdPartyConnectorAllowed")]
-    pub third_party_connector_allowed: Option<bool>,
+    pub third_party_connector_allowed: ::core::option::Option<bool>,
     #[serde(default, rename = "useCustomSafetyFilterLevel")]
-    pub use_custom_safety_filter_level: Option<bool>,
+    pub use_custom_safety_filter_level: ::core::option::Option<bool>,
     #[serde(default, rename = "usePubsubDelivery")]
-    pub use_pubsub_delivery: Option<bool>,
+    pub use_pubsub_delivery: ::core::option::Option<bool>,
     #[serde(default, rename = "useTranslatedMessage")]
-    pub use_translated_message: Option<bool>,
+    pub use_translated_message: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2KnowledgeOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2KnowledgeOperationMetadata {
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
     #[serde(default, rename = "exportOperationMetadata")]
-    pub export_operation_metadata: Option<GoogleCloudDialogflowV2ExportOperationMetadata>,
+    pub export_operation_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2ExportOperationMetadata>>,
     #[serde(default, rename = "knowledgeBase")]
-    pub knowledge_base: Option<String>,
+    pub knowledge_base: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "DONE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2Message resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2Message {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "messageAnnotation")]
-    pub message_annotation: Option<GoogleCloudDialogflowV2MessageAnnotation>,
+    pub message_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2MessageAnnotation>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub participant: Option<String>,
+    pub participant: ::core::option::Option<String>,
     /// TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER"]
     #[serde(default, rename = "participantRole")]
-    pub participant_role: Option<String>,
+    pub participant_role: ::core::option::Option<String>,
     #[serde(default, rename = "sendTime")]
-    pub send_time: Option<String>,
+    pub send_time: ::core::option::Option<String>,
     #[serde(default, rename = "sentimentAnalysis")]
-    pub sentiment_analysis: Option<GoogleCloudDialogflowV2SentimentAnalysisResult>,
+    pub sentiment_analysis:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2SentimentAnalysisResult>>,
 }
 
 /// GoogleCloudDialogflowV2MessageAnnotation resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2MessageAnnotation {
     #[serde(default, rename = "containEntities")]
-    pub contain_entities: Option<bool>,
+    pub contain_entities: ::core::option::Option<bool>,
     #[serde(default)]
-    pub parts: Option<Vec<GoogleCloudDialogflowV2AnnotatedMessagePart>>,
+    pub parts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2AnnotatedMessagePart>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2OriginalDetectIntentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2OriginalDetectIntentRequest {
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2QueryResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2QueryResult {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "allRequiredParamsPresent")]
-    pub all_required_params_present: Option<bool>,
+    pub all_required_params_present: ::core::option::Option<bool>,
     #[serde(default, rename = "cancelsSlotFilling")]
-    pub cancels_slot_filling: Option<bool>,
+    pub cancels_slot_filling: ::core::option::Option<bool>,
     #[serde(default, rename = "diagnosticInfo")]
-    pub diagnostic_info: Option<serde_json::Value>,
+    pub diagnostic_info: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "fulfillmentMessages")]
-    pub fulfillment_messages: Option<Vec<GoogleCloudDialogflowV2IntentMessage>>,
+    pub fulfillment_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessage>>,
+    >,
     #[serde(default, rename = "fulfillmentText")]
-    pub fulfillment_text: Option<String>,
+    pub fulfillment_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub intent: Option<GoogleCloudDialogflowV2Intent>,
+    pub intent: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2Intent>>,
     #[serde(default, rename = "intentDetectionConfidence")]
-    pub intent_detection_confidence: Option<f32>,
+    pub intent_detection_confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "outputContexts")]
-    pub output_contexts: Option<Vec<GoogleCloudDialogflowV2Context>>,
+    pub output_contexts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2Context>>>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "queryText")]
-    pub query_text: Option<String>,
+    pub query_text: ::core::option::Option<String>,
     #[serde(default, rename = "sentimentAnalysisResult")]
-    pub sentiment_analysis_result: Option<GoogleCloudDialogflowV2SentimentAnalysisResult>,
+    pub sentiment_analysis_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2SentimentAnalysisResult>>,
     #[serde(default, rename = "speechRecognitionConfidence")]
-    pub speech_recognition_confidence: Option<f32>,
+    pub speech_recognition_confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "webhookPayload")]
-    pub webhook_payload: Option<serde_json::Value>,
+    pub webhook_payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "webhookSource")]
-    pub webhook_source: Option<String>,
+    pub webhook_source: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2Sentiment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2Sentiment {
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// GoogleCloudDialogflowV2SentimentAnalysisResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SentimentAnalysisResult {
     #[serde(default, rename = "queryTextSentiment")]
-    pub query_text_sentiment: Option<GoogleCloudDialogflowV2Sentiment>,
+    pub query_text_sentiment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2Sentiment>>,
 }
 
 /// GoogleCloudDialogflowV2ServiceLatency resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ServiceLatency {
     #[serde(default, rename = "internalServiceLatencies")]
-    pub internal_service_latencies:
-        Option<Vec<GoogleCloudDialogflowV2ServiceLatencyInternalServiceLatency>>,
+    pub internal_service_latencies: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2ServiceLatencyInternalServiceLatency>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2ServiceLatencyInternalServiceLatency resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ServiceLatencyInternalServiceLatency {
     #[serde(default, rename = "completeTime")]
-    pub complete_time: Option<String>,
+    pub complete_time: ::core::option::Option<String>,
     #[serde(default, rename = "latencyMs")]
-    pub latency_ms: Option<f32>,
+    pub latency_ms: ::core::option::Option<f32>,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SessionEntityType resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SessionEntityType {
     #[serde(default)]
-    pub entities: Option<Vec<GoogleCloudDialogflowV2EntityTypeEntity>>,
+    pub entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2EntityTypeEntity>>,
+    >,
     /// TODO: enum values: ["ENTITY_OVERRIDE_MODE_UNSPECIFIED", "ENTITY_OVERRIDE_MODE_OVERRIDE", "ENTITY_OVERRIDE_MODE_SUPPLEMENT"]
     #[serde(default, rename = "entityOverrideMode")]
-    pub entity_override_mode: Option<String>,
+    pub entity_override_mode: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SetSuggestionFeatureConfigOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SetSuggestionFeatureConfigOperationMetadata {
     #[serde(default, rename = "conversationProfile")]
-    pub conversation_profile: Option<String>,
+    pub conversation_profile: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER"]
     #[serde(default, rename = "participantRole")]
-    pub participant_role: Option<String>,
+    pub participant_role: ::core::option::Option<String>,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "ARTICLE_SUGGESTION", "FAQ", "SMART_REPLY", "CONVERSATION_SUMMARIZATION", "KNOWLEDGE_SEARCH", "KNOWLEDGE_ASSIST"]
     #[serde(default, rename = "suggestionFeatureType")]
-    pub suggestion_feature_type: Option<String>,
+    pub suggestion_feature_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SmartReplyAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SmartReplyAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default)]
-    pub reply: Option<String>,
+    pub reply: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SmartReplyModelMetadata resource type.
@@ -5772,249 +6491,277 @@ pub struct GoogleCloudDialogflowV2SmartReplyAnswer {
 pub struct GoogleCloudDialogflowV2SmartReplyModelMetadata {
     /// TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "SMART_REPLY_DUAL_ENCODER_MODEL", "SMART_REPLY_BERT_MODEL"]
     #[serde(default, rename = "trainingModelType")]
-    pub training_model_type: Option<String>,
+    pub training_model_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SpeechWordInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SpeechWordInfo {
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "endOffset")]
-    pub end_offset: Option<String>,
+    pub end_offset: ::core::option::Option<String>,
     #[serde(default, rename = "startOffset")]
-    pub start_offset: Option<String>,
+    pub start_offset: ::core::option::Option<String>,
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2StreamingRecognitionResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2StreamingRecognitionResult {
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "isFinal")]
-    pub is_final: Option<bool>,
+    pub is_final: ::core::option::Option<bool>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// TODO: enum values: ["MESSAGE_TYPE_UNSPECIFIED", "TRANSCRIPT", "END_OF_SINGLE_UTTERANCE"]
     #[serde(default, rename = "messageType")]
-    pub message_type: Option<String>,
+    pub message_type: ::core::option::Option<String>,
     #[serde(default, rename = "speechEndOffset")]
-    pub speech_end_offset: Option<String>,
+    pub speech_end_offset: ::core::option::Option<String>,
     #[serde(default, rename = "speechWordInfo")]
-    pub speech_word_info: Option<Vec<GoogleCloudDialogflowV2SpeechWordInfo>>,
+    pub speech_word_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2SpeechWordInfo>>,
+    >,
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SuggestArticlesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SuggestArticlesResponse {
     #[serde(default, rename = "articleAnswers")]
-    pub article_answers: Option<Vec<GoogleCloudDialogflowV2ArticleAnswer>>,
+    pub article_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2ArticleAnswer>>,
+    >,
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SuggestFaqAnswersResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SuggestFaqAnswersResponse {
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "faqAnswers")]
-    pub faq_answers: Option<Vec<GoogleCloudDialogflowV2FaqAnswer>>,
+    pub faq_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2FaqAnswer>>,
+    >,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SuggestKnowledgeAssistResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SuggestKnowledgeAssistResponse {
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "knowledgeAssistAnswer")]
-    pub knowledge_assist_answer: Option<GoogleCloudDialogflowV2KnowledgeAssistAnswer>,
+    pub knowledge_assist_answer:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2KnowledgeAssistAnswer>>,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2SuggestSmartRepliesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SuggestSmartRepliesResponse {
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
     #[serde(default, rename = "smartReplyAnswers")]
-    pub smart_reply_answers: Option<Vec<GoogleCloudDialogflowV2SmartReplyAnswer>>,
+    pub smart_reply_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2SmartReplyAnswer>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2SuggestionResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SuggestionResult {
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "generateSuggestionsResponse")]
-    pub generate_suggestions_response: Option<GoogleCloudDialogflowV2GenerateSuggestionsResponse>,
+    pub generate_suggestions_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2GenerateSuggestionsResponse>,
+    >,
     #[serde(default, rename = "suggestArticlesResponse")]
-    pub suggest_articles_response: Option<GoogleCloudDialogflowV2SuggestArticlesResponse>,
+    pub suggest_articles_response:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2SuggestArticlesResponse>>,
     #[serde(default, rename = "suggestFaqAnswersResponse")]
-    pub suggest_faq_answers_response: Option<GoogleCloudDialogflowV2SuggestFaqAnswersResponse>,
+    pub suggest_faq_answers_response:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2SuggestFaqAnswersResponse>>,
     #[serde(default, rename = "suggestKnowledgeAssistResponse")]
-    pub suggest_knowledge_assist_response:
-        Option<GoogleCloudDialogflowV2SuggestKnowledgeAssistResponse>,
+    pub suggest_knowledge_assist_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2SuggestKnowledgeAssistResponse>,
+    >,
     #[serde(default, rename = "suggestSmartRepliesResponse")]
-    pub suggest_smart_replies_response: Option<GoogleCloudDialogflowV2SuggestSmartRepliesResponse>,
+    pub suggest_smart_replies_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2SuggestSmartRepliesResponse>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2SummarySuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SummarySuggestion {
     #[serde(default, rename = "summarySections")]
-    pub summary_sections: Option<Vec<GoogleCloudDialogflowV2SummarySuggestionSummarySection>>,
+    pub summary_sections: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2SummarySuggestionSummarySection>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2SummarySuggestionSummarySection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2SummarySuggestionSummarySection {
     #[serde(default)]
-    pub section: Option<String>,
+    pub section: ::core::option::Option<String>,
     #[serde(default)]
-    pub summary: Option<String>,
+    pub summary: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2ToolCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ToolCall {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "cesApp")]
-    pub ces_app: Option<String>,
+    pub ces_app: ::core::option::Option<String>,
     #[serde(default, rename = "cesTool")]
-    pub ces_tool: Option<String>,
+    pub ces_tool: ::core::option::Option<String>,
     #[serde(default, rename = "cesToolset")]
-    pub ces_toolset: Option<String>,
+    pub ces_toolset: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "TRIGGERED", "NEEDS_CONFIRMATION"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
     #[serde(default, rename = "toolDisplayDetails")]
-    pub tool_display_details: Option<String>,
+    pub tool_display_details: ::core::option::Option<String>,
     #[serde(default, rename = "toolDisplayName")]
-    pub tool_display_name: Option<String>,
+    pub tool_display_name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2ToolCallResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ToolCallResult {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "cesApp")]
-    pub ces_app: Option<String>,
+    pub ces_app: ::core::option::Option<String>,
     #[serde(default, rename = "cesTool")]
-    pub ces_tool: Option<String>,
+    pub ces_tool: ::core::option::Option<String>,
     #[serde(default, rename = "cesToolset")]
-    pub ces_toolset: Option<String>,
+    pub ces_toolset: ::core::option::Option<String>,
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub error: Option<GoogleCloudDialogflowV2ToolCallResultError>,
+    pub error:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2ToolCallResultError>>,
     #[serde(default, rename = "rawContent")]
-    pub raw_content: Option<String>,
+    pub raw_content: ::core::option::Option<String>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2ToolCallResultError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2ToolCallResultError {
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2UndeployConversationModelOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2UndeployConversationModelOperationMetadata {
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2WebhookRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2WebhookRequest {
     #[serde(default, rename = "originalDetectIntentRequest")]
-    pub original_detect_intent_request: Option<GoogleCloudDialogflowV2OriginalDetectIntentRequest>,
+    pub original_detect_intent_request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2OriginalDetectIntentRequest>,
+    >,
     #[serde(default, rename = "queryResult")]
-    pub query_result: Option<GoogleCloudDialogflowV2QueryResult>,
+    pub query_result: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2QueryResult>>,
     #[serde(default, rename = "responseId")]
-    pub response_id: Option<String>,
+    pub response_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub session: Option<String>,
+    pub session: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2WebhookResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2WebhookResponse {
     #[serde(default, rename = "followupEventInput")]
-    pub followup_event_input: Option<GoogleCloudDialogflowV2EventInput>,
+    pub followup_event_input:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2EventInput>>,
     #[serde(default, rename = "fulfillmentMessages")]
-    pub fulfillment_messages: Option<Vec<GoogleCloudDialogflowV2IntentMessage>>,
+    pub fulfillment_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2IntentMessage>>,
+    >,
     #[serde(default, rename = "fulfillmentText")]
-    pub fulfillment_text: Option<String>,
+    pub fulfillment_text: ::core::option::Option<String>,
     #[serde(default, rename = "outputContexts")]
-    pub output_contexts: Option<Vec<GoogleCloudDialogflowV2Context>>,
+    pub output_contexts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2Context>>>,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "sessionEntityTypes")]
-    pub session_entity_types: Option<Vec<GoogleCloudDialogflowV2SessionEntityType>>,
+    pub session_entity_types: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2SessionEntityType>>,
+    >,
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingInstruction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingInstruction {
     #[serde(default, rename = "agentAction")]
-    pub agent_action: Option<String>,
+    pub agent_action: ::core::option::Option<String>,
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     #[serde(default, rename = "displayDetails")]
-    pub display_details: Option<String>,
+    pub display_details: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "duplicateCheckResult")]
-    pub duplicate_check_result:
-        Option<GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResult>,
+    pub duplicate_check_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResult>,
+    >,
     #[serde(default, rename = "systemAction")]
-    pub system_action: Option<String>,
+    pub system_action: ::core::option::Option<String>,
     /// TODO: enum values: ["TRIGGER_EVENT_UNSPECIFIED", "END_OF_UTTERANCE", "MANUAL_CALL", "CUSTOMER_MESSAGE", "AGENT_MESSAGE", "TOOL_CALL_COMPLETION"]
     #[serde(default, rename = "triggeringEvent")]
-    pub triggering_event: Option<String>,
+    pub triggering_event: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResult {
     #[serde(default, rename = "duplicateSuggestions")]
-    pub duplicate_suggestions: Option<Vec<GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion>>,
+    pub duplicate_suggestions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion>>>,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion resource type.
@@ -6022,43 +6769,56 @@ pub struct GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckRes
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion
 {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "similarityScore")]
-    pub similarity_score: Option<f32>,
+    pub similarity_score: ::core::option::Option<f32>,
     #[serde(default, rename = "suggestionIndex")]
-    pub suggestion_index: Option<i32>,
+    pub suggestion_index: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingSuggestion {
     #[serde(default, rename = "agentActionSuggestions")]
-    pub agent_action_suggestions:
-        Option<Vec<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion>>,
+    pub agent_action_suggestions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion,
+            >,
+        >,
+    >,
     #[serde(default, rename = "applicableInstructions")]
-    pub applicable_instructions: Option<Vec<GoogleCloudDialogflowV2beta1AgentCoachingInstruction>>,
+    pub applicable_instructions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingInstruction>>,
+    >,
     #[serde(default, rename = "sampleResponses")]
-    pub sample_responses:
-        Option<Vec<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSampleResponse>>,
+    pub sample_responses: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSampleResponse>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion {
     #[serde(default, rename = "agentAction")]
-    pub agent_action: Option<String>,
+    pub agent_action: ::core::option::Option<String>,
     #[serde(default, rename = "duplicateCheckResult")]
-    pub duplicate_check_result:
-        Option<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult>,
+    pub duplicate_check_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult>,
+    >,
     #[serde(default)]
-    pub sources: Option<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources>,
+    pub sources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult {
     #[serde(default, rename = "duplicateSuggestions")]
-    pub duplicate_suggestions: Option<Vec<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion>>,
+    pub duplicate_suggestions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion>>>,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion resource type.
@@ -6066,135 +6826,148 @@ pub struct GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResu
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResultDuplicateSuggestion
 {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "similarityScore")]
-    pub similarity_score: Option<f32>,
+    pub similarity_score: ::core::option::Option<f32>,
     #[serde(default)]
-    pub sources: Option<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources>,
+    pub sources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources>,
+    >,
     #[serde(default, rename = "suggestionIndex")]
-    pub suggestion_index: Option<i32>,
+    pub suggestion_index: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSampleResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSampleResponse {
     #[serde(default, rename = "duplicateCheckResult")]
-    pub duplicate_check_result:
-        Option<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult>,
+    pub duplicate_check_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult>,
+    >,
     #[serde(default, rename = "responseText")]
-    pub response_text: Option<String>,
+    pub response_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub sources: Option<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources>,
+    pub sources: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources {
     #[serde(default, rename = "instructionIndexes")]
-    pub instruction_indexes: Option<Vec<i32>>,
+    pub instruction_indexes: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// GoogleCloudDialogflowV2beta1AnnotatedMessagePart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1AnnotatedMessagePart {
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default, rename = "formattedValue")]
-    pub formatted_value: Option<serde_json::Value>,
+    pub formatted_value: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1ArticleAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ArticleAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub snippets: Option<Vec<String>>,
+    pub snippets: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1BatchUpdateEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1BatchUpdateEntityTypesResponse {
     #[serde(default, rename = "entityTypes")]
-    pub entity_types: Option<Vec<GoogleCloudDialogflowV2beta1EntityType>>,
+    pub entity_types: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1EntityType>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1BatchUpdateIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1BatchUpdateIntentsResponse {
     #[serde(default)]
-    pub intents: Option<Vec<GoogleCloudDialogflowV2beta1Intent>>,
+    pub intents: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1Intent>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1ClearSuggestionFeatureConfigOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ClearSuggestionFeatureConfigOperationMetadata {
     #[serde(default, rename = "conversationProfile")]
-    pub conversation_profile: Option<String>,
+    pub conversation_profile: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER"]
     #[serde(default, rename = "participantRole")]
-    pub participant_role: Option<String>,
+    pub participant_role: ::core::option::Option<String>,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "ARTICLE_SUGGESTION", "FAQ", "SMART_REPLY", "DIALOGFLOW_ASSIST", "CONVERSATION_SUMMARIZATION", "KNOWLEDGE_SEARCH", "KNOWLEDGE_ASSIST"]
     #[serde(default, rename = "suggestionFeatureType")]
-    pub suggestion_feature_type: Option<String>,
+    pub suggestion_feature_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1Context resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1Context {
     #[serde(default, rename = "lifespanCount")]
-    pub lifespan_count: Option<i32>,
+    pub lifespan_count: ::core::option::Option<i32>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowV2beta1ConversationEvent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ConversationEvent {
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     #[serde(default, rename = "errorStatus")]
-    pub error_status: Option<GoogleRpcStatus>,
+    pub error_status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "newMessagePayload")]
-    pub new_message_payload: Option<GoogleCloudDialogflowV2beta1Message>,
+    pub new_message_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1Message>>,
     #[serde(default, rename = "newRecognitionResultPayload")]
-    pub new_recognition_result_payload:
-        Option<GoogleCloudDialogflowV2beta1StreamingRecognitionResult>,
+    pub new_recognition_result_payload: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1StreamingRecognitionResult>,
+    >,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "CONVERSATION_STARTED", "CONVERSATION_FINISHED", "HUMAN_INTERVENTION_NEEDED", "NEW_MESSAGE", "NEW_RECOGNITION_RESULT", "UNRECOVERABLE_ERROR"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1DialogflowAssistAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1DialogflowAssistAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "intentSuggestion")]
-    pub intent_suggestion: Option<GoogleCloudDialogflowV2beta1IntentSuggestion>,
+    pub intent_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentSuggestion>>,
     #[serde(default, rename = "queryResult")]
-    pub query_result: Option<GoogleCloudDialogflowV2beta1QueryResult>,
+    pub query_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1QueryResult>>,
 }
 
 /// GoogleCloudDialogflowV2beta1EncryptionSpec resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1EncryptionSpec {
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1EntityType resource type.
@@ -6202,162 +6975,177 @@ pub struct GoogleCloudDialogflowV2beta1EncryptionSpec {
 pub struct GoogleCloudDialogflowV2beta1EntityType {
     /// TODO: enum values: ["AUTO_EXPANSION_MODE_UNSPECIFIED", "AUTO_EXPANSION_MODE_DEFAULT"]
     #[serde(default, rename = "autoExpansionMode")]
-    pub auto_expansion_mode: Option<String>,
+    pub auto_expansion_mode: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "enableFuzzyExtraction")]
-    pub enable_fuzzy_extraction: Option<bool>,
+    pub enable_fuzzy_extraction: ::core::option::Option<bool>,
     #[serde(default)]
-    pub entities: Option<Vec<GoogleCloudDialogflowV2beta1EntityTypeEntity>>,
+    pub entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1EntityTypeEntity>>,
+    >,
     /// TODO: enum values: ["KIND_UNSPECIFIED", "KIND_MAP", "KIND_LIST", "KIND_REGEXP"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1EntityTypeEntity resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1EntityTypeEntity {
     #[serde(default)]
-    pub synonyms: Option<Vec<String>>,
+    pub synonyms: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1EventInput resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1EventInput {
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleCloudDialogflowV2beta1ExportAgentResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ExportAgentResponse {
     #[serde(default, rename = "agentContent")]
-    pub agent_content: Option<String>,
+    pub agent_content: ::core::option::Option<String>,
     #[serde(default, rename = "agentUri")]
-    pub agent_uri: Option<String>,
+    pub agent_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1ExportOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ExportOperationMetadata {
     #[serde(default, rename = "exportedGcsDestination")]
-    pub exported_gcs_destination: Option<GoogleCloudDialogflowV2beta1GcsDestination>,
+    pub exported_gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1GcsDestination>>,
 }
 
 /// GoogleCloudDialogflowV2beta1FaqAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1FaqAnswer {
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub question: Option<String>,
+    pub question: ::core::option::Option<String>,
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1FreeFormSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1FreeFormSuggestion {
     #[serde(default)]
-    pub response: Option<String>,
+    pub response: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1GcsDestination resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1GcsDestination {
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1GenerateSuggestionsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1GenerateSuggestionsResponse {
     #[serde(default, rename = "generatorSuggestionAnswers")]
-    pub generator_suggestion_answers: Option<
-        Vec<GoogleCloudDialogflowV2beta1GenerateSuggestionsResponseGeneratorSuggestionAnswer>,
+    pub generator_suggestion_answers: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2beta1GenerateSuggestionsResponseGeneratorSuggestionAnswer,
+            >,
+        >,
     >,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1GenerateSuggestionsResponseGeneratorSuggestionAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1GenerateSuggestionsResponseGeneratorSuggestionAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "generatorSuggestion")]
-    pub generator_suggestion: Option<GoogleCloudDialogflowV2beta1GeneratorSuggestion>,
+    pub generator_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1GeneratorSuggestion>>,
     #[serde(default, rename = "sourceGenerator")]
-    pub source_generator: Option<String>,
+    pub source_generator: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1GeneratorSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1GeneratorSuggestion {
     #[serde(default, rename = "agentCoachingSuggestion")]
-    pub agent_coaching_suggestion: Option<GoogleCloudDialogflowV2beta1AgentCoachingSuggestion>,
+    pub agent_coaching_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1AgentCoachingSuggestion>,
+    >,
     #[serde(default, rename = "freeFormSuggestion")]
-    pub free_form_suggestion: Option<GoogleCloudDialogflowV2beta1FreeFormSuggestion>,
+    pub free_form_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1FreeFormSuggestion>>,
     #[serde(default, rename = "summarySuggestion")]
-    pub summary_suggestion: Option<GoogleCloudDialogflowV2beta1SummarySuggestion>,
+    pub summary_suggestion:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1SummarySuggestion>>,
     #[serde(default, rename = "toolCallInfo")]
-    pub tool_call_info: Option<Vec<GoogleCloudDialogflowV2beta1GeneratorSuggestionToolCallInfo>>,
+    pub tool_call_info: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1GeneratorSuggestionToolCallInfo>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1GeneratorSuggestionToolCallInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1GeneratorSuggestionToolCallInfo {
     #[serde(default, rename = "toolCall")]
-    pub tool_call: Option<GoogleCloudDialogflowV2beta1ToolCall>,
+    pub tool_call: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1ToolCall>>,
     #[serde(default, rename = "toolCallResult")]
-    pub tool_call_result: Option<GoogleCloudDialogflowV2beta1ToolCallResult>,
+    pub tool_call_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1ToolCallResult>>,
 }
 
 /// GoogleCloudDialogflowV2beta1HumanAgentAssistantEvent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1HumanAgentAssistantEvent {
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     #[serde(default)]
-    pub participant: Option<String>,
+    pub participant: ::core::option::Option<String>,
     #[serde(default, rename = "suggestionResults")]
-    pub suggestion_results: Option<Vec<GoogleCloudDialogflowV2beta1SuggestionResult>>,
+    pub suggestion_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1SuggestionResult>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1ImportDocumentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ImportDocumentsResponse {
     #[serde(default)]
-    pub warnings: Option<Vec<GoogleRpcStatus>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfo {
     #[serde(default, rename = "contextReferenceRetrieved")]
-    pub context_reference_retrieved: Option<bool>,
+    pub context_reference_retrieved: ::core::option::Option<bool>,
     #[serde(default, rename = "ingestedParametersDebugInfo")]
-    pub ingested_parameters_debug_info: Option<
-        Vec<
-            GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfoIngestedParameterDebugInfo,
-        >,
-    >,
+    pub ingested_parameters_debug_info: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfoIngestedParameterDebugInfo>>>,
     #[serde(default, rename = "projectNotAllowlisted")]
-    pub project_not_allowlisted: Option<bool>,
+    pub project_not_allowlisted: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfoIngestedParameterDebugInfo resource type.
@@ -6365,163 +7153,213 @@ pub struct GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfo {
 pub struct GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfoIngestedParameterDebugInfo {
     /// TODO: enum values: ["INGESTION_STATUS_UNSPECIFIED", "INGESTION_STATUS_SUCCEEDED", "INGESTION_STATUS_CONTEXT_NOT_AVAILABLE", "INGESTION_STATUS_PARSE_FAILED", "INGESTION_STATUS_INVALID_ENTRY", "INGESTION_STATUS_INVALID_FORMAT", "INGESTION_STATUS_LANGUAGE_MISMATCH"]
     #[serde(default, rename = "ingestionStatus")]
-    pub ingestion_status: Option<String>,
+    pub ingestion_status: ::core::option::Option<String>,
     #[serde(default)]
-    pub parameter: Option<String>,
+    pub parameter: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1InitializeEncryptionSpecMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1InitializeEncryptionSpecMetadata {
     #[serde(default)]
-    pub request: Option<GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest {
     #[serde(default, rename = "encryptionSpec")]
-    pub encryption_spec: Option<GoogleCloudDialogflowV2beta1EncryptionSpec>,
+    pub encryption_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1EncryptionSpec>>,
 }
 
 /// GoogleCloudDialogflowV2beta1Intent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1Intent {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "defaultResponsePlatforms")]
-    pub default_response_platforms: Option<Vec<String>>,
+    pub default_response_platforms: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: Option<bool>,
+    pub end_interaction: ::core::option::Option<bool>,
     #[serde(default)]
-    pub events: Option<Vec<String>>,
+    pub events: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "followupIntentInfo")]
-    pub followup_intent_info: Option<Vec<GoogleCloudDialogflowV2beta1IntentFollowupIntentInfo>>,
+    pub followup_intent_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentFollowupIntentInfo>>,
+    >,
     #[serde(default, rename = "inputContextNames")]
-    pub input_context_names: Option<Vec<String>>,
+    pub input_context_names: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "isFallback")]
-    pub is_fallback: Option<bool>,
+    pub is_fallback: ::core::option::Option<bool>,
     #[serde(default, rename = "liveAgentHandoff")]
-    pub live_agent_handoff: Option<bool>,
+    pub live_agent_handoff: ::core::option::Option<bool>,
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessage>>,
+    >,
     #[serde(default, rename = "mlDisabled")]
-    pub ml_disabled: Option<bool>,
+    pub ml_disabled: ::core::option::Option<bool>,
     #[serde(default, rename = "mlEnabled")]
-    pub ml_enabled: Option<bool>,
+    pub ml_enabled: ::core::option::Option<bool>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "outputContexts")]
-    pub output_contexts: Option<Vec<GoogleCloudDialogflowV2beta1Context>>,
+    pub output_contexts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1Context>>,
+    >,
     #[serde(default)]
-    pub parameters: Option<Vec<GoogleCloudDialogflowV2beta1IntentParameter>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentParameter>>,
+    >,
     #[serde(default, rename = "parentFollowupIntentName")]
-    pub parent_followup_intent_name: Option<String>,
+    pub parent_followup_intent_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     #[serde(default, rename = "resetContexts")]
-    pub reset_contexts: Option<bool>,
+    pub reset_contexts: ::core::option::Option<bool>,
     #[serde(default, rename = "rootFollowupIntentName")]
-    pub root_followup_intent_name: Option<String>,
+    pub root_followup_intent_name: ::core::option::Option<String>,
     #[serde(default, rename = "trainingPhrases")]
-    pub training_phrases: Option<Vec<GoogleCloudDialogflowV2beta1IntentTrainingPhrase>>,
+    pub training_phrases: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentTrainingPhrase>>,
+    >,
     /// TODO: enum values: ["WEBHOOK_STATE_UNSPECIFIED", "WEBHOOK_STATE_ENABLED", "WEBHOOK_STATE_ENABLED_FOR_SLOT_FILLING"]
     #[serde(default, rename = "webhookState")]
-    pub webhook_state: Option<String>,
+    pub webhook_state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentFollowupIntentInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentFollowupIntentInfo {
     #[serde(default, rename = "followupIntentName")]
-    pub followup_intent_name: Option<String>,
+    pub followup_intent_name: ::core::option::Option<String>,
     #[serde(default, rename = "parentFollowupIntentName")]
-    pub parent_followup_intent_name: Option<String>,
+    pub parent_followup_intent_name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessage {
     #[serde(default, rename = "basicCard")]
-    pub basic_card: Option<GoogleCloudDialogflowV2beta1IntentMessageBasicCard>,
+    pub basic_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageBasicCard>,
+    >,
     #[serde(default, rename = "browseCarouselCard")]
-    pub browse_carousel_card: Option<GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCard>,
+    pub browse_carousel_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCard>,
+    >,
     #[serde(default)]
-    pub card: Option<GoogleCloudDialogflowV2beta1IntentMessageCard>,
+    pub card:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageCard>>,
     #[serde(default, rename = "carouselSelect")]
-    pub carousel_select: Option<GoogleCloudDialogflowV2beta1IntentMessageCarouselSelect>,
+    pub carousel_select: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageCarouselSelect>,
+    >,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub image:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default, rename = "linkOutSuggestion")]
-    pub link_out_suggestion: Option<GoogleCloudDialogflowV2beta1IntentMessageLinkOutSuggestion>,
+    pub link_out_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageLinkOutSuggestion>,
+    >,
     #[serde(default, rename = "listSelect")]
-    pub list_select: Option<GoogleCloudDialogflowV2beta1IntentMessageListSelect>,
+    pub list_select: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageListSelect>,
+    >,
     #[serde(default, rename = "mediaContent")]
-    pub media_content: Option<GoogleCloudDialogflowV2beta1IntentMessageMediaContent>,
+    pub media_content: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageMediaContent>,
+    >,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     /// TODO: enum values: ["PLATFORM_UNSPECIFIED", "FACEBOOK", "SLACK", "TELEGRAM", "KIK", "SKYPE", "LINE", "VIBER", "ACTIONS_ON_GOOGLE", "TELEPHONY", "GOOGLE_HANGOUTS"]
     #[serde(default)]
-    pub platform: Option<String>,
+    pub platform: ::core::option::Option<String>,
     #[serde(default, rename = "quickReplies")]
-    pub quick_replies: Option<GoogleCloudDialogflowV2beta1IntentMessageQuickReplies>,
+    pub quick_replies: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageQuickReplies>,
+    >,
     #[serde(default, rename = "rbmCarouselRichCard")]
-    pub rbm_carousel_rich_card: Option<GoogleCloudDialogflowV2beta1IntentMessageRbmCarouselCard>,
+    pub rbm_carousel_rich_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmCarouselCard>,
+    >,
     #[serde(default, rename = "rbmStandaloneRichCard")]
-    pub rbm_standalone_rich_card:
-        Option<GoogleCloudDialogflowV2beta1IntentMessageRbmStandaloneCard>,
+    pub rbm_standalone_rich_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmStandaloneCard>,
+    >,
     #[serde(default, rename = "rbmText")]
-    pub rbm_text: Option<GoogleCloudDialogflowV2beta1IntentMessageRbmText>,
+    pub rbm_text:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmText>>,
     #[serde(default, rename = "simpleResponses")]
-    pub simple_responses: Option<GoogleCloudDialogflowV2beta1IntentMessageSimpleResponses>,
+    pub simple_responses: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageSimpleResponses>,
+    >,
     #[serde(default)]
-    pub suggestions: Option<GoogleCloudDialogflowV2beta1IntentMessageSuggestions>,
+    pub suggestions: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageSuggestions>,
+    >,
     #[serde(default, rename = "tableCard")]
-    pub table_card: Option<GoogleCloudDialogflowV2beta1IntentMessageTableCard>,
+    pub table_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageTableCard>,
+    >,
     #[serde(default, rename = "telephonyPlayAudio")]
-    pub telephony_play_audio: Option<GoogleCloudDialogflowV2beta1IntentMessageTelephonyPlayAudio>,
+    pub telephony_play_audio: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageTelephonyPlayAudio>,
+    >,
     #[serde(default, rename = "telephonySynthesizeSpeech")]
-    pub telephony_synthesize_speech:
-        Option<GoogleCloudDialogflowV2beta1IntentMessageTelephonySynthesizeSpeech>,
+    pub telephony_synthesize_speech: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageTelephonySynthesizeSpeech>,
+    >,
     #[serde(default, rename = "telephonyTransferCall")]
-    pub telephony_transfer_call:
-        Option<GoogleCloudDialogflowV2beta1IntentMessageTelephonyTransferCall>,
+    pub telephony_transfer_call: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageTelephonyTransferCall>,
+    >,
     #[serde(default)]
-    pub text: Option<GoogleCloudDialogflowV2beta1IntentMessageText>,
+    pub text:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageText>>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageBasicCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageBasicCard {
     #[serde(default)]
-    pub buttons: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageBasicCardButton>>,
+    pub buttons: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageBasicCardButton>,
+        >,
+    >,
     #[serde(default, rename = "formattedText")]
-    pub formatted_text: Option<String>,
+    pub formatted_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub image:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageBasicCardButton resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageBasicCardButton {
     #[serde(default, rename = "openUriAction")]
-    pub open_uri_action:
-        Option<GoogleCloudDialogflowV2beta1IntentMessageBasicCardButtonOpenUriAction>,
+    pub open_uri_action: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageBasicCardButtonOpenUriAction>,
+    >,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageBasicCardButtonOpenUriAction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageBasicCardButtonOpenUriAction {
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCard resource type.
@@ -6529,10 +7367,14 @@ pub struct GoogleCloudDialogflowV2beta1IntentMessageBasicCardButtonOpenUriAction
 pub struct GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCard {
     /// TODO: enum values: ["IMAGE_DISPLAY_OPTIONS_UNSPECIFIED", "GRAY", "WHITE", "CROPPED", "BLURRED_BACKGROUND"]
     #[serde(default, rename = "imageDisplayOptions")]
-    pub image_display_options: Option<String>,
+    pub image_display_options: ::core::option::Option<String>,
     #[serde(default)]
-    pub items: Option<
-        Vec<GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCarouselCardItem>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCarouselCardItem,
+            >,
+        >,
     >,
 }
 
@@ -6540,15 +7382,15 @@ pub struct GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCard {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCarouselCardItem {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub footer: Option<String>,
+    pub footer: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default, rename = "openUriAction")]
-    pub open_uri_action: Option<GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction>,
+    pub open_uri_action: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction>>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction resource type.
@@ -6556,497 +7398,565 @@ pub struct GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCaro
 pub struct GoogleCloudDialogflowV2beta1IntentMessageBrowseCarouselCardBrowseCarouselCardItemOpenUrlAction
 {
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// TODO: enum values: ["URL_TYPE_HINT_UNSPECIFIED", "AMP_ACTION", "AMP_CONTENT"]
     #[serde(default, rename = "urlTypeHint")]
-    pub url_type_hint: Option<String>,
+    pub url_type_hint: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageCard {
     #[serde(default)]
-    pub buttons: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageCardButton>>,
+    pub buttons: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageCardButton>>,
+    >,
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageCardButton resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageCardButton {
     #[serde(default)]
-    pub postback: Option<String>,
+    pub postback: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageCarouselSelect resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageCarouselSelect {
     #[serde(default)]
-    pub items: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageCarouselSelectItem>>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageCarouselSelectItem>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageCarouselSelectItem resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageCarouselSelectItem {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub image:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default)]
-    pub info: Option<GoogleCloudDialogflowV2beta1IntentMessageSelectItemInfo>,
+    pub info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageSelectItemInfo>,
+    >,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageColumnProperties resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageColumnProperties {
     #[serde(default)]
-    pub header: Option<String>,
+    pub header: ::core::option::Option<String>,
     /// TODO: enum values: ["HORIZONTAL_ALIGNMENT_UNSPECIFIED", "LEADING", "CENTER", "TRAILING"]
     #[serde(default, rename = "horizontalAlignment")]
-    pub horizontal_alignment: Option<String>,
+    pub horizontal_alignment: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageImage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageImage {
     #[serde(default, rename = "accessibilityText")]
-    pub accessibility_text: Option<String>,
+    pub accessibility_text: ::core::option::Option<String>,
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageLinkOutSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageLinkOutSuggestion {
     #[serde(default, rename = "destinationName")]
-    pub destination_name: Option<String>,
+    pub destination_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageListSelect resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageListSelect {
     #[serde(default)]
-    pub items: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageListSelectItem>>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageListSelectItem>>,
+    >,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageListSelectItem resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageListSelectItem {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub image:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default)]
-    pub info: Option<GoogleCloudDialogflowV2beta1IntentMessageSelectItemInfo>,
+    pub info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageSelectItemInfo>,
+    >,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageMediaContent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageMediaContent {
     #[serde(default, rename = "mediaObjects")]
-    pub media_objects:
-        Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageMediaContentResponseMediaObject>>,
+    pub media_objects: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDialogflowV2beta1IntentMessageMediaContentResponseMediaObject,
+            >,
+        >,
+    >,
     /// TODO: enum values: ["RESPONSE_MEDIA_TYPE_UNSPECIFIED", "AUDIO"]
     #[serde(default, rename = "mediaType")]
-    pub media_type: Option<String>,
+    pub media_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageMediaContentResponseMediaObject resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageMediaContentResponseMediaObject {
     #[serde(default, rename = "contentUrl")]
-    pub content_url: Option<String>,
+    pub content_url: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub icon: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub icon:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default, rename = "largeImage")]
-    pub large_image: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub large_image:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageQuickReplies resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageQuickReplies {
     #[serde(default, rename = "quickReplies")]
-    pub quick_replies: Option<Vec<String>>,
+    pub quick_replies: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmCardContent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmCardContent {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub media: Option<GoogleCloudDialogflowV2beta1IntentMessageRbmCardContentRbmMedia>,
+    pub media: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmCardContentRbmMedia>,
+    >,
     #[serde(default)]
-    pub suggestions: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestion>>,
+    pub suggestions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestion>>,
+    >,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmCardContentRbmMedia resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmCardContentRbmMedia {
     #[serde(default, rename = "fileUri")]
-    pub file_uri: Option<String>,
+    pub file_uri: ::core::option::Option<String>,
     /// TODO: enum values: ["HEIGHT_UNSPECIFIED", "SHORT", "MEDIUM", "TALL"]
     #[serde(default)]
-    pub height: Option<String>,
+    pub height: ::core::option::Option<String>,
     #[serde(default, rename = "thumbnailUri")]
-    pub thumbnail_uri: Option<String>,
+    pub thumbnail_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmCarouselCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmCarouselCard {
     #[serde(default, rename = "cardContents")]
-    pub card_contents: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageRbmCardContent>>,
+    pub card_contents: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmCardContent>>,
+    >,
     /// TODO: enum values: ["CARD_WIDTH_UNSPECIFIED", "SMALL", "MEDIUM"]
     #[serde(default, rename = "cardWidth")]
-    pub card_width: Option<String>,
+    pub card_width: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmStandaloneCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmStandaloneCard {
     #[serde(default, rename = "cardContent")]
-    pub card_content: Option<GoogleCloudDialogflowV2beta1IntentMessageRbmCardContent>,
+    pub card_content: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmCardContent>,
+    >,
     /// TODO: enum values: ["CARD_ORIENTATION_UNSPECIFIED", "HORIZONTAL", "VERTICAL"]
     #[serde(default, rename = "cardOrientation")]
-    pub card_orientation: Option<String>,
+    pub card_orientation: ::core::option::Option<String>,
     /// TODO: enum values: ["THUMBNAIL_IMAGE_ALIGNMENT_UNSPECIFIED", "LEFT", "RIGHT"]
     #[serde(default, rename = "thumbnailImageAlignment")]
-    pub thumbnail_image_alignment: Option<String>,
+    pub thumbnail_image_alignment: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction {
     #[serde(default)]
-    pub dial:
-        Option<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionDial>,
+    pub dial: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionDial,
+        >,
+    >,
     #[serde(default, rename = "openUrl")]
-    pub open_url: Option<
-        GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri,
+    pub open_url: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri,
+        >,
     >,
     #[serde(default, rename = "postbackData")]
-    pub postback_data: Option<String>,
+    pub postback_data: ::core::option::Option<String>,
     #[serde(default, rename = "shareLocation")]
-    pub share_location: Option<serde_json::Value>,
+    pub share_location: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionDial resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionDial {
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri {
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedReply resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedReply {
     #[serde(default, rename = "postbackData")]
-    pub postback_data: Option<String>,
+    pub postback_data: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestion {
     #[serde(default)]
-    pub action: Option<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction>,
+    pub action: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction>,
+    >,
     #[serde(default)]
-    pub reply: Option<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedReply>,
+    pub reply: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedReply>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageRbmText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmText {
     #[serde(default, rename = "rbmSuggestion")]
-    pub rbm_suggestion: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestion>>,
+    pub rbm_suggestion: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestion>>,
+    >,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageSelectItemInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageSelectItemInfo {
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     #[serde(default)]
-    pub synonyms: Option<Vec<String>>,
+    pub synonyms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageSimpleResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageSimpleResponse {
     #[serde(default, rename = "displayText")]
-    pub display_text: Option<String>,
+    pub display_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub ssml: Option<String>,
+    pub ssml: ::core::option::Option<String>,
     #[serde(default, rename = "textToSpeech")]
-    pub text_to_speech: Option<String>,
+    pub text_to_speech: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageSimpleResponses resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageSimpleResponses {
     #[serde(default, rename = "simpleResponses")]
-    pub simple_responses: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageSimpleResponse>>,
+    pub simple_responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageSimpleResponse>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageSuggestion {
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageSuggestions resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageSuggestions {
     #[serde(default)]
-    pub suggestions: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageSuggestion>>,
+    pub suggestions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageSuggestion>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageTableCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageTableCard {
     #[serde(default)]
-    pub buttons: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageBasicCardButton>>,
+    pub buttons: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageBasicCardButton>,
+        >,
+    >,
     #[serde(default, rename = "columnProperties")]
-    pub column_properties: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageColumnProperties>>,
+    pub column_properties: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageColumnProperties>,
+        >,
+    >,
     #[serde(default)]
-    pub image: Option<GoogleCloudDialogflowV2beta1IntentMessageImage>,
+    pub image:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageImage>>,
     #[serde(default)]
-    pub rows: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageTableCardRow>>,
+    pub rows: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageTableCardRow>>,
+    >,
     #[serde(default)]
-    pub subtitle: Option<String>,
+    pub subtitle: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageTableCardCell resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageTableCardCell {
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageTableCardRow resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageTableCardRow {
     #[serde(default)]
-    pub cells: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessageTableCardCell>>,
+    pub cells: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessageTableCardCell>>,
+    >,
     #[serde(default, rename = "dividerAfter")]
-    pub divider_after: Option<bool>,
+    pub divider_after: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageTelephonyPlayAudio resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageTelephonyPlayAudio {
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageTelephonySynthesizeSpeech resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageTelephonySynthesizeSpeech {
     #[serde(default)]
-    pub ssml: Option<String>,
+    pub ssml: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageTelephonyTransferCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageTelephonyTransferCall {
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentMessageText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentMessageText {
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentParameter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentParameter {
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<String>,
+    pub default_value: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "entityTypeDisplayName")]
-    pub entity_type_display_name: Option<String>,
+    pub entity_type_display_name: ::core::option::Option<String>,
     #[serde(default, rename = "isList")]
-    pub is_list: Option<bool>,
+    pub is_list: ::core::option::Option<bool>,
     #[serde(default)]
-    pub mandatory: Option<bool>,
+    pub mandatory: ::core::option::Option<bool>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub prompts: Option<Vec<String>>,
+    pub prompts: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentSuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentSuggestion {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "intentV2")]
-    pub intent_v2: Option<String>,
+    pub intent_v2: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentTrainingPhrase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentTrainingPhrase {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub parts: Option<Vec<GoogleCloudDialogflowV2beta1IntentTrainingPhrasePart>>,
+    pub parts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentTrainingPhrasePart>>,
+    >,
     #[serde(default, rename = "timesAddedCount")]
-    pub times_added_count: Option<i32>,
+    pub times_added_count: ::core::option::Option<i32>,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "EXAMPLE", "TEMPLATE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1IntentTrainingPhrasePart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1IntentTrainingPhrasePart {
     #[serde(default)]
-    pub alias: Option<String>,
+    pub alias: ::core::option::Option<String>,
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default, rename = "userDefined")]
-    pub user_defined: Option<bool>,
+    pub user_defined: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAnswers resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAnswers {
     #[serde(default)]
-    pub answers: Option<Vec<GoogleCloudDialogflowV2beta1KnowledgeAnswersAnswer>>,
+    pub answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1KnowledgeAnswersAnswer>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAnswersAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAnswersAnswer {
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     #[serde(default, rename = "faqQuestion")]
-    pub faq_question: Option<String>,
+    pub faq_question: ::core::option::Option<String>,
     #[serde(default, rename = "matchConfidence")]
-    pub match_confidence: Option<f32>,
+    pub match_confidence: ::core::option::Option<f32>,
     /// TODO: enum values: ["MATCH_CONFIDENCE_LEVEL_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
     #[serde(default, rename = "matchConfidenceLevel")]
-    pub match_confidence_level: Option<String>,
+    pub match_confidence_level: ::core::option::Option<String>,
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "knowledgeAssistDebugInfo")]
-    pub knowledge_assist_debug_info: Option<GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo>,
+    pub knowledge_assist_debug_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo>,
+    >,
     #[serde(default, rename = "suggestedQuery")]
-    pub suggested_query: Option<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery>,
+    pub suggested_query: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery>,
+    >,
     #[serde(default, rename = "suggestedQueryAnswer")]
-    pub suggested_query_answer:
-        Option<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer>,
+    pub suggested_query_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer {
     #[serde(default, rename = "answerText")]
-    pub answer_text: Option<String>,
+    pub answer_text: ::core::option::Option<String>,
     #[serde(default, rename = "faqSource")]
-    pub faq_source:
-        Option<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerFaqSource>,
+    pub faq_source: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerFaqSource,
+        >,
+    >,
     #[serde(default, rename = "generativeSource")]
-    pub generative_source:
-        Option<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource>,
+    pub generative_source: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerFaqSource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerFaqSource {
     #[serde(default)]
-    pub question: Option<String>,
+    pub question: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource {
     #[serde(default)]
-    pub snippets: Option<
-        Vec<
-            GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet,
-        >,
-    >,
+    pub snippets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet>>>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet {
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery {
     #[serde(default, rename = "queryText")]
-    pub query_text: Option<String>,
+    pub query_text: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo resource type.
@@ -7054,628 +7964,706 @@ pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery {
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo {
     /// TODO: enum values: ["DATASTORE_RESPONSE_REASON_UNSPECIFIED", "NONE", "SEARCH_OUT_OF_QUOTA", "SEARCH_EMPTY_RESULTS", "ANSWER_GENERATION_GEN_AI_DISABLED", "ANSWER_GENERATION_OUT_OF_QUOTA", "ANSWER_GENERATION_ERROR", "ANSWER_GENERATION_NOT_ENOUGH_INFO", "ANSWER_GENERATION_RAI_FAILED", "ANSWER_GENERATION_NOT_GROUNDED"]
     #[serde(default, rename = "datastoreResponseReason")]
-    pub datastore_response_reason: Option<String>,
+    pub datastore_response_reason: ::core::option::Option<String>,
     #[serde(default, rename = "ingestedContextReferenceDebugInfo")]
-    pub ingested_context_reference_debug_info:
-        Option<GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfo>,
+    pub ingested_context_reference_debug_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1IngestedContextReferenceDebugInfo>,
+    >,
     #[serde(default, rename = "knowledgeAssistBehavior")]
-    pub knowledge_assist_behavior:
-        Option<GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfoKnowledgeAssistBehavior>,
+    pub knowledge_assist_behavior: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfoKnowledgeAssistBehavior,
+        >,
+    >,
     /// TODO: enum values: ["QUERY_CATEGORIZATION_FAILURE_REASON_UNSPECIFIED", "QUERY_CATEGORIZATION_INVALID_CONFIG", "QUERY_CATEGORIZATION_RESULT_NOT_FOUND", "QUERY_CATEGORIZATION_FAILED"]
     #[serde(default, rename = "queryCategorizationFailureReason")]
-    pub query_categorization_failure_reason: Option<String>,
+    pub query_categorization_failure_reason: ::core::option::Option<String>,
     /// TODO: enum values: ["QUERY_GENERATION_FAILURE_REASON_UNSPECIFIED", "QUERY_GENERATION_OUT_OF_QUOTA", "QUERY_GENERATION_FAILED", "QUERY_GENERATION_NO_QUERY_GENERATED", "QUERY_GENERATION_RAI_FAILED", "NOT_IN_ALLOWLIST", "QUERY_GENERATION_QUERY_REDACTED", "QUERY_GENERATION_LLM_RESPONSE_PARSE_FAILED", "QUERY_GENERATION_EMPTY_CONVERSATION", "QUERY_GENERATION_EMPTY_LAST_MESSAGE", "QUERY_GENERATION_TRIGGERING_EVENT_CONDITION_NOT_MET"]
     #[serde(default, rename = "queryGenerationFailureReason")]
-    pub query_generation_failure_reason: Option<String>,
+    pub query_generation_failure_reason: ::core::option::Option<String>,
     #[serde(default, rename = "serviceLatency")]
-    pub service_latency: Option<GoogleCloudDialogflowV2beta1ServiceLatency>,
+    pub service_latency:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1ServiceLatency>>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfoKnowledgeAssistBehavior resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfoKnowledgeAssistBehavior {
     #[serde(default, rename = "answerGenerationRewriterOn")]
-    pub answer_generation_rewriter_on: Option<bool>,
+    pub answer_generation_rewriter_on: ::core::option::Option<bool>,
     #[serde(default, rename = "appendedSearchContextCount")]
-    pub appended_search_context_count: Option<i32>,
+    pub appended_search_context_count: ::core::option::Option<i32>,
     #[serde(default, rename = "conversationTranscriptHasMixedLanguages")]
-    pub conversation_transcript_has_mixed_languages: Option<bool>,
+    pub conversation_transcript_has_mixed_languages: ::core::option::Option<bool>,
     #[serde(default, rename = "disableSyncDelivery")]
-    pub disable_sync_delivery: Option<bool>,
+    pub disable_sync_delivery: ::core::option::Option<bool>,
     #[serde(default, rename = "endUserMetadataIncluded")]
-    pub end_user_metadata_included: Option<bool>,
+    pub end_user_metadata_included: ::core::option::Option<bool>,
     #[serde(default, rename = "invalidItemsQuerySuggestionSkipped")]
-    pub invalid_items_query_suggestion_skipped: Option<bool>,
+    pub invalid_items_query_suggestion_skipped: ::core::option::Option<bool>,
     #[serde(default, rename = "multipleQueriesGenerated")]
-    pub multiple_queries_generated: Option<bool>,
+    pub multiple_queries_generated: ::core::option::Option<bool>,
     #[serde(default, rename = "previousQueriesIncluded")]
-    pub previous_queries_included: Option<bool>,
+    pub previous_queries_included: ::core::option::Option<bool>,
     #[serde(default, rename = "primaryQueryRedactedAndReplaced")]
-    pub primary_query_redacted_and_replaced: Option<bool>,
+    pub primary_query_redacted_and_replaced: ::core::option::Option<bool>,
     #[serde(default, rename = "queryContainedSearchContext")]
-    pub query_contained_search_context: Option<bool>,
+    pub query_contained_search_context: ::core::option::Option<bool>,
     #[serde(default, rename = "queryGenerationAgentLanguageMismatch")]
-    pub query_generation_agent_language_mismatch: Option<bool>,
+    pub query_generation_agent_language_mismatch: ::core::option::Option<bool>,
     #[serde(default, rename = "queryGenerationEndUserLanguageMismatch")]
-    pub query_generation_end_user_language_mismatch: Option<bool>,
+    pub query_generation_end_user_language_mismatch: ::core::option::Option<bool>,
     #[serde(default, rename = "returnQueryOnly")]
-    pub return_query_only: Option<bool>,
+    pub return_query_only: ::core::option::Option<bool>,
     #[serde(default, rename = "thirdPartyConnectorAllowed")]
-    pub third_party_connector_allowed: Option<bool>,
+    pub third_party_connector_allowed: ::core::option::Option<bool>,
     #[serde(default, rename = "useCustomSafetyFilterLevel")]
-    pub use_custom_safety_filter_level: Option<bool>,
+    pub use_custom_safety_filter_level: ::core::option::Option<bool>,
     #[serde(default, rename = "usePubsubDelivery")]
-    pub use_pubsub_delivery: Option<bool>,
+    pub use_pubsub_delivery: ::core::option::Option<bool>,
     #[serde(default, rename = "useTranslatedMessage")]
-    pub use_translated_message: Option<bool>,
+    pub use_translated_message: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata {
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
     #[serde(default, rename = "exportOperationMetadata")]
-    pub export_operation_metadata: Option<GoogleCloudDialogflowV2beta1ExportOperationMetadata>,
+    pub export_operation_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1ExportOperationMetadata>,
+    >,
     #[serde(default, rename = "knowledgeBase")]
-    pub knowledge_base: Option<String>,
+    pub knowledge_base: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "DONE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1Message resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1Message {
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "messageAnnotation")]
-    pub message_annotation: Option<GoogleCloudDialogflowV2beta1MessageAnnotation>,
+    pub message_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1MessageAnnotation>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub participant: Option<String>,
+    pub participant: ::core::option::Option<String>,
     /// TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER"]
     #[serde(default, rename = "participantRole")]
-    pub participant_role: Option<String>,
+    pub participant_role: ::core::option::Option<String>,
     #[serde(default, rename = "responseMessages")]
-    pub response_messages: Option<Vec<GoogleCloudDialogflowV2beta1ResponseMessage>>,
+    pub response_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1ResponseMessage>>,
+    >,
     #[serde(default, rename = "sendTime")]
-    pub send_time: Option<String>,
+    pub send_time: ::core::option::Option<String>,
     #[serde(default, rename = "sentimentAnalysis")]
-    pub sentiment_analysis: Option<GoogleCloudDialogflowV2beta1SentimentAnalysisResult>,
+    pub sentiment_analysis: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SentimentAnalysisResult>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1MessageAnnotation resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1MessageAnnotation {
     #[serde(default, rename = "containEntities")]
-    pub contain_entities: Option<bool>,
+    pub contain_entities: ::core::option::Option<bool>,
     #[serde(default)]
-    pub parts: Option<Vec<GoogleCloudDialogflowV2beta1AnnotatedMessagePart>>,
+    pub parts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1AnnotatedMessagePart>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1OriginalDetectIntentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1OriginalDetectIntentRequest {
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1QueryResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1QueryResult {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "allRequiredParamsPresent")]
-    pub all_required_params_present: Option<bool>,
+    pub all_required_params_present: ::core::option::Option<bool>,
     #[serde(default, rename = "cancelsSlotFilling")]
-    pub cancels_slot_filling: Option<bool>,
+    pub cancels_slot_filling: ::core::option::Option<bool>,
     #[serde(default, rename = "diagnosticInfo")]
-    pub diagnostic_info: Option<serde_json::Value>,
+    pub diagnostic_info: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "fulfillmentMessages")]
-    pub fulfillment_messages: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessage>>,
+    pub fulfillment_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessage>>,
+    >,
     #[serde(default, rename = "fulfillmentText")]
-    pub fulfillment_text: Option<String>,
+    pub fulfillment_text: ::core::option::Option<String>,
     #[serde(default)]
-    pub intent: Option<GoogleCloudDialogflowV2beta1Intent>,
+    pub intent: ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1Intent>>,
     #[serde(default, rename = "intentDetectionConfidence")]
-    pub intent_detection_confidence: Option<f32>,
+    pub intent_detection_confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "knowledgeAnswers")]
-    pub knowledge_answers: Option<GoogleCloudDialogflowV2beta1KnowledgeAnswers>,
+    pub knowledge_answers:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1KnowledgeAnswers>>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     #[serde(default, rename = "outputContexts")]
-    pub output_contexts: Option<Vec<GoogleCloudDialogflowV2beta1Context>>,
+    pub output_contexts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1Context>>,
+    >,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "queryText")]
-    pub query_text: Option<String>,
+    pub query_text: ::core::option::Option<String>,
     #[serde(default, rename = "sentimentAnalysisResult")]
-    pub sentiment_analysis_result: Option<GoogleCloudDialogflowV2beta1SentimentAnalysisResult>,
+    pub sentiment_analysis_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SentimentAnalysisResult>,
+    >,
     #[serde(default, rename = "speechRecognitionConfidence")]
-    pub speech_recognition_confidence: Option<f32>,
+    pub speech_recognition_confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "webhookPayload")]
-    pub webhook_payload: Option<serde_json::Value>,
+    pub webhook_payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "webhookSource")]
-    pub webhook_source: Option<String>,
+    pub webhook_source: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1ResponseMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ResponseMessage {
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: Option<serde_json::Value>,
+    pub end_interaction: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "liveAgentHandoff")]
-    pub live_agent_handoff: Option<GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff>,
+    pub live_agent_handoff: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff>,
+    >,
     #[serde(default, rename = "mixedAudio")]
-    pub mixed_audio: Option<GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio>,
+    pub mixed_audio: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio>,
+    >,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "telephonyTransferCall")]
-    pub telephony_transfer_call:
-        Option<GoogleCloudDialogflowV2beta1ResponseMessageTelephonyTransferCall>,
+    pub telephony_transfer_call: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1ResponseMessageTelephonyTransferCall>,
+    >,
     #[serde(default)]
-    pub text: Option<GoogleCloudDialogflowV2beta1ResponseMessageText>,
+    pub text:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1ResponseMessageText>>,
 }
 
 /// GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio {
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudDialogflowV2beta1ResponseMessageMixedAudioSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1ResponseMessageMixedAudioSegment>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1ResponseMessageMixedAudioSegment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ResponseMessageMixedAudioSegment {
     #[serde(default, rename = "allowPlaybackInterruption")]
-    pub allow_playback_interruption: Option<bool>,
+    pub allow_playback_interruption: ::core::option::Option<bool>,
     #[serde(default)]
-    pub audio: Option<String>,
+    pub audio: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1ResponseMessageTelephonyTransferCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ResponseMessageTelephonyTransferCall {
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
     #[serde(default, rename = "sipUri")]
-    pub sip_uri: Option<String>,
+    pub sip_uri: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1ResponseMessageText resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ResponseMessageText {
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowV2beta1Sentiment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1Sentiment {
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// GoogleCloudDialogflowV2beta1SentimentAnalysisResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SentimentAnalysisResult {
     #[serde(default, rename = "queryTextSentiment")]
-    pub query_text_sentiment: Option<GoogleCloudDialogflowV2beta1Sentiment>,
+    pub query_text_sentiment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1Sentiment>>,
 }
 
 /// GoogleCloudDialogflowV2beta1ServiceLatency resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ServiceLatency {
     #[serde(default, rename = "internalServiceLatencies")]
-    pub internal_service_latencies:
-        Option<Vec<GoogleCloudDialogflowV2beta1ServiceLatencyInternalServiceLatency>>,
+    pub internal_service_latencies: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1ServiceLatencyInternalServiceLatency>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1ServiceLatencyInternalServiceLatency resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ServiceLatencyInternalServiceLatency {
     #[serde(default, rename = "completeTime")]
-    pub complete_time: Option<String>,
+    pub complete_time: ::core::option::Option<String>,
     #[serde(default, rename = "latencyMs")]
-    pub latency_ms: Option<f32>,
+    pub latency_ms: ::core::option::Option<f32>,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SessionEntityType resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SessionEntityType {
     #[serde(default)]
-    pub entities: Option<Vec<GoogleCloudDialogflowV2beta1EntityTypeEntity>>,
+    pub entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1EntityTypeEntity>>,
+    >,
     /// TODO: enum values: ["ENTITY_OVERRIDE_MODE_UNSPECIFIED", "ENTITY_OVERRIDE_MODE_OVERRIDE", "ENTITY_OVERRIDE_MODE_SUPPLEMENT"]
     #[serde(default, rename = "entityOverrideMode")]
-    pub entity_override_mode: Option<String>,
+    pub entity_override_mode: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SetSuggestionFeatureConfigOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SetSuggestionFeatureConfigOperationMetadata {
     #[serde(default, rename = "conversationProfile")]
-    pub conversation_profile: Option<String>,
+    pub conversation_profile: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER"]
     #[serde(default, rename = "participantRole")]
-    pub participant_role: Option<String>,
+    pub participant_role: ::core::option::Option<String>,
     /// TODO: enum values: ["TYPE_UNSPECIFIED", "ARTICLE_SUGGESTION", "FAQ", "SMART_REPLY", "DIALOGFLOW_ASSIST", "CONVERSATION_SUMMARIZATION", "KNOWLEDGE_SEARCH", "KNOWLEDGE_ASSIST"]
     #[serde(default, rename = "suggestionFeatureType")]
-    pub suggestion_feature_type: Option<String>,
+    pub suggestion_feature_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SmartReplyAnswer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SmartReplyAnswer {
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default)]
-    pub reply: Option<String>,
+    pub reply: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SpeechWordInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SpeechWordInfo {
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "endOffset")]
-    pub end_offset: Option<String>,
+    pub end_offset: ::core::option::Option<String>,
     #[serde(default, rename = "startOffset")]
-    pub start_offset: Option<String>,
+    pub start_offset: ::core::option::Option<String>,
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1StreamingRecognitionResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1StreamingRecognitionResult {
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     #[serde(default, rename = "dtmfDigits")]
-    pub dtmf_digits: Option<GoogleCloudDialogflowV2beta1TelephonyDtmfEvents>,
+    pub dtmf_digits:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1TelephonyDtmfEvents>>,
     #[serde(default, rename = "isFinal")]
-    pub is_final: Option<bool>,
+    pub is_final: ::core::option::Option<bool>,
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// TODO: enum values: ["MESSAGE_TYPE_UNSPECIFIED", "TRANSCRIPT", "END_OF_SINGLE_UTTERANCE", "DTMF_DIGITS", "PARTIAL_DTMF_DIGITS"]
     #[serde(default, rename = "messageType")]
-    pub message_type: Option<String>,
+    pub message_type: ::core::option::Option<String>,
     #[serde(default, rename = "speechEndOffset")]
-    pub speech_end_offset: Option<String>,
+    pub speech_end_offset: ::core::option::Option<String>,
     #[serde(default, rename = "speechWordInfo")]
-    pub speech_word_info: Option<Vec<GoogleCloudDialogflowV2beta1SpeechWordInfo>>,
+    pub speech_word_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1SpeechWordInfo>>,
+    >,
     #[serde(default)]
-    pub stability: Option<f32>,
+    pub stability: ::core::option::Option<f32>,
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SuggestArticlesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SuggestArticlesResponse {
     #[serde(default, rename = "articleAnswers")]
-    pub article_answers: Option<Vec<GoogleCloudDialogflowV2beta1ArticleAnswer>>,
+    pub article_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1ArticleAnswer>>,
+    >,
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SuggestDialogflowAssistsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SuggestDialogflowAssistsResponse {
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "dialogflowAssistAnswers")]
-    pub dialogflow_assist_answers: Option<Vec<GoogleCloudDialogflowV2beta1DialogflowAssistAnswer>>,
+    pub dialogflow_assist_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1DialogflowAssistAnswer>>,
+    >,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SuggestFaqAnswersResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SuggestFaqAnswersResponse {
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "faqAnswers")]
-    pub faq_answers: Option<Vec<GoogleCloudDialogflowV2beta1FaqAnswer>>,
+    pub faq_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1FaqAnswer>>,
+    >,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SuggestKnowledgeAssistResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SuggestKnowledgeAssistResponse {
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "knowledgeAssistAnswer")]
-    pub knowledge_assist_answer: Option<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswer>,
+    pub knowledge_assist_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1KnowledgeAssistAnswer>,
+    >,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1SuggestSmartRepliesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SuggestSmartRepliesResponse {
     #[serde(default, rename = "contextSize")]
-    pub context_size: Option<i32>,
+    pub context_size: ::core::option::Option<i32>,
     #[serde(default, rename = "latestMessage")]
-    pub latest_message: Option<String>,
+    pub latest_message: ::core::option::Option<String>,
     #[serde(default, rename = "smartReplyAnswers")]
-    pub smart_reply_answers: Option<Vec<GoogleCloudDialogflowV2beta1SmartReplyAnswer>>,
+    pub smart_reply_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1SmartReplyAnswer>>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1SuggestionResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SuggestionResult {
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default, rename = "generateSuggestionsResponse")]
-    pub generate_suggestions_response:
-        Option<GoogleCloudDialogflowV2beta1GenerateSuggestionsResponse>,
+    pub generate_suggestions_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1GenerateSuggestionsResponse>,
+    >,
     #[serde(default, rename = "suggestArticlesResponse")]
-    pub suggest_articles_response: Option<GoogleCloudDialogflowV2beta1SuggestArticlesResponse>,
+    pub suggest_articles_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SuggestArticlesResponse>,
+    >,
     #[serde(default, rename = "suggestDialogflowAssistsResponse")]
-    pub suggest_dialogflow_assists_response:
-        Option<GoogleCloudDialogflowV2beta1SuggestDialogflowAssistsResponse>,
+    pub suggest_dialogflow_assists_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SuggestDialogflowAssistsResponse>,
+    >,
     #[serde(default, rename = "suggestEntityExtractionResponse")]
-    pub suggest_entity_extraction_response:
-        Option<GoogleCloudDialogflowV2beta1SuggestDialogflowAssistsResponse>,
+    pub suggest_entity_extraction_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SuggestDialogflowAssistsResponse>,
+    >,
     #[serde(default, rename = "suggestFaqAnswersResponse")]
-    pub suggest_faq_answers_response: Option<GoogleCloudDialogflowV2beta1SuggestFaqAnswersResponse>,
+    pub suggest_faq_answers_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SuggestFaqAnswersResponse>,
+    >,
     #[serde(default, rename = "suggestKnowledgeAssistResponse")]
-    pub suggest_knowledge_assist_response:
-        Option<GoogleCloudDialogflowV2beta1SuggestKnowledgeAssistResponse>,
+    pub suggest_knowledge_assist_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SuggestKnowledgeAssistResponse>,
+    >,
     #[serde(default, rename = "suggestSmartRepliesResponse")]
-    pub suggest_smart_replies_response:
-        Option<GoogleCloudDialogflowV2beta1SuggestSmartRepliesResponse>,
+    pub suggest_smart_replies_response: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1SuggestSmartRepliesResponse>,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1SummarySuggestion resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SummarySuggestion {
     #[serde(default, rename = "summarySections")]
-    pub summary_sections: Option<Vec<GoogleCloudDialogflowV2beta1SummarySuggestionSummarySection>>,
+    pub summary_sections: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDialogflowV2beta1SummarySuggestionSummarySection>,
+        >,
+    >,
 }
 
 /// GoogleCloudDialogflowV2beta1SummarySuggestionSummarySection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1SummarySuggestionSummarySection {
     #[serde(default)]
-    pub section: Option<String>,
+    pub section: ::core::option::Option<String>,
     #[serde(default)]
-    pub summary: Option<String>,
+    pub summary: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1TelephonyDtmfEvents resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1TelephonyDtmfEvents {
     #[serde(default, rename = "dtmfEvents")]
-    pub dtmf_events: Option<Vec<String>>,
+    pub dtmf_events: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudDialogflowV2beta1ToolCall resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ToolCall {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "cesApp")]
-    pub ces_app: Option<String>,
+    pub ces_app: ::core::option::Option<String>,
     #[serde(default, rename = "cesTool")]
-    pub ces_tool: Option<String>,
+    pub ces_tool: ::core::option::Option<String>,
     #[serde(default, rename = "cesToolset")]
-    pub ces_toolset: Option<String>,
+    pub ces_toolset: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "inputParameters")]
-    pub input_parameters: Option<serde_json::Value>,
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "TRIGGERED", "NEEDS_CONFIRMATION"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
     #[serde(default, rename = "toolDisplayDetails")]
-    pub tool_display_details: Option<String>,
+    pub tool_display_details: ::core::option::Option<String>,
     #[serde(default, rename = "toolDisplayName")]
-    pub tool_display_name: Option<String>,
+    pub tool_display_name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1ToolCallResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ToolCallResult {
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     #[serde(default, rename = "cesApp")]
-    pub ces_app: Option<String>,
+    pub ces_app: ::core::option::Option<String>,
     #[serde(default, rename = "cesTool")]
-    pub ces_tool: Option<String>,
+    pub ces_tool: ::core::option::Option<String>,
     #[serde(default, rename = "cesToolset")]
-    pub ces_toolset: Option<String>,
+    pub ces_toolset: ::core::option::Option<String>,
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub error: Option<GoogleCloudDialogflowV2beta1ToolCallResultError>,
+    pub error:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1ToolCallResultError>>,
     #[serde(default, rename = "rawContent")]
-    pub raw_content: Option<String>,
+    pub raw_content: ::core::option::Option<String>,
     #[serde(default)]
-    pub tool: Option<String>,
+    pub tool: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1ToolCallResultError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1ToolCallResultError {
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1WebhookRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1WebhookRequest {
     #[serde(default, rename = "alternativeQueryResults")]
-    pub alternative_query_results: Option<Vec<GoogleCloudDialogflowV2beta1QueryResult>>,
+    pub alternative_query_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1QueryResult>>,
+    >,
     #[serde(default, rename = "originalDetectIntentRequest")]
-    pub original_detect_intent_request:
-        Option<GoogleCloudDialogflowV2beta1OriginalDetectIntentRequest>,
+    pub original_detect_intent_request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowV2beta1OriginalDetectIntentRequest>,
+    >,
     #[serde(default, rename = "queryResult")]
-    pub query_result: Option<GoogleCloudDialogflowV2beta1QueryResult>,
+    pub query_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1QueryResult>>,
     #[serde(default, rename = "responseId")]
-    pub response_id: Option<String>,
+    pub response_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub session: Option<String>,
+    pub session: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV2beta1WebhookResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1WebhookResponse {
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: Option<bool>,
+    pub end_interaction: ::core::option::Option<bool>,
     #[serde(default, rename = "followupEventInput")]
-    pub followup_event_input: Option<GoogleCloudDialogflowV2beta1EventInput>,
+    pub followup_event_input:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV2beta1EventInput>>,
     #[serde(default, rename = "fulfillmentMessages")]
-    pub fulfillment_messages: Option<Vec<GoogleCloudDialogflowV2beta1IntentMessage>>,
+    pub fulfillment_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1IntentMessage>>,
+    >,
     #[serde(default, rename = "fulfillmentText")]
-    pub fulfillment_text: Option<String>,
+    pub fulfillment_text: ::core::option::Option<String>,
     #[serde(default, rename = "liveAgentHandoff")]
-    pub live_agent_handoff: Option<bool>,
+    pub live_agent_handoff: ::core::option::Option<bool>,
     #[serde(default, rename = "outputContexts")]
-    pub output_contexts: Option<Vec<GoogleCloudDialogflowV2beta1Context>>,
+    pub output_contexts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1Context>>,
+    >,
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "sessionEntityTypes")]
-    pub session_entity_types: Option<Vec<GoogleCloudDialogflowV2beta1SessionEntityType>>,
+    pub session_entity_types: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowV2beta1SessionEntityType>>,
+    >,
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDialogflowV3alpha1ConversationSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV3alpha1ConversationSignals {
     #[serde(default, rename = "turnSignals")]
-    pub turn_signals: Option<GoogleCloudDialogflowV3alpha1TurnSignals>,
+    pub turn_signals:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDialogflowV3alpha1TurnSignals>>,
 }
 
 /// GoogleCloudDialogflowV3alpha1TurnSignals resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV3alpha1TurnSignals {
     #[serde(default, rename = "agentEscalated")]
-    pub agent_escalated: Option<bool>,
+    pub agent_escalated: ::core::option::Option<bool>,
     #[serde(default, rename = "dtmfUsed")]
-    pub dtmf_used: Option<bool>,
+    pub dtmf_used: ::core::option::Option<bool>,
     #[serde(default, rename = "failureReasons")]
-    pub failure_reasons: Option<Vec<String>>,
+    pub failure_reasons: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "noMatch")]
-    pub no_match: Option<bool>,
+    pub no_match: ::core::option::Option<bool>,
     #[serde(default, rename = "noUserInput")]
-    pub no_user_input: Option<bool>,
+    pub no_user_input: ::core::option::Option<bool>,
     #[serde(default, rename = "reachedEndPage")]
-    pub reached_end_page: Option<bool>,
+    pub reached_end_page: ::core::option::Option<bool>,
     #[serde(default, rename = "sentimentMagnitude")]
-    pub sentiment_magnitude: Option<f32>,
+    pub sentiment_magnitude: ::core::option::Option<f32>,
     #[serde(default, rename = "sentimentScore")]
-    pub sentiment_score: Option<f32>,
+    pub sentiment_score: ::core::option::Option<f32>,
     #[serde(default, rename = "triggeredAbandonmentEvent")]
-    pub triggered_abandonment_event: Option<bool>,
+    pub triggered_abandonment_event: ::core::option::Option<bool>,
     #[serde(default, rename = "userEscalated")]
-    pub user_escalated: Option<bool>,
+    pub user_escalated: ::core::option::Option<bool>,
     #[serde(default, rename = "webhookStatuses")]
-    pub webhook_statuses: Option<Vec<String>>,
+    pub webhook_statuses: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudLocationListLocationsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudLocationListLocationsResponse {
     #[serde(default)]
-    pub locations: Option<Vec<GoogleCloudLocationLocation>>,
+    pub locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudLocationLocation>>>,
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// GoogleCloudLocationLocation resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudLocationLocation {
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleLongrunningListOperationsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleLongrunningOperation resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningOperation {
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// GoogleRpcStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleRpcStatus {
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// GoogleTypeLatLng resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleTypeLatLng {
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
 }

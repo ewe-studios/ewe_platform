@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Request used by the AddAddressGroupItems method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddAddressGroupItemsRequest {
     /// Required. List of items to add.
     #[serde(default)]
-    pub items: Option<Vec<String>>,
+    pub items: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// AddressGroup is a resource that specifies how a collection of IP/DNS used in Firewall Policy.
@@ -29,34 +29,34 @@ pub struct AddAddressGroupItemsRequest {
 pub struct AddressGroup {
     /// Required. Capacity of the Address Group
     #[serde(default)]
-    pub capacity: Option<i32>,
+    pub capacity: ::core::option::Option<i32>,
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. List of items.
     #[serde(default)]
-    pub items: Option<Vec<String>>,
+    pub items: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Set of label tags associated with the AddressGroup resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Name of the AddressGroup resource. It matches pattern projects/*/locations/{location}/addressGroups/.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. List of supported purposes of the Address Group.
     #[serde(default)]
-    pub purpose: Option<Vec<String>>,
+    pub purpose: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Server-defined fully-qualified URL for this resource.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// Required. The type of the Address Group. Possible values are "IPv4" or "IPV6". // TODO: enum values: ["TYPE_UNSPECIFIED", "IPV4", "IPV6"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Defines what action to take for antivirus threats per protocol.
@@ -64,10 +64,10 @@ pub struct AddressGroup {
 pub struct AntivirusOverride {
     /// Required. Threat action override. For some threat types, only a subset of actions applies. // TODO: enum values: ["THREAT_ACTION_UNSPECIFIED", "DEFAULT_ACTION", "ALLOW", "ALERT", "DENY"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Required. Protocol to match. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "SMTP", "SMB", "POP3", "IMAP", "HTTP2", "HTTP", "FTP"]
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
 }
 
 /// AuthorizationPolicy is a resource that specifies how a server should authorize incoming connections. This resource in itself does not change the configuration unless it''s attached to a target https proxy or endpoint config selector resource.
@@ -75,25 +75,25 @@ pub struct AntivirusOverride {
 pub struct AuthorizationPolicy {
     /// Required. The action to take when a rule match is found. Possible values are "ALLOW" or "DENY". // TODO: enum values: ["ACTION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Set of label tags associated with the AuthorizationPolicy resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Name of the AuthorizationPolicy resource. It matches pattern projects/{project}/locations/{location}/authorizationPolicies/.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. List of rules to match. Note that at least one of the rules must match in order for the action specified in the ''action'' field to be taken. A rule is a match if there is a matching source and destination. If left blank, the action specified in the action field will be applied on every request.
     #[serde(default)]
-    pub rules: Option<Vec<Rule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Rule>>>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// AuthzPolicy is a resource that allows to forward traffic to a callout backend designed to scan the traffic for security purposes.
@@ -101,34 +101,35 @@ pub struct AuthorizationPolicy {
 pub struct AuthzPolicy {
     /// Required. Can be one of ALLOW, DENY, CUSTOM. When the action is CUSTOM, customProvider must be specified. When the action is ALLOW, only requests matching the policy will be allowed. When the action is DENY, only requests matching the policy will be denied. When a request arrives, the policies are evaluated in the following order: 1. If there is a CUSTOM policy that matches the request, the CUSTOM policy is evaluated using the custom authorization providers and the request is denied if the provider rejects the request. 2. If there are any DENY policies that match the request, the request is denied. 3. If there are no ALLOW policies for the resource or if any of the ALLOW policies match the request, the request is allowed. 4. Else the request is denied by default if none of the configured AuthzPolicies with ALLOW action match the request. // TODO: enum values: ["AUTHZ_ACTION_UNSPECIFIED", "ALLOW", "DENY", "CUSTOM"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Required if the action is CUSTOM. Allows delegating authorization decisions to Cloud IAP or to Service Extensions. One of cloudIap or authzExtension must be specified.
     #[serde(default, rename = "customProvider")]
-    pub custom_provider: Option<AuthzPolicyCustomProvider>,
+    pub custom_provider: ::core::option::Option<::std::boxed::Box<AuthzPolicyCustomProvider>>,
     /// Optional. A human-readable description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. A list of authorization HTTP rules to match against the incoming request. A policy match occurs when at least one HTTP rule matches the request or when no HTTP rules are specified in the policy. At least one HTTP Rule is required for Allow or Deny Action. Limited to 5 rules.
     #[serde(default, rename = "httpRules")]
-    pub http_rules: Option<Vec<AuthzPolicyAuthzRule>>,
+    pub http_rules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRule>>>,
     /// Optional. Set of labels associated with the AuthzPolicy resource. The format must comply with [the following requirements](/compute/docs/labeling-resources#requirements).
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Identifier. Name of the AuthzPolicy resource in the following format: projects/{project}/locations/{location}/authzPolicies/{authz_policy}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Immutable. Defines the type of authorization being performed. If not specified, REQUEST_AUTHZ is applied. This field cannot be changed once AuthzPolicy is created. // TODO: enum values: ["POLICY_PROFILE_UNSPECIFIED", "REQUEST_AUTHZ", "CONTENT_AUTHZ"]
     #[serde(default, rename = "policyProfile")]
-    pub policy_profile: Option<String>,
+    pub policy_profile: ::core::option::Option<String>,
     /// Required. Specifies the set of resources to which this policy should be applied to.
     #[serde(default)]
-    pub target: Option<AuthzPolicyTarget>,
+    pub target: ::core::option::Option<::std::boxed::Box<AuthzPolicyTarget>>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Conditions to match against the incoming request.
@@ -136,13 +137,13 @@ pub struct AuthzPolicy {
 pub struct AuthzPolicyAuthzRule {
     /// Optional. Describes properties of a source of a request.
     #[serde(default)]
-    pub from: Option<AuthzPolicyAuthzRuleFrom>,
+    pub from: ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleFrom>>,
     /// Optional. Describes properties of a target of a request.
     #[serde(default)]
-    pub to: Option<AuthzPolicyAuthzRuleTo>,
+    pub to: ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleTo>>,
     /// Optional. CEL expression that describes the conditions to be satisfied for the action. The result of the CEL expression is ANDed with the from and to. Refer to the CEL language reference for a list of available attributes.
     #[serde(default)]
-    pub when: Option<String>,
+    pub when: ::core::option::Option<String>,
 }
 
 /// Describes properties of one or more sources of a request.
@@ -150,10 +151,14 @@ pub struct AuthzPolicyAuthzRule {
 pub struct AuthzPolicyAuthzRuleFrom {
     /// Optional. Describes the negated properties of request sources. Matches requests from sources that do not match the criteria specified in this field. At least one of sources or notSources must be specified.
     #[serde(default, rename = "notSources")]
-    pub not_sources: Option<Vec<AuthzPolicyAuthzRuleFromRequestSource>>,
+    pub not_sources: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleFromRequestSource>>,
+    >,
     /// Optional. Describes the properties of a request''s sources. At least one of sources or notSources must be specified. Limited to 1 source. A match occurs when ANY source (in sources or notSources) matches the request. Within a single source, the match follows AND semantics across fields and OR semantics within a single field, i.e. a match occurs when ANY principal matches AND ANY ipBlocks match.
     #[serde(default)]
-    pub sources: Option<Vec<AuthzPolicyAuthzRuleFromRequestSource>>,
+    pub sources: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleFromRequestSource>>,
+    >,
 }
 
 /// Describes the properties of a single source.
@@ -161,13 +166,17 @@ pub struct AuthzPolicyAuthzRuleFrom {
 pub struct AuthzPolicyAuthzRuleFromRequestSource {
     /// Optional. A list of IP addresses or IP address ranges to match against the source IP address of the request. Limited to 10 ip_blocks per Authorization Policy
     #[serde(default, rename = "ipBlocks")]
-    pub ip_blocks: Option<Vec<AuthzPolicyAuthzRuleIpBlock>>,
+    pub ip_blocks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleIpBlock>>>,
     /// Optional. A list of identities derived from the client''s certificate. This field will not match on a request unless frontend mutual TLS is enabled for the forwarding rule or Gateway and the client certificate has been successfully validated by mTLS. Each identity is a string whose value is matched against a list of URI SANs, DNS Name SANs, or the common name in the client''s certificate. A match happens when any principal matches with the rule. Limited to 50 principals per Authorization Policy for regional internal Application Load Balancers, regional external Application Load Balancers, cross-region internal Application Load Balancers, and Cloud Service Mesh. This field is not supported for global external Application Load Balancers.
     #[serde(default)]
-    pub principals: Option<Vec<AuthzPolicyAuthzRulePrincipal>>,
+    pub principals:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRulePrincipal>>>,
     /// Optional. A list of resources to match against the resource of the source VM of a request. Limited to 10 resources per Authorization Policy.
     #[serde(default)]
-    pub resources: Option<Vec<AuthzPolicyAuthzRuleRequestResource>>,
+    pub resources: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleRequestResource>>,
+    >,
 }
 
 /// Determines how a HTTP header should be matched.
@@ -175,10 +184,10 @@ pub struct AuthzPolicyAuthzRuleFromRequestSource {
 pub struct AuthzPolicyAuthzRuleHeaderMatch {
     /// Optional. Specifies the name of the header in the request.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Specifies how the header match will be performed.
     #[serde(default)]
-    pub value: Option<AuthzPolicyAuthzRuleStringMatch>,
+    pub value: ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleStringMatch>>,
 }
 
 /// Represents a range of IP Addresses.
@@ -186,10 +195,10 @@ pub struct AuthzPolicyAuthzRuleHeaderMatch {
 pub struct AuthzPolicyAuthzRuleIpBlock {
     /// Required. The length of the address range.
     #[serde(default)]
-    pub length: Option<i32>,
+    pub length: ::core::option::Option<i32>,
     /// Required. The address prefix.
     #[serde(default)]
-    pub prefix: Option<String>,
+    pub prefix: ::core::option::Option<String>,
 }
 
 /// Describes the properties of a principal to be matched against.
@@ -197,10 +206,10 @@ pub struct AuthzPolicyAuthzRuleIpBlock {
 pub struct AuthzPolicyAuthzRulePrincipal {
     /// Required. A non-empty string whose value is matched against the principal value based on the principal_selector. Only exact match can be applied for CLIENT_CERT_URI_SAN, CLIENT_CERT_DNS_NAME_SAN, CLIENT_CERT_COMMON_NAME selectors.
     #[serde(default)]
-    pub principal: Option<AuthzPolicyAuthzRuleStringMatch>,
+    pub principal: ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleStringMatch>>,
     /// Optional. An enum to decide what principal value the principal rule will match against. If not specified, the PrincipalSelector is CLIENT_CERT_URI_SAN. // TODO: enum values: ["PRINCIPAL_SELECTOR_UNSPECIFIED", "CLIENT_CERT_URI_SAN", "CLIENT_CERT_DNS_NAME_SAN", "CLIENT_CERT_COMMON_NAME"]
     #[serde(default, rename = "principalSelector")]
-    pub principal_selector: Option<String>,
+    pub principal_selector: ::core::option::Option<String>,
 }
 
 /// Describes the properties of a client VM resource accessing the internal application load balancers.
@@ -208,10 +217,12 @@ pub struct AuthzPolicyAuthzRulePrincipal {
 pub struct AuthzPolicyAuthzRuleRequestResource {
     /// Optional. An IAM service account to match against the source service account of the VM sending the request.
     #[serde(default, rename = "iamServiceAccount")]
-    pub iam_service_account: Option<AuthzPolicyAuthzRuleStringMatch>,
+    pub iam_service_account:
+        ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleStringMatch>>,
     /// Optional. A list of resource tag value permanent IDs to match against the resource manager tags value associated with the source VM of a request.
     #[serde(default, rename = "tagValueIdSet")]
-    pub tag_value_id_set: Option<AuthzPolicyAuthzRuleRequestResourceTagValueIdSet>,
+    pub tag_value_id_set:
+        ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleRequestResourceTagValueIdSet>>,
 }
 
 /// Describes a set of resource tag value permanent IDs to match against the resource manager tags value associated with the source VM of a request.
@@ -219,7 +230,7 @@ pub struct AuthzPolicyAuthzRuleRequestResource {
 pub struct AuthzPolicyAuthzRuleRequestResourceTagValueIdSet {
     /// Required. A list of resource tag value permanent IDs to match against the resource manager tags value associated with the source VM of a request. The match follows AND semantics which means all the ids must match. Limited to 5 ids in the Tag value id set.
     #[serde(default)]
-    pub ids: Option<Vec<String>>,
+    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Determines how a string value should be matched.
@@ -227,19 +238,19 @@ pub struct AuthzPolicyAuthzRuleRequestResourceTagValueIdSet {
 pub struct AuthzPolicyAuthzRuleStringMatch {
     /// The input string must have the substring specified here. Note: empty contains match is not allowed, please use regex instead. Examples: * abc matches the value xyz.abc.def
     #[serde(default)]
-    pub contains: Option<String>,
+    pub contains: ::core::option::Option<String>,
     /// The input string must match exactly the string specified here. Examples: * abc only matches the value abc.
     #[serde(default)]
-    pub exact: Option<String>,
+    pub exact: ::core::option::Option<String>,
     /// If true, indicates the exact/prefix/suffix/contains matching should be case insensitive. For example, the matcher data will match both input string Data and data if set to true.
     #[serde(default, rename = "ignoreCase")]
-    pub ignore_case: Option<bool>,
+    pub ignore_case: ::core::option::Option<bool>,
     /// The input string must have the prefix specified here. Note: empty prefix is not allowed, please use regex instead. Examples: * abc matches the value abc.xyz
     #[serde(default)]
-    pub prefix: Option<String>,
+    pub prefix: ::core::option::Option<String>,
     /// The input string must have the suffix specified here. Note: empty prefix is not allowed, please use regex instead. Examples: * abc matches the value xyz.abc
     #[serde(default)]
-    pub suffix: Option<String>,
+    pub suffix: ::core::option::Option<String>,
 }
 
 /// Describes properties of one or more targets of a request.
@@ -247,10 +258,14 @@ pub struct AuthzPolicyAuthzRuleStringMatch {
 pub struct AuthzPolicyAuthzRuleTo {
     /// Optional. Describes the negated properties of the targets of a request. Matches requests for operations that do not match the criteria specified in this field. At least one of operations or notOperations must be specified.
     #[serde(default, rename = "notOperations")]
-    pub not_operations: Option<Vec<AuthzPolicyAuthzRuleToRequestOperation>>,
+    pub not_operations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleToRequestOperation>>,
+    >,
     /// Optional. Describes properties of one or more targets of a request. At least one of operations or notOperations must be specified. Limited to 1 operation. A match occurs when ANY operation (in operations or notOperations) matches. Within an operation, the match follows AND semantics across fields and OR semantics within a field, i.e. a match occurs when ANY path matches AND ANY header matches and ANY method matches.
     #[serde(default)]
-    pub operations: Option<Vec<AuthzPolicyAuthzRuleToRequestOperation>>,
+    pub operations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleToRequestOperation>>,
+    >,
 }
 
 /// Describes properties of one or more targets of a request.
@@ -258,19 +273,22 @@ pub struct AuthzPolicyAuthzRuleTo {
 pub struct AuthzPolicyAuthzRuleToRequestOperation {
     /// Optional. A list of headers to match against in http header.
     #[serde(default, rename = "headerSet")]
-    pub header_set: Option<AuthzPolicyAuthzRuleToRequestOperationHeaderSet>,
+    pub header_set:
+        ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleToRequestOperationHeaderSet>>,
     /// Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.
     #[serde(default)]
-    pub hosts: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
+    pub hosts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleStringMatch>>>,
     /// Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.
     #[serde(default)]
-    pub mcp: Option<AuthzPolicyAuthzRuleToRequestOperationMCP>,
+    pub mcp: ::core::option::Option<::std::boxed::Box<AuthzPolicyAuthzRuleToRequestOperationMCP>>,
     /// Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.
     #[serde(default)]
-    pub methods: Option<Vec<String>>,
+    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A list of paths to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 paths per Authorization Policy. Note that this path match includes the query parameters. For gRPC services, this should be a fully-qualified name of the form /package.service/method.
     #[serde(default)]
-    pub paths: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
+    pub paths:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleStringMatch>>>,
 }
 
 /// Describes a set of HTTP headers to match against.
@@ -278,7 +296,8 @@ pub struct AuthzPolicyAuthzRuleToRequestOperation {
 pub struct AuthzPolicyAuthzRuleToRequestOperationHeaderSet {
     /// Required. A list of headers to match against in http header. The match can be one of exact, prefix, suffix, or contains (substring match). The match follows AND semantics which means all the headers must match. Matches are always case sensitive unless the ignoreCase is set. Limited to 10 headers per Authorization Policy.
     #[serde(default)]
-    pub headers: Option<Vec<AuthzPolicyAuthzRuleHeaderMatch>>,
+    pub headers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleHeaderMatch>>>,
 }
 
 /// Describes a set of MCP protocol attributes to match against for a given MCP request.
@@ -286,10 +305,12 @@ pub struct AuthzPolicyAuthzRuleToRequestOperationHeaderSet {
 pub struct AuthzPolicyAuthzRuleToRequestOperationMCP {
     /// Optional. If specified, matches on the MCP protocol’s non-access specific methods namely: * initialize * completion/ * logging/ * notifications/ * ping Defaults to SKIP_BASE_PROTOCOL_METHODS if not specified. // TODO: enum values: ["BASE_PROTOCOL_METHODS_OPTION_UNSPECIFIED", "SKIP_BASE_PROTOCOL_METHODS", "MATCH_BASE_PROTOCOL_METHODS"]
     #[serde(default, rename = "baseProtocolMethodsOption")]
-    pub base_protocol_methods_option: Option<String>,
+    pub base_protocol_methods_option: ::core::option::Option<String>,
     /// Optional. A list of MCP methods and associated parameters to match on. It is recommended to use this field to match on tools, prompts and resource accesses while setting the baseProtocolMethodsOption to MATCH_BASE_PROTOCOL_METHODS to match on all the other MCP protocol methods. Limited to 10 MCP methods per Authorization Policy.
     #[serde(default)]
-    pub methods: Option<Vec<AuthzPolicyAuthzRuleToRequestOperationMCPMethod>>,
+    pub methods: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleToRequestOperationMCPMethod>>,
+    >,
 }
 
 /// Describes a set of MCP methods to match against.
@@ -297,10 +318,11 @@ pub struct AuthzPolicyAuthzRuleToRequestOperationMCP {
 pub struct AuthzPolicyAuthzRuleToRequestOperationMCPMethod {
     /// Required. The MCP method to match against. Allowed values are as follows: 1. tools, prompts, resources - these will match against all sub methods under the respective methods. 2. prompts/list, tools/list, resources/list, resources/templates/list 3. prompts/get, tools/call, resources/subscribe, resources/unsubscribe, resources/read Params cannot be specified for categories 1 and 2.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. A list of MCP method parameters to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 MCP method parameters per Authorization Policy.
     #[serde(default)]
-    pub params: Option<Vec<AuthzPolicyAuthzRuleStringMatch>>,
+    pub params:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicyAuthzRuleStringMatch>>>,
 }
 
 /// Allows delegating authorization decisions to Cloud IAP or to Service Extensions.
@@ -308,10 +330,11 @@ pub struct AuthzPolicyAuthzRuleToRequestOperationMCPMethod {
 pub struct AuthzPolicyCustomProvider {
     /// Optional. Delegate authorization decision to user authored Service Extension. Only one of cloudIap or authzExtension can be specified.
     #[serde(default, rename = "authzExtension")]
-    pub authz_extension: Option<AuthzPolicyCustomProviderAuthzExtension>,
+    pub authz_extension:
+        ::core::option::Option<::std::boxed::Box<AuthzPolicyCustomProviderAuthzExtension>>,
     /// Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.
     #[serde(default, rename = "cloudIap")]
-    pub cloud_iap: Option<serde_json::Value>,
+    pub cloud_iap: ::core::option::Option<serde_json::Value>,
 }
 
 /// Optional. Delegate authorization decision to user authored extension. Only one of cloudIap or authzExtension can be specified.
@@ -319,7 +342,7 @@ pub struct AuthzPolicyCustomProvider {
 pub struct AuthzPolicyCustomProviderAuthzExtension {
     /// Required. A list of references to authorization extensions that will be invoked for requests matching this policy. Limited to 1 custom provider.
     #[serde(default)]
-    pub resources: Option<Vec<String>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Specifies the set of targets to which this policy should be applied to.
@@ -327,10 +350,10 @@ pub struct AuthzPolicyCustomProviderAuthzExtension {
 pub struct AuthzPolicyTarget {
     /// Optional. All gateways and forwarding rules referenced by this policy and extensions must share the same load balancing scheme. Supported values: INTERNAL_MANAGED and EXTERNAL_MANAGED. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED", "INTERNAL_SELF_MANAGED"]
     #[serde(default, rename = "loadBalancingScheme")]
-    pub load_balancing_scheme: Option<String>,
+    pub load_balancing_scheme: ::core::option::Option<String>,
     /// Required. A list of references to the Forwarding Rules on which this policy will be applied.
     #[serde(default)]
-    pub resources: Option<Vec<String>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// BackendAuthenticationConfig message groups the TrustConfig together with other settings that control how the load balancer authenticates, and expresses its identity to, the backend: * trustConfig is the attached TrustConfig. * wellKnownRoots indicates whether the load balance should trust backend server certificates that are issued by public certificate authorities, in addition to certificates trusted by the TrustConfig. * clientCertificate is a client certificate that the load balancer uses to express its identity to the backend, if the connection to the backend uses mTLS. You can attach the BackendAuthenticationConfig to the load balancer''s BackendService directly determining how that BackendService negotiates TLS.
@@ -338,31 +361,31 @@ pub struct AuthzPolicyTarget {
 pub struct BackendAuthenticationConfig {
     /// Optional. A reference to a certificatemanager.googleapis.com.Certificate resource. This is a relative resource path following the form "projects/{project}/locations/{location}/certificates/{certificate}". Used by a BackendService to negotiate mTLS when the backend connection uses TLS and the backend requests a client certificate. Must have a CLIENT_AUTH scope.
     #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: Option<String>,
+    pub client_certificate: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Etag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Set of label tags associated with the resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Name of the BackendAuthenticationConfig resource. It matches the pattern projects/*/locations/{location}/backendAuthenticationConfigs/{backend_authentication_config}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. A reference to a TrustConfig resource from the certificatemanager.googleapis.com namespace. This is a relative resource path following the form "projects/{project}/locations/{location}/trustConfigs/{trust_config}". A BackendService uses the chain of trust represented by this TrustConfig, if specified, to validate the server certificates presented by the backend. Required unless wellKnownRoots is set to PUBLIC_ROOTS.
     #[serde(default, rename = "trustConfig")]
-    pub trust_config: Option<String>,
+    pub trust_config: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Well known roots to use for server certificate validation. // TODO: enum values: ["WELL_KNOWN_ROOTS_UNSPECIFIED", "NONE", "PUBLIC_ROOTS"]
     #[serde(default, rename = "wellKnownRoots")]
-    pub well_known_roots: Option<String>,
+    pub well_known_roots: ::core::option::Option<String>,
 }
 
 /// Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.
@@ -370,7 +393,7 @@ pub struct BackendAuthenticationConfig {
 pub struct CertificateProviderInstance {
     /// Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.
     #[serde(default, rename = "pluginInstance")]
-    pub plugin_instance: Option<String>,
+    pub plugin_instance: ::core::option::Option<String>,
 }
 
 /// ClientTlsPolicy is a resource that specifies how a client should authenticate connections to backends of a service. This resource itself does not affect configuration unless it is attached to a backend service resource.
@@ -378,28 +401,30 @@ pub struct CertificateProviderInstance {
 pub struct ClientTlsPolicy {
     /// Optional. Defines a mechanism to provision client identity (public and private keys) for peer to peer authentication. The presence of this dictates mTLS.
     #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: Option<GoogleCloudNetworksecurityV1CertificateProvider>,
+    pub client_certificate:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudNetworksecurityV1CertificateProvider>>,
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Set of label tags associated with the resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Name of the ClientTlsPolicy resource. It matches the pattern projects/{project}/locations/{location}/clientTlsPolicies/{client_tls_policy}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Defines the mechanism to obtain the Certificate Authority certificate to validate the server certificate. If empty, client does not validate the server certificate.
     #[serde(default, rename = "serverValidationCa")]
-    pub server_validation_ca: Option<Vec<ValidationCA>>,
+    pub server_validation_ca:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValidationCA>>>,
     /// Optional. Server Name Indication string to present to the server during TLS handshake. E.g: "secure.example.com".
     #[serde(default)]
-    pub sni: Option<String>,
+    pub sni: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request used by the CloneAddressGroupItems method.
@@ -407,10 +432,10 @@ pub struct ClientTlsPolicy {
 pub struct CloneAddressGroupItemsRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Required. Source address group to clone items from.
     #[serde(default, rename = "sourceAddressGroup")]
-    pub source_address_group: Option<String>,
+    pub source_address_group: ::core::option::Option<String>,
 }
 
 /// CustomInterceptProfile defines in-band integration behavior (intercept). It is used by firewall rules with an APPLY_SECURITY_PROFILE_GROUP action.
@@ -418,7 +443,7 @@ pub struct CloneAddressGroupItemsRequest {
 pub struct CustomInterceptProfile {
     /// Required. The target InterceptEndpointGroup. When a firewall rule with this security profile attached matches a packet, the packet will be intercepted to the location-local target in this group.
     #[serde(default, rename = "interceptEndpointGroup")]
-    pub intercept_endpoint_group: Option<String>,
+    pub intercept_endpoint_group: ::core::option::Option<String>,
 }
 
 /// CustomMirroringProfile defines out-of-band integration behavior (mirroring). It is used by mirroring rules with a MIRROR action.
@@ -426,7 +451,7 @@ pub struct CustomInterceptProfile {
 pub struct CustomMirroringProfile {
     /// Required. Immutable. The target MirroringEndpointGroup. When a mirroring rule with this security profile attached matches a packet, a replica will be mirrored to the location-local target in this group.
     #[serde(default, rename = "mirroringEndpointGroup")]
-    pub mirroring_endpoint_group: Option<String>,
+    pub mirroring_endpoint_group: ::core::option::Option<String>,
 }
 
 /// Specification of traffic destination attributes.
@@ -434,16 +459,16 @@ pub struct CustomMirroringProfile {
 pub struct Destination {
     /// Required. List of host names to match. Matched against the ":authority" header in http requests. At least one host should match. Each host can be an exact match, or a prefix match (example "mydomain.*") or a suffix match (example "*.myorg.com") or a presence (any) match "*".
     #[serde(default)]
-    pub hosts: Option<Vec<String>>,
+    pub hosts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Match against key:value pair in http header. Provides a flexible match based on HTTP headers, for potentially advanced use cases. At least one header should match. Avoid using header matches to make authorization decisions unless there is a strong guarantee that requests arrive through a trusted client or proxy.
     #[serde(default, rename = "httpHeaderMatch")]
-    pub http_header_match: Option<HttpHeaderMatch>,
+    pub http_header_match: ::core::option::Option<::std::boxed::Box<HttpHeaderMatch>>,
     /// Optional. A list of HTTP methods to match. At least one method should match. Should not be set for gRPC services.
     #[serde(default)]
-    pub methods: Option<Vec<String>>,
+    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. List of destination ports to match. At least one port should match.
     #[serde(default)]
-    pub ports: Option<Vec<i64>>,
+    pub ports: ::core::option::Option<::std::vec::Vec<i64>>,
 }
 
 /// A DNS threat detector sends DNS query logs to a _provider_ that then analyzes the logs to identify threat events in the DNS queries. By default, all VPC networks in your projects are included. You can exclude specific networks by supplying excluded_networks.
@@ -451,22 +476,22 @@ pub struct Destination {
 pub struct DnsThreatDetector {
     /// Output only. Create time stamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. A list of network resource names which aren''t monitored by this DnsThreatDetector. Example: projects/PROJECT_ID/global/networks/NETWORK_NAME.
     #[serde(default, rename = "excludedNetworks")]
-    pub excluded_networks: Option<Vec<String>>,
+    pub excluded_networks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Any labels associated with the DnsThreatDetector, listed as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. Name of the DnsThreatDetector resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The provider used for DNS threat analysis. // TODO: enum values: ["PROVIDER_UNSPECIFIED", "INFOBLOX"]
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
     /// Output only. Update time stamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -474,16 +499,16 @@ pub struct DnsThreatDetector {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Message describing Endpoint object.
@@ -491,43 +516,46 @@ pub struct Expr {
 pub struct FirewallEndpoint {
     /// Output only. List of networks that are associated with this endpoint in the local zone. This is a projection of the FirewallEndpointAssociations pointing at this endpoint. A network will only appear in this list after traffic routing is fully configured. Format: projects/{project}/global/networks/{name}.
     #[serde(default, rename = "associatedNetworks")]
-    pub associated_networks: Option<Vec<String>>,
+    pub associated_networks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. List of FirewallEndpointAssociations that are associated to this endpoint. An association will only appear in this list after traffic routing is fully configured.
     #[serde(default)]
-    pub associations: Option<Vec<FirewallEndpointAssociationReference>>,
+    pub associations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<FirewallEndpointAssociationReference>>,
+    >,
     /// Optional. Project to charge for the deployed firewall endpoint. This field must be specified when creating the endpoint in the organization scope, and should be omitted otherwise.
     #[serde(default, rename = "billingProjectId")]
-    pub billing_project_id: Option<String>,
+    pub billing_project_id: ::core::option::Option<String>,
     /// Output only. Create time stamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of the firewall endpoint. Max length 2048 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Settings for the endpoint.
     #[serde(default, rename = "endpointSettings")]
-    pub endpoint_settings: Option<FirewallEndpointEndpointSettings>,
+    pub endpoint_settings:
+        ::core::option::Option<::std::boxed::Box<FirewallEndpointEndpointSettings>>,
     /// Optional. Labels as key value pairs
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. Name of resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Whether reconciling is in progress, recommended per https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. [Output Only] Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. [Output Only] Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. Current state of the endpoint. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Update time stamp
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Message describing Association object
@@ -535,34 +563,34 @@ pub struct FirewallEndpoint {
 pub struct FirewallEndpointAssociation {
     /// Output only. Create time stamp
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Whether the association is disabled. True indicates that traffic won''t be intercepted
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// Required. The URL of the FirewallEndpoint that is being associated.
     #[serde(default, rename = "firewallEndpoint")]
-    pub firewall_endpoint: Option<String>,
+    pub firewall_endpoint: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. name of resource
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The URL of the network that is being associated.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. Whether reconciling is in progress, recommended per https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. Current state of the association. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE", "ORPHAN"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. The URL of the TlsInspectionPolicy that is being associated.
     #[serde(default, rename = "tlsInspectionPolicy")]
-    pub tls_inspection_policy: Option<String>,
+    pub tls_inspection_policy: ::core::option::Option<String>,
     /// Output only. Update time stamp
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// This is a subset of the FirewallEndpointAssociation message, containing fields to be used by the consumer.
@@ -570,10 +598,10 @@ pub struct FirewallEndpointAssociation {
 pub struct FirewallEndpointAssociationReference {
     /// Output only. The resource name of the FirewallEndpointAssociation. Format: projects/{project}/locations/{location}/firewallEndpointAssociations/{id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The VPC network associated. Format: projects/{project}/global/networks/{name}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
 }
 
 /// Settings for the endpoint.
@@ -581,7 +609,7 @@ pub struct FirewallEndpointAssociationReference {
 pub struct FirewallEndpointEndpointSettings {
     /// Optional. Immutable. Indicates whether Jumbo Frames are enabled. Default value is false.
     #[serde(default, rename = "jumboFramesEnabled")]
-    pub jumbo_frames_enabled: Option<bool>,
+    pub jumbo_frames_enabled: ::core::option::Option<bool>,
 }
 
 /// The GatewaySecurityPolicy resource contains a collection of GatewaySecurityPolicyRules and associated metadata.
@@ -589,19 +617,19 @@ pub struct FirewallEndpointEndpointSettings {
 pub struct GatewaySecurityPolicy {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Name of the resource. Name is of the form projects/{project}/locations/{location}/gatewaySecurityPolicies/{gateway_security_policy} gateway_security_policy should match the pattern:(^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Name of a TLS Inspection Policy resource that defines how TLS inspection will be performed for any rule(s) which enables it.
     #[serde(default, rename = "tlsInspectionPolicy")]
-    pub tls_inspection_policy: Option<String>,
+    pub tls_inspection_policy: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The GatewaySecurityPolicyRule resource is in a nested collection within a GatewaySecurityPolicy and represents a traffic matching condition and associated action to perform.
@@ -609,34 +637,34 @@ pub struct GatewaySecurityPolicy {
 pub struct GatewaySecurityPolicyRule {
     /// Optional. CEL expression for matching on L7/application level criteria.
     #[serde(default, rename = "applicationMatcher")]
-    pub application_matcher: Option<String>,
+    pub application_matcher: ::core::option::Option<String>,
     /// Required. Profile which tells what the primitive action should be. // TODO: enum values: ["BASIC_PROFILE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "basicProfile")]
-    pub basic_profile: Option<String>,
+    pub basic_profile: ::core::option::Option<String>,
     /// Output only. Time when the rule was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Whether the rule is enforced.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Required. Immutable. Name of the resource. ame is the full resource name so projects/{project}/locations/{location}/gatewaySecurityPolicies/{gateway_security_policy}/rules/{rule} rule should match the pattern: (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Priority of the rule. Lower number corresponds to higher precedence.
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     /// Required. CEL expression for matching on session criteria.
     #[serde(default, rename = "sessionMatcher")]
-    pub session_matcher: Option<String>,
+    pub session_matcher: ::core::option::Option<String>,
     /// Optional. Flag to enable TLS inspection of traffic matching on , can only be true if the parent GatewaySecurityPolicy references a TLSInspectionConfig.
     #[serde(default, rename = "tlsInspectionEnabled")]
-    pub tls_inspection_enabled: Option<bool>,
+    pub tls_inspection_enabled: ::core::option::Option<bool>,
     /// Output only. Time when the rule was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Specification of certificate provider. Defines the mechanism to obtain the certificate and private key for peer to peer authentication.
@@ -644,10 +672,12 @@ pub struct GatewaySecurityPolicyRule {
 pub struct GoogleCloudNetworksecurityV1CertificateProvider {
     /// The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.
     #[serde(default, rename = "certificateProviderInstance")]
-    pub certificate_provider_instance: Option<CertificateProviderInstance>,
+    pub certificate_provider_instance:
+        ::core::option::Option<::std::boxed::Box<CertificateProviderInstance>>,
     /// gRPC specific configuration to access the gRPC server to obtain the cert and private key.
     #[serde(default, rename = "grpcEndpoint")]
-    pub grpc_endpoint: Option<GoogleCloudNetworksecurityV1GrpcEndpoint>,
+    pub grpc_endpoint:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudNetworksecurityV1GrpcEndpoint>>,
 }
 
 /// Specification of the GRPC Endpoint.
@@ -655,7 +685,7 @@ pub struct GoogleCloudNetworksecurityV1CertificateProvider {
 pub struct GoogleCloudNetworksecurityV1GrpcEndpoint {
     /// Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".
     #[serde(default, rename = "targetUri")]
-    pub target_uri: Option<String>,
+    pub target_uri: ::core::option::Option<String>,
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
@@ -663,10 +693,11 @@ pub struct GoogleCloudNetworksecurityV1GrpcEndpoint {
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    pub audit_log_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV1AuditLogConfig>>>,
     /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -674,10 +705,10 @@ pub struct GoogleIamV1AuditConfig {
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: Option<Vec<String>>,
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -685,13 +716,13 @@ pub struct GoogleIamV1AuditLogConfig {
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -699,16 +730,17 @@ pub struct GoogleIamV1Binding {
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
+    pub audit_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV1AuditConfig>>>,
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<GoogleIamV1Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV1Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -716,10 +748,10 @@ pub struct GoogleIamV1Policy {
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<GoogleIamV1Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<GoogleIamV1Policy>>,
     /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -727,7 +759,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -735,7 +767,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Specification of HTTP header match attributes.
@@ -743,10 +775,10 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 pub struct HttpHeaderMatch {
     /// Required. The name of the HTTP header to match. For matching against the HTTP request''s authority, use a headerMatch with the header name ":authority". For matching a request''s method, use the headerName ":method".
     #[serde(default, rename = "headerName")]
-    pub header_name: Option<String>,
+    pub header_name: ::core::option::Option<String>,
     /// Required. The value of the header must match the regular expression specified in regexMatch. For regular expression grammar, please see: en.cppreference.com/w/cpp/regex/ecmascript For matching against a port specified in the HTTP request, use a headerMatch with headerName set to Host and a regular expression that satisfies the RFC2616 Host header''s port specifier.
     #[serde(default, rename = "regexMatch")]
-    pub regex_match: Option<String>,
+    pub regex_match: ::core::option::Option<String>,
 }
 
 /// A deployment represents a zonal intercept backend ready to accept GENEVE-encapsulated traffic, e.g. a zonal instance group fronted by an internal passthrough load balancer. Deployments are always part of a global deployment group which represents a global intercept service.
@@ -754,31 +786,31 @@ pub struct HttpHeaderMatch {
 pub struct InterceptDeployment {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-provided description of the deployment. Used as additional context for the deployment.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Immutable. The regional forwarding rule that fronts the interceptors, for example: projects/123456789/regions/us-central1/forwardingRules/my-rule. See https://google.aip.dev/124.
     #[serde(default, rename = "forwardingRule")]
-    pub forwarding_rule: Option<String>,
+    pub forwarding_rule: ::core::option::Option<String>,
     /// Required. Immutable. The deployment group that this deployment is a part of, for example: projects/123456789/locations/global/interceptDeploymentGroups/my-dg. See https://google.aip.dev/124.
     #[serde(default, rename = "interceptDeploymentGroup")]
-    pub intercept_deployment_group: Option<String>,
+    pub intercept_deployment_group: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. The resource name of this deployment, for example: projects/123456789/locations/us-central1-a/interceptDeployments/my-dep. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This part of the normal operation (e.g. linking a new association to the parent group). See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the deployment. See https://google.aip.dev/216. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A deployment group aggregates many zonal intercept backends (deployments) into a single global intercept service. Consumers can connect this service using an endpoint group.
@@ -786,37 +818,41 @@ pub struct InterceptDeployment {
 pub struct InterceptDeploymentGroup {
     /// Output only. The list of endpoint groups that are connected to this resource.
     #[serde(default, rename = "connectedEndpointGroups")]
-    pub connected_endpoint_groups: Option<Vec<InterceptDeploymentGroupConnectedEndpointGroup>>,
+    pub connected_endpoint_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<InterceptDeploymentGroupConnectedEndpointGroup>>,
+    >,
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-provided description of the deployment group. Used as additional context for the deployment group.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The list of locations where the deployment group is present.
     #[serde(default)]
-    pub locations: Option<Vec<InterceptLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InterceptLocation>>>,
     /// Immutable. Identifier. The resource name of this deployment group, for example: projects/123456789/locations/global/interceptDeploymentGroups/my-dg. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The list of Intercept Deployments that belong to this group.
     #[serde(default, rename = "nestedDeployments")]
-    pub nested_deployments: Option<Vec<InterceptDeploymentGroupDeployment>>,
+    pub nested_deployments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<InterceptDeploymentGroupDeployment>>,
+    >,
     /// Required. Immutable. The network that will be used for all child deployments, for example: projects/{project}/global/networks/{network}. See https://google.aip.dev/124.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This is part of the normal operation (e.g. adding a new deployment to the group) See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the deployment group. See https://google.aip.dev/216. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An endpoint group connected to this deployment group.
@@ -824,7 +860,7 @@ pub struct InterceptDeploymentGroup {
 pub struct InterceptDeploymentGroupConnectedEndpointGroup {
     /// Output only. The connected endpoint group''s resource name, for example: projects/123456789/locations/global/interceptEndpointGroups/my-eg. See https://google.aip.dev/124.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A deployment belonging to this deployment group.
@@ -832,10 +868,10 @@ pub struct InterceptDeploymentGroupConnectedEndpointGroup {
 pub struct InterceptDeploymentGroupDeployment {
     /// Output only. The name of the Intercept Deployment, in the format: projects/{project}/locations/{location}/interceptDeployments/{intercept_deployment}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Most recent known state of the deployment. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// An endpoint group is a consumer frontend for a deployment group (backend). In order to configure intercept for a network, consumers must create: - An association between their network and the endpoint group. - A security profile that points to the endpoint group. - A firewall rule that references the security profile (group).
@@ -843,34 +879,37 @@ pub struct InterceptDeploymentGroupDeployment {
 pub struct InterceptEndpointGroup {
     /// Output only. List of associations to this endpoint group.
     #[serde(default)]
-    pub associations: Option<Vec<InterceptEndpointGroupAssociationDetails>>,
+    pub associations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<InterceptEndpointGroupAssociationDetails>>,
+    >,
     /// Output only. Details about the connected deployment group to this endpoint group.
     #[serde(default, rename = "connectedDeploymentGroup")]
-    pub connected_deployment_group: Option<InterceptEndpointGroupConnectedDeploymentGroup>,
+    pub connected_deployment_group:
+        ::core::option::Option<::std::boxed::Box<InterceptEndpointGroupConnectedDeploymentGroup>>,
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-provided description of the endpoint group. Used as additional context for the endpoint group.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Immutable. The deployment group that this endpoint group is connected to, for example: projects/123456789/locations/global/interceptDeploymentGroups/my-dg. See https://google.aip.dev/124.
     #[serde(default, rename = "interceptDeploymentGroup")]
-    pub intercept_deployment_group: Option<String>,
+    pub intercept_deployment_group: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. The resource name of this endpoint group, for example: projects/123456789/locations/global/interceptEndpointGroups/my-eg. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This is part of the normal operation (e.g. adding a new association to the group). See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the endpoint group. See https://google.aip.dev/216. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CLOSED", "CREATING", "DELETING", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An endpoint group association represents a link between a network and an endpoint group in the organization. Creating an association creates the networking infrastructure linking the network to the endpoint group, but does not enable intercept by itself. To enable intercept, the user must also create a network firewall policy containing intercept rules and associate it with the network.
@@ -878,37 +917,39 @@ pub struct InterceptEndpointGroup {
 pub struct InterceptEndpointGroupAssociation {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Immutable. The endpoint group that this association is connected to, for example: projects/123456789/locations/global/interceptEndpointGroups/my-eg. See https://google.aip.dev/124.
     #[serde(default, rename = "interceptEndpointGroup")]
-    pub intercept_endpoint_group: Option<String>,
+    pub intercept_endpoint_group: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The list of locations where the association is configured. This information is retrieved from the linked endpoint group.
     #[serde(default)]
-    pub locations: Option<Vec<InterceptLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InterceptLocation>>>,
     /// Output only. The list of locations where the association is present. This information is retrieved from the linked endpoint group, and not configured as part of the association itself.
     #[serde(default, rename = "locationsDetails")]
-    pub locations_details: Option<Vec<InterceptEndpointGroupAssociationLocationDetails>>,
+    pub locations_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<InterceptEndpointGroupAssociationLocationDetails>>,
+    >,
     /// Immutable. Identifier. The resource name of this endpoint group association, for example: projects/123456789/locations/global/interceptEndpointGroupAssociations/my-eg-association. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Immutable. The VPC network that is associated. for example: projects/123456789/global/networks/my-network. See https://google.aip.dev/124.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. Identifier used by the data-path. See the NSI GENEVE format for more details: https://docs.cloud.google.com/network-security-integration/docs/understand-geneve#network_id
     #[serde(default, rename = "networkCookie")]
-    pub network_cookie: Option<i64>,
+    pub network_cookie: ::core::option::Option<i64>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This part of the normal operation (e.g. adding a new location to the target deployment group). See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. Current state of the endpoint group association. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "CLOSED", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The endpoint group''s view of a connected association.
@@ -916,13 +957,13 @@ pub struct InterceptEndpointGroupAssociation {
 pub struct InterceptEndpointGroupAssociationDetails {
     /// Output only. The connected association''s resource name, for example: projects/123456789/locations/global/interceptEndpointGroupAssociations/my-ega. See https://google.aip.dev/124.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The associated network, for example: projects/123456789/global/networks/my-network. See https://google.aip.dev/124.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. Most recent known state of the association. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "CLOSED", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Contains details about the state of an association in a specific cloud location.
@@ -930,10 +971,10 @@ pub struct InterceptEndpointGroupAssociationDetails {
 pub struct InterceptEndpointGroupAssociationLocationDetails {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The current state of the association in this location. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "OUT_OF_SYNC"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The endpoint group''s view of a connected deployment group.
@@ -941,10 +982,10 @@ pub struct InterceptEndpointGroupAssociationLocationDetails {
 pub struct InterceptEndpointGroupConnectedDeploymentGroup {
     /// Output only. The list of locations where the deployment group is present.
     #[serde(default)]
-    pub locations: Option<Vec<InterceptLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InterceptLocation>>>,
     /// Output only. The connected deployment group''s resource name, for example: projects/123456789/locations/global/interceptDeploymentGroups/my-dg. See https://google.aip.dev/124.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Details about intercept in a specific cloud location.
@@ -952,10 +993,10 @@ pub struct InterceptEndpointGroupConnectedDeploymentGroup {
 pub struct InterceptLocation {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The current state of the association in this location. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "OUT_OF_SYNC"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Response of the ListAddressGroupReferences method.
@@ -963,11 +1004,12 @@ pub struct InterceptLocation {
 pub struct ListAddressGroupReferencesResponse {
     /// A list of references that matches the specified filter in the request.
     #[serde(default, rename = "addressGroupReferences")]
-    pub address_group_references:
-        Option<Vec<ListAddressGroupReferencesResponseAddressGroupReference>>,
+    pub address_group_references: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ListAddressGroupReferencesResponseAddressGroupReference>>,
+    >,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The Reference of AddressGroup.
@@ -975,13 +1017,13 @@ pub struct ListAddressGroupReferencesResponse {
 pub struct ListAddressGroupReferencesResponseAddressGroupReference {
     /// FirewallPolicy that is using the Address Group.
     #[serde(default, rename = "firewallPolicy")]
-    pub firewall_policy: Option<String>,
+    pub firewall_policy: ::core::option::Option<String>,
     /// Rule priority of the FirewallPolicy that is using the Address Group.
     #[serde(default, rename = "rulePriority")]
-    pub rule_priority: Option<i32>,
+    pub rule_priority: ::core::option::Option<i32>,
     /// Cloud Armor SecurityPolicy that is using the Address Group.
     #[serde(default, rename = "securityPolicy")]
-    pub security_policy: Option<String>,
+    pub security_policy: ::core::option::Option<String>,
 }
 
 /// Response returned by the ListAddressGroups method.
@@ -989,13 +1031,13 @@ pub struct ListAddressGroupReferencesResponseAddressGroupReference {
 pub struct ListAddressGroupsResponse {
     /// List of AddressGroups resources.
     #[serde(default, rename = "addressGroups")]
-    pub address_groups: Option<Vec<AddressGroup>>,
+    pub address_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AddressGroup>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListAuthorizationPolicies method.
@@ -1003,10 +1045,11 @@ pub struct ListAddressGroupsResponse {
 pub struct ListAuthorizationPoliciesResponse {
     /// List of AuthorizationPolicies resources.
     #[serde(default, rename = "authorizationPolicies")]
-    pub authorization_policies: Option<Vec<AuthorizationPolicy>>,
+    pub authorization_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthorizationPolicy>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Message for response to listing AuthzPolicy resources.
@@ -1014,13 +1057,13 @@ pub struct ListAuthorizationPoliciesResponse {
 pub struct ListAuthzPoliciesResponse {
     /// The list of AuthzPolicy resources.
     #[serde(default, rename = "authzPolicies")]
-    pub authz_policies: Option<Vec<AuthzPolicy>>,
+    pub authz_policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthzPolicy>>>,
     /// A token identifying a page of results that the server returns.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListBackendAuthenticationConfigs method.
@@ -1028,13 +1071,14 @@ pub struct ListAuthzPoliciesResponse {
 pub struct ListBackendAuthenticationConfigsResponse {
     /// List of BackendAuthenticationConfig resources.
     #[serde(default, rename = "backendAuthenticationConfigs")]
-    pub backend_authentication_configs: Option<Vec<BackendAuthenticationConfig>>,
+    pub backend_authentication_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackendAuthenticationConfig>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListClientTlsPolicies method.
@@ -1042,10 +1086,11 @@ pub struct ListBackendAuthenticationConfigsResponse {
 pub struct ListClientTlsPoliciesResponse {
     /// List of ClientTlsPolicy resources.
     #[serde(default, rename = "clientTlsPolicies")]
-    pub client_tls_policies: Option<Vec<ClientTlsPolicy>>,
+    pub client_tls_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClientTlsPolicy>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message to requesting a list of DnsThreatDetectors.
@@ -1053,13 +1098,14 @@ pub struct ListClientTlsPoliciesResponse {
 pub struct ListDnsThreatDetectorsResponse {
     /// The list of DnsThreatDetector resources.
     #[serde(default, rename = "dnsThreatDetectors")]
-    pub dns_threat_detectors: Option<Vec<DnsThreatDetector>>,
+    pub dns_threat_detectors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsThreatDetector>>>,
     /// A token, which can be sent as page_token, to retrieve the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Unordered list. Unreachable DnsThreatDetector resources.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to listing Associations
@@ -1067,13 +1113,14 @@ pub struct ListDnsThreatDetectorsResponse {
 pub struct ListFirewallEndpointAssociationsResponse {
     /// The list of Association
     #[serde(default, rename = "firewallEndpointAssociations")]
-    pub firewall_endpoint_associations: Option<Vec<FirewallEndpointAssociation>>,
+    pub firewall_endpoint_associations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FirewallEndpointAssociation>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to listing Endpoints
@@ -1081,13 +1128,14 @@ pub struct ListFirewallEndpointAssociationsResponse {
 pub struct ListFirewallEndpointsResponse {
     /// The list of Endpoint
     #[serde(default, rename = "firewallEndpoints")]
-    pub firewall_endpoints: Option<Vec<FirewallEndpoint>>,
+    pub firewall_endpoints:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FirewallEndpoint>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListGatewaySecurityPolicies method.
@@ -1095,13 +1143,14 @@ pub struct ListFirewallEndpointsResponse {
 pub struct ListGatewaySecurityPoliciesResponse {
     /// List of GatewaySecurityPolicies resources.
     #[serde(default, rename = "gatewaySecurityPolicies")]
-    pub gateway_security_policies: Option<Vec<GatewaySecurityPolicy>>,
+    pub gateway_security_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GatewaySecurityPolicy>>>,
     /// If there might be more results than those appearing in this response, then ''next_page_token'' is included. To get the next set of results, call this method again using the value of ''next_page_token'' as ''page_token''.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListGatewaySecurityPolicyRules method.
@@ -1109,13 +1158,14 @@ pub struct ListGatewaySecurityPoliciesResponse {
 pub struct ListGatewaySecurityPolicyRulesResponse {
     /// List of GatewaySecurityPolicyRule resources.
     #[serde(default, rename = "gatewaySecurityPolicyRules")]
-    pub gateway_security_policy_rules: Option<Vec<GatewaySecurityPolicyRule>>,
+    pub gateway_security_policy_rules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GatewaySecurityPolicyRule>>>,
     /// If there might be more results than those appearing in this response, then ''next_page_token'' is included. To get the next set of results, call this method again using the value of ''next_page_token'' as ''page_token''.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListInterceptDeploymentGroups.
@@ -1123,10 +1173,11 @@ pub struct ListGatewaySecurityPolicyRulesResponse {
 pub struct ListInterceptDeploymentGroupsResponse {
     /// The deployment groups from the specified parent.
     #[serde(default, rename = "interceptDeploymentGroups")]
-    pub intercept_deployment_groups: Option<Vec<InterceptDeploymentGroup>>,
+    pub intercept_deployment_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InterceptDeploymentGroup>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListInterceptDeployments.
@@ -1134,13 +1185,14 @@ pub struct ListInterceptDeploymentGroupsResponse {
 pub struct ListInterceptDeploymentsResponse {
     /// The deployments from the specified parent.
     #[serde(default, rename = "interceptDeployments")]
-    pub intercept_deployments: Option<Vec<InterceptDeployment>>,
+    pub intercept_deployments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InterceptDeployment>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListInterceptEndpointGroupAssociations.
@@ -1148,10 +1200,12 @@ pub struct ListInterceptDeploymentsResponse {
 pub struct ListInterceptEndpointGroupAssociationsResponse {
     /// The associations from the specified parent.
     #[serde(default, rename = "interceptEndpointGroupAssociations")]
-    pub intercept_endpoint_group_associations: Option<Vec<InterceptEndpointGroupAssociation>>,
+    pub intercept_endpoint_group_associations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<InterceptEndpointGroupAssociation>>,
+    >,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListInterceptEndpointGroups.
@@ -1159,10 +1213,11 @@ pub struct ListInterceptEndpointGroupAssociationsResponse {
 pub struct ListInterceptEndpointGroupsResponse {
     /// The endpoint groups from the specified parent.
     #[serde(default, rename = "interceptEndpointGroups")]
-    pub intercept_endpoint_groups: Option<Vec<InterceptEndpointGroup>>,
+    pub intercept_endpoint_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InterceptEndpointGroup>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1170,10 +1225,10 @@ pub struct ListInterceptEndpointGroupsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListMirroringDeploymentGroups.
@@ -1181,10 +1236,11 @@ pub struct ListLocationsResponse {
 pub struct ListMirroringDeploymentGroupsResponse {
     /// The deployment groups from the specified parent.
     #[serde(default, rename = "mirroringDeploymentGroups")]
-    pub mirroring_deployment_groups: Option<Vec<MirroringDeploymentGroup>>,
+    pub mirroring_deployment_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MirroringDeploymentGroup>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListMirroringDeployments.
@@ -1192,13 +1248,14 @@ pub struct ListMirroringDeploymentGroupsResponse {
 pub struct ListMirroringDeploymentsResponse {
     /// The deployments from the specified parent.
     #[serde(default, rename = "mirroringDeployments")]
-    pub mirroring_deployments: Option<Vec<MirroringDeployment>>,
+    pub mirroring_deployments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MirroringDeployment>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListMirroringEndpointGroupAssociations.
@@ -1206,10 +1263,12 @@ pub struct ListMirroringDeploymentsResponse {
 pub struct ListMirroringEndpointGroupAssociationsResponse {
     /// The associations from the specified parent.
     #[serde(default, rename = "mirroringEndpointGroupAssociations")]
-    pub mirroring_endpoint_group_associations: Option<Vec<MirroringEndpointGroupAssociation>>,
+    pub mirroring_endpoint_group_associations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<MirroringEndpointGroupAssociation>>,
+    >,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListMirroringEndpointGroups.
@@ -1217,10 +1276,11 @@ pub struct ListMirroringEndpointGroupAssociationsResponse {
 pub struct ListMirroringEndpointGroupsResponse {
     /// The endpoint groups from the specified parent.
     #[serde(default, rename = "mirroringEndpointGroups")]
-    pub mirroring_endpoint_groups: Option<Vec<MirroringEndpointGroup>>,
+    pub mirroring_endpoint_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MirroringEndpointGroup>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. See https://google.aip.dev/158 for more details.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1228,13 +1288,13 @@ pub struct ListMirroringEndpointGroupsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListSecurityProfileGroups method.
@@ -1242,10 +1302,11 @@ pub struct ListOperationsResponse {
 pub struct ListSecurityProfileGroupsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of SecurityProfileGroups resources.
     #[serde(default, rename = "securityProfileGroups")]
-    pub security_profile_groups: Option<Vec<SecurityProfileGroup>>,
+    pub security_profile_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SecurityProfileGroup>>>,
 }
 
 /// Response returned by the ListSecurityProfiles method.
@@ -1253,10 +1314,11 @@ pub struct ListSecurityProfileGroupsResponse {
 pub struct ListSecurityProfilesResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of SecurityProfile resources.
     #[serde(default, rename = "securityProfiles")]
-    pub security_profiles: Option<Vec<SecurityProfile>>,
+    pub security_profiles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SecurityProfile>>>,
 }
 
 /// Response returned by the ListServerTlsPolicies method.
@@ -1264,13 +1326,14 @@ pub struct ListSecurityProfilesResponse {
 pub struct ListServerTlsPoliciesResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of ServerTlsPolicy resources.
     #[serde(default, rename = "serverTlsPolicies")]
-    pub server_tls_policies: Option<Vec<ServerTlsPolicy>>,
+    pub server_tls_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServerTlsPolicy>>>,
     /// Unreachable resources. Populated when the request opts into return_partial_success and reading across collections e.g. when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListTlsInspectionPolicies method.
@@ -1278,13 +1341,14 @@ pub struct ListServerTlsPoliciesResponse {
 pub struct ListTlsInspectionPoliciesResponse {
     /// If there might be more results than those appearing in this response, then ''next_page_token'' is included. To get the next set of results, call this method again using the value of ''next_page_token'' as ''page_token''.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of TlsInspectionPolicies resources.
     #[serde(default, rename = "tlsInspectionPolicies")]
-    pub tls_inspection_policies: Option<Vec<TlsInspectionPolicy>>,
+    pub tls_inspection_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TlsInspectionPolicy>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response returned by the ListUrlLists method.
@@ -1292,13 +1356,13 @@ pub struct ListTlsInspectionPoliciesResponse {
 pub struct ListUrlListsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of UrlList resources.
     #[serde(default, rename = "urlLists")]
-    pub url_lists: Option<Vec<UrlList>>,
+    pub url_lists: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UrlList>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1306,19 +1370,19 @@ pub struct ListUrlListsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Specification of the MTLSPolicy.
@@ -1326,13 +1390,14 @@ pub struct Location {
 pub struct MTLSPolicy {
     /// Required if the policy is to be used with Traffic Director. For Application Load Balancers it must be empty. Defines the mechanism to obtain the Certificate Authority certificate to validate the client certificate.
     #[serde(default, rename = "clientValidationCa")]
-    pub client_validation_ca: Option<Vec<ValidationCA>>,
+    pub client_validation_ca:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValidationCA>>>,
     /// When the client presents an invalid certificate or no certificate to the load balancer, the client_validation_mode specifies how the client connection is handled. Required if the policy is to be used with the Application Load Balancers. For Traffic Director it must be empty. // TODO: enum values: ["CLIENT_VALIDATION_MODE_UNSPECIFIED", "ALLOW_INVALID_OR_MISSING_CLIENT_CERT", "REJECT_INVALID"]
     #[serde(default, rename = "clientValidationMode")]
-    pub client_validation_mode: Option<String>,
+    pub client_validation_mode: ::core::option::Option<String>,
     /// Reference to the TrustConfig from certificatemanager.googleapis.com namespace. If specified, the chain validation will be performed against certificates configured in the given TrustConfig. Allowed only if the policy is to be used with Application Load Balancers.
     #[serde(default, rename = "clientValidationTrustConfig")]
-    pub client_validation_trust_config: Option<String>,
+    pub client_validation_trust_config: ::core::option::Option<String>,
 }
 
 /// A deployment represents a zonal mirroring backend ready to accept GENEVE-encapsulated replica traffic, e.g. a zonal instance group fronted by an internal passthrough load balancer. Deployments are always part of a global deployment group which represents a global mirroring service.
@@ -1340,31 +1405,31 @@ pub struct MTLSPolicy {
 pub struct MirroringDeployment {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-provided description of the deployment. Used as additional context for the deployment.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Immutable. The regional forwarding rule that fronts the mirroring collectors, for example: projects/123456789/regions/us-central1/forwardingRules/my-rule. See https://google.aip.dev/124.
     #[serde(default, rename = "forwardingRule")]
-    pub forwarding_rule: Option<String>,
+    pub forwarding_rule: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Immutable. The deployment group that this deployment is a part of, for example: projects/123456789/locations/global/mirroringDeploymentGroups/my-dg. See https://google.aip.dev/124.
     #[serde(default, rename = "mirroringDeploymentGroup")]
-    pub mirroring_deployment_group: Option<String>,
+    pub mirroring_deployment_group: ::core::option::Option<String>,
     /// Immutable. Identifier. The resource name of this deployment, for example: projects/123456789/locations/us-central1-a/mirroringDeployments/my-dep. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This part of the normal operation (e.g. linking a new association to the parent group). See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the deployment. See https://google.aip.dev/216. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A deployment group aggregates many zonal mirroring backends (deployments) into a single global mirroring service. Consumers can connect this service using an endpoint group.
@@ -1372,37 +1437,41 @@ pub struct MirroringDeployment {
 pub struct MirroringDeploymentGroup {
     /// Output only. The list of endpoint groups that are connected to this resource.
     #[serde(default, rename = "connectedEndpointGroups")]
-    pub connected_endpoint_groups: Option<Vec<MirroringDeploymentGroupConnectedEndpointGroup>>,
+    pub connected_endpoint_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<MirroringDeploymentGroupConnectedEndpointGroup>>,
+    >,
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-provided description of the deployment group. Used as additional context for the deployment group.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The list of locations where the deployment group is present.
     #[serde(default)]
-    pub locations: Option<Vec<MirroringLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MirroringLocation>>>,
     /// Immutable. Identifier. The resource name of this deployment group, for example: projects/123456789/locations/global/mirroringDeploymentGroups/my-dg. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The list of Mirroring Deployments that belong to this group.
     #[serde(default, rename = "nestedDeployments")]
-    pub nested_deployments: Option<Vec<MirroringDeploymentGroupDeployment>>,
+    pub nested_deployments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<MirroringDeploymentGroupDeployment>>,
+    >,
     /// Required. Immutable. The network that will be used for all child deployments, for example: projects/{project}/global/networks/{network}. See https://google.aip.dev/124.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This is part of the normal operation (e.g. adding a new deployment to the group) See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the deployment group. See https://google.aip.dev/216. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "CLOSED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An endpoint group connected to this deployment group.
@@ -1410,7 +1479,7 @@ pub struct MirroringDeploymentGroup {
 pub struct MirroringDeploymentGroupConnectedEndpointGroup {
     /// Output only. The connected endpoint group''s resource name, for example: projects/123456789/locations/global/mirroringEndpointGroups/my-eg. See https://google.aip.dev/124.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A deployment belonging to this deployment group.
@@ -1418,10 +1487,10 @@ pub struct MirroringDeploymentGroupConnectedEndpointGroup {
 pub struct MirroringDeploymentGroupDeployment {
     /// Output only. The name of the Mirroring Deployment, in the format: projects/{project}/locations/{location}/mirroringDeployments/{mirroring_deployment}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Most recent known state of the deployment. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// An endpoint group is a consumer frontend for a deployment group (backend). In order to configure mirroring for a network, consumers must create: - An association between their network and the endpoint group. - A security profile that points to the endpoint group. - A mirroring rule that references the security profile (group).
@@ -1429,37 +1498,41 @@ pub struct MirroringDeploymentGroupDeployment {
 pub struct MirroringEndpointGroup {
     /// Output only. List of associations to this endpoint group.
     #[serde(default)]
-    pub associations: Option<Vec<MirroringEndpointGroupAssociationDetails>>,
+    pub associations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<MirroringEndpointGroupAssociationDetails>>,
+    >,
     /// Output only. List of details about the connected deployment groups to this endpoint group.
     #[serde(default, rename = "connectedDeploymentGroups")]
-    pub connected_deployment_groups: Option<Vec<MirroringEndpointGroupConnectedDeploymentGroup>>,
+    pub connected_deployment_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<MirroringEndpointGroupConnectedDeploymentGroup>>,
+    >,
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-provided description of the endpoint group. Used as additional context for the endpoint group.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. The deployment group that this DIRECT endpoint group is connected to, for example: projects/123456789/locations/global/mirroringDeploymentGroups/my-dg. See https://google.aip.dev/124.
     #[serde(default, rename = "mirroringDeploymentGroup")]
-    pub mirroring_deployment_group: Option<String>,
+    pub mirroring_deployment_group: ::core::option::Option<String>,
     /// Immutable. Identifier. The resource name of this endpoint group, for example: projects/123456789/locations/global/mirroringEndpointGroups/my-eg. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This is part of the normal operation (e.g. adding a new association to the group). See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the endpoint group. See https://google.aip.dev/216. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CLOSED", "CREATING", "DELETING", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Immutable. The type of the endpoint group. If left unspecified, defaults to DIRECT. // TODO: enum values: ["TYPE_UNSPECIFIED", "DIRECT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An endpoint group association represents a link between a network and an endpoint group in the organization. Creating an association creates the networking infrastructure linking the network to the endpoint group, but does not enable mirroring by itself. To enable mirroring, the user must also create a network firewall policy containing mirroring rules and associate it with the network.
@@ -1467,34 +1540,36 @@ pub struct MirroringEndpointGroup {
 pub struct MirroringEndpointGroupAssociation {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Labels are key/value pairs that help to organize and filter resources.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The list of locations where the association is configured. This information is retrieved from the linked endpoint group.
     #[serde(default)]
-    pub locations: Option<Vec<MirroringLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MirroringLocation>>>,
     /// Output only. The list of locations where the association is present. This information is retrieved from the linked endpoint group, and not configured as part of the association itself.
     #[serde(default, rename = "locationsDetails")]
-    pub locations_details: Option<Vec<MirroringEndpointGroupAssociationLocationDetails>>,
+    pub locations_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<MirroringEndpointGroupAssociationLocationDetails>>,
+    >,
     /// Immutable. The endpoint group that this association is connected to, for example: projects/123456789/locations/global/mirroringEndpointGroups/my-eg. See https://google.aip.dev/124.
     #[serde(default, rename = "mirroringEndpointGroup")]
-    pub mirroring_endpoint_group: Option<String>,
+    pub mirroring_endpoint_group: ::core::option::Option<String>,
     /// Immutable. Identifier. The resource name of this endpoint group association, for example: projects/123456789/locations/global/mirroringEndpointGroupAssociations/my-eg-association. See https://google.aip.dev/122 for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The VPC network that is associated. for example: projects/123456789/global/networks/my-network. See https://google.aip.dev/124.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. The current state of the resource does not match the user''s intended state, and the system is working to reconcile them. This part of the normal operation (e.g. adding a new location to the target deployment group). See https://google.aip.dev/128.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. Current state of the endpoint group association. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "CLOSED", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was most recently updated. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The endpoint group''s view of a connected association.
@@ -1502,13 +1577,13 @@ pub struct MirroringEndpointGroupAssociation {
 pub struct MirroringEndpointGroupAssociationDetails {
     /// Output only. The connected association''s resource name, for example: projects/123456789/locations/global/mirroringEndpointGroupAssociations/my-ega. See https://google.aip.dev/124.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The associated network, for example: projects/123456789/global/networks/my-network. See https://google.aip.dev/124.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. Most recent known state of the association. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "CLOSED", "OUT_OF_SYNC", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Contains details about the state of an association in a specific cloud location.
@@ -1516,10 +1591,10 @@ pub struct MirroringEndpointGroupAssociationDetails {
 pub struct MirroringEndpointGroupAssociationLocationDetails {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The current state of the association in this location. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "OUT_OF_SYNC"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The endpoint group''s view of a connected deployment group.
@@ -1527,10 +1602,10 @@ pub struct MirroringEndpointGroupAssociationLocationDetails {
 pub struct MirroringEndpointGroupConnectedDeploymentGroup {
     /// Output only. The list of locations where the deployment group is present.
     #[serde(default)]
-    pub locations: Option<Vec<MirroringLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MirroringLocation>>>,
     /// Output only. The connected deployment group''s resource name, for example: projects/123456789/locations/global/mirroringDeploymentGroups/my-dg. See https://google.aip.dev/124.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Details about mirroring in a specific cloud location.
@@ -1538,10 +1613,10 @@ pub struct MirroringEndpointGroupConnectedDeploymentGroup {
 pub struct MirroringLocation {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The current state of the association in this location. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "OUT_OF_SYNC"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1549,19 +1624,19 @@ pub struct MirroringLocation {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1569,25 +1644,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Request used by the RemoveAddressGroupItems method.
@@ -1595,10 +1670,10 @@ pub struct OperationMetadata {
 pub struct RemoveAddressGroupItemsRequest {
     /// Required. List of items to remove.
     #[serde(default)]
-    pub items: Option<Vec<String>>,
+    pub items: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Specification of rules.
@@ -1606,10 +1681,10 @@ pub struct RemoveAddressGroupItemsRequest {
 pub struct Rule {
     /// Optional. List of attributes for the traffic destination. All of the destinations must match. A destination is a match if a request matches all the specified hosts, ports, methods and headers. If not set, the action specified in the ''action'' field will be applied without any rule checks for the destination.
     #[serde(default)]
-    pub destinations: Option<Vec<Destination>>,
+    pub destinations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Destination>>>,
     /// Optional. List of attributes for the traffic source. All of the sources must match. A source is a match if both principals and ip_blocks match. If not set, the action specified in the ''action'' field will be applied without any rule checks for the source.
     #[serde(default)]
-    pub sources: Option<Vec<Source>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Source>>>,
 }
 
 /// SecurityProfile is a resource that defines the behavior for one of many ProfileTypes.
@@ -1617,37 +1692,38 @@ pub struct Rule {
 pub struct SecurityProfile {
     /// Output only. Resource creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The custom TPPI configuration for the SecurityProfile.
     #[serde(default, rename = "customInterceptProfile")]
-    pub custom_intercept_profile: Option<CustomInterceptProfile>,
+    pub custom_intercept_profile: ::core::option::Option<::std::boxed::Box<CustomInterceptProfile>>,
     /// The custom Packet Mirroring v2 configuration for the SecurityProfile.
     #[serde(default, rename = "customMirroringProfile")]
-    pub custom_mirroring_profile: Option<CustomMirroringProfile>,
+    pub custom_mirroring_profile: ::core::option::Option<::std::boxed::Box<CustomMirroringProfile>>,
     /// Optional. An optional description of the profile. Max length 512 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. Name of the SecurityProfile resource. It matches pattern projects|organizations/*/locations/{location}/securityProfiles/{security_profile}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The threat prevention configuration for the SecurityProfile.
     #[serde(default, rename = "threatPreventionProfile")]
-    pub threat_prevention_profile: Option<ThreatPreventionProfile>,
+    pub threat_prevention_profile:
+        ::core::option::Option<::std::boxed::Box<ThreatPreventionProfile>>,
     /// Immutable. The single ProfileType that the SecurityProfile resource configures. // TODO: enum values: ["PROFILE_TYPE_UNSPECIFIED", "THREAT_PREVENTION", "CUSTOM_MIRRORING", "CUSTOM_INTERCEPT", "URL_FILTERING"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Last resource update timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The URL filtering configuration for the SecurityProfile.
     #[serde(default, rename = "urlFilteringProfile")]
-    pub url_filtering_profile: Option<UrlFilteringProfile>,
+    pub url_filtering_profile: ::core::option::Option<::std::boxed::Box<UrlFilteringProfile>>,
 }
 
 /// SecurityProfileGroup is a resource that defines the behavior for various ProfileTypes.
@@ -1655,37 +1731,37 @@ pub struct SecurityProfile {
 pub struct SecurityProfileGroup {
     /// Output only. Resource creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Reference to a SecurityProfile with the CustomIntercept configuration.
     #[serde(default, rename = "customInterceptProfile")]
-    pub custom_intercept_profile: Option<String>,
+    pub custom_intercept_profile: ::core::option::Option<String>,
     /// Optional. Reference to a SecurityProfile with the CustomMirroring configuration.
     #[serde(default, rename = "customMirroringProfile")]
-    pub custom_mirroring_profile: Option<String>,
+    pub custom_mirroring_profile: ::core::option::Option<String>,
     /// Output only. Identifier used by the data-path. Unique within {container, location}.
     #[serde(default, rename = "dataPathId")]
-    pub data_path_id: Option<String>,
+    pub data_path_id: ::core::option::Option<String>,
     /// Optional. An optional description of the profile group. Max length 2048 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. Identifier. Name of the SecurityProfileGroup resource. It matches pattern projects|organizations/*/locations/{location}/securityProfileGroups/{security_profile_group}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Reference to a SecurityProfile with the ThreatPrevention configuration.
     #[serde(default, rename = "threatPreventionProfile")]
-    pub threat_prevention_profile: Option<String>,
+    pub threat_prevention_profile: ::core::option::Option<String>,
     /// Output only. Last resource update timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. Reference to a SecurityProfile with the UrlFiltering configuration.
     #[serde(default, rename = "urlFilteringProfile")]
-    pub url_filtering_profile: Option<String>,
+    pub url_filtering_profile: ::core::option::Option<String>,
 }
 
 /// ServerTlsPolicy is a resource that specifies how a server should authenticate incoming requests. This resource itself does not affect configuration unless it is attached to a target HTTPS proxy or endpoint config selector resource. ServerTlsPolicy in the form accepted by Application Load Balancers can be attached only to TargetHttpsProxy with an EXTERNAL, EXTERNAL_MANAGED or INTERNAL_MANAGED load balancing scheme. Traffic Director compatible ServerTlsPolicies can be attached to EndpointPolicy and TargetHttpsProxy with Traffic Director INTERNAL_SELF_MANAGED load balancing scheme.
@@ -1693,28 +1769,29 @@ pub struct SecurityProfileGroup {
 pub struct ServerTlsPolicy {
     /// This field applies only for Traffic Director policies. It is must be set to false for Application Load Balancer policies. Determines if server allows plaintext connections. If set to true, server allows plain text connections. By default, it is set to false. This setting is not exclusive of other encryption modes. For example, if allow_open and mtls_policy are set, server allows both plain text and mTLS connections. See documentation of other encryption modes to confirm compatibility. Consider using it if you wish to upgrade in place your deployment to TLS while having mixed TLS and non-TLS traffic reaching port :80.
     #[serde(default, rename = "allowOpen")]
-    pub allow_open: Option<bool>,
+    pub allow_open: ::core::option::Option<bool>,
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Set of label tags associated with the resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// This field is required if the policy is used with Application Load Balancers. This field can be empty for Traffic Director. Defines a mechanism to provision peer validation certificates for peer to peer authentication (Mutual TLS - mTLS). If not specified, client certificate will not be requested. The connection is treated as TLS and not mTLS. If allow_open and mtls_policy are set, server allows both plain text and mTLS connections.
     #[serde(default, rename = "mtlsPolicy")]
-    pub mtls_policy: Option<MTLSPolicy>,
+    pub mtls_policy: ::core::option::Option<::std::boxed::Box<MTLSPolicy>>,
     /// Required. Name of the ServerTlsPolicy resource. It matches the pattern projects/*/locations/{location}/serverTlsPolicies/{server_tls_policy}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional if policy is to be used with Traffic Director. For Application Load Balancers must be empty. Defines a mechanism to provision server identity (public and private keys). Cannot be combined with allow_open as a permissive mode that allows both plain text and TLS is not supported.
     #[serde(default, rename = "serverCertificate")]
-    pub server_certificate: Option<GoogleCloudNetworksecurityV1CertificateProvider>,
+    pub server_certificate:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudNetworksecurityV1CertificateProvider>>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Defines what action to take for a specific severity match.
@@ -1722,10 +1799,10 @@ pub struct ServerTlsPolicy {
 pub struct SeverityOverride {
     /// Required. Threat action override. // TODO: enum values: ["THREAT_ACTION_UNSPECIFIED", "DEFAULT_ACTION", "ALLOW", "ALERT", "DENY"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Required. Severity level to match. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "INFORMATIONAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// Specification of traffic source attributes.
@@ -1733,10 +1810,10 @@ pub struct SeverityOverride {
 pub struct Source {
     /// Optional. List of CIDR ranges to match based on source IP address. At least one IP block should match. Single IP (e.g., "1.2.3.4") and CIDR (e.g., "1.2.3.0/24") are supported. Authorization based on source IP alone should be avoided. The IP addresses of any load balancers or proxies should be considered untrusted.
     #[serde(default, rename = "ipBlocks")]
-    pub ip_blocks: Option<Vec<String>>,
+    pub ip_blocks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. List of peer identities to match for authorization. At least one principal should match. Each peer can be an exact match, or a prefix match (example, "namespace/*") or a suffix match (example, "*/service-account") or a presence match "*". Authorization based on the principal name without certificate validation (configured by ServerTlsPolicy resource) is considered insecure.
     #[serde(default)]
-    pub principals: Option<Vec<String>>,
+    pub principals: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1744,13 +1821,13 @@ pub struct Source {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Defines what action to take for a specific threat_id match.
@@ -1758,13 +1835,13 @@ pub struct Status {
 pub struct ThreatOverride {
     /// Required. Threat action override. For some threat types, only a subset of actions applies. // TODO: enum values: ["THREAT_ACTION_UNSPECIFIED", "DEFAULT_ACTION", "ALLOW", "ALERT", "DENY"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Required. Vendor-specific ID of a threat to override.
     #[serde(default, rename = "threatId")]
-    pub threat_id: Option<String>,
+    pub threat_id: ::core::option::Option<String>,
     /// Output only. Type of the threat (read only). // TODO: enum values: ["THREAT_TYPE_UNSPECIFIED", "UNKNOWN", "VULNERABILITY", "ANTIVIRUS", "SPYWARE", "DNS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// ThreatPreventionProfile defines an action for specific threat signatures or severity levels.
@@ -1772,13 +1849,16 @@ pub struct ThreatOverride {
 pub struct ThreatPreventionProfile {
     /// Optional. Configuration for overriding antivirus actions per protocol.
     #[serde(default, rename = "antivirusOverrides")]
-    pub antivirus_overrides: Option<Vec<AntivirusOverride>>,
+    pub antivirus_overrides:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AntivirusOverride>>>,
     /// Optional. Configuration for overriding threats actions by severity match.
     #[serde(default, rename = "severityOverrides")]
-    pub severity_overrides: Option<Vec<SeverityOverride>>,
+    pub severity_overrides:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SeverityOverride>>>,
     /// Optional. Configuration for overriding threats actions by threat_id match. If a threat is matched both by configuration provided in severity_overrides and threat_overrides, the threat_overrides action is applied.
     #[serde(default, rename = "threatOverrides")]
-    pub threat_overrides: Option<Vec<ThreatOverride>>,
+    pub threat_overrides:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThreatOverride>>>,
 }
 
 /// The TlsInspectionPolicy resource contains references to CA pools in Certificate Authority Service and associated metadata.
@@ -1786,34 +1866,34 @@ pub struct ThreatPreventionProfile {
 pub struct TlsInspectionPolicy {
     /// Required. A CA pool resource used to issue interception certificates. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".
     #[serde(default, rename = "caPool")]
-    pub ca_pool: Option<String>,
+    pub ca_pool: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. List of custom TLS cipher suites selected. This field is valid only if the selected tls_feature_profile is CUSTOM. The compute.SslPoliciesService.ListAvailableFeatures method returns the set of features that can be specified in this list. Note that Secure Web Proxy does not yet honor this field.
     #[serde(default, rename = "customTlsFeatures")]
-    pub custom_tls_features: Option<Vec<String>>,
+    pub custom_tls_features: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. If FALSE (the default), use our default set of public CAs in addition to any CAs specified in trust_config. These public CAs are currently based on the Mozilla Root Program and are subject to change over time. If TRUE, do not accept our default set of public CAs. Only CAs specified in trust_config will be accepted. This defaults to FALSE (use public CAs in addition to trust_config) for backwards compatibility, but trusting public root CAs is *not recommended* unless the traffic in question is outbound to public web servers. When possible, prefer setting this to "false" and explicitly specifying trusted CAs and certificates in a TrustConfig. Note that Secure Web Proxy does not yet honor this field.
     #[serde(default, rename = "excludePublicCaSet")]
-    pub exclude_public_ca_set: Option<bool>,
+    pub exclude_public_ca_set: ::core::option::Option<bool>,
     /// Optional. Minimum TLS version that the firewall should use when negotiating connections with both clients and servers. If this is not set, then the default value is to allow the broadest set of clients and servers (TLS 1.0 or higher). Setting this to more restrictive values may improve security, but may also prevent the firewall from connecting to some clients or servers. Note that Secure Web Proxy does not yet honor this field. // TODO: enum values: ["TLS_VERSION_UNSPECIFIED", "TLS_1_0", "TLS_1_1", "TLS_1_2", "TLS_1_3"]
     #[serde(default, rename = "minTlsVersion")]
-    pub min_tls_version: Option<String>,
+    pub min_tls_version: ::core::option::Option<String>,
     /// Required. Name of the resource. Name is of the form projects/{project}/locations/{location}/tlsInspectionPolicies/{tls_inspection_policy} tls_inspection_policy should match the pattern:(^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The selected Profile. If this is not set, then the default value is to allow the broadest set of clients and servers ("PROFILE_COMPATIBLE"). Setting this to more restrictive values may improve security, but may also prevent the TLS inspection proxy from connecting to some clients or servers. Note that Secure Web Proxy does not yet honor this field. // TODO: enum values: ["PROFILE_UNSPECIFIED", "PROFILE_COMPATIBLE", "PROFILE_MODERN", "PROFILE_RESTRICTED", "PROFILE_CUSTOM"]
     #[serde(default, rename = "tlsFeatureProfile")]
-    pub tls_feature_profile: Option<String>,
+    pub tls_feature_profile: ::core::option::Option<String>,
     /// Optional. A TrustConfig resource used when making a connection to the TLS server. This is a relative resource path following the form "projects/{project}/locations/{location}/trustConfigs/{trust_config}". This is necessary to intercept TLS connections to servers with certificates signed by a private CA or self-signed certificates. Note that Secure Web Proxy does not yet honor this field.
     #[serde(default, rename = "trustConfig")]
-    pub trust_config: Option<String>,
+    pub trust_config: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A URL filter defines an action to take for some URL match.
@@ -1821,13 +1901,13 @@ pub struct TlsInspectionPolicy {
 pub struct UrlFilter {
     /// Required. The action taken when this filter is applied. // TODO: enum values: ["URL_FILTERING_ACTION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "filteringAction")]
-    pub filtering_action: Option<String>,
+    pub filtering_action: ::core::option::Option<String>,
     /// Required. The priority of this filter within the URL Filtering Profile. Lower integers indicate higher priorities. The priority of a filter must be unique within a URL Filtering Profile.
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     /// Required. The list of strings that a URL must match with for this filter to be applied.
     #[serde(default)]
-    pub urls: Option<Vec<String>>,
+    pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// UrlFilteringProfile defines filters based on URL.
@@ -1835,7 +1915,7 @@ pub struct UrlFilter {
 pub struct UrlFilteringProfile {
     /// Optional. The list of filtering configs in which each config defines an action to take for some URL match.
     #[serde(default, rename = "urlFilters")]
-    pub url_filters: Option<Vec<UrlFilter>>,
+    pub url_filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UrlFilter>>>,
 }
 
 /// UrlList proto helps users to set reusable, independently manageable lists of hosts, host patterns, URLs, URL patterns.
@@ -1843,19 +1923,19 @@ pub struct UrlFilteringProfile {
 pub struct UrlList {
     /// Output only. Time when the security policy was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free-text description of the resource.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Name of the resource provided by the user. Name is of the form projects/{project}/locations/{location}/urlLists/{url_list} url_list should match the pattern:(^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Time when the security policy was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Required. FQDNs and URLs.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Specification of ValidationCA. Defines the mechanism to obtain the Certificate Authority certificate to validate the peer certificate.
@@ -1863,8 +1943,10 @@ pub struct UrlList {
 pub struct ValidationCA {
     /// The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.
     #[serde(default, rename = "certificateProviderInstance")]
-    pub certificate_provider_instance: Option<CertificateProviderInstance>,
+    pub certificate_provider_instance:
+        ::core::option::Option<::std::boxed::Box<CertificateProviderInstance>>,
     /// gRPC specific configuration to access the gRPC server to obtain the CA certificate.
     #[serde(default, rename = "grpcEndpoint")]
-    pub grpc_endpoint: Option<GoogleCloudNetworksecurityV1GrpcEndpoint>,
+    pub grpc_endpoint:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudNetworksecurityV1GrpcEndpoint>>,
 }

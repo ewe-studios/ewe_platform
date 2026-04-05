@@ -10,15 +10,16 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// State for App Dev Exp Feature.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppDevExperienceState {
     /// Status of subcomponent that detects configured Service Mesh resources.
     #[serde(default, rename = "networkingInstallSucceeded")]
-    pub networking_install_succeeded: Option<AppDevExperienceStatus>,
+    pub networking_install_succeeded:
+        ::core::option::Option<::std::boxed::Box<AppDevExperienceStatus>>,
 }
 
 /// Status specifies state for the subcomponent.
@@ -26,10 +27,10 @@ pub struct AppDevExperienceState {
 pub struct AppDevExperienceStatus {
     /// Code specifies AppDevExperienceFeature''s subcomponent ready state. // TODO: enum values: ["CODE_UNSPECIFIED", "OK", "FAILED", "UNKNOWN"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Description is populated if Code is Failed, explaining why it has failed.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// **Cloud Build**: Configurations for each Cloud Build enabled cluster.
@@ -37,10 +38,10 @@ pub struct AppDevExperienceStatus {
 pub struct CloudBuildSpec {
     /// Whether it is allowed to run the privileged builds on the cluster or not. // TODO: enum values: ["SECURITY_POLICY_UNSPECIFIED", "NON_PRIVILEGED", "PRIVILEGED"]
     #[serde(default, rename = "securityPolicy")]
-    pub security_policy: Option<String>,
+    pub security_policy: ::core::option::Option<String>,
     /// Version of the cloud build software on the cluster.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GKEUpgrade represents a GKE provided upgrade, e.g., control plane upgrade.
@@ -48,10 +49,10 @@ pub struct CloudBuildSpec {
 pub struct ClusterUpgradeGKEUpgrade {
     /// Name of the upgrade, e.g., "k8s_control_plane".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Version of the upgrade, e.g., "1.22.1-gke.100".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// IgnoredMembership represents a membership ignored by the feature. A membership can be ignored because it was manually upgraded to a newer version than RC default.
@@ -59,10 +60,10 @@ pub struct ClusterUpgradeGKEUpgrade {
 pub struct ClusterUpgradeIgnoredMembership {
     /// Time when the membership was first set to ignored.
     #[serde(default, rename = "ignoredTime")]
-    pub ignored_time: Option<String>,
+    pub ignored_time: ::core::option::Option<String>,
     /// Reason why the membership is ignored.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// MembershipGKEUpgradeState is a GKEUpgrade and its state per-membership.
@@ -70,10 +71,10 @@ pub struct ClusterUpgradeIgnoredMembership {
 pub struct ClusterUpgradeMembershipGKEUpgradeState {
     /// Status of the upgrade.
     #[serde(default)]
-    pub status: Option<ClusterUpgradeUpgradeStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ClusterUpgradeUpgradeStatus>>,
     /// Which upgrade to track the state.
     #[serde(default)]
-    pub upgrade: Option<ClusterUpgradeGKEUpgrade>,
+    pub upgrade: ::core::option::Option<::std::boxed::Box<ClusterUpgradeGKEUpgrade>>,
 }
 
 /// Per-membership state for this feature.
@@ -81,10 +82,12 @@ pub struct ClusterUpgradeMembershipGKEUpgradeState {
 pub struct ClusterUpgradeState {
     /// Whether this membership is ignored by the feature. For example, manually upgraded clusters can be ignored if they are newer than the default versions of its release channel.
     #[serde(default)]
-    pub ignored: Option<ClusterUpgradeIgnoredMembership>,
+    pub ignored: ::core::option::Option<::std::boxed::Box<ClusterUpgradeIgnoredMembership>>,
     /// Actual upgrade state against desired.
     #[serde(default)]
-    pub upgrades: Option<Vec<ClusterUpgradeMembershipGKEUpgradeState>>,
+    pub upgrades: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ClusterUpgradeMembershipGKEUpgradeState>>,
+    >,
 }
 
 /// UpgradeStatus provides status information for each upgrade.
@@ -92,13 +95,13 @@ pub struct ClusterUpgradeState {
 pub struct ClusterUpgradeUpgradeStatus {
     /// Status code of the upgrade. // TODO: enum values: ["CODE_UNSPECIFIED", "INELIGIBLE", "PENDING", "IN_PROGRESS", "SOAKING", "FORCED_SOAKING", "COMPLETE"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Reason for this status.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// Last timestamp the status was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Configuration for Binauthz.
@@ -106,7 +109,7 @@ pub struct ClusterUpgradeUpgradeStatus {
 pub struct ConfigManagementBinauthzConfig {
     /// Whether binauthz is enabled in this cluster.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// State for Binauthz.
@@ -114,10 +117,10 @@ pub struct ConfigManagementBinauthzConfig {
 pub struct ConfigManagementBinauthzState {
     /// The version of binauthz that is installed.
     #[serde(default)]
-    pub version: Option<ConfigManagementBinauthzVersion>,
+    pub version: ::core::option::Option<::std::boxed::Box<ConfigManagementBinauthzVersion>>,
     /// The state of the binauthz webhook. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default)]
-    pub webhook: Option<String>,
+    pub webhook: ::core::option::Option<String>,
 }
 
 /// The version of binauthz.
@@ -125,7 +128,7 @@ pub struct ConfigManagementBinauthzState {
 pub struct ConfigManagementBinauthzVersion {
     /// The version of the binauthz webhook.
     #[serde(default, rename = "webhookVersion")]
-    pub webhook_version: Option<String>,
+    pub webhook_version: ::core::option::Option<String>,
 }
 
 /// Configuration for Config Sync
@@ -133,28 +136,30 @@ pub struct ConfigManagementBinauthzVersion {
 pub struct ConfigManagementConfigSync {
     /// Optional. Configuration for deployment overrides. Applies only to Config Sync deployments with containers that are not a root or namespace reconciler: reconciler-manager, otel-collector, resource-group-controller-manager, admission-webhook. To override a root or namespace reconciler, use the rootsync or reposync fields at https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/reference/rootsync-reposync-fields#override-resources instead.
     #[serde(default, rename = "deploymentOverrides")]
-    pub deployment_overrides: Option<Vec<ConfigManagementDeploymentOverride>>,
+    pub deployment_overrides: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ConfigManagementDeploymentOverride>>,
+    >,
     /// Optional. Enables the installation of Config Sync. If set to true, the Feature will manage Config Sync resources, and apply the other ConfigSync fields if they exist. If set to false, the Feature will ignore all other ConfigSync fields and delete the Config Sync resources. If omitted, ConfigSync is considered enabled if the git or oci field is present.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Optional. Git repo configuration for the cluster.
     #[serde(default)]
-    pub git: Option<ConfigManagementGitConfig>,
+    pub git: ::core::option::Option<::std::boxed::Box<ConfigManagementGitConfig>>,
     /// Optional. The Email of the Google Cloud Service Account (GSA) used for exporting Config Sync metrics to Cloud Monitoring and Cloud Monarch when Workload Identity is enabled. The GSA should have the Monitoring Metric Writer (roles/monitoring.metricWriter) IAM role. The Kubernetes ServiceAccount default in the namespace config-management-monitoring should be bound to the GSA. Deprecated: If Workload Identity Federation for GKE is enabled, Google Cloud Service Account is no longer needed for exporting Config Sync metrics: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/monitor-config-sync-cloud-monitoring#custom-monitoring.
     #[serde(default, rename = "metricsGcpServiceAccountEmail")]
-    pub metrics_gcp_service_account_email: Option<String>,
+    pub metrics_gcp_service_account_email: ::core::option::Option<String>,
     /// Optional. OCI repo configuration for the cluster.
     #[serde(default)]
-    pub oci: Option<ConfigManagementOciConfig>,
+    pub oci: ::core::option::Option<::std::boxed::Box<ConfigManagementOciConfig>>,
     /// Optional. Set to true to enable the Config Sync admission webhook to prevent drifts. If set to false, disables the Config Sync admission webhook and does not prevent drifts. Defaults to false. See https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/how-to/prevent-config-drift for details.
     #[serde(default, rename = "preventDrift")]
-    pub prevent_drift: Option<bool>,
+    pub prevent_drift: ::core::option::Option<bool>,
     /// Optional. Specifies whether the Config Sync repo is in hierarchical or unstructured mode. Defaults to hierarchical. See https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/concepts/configs#organize-configs for an explanation.
     #[serde(default, rename = "sourceFormat")]
-    pub source_format: Option<String>,
+    pub source_format: ::core::option::Option<String>,
     /// Optional. Set to true to stop syncing configs for a single cluster. Default to false.
     #[serde(default, rename = "stopSyncing")]
-    pub stop_syncing: Option<bool>,
+    pub stop_syncing: ::core::option::Option<bool>,
 }
 
 /// The state of ConfigSync''s deployment on a cluster.
@@ -162,31 +167,31 @@ pub struct ConfigManagementConfigSync {
 pub struct ConfigManagementConfigSyncDeploymentState {
     /// Deployment state of admission-webhook. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "admissionWebhook")]
-    pub admission_webhook: Option<String>,
+    pub admission_webhook: ::core::option::Option<String>,
     /// Deployment state of the git-sync pod. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "gitSync")]
-    pub git_sync: Option<String>,
+    pub git_sync: ::core::option::Option<String>,
     /// Deployment state of the importer pod. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default)]
-    pub importer: Option<String>,
+    pub importer: ::core::option::Option<String>,
     /// Deployment state of the monitor pod. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default)]
-    pub monitor: Option<String>,
+    pub monitor: ::core::option::Option<String>,
     /// Deployment state of otel-collector // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "otelCollector")]
-    pub otel_collector: Option<String>,
+    pub otel_collector: ::core::option::Option<String>,
     /// Deployment state of reconciler-manager pod. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "reconcilerManager")]
-    pub reconciler_manager: Option<String>,
+    pub reconciler_manager: ::core::option::Option<String>,
     /// Deployment state of resource-group-controller-manager // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "resourceGroupControllerManager")]
-    pub resource_group_controller_manager: Option<String>,
+    pub resource_group_controller_manager: ::core::option::Option<String>,
     /// Deployment state of root-reconciler. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "rootReconciler")]
-    pub root_reconciler: Option<String>,
+    pub root_reconciler: ::core::option::Option<String>,
     /// Deployment state of the syncer pod. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default)]
-    pub syncer: Option<String>,
+    pub syncer: ::core::option::Option<String>,
 }
 
 /// Errors pertaining to the installation of Config Sync
@@ -194,7 +199,7 @@ pub struct ConfigManagementConfigSyncDeploymentState {
 pub struct ConfigManagementConfigSyncError {
     /// A string representing the user facing error message
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
 }
 
 /// State information for ConfigSync.
@@ -202,31 +207,33 @@ pub struct ConfigManagementConfigSyncError {
 pub struct ConfigManagementConfigSyncState {
     /// Output only. Whether syncing resources to the cluster is stopped at the cluster level. // TODO: enum values: ["STOP_SYNCING_STATE_UNSPECIFIED", "NOT_STOPPED", "PENDING", "STOPPED"]
     #[serde(default, rename = "clusterLevelStopSyncingState")]
-    pub cluster_level_stop_syncing_state: Option<String>,
+    pub cluster_level_stop_syncing_state: ::core::option::Option<String>,
     /// Output only. The number of RootSync and RepoSync CRs in the cluster.
     #[serde(default, rename = "crCount")]
-    pub cr_count: Option<i32>,
+    pub cr_count: ::core::option::Option<i32>,
     /// Output only. Information about the deployment of ConfigSync, including the version. of the various Pods deployed
     #[serde(default, rename = "deploymentState")]
-    pub deployment_state: Option<ConfigManagementConfigSyncDeploymentState>,
+    pub deployment_state:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementConfigSyncDeploymentState>>,
     /// Output only. Errors pertaining to the installation of Config Sync.
     #[serde(default)]
-    pub errors: Option<Vec<ConfigManagementConfigSyncError>>,
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConfigManagementConfigSyncError>>>,
     /// Output only. The state of the Reposync CRD // TODO: enum values: ["CRD_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "TERMINATING", "INSTALLING"]
     #[serde(default, rename = "reposyncCrd")]
-    pub reposync_crd: Option<String>,
+    pub reposync_crd: ::core::option::Option<String>,
     /// Output only. The state of the RootSync CRD // TODO: enum values: ["CRD_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "TERMINATING", "INSTALLING"]
     #[serde(default, rename = "rootsyncCrd")]
-    pub rootsync_crd: Option<String>,
+    pub rootsync_crd: ::core::option::Option<String>,
     /// Output only. The state of CS This field summarizes the other fields in this message. // TODO: enum values: ["STATE_UNSPECIFIED", "CONFIG_SYNC_NOT_INSTALLED", "CONFIG_SYNC_INSTALLED", "CONFIG_SYNC_ERROR", "CONFIG_SYNC_PENDING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The state of ConfigSync''s process to sync configs to a cluster.
     #[serde(default, rename = "syncState")]
-    pub sync_state: Option<ConfigManagementSyncState>,
+    pub sync_state: ::core::option::Option<::std::boxed::Box<ConfigManagementSyncState>>,
     /// Output only. The version of ConfigSync deployed.
     #[serde(default)]
-    pub version: Option<ConfigManagementConfigSyncVersion>,
+    pub version: ::core::option::Option<::std::boxed::Box<ConfigManagementConfigSyncVersion>>,
 }
 
 /// Specific versioning information pertaining to ConfigSync''s Pods.
@@ -234,31 +241,31 @@ pub struct ConfigManagementConfigSyncState {
 pub struct ConfigManagementConfigSyncVersion {
     /// Version of the deployed admission-webhook pod.
     #[serde(default, rename = "admissionWebhook")]
-    pub admission_webhook: Option<String>,
+    pub admission_webhook: ::core::option::Option<String>,
     /// Version of the deployed git-sync pod.
     #[serde(default, rename = "gitSync")]
-    pub git_sync: Option<String>,
+    pub git_sync: ::core::option::Option<String>,
     /// Version of the deployed importer pod.
     #[serde(default)]
-    pub importer: Option<String>,
+    pub importer: ::core::option::Option<String>,
     /// Version of the deployed monitor pod.
     #[serde(default)]
-    pub monitor: Option<String>,
+    pub monitor: ::core::option::Option<String>,
     /// Version of the deployed otel-collector pod
     #[serde(default, rename = "otelCollector")]
-    pub otel_collector: Option<String>,
+    pub otel_collector: ::core::option::Option<String>,
     /// Version of the deployed reconciler-manager pod.
     #[serde(default, rename = "reconcilerManager")]
-    pub reconciler_manager: Option<String>,
+    pub reconciler_manager: ::core::option::Option<String>,
     /// Version of the deployed resource-group-controller-manager pod
     #[serde(default, rename = "resourceGroupControllerManager")]
-    pub resource_group_controller_manager: Option<String>,
+    pub resource_group_controller_manager: ::core::option::Option<String>,
     /// Version of the deployed reconciler container in root-reconciler pod.
     #[serde(default, rename = "rootReconciler")]
-    pub root_reconciler: Option<String>,
+    pub root_reconciler: ::core::option::Option<String>,
     /// Version of the deployed syncer pod.
     #[serde(default)]
-    pub syncer: Option<String>,
+    pub syncer: ::core::option::Option<String>,
 }
 
 /// Configuration for a container override.
@@ -266,19 +273,19 @@ pub struct ConfigManagementConfigSyncVersion {
 pub struct ConfigManagementContainerOverride {
     /// Required. The name of the container.
     #[serde(default, rename = "containerName")]
-    pub container_name: Option<String>,
+    pub container_name: ::core::option::Option<String>,
     /// Optional. The cpu limit of the container. Use the following CPU resource units: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu.
     #[serde(default, rename = "cpuLimit")]
-    pub cpu_limit: Option<String>,
+    pub cpu_limit: ::core::option::Option<String>,
     /// Optional. The cpu request of the container. Use the following CPU resource units: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu.
     #[serde(default, rename = "cpuRequest")]
-    pub cpu_request: Option<String>,
+    pub cpu_request: ::core::option::Option<String>,
     /// Optional. The memory limit of the container. Use the following memory resource units: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory.
     #[serde(default, rename = "memoryLimit")]
-    pub memory_limit: Option<String>,
+    pub memory_limit: ::core::option::Option<String>,
     /// Optional. The memory request of the container. Use the following memory resource units: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory.
     #[serde(default, rename = "memoryRequest")]
-    pub memory_request: Option<String>,
+    pub memory_request: ::core::option::Option<String>,
 }
 
 /// Configuration for a deployment override.
@@ -286,13 +293,15 @@ pub struct ConfigManagementContainerOverride {
 pub struct ConfigManagementDeploymentOverride {
     /// Optional. The containers of the deployment resource to be overridden.
     #[serde(default)]
-    pub containers: Option<Vec<ConfigManagementContainerOverride>>,
+    pub containers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ConfigManagementContainerOverride>>,
+    >,
     /// Required. The name of the deployment resource to be overridden.
     #[serde(default, rename = "deploymentName")]
-    pub deployment_name: Option<String>,
+    pub deployment_name: ::core::option::Option<String>,
     /// Required. The namespace of the deployment resource to be overridden.
     #[serde(default, rename = "deploymentNamespace")]
-    pub deployment_namespace: Option<String>,
+    pub deployment_namespace: ::core::option::Option<String>,
 }
 
 /// Model for a config file in the git repo with an associated Sync error.
@@ -300,16 +309,16 @@ pub struct ConfigManagementDeploymentOverride {
 pub struct ConfigManagementErrorResource {
     /// Group/version/kind of the resource that is causing an error
     #[serde(default, rename = "resourceGvk")]
-    pub resource_gvk: Option<ConfigManagementGroupVersionKind>,
+    pub resource_gvk: ::core::option::Option<::std::boxed::Box<ConfigManagementGroupVersionKind>>,
     /// Metadata name of the resource that is causing an error
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Namespace of the resource that is causing an error
     #[serde(default, rename = "resourceNamespace")]
-    pub resource_namespace: Option<String>,
+    pub resource_namespace: ::core::option::Option<String>,
     /// Path in the git repo of the erroneous config
     #[serde(default, rename = "sourcePath")]
-    pub source_path: Option<String>,
+    pub source_path: ::core::option::Option<String>,
 }
 
 /// State of Policy Controller installation.
@@ -317,13 +326,13 @@ pub struct ConfigManagementErrorResource {
 pub struct ConfigManagementGatekeeperDeploymentState {
     /// Status of gatekeeper-audit deployment. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "gatekeeperAudit")]
-    pub gatekeeper_audit: Option<String>,
+    pub gatekeeper_audit: ::core::option::Option<String>,
     /// Status of gatekeeper-controller-manager pod. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "gatekeeperControllerManagerState")]
-    pub gatekeeper_controller_manager_state: Option<String>,
+    pub gatekeeper_controller_manager_state: ::core::option::Option<String>,
     /// Status of the pod serving the mutation webhook. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "gatekeeperMutation")]
-    pub gatekeeper_mutation: Option<String>,
+    pub gatekeeper_mutation: ::core::option::Option<String>,
 }
 
 /// Git repo configuration for a single cluster.
@@ -331,28 +340,28 @@ pub struct ConfigManagementGatekeeperDeploymentState {
 pub struct ConfigManagementGitConfig {
     /// Optional. The Google Cloud Service Account Email used for auth when secret_type is gcpserviceaccount.
     #[serde(default, rename = "gcpServiceAccountEmail")]
-    pub gcp_service_account_email: Option<String>,
+    pub gcp_service_account_email: ::core::option::Option<String>,
     /// Optional. URL for the HTTPS proxy to be used when communicating with the Git repo. Only specify when secret_type is cookiefile, token, or none.
     #[serde(default, rename = "httpsProxy")]
-    pub https_proxy: Option<String>,
+    pub https_proxy: ::core::option::Option<String>,
     /// Optional. The path within the Git repository that represents the top level of the repo to sync. Default: the root directory of the repository.
     #[serde(default, rename = "policyDir")]
-    pub policy_dir: Option<String>,
+    pub policy_dir: ::core::option::Option<String>,
     /// Required. Type of secret configured for access to the Git repo. Must be one of ssh, cookiefile, gcenode, token, gcpserviceaccount, githubapp or none. The validation of this is case-sensitive.
     #[serde(default, rename = "secretType")]
-    pub secret_type: Option<String>,
+    pub secret_type: ::core::option::Option<String>,
     /// Optional. The branch of the repository to sync from. Default: master.
     #[serde(default, rename = "syncBranch")]
-    pub sync_branch: Option<String>,
+    pub sync_branch: ::core::option::Option<String>,
     /// Required. The URL of the Git repository to use as the source of truth.
     #[serde(default, rename = "syncRepo")]
-    pub sync_repo: Option<String>,
+    pub sync_repo: ::core::option::Option<String>,
     /// Optional. Git revision (tag or hash) to check out. Default HEAD.
     #[serde(default, rename = "syncRev")]
-    pub sync_rev: Option<String>,
+    pub sync_rev: ::core::option::Option<String>,
     /// Optional. Period in seconds between consecutive syncs. Default: 15.
     #[serde(default, rename = "syncWaitSecs")]
-    pub sync_wait_secs: Option<String>,
+    pub sync_wait_secs: ::core::option::Option<String>,
 }
 
 /// A Kubernetes object''s GVK.
@@ -360,13 +369,13 @@ pub struct ConfigManagementGitConfig {
 pub struct ConfigManagementGroupVersionKind {
     /// Kubernetes Group
     #[serde(default)]
-    pub group: Option<String>,
+    pub group: ::core::option::Option<String>,
     /// Kubernetes Kind
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Kubernetes Version
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Configuration for Hierarchy Controller.
@@ -374,13 +383,13 @@ pub struct ConfigManagementGroupVersionKind {
 pub struct ConfigManagementHierarchyControllerConfig {
     /// Whether hierarchical resource quota is enabled in this cluster.
     #[serde(default, rename = "enableHierarchicalResourceQuota")]
-    pub enable_hierarchical_resource_quota: Option<bool>,
+    pub enable_hierarchical_resource_quota: ::core::option::Option<bool>,
     /// Whether pod tree labels are enabled in this cluster.
     #[serde(default, rename = "enablePodTreeLabels")]
-    pub enable_pod_tree_labels: Option<bool>,
+    pub enable_pod_tree_labels: ::core::option::Option<bool>,
     /// Whether Hierarchy Controller is enabled in this cluster.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Deployment state for Hierarchy Controller
@@ -388,10 +397,10 @@ pub struct ConfigManagementHierarchyControllerConfig {
 pub struct ConfigManagementHierarchyControllerDeploymentState {
     /// The deployment state for Hierarchy Controller extension (e.g. v0.7.0-hc.1). // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default)]
-    pub extension: Option<String>,
+    pub extension: ::core::option::Option<String>,
     /// The deployment state for open source HNC (e.g. v0.7.0-hc.0). // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default)]
-    pub hnc: Option<String>,
+    pub hnc: ::core::option::Option<String>,
 }
 
 /// State for Hierarchy Controller.
@@ -399,10 +408,13 @@ pub struct ConfigManagementHierarchyControllerDeploymentState {
 pub struct ConfigManagementHierarchyControllerState {
     /// The deployment state for Hierarchy Controller.
     #[serde(default)]
-    pub state: Option<ConfigManagementHierarchyControllerDeploymentState>,
+    pub state: ::core::option::Option<
+        ::std::boxed::Box<ConfigManagementHierarchyControllerDeploymentState>,
+    >,
     /// The version for Hierarchy Controller.
     #[serde(default)]
-    pub version: Option<ConfigManagementHierarchyControllerVersion>,
+    pub version:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementHierarchyControllerVersion>>,
 }
 
 /// Version for Hierarchy Controller.
@@ -410,10 +422,10 @@ pub struct ConfigManagementHierarchyControllerState {
 pub struct ConfigManagementHierarchyControllerVersion {
     /// Version for Hierarchy Controller extension.
     #[serde(default)]
-    pub extension: Option<String>,
+    pub extension: ::core::option::Option<String>,
     /// Version for open source HNC.
     #[serde(default)]
-    pub hnc: Option<String>,
+    pub hnc: ::core::option::Option<String>,
 }
 
 /// Errors pertaining to the installation of ACM.
@@ -421,7 +433,7 @@ pub struct ConfigManagementHierarchyControllerVersion {
 pub struct ConfigManagementInstallError {
     /// A string representing the user facing error message.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
 }
 
 /// OCI repo configuration for a single cluster.
@@ -429,19 +441,19 @@ pub struct ConfigManagementInstallError {
 pub struct ConfigManagementOciConfig {
     /// Optional. The Google Cloud Service Account Email used for auth when secret_type is gcpserviceaccount.
     #[serde(default, rename = "gcpServiceAccountEmail")]
-    pub gcp_service_account_email: Option<String>,
+    pub gcp_service_account_email: ::core::option::Option<String>,
     /// Optional. The absolute path of the directory that contains the local resources. Default: the root directory of the image.
     #[serde(default, rename = "policyDir")]
-    pub policy_dir: Option<String>,
+    pub policy_dir: ::core::option::Option<String>,
     /// Required. Type of secret configured for access to the OCI repo. Must be one of gcenode, gcpserviceaccount, k8sserviceaccount or none. The validation of this is case-sensitive.
     #[serde(default, rename = "secretType")]
-    pub secret_type: Option<String>,
+    pub secret_type: ::core::option::Option<String>,
     /// Required. The OCI image repository URL for the package to sync from. e.g. LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY_NAME/PACKAGE_NAME.
     #[serde(default, rename = "syncRepo")]
-    pub sync_repo: Option<String>,
+    pub sync_repo: ::core::option::Option<String>,
     /// Optional. Period in seconds between consecutive syncs. Default: 15.
     #[serde(default, rename = "syncWaitSecs")]
-    pub sync_wait_secs: Option<String>,
+    pub sync_wait_secs: ::core::option::Option<String>,
 }
 
 /// State information for an ACM''s Operator.
@@ -449,13 +461,14 @@ pub struct ConfigManagementOciConfig {
 pub struct ConfigManagementOperatorState {
     /// The state of the Operator''s deployment. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "deploymentState")]
-    pub deployment_state: Option<String>,
+    pub deployment_state: ::core::option::Option<String>,
     /// Install errors.
     #[serde(default)]
-    pub errors: Option<Vec<ConfigManagementInstallError>>,
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConfigManagementInstallError>>>,
     /// The semenatic version number of the operator.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Configuration for Policy Controller
@@ -463,31 +476,32 @@ pub struct ConfigManagementOperatorState {
 pub struct ConfigManagementPolicyController {
     /// Sets the interval for Policy Controller Audit Scans (in seconds). When set to 0, this disables audit functionality altogether.
     #[serde(default, rename = "auditIntervalSeconds")]
-    pub audit_interval_seconds: Option<String>,
+    pub audit_interval_seconds: ::core::option::Option<String>,
     /// Enables the installation of Policy Controller. If false, the rest of PolicyController fields take no effect.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// The set of namespaces that are excluded from Policy Controller checks. Namespaces do not need to currently exist on the cluster.
     #[serde(default, rename = "exemptableNamespaces")]
-    pub exemptable_namespaces: Option<Vec<String>>,
+    pub exemptable_namespaces: ::core::option::Option<::std::vec::Vec<String>>,
     /// Logs all denies and dry run failures.
     #[serde(default, rename = "logDeniesEnabled")]
-    pub log_denies_enabled: Option<bool>,
+    pub log_denies_enabled: ::core::option::Option<bool>,
     /// Monitoring specifies the configuration of monitoring.
     #[serde(default)]
-    pub monitoring: Option<ConfigManagementPolicyControllerMonitoring>,
+    pub monitoring:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementPolicyControllerMonitoring>>,
     /// Enable or disable mutation in policy controller. If true, mutation CRDs, webhook and controller deployment will be deployed to the cluster.
     #[serde(default, rename = "mutationEnabled")]
-    pub mutation_enabled: Option<bool>,
+    pub mutation_enabled: ::core::option::Option<bool>,
     /// Enables the ability to use Constraint Templates that reference to objects other than the object currently being evaluated.
     #[serde(default, rename = "referentialRulesEnabled")]
-    pub referential_rules_enabled: Option<bool>,
+    pub referential_rules_enabled: ::core::option::Option<bool>,
     /// Installs the default template library along with Policy Controller.
     #[serde(default, rename = "templateLibraryInstalled")]
-    pub template_library_installed: Option<bool>,
+    pub template_library_installed: ::core::option::Option<bool>,
     /// Output only. Last time this membership spec was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// State for the migration of PolicyController from ACM -&gt; PoCo Hub.
@@ -495,10 +509,10 @@ pub struct ConfigManagementPolicyController {
 pub struct ConfigManagementPolicyControllerMigration {
     /// Last time this membership spec was copied to PoCo feature.
     #[serde(default, rename = "copyTime")]
-    pub copy_time: Option<String>,
+    pub copy_time: ::core::option::Option<String>,
     /// Stage of the migration. // TODO: enum values: ["STAGE_UNSPECIFIED", "ACM_MANAGED", "POCO_MANAGED"]
     #[serde(default)]
-    pub stage: Option<String>,
+    pub stage: ::core::option::Option<String>,
 }
 
 /// PolicyControllerMonitoring specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]
@@ -506,7 +520,7 @@ pub struct ConfigManagementPolicyControllerMigration {
 pub struct ConfigManagementPolicyControllerMonitoring {
     /// Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.
     #[serde(default)]
-    pub backends: Option<Vec<String>>,
+    pub backends: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// State for PolicyControllerState.
@@ -514,13 +528,15 @@ pub struct ConfigManagementPolicyControllerMonitoring {
 pub struct ConfigManagementPolicyControllerState {
     /// The state about the policy controller installation.
     #[serde(default, rename = "deploymentState")]
-    pub deployment_state: Option<ConfigManagementGatekeeperDeploymentState>,
+    pub deployment_state:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementGatekeeperDeploymentState>>,
     /// Record state of ACM -&gt; PoCo Hub migration for this feature.
     #[serde(default)]
-    pub migration: Option<ConfigManagementPolicyControllerMigration>,
+    pub migration:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementPolicyControllerMigration>>,
     /// The version of Gatekeeper Policy Controller deployed.
     #[serde(default)]
-    pub version: Option<ConfigManagementPolicyControllerVersion>,
+    pub version: ::core::option::Option<::std::boxed::Box<ConfigManagementPolicyControllerVersion>>,
 }
 
 /// The build version of Gatekeeper Policy Controller is using.
@@ -528,7 +544,7 @@ pub struct ConfigManagementPolicyControllerState {
 pub struct ConfigManagementPolicyControllerVersion {
     /// The gatekeeper image tag that is composed of ACM version, git tag, build number.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// **Anthos Config Management**: Configuration for a single cluster. Intended to parallel the ConfigManagement CR.
@@ -536,25 +552,27 @@ pub struct ConfigManagementPolicyControllerVersion {
 pub struct ConfigManagementSpec {
     /// Optional. Deprecated: Binauthz configuration will be ignored and should not be set.
     #[serde(default)]
-    pub binauthz: Option<ConfigManagementBinauthzConfig>,
+    pub binauthz: ::core::option::Option<::std::boxed::Box<ConfigManagementBinauthzConfig>>,
     /// Optional. User-specified cluster name used by the Config Sync cluster-name-selector annotation or ClusterSelector object, for applying configs to only a subset of clusters. Read more about the cluster-name-selector annotation and ClusterSelector object at https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/how-to/cluster-scoped-objects#limiting-configs. Only set this field if a name different from the cluster''s fleet membership name is used by the Config Sync cluster-name-selector annotation or ClusterSelector.
     #[serde(default)]
-    pub cluster: Option<String>,
+    pub cluster: ::core::option::Option<String>,
     /// Optional. Config Sync configuration for the cluster.
     #[serde(default, rename = "configSync")]
-    pub config_sync: Option<ConfigManagementConfigSync>,
+    pub config_sync: ::core::option::Option<::std::boxed::Box<ConfigManagementConfigSync>>,
     /// Optional. Hierarchy Controller configuration for the cluster. Deprecated: Configuring Hierarchy Controller through the configmanagement feature is no longer recommended. Use https://github.com/kubernetes-sigs/hierarchical-namespaces instead.
     #[serde(default, rename = "hierarchyController")]
-    pub hierarchy_controller: Option<ConfigManagementHierarchyControllerConfig>,
+    pub hierarchy_controller:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementHierarchyControllerConfig>>,
     /// Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades. // TODO: enum values: ["MANAGEMENT_UNSPECIFIED", "MANAGEMENT_AUTOMATIC", "MANAGEMENT_MANUAL"]
     #[serde(default)]
-    pub management: Option<String>,
+    pub management: ::core::option::Option<String>,
     /// Optional. Policy Controller configuration for the cluster. Deprecated: Configuring Policy Controller through the configmanagement feature is no longer recommended. Use the policycontroller feature instead.
     #[serde(default, rename = "policyController")]
-    pub policy_controller: Option<ConfigManagementPolicyController>,
+    pub policy_controller:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementPolicyController>>,
     /// Optional. Version of Config Sync to install. Defaults to the latest supported Config Sync version if the config_sync field is enabled. See supported versions at https://cloud.google.com/kubernetes-engine/config-sync/docs/get-support-config-sync#version_support_policy.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// **Anthos Config Management**: State for a single cluster.
@@ -562,28 +580,31 @@ pub struct ConfigManagementSpec {
 pub struct ConfigManagementState {
     /// Output only. Binauthz status.
     #[serde(default, rename = "binauthzState")]
-    pub binauthz_state: Option<ConfigManagementBinauthzState>,
+    pub binauthz_state: ::core::option::Option<::std::boxed::Box<ConfigManagementBinauthzState>>,
     /// Output only. This field is set to the cluster_name field of the Membership Spec if it is not empty. Otherwise, it is set to the cluster''s fleet membership name.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Output only. Current sync status.
     #[serde(default, rename = "configSyncState")]
-    pub config_sync_state: Option<ConfigManagementConfigSyncState>,
+    pub config_sync_state:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementConfigSyncState>>,
     /// Output only. Hierarchy Controller status.
     #[serde(default, rename = "hierarchyControllerState")]
-    pub hierarchy_controller_state: Option<ConfigManagementHierarchyControllerState>,
+    pub hierarchy_controller_state:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementHierarchyControllerState>>,
     /// Output only. The Kubernetes API server version of the cluster.
     #[serde(default, rename = "kubernetesApiServerVersion")]
-    pub kubernetes_api_server_version: Option<String>,
+    pub kubernetes_api_server_version: ::core::option::Option<String>,
     /// Output only. Membership configuration in the cluster. This represents the actual state in the cluster, while the MembershipSpec in the FeatureSpec represents the intended state.
     #[serde(default, rename = "membershipSpec")]
-    pub membership_spec: Option<ConfigManagementSpec>,
+    pub membership_spec: ::core::option::Option<::std::boxed::Box<ConfigManagementSpec>>,
     /// Output only. Current install status of ACM''s Operator.
     #[serde(default, rename = "operatorState")]
-    pub operator_state: Option<ConfigManagementOperatorState>,
+    pub operator_state: ::core::option::Option<::std::boxed::Box<ConfigManagementOperatorState>>,
     /// Output only. PolicyController status.
     #[serde(default, rename = "policyControllerState")]
-    pub policy_controller_state: Option<ConfigManagementPolicyControllerState>,
+    pub policy_controller_state:
+        ::core::option::Option<::std::boxed::Box<ConfigManagementPolicyControllerState>>,
 }
 
 /// An ACM created error representing a problem syncing configurations.
@@ -591,13 +612,14 @@ pub struct ConfigManagementState {
 pub struct ConfigManagementSyncError {
     /// An ACM defined error code
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// A description of the error
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// A list of config(s) associated with the error, if any
     #[serde(default, rename = "errorResources")]
-    pub error_resources: Option<Vec<ConfigManagementErrorResource>>,
+    pub error_resources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConfigManagementErrorResource>>>,
 }
 
 /// State indicating an ACM''s progress syncing configurations to a cluster.
@@ -605,25 +627,26 @@ pub struct ConfigManagementSyncError {
 pub struct ConfigManagementSyncState {
     /// Sync status code. // TODO: enum values: ["SYNC_CODE_UNSPECIFIED", "SYNCED", "PENDING", "ERROR", "NOT_CONFIGURED", "NOT_INSTALLED", "UNAUTHORIZED", "UNREACHABLE"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// A list of errors resulting from problematic configs. This list will be truncated after 100 errors, although it is unlikely for that many errors to simultaneously exist.
     #[serde(default)]
-    pub errors: Option<Vec<ConfigManagementSyncError>>,
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConfigManagementSyncError>>>,
     /// Token indicating the state of the importer.
     #[serde(default, rename = "importToken")]
-    pub import_token: Option<String>,
+    pub import_token: ::core::option::Option<String>,
     /// Deprecated: use last_sync_time instead. Timestamp of when ACM last successfully synced the repo. The time format is specified in https://golang.org/pkg/time/#Time.String
     #[serde(default, rename = "lastSync")]
-    pub last_sync: Option<String>,
+    pub last_sync: ::core::option::Option<String>,
     /// Timestamp type of when ACM last successfully synced the repo.
     #[serde(default, rename = "lastSyncTime")]
-    pub last_sync_time: Option<String>,
+    pub last_sync_time: ::core::option::Option<String>,
     /// Token indicating the state of the repo.
     #[serde(default, rename = "sourceToken")]
-    pub source_token: Option<String>,
+    pub source_token: ::core::option::Option<String>,
     /// Token indicating the state of the syncer.
     #[serde(default, rename = "syncToken")]
-    pub sync_token: Option<String>,
+    pub sync_token: ::core::option::Option<String>,
 }
 
 /// FeatureSpec contains user input per-feature spec information.
@@ -631,28 +654,28 @@ pub struct ConfigManagementSyncState {
 pub struct FeatureSpec {
     /// Cloudbuild-specific FeatureSpec.
     #[serde(default)]
-    pub cloudbuild: Option<CloudBuildSpec>,
+    pub cloudbuild: ::core::option::Option<::std::boxed::Box<CloudBuildSpec>>,
     /// Config Management FeatureSpec.
     #[serde(default)]
-    pub configmanagement: Option<ConfigManagementSpec>,
+    pub configmanagement: ::core::option::Option<::std::boxed::Box<ConfigManagementSpec>>,
     /// IdentityService FeatureSpec.
     #[serde(default)]
-    pub identityservice: Option<IdentityServiceSpec>,
+    pub identityservice: ::core::option::Option<::std::boxed::Box<IdentityServiceSpec>>,
     /// Whether this per-Feature spec was inherited from a fleet-level default. This field can be updated by users by either overriding a Feature config (updated to USER implicitly) or setting to FLEET explicitly.
     #[serde(default)]
-    pub origin: Option<Origin>,
+    pub origin: ::core::option::Option<::std::boxed::Box<Origin>>,
     /// Policycontroller-specific FeatureSpec.
     #[serde(default)]
-    pub policycontroller: Option<PolicyControllerSpec>,
+    pub policycontroller: ::core::option::Option<::std::boxed::Box<PolicyControllerSpec>>,
     /// Rbacrolebindingactuation-specific FeatureSpec.
     #[serde(default)]
-    pub rbacrolebindingactuation: Option<serde_json::Value>,
+    pub rbacrolebindingactuation: ::core::option::Option<serde_json::Value>,
     /// ServiceMesh Feature Spec.
     #[serde(default)]
-    pub servicemesh: Option<ServiceMeshSpec>,
+    pub servicemesh: ::core::option::Option<::std::boxed::Box<ServiceMeshSpec>>,
     /// Workloadcertificate-specific FeatureSpec.
     #[serde(default)]
-    pub workloadcertificate: Option<WorkloadCertificateSpec>,
+    pub workloadcertificate: ::core::option::Option<::std::boxed::Box<WorkloadCertificateSpec>>,
 }
 
 /// FeatureState contains high-level state information and per-feature state information for this MembershipFeature.
@@ -660,34 +683,35 @@ pub struct FeatureSpec {
 pub struct FeatureState {
     /// Appdevexperience specific state.
     #[serde(default)]
-    pub appdevexperience: Option<AppDevExperienceState>,
+    pub appdevexperience: ::core::option::Option<::std::boxed::Box<AppDevExperienceState>>,
     /// Cluster upgrade state.
     #[serde(default)]
-    pub clusterupgrade: Option<ClusterUpgradeState>,
+    pub clusterupgrade: ::core::option::Option<::std::boxed::Box<ClusterUpgradeState>>,
     /// Config Management state
     #[serde(default)]
-    pub configmanagement: Option<ConfigManagementState>,
+    pub configmanagement: ::core::option::Option<::std::boxed::Box<ConfigManagementState>>,
     /// Identity service state
     #[serde(default)]
-    pub identityservice: Option<IdentityServiceState>,
+    pub identityservice: ::core::option::Option<::std::boxed::Box<IdentityServiceState>>,
     /// Metering state
     #[serde(default)]
-    pub metering: Option<MeteringState>,
+    pub metering: ::core::option::Option<::std::boxed::Box<MeteringState>>,
     /// Policy Controller state
     #[serde(default)]
-    pub policycontroller: Option<PolicyControllerState>,
+    pub policycontroller: ::core::option::Option<::std::boxed::Box<PolicyControllerState>>,
     /// RBAC Role Binding Actuation state
     #[serde(default)]
-    pub rbacrolebindingactuation: Option<RBACRoleBindingActuationState>,
+    pub rbacrolebindingactuation:
+        ::core::option::Option<::std::boxed::Box<RBACRoleBindingActuationState>>,
     /// Service mesh state
     #[serde(default)]
-    pub servicemesh: Option<ServiceMeshState>,
+    pub servicemesh: ::core::option::Option<::std::boxed::Box<ServiceMeshState>>,
     /// The high-level state of this MembershipFeature.
     #[serde(default)]
-    pub state: Option<State>,
+    pub state: ::core::option::Option<::std::boxed::Box<State>>,
     /// Workload Identity state
     #[serde(default)]
-    pub workloadidentity: Option<WorkloadIdentityState>,
+    pub workloadidentity: ::core::option::Option<::std::boxed::Box<WorkloadIdentityState>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -695,13 +719,13 @@ pub struct FeatureState {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Configuration of an auth method for a member/cluster. Only one authentication method (e.g., OIDC and LDAP) can be set per AuthMethod.
@@ -709,25 +733,25 @@ pub struct GoogleRpcStatus {
 pub struct IdentityServiceAuthMethod {
     /// AzureAD specific Configuration.
     #[serde(default, rename = "azureadConfig")]
-    pub azuread_config: Option<IdentityServiceAzureADConfig>,
+    pub azuread_config: ::core::option::Option<::std::boxed::Box<IdentityServiceAzureADConfig>>,
     /// GoogleConfig specific configuration
     #[serde(default, rename = "googleConfig")]
-    pub google_config: Option<IdentityServiceGoogleConfig>,
+    pub google_config: ::core::option::Option<::std::boxed::Box<IdentityServiceGoogleConfig>>,
     /// LDAP specific configuration.
     #[serde(default, rename = "ldapConfig")]
-    pub ldap_config: Option<IdentityServiceLdapConfig>,
+    pub ldap_config: ::core::option::Option<::std::boxed::Box<IdentityServiceLdapConfig>>,
     /// Identifier for auth config.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// OIDC specific configuration.
     #[serde(default, rename = "oidcConfig")]
-    pub oidc_config: Option<IdentityServiceOidcConfig>,
+    pub oidc_config: ::core::option::Option<::std::boxed::Box<IdentityServiceOidcConfig>>,
     /// Proxy server address to use for auth method.
     #[serde(default)]
-    pub proxy: Option<String>,
+    pub proxy: ::core::option::Option<String>,
     /// SAML specific configuration.
     #[serde(default, rename = "samlConfig")]
-    pub saml_config: Option<IdentityServiceSamlConfig>,
+    pub saml_config: ::core::option::Option<::std::boxed::Box<IdentityServiceSamlConfig>>,
 }
 
 /// Configuration for the AzureAD Auth flow.
@@ -735,25 +759,25 @@ pub struct IdentityServiceAuthMethod {
 pub struct IdentityServiceAzureADConfig {
     /// ID for the registered client application that makes authentication requests to the Azure AD identity provider.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Input only. Unencrypted AzureAD client secret will be passed to the GKE Hub CLH.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// Output only. Encrypted AzureAD client secret.
     #[serde(default, rename = "encryptedClientSecret")]
-    pub encrypted_client_secret: Option<String>,
+    pub encrypted_client_secret: ::core::option::Option<String>,
     /// Optional. Format of the AzureAD groups that the client wants for auth.
     #[serde(default, rename = "groupFormat")]
-    pub group_format: Option<String>,
+    pub group_format: ::core::option::Option<String>,
     /// The redirect URL that kubectl uses for authorization.
     #[serde(default, rename = "kubectlRedirectUri")]
-    pub kubectl_redirect_uri: Option<String>,
+    pub kubectl_redirect_uri: ::core::option::Option<String>,
     /// Kind of Azure AD account to be authenticated. Supported values are or for accounts belonging to a specific tenant.
     #[serde(default)]
-    pub tenant: Option<String>,
+    pub tenant: ::core::option::Option<String>,
     /// Optional. Claim in the AzureAD ID Token that holds the user details.
     #[serde(default, rename = "userClaim")]
-    pub user_claim: Option<String>,
+    pub user_claim: ::core::option::Option<String>,
 }
 
 /// Configuration options for the AIS diagnostic interface.
@@ -761,10 +785,10 @@ pub struct IdentityServiceAzureADConfig {
 pub struct IdentityServiceDiagnosticInterface {
     /// Determines whether to enable the diagnostic interface.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Determines the expiration time of the diagnostic interface enablement. When reached, requests to the interface would be automatically rejected.
     #[serde(default, rename = "expirationTime")]
-    pub expiration_time: Option<String>,
+    pub expiration_time: ::core::option::Option<String>,
 }
 
 /// Configuration for the Google Plugin Auth flow.
@@ -772,7 +796,7 @@ pub struct IdentityServiceDiagnosticInterface {
 pub struct IdentityServiceGoogleConfig {
     /// Disable automatic configuration of Google Plugin on supported platforms.
     #[serde(default)]
-    pub disable: Option<bool>,
+    pub disable: ::core::option::Option<bool>,
 }
 
 /// Contains the properties for locating and authenticating groups in the directory.
@@ -780,13 +804,13 @@ pub struct IdentityServiceGoogleConfig {
 pub struct IdentityServiceGroupConfig {
     /// Required. The location of the subtree in the LDAP directory to search for group entries.
     #[serde(default, rename = "baseDn")]
-    pub base_dn: Option<String>,
+    pub base_dn: ::core::option::Option<String>,
     /// Optional. Optional filter to be used when searching for groups a user belongs to. This can be used to explicitly match only certain groups in order to reduce the amount of groups returned for each user. This defaults to "(objectClass=Group)".
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Optional. The identifying name of each group a user belongs to. For example, if this is set to "distinguishedName" then RBACs and other group expectations should be written as full DNs. This defaults to "distinguishedName".
     #[serde(default, rename = "idAttribute")]
-    pub id_attribute: Option<String>,
+    pub id_attribute: ::core::option::Option<String>,
 }
 
 /// Holds non-protocol-related configuration options.
@@ -794,10 +818,11 @@ pub struct IdentityServiceGroupConfig {
 pub struct IdentityServiceIdentityServiceOptions {
     /// Configuration options for the AIS diagnostic interface.
     #[serde(default, rename = "diagnosticInterface")]
-    pub diagnostic_interface: Option<IdentityServiceDiagnosticInterface>,
+    pub diagnostic_interface:
+        ::core::option::Option<::std::boxed::Box<IdentityServiceDiagnosticInterface>>,
     /// Determines the lifespan of STS tokens issued by Anthos Identity Service.
     #[serde(default, rename = "sessionDuration")]
-    pub session_duration: Option<String>,
+    pub session_duration: ::core::option::Option<String>,
 }
 
 /// Configuration for the LDAP Auth flow.
@@ -805,16 +830,17 @@ pub struct IdentityServiceIdentityServiceOptions {
 pub struct IdentityServiceLdapConfig {
     /// Optional. Contains the properties for locating and authenticating groups in the directory.
     #[serde(default)]
-    pub group: Option<IdentityServiceGroupConfig>,
+    pub group: ::core::option::Option<::std::boxed::Box<IdentityServiceGroupConfig>>,
     /// Required. Server settings for the external LDAP server.
     #[serde(default)]
-    pub server: Option<IdentityServiceServerConfig>,
+    pub server: ::core::option::Option<::std::boxed::Box<IdentityServiceServerConfig>>,
     /// Required. Contains the credentials of the service account which is authorized to perform the LDAP search in the directory. The credentials can be supplied by the combination of the DN and password or the client certificate.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<IdentityServiceServiceAccountConfig>,
+    pub service_account:
+        ::core::option::Option<::std::boxed::Box<IdentityServiceServiceAccountConfig>>,
     /// Required. Defines where users exist in the LDAP directory.
     #[serde(default)]
-    pub user: Option<IdentityServiceUserConfig>,
+    pub user: ::core::option::Option<::std::boxed::Box<IdentityServiceUserConfig>>,
 }
 
 /// Configuration for OIDC Auth flow.
@@ -822,46 +848,46 @@ pub struct IdentityServiceLdapConfig {
 pub struct IdentityServiceOidcConfig {
     /// PEM-encoded CA for OIDC provider.
     #[serde(default, rename = "certificateAuthorityData")]
-    pub certificate_authority_data: Option<String>,
+    pub certificate_authority_data: ::core::option::Option<String>,
     /// ID for OIDC client application.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Input only. Unencrypted OIDC client secret will be passed to the GKE Hub CLH.
     #[serde(default, rename = "clientSecret")]
-    pub client_secret: Option<String>,
+    pub client_secret: ::core::option::Option<String>,
     /// Flag to denote if reverse proxy is used to connect to auth provider. This flag should be set to true when provider is not reachable by Google Cloud Console.
     #[serde(default, rename = "deployCloudConsoleProxy")]
-    pub deploy_cloud_console_proxy: Option<bool>,
+    pub deploy_cloud_console_proxy: ::core::option::Option<bool>,
     /// Enable access token.
     #[serde(default, rename = "enableAccessToken")]
-    pub enable_access_token: Option<bool>,
+    pub enable_access_token: ::core::option::Option<bool>,
     /// Output only. Encrypted OIDC Client secret
     #[serde(default, rename = "encryptedClientSecret")]
-    pub encrypted_client_secret: Option<String>,
+    pub encrypted_client_secret: ::core::option::Option<String>,
     /// Comma-separated list of key-value pairs.
     #[serde(default, rename = "extraParams")]
-    pub extra_params: Option<String>,
+    pub extra_params: ::core::option::Option<String>,
     /// Prefix to prepend to group name.
     #[serde(default, rename = "groupPrefix")]
-    pub group_prefix: Option<String>,
+    pub group_prefix: ::core::option::Option<String>,
     /// Claim in OIDC ID token that holds group information.
     #[serde(default, rename = "groupsClaim")]
-    pub groups_claim: Option<String>,
+    pub groups_claim: ::core::option::Option<String>,
     /// URI for the OIDC provider. This should point to the level below .well-known/openid-configuration.
     #[serde(default, rename = "issuerUri")]
-    pub issuer_uri: Option<String>,
+    pub issuer_uri: ::core::option::Option<String>,
     /// Registered redirect uri to redirect users going through OAuth flow using kubectl plugin.
     #[serde(default, rename = "kubectlRedirectUri")]
-    pub kubectl_redirect_uri: Option<String>,
+    pub kubectl_redirect_uri: ::core::option::Option<String>,
     /// Comma-separated list of identifiers.
     #[serde(default)]
-    pub scopes: Option<String>,
+    pub scopes: ::core::option::Option<String>,
     /// Claim in OIDC ID token that holds username.
     #[serde(default, rename = "userClaim")]
-    pub user_claim: Option<String>,
+    pub user_claim: ::core::option::Option<String>,
     /// Prefix to prepend to user name.
     #[serde(default, rename = "userPrefix")]
-    pub user_prefix: Option<String>,
+    pub user_prefix: ::core::option::Option<String>,
 }
 
 /// Configuration for the SAML Auth flow.
@@ -869,28 +895,28 @@ pub struct IdentityServiceOidcConfig {
 pub struct IdentityServiceSamlConfig {
     /// Optional. The mapping of additional user attributes like nickname, birthday and address etc.. key is the name of this additional attribute. value is a string presenting as CEL(common expression language, go/cel) used for getting the value from the resources. Take nickname as an example, in this case, key is "attribute.nickname" and value is "assertion.nickname".
     #[serde(default, rename = "attributeMapping")]
-    pub attribute_mapping: Option<serde_json::Value>,
+    pub attribute_mapping: ::core::option::Option<serde_json::Value>,
     /// Optional. Prefix to prepend to group name.
     #[serde(default, rename = "groupPrefix")]
-    pub group_prefix: Option<String>,
+    pub group_prefix: ::core::option::Option<String>,
     /// Optional. The SAML attribute to read groups from. This value is expected to be a string and will be passed along as-is (with the option of being prefixed by the group_prefix).
     #[serde(default, rename = "groupsAttribute")]
-    pub groups_attribute: Option<String>,
+    pub groups_attribute: ::core::option::Option<String>,
     /// Required. The list of IdP certificates to validate the SAML response against.
     #[serde(default, rename = "identityProviderCertificates")]
-    pub identity_provider_certificates: Option<Vec<String>>,
+    pub identity_provider_certificates: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The entity ID of the SAML IdP.
     #[serde(default, rename = "identityProviderId")]
-    pub identity_provider_id: Option<String>,
+    pub identity_provider_id: ::core::option::Option<String>,
     /// Required. The URI where the SAML IdP exposes the SSO service.
     #[serde(default, rename = "identityProviderSsoUri")]
-    pub identity_provider_sso_uri: Option<String>,
+    pub identity_provider_sso_uri: ::core::option::Option<String>,
     /// Optional. The SAML attribute to read username from. If unspecified, the username will be read from the NameID element of the assertion in SAML response. This value is expected to be a string and will be passed along as-is (with the option of being prefixed by the user_prefix).
     #[serde(default, rename = "userAttribute")]
-    pub user_attribute: Option<String>,
+    pub user_attribute: ::core::option::Option<String>,
     /// Optional. Prefix to prepend to user name.
     #[serde(default, rename = "userPrefix")]
-    pub user_prefix: Option<String>,
+    pub user_prefix: ::core::option::Option<String>,
 }
 
 /// Server settings for the external LDAP server.
@@ -898,13 +924,13 @@ pub struct IdentityServiceSamlConfig {
 pub struct IdentityServiceServerConfig {
     /// Optional. Contains a Base64 encoded, PEM formatted certificate authority certificate for the LDAP server. This must be provided for the "ldaps" and "startTLS" connections.
     #[serde(default, rename = "certificateAuthorityData")]
-    pub certificate_authority_data: Option<String>,
+    pub certificate_authority_data: ::core::option::Option<String>,
     /// Optional. Defines the connection type to communicate with the LDAP server. If starttls or ldaps is specified, the certificate_authority_data should not be empty.
     #[serde(default, rename = "connectionType")]
-    pub connection_type: Option<String>,
+    pub connection_type: ::core::option::Option<String>,
     /// Required. Defines the hostname or IP of the LDAP server. Port is optional and will default to 389, if unspecified. For example, "ldap.server.example" or "10.10.10.10:389".
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
 }
 
 /// Contains the credentials of the service account which is authorized to perform the LDAP search in the directory. The credentials can be supplied by the combination of the DN and password or the client certificate.
@@ -912,7 +938,8 @@ pub struct IdentityServiceServerConfig {
 pub struct IdentityServiceServiceAccountConfig {
     /// Credentials for basic auth.
     #[serde(default, rename = "simpleBindCredentials")]
-    pub simple_bind_credentials: Option<IdentityServiceSimpleBindCredentials>,
+    pub simple_bind_credentials:
+        ::core::option::Option<::std::boxed::Box<IdentityServiceSimpleBindCredentials>>,
 }
 
 /// The structure holds the LDAP simple binding credential.
@@ -920,13 +947,13 @@ pub struct IdentityServiceServiceAccountConfig {
 pub struct IdentityServiceSimpleBindCredentials {
     /// Required. The distinguished name(DN) of the service account object/user.
     #[serde(default)]
-    pub dn: Option<String>,
+    pub dn: ::core::option::Option<String>,
     /// Output only. The encrypted password of the service account object/user.
     #[serde(default, rename = "encryptedPassword")]
-    pub encrypted_password: Option<String>,
+    pub encrypted_password: ::core::option::Option<String>,
     /// Required. Input only. The password of the service account object/user.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
 }
 
 /// **IdentityService**: Configuration for a single membership.
@@ -934,10 +961,12 @@ pub struct IdentityServiceSimpleBindCredentials {
 pub struct IdentityServiceSpec {
     /// A member may support multiple auth methods.
     #[serde(default, rename = "authMethods")]
-    pub auth_methods: Option<Vec<IdentityServiceAuthMethod>>,
+    pub auth_methods:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IdentityServiceAuthMethod>>>,
     /// Optional. non-protocol-related configuration options.
     #[serde(default, rename = "identityServiceOptions")]
-    pub identity_service_options: Option<IdentityServiceIdentityServiceOptions>,
+    pub identity_service_options:
+        ::core::option::Option<::std::boxed::Box<IdentityServiceIdentityServiceOptions>>,
 }
 
 /// **IdentityService**: State for a single membership, analyzed and reported by feature controller.
@@ -945,16 +974,16 @@ pub struct IdentityServiceSpec {
 pub struct IdentityServiceState {
     /// The reason of the failure.
     #[serde(default, rename = "failureReason")]
-    pub failure_reason: Option<String>,
+    pub failure_reason: ::core::option::Option<String>,
     /// Installed AIS version. This is the AIS version installed on this member. The values makes sense iff state is OK.
     #[serde(default, rename = "installedVersion")]
-    pub installed_version: Option<String>,
+    pub installed_version: ::core::option::Option<String>,
     /// Last reconciled membership configuration
     #[serde(default, rename = "memberConfig")]
-    pub member_config: Option<IdentityServiceSpec>,
+    pub member_config: ::core::option::Option<::std::boxed::Box<IdentityServiceSpec>>,
     /// Deployment state on this member // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "OK", "ERROR"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Defines where users exist in the LDAP directory.
@@ -962,16 +991,16 @@ pub struct IdentityServiceState {
 pub struct IdentityServiceUserConfig {
     /// Required. The location of the subtree in the LDAP directory to search for user entries.
     #[serde(default, rename = "baseDn")]
-    pub base_dn: Option<String>,
+    pub base_dn: ::core::option::Option<String>,
     /// Optional. Filter to apply when searching for the user. This can be used to further restrict the user accounts which are allowed to login. This defaults to "(objectClass=User)".
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Optional. Determines which attribute to use as the user''s identity after they are authenticated. This is distinct from the loginAttribute field to allow users to login with a username, but then have their actual identifier be an email address or full Distinguished Name (DN). For example, setting loginAttribute to "sAMAccountName" and identifierAttribute to "userPrincipalName" would allow a user to login as "bsmith", but actual RBAC policies for the user would be written as "bsmith@example.com". Using "userPrincipalName" is recommended since this will be unique for each user. This defaults to "userPrincipalName".
     #[serde(default, rename = "idAttribute")]
-    pub id_attribute: Option<String>,
+    pub id_attribute: ::core::option::Option<String>,
     /// Optional. The name of the attribute which matches against the input username. This is used to find the user in the LDAP database e.g. "(=)" and is combined with the optional filter field. This defaults to "userPrincipalName".
     #[serde(default, rename = "loginAttribute")]
-    pub login_attribute: Option<String>,
+    pub login_attribute: ::core::option::Option<String>,
 }
 
 /// LifecycleState describes the state of a MembershipFeature *resource* in the GkeHub API. See FeatureState for the "running state" of the MembershipFeature.
@@ -979,7 +1008,7 @@ pub struct IdentityServiceUserConfig {
 pub struct LifecycleState {
     /// Output only. The current state of the Feature resource in the Hub API. // TODO: enum values: ["STATE_UNSPECIFIED", "ENABLING", "ACTIVE", "DISABLING", "UPDATING", "SERVICE_UPDATING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -987,10 +1016,10 @@ pub struct LifecycleState {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for the GkeHubFeature.ListMembershipFeatures method.
@@ -998,13 +1027,14 @@ pub struct ListLocationsResponse {
 pub struct ListMembershipFeaturesResponse {
     /// The list of matching MembershipFeatures.
     #[serde(default, rename = "membershipFeatures")]
-    pub membership_features: Option<Vec<MembershipFeature>>,
+    pub membership_features:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MembershipFeature>>>,
     /// A token to request the next page of resources from the ListMembershipFeatures method. The value of an empty string means that there are no more resources to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of locations that could not be reached while fetching this list.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1012,13 +1042,13 @@ pub struct ListMembershipFeaturesResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1026,19 +1056,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// MembershipFeature represents the settings and status of a Fleet Feature enabled on a single Fleet Membership.
@@ -1046,28 +1076,28 @@ pub struct Location {
 pub struct MembershipFeature {
     /// Output only. When the MembershipFeature resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. When the MembershipFeature resource was deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Google Cloud labels for this MembershipFeature.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Lifecycle information of the resource itself.
     #[serde(default, rename = "lifecycleState")]
-    pub lifecycle_state: Option<LifecycleState>,
+    pub lifecycle_state: ::core::option::Option<::std::boxed::Box<LifecycleState>>,
     /// Output only. The resource name of the membershipFeature, in the format: projects/{project}/locations/{location}/memberships/{membership}/features/{feature}. Note that membershipFeatures is shortened to features in the resource name. (see http://go/aip/122#collection-identifiers)
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Spec of this membershipFeature.
     #[serde(default)]
-    pub spec: Option<FeatureSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<FeatureSpec>>,
     /// Output only. State of the this membershipFeature.
     #[serde(default)]
-    pub state: Option<FeatureState>,
+    pub state: ::core::option::Option<::std::boxed::Box<FeatureState>>,
     /// Output only. When the MembershipFeature resource was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// **Metering**: State for a single membership, analyzed and reported by feature controller.
@@ -1075,10 +1105,10 @@ pub struct MembershipFeature {
 pub struct MeteringState {
     /// The time stamp of the most recent measurement of the number of vCPUs in the cluster.
     #[serde(default, rename = "lastMeasurementTime")]
-    pub last_measurement_time: Option<String>,
+    pub last_measurement_time: ::core::option::Option<String>,
     /// The vCPUs capacity in the cluster according to the most recent measurement (1/1000 precision).
     #[serde(default, rename = "preciseLastMeasuredClusterVcpuCapacity")]
-    pub precise_last_measured_cluster_vcpu_capacity: Option<f32>,
+    pub precise_last_measured_cluster_vcpu_capacity: ::core::option::Option<f32>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1086,19 +1116,19 @@ pub struct MeteringState {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata of the long-running operation.
@@ -1106,25 +1136,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Origin defines where this FeatureSpec originated from.
@@ -1132,7 +1162,7 @@ pub struct OperationMetadata {
 pub struct Origin {
     /// Type specifies which type of origin is set. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLEET", "FLEET_OUT_OF_SYNC", "USER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// BundleInstallSpec is the specification configuration for a single managed bundle.
@@ -1140,7 +1170,7 @@ pub struct Origin {
 pub struct PolicyControllerBundleInstallSpec {
     /// the set of namespaces to be exempted from the bundle
     #[serde(default, rename = "exemptedNamespaces")]
-    pub exempted_namespaces: Option<Vec<String>>,
+    pub exempted_namespaces: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration for Policy Controller
@@ -1148,34 +1178,35 @@ pub struct PolicyControllerBundleInstallSpec {
 pub struct PolicyControllerHubConfig {
     /// Sets the interval for Policy Controller Audit Scans (in seconds). When set to 0, this disables audit functionality altogether.
     #[serde(default, rename = "auditIntervalSeconds")]
-    pub audit_interval_seconds: Option<String>,
+    pub audit_interval_seconds: ::core::option::Option<String>,
     /// The maximum number of audit violations to be stored in a constraint. If not set, the internal default (currently 20) will be used.
     #[serde(default, rename = "constraintViolationLimit")]
-    pub constraint_violation_limit: Option<String>,
+    pub constraint_violation_limit: ::core::option::Option<String>,
     /// Map of deployment configs to deployments (“admission”, “audit”, “mutation”).
     #[serde(default, rename = "deploymentConfigs")]
-    pub deployment_configs: Option<serde_json::Value>,
+    pub deployment_configs: ::core::option::Option<serde_json::Value>,
     /// The set of namespaces that are excluded from Policy Controller checks. Namespaces do not need to currently exist on the cluster.
     #[serde(default, rename = "exemptableNamespaces")]
-    pub exemptable_namespaces: Option<Vec<String>>,
+    pub exemptable_namespaces: ::core::option::Option<::std::vec::Vec<String>>,
     /// The install_spec represents the intended state specified by the latest request that mutated install_spec in the feature spec, not the lifecycle state of the feature observed by the Hub feature controller that is reported in the feature state. // TODO: enum values: ["INSTALL_SPEC_UNSPECIFIED", "INSTALL_SPEC_NOT_INSTALLED", "INSTALL_SPEC_ENABLED", "INSTALL_SPEC_SUSPENDED", "INSTALL_SPEC_DETACHED"]
     #[serde(default, rename = "installSpec")]
-    pub install_spec: Option<String>,
+    pub install_spec: ::core::option::Option<String>,
     /// Logs all denies and dry run failures.
     #[serde(default, rename = "logDeniesEnabled")]
-    pub log_denies_enabled: Option<bool>,
+    pub log_denies_enabled: ::core::option::Option<bool>,
     /// Monitoring specifies the configuration of monitoring.
     #[serde(default)]
-    pub monitoring: Option<PolicyControllerMonitoringConfig>,
+    pub monitoring: ::core::option::Option<::std::boxed::Box<PolicyControllerMonitoringConfig>>,
     /// Enables the ability to mutate resources using Policy Controller.
     #[serde(default, rename = "mutationEnabled")]
-    pub mutation_enabled: Option<bool>,
+    pub mutation_enabled: ::core::option::Option<bool>,
     /// Specifies the desired policy content on the cluster
     #[serde(default, rename = "policyContent")]
-    pub policy_content: Option<PolicyControllerPolicyContentSpec>,
+    pub policy_content:
+        ::core::option::Option<::std::boxed::Box<PolicyControllerPolicyContentSpec>>,
     /// Enables the ability to use Constraint Templates that reference to objects other than the object currently being evaluated.
     #[serde(default, rename = "referentialRulesEnabled")]
-    pub referential_rules_enabled: Option<bool>,
+    pub referential_rules_enabled: ::core::option::Option<bool>,
 }
 
 /// MonitoringConfig specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]
@@ -1183,7 +1214,7 @@ pub struct PolicyControllerHubConfig {
 pub struct PolicyControllerMonitoringConfig {
     /// Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.
     #[serde(default)]
-    pub backends: Option<Vec<String>>,
+    pub backends: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// OnClusterState represents the state of a sub-component of Policy Controller.
@@ -1191,10 +1222,10 @@ pub struct PolicyControllerMonitoringConfig {
 pub struct PolicyControllerOnClusterState {
     /// Surface potential errors or information logs.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// The lifecycle state of this component. // TODO: enum values: ["LIFECYCLE_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLING", "ACTIVE", "UPDATING", "DECOMMISSIONING", "CLUSTER_ERROR", "HUB_ERROR", "SUSPENDED", "DETACHED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// PolicyContentSpec defines the user''s desired content configuration on the cluster.
@@ -1202,10 +1233,11 @@ pub struct PolicyControllerOnClusterState {
 pub struct PolicyControllerPolicyContentSpec {
     /// map of bundle name to BundleInstallSpec. The bundle name maps to the bundleName key in the policycontroller.gke.io/constraintData annotation on a constraint.
     #[serde(default)]
-    pub bundles: Option<serde_json::Value>,
+    pub bundles: ::core::option::Option<serde_json::Value>,
     /// Configures the installation of the Template Library.
     #[serde(default, rename = "templateLibrary")]
-    pub template_library: Option<PolicyControllerTemplateLibraryConfig>,
+    pub template_library:
+        ::core::option::Option<::std::boxed::Box<PolicyControllerTemplateLibraryConfig>>,
 }
 
 /// The state of the policy controller policy content
@@ -1213,13 +1245,15 @@ pub struct PolicyControllerPolicyContentSpec {
 pub struct PolicyControllerPolicyContentState {
     /// The state of the any bundles included in the chosen version of the manifest
     #[serde(default, rename = "bundleStates")]
-    pub bundle_states: Option<serde_json::Value>,
+    pub bundle_states: ::core::option::Option<serde_json::Value>,
     /// The state of the referential data sync configuration. This could represent the state of either the syncSet object(s) or the config object, depending on the version of PoCo configured by the user.
     #[serde(default, rename = "referentialSyncConfigState")]
-    pub referential_sync_config_state: Option<PolicyControllerOnClusterState>,
+    pub referential_sync_config_state:
+        ::core::option::Option<::std::boxed::Box<PolicyControllerOnClusterState>>,
     /// The state of the template library
     #[serde(default, rename = "templateLibraryState")]
-    pub template_library_state: Option<PolicyControllerOnClusterState>,
+    pub template_library_state:
+        ::core::option::Option<::std::boxed::Box<PolicyControllerOnClusterState>>,
 }
 
 /// Deployment-specific configuration.
@@ -1227,19 +1261,21 @@ pub struct PolicyControllerPolicyContentState {
 pub struct PolicyControllerPolicyControllerDeploymentConfig {
     /// Container resource requirements.
     #[serde(default, rename = "containerResources")]
-    pub container_resources: Option<PolicyControllerResourceRequirements>,
+    pub container_resources:
+        ::core::option::Option<::std::boxed::Box<PolicyControllerResourceRequirements>>,
     /// Pod affinity configuration. // TODO: enum values: ["AFFINITY_UNSPECIFIED", "NO_AFFINITY", "ANTI_AFFINITY"]
     #[serde(default, rename = "podAffinity")]
-    pub pod_affinity: Option<String>,
+    pub pod_affinity: ::core::option::Option<String>,
     /// Pod anti-affinity enablement. Deprecated: use pod_affinity instead.
     #[serde(default, rename = "podAntiAffinity")]
-    pub pod_anti_affinity: Option<bool>,
+    pub pod_anti_affinity: ::core::option::Option<bool>,
     /// Pod tolerations of node taints.
     #[serde(default, rename = "podTolerations")]
-    pub pod_tolerations: Option<Vec<PolicyControllerToleration>>,
+    pub pod_tolerations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PolicyControllerToleration>>>,
     /// Pod replica count.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<String>,
+    pub replica_count: ::core::option::Option<String>,
 }
 
 /// ResourceList contains container resource requirements.
@@ -1247,10 +1283,10 @@ pub struct PolicyControllerPolicyControllerDeploymentConfig {
 pub struct PolicyControllerResourceList {
     /// CPU requirement expressed in Kubernetes resource units.
     #[serde(default)]
-    pub cpu: Option<String>,
+    pub cpu: ::core::option::Option<String>,
     /// Memory requirement expressed in Kubernetes resource units.
     #[serde(default)]
-    pub memory: Option<String>,
+    pub memory: ::core::option::Option<String>,
 }
 
 /// ResourceRequirements describes the compute resource requirements.
@@ -1258,10 +1294,10 @@ pub struct PolicyControllerResourceList {
 pub struct PolicyControllerResourceRequirements {
     /// Limits describes the maximum amount of compute resources allowed for use by the running container.
     #[serde(default)]
-    pub limits: Option<PolicyControllerResourceList>,
+    pub limits: ::core::option::Option<::std::boxed::Box<PolicyControllerResourceList>>,
     /// Requests describes the amount of compute resources reserved for the container by the kube-scheduler.
     #[serde(default)]
-    pub requests: Option<PolicyControllerResourceList>,
+    pub requests: ::core::option::Option<::std::boxed::Box<PolicyControllerResourceList>>,
 }
 
 /// **Policy Controller**: Configuration for a single cluster. Intended to parallel the PolicyController CR.
@@ -1269,10 +1305,11 @@ pub struct PolicyControllerResourceRequirements {
 pub struct PolicyControllerSpec {
     /// Policy Controller configuration for the cluster.
     #[serde(default, rename = "policyControllerHubConfig")]
-    pub policy_controller_hub_config: Option<PolicyControllerHubConfig>,
+    pub policy_controller_hub_config:
+        ::core::option::Option<::std::boxed::Box<PolicyControllerHubConfig>>,
     /// Version of Policy Controller installed.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// **Policy Controller**: State for a single cluster.
@@ -1280,13 +1317,14 @@ pub struct PolicyControllerSpec {
 pub struct PolicyControllerState {
     /// Currently these include (also serving as map keys): 1. "admission" 2. "audit" 3. "mutation"
     #[serde(default, rename = "componentStates")]
-    pub component_states: Option<serde_json::Value>,
+    pub component_states: ::core::option::Option<serde_json::Value>,
     /// The overall content state observed by the Hub Feature controller.
     #[serde(default, rename = "policyContentState")]
-    pub policy_content_state: Option<PolicyControllerPolicyContentState>,
+    pub policy_content_state:
+        ::core::option::Option<::std::boxed::Box<PolicyControllerPolicyContentState>>,
     /// The overall Policy Controller lifecycle state observed by the Hub Feature controller. // TODO: enum values: ["LIFECYCLE_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLING", "ACTIVE", "UPDATING", "DECOMMISSIONING", "CLUSTER_ERROR", "HUB_ERROR", "SUSPENDED", "DETACHED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The config specifying which default library templates to install.
@@ -1294,7 +1332,7 @@ pub struct PolicyControllerState {
 pub struct PolicyControllerTemplateLibraryConfig {
     /// Configures the manner in which the template library is installed on the cluster. // TODO: enum values: ["INSTALLATION_UNSPECIFIED", "NOT_INSTALLED", "ALL"]
     #[serde(default)]
-    pub installation: Option<String>,
+    pub installation: ::core::option::Option<String>,
 }
 
 /// Toleration of a node taint.
@@ -1302,16 +1340,16 @@ pub struct PolicyControllerTemplateLibraryConfig {
 pub struct PolicyControllerToleration {
     /// Matches a taint effect.
     #[serde(default)]
-    pub effect: Option<String>,
+    pub effect: ::core::option::Option<String>,
     /// Matches a taint key (not necessarily unique).
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Matches a taint operator.
     #[serde(default)]
-    pub operator: Option<String>,
+    pub operator: ::core::option::Option<String>,
     /// Matches a taint value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// RBACRoleBindingState is the status of an RBACRoleBinding which exists on a membership.
@@ -1319,13 +1357,13 @@ pub struct PolicyControllerToleration {
 pub struct RBACRoleBindingActuationRBACRoleBindingState {
     /// The reason for the failure.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The state of the RBACRoleBinding. // TODO: enum values: ["ROLE_BINDING_STATE_UNSPECIFIED", "OK", "CUSTOM_ROLE_MISSING_FROM_CLUSTER"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time the RBACRoleBinding status was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// AnalysisMessage is a single message produced by an analyzer, and it used to communicate to the end user about the state of their Service Mesh configuration.
@@ -1333,16 +1371,16 @@ pub struct RBACRoleBindingActuationRBACRoleBindingState {
 pub struct ServiceMeshAnalysisMessage {
     /// A UI can combine these args with a template (based on message_base.type) to produce an internationalized message.
     #[serde(default)]
-    pub args: Option<serde_json::Value>,
+    pub args: ::core::option::Option<serde_json::Value>,
     /// A human readable description of what the error means. It is suitable for non-internationalize display purposes.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Details common to all types of Istio and ServiceMesh analysis messages.
     #[serde(default, rename = "messageBase")]
-    pub message_base: Option<ServiceMeshAnalysisMessageBase>,
+    pub message_base: ::core::option::Option<::std::boxed::Box<ServiceMeshAnalysisMessageBase>>,
     /// A list of strings specifying the resource identifiers that were the cause of message generation. A "path" here may be: * MEMBERSHIP_ID if the cause is a specific member cluster * MEMBERSHIP_ID/(NAMESPACE\/)?RESOURCETYPE/NAME if the cause is a resource in a cluster
     #[serde(default, rename = "resourcePaths")]
-    pub resource_paths: Option<Vec<String>>,
+    pub resource_paths: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// AnalysisMessageBase describes some common information that is needed for all messages.
@@ -1350,13 +1388,13 @@ pub struct ServiceMeshAnalysisMessage {
 pub struct ServiceMeshAnalysisMessageBase {
     /// A url pointing to the Service Mesh or Istio documentation for this specific error type.
     #[serde(default, rename = "documentationUrl")]
-    pub documentation_url: Option<String>,
+    pub documentation_url: ::core::option::Option<String>,
     /// Represents how severe a message is. // TODO: enum values: ["LEVEL_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
     #[serde(default)]
-    pub level: Option<String>,
+    pub level: ::core::option::Option<String>,
     /// Represents the specific type of a message.
     #[serde(default, rename = "type")]
-    pub type_: Option<ServiceMeshType>,
+    pub type_: ::core::option::Option<::std::boxed::Box<ServiceMeshType>>,
 }
 
 /// Condition being reported.
@@ -1364,16 +1402,16 @@ pub struct ServiceMeshAnalysisMessageBase {
 pub struct ServiceMeshCondition {
     /// Unique identifier of the condition which describes the condition recognizable to the user. // TODO: enum values: ["CODE_UNSPECIFIED", "MESH_IAM_PERMISSION_DENIED", "MESH_IAM_CROSS_PROJECT_PERMISSION_DENIED", "CNI_CONFIG_UNSUPPORTED", "GKE_SANDBOX_UNSUPPORTED", "NODEPOOL_WORKLOAD_IDENTITY_FEDERATION_REQUIRED", "CNI_INSTALLATION_FAILED", "CNI_POD_UNSCHEDULABLE", "CLUSTER_HAS_ZERO_NODES", "CANONICAL_SERVICE_ERROR", "UNSUPPORTED_MULTIPLE_CONTROL_PLANES", "VPCSC_GA_SUPPORTED", "DEPRECATED_SPEC_CONTROL_PLANE_MANAGEMENT", "DEPRECATED_SPEC_CONTROL_PLANE_MANAGEMENT_SAFE", "CONFIG_APPLY_INTERNAL_ERROR", "CONFIG_VALIDATION_ERROR", "CONFIG_VALIDATION_WARNING", "QUOTA_EXCEEDED_BACKEND_SERVICES", "QUOTA_EXCEEDED_HEALTH_CHECKS", "QUOTA_EXCEEDED_HTTP_ROUTES", "QUOTA_EXCEEDED_TCP_ROUTES", "QUOTA_EXCEEDED_TLS_ROUTES", "QUOTA_EXCEEDED_TRAFFIC_POLICIES", "QUOTA_EXCEEDED_ENDPOINT_POLICIES", "QUOTA_EXCEEDED_GATEWAYS", "QUOTA_EXCEEDED_MESHES", "QUOTA_EXCEEDED_SERVER_TLS_POLICIES", "QUOTA_EXCEEDED_CLIENT_TLS_POLICIES", "QUOTA_EXCEEDED_SERVICE_LB_POLICIES", "QUOTA_EXCEEDED_HTTP_FILTERS", "QUOTA_EXCEEDED_TCP_FILTERS", "QUOTA_EXCEEDED_NETWORK_ENDPOINT_GROUPS", "CONFIG_APPLY_BLOCKED", "LEGACY_MC_SECRETS", "WORKLOAD_IDENTITY_REQUIRED", "NON_STANDARD_BINARY_USAGE", "UNSUPPORTED_GATEWAY_CLASS", "MANAGED_CNI_NOT_ENABLED", "MODERNIZATION_SCHEDULED", "MODERNIZATION_IN_PROGRESS", "MODERNIZATION_COMPLETED", "MODERNIZATION_ABORTED", "MODERNIZATION_PREPARING", "MODERNIZATION_STALLED", "MODERNIZATION_PREPARED", "MODERNIZATION_MIGRATING_WORKLOADS", "MODERNIZATION_ROLLING_BACK_CLUSTER", "MODERNIZATION_WILL_BE_SCHEDULED", "MODERNIZATION_MANUAL", "MODERNIZATION_ELIGIBLE", "MODERNIZATION_MODERNIZING", "MODERNIZATION_MODERNIZED_SOAKING", "MODERNIZATION_FINALIZED", "MODERNIZATION_ROLLING_BACK_FLEET"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// A short summary about the issue.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Links contains actionable information.
     #[serde(default, rename = "documentationLink")]
-    pub documentation_link: Option<String>,
+    pub documentation_link: ::core::option::Option<String>,
     /// Severity level of the condition. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// Status of control plane management.
@@ -1381,13 +1419,14 @@ pub struct ServiceMeshCondition {
 pub struct ServiceMeshControlPlaneManagement {
     /// Explanation of state.
     #[serde(default)]
-    pub details: Option<Vec<ServiceMeshStatusDetails>>,
+    pub details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceMeshStatusDetails>>>,
     /// Output only. Implementation of managed control plane. // TODO: enum values: ["IMPLEMENTATION_UNSPECIFIED", "ISTIOD", "TRAFFIC_DIRECTOR", "UPDATING"]
     #[serde(default)]
-    pub implementation: Option<String>,
+    pub implementation: ::core::option::Option<String>,
     /// LifecycleState of control plane management. // TODO: enum values: ["LIFECYCLE_STATE_UNSPECIFIED", "DISABLED", "FAILED_PRECONDITION", "PROVISIONING", "ACTIVE", "STALLED", "NEEDS_ATTENTION", "DEGRADED", "DEPROVISIONING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Status of data plane management. Only reported per-member.
@@ -1395,10 +1434,11 @@ pub struct ServiceMeshControlPlaneManagement {
 pub struct ServiceMeshDataPlaneManagement {
     /// Explanation of the status.
     #[serde(default)]
-    pub details: Option<Vec<ServiceMeshStatusDetails>>,
+    pub details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceMeshStatusDetails>>>,
     /// Lifecycle status of data plane management. // TODO: enum values: ["LIFECYCLE_STATE_UNSPECIFIED", "DISABLED", "FAILED_PRECONDITION", "PROVISIONING", "ACTIVE", "STALLED", "NEEDS_ATTENTION", "DEGRADED", "DEPROVISIONING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// **Service Mesh**: Spec for a single Membership for the servicemesh feature
@@ -1406,16 +1446,16 @@ pub struct ServiceMeshDataPlaneManagement {
 pub struct ServiceMeshSpec {
     /// Optional. Specifies the API that will be used for configuring the mesh workloads. // TODO: enum values: ["CONFIG_API_UNSPECIFIED", "CONFIG_API_ISTIO", "CONFIG_API_GATEWAY"]
     #[serde(default, rename = "configApi")]
-    pub config_api: Option<String>,
+    pub config_api: ::core::option::Option<String>,
     /// Deprecated: use management instead Enables automatic control plane management. // TODO: enum values: ["CONTROL_PLANE_MANAGEMENT_UNSPECIFIED", "AUTOMATIC", "MANUAL"]
     #[serde(default, rename = "controlPlane")]
-    pub control_plane: Option<String>,
+    pub control_plane: ::core::option::Option<String>,
     /// Determines which release channel to use for default injection and service mesh APIs. // TODO: enum values: ["CHANNEL_UNSPECIFIED", "RAPID", "REGULAR", "STABLE"]
     #[serde(default, rename = "defaultChannel")]
-    pub default_channel: Option<String>,
+    pub default_channel: ::core::option::Option<String>,
     /// Optional. Enables automatic Service Mesh management. // TODO: enum values: ["MANAGEMENT_UNSPECIFIED", "MANAGEMENT_AUTOMATIC", "MANAGEMENT_MANUAL", "MANAGEMENT_NOT_INSTALLED"]
     #[serde(default)]
-    pub management: Option<String>,
+    pub management: ::core::option::Option<String>,
 }
 
 /// **Service Mesh**: State for a single Membership, as analyzed by the Service Mesh Hub Controller.
@@ -1423,19 +1463,23 @@ pub struct ServiceMeshSpec {
 pub struct ServiceMeshState {
     /// Output only. Results of running Service Mesh analyzers.
     #[serde(default, rename = "analysisMessages")]
-    pub analysis_messages: Option<Vec<ServiceMeshAnalysisMessage>>,
+    pub analysis_messages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceMeshAnalysisMessage>>>,
     /// Output only. List of conditions reported for this membership.
     #[serde(default)]
-    pub conditions: Option<Vec<ServiceMeshCondition>>,
+    pub conditions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceMeshCondition>>>,
     /// The API version (i.e. Istio CRD version) for configuring service mesh in this cluster. This version is influenced by the default_channel field.
     #[serde(default, rename = "configApiVersion")]
-    pub config_api_version: Option<String>,
+    pub config_api_version: ::core::option::Option<String>,
     /// Output only. Status of control plane management
     #[serde(default, rename = "controlPlaneManagement")]
-    pub control_plane_management: Option<ServiceMeshControlPlaneManagement>,
+    pub control_plane_management:
+        ::core::option::Option<::std::boxed::Box<ServiceMeshControlPlaneManagement>>,
     /// Output only. Status of data plane management.
     #[serde(default, rename = "dataPlaneManagement")]
-    pub data_plane_management: Option<ServiceMeshDataPlaneManagement>,
+    pub data_plane_management:
+        ::core::option::Option<::std::boxed::Box<ServiceMeshDataPlaneManagement>>,
 }
 
 /// Structured and human-readable details for a status.
@@ -1443,10 +1487,10 @@ pub struct ServiceMeshState {
 pub struct ServiceMeshStatusDetails {
     /// A machine-readable code that further describes a broad status.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Human-readable explanation of code.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
 }
 
 /// A unique identifier for the type of message. Display_name is intended to be human-readable, code is intended to be machine readable. There should be a one-to-one mapping between display_name and code. (i.e. do not re-use display_names or codes between message types.) See istio.analysis.v1alpha1.AnalysisMessageBase.Type
@@ -1454,10 +1498,10 @@ pub struct ServiceMeshStatusDetails {
 pub struct ServiceMeshType {
     /// A 7 character code matching ^IST[0-9]{4}$ or ^ASM[0-9]{4}$, intended to uniquely identify the message type. (e.g. "IST0001" is mapped to the "InternalError" message type.)
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// A human-readable name for the message type. e.g. "InternalError", "PodMissingProxy". This should be the same for all messages of the same type. (This corresponds to the name field in open-source Istio.)
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// High-level state of a MembershipFeature.
@@ -1465,13 +1509,13 @@ pub struct ServiceMeshType {
 pub struct State {
     /// The high-level, machine-readable status of this MembershipFeature. // TODO: enum values: ["CODE_UNSPECIFIED", "OK", "WARNING", "ERROR"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// A human-readable description of the current status.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The time this status and any related Feature-specific details were updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// **WorkloadCertificate**: The membership-specific input for WorkloadCertificate feature.
@@ -1479,7 +1523,7 @@ pub struct State {
 pub struct WorkloadCertificateSpec {
     /// CertificateManagement specifies workload certificate management. // TODO: enum values: ["CERTIFICATE_MANAGEMENT_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "certificateManagement")]
-    pub certificate_management: Option<String>,
+    pub certificate_management: ::core::option::Option<String>,
 }
 
 /// IdentityProviderStateDetail represents the state of an Identity Provider.
@@ -1487,10 +1531,10 @@ pub struct WorkloadCertificateSpec {
 pub struct WorkloadIdentityIdentityProviderStateDetail {
     /// The state of the Identity Provider. // TODO: enum values: ["IDENTITY_PROVIDER_STATE_UNSPECIFIED", "IDENTITY_PROVIDER_STATE_OK", "IDENTITY_PROVIDER_STATE_ERROR"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// A human-readable description of the current state or returned error.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// **WorkloadIdentity**: The membership-specific state for WorkloadIdentity feature.
@@ -1498,8 +1542,8 @@ pub struct WorkloadIdentityIdentityProviderStateDetail {
 pub struct WorkloadIdentityState {
     /// Deprecated, this field will be erased after code is changed to use the new field.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The state of the Identity Providers corresponding to the membership.
     #[serde(default, rename = "identityProviderStateDetails")]
-    pub identity_provider_state_details: Option<serde_json::Value>,
+    pub identity_provider_state_details: ::core::option::Option<serde_json::Value>,
 }

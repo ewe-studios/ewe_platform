@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Arguments to ack operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Ack {
     /// By default, an attempt to ack a message that does not exist will fail with a NOT_FOUND error. With ignore_not_found set to true, the ack will succeed even if the message does not exist. This is useful for unconditionally acking a message, even if it is missing or has already been acked.
     #[serde(default, rename = "ignoreNotFound")]
-    pub ignore_not_found: Option<bool>,
+    pub ignore_not_found: ::core::option::Option<bool>,
     /// Required. The primary key of the message to be acked.
     #[serde(default)]
-    pub key: Option<Vec<serde_json::Value>>,
+    pub key: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// Required. The queue where the message to be acked is stored.
     #[serde(default)]
-    pub queue: Option<String>,
+    pub queue: ::core::option::Option<String>,
 }
 
 /// Message sent by the client to the adapter.
@@ -32,13 +32,13 @@ pub struct Ack {
 pub struct AdaptMessageRequest {
     /// Optional. Opaque request state passed by the client to the server.
     #[serde(default)]
-    pub attachments: Option<serde_json::Value>,
+    pub attachments: ::core::option::Option<serde_json::Value>,
     /// Optional. Uninterpreted bytes from the underlying wire protocol.
     #[serde(default)]
-    pub payload: Option<String>,
+    pub payload: ::core::option::Option<String>,
     /// Required. Identifier for the underlying wire protocol.
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
 }
 
 /// Message sent by the adapter to the client.
@@ -46,13 +46,13 @@ pub struct AdaptMessageRequest {
 pub struct AdaptMessageResponse {
     /// Optional. Indicates whether this is the last AdaptMessageResponse in the stream. This field may be optionally set by the server. Clients should not rely on this field being set in all cases.
     #[serde(default)]
-    pub last: Option<bool>,
+    pub last: ::core::option::Option<bool>,
     /// Optional. Uninterpreted bytes from the underlying wire protocol.
     #[serde(default)]
-    pub payload: Option<String>,
+    pub payload: ::core::option::Option<String>,
     /// Optional. Opaque state updates to be applied by the client.
     #[serde(default, rename = "stateUpdates")]
-    pub state_updates: Option<serde_json::Value>,
+    pub state_updates: ::core::option::Option<serde_json::Value>,
 }
 
 /// A session in the Cloud Spanner Adapter API.
@@ -60,7 +60,7 @@ pub struct AdaptMessageResponse {
 pub struct AdapterSession {
     /// Identifier. The name of the session. This is always system-assigned.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The request for AddSplitPoints.
@@ -68,10 +68,10 @@ pub struct AdapterSession {
 pub struct AddSplitPointsRequest {
     /// Optional. A user-supplied tag associated with the split points. For example, "initial_data_load", "special_event_1". Defaults to "CloudAddSplitPointsAPI" if not specified. The length of the tag must not exceed 50 characters, or else it is trimmed. Only valid UTF8 characters are allowed.
     #[serde(default)]
-    pub initiator: Option<String>,
+    pub initiator: ::core::option::Option<String>,
     /// Required. The split points to add.
     #[serde(default, rename = "splitPoints")]
-    pub split_points: Option<Vec<SplitPoints>>,
+    pub split_points: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SplitPoints>>>,
 }
 
 /// AsymmetricAutoscalingOption specifies the scaling of replicas identified by the given selection.
@@ -79,10 +79,10 @@ pub struct AddSplitPointsRequest {
 pub struct AsymmetricAutoscalingOption {
     /// Optional. Overrides applied to the top-level autoscaling configuration for the selected replicas.
     #[serde(default)]
-    pub overrides: Option<AutoscalingConfigOverrides>,
+    pub overrides: ::core::option::Option<::std::boxed::Box<AutoscalingConfigOverrides>>,
     /// Required. Selects the replicas to which this AsymmetricAutoscalingOption applies. Only read-only replicas are supported.
     #[serde(default, rename = "replicaSelection")]
-    pub replica_selection: Option<InstanceReplicaSelection>,
+    pub replica_selection: ::core::option::Option<::std::boxed::Box<InstanceReplicaSelection>>,
 }
 
 /// Autoscaling configuration for an instance.
@@ -90,13 +90,14 @@ pub struct AsymmetricAutoscalingOption {
 pub struct AutoscalingConfig {
     /// Optional. Optional asymmetric autoscaling options. Replicas matching the replica selection criteria will be autoscaled independently from other replicas. The autoscaler will scale the replicas based on the utilization of replicas identified by the replica selection. Replica selections should not overlap with each other. Other replicas (those do not match any replica selection) will be autoscaled together and will have the same compute capacity allocated to them.
     #[serde(default, rename = "asymmetricAutoscalingOptions")]
-    pub asymmetric_autoscaling_options: Option<Vec<AsymmetricAutoscalingOption>>,
+    pub asymmetric_autoscaling_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AsymmetricAutoscalingOption>>>,
     /// Required. Autoscaling limits for an instance.
     #[serde(default, rename = "autoscalingLimits")]
-    pub autoscaling_limits: Option<AutoscalingLimits>,
+    pub autoscaling_limits: ::core::option::Option<::std::boxed::Box<AutoscalingLimits>>,
     /// Required. The autoscaling targets for an instance.
     #[serde(default, rename = "autoscalingTargets")]
-    pub autoscaling_targets: Option<AutoscalingTargets>,
+    pub autoscaling_targets: ::core::option::Option<::std::boxed::Box<AutoscalingTargets>>,
 }
 
 /// Overrides the top-level autoscaling configuration for the replicas identified by replica_selection. All fields in this message are optional. Any unspecified fields will use the corresponding values from the top-level autoscaling configuration.
@@ -104,19 +105,19 @@ pub struct AutoscalingConfig {
 pub struct AutoscalingConfigOverrides {
     /// Optional. If specified, overrides the min/max limit in the top-level autoscaling configuration for the selected replicas.
     #[serde(default, rename = "autoscalingLimits")]
-    pub autoscaling_limits: Option<AutoscalingLimits>,
+    pub autoscaling_limits: ::core::option::Option<::std::boxed::Box<AutoscalingLimits>>,
     /// Optional. If specified, overrides the autoscaling target high_priority_cpu_utilization_percent in the top-level autoscaling configuration for the selected replicas.
     #[serde(default, rename = "autoscalingTargetHighPriorityCpuUtilizationPercent")]
-    pub autoscaling_target_high_priority_cpu_utilization_percent: Option<i32>,
+    pub autoscaling_target_high_priority_cpu_utilization_percent: ::core::option::Option<i32>,
     /// Optional. If specified, overrides the autoscaling target total_cpu_utilization_percent in the top-level autoscaling configuration for the selected replicas.
     #[serde(default, rename = "autoscalingTargetTotalCpuUtilizationPercent")]
-    pub autoscaling_target_total_cpu_utilization_percent: Option<i32>,
+    pub autoscaling_target_total_cpu_utilization_percent: ::core::option::Option<i32>,
     /// Optional. If true, disables high priority CPU autoscaling for the selected replicas and ignores high_priority_cpu_utilization_percent in the top-level autoscaling configuration. When setting this field to true, setting autoscaling_target_high_priority_cpu_utilization_percent field to a non-zero value for the same replica is not supported. If false, the autoscaling_target_high_priority_cpu_utilization_percent field in the replica will be used if set to a non-zero value. Otherwise, the high_priority_cpu_utilization_percent field in the top-level autoscaling configuration will be used. Setting both disable_high_priority_cpu_autoscaling and disable_total_cpu_autoscaling to true for the same replica is not supported.
     #[serde(default, rename = "disableHighPriorityCpuAutoscaling")]
-    pub disable_high_priority_cpu_autoscaling: Option<bool>,
+    pub disable_high_priority_cpu_autoscaling: ::core::option::Option<bool>,
     /// Optional. If true, disables total CPU autoscaling for the selected replicas and ignores total_cpu_utilization_percent in the top-level autoscaling configuration. When setting this field to true, setting autoscaling_target_total_cpu_utilization_percent field to a non-zero value for the same replica is not supported. If false, the autoscaling_target_total_cpu_utilization_percent field in the replica will be used if set to a non-zero value. Otherwise, the total_cpu_utilization_percent field in the top-level autoscaling configuration will be used. Setting both disable_high_priority_cpu_autoscaling and disable_total_cpu_autoscaling to true for the same replica is not supported.
     #[serde(default, rename = "disableTotalCpuAutoscaling")]
-    pub disable_total_cpu_autoscaling: Option<bool>,
+    pub disable_total_cpu_autoscaling: ::core::option::Option<bool>,
 }
 
 /// The autoscaling limits for the instance. Users can define the minimum and maximum compute capacity allocated to the instance, and the autoscaler will only scale within that range. Users can either use nodes or processing units to specify the limits, but should use the same unit to set both the min_limit and max_limit.
@@ -124,16 +125,16 @@ pub struct AutoscalingConfigOverrides {
 pub struct AutoscalingLimits {
     /// Maximum number of nodes allocated to the instance. If set, this number should be greater than or equal to min_nodes.
     #[serde(default, rename = "maxNodes")]
-    pub max_nodes: Option<i32>,
+    pub max_nodes: ::core::option::Option<i32>,
     /// Maximum number of processing units allocated to the instance. If set, this number should be multiples of 1000 and be greater than or equal to min_processing_units.
     #[serde(default, rename = "maxProcessingUnits")]
-    pub max_processing_units: Option<i32>,
+    pub max_processing_units: ::core::option::Option<i32>,
     /// Minimum number of nodes allocated to the instance. If set, this number should be greater than or equal to 1.
     #[serde(default, rename = "minNodes")]
-    pub min_nodes: Option<i32>,
+    pub min_nodes: ::core::option::Option<i32>,
     /// Minimum number of processing units allocated to the instance. If set, this number should be multiples of 1000.
     #[serde(default, rename = "minProcessingUnits")]
-    pub min_processing_units: Option<i32>,
+    pub min_processing_units: ::core::option::Option<i32>,
 }
 
 /// The autoscaling targets for an instance.
@@ -141,13 +142,13 @@ pub struct AutoscalingLimits {
 pub struct AutoscalingTargets {
     /// Optional. The target high priority cpu utilization percentage that the autoscaler should be trying to achieve for the instance. This number is on a scale from 0 (no utilization) to 100 (full utilization). The valid range is [10, 90] inclusive. If not specified or set to 0, the autoscaler skips scaling based on high priority CPU utilization.
     #[serde(default, rename = "highPriorityCpuUtilizationPercent")]
-    pub high_priority_cpu_utilization_percent: Option<i32>,
+    pub high_priority_cpu_utilization_percent: ::core::option::Option<i32>,
     /// Required. The target storage utilization percentage that the autoscaler should be trying to achieve for the instance. This number is on a scale from 0 (no utilization) to 100 (full utilization). The valid range is [10, 99] inclusive.
     #[serde(default, rename = "storageUtilizationPercent")]
-    pub storage_utilization_percent: Option<i32>,
+    pub storage_utilization_percent: ::core::option::Option<i32>,
     /// Optional. The target total CPU utilization percentage that the autoscaler should be trying to achieve for the instance. This number is on a scale from 0 (no utilization) to 100 (full utilization). The valid range is [10, 90] inclusive. If not specified or set to 0, the autoscaler skips scaling based on total CPU utilization. If both high_priority_cpu_utilization_percent and total_cpu_utilization_percent are specified, the autoscaler provisions the larger of the two required compute capacities to satisfy both targets.
     #[serde(default, rename = "totalCpuUtilizationPercent")]
-    pub total_cpu_utilization_percent: Option<i32>,
+    pub total_cpu_utilization_percent: ::core::option::Option<i32>,
 }
 
 /// A backup of a Cloud Spanner database.
@@ -155,64 +156,66 @@ pub struct AutoscalingTargets {
 pub struct Backup {
     /// Output only. List of backup schedule URIs that are associated with creating this backup. This is only applicable for scheduled backups, and is empty for on-demand backups. To optimize for storage, whenever possible, multiple schedules are collapsed together to create one backup. In such cases, this field captures the list of all backup schedule URIs that are associated with creating this backup. If collapsing is not done, then this field captures the single backup schedule URI associated with creating this backup.
     #[serde(default, rename = "backupSchedules")]
-    pub backup_schedules: Option<Vec<String>>,
+    pub backup_schedules: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The time the CreateBackup request is received. If the request does not specify version_time, the version_time of the backup will be equivalent to the create_time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required for the CreateBackup operation. Name of the database from which this backup was created. This needs to be in the same instance as the backup. Values are of the form projects//instances//databases/.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Output only. The database dialect information for the backup. // TODO: enum values: ["DATABASE_DIALECT_UNSPECIFIED", "GOOGLE_STANDARD_SQL", "POSTGRESQL"]
     #[serde(default, rename = "databaseDialect")]
-    pub database_dialect: Option<String>,
+    pub database_dialect: ::core::option::Option<String>,
     /// Output only. The encryption information for the backup.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Output only. The encryption information for the backup, whether it is protected by one or more KMS keys. The information includes all Cloud KMS key versions used to encrypt the backup. The encryption_status field inside of each EncryptionInfo is not populated. At least one of the key versions must be available for the backup to be restored. If a key version is revoked in the middle of a restore, the restore behavior is undefined.
     #[serde(default, rename = "encryptionInformation")]
-    pub encryption_information: Option<Vec<EncryptionInfo>>,
+    pub encryption_information:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EncryptionInfo>>>,
     /// Output only. For a backup in an incremental backup chain, this is the storage space needed to keep the data that has changed since the previous backup. For all other backups, this is always the size of the backup. This value may change if backups on the same chain get deleted or expired. This field can be used to calculate the total storage space used by a set of backups. For example, the total space used by all backups of a database can be computed by summing up this field.
     #[serde(default, rename = "exclusiveSizeBytes")]
-    pub exclusive_size_bytes: Option<String>,
+    pub exclusive_size_bytes: ::core::option::Option<String>,
     /// Required for the CreateBackup operation. The expiration time of the backup, with microseconds granularity that must be at least 6 hours and at most 366 days from the time the CreateBackup request is processed. Once the expire_time has passed, the backup is eligible to be automatically deleted by Cloud Spanner to free the resources used by the backup.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. The number of bytes that will be freed by deleting this backup. This value will be zero if, for example, this backup is part of an incremental backup chain and younger backups in the chain require that we keep its data. For backups not in an incremental backup chain, this is always the size of the backup. This value may change if backups on the same chain get created, deleted or expired.
     #[serde(default, rename = "freeableSizeBytes")]
-    pub freeable_size_bytes: Option<String>,
+    pub freeable_size_bytes: ::core::option::Option<String>,
     /// Output only. Populated only for backups in an incremental backup chain. Backups share the same chain id if and only if they belong to the same incremental backup chain. Use this field to determine which backups are part of the same incremental backup chain. The ordering of backups in the chain can be determined by ordering the backup version_time.
     #[serde(default, rename = "incrementalBackupChainId")]
-    pub incremental_backup_chain_id: Option<String>,
+    pub incremental_backup_chain_id: ::core::option::Option<String>,
     /// Output only. The instance partition storing the backup. This is the same as the list of the instance partitions that the database recorded at the backup''s version_time.
     #[serde(default, rename = "instancePartitions")]
-    pub instance_partitions: Option<Vec<BackupInstancePartition>>,
+    pub instance_partitions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackupInstancePartition>>>,
     /// Output only. The max allowed expiration time of the backup, with microseconds granularity. A backup''s expiration time can be configured in multiple APIs: CreateBackup, UpdateBackup, CopyBackup. When updating or copying an existing backup, the expiration time specified must be less than Backup.max_expire_time.
     #[serde(default, rename = "maxExpireTime")]
-    pub max_expire_time: Option<String>,
+    pub max_expire_time: ::core::option::Option<String>,
     /// Output only. The minimum edition required to successfully restore the backup. Populated only if the edition is Enterprise or Enterprise Plus. // TODO: enum values: ["EDITION_UNSPECIFIED", "STANDARD", "ENTERPRISE", "ENTERPRISE_PLUS"]
     #[serde(default, rename = "minimumRestorableEdition")]
-    pub minimum_restorable_edition: Option<String>,
+    pub minimum_restorable_edition: ::core::option::Option<String>,
     /// Output only for the CreateBackup operation. Required for the UpdateBackup operation. A globally unique identifier for the backup which cannot be changed. Values are of the form projects//instances//backups/a-z*[a-z0-9] The final segment of the name must be between 2 and 60 characters in length. The backup is stored in the location(s) specified in the instance configuration of the instance containing the backup, identified by the prefix of the backup name of the form projects//instances/.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Data deleted at a time older than this is guaranteed not to be retained in order to support this backup. For a backup in an incremental backup chain, this is the version time of the oldest backup that exists or ever existed in the chain. For all other backups, this is the version time of the backup. This field can be used to understand what data is being retained by the backup system.
     #[serde(default, rename = "oldestVersionTime")]
-    pub oldest_version_time: Option<String>,
+    pub oldest_version_time: ::core::option::Option<String>,
     /// Output only. The names of the destination backups being created by copying this source backup. The backup names are of the form projects//instances//backups/. Referencing backups may exist in different instances. The existence of any referencing backup prevents the backup from being deleted. When the copy operation is done (either successfully completed or cancelled or the destination backup is deleted), the reference to the backup is removed.
     #[serde(default, rename = "referencingBackups")]
-    pub referencing_backups: Option<Vec<String>>,
+    pub referencing_backups: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The names of the restored databases that reference the backup. The database names are of the form projects//instances//databases/. Referencing databases may exist in different instances. The existence of any referencing database prevents the backup from being deleted. When a restored database from the backup enters the READY state, the reference to the backup is removed.
     #[serde(default, rename = "referencingDatabases")]
-    pub referencing_databases: Option<Vec<String>>,
+    pub referencing_databases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Size of the backup in bytes. For a backup in an incremental backup chain, this is the sum of the exclusive_size_bytes of itself and all older backups in the chain.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
     /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The backup will contain an externally consistent copy of the database at the timestamp specified by version_time. If version_time is not specified, the system will set version_time to the create_time of the backup.
     #[serde(default, rename = "versionTime")]
-    pub version_time: Option<String>,
+    pub version_time: ::core::option::Option<String>,
 }
 
 /// Information about a backup.
@@ -220,16 +223,16 @@ pub struct Backup {
 pub struct BackupInfo {
     /// Name of the backup.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
     /// The time the CreateBackup request was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Name of the database the backup was created from.
     #[serde(default, rename = "sourceDatabase")]
-    pub source_database: Option<String>,
+    pub source_database: ::core::option::Option<String>,
     /// The backup contains an externally consistent copy of source_database at the timestamp specified by version_time. If the CreateBackup request did not specify version_time, the version_time of the backup is equivalent to the create_time.
     #[serde(default, rename = "versionTime")]
-    pub version_time: Option<String>,
+    pub version_time: ::core::option::Option<String>,
 }
 
 /// Instance partition information for the backup.
@@ -237,7 +240,7 @@ pub struct BackupInfo {
 pub struct BackupInstancePartition {
     /// A unique identifier for the instance partition. Values are of the form projects//instances//instancePartitions/
     #[serde(default, rename = "instancePartition")]
-    pub instance_partition: Option<String>,
+    pub instance_partition: ::core::option::Option<String>,
 }
 
 /// BackupSchedule expresses the automated backup creation specification for a Spanner database.
@@ -245,25 +248,25 @@ pub struct BackupInstancePartition {
 pub struct BackupSchedule {
     /// Optional. The encryption configuration that is used to encrypt the backup. If this field is not specified, the backup uses the same encryption configuration as the database.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<CreateBackupEncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<CreateBackupEncryptionConfig>>,
     /// The schedule creates only full backups.
     #[serde(default, rename = "fullBackupSpec")]
-    pub full_backup_spec: Option<serde_json::Value>,
+    pub full_backup_spec: ::core::option::Option<serde_json::Value>,
     /// The schedule creates incremental backup chains.
     #[serde(default, rename = "incrementalBackupSpec")]
-    pub incremental_backup_spec: Option<serde_json::Value>,
+    pub incremental_backup_spec: ::core::option::Option<serde_json::Value>,
     /// Identifier. Output only for the CreateBackupSchedule operation. Required for the UpdateBackupSchedule operation. A globally unique identifier for the backup schedule which cannot be changed. Values are of the form projects//instances//databases//backupSchedules/a-z*[a-z0-9] The final segment of the name must be between 2 and 60 characters in length.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The retention duration of a backup that must be at least 6 hours and at most 366 days. The backup is eligible to be automatically deleted once the retention period has elapsed.
     #[serde(default, rename = "retentionDuration")]
-    pub retention_duration: Option<String>,
+    pub retention_duration: ::core::option::Option<String>,
     /// Optional. The schedule specification based on which the backup creations are triggered.
     #[serde(default)]
-    pub spec: Option<BackupScheduleSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<BackupScheduleSpec>>,
     /// Output only. The timestamp at which the schedule was last updated. If the schedule has never been updated, this field contains the timestamp when the schedule was first created.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Defines specifications of the backup schedule.
@@ -271,7 +274,7 @@ pub struct BackupSchedule {
 pub struct BackupScheduleSpec {
     /// Cron style schedule specification.
     #[serde(default, rename = "cronSpec")]
-    pub cron_spec: Option<CrontabSpec>,
+    pub cron_spec: ::core::option::Option<::std::boxed::Box<CrontabSpec>>,
 }
 
 /// The request for BatchCreateSessions.
@@ -279,10 +282,10 @@ pub struct BackupScheduleSpec {
 pub struct BatchCreateSessionsRequest {
     /// Required. The number of sessions to be created in this batch call. At least one session is created. The API can return fewer than the requested number of sessions. If a specific number of sessions are desired, the client can make additional calls to BatchCreateSessions (adjusting session_count as necessary).
     #[serde(default, rename = "sessionCount")]
-    pub session_count: Option<i32>,
+    pub session_count: ::core::option::Option<i32>,
     /// Parameters to apply to each created session.
     #[serde(default, rename = "sessionTemplate")]
-    pub session_template: Option<Session>,
+    pub session_template: ::core::option::Option<::std::boxed::Box<Session>>,
 }
 
 /// The response for BatchCreateSessions.
@@ -290,7 +293,7 @@ pub struct BatchCreateSessionsRequest {
 pub struct BatchCreateSessionsResponse {
     /// The freshly created sessions.
     #[serde(default)]
-    pub session: Option<Vec<Session>>,
+    pub session: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Session>>>,
 }
 
 /// The request for BatchWrite.
@@ -298,13 +301,13 @@ pub struct BatchCreateSessionsResponse {
 pub struct BatchWriteRequest {
     /// Optional. If you don''t set the exclude_txn_from_change_streams option or if it''s set to false, then any change streams monitoring columns modified by transactions will capture the updates made within that transaction.
     #[serde(default, rename = "excludeTxnFromChangeStreams")]
-    pub exclude_txn_from_change_streams: Option<bool>,
+    pub exclude_txn_from_change_streams: ::core::option::Option<bool>,
     /// Required. The groups of mutations to be applied.
     #[serde(default, rename = "mutationGroups")]
-    pub mutation_groups: Option<Vec<MutationGroup>>,
+    pub mutation_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MutationGroup>>>,
     /// Common options for this request.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
 }
 
 /// The result of applying a batch of mutations.
@@ -312,13 +315,13 @@ pub struct BatchWriteRequest {
 pub struct BatchWriteResponse {
     /// The commit timestamp of the transaction that applied this batch. Present if status is OK and the mutation groups were applied, absent otherwise. For mutation groups with conditions, a status=OK and missing commit_timestamp means that the mutation groups were not applied due to the condition not being satisfied after evaluation.
     #[serde(default, rename = "commitTimestamp")]
-    pub commit_timestamp: Option<String>,
+    pub commit_timestamp: ::core::option::Option<String>,
     /// The mutation groups applied in this batch. The values index into the mutation_groups field in the corresponding BatchWriteRequest.
     #[serde(default)]
-    pub indexes: Option<Vec<i32>>,
+    pub indexes: ::core::option::Option<::std::vec::Vec<i32>>,
     /// An OK status indicates success. Any other status indicates a failure.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// The request for BeginTransaction.
@@ -326,13 +329,13 @@ pub struct BatchWriteResponse {
 pub struct BeginTransactionRequest {
     /// Optional. Required for read-write transactions on a multiplexed session that commit mutations but don''t perform any reads or queries. You must randomly select one of the mutations from the mutation set and send it as a part of this request.
     #[serde(default, rename = "mutationKey")]
-    pub mutation_key: Option<Mutation>,
+    pub mutation_key: ::core::option::Option<::std::boxed::Box<Mutation>>,
     /// Required. Options for the new transaction.
     #[serde(default)]
-    pub options: Option<TransactionOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
     /// Common options for this request. Priority is ignored for this request. Setting the priority in this request_options struct doesn''t do anything. To set the priority for a transaction, set it on the reads and writes that are part of this transaction instead.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
 }
 
 /// Associates members, or principals, with a role.
@@ -340,13 +343,13 @@ pub struct BeginTransactionRequest {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Metadata type for the long-running operation returned by ChangeQuorum.
@@ -354,13 +357,13 @@ pub struct Binding {
 pub struct ChangeQuorumMetadata {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The request for ChangeQuorum.
     #[serde(default)]
-    pub request: Option<ChangeQuorumRequest>,
+    pub request: ::core::option::Option<::std::boxed::Box<ChangeQuorumRequest>>,
     /// Time the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request for ChangeQuorum.
@@ -368,13 +371,13 @@ pub struct ChangeQuorumMetadata {
 pub struct ChangeQuorumRequest {
     /// Optional. The etag is the hash of the QuorumInfo. The ChangeQuorum operation is only performed if the etag matches that of the QuorumInfo in the current database resource. Otherwise the API returns an ABORTED error. The etag is used for optimistic concurrency control as a way to help prevent simultaneous change quorum requests that could create a race condition.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Required. Name of the database in which to apply ChangeQuorum. Values are of the form projects//instances//databases/.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The type of this quorum.
     #[serde(default, rename = "quorumType")]
-    pub quorum_type: Option<QuorumType>,
+    pub quorum_type: ::core::option::Option<::std::boxed::Box<QuorumType>>,
 }
 
 /// Spanner Change Streams enable customers to capture and stream out changes to their Spanner databases in real-time. A change stream can be created with option partition_mode=''IMMUTABLE_KEY_RANGE'' or partition_mode=''MUTABLE_KEY_RANGE''. This message is only used in Change Streams created with the option partition_mode=''MUTABLE_KEY_RANGE''. Spanner automatically creates a special Table-Valued Function (TVF) along with each Change Streams. The function provides access to the change stream''s records. The function is named READ_ (where is the name of the change stream), and it returns a table with only one column called ChangeRecord.
@@ -382,19 +385,19 @@ pub struct ChangeQuorumRequest {
 pub struct ChangeStreamRecord {
     /// Data change record describing a data change for a change stream partition.
     #[serde(default, rename = "dataChangeRecord")]
-    pub data_change_record: Option<DataChangeRecord>,
+    pub data_change_record: ::core::option::Option<::std::boxed::Box<DataChangeRecord>>,
     /// Heartbeat record describing a heartbeat for a change stream partition.
     #[serde(default, rename = "heartbeatRecord")]
-    pub heartbeat_record: Option<HeartbeatRecord>,
+    pub heartbeat_record: ::core::option::Option<::std::boxed::Box<HeartbeatRecord>>,
     /// Partition end record describing a terminated change stream partition.
     #[serde(default, rename = "partitionEndRecord")]
-    pub partition_end_record: Option<PartitionEndRecord>,
+    pub partition_end_record: ::core::option::Option<::std::boxed::Box<PartitionEndRecord>>,
     /// Partition event record describing key range changes for a change stream partition.
     #[serde(default, rename = "partitionEventRecord")]
-    pub partition_event_record: Option<PartitionEventRecord>,
+    pub partition_event_record: ::core::option::Option<::std::boxed::Box<PartitionEventRecord>>,
     /// Partition start record describing a new change stream partition.
     #[serde(default, rename = "partitionStartRecord")]
-    pub partition_start_record: Option<PartitionStartRecord>,
+    pub partition_start_record: ::core::option::Option<::std::boxed::Box<PartitionStartRecord>>,
 }
 
 /// Metadata associated with a parent-child relationship appearing in a PlanNode.
@@ -402,13 +405,13 @@ pub struct ChangeStreamRecord {
 pub struct ChildLink {
     /// The node to which the link points.
     #[serde(default, rename = "childIndex")]
-    pub child_index: Option<i32>,
+    pub child_index: ::core::option::Option<i32>,
     /// The type of the link. For example, in Hash Joins this could be used to distinguish between the build child and the probe child, or in the case of the child being an output variable, to represent the tag associated with the output variable.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Only present if the child node is SCALAR and corresponds to an output variable of the parent node. The field carries the name of the output variable. For example, a TableScan operator that reads rows from a table will have child links to the SCALAR nodes representing the output variables created for each column that is read by the operator. The corresponding variable fields will be set to the variable names assigned to the columns.
     #[serde(default)]
-    pub variable: Option<String>,
+    pub variable: ::core::option::Option<String>,
 }
 
 /// Metadata for a column.
@@ -416,16 +419,16 @@ pub struct ChildLink {
 pub struct ColumnMetadata {
     /// Indicates whether the column is a primary key column.
     #[serde(default, rename = "isPrimaryKey")]
-    pub is_primary_key: Option<bool>,
+    pub is_primary_key: ::core::option::Option<bool>,
     /// Name of the column.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Ordinal position of the column based on the original table definition in the schema starting with a value of 1.
     #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: Option<String>,
+    pub ordinal_position: ::core::option::Option<String>,
     /// Type of the column.
     #[serde(default, rename = "type")]
-    pub type_: Option<Type>,
+    pub type_: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// The request for Commit.
@@ -433,25 +436,26 @@ pub struct ColumnMetadata {
 pub struct CommitRequest {
     /// Optional. The amount of latency this request is configured to incur in order to improve throughput. If this field isn''t set, Spanner assumes requests are relatively latency sensitive and automatically determines an appropriate delay time. You can specify a commit delay value between 0 and 500 ms.
     #[serde(default, rename = "maxCommitDelay")]
-    pub max_commit_delay: Option<String>,
+    pub max_commit_delay: ::core::option::Option<String>,
     /// The mutations to be executed when this transaction commits. All mutations are applied atomically, in the order they appear in this list.
     #[serde(default)]
-    pub mutations: Option<Vec<Mutation>>,
+    pub mutations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Mutation>>>,
     /// Optional. If the read-write transaction was executed on a multiplexed session, then you must include the precommit token with the highest sequence number received in this transaction attempt. Failing to do so results in a FailedPrecondition error.
     #[serde(default, rename = "precommitToken")]
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    pub precommit_token:
+        ::core::option::Option<::std::boxed::Box<MultiplexedSessionPrecommitToken>>,
     /// Common options for this request.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
     /// If true, then statistics related to the transaction is included in the CommitResponse. Default value is false.
     #[serde(default, rename = "returnCommitStats")]
-    pub return_commit_stats: Option<bool>,
+    pub return_commit_stats: ::core::option::Option<bool>,
     /// Execute mutations in a temporary transaction. Note that unlike commit of a previously-started transaction, commit with a temporary transaction is non-idempotent. That is, if the CommitRequest is sent to Cloud Spanner more than once (for instance, due to retries in the application, or in the transport library), it''s possible that the mutations are executed more than once. If this is undesirable, use BeginTransaction and Commit instead.
     #[serde(default, rename = "singleUseTransaction")]
-    pub single_use_transaction: Option<TransactionOptions>,
+    pub single_use_transaction: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
     /// Commit a previously-started transaction.
     #[serde(default, rename = "transactionId")]
-    pub transaction_id: Option<String>,
+    pub transaction_id: ::core::option::Option<String>,
 }
 
 /// The response for Commit.
@@ -459,16 +463,17 @@ pub struct CommitRequest {
 pub struct CommitResponse {
     /// The statistics about this Commit. Not returned by default. For more information, see CommitRequest.return_commit_stats.
     #[serde(default, rename = "commitStats")]
-    pub commit_stats: Option<CommitStats>,
+    pub commit_stats: ::core::option::Option<::std::boxed::Box<CommitStats>>,
     /// The Cloud Spanner timestamp at which the transaction committed.
     #[serde(default, rename = "commitTimestamp")]
-    pub commit_timestamp: Option<String>,
+    pub commit_timestamp: ::core::option::Option<String>,
     /// If specified, transaction has not committed yet. You must retry the commit with the new precommit token.
     #[serde(default, rename = "precommitToken")]
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    pub precommit_token:
+        ::core::option::Option<::std::boxed::Box<MultiplexedSessionPrecommitToken>>,
     /// If TransactionOptions.isolation_level is set to IsolationLevel.REPEATABLE_READ, then the snapshot timestamp is the timestamp at which all reads in the transaction ran. This timestamp is never returned.
     #[serde(default, rename = "snapshotTimestamp")]
-    pub snapshot_timestamp: Option<String>,
+    pub snapshot_timestamp: ::core::option::Option<String>,
 }
 
 /// Additional statistics about a commit.
@@ -476,7 +481,7 @@ pub struct CommitResponse {
 pub struct CommitStats {
     /// The total number of mutations for the transaction. Knowing the mutation_count value can help you maximize the number of mutations in a transaction and minimize the number of API round trips. You can also monitor this value to prevent transactions from exceeding the system [limit](https://cloud.google.com/spanner/quotas#limits_for_creating_reading_updating_and_deleting_data). If the number of mutations exceeds the limit, the server returns [INVALID_ARGUMENT](https://cloud.google.com/spanner/docs/reference/rest/v1/Code#ENUM_VALUES.INVALID_ARGUMENT).
     #[serde(default, rename = "mutationCount")]
-    pub mutation_count: Option<String>,
+    pub mutation_count: ::core::option::Option<String>,
 }
 
 /// Metadata type for the long-running operation returned by CALL compact_all(), which can be executed using ExecuteSql or ExecuteStreamingSql APIs.
@@ -484,13 +489,13 @@ pub struct CommitStats {
 pub struct CompactDatabaseMetadata {
     /// Output only. The time at which cancellation of this operation was received. Operations.CancelOperation starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// Output only. The database being compacted.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Output only. The progress of the compaction operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
 }
 
 /// A message representing context for a KeyRangeInfo, including a label, value, unit, and severity.
@@ -498,16 +503,16 @@ pub struct CompactDatabaseMetadata {
 pub struct ContextValue {
     /// The label for the context value. e.g. "latency".
     #[serde(default)]
-    pub label: Option<LocalizedString>,
+    pub label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The severity of this context. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "INFO", "WARNING", "ERROR", "FATAL"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// The unit of the context value.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// The value for the context.
     #[serde(default)]
-    pub value: Option<f32>,
+    pub value: ::core::option::Option<f32>,
 }
 
 /// Encryption configuration for the copied backup.
@@ -515,13 +520,13 @@ pub struct ContextValue {
 pub struct CopyBackupEncryptionConfig {
     /// Required. The encryption type of the backup. // TODO: enum values: ["ENCRYPTION_TYPE_UNSPECIFIED", "USE_CONFIG_DEFAULT_OR_BACKUP_ENCRYPTION", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
-    pub encryption_type: Option<String>,
+    pub encryption_type: ::core::option::Option<String>,
     /// Optional. This field is maintained for backwards compatibility. For new callers, we recommend using kms_key_names to specify the KMS key. Only use kms_key_name if the location of the KMS key matches the database instance''s configuration (location) exactly. For example, if the KMS location is in us-central1 or nam3, then the database instance must also be in us-central1 or nam3. The Cloud KMS key that is used to encrypt and decrypt the restored database. Set this field only when encryption_type is CUSTOMER_MANAGED_ENCRYPTION. Values are of the form projects//locations//keyRings//cryptoKeys/.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Optional. Specifies the KMS configuration for the one or more keys used to protect the backup. Values are of the form projects//locations//keyRings//cryptoKeys/. KMS keys specified can be in any order. The keys referenced by kms_key_names must fully cover all regions of the backup''s instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type GOOGLE_MANAGED, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type USER_MANAGED, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren''t supported for USER_MANAGED type instance configurations.
     #[serde(default, rename = "kmsKeyNames")]
-    pub kms_key_names: Option<Vec<String>>,
+    pub kms_key_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata type for the operation returned by CopyBackup.
@@ -529,16 +534,16 @@ pub struct CopyBackupEncryptionConfig {
 pub struct CopyBackupMetadata {
     /// The time at which cancellation of CopyBackup operation was received. Operations.CancelOperation starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The name of the backup being created through the copy operation. Values are of the form projects//instances//backups/.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The progress of the CopyBackup operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// The name of the source backup that is being copied. Values are of the form projects//instances//backups/.
     #[serde(default, rename = "sourceBackup")]
-    pub source_backup: Option<String>,
+    pub source_backup: ::core::option::Option<String>,
 }
 
 /// The request for CopyBackup.
@@ -546,16 +551,16 @@ pub struct CopyBackupMetadata {
 pub struct CopyBackupRequest {
     /// Required. The id of the backup copy. The backup_id appended to parent forms the full backup_uri of the form projects//instances//backups/.
     #[serde(default, rename = "backupId")]
-    pub backup_id: Option<String>,
+    pub backup_id: ::core::option::Option<String>,
     /// Optional. The encryption configuration used to encrypt the backup. If this field is not specified, the backup will use the same encryption configuration as the source backup by default, namely encryption_type = USE_CONFIG_DEFAULT_OR_BACKUP_ENCRYPTION.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<CopyBackupEncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<CopyBackupEncryptionConfig>>,
     /// Required. The expiration time of the backup in microsecond granularity. The expiration time must be at least 6 hours and at most 366 days from the create_time of the source backup. Once the expire_time has passed, the backup is eligible to be automatically deleted by Cloud Spanner to free the resources used by the backup.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Required. The source backup to be copied. The source backup needs to be in READY state for it to be copied. Once CopyBackup is in progress, the source backup cannot be deleted or cleaned up on expiration until CopyBackup is finished. Values are of the form: projects//instances//backups/.
     #[serde(default, rename = "sourceBackup")]
-    pub source_backup: Option<String>,
+    pub source_backup: ::core::option::Option<String>,
 }
 
 /// Encryption configuration for the backup to create.
@@ -563,13 +568,13 @@ pub struct CopyBackupRequest {
 pub struct CreateBackupEncryptionConfig {
     /// Required. The encryption type of the backup. // TODO: enum values: ["ENCRYPTION_TYPE_UNSPECIFIED", "USE_DATABASE_ENCRYPTION", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
-    pub encryption_type: Option<String>,
+    pub encryption_type: ::core::option::Option<String>,
     /// Optional. This field is maintained for backwards compatibility. For new callers, we recommend using kms_key_names to specify the KMS key. Only use kms_key_name if the location of the KMS key matches the database instance''s configuration (location) exactly. For example, if the KMS location is in us-central1 or nam3, then the database instance must also be in us-central1 or nam3. The Cloud KMS key that is used to encrypt and decrypt the restored database. Set this field only when encryption_type is CUSTOMER_MANAGED_ENCRYPTION. Values are of the form projects//locations//keyRings//cryptoKeys/.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Optional. Specifies the KMS configuration for the one or more keys used to protect the backup. Values are of the form projects//locations//keyRings//cryptoKeys/. The keys referenced by kms_key_names must fully cover all regions of the backup''s instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type GOOGLE_MANAGED, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type USER_MANAGED, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren''t supported for USER_MANAGED type instance configurations.
     #[serde(default, rename = "kmsKeyNames")]
-    pub kms_key_names: Option<Vec<String>>,
+    pub kms_key_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata type for the operation returned by CreateBackup.
@@ -577,16 +582,16 @@ pub struct CreateBackupEncryptionConfig {
 pub struct CreateBackupMetadata {
     /// The time at which cancellation of this operation was received. Operations.CancelOperation starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The name of the database the backup is created from.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// The name of the backup being created.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The progress of the CreateBackup operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
 }
 
 /// Metadata type for the operation returned by CreateDatabase.
@@ -594,7 +599,7 @@ pub struct CreateBackupMetadata {
 pub struct CreateDatabaseMetadata {
     /// The database being created.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
 }
 
 /// The request for CreateDatabase.
@@ -602,19 +607,19 @@ pub struct CreateDatabaseMetadata {
 pub struct CreateDatabaseRequest {
     /// Required. A CREATE DATABASE statement, which specifies the ID of the new database. The database ID must conform to the regular expression a-z*[a-z0-9] and be between 2 and 30 characters in length. If the database ID is a reserved word or if it contains a hyphen, the database ID must be enclosed in backticks (  ).
     #[serde(default, rename = "createStatement")]
-    pub create_statement: Option<String>,
+    pub create_statement: ::core::option::Option<String>,
     /// Optional. The dialect of the Cloud Spanner Database. // TODO: enum values: ["DATABASE_DIALECT_UNSPECIFIED", "GOOGLE_STANDARD_SQL", "POSTGRESQL"]
     #[serde(default, rename = "databaseDialect")]
-    pub database_dialect: Option<String>,
+    pub database_dialect: ::core::option::Option<String>,
     /// Optional. The encryption configuration for the database. If this field is not specified, Cloud Spanner will encrypt/decrypt all data at rest using Google default encryption.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<EncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<EncryptionConfig>>,
     /// Optional. A list of DDL statements to run inside the newly created database. Statements can create tables, indexes, etc. These statements execute atomically with the creation of the database: if there is an error in any statement, the database is not created.
     #[serde(default, rename = "extraStatements")]
-    pub extra_statements: Option<Vec<String>>,
+    pub extra_statements: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Proto descriptors used by CREATE/ALTER PROTO BUNDLE statements in ''extra_statements''. Contains a protobuf-serialized [google.protobuf.FileDescriptorSet](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto) descriptor set. To generate it, [install](https://grpc.io/docs/protoc-installation/) and run protoc with --include_imports and --descriptor_set_out. For example, to generate for moon/shot/app.proto, run  $protoc --proto_path=/app_path --proto_path=/lib_path \ --include_imports \ --descriptor_set_out=descriptors.data \ moon/shot/app.proto  For more details, see protobuffer [self description](https://developers.google.com/protocol-buffers/docs/techniques#self-description).
     #[serde(default, rename = "protoDescriptors")]
-    pub proto_descriptors: Option<String>,
+    pub proto_descriptors: ::core::option::Option<String>,
 }
 
 /// Metadata type for the operation returned by CreateInstanceConfig.
@@ -622,13 +627,13 @@ pub struct CreateDatabaseRequest {
 pub struct CreateInstanceConfigMetadata {
     /// The time at which this operation was cancelled.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The target instance configuration end state.
     #[serde(default, rename = "instanceConfig")]
-    pub instance_config: Option<InstanceConfig>,
+    pub instance_config: ::core::option::Option<::std::boxed::Box<InstanceConfig>>,
     /// The progress of the CreateInstanceConfig operation.
     #[serde(default)]
-    pub progress: Option<InstanceOperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<InstanceOperationProgress>>,
 }
 
 /// The request for CreateInstanceConfig.
@@ -636,13 +641,13 @@ pub struct CreateInstanceConfigMetadata {
 pub struct CreateInstanceConfigRequest {
     /// Required. The InstanceConfig proto of the configuration to create. instance_config.name must be /instanceConfigs/. instance_config.base_config must be a Google-managed configuration name, e.g. /instanceConfigs/us-east1, /instanceConfigs/nam3.
     #[serde(default, rename = "instanceConfig")]
-    pub instance_config: Option<InstanceConfig>,
+    pub instance_config: ::core::option::Option<::std::boxed::Box<InstanceConfig>>,
     /// Required. The ID of the instance configuration to create. Valid identifiers are of the form custom-[-a-z0-9]*[a-z0-9] and must be between 2 and 64 characters in length. The custom- prefix is required to avoid name conflicts with Google-managed configurations.
     #[serde(default, rename = "instanceConfigId")]
-    pub instance_config_id: Option<String>,
+    pub instance_config_id: ::core::option::Option<String>,
     /// An option to validate, but not actually execute, a request, and provide the same response.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Metadata type for the operation returned by CreateInstance.
@@ -650,19 +655,19 @@ pub struct CreateInstanceConfigRequest {
 pub struct CreateInstanceMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The expected fulfillment period of this create operation. // TODO: enum values: ["FULFILLMENT_PERIOD_UNSPECIFIED", "FULFILLMENT_PERIOD_NORMAL", "FULFILLMENT_PERIOD_EXTENDED"]
     #[serde(default, rename = "expectedFulfillmentPeriod")]
-    pub expected_fulfillment_period: Option<String>,
+    pub expected_fulfillment_period: ::core::option::Option<String>,
     /// The instance being created.
     #[serde(default)]
-    pub instance: Option<Instance>,
+    pub instance: ::core::option::Option<::std::boxed::Box<Instance>>,
     /// The time at which the CreateInstance request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Metadata type for the operation returned by CreateInstancePartition.
@@ -670,16 +675,16 @@ pub struct CreateInstanceMetadata {
 pub struct CreateInstancePartitionMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The instance partition being created.
     #[serde(default, rename = "instancePartition")]
-    pub instance_partition: Option<InstancePartition>,
+    pub instance_partition: ::core::option::Option<::std::boxed::Box<InstancePartition>>,
     /// The time at which the CreateInstancePartition request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request for CreateInstancePartition.
@@ -687,10 +692,10 @@ pub struct CreateInstancePartitionMetadata {
 pub struct CreateInstancePartitionRequest {
     /// Required. The instance partition to create. The instance_partition.name may be omitted, but if specified must be /instancePartitions/.
     #[serde(default, rename = "instancePartition")]
-    pub instance_partition: Option<InstancePartition>,
+    pub instance_partition: ::core::option::Option<::std::boxed::Box<InstancePartition>>,
     /// Required. The ID of the instance partition to create. Valid identifiers are of the form a-z*[a-z0-9] and must be between 2 and 64 characters in length.
     #[serde(default, rename = "instancePartitionId")]
-    pub instance_partition_id: Option<String>,
+    pub instance_partition_id: ::core::option::Option<String>,
 }
 
 /// The request for CreateInstance.
@@ -698,10 +703,10 @@ pub struct CreateInstancePartitionRequest {
 pub struct CreateInstanceRequest {
     /// Required. The instance to create. The name may be omitted, but if specified must be /instances/.
     #[serde(default)]
-    pub instance: Option<Instance>,
+    pub instance: ::core::option::Option<::std::boxed::Box<Instance>>,
     /// Required. The ID of the instance to create. Valid identifiers are of the form a-z*[a-z0-9] and must be between 2 and 64 characters in length.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
 }
 
 /// The request for CreateSession.
@@ -709,7 +714,7 @@ pub struct CreateInstanceRequest {
 pub struct CreateSessionRequest {
     /// Required. The session to create.
     #[serde(default)]
-    pub session: Option<Session>,
+    pub session: ::core::option::Option<::std::boxed::Box<Session>>,
 }
 
 /// CrontabSpec can be used to specify the version time and frequency at which the backup is created.
@@ -717,13 +722,13 @@ pub struct CreateSessionRequest {
 pub struct CrontabSpec {
     /// Output only. Scheduled backups contain an externally consistent copy of the database at the version time specified in schedule_spec.cron_spec. However, Spanner might not initiate the creation of the scheduled backups at that version time. Spanner initiates the creation of scheduled backups within the time window bounded by the version_time specified in schedule_spec.cron_spec and version_time + creation_window.
     #[serde(default, rename = "creationWindow")]
-    pub creation_window: Option<String>,
+    pub creation_window: ::core::option::Option<String>,
     /// Required. Textual representation of the crontab. User can customize the backup frequency and the backup version time using the cron expression. The version time must be in UTC timezone. The backup will contain an externally consistent copy of the database at the version time. Full backups must be scheduled a minimum of 12 hours apart and incremental backups must be scheduled a minimum of 4 hours apart. Examples of valid cron specifications: * 0 2/12 * * * : every 12 hours at (2, 14) hours past midnight in UTC. * 0 2,14 * * * : every 12 hours at (2, 14) hours past midnight in UTC. * 0 */4 * * * : (incremental backups only) every 4 hours at (0, 4, 8, 12, 16, 20) hours past midnight in UTC. * 0 2 * * * : once a day at 2 past midnight in UTC. * 0 2 * * 0 : once a week every Sunday at 2 past midnight in UTC. * 0 2 8 * * : once a month on 8th day at 2 past midnight in UTC.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Output only. The time zone of the times in CrontabSpec.text. Currently, only UTC is supported.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// A data change record contains a set of changes to a table with the same modification type (insert, update, or delete) committed at the same commit timestamp in one change stream partition for the same transaction. Multiple data change records can be returned for the same transaction across multiple change stream partitions.
@@ -731,43 +736,43 @@ pub struct CrontabSpec {
 pub struct DataChangeRecord {
     /// Provides metadata describing the columns associated with the mods listed below.
     #[serde(default, rename = "columnMetadata")]
-    pub column_metadata: Option<Vec<ColumnMetadata>>,
+    pub column_metadata: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ColumnMetadata>>>,
     /// Indicates the timestamp in which the change was committed. DataChangeRecord.commit_timestamps, PartitionStartRecord.start_timestamps, PartitionEventRecord.commit_timestamps, and PartitionEndRecord.end_timestamps can have the same value in the same partition.
     #[serde(default, rename = "commitTimestamp")]
-    pub commit_timestamp: Option<String>,
+    pub commit_timestamp: ::core::option::Option<String>,
     /// Indicates whether this is the last record for a transaction in the current partition. Clients can use this field to determine when all records for a transaction in the current partition have been received.
     #[serde(default, rename = "isLastRecordInTransactionInPartition")]
-    pub is_last_record_in_transaction_in_partition: Option<bool>,
+    pub is_last_record_in_transaction_in_partition: ::core::option::Option<bool>,
     /// Indicates whether the transaction is a system transaction. System transactions include those issued by time-to-live (TTL), column backfill, etc.
     #[serde(default, rename = "isSystemTransaction")]
-    pub is_system_transaction: Option<bool>,
+    pub is_system_transaction: ::core::option::Option<bool>,
     /// Describes the type of change. // TODO: enum values: ["MOD_TYPE_UNSPECIFIED", "INSERT", "UPDATE", "DELETE"]
     #[serde(default, rename = "modType")]
-    pub mod_type: Option<String>,
+    pub mod_type: ::core::option::Option<String>,
     /// Describes the changes that were made.
     #[serde(default)]
-    pub mods: Option<Vec<Mod>>,
+    pub mods: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Mod>>>,
     /// Indicates the number of partitions that return data change records for this transaction. This value can be helpful in assembling all records associated with a particular transaction.
     #[serde(default, rename = "numberOfPartitionsInTransaction")]
-    pub number_of_partitions_in_transaction: Option<i32>,
+    pub number_of_partitions_in_transaction: ::core::option::Option<i32>,
     /// Indicates the number of data change records that are part of this transaction across all change stream partitions. This value can be used to assemble all the records associated with a particular transaction.
     #[serde(default, rename = "numberOfRecordsInTransaction")]
-    pub number_of_records_in_transaction: Option<i32>,
+    pub number_of_records_in_transaction: ::core::option::Option<i32>,
     /// Record sequence numbers are unique and monotonically increasing (but not necessarily contiguous) for a specific timestamp across record types in the same partition. To guarantee ordered processing, the reader should process records (of potentially different types) in record_sequence order for a specific timestamp in the same partition. The record sequence number ordering across partitions is only meaningful in the context of a specific transaction. Record sequence numbers are unique across partitions for a specific transaction. Sort the DataChangeRecords for the same server_transaction_id by record_sequence to reconstruct the ordering of the changes within the transaction.
     #[serde(default, rename = "recordSequence")]
-    pub record_sequence: Option<String>,
+    pub record_sequence: ::core::option::Option<String>,
     /// Provides a globally unique string that represents the transaction in which the change was committed. Multiple transactions can have the same commit timestamp, but each transaction has a unique server_transaction_id.
     #[serde(default, rename = "serverTransactionId")]
-    pub server_transaction_id: Option<String>,
+    pub server_transaction_id: ::core::option::Option<String>,
     /// Name of the table affected by the change.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
     /// Indicates the transaction tag associated with this transaction.
     #[serde(default, rename = "transactionTag")]
-    pub transaction_tag: Option<String>,
+    pub transaction_tag: ::core::option::Option<String>,
     /// Describes the value capture type that was specified in the change stream configuration when this change was captured. // TODO: enum values: ["VALUE_CAPTURE_TYPE_UNSPECIFIED", "OLD_AND_NEW_VALUES", "NEW_VALUES", "NEW_ROW", "NEW_ROW_AND_OLD_VALUES"]
     #[serde(default, rename = "valueCaptureType")]
-    pub value_capture_type: Option<String>,
+    pub value_capture_type: ::core::option::Option<String>,
 }
 
 /// A Cloud Spanner database.
@@ -775,43 +780,43 @@ pub struct DataChangeRecord {
 pub struct Database {
     /// Output only. If exists, the time at which the database creation started.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The dialect of the Cloud Spanner Database. // TODO: enum values: ["DATABASE_DIALECT_UNSPECIFIED", "GOOGLE_STANDARD_SQL", "POSTGRESQL"]
     #[serde(default, rename = "databaseDialect")]
-    pub database_dialect: Option<String>,
+    pub database_dialect: ::core::option::Option<String>,
     /// Output only. The read-write region which contains the database''s leader replicas. This is the same as the value of default_leader database option set using DatabaseAdmin.CreateDatabase or DatabaseAdmin.UpdateDatabaseDdl. If not explicitly set, this is empty.
     #[serde(default, rename = "defaultLeader")]
-    pub default_leader: Option<String>,
+    pub default_leader: ::core::option::Option<String>,
     /// Output only. Earliest timestamp at which older versions of the data can be read. This value is continuously updated by Cloud Spanner and becomes stale the moment it is queried. If you are using this value to recover data, make sure to account for the time from the moment when the value is queried to the moment when you initiate the recovery.
     #[serde(default, rename = "earliestVersionTime")]
-    pub earliest_version_time: Option<String>,
+    pub earliest_version_time: ::core::option::Option<String>,
     /// Optional. Whether drop protection is enabled for this database. Defaults to false, if not set. For more details, please see how to [prevent accidental database deletion](https://cloud.google.com/spanner/docs/prevent-database-deletion).
     #[serde(default, rename = "enableDropProtection")]
-    pub enable_drop_protection: Option<bool>,
+    pub enable_drop_protection: ::core::option::Option<bool>,
     /// Output only. For databases that are using customer managed encryption, this field contains the encryption configuration for the database. For databases that are using Google default or other types of encryption, this field is empty.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<EncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<EncryptionConfig>>,
     /// Output only. For databases that are using customer managed encryption, this field contains the encryption information for the database, such as all Cloud KMS key versions that are in use. The encryption_status field inside of each EncryptionInfo is not populated. For databases that are using Google default or other types of encryption, this field is empty. This field is propagated lazily from the backend. There might be a delay from when a key version is being used and when it appears in this field.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<Vec<EncryptionInfo>>,
+    pub encryption_info: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EncryptionInfo>>>,
     /// Required. The name of the database. Values are of the form projects//instances//databases/, where  is as specified in the CREATE DATABASE statement. This name can be passed to other API methods to identify the database.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Applicable only for databases that use dual-region instance configurations. Contains information about the quorum.
     #[serde(default, rename = "quorumInfo")]
-    pub quorum_info: Option<QuorumInfo>,
+    pub quorum_info: ::core::option::Option<::std::boxed::Box<QuorumInfo>>,
     /// Output only. If true, the database is being updated. If false, there are no ongoing update operations for the database.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. Applicable only for restored databases. Contains information about the restore source.
     #[serde(default, rename = "restoreInfo")]
-    pub restore_info: Option<RestoreInfo>,
+    pub restore_info: ::core::option::Option<::std::boxed::Box<RestoreInfo>>,
     /// Output only. The current database state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "READY_OPTIMIZING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The period in which Cloud Spanner retains all versions of data for the database. This is the same as the value of version_retention_period database option set using UpdateDatabaseDdl. Defaults to 1 hour, if not set.
     #[serde(default, rename = "versionRetentionPeriod")]
-    pub version_retention_period: Option<String>,
+    pub version_retention_period: ::core::option::Option<String>,
 }
 
 /// The configuration for each database in the target instance configuration.
@@ -819,10 +824,10 @@ pub struct Database {
 pub struct DatabaseMoveConfig {
     /// Required. The unique identifier of the database resource in the Instance. For example, if the database uri is projects/foo/instances/bar/databases/baz, then the id to supply here is baz.
     #[serde(default, rename = "databaseId")]
-    pub database_id: Option<String>,
+    pub database_id: ::core::option::Option<String>,
     /// Optional. Encryption configuration to be used for the database in the target configuration. The encryption configuration must be specified for every database which currently uses CMEK encryption. If a database currently uses Google-managed encryption and a target encryption configuration is not specified, then the database defaults to Google-managed encryption. If a database currently uses Google-managed encryption and a target CMEK encryption is specified, the request is rejected. If a database currently uses CMEK encryption, then a target encryption configuration must be specified. You can''t move a CMEK database to a Google-managed encryption database using the MoveInstance API.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<InstanceEncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<InstanceEncryptionConfig>>,
 }
 
 /// A Cloud Spanner database role.
@@ -830,7 +835,7 @@ pub struct DatabaseMoveConfig {
 pub struct DatabaseRole {
     /// Required. The name of the database role. Values are of the form projects//instances//databases//databaseRoles/ where  is as specified in the CREATE ROLE DDL statement.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Action information extracted from a DDL statement. This proto is used to display the brief info of the DDL statement for the operation UpdateDatabaseDdl.
@@ -838,13 +843,13 @@ pub struct DatabaseRole {
 pub struct DdlStatementActionInfo {
     /// The action for the DDL statement, for example, CREATE, ALTER, DROP, GRANT, etc. This field is a non-empty string.
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// The entity names being operated on the DDL statement. For example, 1. For statement "CREATE TABLE t1(...)", entity_names = ["t1"]. 2. For statement "GRANT ROLE r1, r2 ...", entity_names = ["r1", "r2"]. 3. For statement "ANALYZE", entity_names = [].
     #[serde(default, rename = "entityNames")]
-    pub entity_names: Option<Vec<String>>,
+    pub entity_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The entity type for the DDL statement, for example, TABLE, INDEX, VIEW, etc. This field can be empty string for some DDL statement, for example, for statement "ANALYZE", entity_type = "".
     #[serde(default, rename = "entityType")]
-    pub entity_type: Option<String>,
+    pub entity_type: ::core::option::Option<String>,
 }
 
 /// Arguments to delete operations.
@@ -852,10 +857,10 @@ pub struct DdlStatementActionInfo {
 pub struct Delete {
     /// Required. The primary keys of the rows within table to delete. The primary keys must be specified in the order in which they appear in the PRIMARY KEY() clause of the table''s equivalent DDL statement (the DDL statement used to create the table). Delete is idempotent. The transaction will succeed even if some or all rows do not exist.
     #[serde(default, rename = "keySet")]
-    pub key_set: Option<KeySet>,
+    pub key_set: ::core::option::Option<::std::boxed::Box<KeySet>>,
     /// Required. The table whose rows will be deleted.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
 }
 
 /// A message representing a derived metric.
@@ -863,10 +868,10 @@ pub struct Delete {
 pub struct DerivedMetric {
     /// The name of the denominator metric. e.g. "rows".
     #[serde(default)]
-    pub denominator: Option<LocalizedString>,
+    pub denominator: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The name of the numerator metric. e.g. "latency".
     #[serde(default)]
-    pub numerator: Option<LocalizedString>,
+    pub numerator: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// A message representing the key visualizer diagnostic messages.
@@ -874,19 +879,19 @@ pub struct DerivedMetric {
 pub struct DiagnosticMessage {
     /// Information about this diagnostic information.
     #[serde(default)]
-    pub info: Option<LocalizedString>,
+    pub info: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The metric.
     #[serde(default)]
-    pub metric: Option<LocalizedString>,
+    pub metric: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Whether this message is specific only for the current metric. By default Diagnostics are shown for all metrics, regardless which metric is the currently selected metric in the UI. However occasionally a metric will generate so many messages that the resulting visual clutter becomes overwhelming. In this case setting this to true, will show the diagnostic messages for that metric only if it is the currently selected metric.
     #[serde(default, rename = "metricSpecific")]
-    pub metric_specific: Option<bool>,
+    pub metric_specific: ::core::option::Option<bool>,
     /// The severity of the diagnostic message. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "INFO", "WARNING", "ERROR", "FATAL"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// The short message.
     #[serde(default, rename = "shortMessage")]
-    pub short_message: Option<LocalizedString>,
+    pub short_message: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// The DirectedReadOptions can be used to indicate which replicas or regions should be used for non-transactional reads or queries. DirectedReadOptions can only be specified for a read-only transaction, otherwise the API returns an INVALID_ARGUMENT error.
@@ -894,10 +899,10 @@ pub struct DiagnosticMessage {
 pub struct DirectedReadOptions {
     /// Exclude_replicas indicates that specified replicas should be excluded from serving requests. Spanner doesn''t route requests to the replicas in this list.
     #[serde(default, rename = "excludeReplicas")]
-    pub exclude_replicas: Option<ExcludeReplicas>,
+    pub exclude_replicas: ::core::option::Option<::std::boxed::Box<ExcludeReplicas>>,
     /// Include_replicas indicates the order of replicas (as they appear in this list) to process the request. If auto_failover_disabled is set to true and all replicas are exhausted without finding a healthy replica, Spanner waits for a replica in the list to become available, requests might fail due to DEADLINE_EXCEEDED errors.
     #[serde(default, rename = "includeReplicas")]
-    pub include_replicas: Option<IncludeReplicas>,
+    pub include_replicas: ::core::option::Option<::std::boxed::Box<IncludeReplicas>>,
 }
 
 /// Encryption configuration for a Cloud Spanner database.
@@ -905,10 +910,10 @@ pub struct DirectedReadOptions {
 pub struct EncryptionConfig {
     /// The Cloud KMS key to be used for encrypting and decrypting the database. Values are of the form projects//locations//keyRings//cryptoKeys/.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Specifies the KMS configuration for one or more keys used to encrypt the database. Values are of the form projects//locations//keyRings//cryptoKeys/. The keys referenced by kms_key_names must fully cover all regions of the database''s instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type GOOGLE_MANAGED, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type USER_MANAGED, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren''t supported for USER_MANAGED type instance configurations.
     #[serde(default, rename = "kmsKeyNames")]
-    pub kms_key_names: Option<Vec<String>>,
+    pub kms_key_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Encryption information for a Cloud Spanner database or backup.
@@ -916,13 +921,13 @@ pub struct EncryptionConfig {
 pub struct EncryptionInfo {
     /// Output only. If present, the status of a recent encrypt/decrypt call on underlying data for this database or backup. Regardless of status, data is always encrypted at rest.
     #[serde(default, rename = "encryptionStatus")]
-    pub encryption_status: Option<Status>,
+    pub encryption_status: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The type of encryption. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
-    pub encryption_type: Option<String>,
+    pub encryption_type: ::core::option::Option<String>,
     /// Output only. A Cloud KMS key version that is being used to protect the database or backup.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
 }
 
 /// An ExcludeReplicas contains a repeated set of ReplicaSelection that should be excluded from serving requests.
@@ -930,7 +935,8 @@ pub struct EncryptionInfo {
 pub struct ExcludeReplicas {
     /// The directed read replica selector.
     #[serde(default, rename = "replicaSelections")]
-    pub replica_selections: Option<Vec<ReplicaSelection>>,
+    pub replica_selections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReplicaSelection>>>,
 }
 
 /// The request for ExecuteBatchDml.
@@ -938,19 +944,19 @@ pub struct ExcludeReplicas {
 pub struct ExecuteBatchDmlRequest {
     /// Optional. If set to true, this request marks the end of the transaction. After these statements execute, you must commit or abort the transaction. Attempts to execute any other requests against this transaction (including reads and queries) are rejected. Setting this option might cause some error reporting to be deferred until commit time (for example, validation of unique constraints). Given this, successful execution of statements shouldn''t be assumed until a subsequent Commit call completes successfully.
     #[serde(default, rename = "lastStatements")]
-    pub last_statements: Option<bool>,
+    pub last_statements: ::core::option::Option<bool>,
     /// Common options for this request.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
     /// Required. A per-transaction sequence number used to identify this request. This field makes each request idempotent such that if the request is received multiple times, at most one succeeds. The sequence number must be monotonically increasing within the transaction. If a request arrives for the first time with an out-of-order sequence number, the transaction might be aborted. Replays of previously handled requests yield the same response as the first execution.
     #[serde(default)]
-    pub seqno: Option<String>,
+    pub seqno: ::core::option::Option<String>,
     /// Required. The list of statements to execute in this batch. Statements are executed serially, such that the effects of statement i are visible to statement i+1. Each statement must be a DML statement. Execution stops at the first failed statement; the remaining statements are not executed. Callers must provide at least one statement.
     #[serde(default)]
-    pub statements: Option<Vec<Statement>>,
+    pub statements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Statement>>>,
     /// Required. The transaction to use. Must be a read-write transaction. To protect against replays, single-use transactions are not supported. The caller must either supply an existing transaction ID or begin a new transaction.
     #[serde(default)]
-    pub transaction: Option<TransactionSelector>,
+    pub transaction: ::core::option::Option<::std::boxed::Box<TransactionSelector>>,
 }
 
 /// The response for ExecuteBatchDml. Contains a list of ResultSet messages, one for each DML statement that has successfully executed, in the same order as the statements in the request. If a statement fails, the status in the response body identifies the cause of the failure. To check for DML statements that failed, use the following approach: 1. Check the status in the response message. The google.rpc.Code enum value OK indicates that all statements were executed successfully. 2. If the status was not OK, check the number of result sets in the response. If the response contains N ResultSet messages, then statement N+1 in the request failed. Example 1: * Request: 5 DML statements, all executed successfully. * Response: 5 ResultSet messages, with the status OK. Example 2: * Request: 5 DML statements. The third statement has a syntax error. * Response: 2 ResultSet messages, and a syntax error (INVALID_ARGUMENT) status. The number of ResultSet messages indicates that the third statement failed, and the fourth and fifth statements were not executed.
@@ -958,13 +964,14 @@ pub struct ExecuteBatchDmlRequest {
 pub struct ExecuteBatchDmlResponse {
     /// Optional. A precommit token is included if the read-write transaction is on a multiplexed session. Pass the precommit token with the highest sequence number from this transaction attempt should be passed to the Commit request for this transaction.
     #[serde(default, rename = "precommitToken")]
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    pub precommit_token:
+        ::core::option::Option<::std::boxed::Box<MultiplexedSessionPrecommitToken>>,
     /// One ResultSet for each statement in the request that ran successfully, in the same order as the statements in the request. Each ResultSet does not contain any rows. The ResultSetStats in each ResultSet contain the number of rows modified by the statement. Only the first ResultSet in the response contains valid ResultSetMetadata.
     #[serde(default, rename = "resultSets")]
-    pub result_sets: Option<Vec<ResultSet>>,
+    pub result_sets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResultSet>>>,
     /// If all DML statements are executed successfully, the status is OK. Otherwise, the error status of the first failed statement.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// The request for ExecuteSql and ExecuteStreamingSql.
@@ -972,43 +979,43 @@ pub struct ExecuteBatchDmlResponse {
 pub struct ExecuteSqlRequest {
     /// If this is for a partitioned query and this field is set to true, the request is executed with Spanner Data Boost independent compute resources. If the field is set to true but the request doesn''t set partition_token, the API returns an INVALID_ARGUMENT error.
     #[serde(default, rename = "dataBoostEnabled")]
-    pub data_boost_enabled: Option<bool>,
+    pub data_boost_enabled: ::core::option::Option<bool>,
     /// Directed read options for this request.
     #[serde(default, rename = "directedReadOptions")]
-    pub directed_read_options: Option<DirectedReadOptions>,
+    pub directed_read_options: ::core::option::Option<::std::boxed::Box<DirectedReadOptions>>,
     /// Optional. If set to true, this statement marks the end of the transaction. After this statement executes, you must commit or abort the transaction. Attempts to execute any other requests against this transaction (including reads and queries) are rejected. For DML statements, setting this option might cause some error reporting to be deferred until commit time (for example, validation of unique constraints). Given this, successful execution of a DML statement shouldn''t be assumed until a subsequent Commit call completes successfully.
     #[serde(default, rename = "lastStatement")]
-    pub last_statement: Option<bool>,
+    pub last_statement: ::core::option::Option<bool>,
     /// It isn''t always possible for Cloud Spanner to infer the right SQL type from a JSON value. For example, values of type BYTES and values of type STRING both appear in params as JSON strings. In these cases, you can use param_types to specify the exact SQL type for some or all of the SQL statement parameters. See the definition of Type for more information about SQL types.
     #[serde(default, rename = "paramTypes")]
-    pub param_types: Option<serde_json::Value>,
+    pub param_types: ::core::option::Option<serde_json::Value>,
     /// Parameter names and values that bind to placeholders in the SQL string. A parameter placeholder consists of the @ character followed by the parameter name (for example, @firstName). Parameter names must conform to the naming requirements of identifiers as specified at https://cloud.google.com/spanner/docs/lexical#identifiers. Parameters can appear anywhere that a literal value is expected. The same parameter name can be used more than once, for example: "WHERE id &gt; @msg_id AND id &lt; @msg_id + 100" It''s an error to execute a SQL statement with unbound parameters.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// If present, results are restricted to the specified partition previously created using PartitionQuery. There must be an exact match for the values of fields common to this message and the PartitionQueryRequest message used to create this partition_token.
     #[serde(default, rename = "partitionToken")]
-    pub partition_token: Option<String>,
+    pub partition_token: ::core::option::Option<String>,
     /// Used to control the amount of debugging information returned in ResultSetStats. If partition_token is set, query_mode can only be set to QueryMode.NORMAL. // TODO: enum values: ["NORMAL", "PLAN", "PROFILE", "WITH_STATS", "WITH_PLAN_AND_STATS"]
     #[serde(default, rename = "queryMode")]
-    pub query_mode: Option<String>,
+    pub query_mode: ::core::option::Option<String>,
     /// Query optimizer configuration to use for the given query.
     #[serde(default, rename = "queryOptions")]
-    pub query_options: Option<QueryOptions>,
+    pub query_options: ::core::option::Option<::std::boxed::Box<QueryOptions>>,
     /// Common options for this request.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
     /// If this request is resuming a previously interrupted SQL statement execution, resume_token should be copied from the last PartialResultSet yielded before the interruption. Doing this enables the new SQL statement execution to resume where the last one left off. The rest of the request parameters must exactly match the request that yielded this token.
     #[serde(default, rename = "resumeToken")]
-    pub resume_token: Option<String>,
+    pub resume_token: ::core::option::Option<String>,
     /// A per-transaction sequence number used to identify this request. This field makes each request idempotent such that if the request is received multiple times, at most one succeeds. The sequence number must be monotonically increasing within the transaction. If a request arrives for the first time with an out-of-order sequence number, the transaction can be aborted. Replays of previously handled requests yield the same response as the first execution. Required for DML statements. Ignored for queries.
     #[serde(default)]
-    pub seqno: Option<String>,
+    pub seqno: ::core::option::Option<String>,
     /// Required. The SQL string.
     #[serde(default)]
-    pub sql: Option<String>,
+    pub sql: ::core::option::Option<String>,
     /// The transaction to use. For queries, if none is provided, the default is a temporary read-only transaction with strong concurrency. Standard DML statements require a read-write transaction. To protect against replays, single-use transactions are not supported. The caller must either supply an existing transaction ID or begin a new transaction. Partitioned DML requires an existing Partitioned DML transaction ID.
     #[serde(default)]
-    pub transaction: Option<TransactionSelector>,
+    pub transaction: ::core::option::Option<::std::boxed::Box<TransactionSelector>>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -1016,16 +1023,16 @@ pub struct ExecuteSqlRequest {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Message representing a single field of a struct.
@@ -1033,10 +1040,10 @@ pub struct Expr {
 pub struct Field {
     /// The name of the field. For reads, this is the column name. For SQL queries, it is the column alias (e.g., "Word" in the query "SELECT ''hello'' AS Word"), or the column name (e.g., "ColName" in the query "SELECT ColName FROM Table"). Some columns might have an empty name (e.g., "SELECT UPPER(ColName)"). Note that a query result can contain multiple fields with the same name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The type of the field.
     #[serde(default, rename = "type")]
-    pub type_: Option<Type>,
+    pub type_: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// Free instance specific metadata that is kept even after an instance has been upgraded for tracking purposes.
@@ -1044,13 +1051,13 @@ pub struct Field {
 pub struct FreeInstanceMetadata {
     /// Specifies the expiration behavior of a free instance. The default of ExpireBehavior is REMOVE_AFTER_GRACE_PERIOD. This can be modified during or after creation, and before expiration. // TODO: enum values: ["EXPIRE_BEHAVIOR_UNSPECIFIED", "FREE_TO_PROVISIONED", "REMOVE_AFTER_GRACE_PERIOD"]
     #[serde(default, rename = "expireBehavior")]
-    pub expire_behavior: Option<String>,
+    pub expire_behavior: ::core::option::Option<String>,
     /// Output only. Timestamp after which the instance will either be upgraded or scheduled for deletion after a grace period. ExpireBehavior is used to choose between upgrading or scheduling the free instance for deletion. This timestamp is set during the creation of a free instance.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. If present, the timestamp at which the free instance was upgraded to a provisioned instance.
     #[serde(default, rename = "upgradeTime")]
-    pub upgrade_time: Option<String>,
+    pub upgrade_time: ::core::option::Option<String>,
 }
 
 /// The response for GetDatabaseDdl.
@@ -1058,10 +1065,10 @@ pub struct FreeInstanceMetadata {
 pub struct GetDatabaseDdlResponse {
     /// Proto descriptors stored in the database. Contains a protobuf-serialized [google.protobuf.FileDescriptorSet](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto). For more details, see protobuffer [self description](https://developers.google.com/protocol-buffers/docs/techniques#self-description).
     #[serde(default, rename = "protoDescriptors")]
-    pub proto_descriptors: Option<String>,
+    pub proto_descriptors: ::core::option::Option<String>,
     /// A list of formatted DDL statements defining the schema of the database specified in the request.
     #[serde(default)]
-    pub statements: Option<Vec<String>>,
+    pub statements: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for GetIamPolicy method.
@@ -1069,7 +1076,7 @@ pub struct GetDatabaseDdlResponse {
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
-    pub options: Option<GetPolicyOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<GetPolicyOptions>>,
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
@@ -1077,7 +1084,7 @@ pub struct GetIamPolicyRequest {
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: Option<i32>,
+    pub requested_policy_version: ::core::option::Option<i32>,
 }
 
 /// A heartbeat record is returned as a progress indicator, when there are no data changes or any other partition record types in the change stream partition.
@@ -1085,7 +1092,7 @@ pub struct GetPolicyOptions {
 pub struct HeartbeatRecord {
     /// Indicates the timestamp at which the query has returned all the records in the change stream partition with timestamp &lt;= heartbeat timestamp. The heartbeat timestamp will not be the same as the timestamps of other record types in the same partition.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
 }
 
 /// An IncludeReplicas contains a repeated set of ReplicaSelection which indicates the order in which replicas should be considered.
@@ -1093,10 +1100,11 @@ pub struct HeartbeatRecord {
 pub struct IncludeReplicas {
     /// If true, Spanner doesn''t route requests to a replica outside the &lt;include_replicas list when all of the specified replicas are unavailable or unhealthy. Default value is false.
     #[serde(default, rename = "autoFailoverDisabled")]
-    pub auto_failover_disabled: Option<bool>,
+    pub auto_failover_disabled: ::core::option::Option<bool>,
     /// The directed read replica selector.
     #[serde(default, rename = "replicaSelections")]
-    pub replica_selections: Option<Vec<ReplicaSelection>>,
+    pub replica_selections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReplicaSelection>>>,
 }
 
 /// Recommendation to add new indexes to run queries more efficiently.
@@ -1104,10 +1112,10 @@ pub struct IncludeReplicas {
 pub struct IndexAdvice {
     /// Optional. DDL statements to add new indexes that will improve the query.
     #[serde(default)]
-    pub ddl: Option<Vec<String>>,
+    pub ddl: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Estimated latency improvement factor. For example if the query currently takes 500 ms to run and the estimated latency with new indexes is 100 ms this field will be 5.
     #[serde(default, rename = "improvementFactor")]
-    pub improvement_factor: Option<f64>,
+    pub improvement_factor: ::core::option::Option<f64>,
 }
 
 /// An isolated set of Cloud Spanner resources on which databases can be hosted.
@@ -1115,52 +1123,53 @@ pub struct IndexAdvice {
 pub struct Instance {
     /// Optional. The autoscaling configuration. Autoscaling is enabled if this field is set. When autoscaling is enabled, node_count and processing_units are treated as OUTPUT_ONLY fields and reflect the current compute capacity allocated to the instance.
     #[serde(default, rename = "autoscalingConfig")]
-    pub autoscaling_config: Option<AutoscalingConfig>,
+    pub autoscaling_config: ::core::option::Option<::std::boxed::Box<AutoscalingConfig>>,
     /// Required. The name of the instance''s configuration. Values are of the form projects//instanceConfigs/. See also InstanceConfig and ListInstanceConfigs.
     #[serde(default)]
-    pub config: Option<String>,
+    pub config: ::core::option::Option<String>,
     /// Output only. The time at which the instance was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Controls the default backup schedule behavior for new databases within the instance. By default, a backup schedule is created automatically when a new database is created in a new instance. Note that the AUTOMATIC value isn''t permitted for free instances, as backups and backup schedules aren''t supported for free instances. In the GetInstance or ListInstances response, if the value of default_backup_schedule_type isn''t set, or set to NONE, Spanner doesn''t create a default backup schedule for new databases in the instance. // TODO: enum values: ["DEFAULT_BACKUP_SCHEDULE_TYPE_UNSPECIFIED", "NONE", "AUTOMATIC"]
     #[serde(default, rename = "defaultBackupScheduleType")]
-    pub default_backup_schedule_type: Option<String>,
+    pub default_backup_schedule_type: ::core::option::Option<String>,
     /// Required. The descriptive name for this instance as it appears in UIs. Must be unique per project and between 4 and 30 characters in length.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. The Edition of the current instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "STANDARD", "ENTERPRISE", "ENTERPRISE_PLUS"]
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// Deprecated. This field is not populated.
     #[serde(default, rename = "endpointUris")]
-    pub endpoint_uris: Option<Vec<String>>,
+    pub endpoint_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Free instance metadata. Only populated for free instances.
     #[serde(default, rename = "freeInstanceMetadata")]
-    pub free_instance_metadata: Option<FreeInstanceMetadata>,
+    pub free_instance_metadata: ::core::option::Option<::std::boxed::Box<FreeInstanceMetadata>>,
     /// The InstanceType of the current instance. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "PROVISIONED", "FREE_INSTANCE"]
     #[serde(default, rename = "instanceType")]
-    pub instance_type: Option<String>,
+    pub instance_type: ::core::option::Option<String>,
     /// Cloud Labels are a flexible and lightweight mechanism for organizing cloud resources into groups that reflect a customer''s organizational needs and deployment strategies. Cloud Labels can be used to filter collections of resources. They can be used to control how resource metrics are aggregated. And they can be used as arguments to policy management rules (e.g. route, firewall, load balancing, etc.). * Label keys must be between 1 and 63 characters long and must conform to the following regular expression: a-z{0,62}. * Label values must be between 0 and 63 characters long and must conform to the regular expression [a-z0-9_-]{0,63}. * No more than 64 labels can be associated with a given resource. See https://goo.gl/xmQnxf for more information on and examples of labels. If you plan to use labels in your own code, please note that additional characters may be allowed in the future. And so you are advised to use an internal label representation, such as JSON, which doesn''t rely upon specific characters being disallowed. For example, representing labels as the string: name + "_" + value would prove problematic if we were to allow "_" in a future release.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. A unique identifier for the instance, which cannot be changed after the instance is created. Values are of the form projects//instances/a-z*[a-z0-9]. The final segment of the name must be between 2 and 64 characters in length.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The number of nodes allocated to this instance. At most, one of either node_count or processing_units should be present in the message. Users can set the node_count field to specify the target number of nodes allocated to the instance. If autoscaling is enabled, node_count is treated as an OUTPUT_ONLY field and reflects the current number of nodes allocated to the instance. This might be zero in API responses for instances that are not yet in the READY state. If the instance has varying node count across replicas (achieved by setting asymmetric_autoscaling_options in the autoscaling configuration), the node_count set here is the maximum node count across all replicas. For more information, see [Compute capacity, nodes, and processing units](https://cloud.google.com/spanner/docs/compute-capacity).
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// The number of processing units allocated to this instance. At most, one of either processing_units or node_count should be present in the message. Users can set the processing_units field to specify the target number of processing units allocated to the instance. If autoscaling is enabled, processing_units is treated as an OUTPUT_ONLY field and reflects the current number of processing units allocated to the instance. This might be zero in API responses for instances that are not yet in the READY state. If the instance has varying processing units per replica (achieved by setting asymmetric_autoscaling_options in the autoscaling configuration), the processing_units set here is the maximum processing units across all replicas. For more information, see [Compute capacity, nodes and processing units](https://cloud.google.com/spanner/docs/compute-capacity).
     #[serde(default, rename = "processingUnits")]
-    pub processing_units: Option<i32>,
+    pub processing_units: ::core::option::Option<i32>,
     /// Output only. Lists the compute capacity per ReplicaSelection. A replica selection identifies a set of replicas with common properties. Replicas identified by a ReplicaSelection are scaled with the same compute capacity.
     #[serde(default, rename = "replicaComputeCapacity")]
-    pub replica_compute_capacity: Option<Vec<ReplicaComputeCapacity>>,
+    pub replica_compute_capacity:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReplicaComputeCapacity>>>,
     /// Output only. The current instance state. For CreateInstance, the state must be either omitted or set to CREATING. For UpdateInstance, the state must be either omitted or set to READY. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time at which the instance was most recently updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A possible configuration for a Cloud Spanner instance. Configurations define the geographic placement of nodes and their replication.
@@ -1168,46 +1177,46 @@ pub struct Instance {
 pub struct InstanceConfig {
     /// Base configuration name, e.g. projects//instanceConfigs/nam3, based on which this configuration is created. Only set for user-managed configurations. base_config must refer to a configuration of type GOOGLE_MANAGED in the same project as this configuration.
     #[serde(default, rename = "baseConfig")]
-    pub base_config: Option<String>,
+    pub base_config: ::core::option::Option<String>,
     /// Output only. Whether this instance configuration is a Google-managed or user-managed configuration. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "USER_MANAGED"]
     #[serde(default, rename = "configType")]
-    pub config_type: Option<String>,
+    pub config_type: ::core::option::Option<String>,
     /// The name of this instance configuration as it appears in UIs.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a instance configuration from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform instance configuration updates in order to avoid race conditions: An etag is returned in the response which contains instance configurations, and systems are expected to put that etag in the request to update instance configuration to ensure that their change is applied to the same version of the instance configuration. If no etag is provided in the call to update the instance configuration, then the existing instance configuration is overwritten blindly.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Describes whether free instances are available to be created in this instance configuration. // TODO: enum values: ["FREE_INSTANCE_AVAILABILITY_UNSPECIFIED", "AVAILABLE", "UNSUPPORTED", "DISABLED", "QUOTA_EXCEEDED"]
     #[serde(default, rename = "freeInstanceAvailability")]
-    pub free_instance_availability: Option<String>,
+    pub free_instance_availability: ::core::option::Option<String>,
     /// Cloud Labels are a flexible and lightweight mechanism for organizing cloud resources into groups that reflect a customer''s organizational needs and deployment strategies. Cloud Labels can be used to filter collections of resources. They can be used to control how resource metrics are aggregated. And they can be used as arguments to policy management rules (e.g. route, firewall, load balancing, etc.). * Label keys must be between 1 and 63 characters long and must conform to the following regular expression: a-z{0,62}. * Label values must be between 0 and 63 characters long and must conform to the regular expression [a-z0-9_-]{0,63}. * No more than 64 labels can be associated with a given resource. See https://goo.gl/xmQnxf for more information on and examples of labels. If you plan to use labels in your own code, please note that additional characters may be allowed in the future. Therefore, you are advised to use an internal label representation, such as JSON, which doesn''t rely upon specific characters being disallowed. For example, representing labels as the string: name + "_" + value would prove problematic if we were to allow "_" in a future release.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Allowed values of the "default_leader" schema option for databases in instances that use this instance configuration.
     #[serde(default, rename = "leaderOptions")]
-    pub leader_options: Option<Vec<String>>,
+    pub leader_options: ::core::option::Option<::std::vec::Vec<String>>,
     /// A unique identifier for the instance configuration. Values are of the form projects//instanceConfigs/a-z*. User instance configuration must start with custom-.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The available optional replicas to choose from for user-managed configurations. Populated for Google-managed configurations.
     #[serde(default, rename = "optionalReplicas")]
-    pub optional_replicas: Option<Vec<ReplicaInfo>>,
+    pub optional_replicas: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReplicaInfo>>>,
     /// Output only. The QuorumType of the instance configuration. // TODO: enum values: ["QUORUM_TYPE_UNSPECIFIED", "REGION", "DUAL_REGION", "MULTI_REGION"]
     #[serde(default, rename = "quorumType")]
-    pub quorum_type: Option<String>,
+    pub quorum_type: ::core::option::Option<String>,
     /// Output only. If true, the instance configuration is being created or updated. If false, there are no ongoing operations for the instance configuration.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// The geographic placement of nodes in this instance configuration and their replication properties. To create user-managed configurations, input replicas must include all replicas in replicas of the base_config and include one or more replicas in the optional_replicas of the base_config.
     #[serde(default)]
-    pub replicas: Option<Vec<ReplicaInfo>>,
+    pub replicas: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReplicaInfo>>>,
     /// Output only. The current instance configuration state. Applicable only for USER_MANAGED configurations. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The storage limit in bytes per processing unit.
     #[serde(default, rename = "storageLimitPerProcessingUnit")]
-    pub storage_limit_per_processing_unit: Option<String>,
+    pub storage_limit_per_processing_unit: ::core::option::Option<String>,
 }
 
 /// Encryption configuration for a Cloud Spanner database.
@@ -1215,10 +1224,10 @@ pub struct InstanceConfig {
 pub struct InstanceEncryptionConfig {
     /// Optional. This field is maintained for backwards compatibility. For new callers, we recommend using kms_key_names to specify the KMS key. Only use kms_key_name if the location of the KMS key matches the database instance''s configuration (location) exactly. For example, if the KMS location is in us-central1 or nam3, then the database instance must also be in us-central1 or nam3. The Cloud KMS key that is used to encrypt and decrypt the restored database. Values are of the form projects//locations//keyRings//cryptoKeys/.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Optional. Specifies the KMS configuration for one or more keys used to encrypt the database. Values are of the form projects//locations//keyRings//cryptoKeys/. The keys referenced by kms_key_names must fully cover all regions of the database''s instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type GOOGLE_MANAGED, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type USER_MANAGED, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren''t supported for USER_MANAGED type instance configurations.
     #[serde(default, rename = "kmsKeyNames")]
-    pub kms_key_names: Option<Vec<String>>,
+    pub kms_key_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Encapsulates progress related information for a Cloud Spanner long running instance operations.
@@ -1226,13 +1235,13 @@ pub struct InstanceEncryptionConfig {
 pub struct InstanceOperationProgress {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Percent completion of the operation. Values are between 0 and 100 inclusive.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Time the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// An isolated set of Cloud Spanner resources that databases can define placements on.
@@ -1240,40 +1249,40 @@ pub struct InstanceOperationProgress {
 pub struct InstancePartition {
     /// Optional. The autoscaling configuration. Autoscaling is enabled if this field is set. When autoscaling is enabled, fields in compute_capacity are treated as OUTPUT_ONLY fields and reflect the current compute capacity allocated to the instance partition.
     #[serde(default, rename = "autoscalingConfig")]
-    pub autoscaling_config: Option<AutoscalingConfig>,
+    pub autoscaling_config: ::core::option::Option<::std::boxed::Box<AutoscalingConfig>>,
     /// Required. The name of the instance partition''s configuration. Values are of the form projects//instanceConfigs/. See also InstanceConfig and ListInstanceConfigs.
     #[serde(default)]
-    pub config: Option<String>,
+    pub config: ::core::option::Option<String>,
     /// Output only. The time at which the instance partition was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The descriptive name for this instance partition as it appears in UIs. Must be unique per project and between 4 and 30 characters in length.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Used for optimistic concurrency control as a way to help prevent simultaneous updates of a instance partition from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform instance partition updates in order to avoid race conditions: An etag is returned in the response which contains instance partitions, and systems are expected to put that etag in the request to update instance partitions to ensure that their change will be applied to the same version of the instance partition. If no etag is provided in the call to update instance partition, then the existing instance partition is overwritten blindly.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Required. A unique identifier for the instance partition. Values are of the form projects//instances//instancePartitions/a-z*[a-z0-9]. The final segment of the name must be between 2 and 64 characters in length. An instance partition''s name cannot be changed after the instance partition is created.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The number of nodes allocated to this instance partition. Users can set the node_count field to specify the target number of nodes allocated to the instance partition. This may be zero in API responses for instance partitions that are not yet in state READY.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// The number of processing units allocated to this instance partition. Users can set the processing_units field to specify the target number of processing units allocated to the instance partition. This might be zero in API responses for instance partitions that are not yet in the READY state.
     #[serde(default, rename = "processingUnits")]
-    pub processing_units: Option<i32>,
+    pub processing_units: ::core::option::Option<i32>,
     /// Output only. Deprecated: This field is not populated. Output only. The names of the backups that reference this instance partition. Referencing backups should share the parent instance. The existence of any referencing backup prevents the instance partition from being deleted.
     #[serde(default, rename = "referencingBackups")]
-    pub referencing_backups: Option<Vec<String>>,
+    pub referencing_backups: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The names of the databases that reference this instance partition. Referencing databases should share the parent instance. The existence of any referencing database prevents the instance partition from being deleted.
     #[serde(default, rename = "referencingDatabases")]
-    pub referencing_databases: Option<Vec<String>>,
+    pub referencing_databases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The current instance partition state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time at which the instance partition was most recently updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// ReplicaSelection identifies replicas with common properties.
@@ -1281,7 +1290,7 @@ pub struct InstancePartition {
 pub struct InstanceReplicaSelection {
     /// Required. Name of the location of the replicas (for example, "us-central1").
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
 }
 
 /// A split key.
@@ -1289,7 +1298,7 @@ pub struct InstanceReplicaSelection {
 pub struct Key {
     /// Required. The column values making up the split key.
     #[serde(default, rename = "keyParts")]
-    pub key_parts: Option<Vec<serde_json::Value>>,
+    pub key_parts: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// KeyRange represents a range of rows in a table or index. A range has a start key and an end key. These keys can be open or closed, indicating if the range includes rows with that key. Keys are represented by lists, where the ith value in the list corresponds to the ith component of the table or index primary key. Individual values are encoded as described here. For example, consider the following table definition: CREATE TABLE UserEvents ( UserName STRING(MAX), EventDate STRING(10) ) PRIMARY KEY(UserName, EventDate); The following keys name rows in this table: "Bob", "2014-09-23" Since the UserEvents table''s PRIMARY KEY clause names two columns, each UserEvents key has two elements; the first is the UserName, and the second is the EventDate. Key ranges with multiple components are interpreted lexicographically by component using the table or index key''s declared sort order. For example, the following range returns all events for user "Bob" that occurred in the year 2015: "start_closed": ["Bob", "2015-01-01"] "end_closed": ["Bob", "2015-12-31"] Start and end keys can omit trailing key components. This affects the inclusion and exclusion of rows that exactly match the provided key components: if the key is closed, then rows that exactly match the provided components are included; if the key is open, then rows that exactly match are not included. For example, the following range includes all events for "Bob" that occurred during and after the year 2000: "start_closed": ["Bob", "2000-01-01"] "end_closed": ["Bob"] The next example retrieves all events for "Bob": "start_closed": ["Bob"] "end_closed": ["Bob"] To retrieve events before the year 2000: "start_closed": ["Bob"] "end_open": ["Bob", "2000-01-01"] The following range includes all rows in the table: "start_closed": [] "end_closed": [] This range returns all users whose UserName begins with any character from A to C: "start_closed": ["A"] "end_open": ["D"] This range returns all users whose UserName begins with B: "start_closed": ["B"] "end_open": ["C"] Key ranges honor column sort order. For example, suppose a table is defined as follows: CREATE TABLE DescendingSortedTable { Key INT64, ... ) PRIMARY KEY(Key DESC); The following range retrieves all rows with key values between 1 and 100 inclusive: "start_closed": ["100"] "end_closed": ["1"] Note that 100 is passed as the start, and 1 is passed as the end, because Key is a descending column in the schema.
@@ -1297,16 +1306,16 @@ pub struct Key {
 pub struct KeyRange {
     /// If the end is closed, then the range includes all rows whose first len(end_closed) key columns exactly match end_closed.
     #[serde(default, rename = "endClosed")]
-    pub end_closed: Option<Vec<serde_json::Value>>,
+    pub end_closed: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// If the end is open, then the range excludes rows whose first len(end_open) key columns exactly match end_open.
     #[serde(default, rename = "endOpen")]
-    pub end_open: Option<Vec<serde_json::Value>>,
+    pub end_open: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// If the start is closed, then the range includes all rows whose first len(start_closed) key columns exactly match start_closed.
     #[serde(default, rename = "startClosed")]
-    pub start_closed: Option<Vec<serde_json::Value>>,
+    pub start_closed: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// If the start is open, then the range excludes rows whose first len(start_open) key columns exactly match start_open.
     #[serde(default, rename = "startOpen")]
-    pub start_open: Option<Vec<serde_json::Value>>,
+    pub start_open: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// A message representing information for a key range (possibly one key).
@@ -1314,31 +1323,31 @@ pub struct KeyRange {
 pub struct KeyRangeInfo {
     /// The list of context values for this key range.
     #[serde(default, rename = "contextValues")]
-    pub context_values: Option<Vec<ContextValue>>,
+    pub context_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContextValue>>>,
     /// The index of the end key in indexed_keys.
     #[serde(default, rename = "endKeyIndex")]
-    pub end_key_index: Option<i32>,
+    pub end_key_index: ::core::option::Option<i32>,
     /// Information about this key range, for all metrics.
     #[serde(default)]
-    pub info: Option<LocalizedString>,
+    pub info: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The number of keys this range covers.
     #[serde(default, rename = "keysCount")]
-    pub keys_count: Option<String>,
+    pub keys_count: ::core::option::Option<String>,
     /// The name of the metric. e.g. "latency".
     #[serde(default)]
-    pub metric: Option<LocalizedString>,
+    pub metric: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The index of the start key in indexed_keys.
     #[serde(default, rename = "startKeyIndex")]
-    pub start_key_index: Option<i32>,
+    pub start_key_index: ::core::option::Option<i32>,
     /// The time offset. This is the time since the start of the time interval.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
     /// The unit of the metric. This is an unstructured field and will be mapped as is to the user.
     #[serde(default)]
-    pub unit: Option<LocalizedString>,
+    pub unit: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The value of the metric.
     #[serde(default)]
-    pub value: Option<f32>,
+    pub value: ::core::option::Option<f32>,
 }
 
 /// A message representing a list of specific information for multiple key ranges.
@@ -1346,10 +1355,10 @@ pub struct KeyRangeInfo {
 pub struct KeyRangeInfos {
     /// The list individual KeyRangeInfos.
     #[serde(default)]
-    pub infos: Option<Vec<KeyRangeInfo>>,
+    pub infos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<KeyRangeInfo>>>,
     /// The total size of the list of all KeyRangeInfos. This may be larger than the number of repeated messages above. If that is the case, this number may be used to determine how many are not being shown.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// KeySet defines a collection of Cloud Spanner keys and/or key ranges. All the keys are expected to be in the same table or index. The keys need not be sorted in any particular way. If the same key is specified multiple times in the set (for example if two ranges, two keys, or a key and a range overlap), Cloud Spanner behaves as if the key were only specified once.
@@ -1357,13 +1366,13 @@ pub struct KeyRangeInfos {
 pub struct KeySet {
     /// For convenience all can be set to true to indicate that this KeySet matches all keys in the table or index. Note that any keys specified in keys or ranges are only yielded once.
     #[serde(default)]
-    pub all: Option<bool>,
+    pub all: ::core::option::Option<bool>,
     /// A list of specific keys. Entries in keys should have exactly as many elements as there are columns in the primary or index key with which this KeySet is used. Individual key values are encoded as described here.
     #[serde(default)]
-    pub keys: Option<Vec<Vec<serde_json::Value>>>,
+    pub keys: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
     /// A list of key ranges. See KeyRange for more information about key range specifications.
     #[serde(default)]
-    pub ranges: Option<Vec<KeyRange>>,
+    pub ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<KeyRange>>>,
 }
 
 /// The response for ListBackupOperations.
@@ -1371,10 +1380,10 @@ pub struct KeySet {
 pub struct ListBackupOperationsResponse {
     /// next_page_token can be sent in a subsequent ListBackupOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of matching backup long-running operations. Each operation''s name will be prefixed by the backup''s name. The operation''s metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that are pending or have completed/failed/canceled within the last 7 days. Operations returned are ordered by operation.metadata.value.progress.start_time in descending order starting from the most recently started operation.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
 }
 
 /// The response for ListBackupSchedules.
@@ -1382,10 +1391,11 @@ pub struct ListBackupOperationsResponse {
 pub struct ListBackupSchedulesResponse {
     /// The list of backup schedules for a database.
     #[serde(default, rename = "backupSchedules")]
-    pub backup_schedules: Option<Vec<BackupSchedule>>,
+    pub backup_schedules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackupSchedule>>>,
     /// next_page_token can be sent in a subsequent ListBackupSchedules call to fetch more of the schedules.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ListBackups.
@@ -1393,10 +1403,10 @@ pub struct ListBackupSchedulesResponse {
 pub struct ListBackupsResponse {
     /// The list of matching backups. Backups returned are ordered by create_time in descending order, starting from the most recent create_time.
     #[serde(default)]
-    pub backups: Option<Vec<Backup>>,
+    pub backups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Backup>>>,
     /// next_page_token can be sent in a subsequent ListBackups call to fetch more of the matching backups.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ListDatabaseOperations.
@@ -1404,10 +1414,10 @@ pub struct ListBackupsResponse {
 pub struct ListDatabaseOperationsResponse {
     /// next_page_token can be sent in a subsequent ListDatabaseOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of matching database long-running operations. Each operation''s name will be prefixed by the database''s name. The operation''s metadata field type metadata.type_url describes the type of the metadata.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
 }
 
 /// The response for ListDatabaseRoles.
@@ -1415,10 +1425,10 @@ pub struct ListDatabaseOperationsResponse {
 pub struct ListDatabaseRolesResponse {
     /// Database roles that matched the request.
     #[serde(default, rename = "databaseRoles")]
-    pub database_roles: Option<Vec<DatabaseRole>>,
+    pub database_roles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseRole>>>,
     /// next_page_token can be sent in a subsequent ListDatabaseRoles call to fetch more of the matching roles.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ListDatabases.
@@ -1426,10 +1436,10 @@ pub struct ListDatabaseRolesResponse {
 pub struct ListDatabasesResponse {
     /// Databases that matched the request.
     #[serde(default)]
-    pub databases: Option<Vec<Database>>,
+    pub databases: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Database>>>,
     /// next_page_token can be sent in a subsequent ListDatabases call to fetch more of the matching databases.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ListInstanceConfigOperations.
@@ -1437,10 +1447,10 @@ pub struct ListDatabasesResponse {
 pub struct ListInstanceConfigOperationsResponse {
     /// next_page_token can be sent in a subsequent ListInstanceConfigOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of matching instance configuration long-running operations. Each operation''s name will be prefixed by the name of the instance configuration. The operation''s metadata field type metadata.type_url describes the type of the metadata.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
 }
 
 /// The response for ListInstanceConfigs.
@@ -1448,10 +1458,11 @@ pub struct ListInstanceConfigOperationsResponse {
 pub struct ListInstanceConfigsResponse {
     /// The list of requested instance configurations.
     #[serde(default, rename = "instanceConfigs")]
-    pub instance_configs: Option<Vec<InstanceConfig>>,
+    pub instance_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstanceConfig>>>,
     /// next_page_token can be sent in a subsequent ListInstanceConfigs call to fetch more of the matching instance configurations.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ListInstancePartitionOperations.
@@ -1459,13 +1470,13 @@ pub struct ListInstanceConfigsResponse {
 pub struct ListInstancePartitionOperationsResponse {
     /// next_page_token can be sent in a subsequent ListInstancePartitionOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of matching instance partition long-running operations. Each operation''s name will be prefixed by the instance partition''s name. The operation''s metadata field type metadata.type_url describes the type of the metadata.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// The list of unreachable instance partitions. It includes the names of instance partitions whose operation metadata could not be retrieved within instance_partition_deadline.
     #[serde(default, rename = "unreachableInstancePartitions")]
-    pub unreachable_instance_partitions: Option<Vec<String>>,
+    pub unreachable_instance_partitions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response for ListInstancePartitions.
@@ -1473,13 +1484,14 @@ pub struct ListInstancePartitionOperationsResponse {
 pub struct ListInstancePartitionsResponse {
     /// The list of requested instancePartitions.
     #[serde(default, rename = "instancePartitions")]
-    pub instance_partitions: Option<Vec<InstancePartition>>,
+    pub instance_partitions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstancePartition>>>,
     /// next_page_token can be sent in a subsequent ListInstancePartitions call to fetch more of the matching instance partitions.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of unreachable instances or instance partitions. It includes the names of instances or instance partitions whose metadata could not be retrieved within instance_partition_deadline.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response for ListInstances.
@@ -1487,13 +1499,13 @@ pub struct ListInstancePartitionsResponse {
 pub struct ListInstancesResponse {
     /// The list of requested instances.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// next_page_token can be sent in a subsequent ListInstances call to fetch more of the matching instances.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of unreachable instances. It includes the names of instances whose metadata could not be retrieved within instance_deadline.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1501,13 +1513,13 @@ pub struct ListInstancesResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response method from the ListScans method.
@@ -1515,10 +1527,10 @@ pub struct ListOperationsResponse {
 pub struct ListScansResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Available scans based on the list query parameters.
     #[serde(default)]
-    pub scans: Option<Vec<Scan>>,
+    pub scans: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Scan>>>,
 }
 
 /// The response for ListSessions.
@@ -1526,10 +1538,10 @@ pub struct ListScansResponse {
 pub struct ListSessionsResponse {
     /// next_page_token can be sent in a subsequent ListSessions call to fetch more of the matching sessions.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of requested sessions.
     #[serde(default)]
-    pub sessions: Option<Vec<Session>>,
+    pub sessions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Session>>>,
 }
 
 /// A message representing a user-facing string whose value may need to be translated before being displayed.
@@ -1537,13 +1549,13 @@ pub struct ListSessionsResponse {
 pub struct LocalizedString {
     /// A map of arguments used when creating the localized message. Keys represent parameter names which may be used by the localized version when substituting dynamic values.
     #[serde(default)]
-    pub args: Option<serde_json::Value>,
+    pub args: ::core::option::Option<serde_json::Value>,
     /// The canonical English version of this message. If no token is provided or the front-end has no message associated with the token, this text will be displayed as-is.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The token identifying the message, e.g. ''METRIC_READ_CPU''. This should be unique within the service.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// A message representing the actual monitoring data, values for each key bucket over time, of a metric.
@@ -1551,40 +1563,40 @@ pub struct LocalizedString {
 pub struct Metric {
     /// The aggregation function used to aggregate each key bucket // TODO: enum values: ["AGGREGATION_UNSPECIFIED", "MAX", "SUM"]
     #[serde(default)]
-    pub aggregation: Option<String>,
+    pub aggregation: ::core::option::Option<String>,
     /// The category of the metric, e.g. "Activity", "Alerts", "Reads", etc.
     #[serde(default)]
-    pub category: Option<LocalizedString>,
+    pub category: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The references to numerator and denominator metrics for a derived metric.
     #[serde(default)]
-    pub derived: Option<DerivedMetric>,
+    pub derived: ::core::option::Option<::std::boxed::Box<DerivedMetric>>,
     /// The displayed label of the metric.
     #[serde(default, rename = "displayLabel")]
-    pub display_label: Option<LocalizedString>,
+    pub display_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Whether the metric has any non-zero data.
     #[serde(default, rename = "hasNonzeroData")]
-    pub has_nonzero_data: Option<bool>,
+    pub has_nonzero_data: ::core::option::Option<bool>,
     /// The value that is considered hot for the metric. On a per metric basis hotness signals high utilization and something that might potentially be a cause for concern by the end user. hot_value is used to calibrate and scale visual color scales.
     #[serde(default, rename = "hotValue")]
-    pub hot_value: Option<f32>,
+    pub hot_value: ::core::option::Option<f32>,
     /// The (sparse) mapping from time index to an IndexedHotKey message, representing those time intervals for which there are hot keys.
     #[serde(default, rename = "indexedHotKeys")]
-    pub indexed_hot_keys: Option<serde_json::Value>,
+    pub indexed_hot_keys: ::core::option::Option<serde_json::Value>,
     /// The (sparse) mapping from time interval index to an IndexedKeyRangeInfos message, representing those time intervals for which there are informational messages concerning key ranges.
     #[serde(default, rename = "indexedKeyRangeInfos")]
-    pub indexed_key_range_infos: Option<serde_json::Value>,
+    pub indexed_key_range_infos: ::core::option::Option<serde_json::Value>,
     /// Information about the metric.
     #[serde(default)]
-    pub info: Option<LocalizedString>,
+    pub info: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The data for the metric as a matrix.
     #[serde(default)]
-    pub matrix: Option<MetricMatrix>,
+    pub matrix: ::core::option::Option<::std::boxed::Box<MetricMatrix>>,
     /// The unit of the metric.
     #[serde(default)]
-    pub unit: Option<LocalizedString>,
+    pub unit: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Whether the metric is visible to the end user.
     #[serde(default)]
-    pub visible: Option<bool>,
+    pub visible: ::core::option::Option<bool>,
 }
 
 /// A message representing a matrix of floats.
@@ -1592,7 +1604,7 @@ pub struct Metric {
 pub struct MetricMatrix {
     /// The rows of the matrix.
     #[serde(default)]
-    pub rows: Option<Vec<MetricMatrixRow>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricMatrixRow>>>,
 }
 
 /// A message representing a row of a matrix of floats.
@@ -1600,7 +1612,7 @@ pub struct MetricMatrix {
 pub struct MetricMatrixRow {
     /// The columns of the row.
     #[serde(default)]
-    pub cols: Option<Vec<f32>>,
+    pub cols: ::core::option::Option<::std::vec::Vec<f32>>,
 }
 
 /// A mod describes all data changes in a watched table row.
@@ -1608,13 +1620,13 @@ pub struct MetricMatrixRow {
 pub struct Mod {
     /// Returns the value of the primary key of the modified row.
     #[serde(default)]
-    pub keys: Option<Vec<ModValue>>,
+    pub keys: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ModValue>>>,
     /// Returns the new values after the change for the modified columns. Always empty for DELETE.
     #[serde(default, rename = "newValues")]
-    pub new_values: Option<Vec<ModValue>>,
+    pub new_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ModValue>>>,
     /// Returns the old values before the change for the modified columns. Always empty for INSERT, or if old values are not being captured specified by value_capture_type.
     #[serde(default, rename = "oldValues")]
-    pub old_values: Option<Vec<ModValue>>,
+    pub old_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ModValue>>>,
 }
 
 /// Returns the value and associated metadata for a particular field of the Mod.
@@ -1622,10 +1634,10 @@ pub struct Mod {
 pub struct ModValue {
     /// Index within the repeated column_metadata field, to obtain the column metadata for the column that was modified.
     #[serde(default, rename = "columnMetadataIndex")]
-    pub column_metadata_index: Option<i32>,
+    pub column_metadata_index: ::core::option::Option<i32>,
     /// The value of the column.
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Describes move-in of the key ranges into the change stream partition identified by partition_token. To maintain processing the changes for a particular key in timestamp order, the query processing the change stream partition identified by partition_token should not advance beyond the partition event record commit timestamp until the queries processing the source change stream partitions have processed all change stream records with timestamps &lt;= the partition event record commit timestamp.
@@ -1633,7 +1645,7 @@ pub struct ModValue {
 pub struct MoveInEvent {
     /// An unique partition identifier describing the source change stream partition that recorded changes for the key range that is moving into this partition.
     #[serde(default, rename = "sourcePartitionToken")]
-    pub source_partition_token: Option<String>,
+    pub source_partition_token: ::core::option::Option<String>,
 }
 
 /// The request for MoveInstance.
@@ -1641,10 +1653,11 @@ pub struct MoveInEvent {
 pub struct MoveInstanceRequest {
     /// Required. The target instance configuration where to move the instance. Values are of the form projects//instanceConfigs/.
     #[serde(default, rename = "targetConfig")]
-    pub target_config: Option<String>,
+    pub target_config: ::core::option::Option<String>,
     /// Optional. The configuration for each database in the target instance configuration.
     #[serde(default, rename = "targetDatabaseMoveConfigs")]
-    pub target_database_move_configs: Option<Vec<DatabaseMoveConfig>>,
+    pub target_database_move_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseMoveConfig>>>,
 }
 
 /// Describes move-out of the key ranges out of the change stream partition identified by partition_token. To maintain processing the changes for a particular key in timestamp order, the query processing the MoveOutEvent in the partition identified by partition_token should inform the queries processing the destination partitions that they can unblock and proceed processing records past the commit_timestamp.
@@ -1652,7 +1665,7 @@ pub struct MoveInstanceRequest {
 pub struct MoveOutEvent {
     /// An unique partition identifier describing the destination change stream partition that will record changes for the key range that is moving out of this partition.
     #[serde(default, rename = "destinationPartitionToken")]
-    pub destination_partition_token: Option<String>,
+    pub destination_partition_token: ::core::option::Option<String>,
 }
 
 /// When a read-write transaction is executed on a multiplexed session, this precommit token is sent back to the client as a part of the Transaction message in the BeginTransaction response and also as a part of the ResultSet and PartialResultSet responses.
@@ -1660,10 +1673,10 @@ pub struct MoveOutEvent {
 pub struct MultiplexedSessionPrecommitToken {
     /// Opaque precommit token.
     #[serde(default, rename = "precommitToken")]
-    pub precommit_token: Option<String>,
+    pub precommit_token: ::core::option::Option<String>,
     /// An incrementing seq number is generated on every precommit token that is returned. Clients should remember the precommit token with the highest sequence number from the current transaction attempt.
     #[serde(default, rename = "seqNum")]
-    pub seq_num: Option<i32>,
+    pub seq_num: ::core::option::Option<i32>,
 }
 
 /// A modification to one or more Cloud Spanner rows. Mutations can be applied to a Cloud Spanner database by sending them in a Commit call.
@@ -1671,25 +1684,25 @@ pub struct MultiplexedSessionPrecommitToken {
 pub struct Mutation {
     /// Ack a message from a queue.
     #[serde(default)]
-    pub ack: Option<Ack>,
+    pub ack: ::core::option::Option<::std::boxed::Box<Ack>>,
     /// Delete rows from a table. Succeeds whether or not the named rows were present.
     #[serde(default)]
-    pub delete: Option<Delete>,
+    pub delete: ::core::option::Option<::std::boxed::Box<Delete>>,
     /// Insert new rows in a table. If any of the rows already exist, the write or transaction fails with error ALREADY_EXISTS.
     #[serde(default)]
-    pub insert: Option<Write>,
+    pub insert: ::core::option::Option<::std::boxed::Box<Write>>,
     /// Like insert, except that if the row already exists, then its column values are overwritten with the ones provided. Any column values not explicitly written are preserved. When using insert_or_update, just as when using insert, all NOT NULL columns in the table must be given a value. This holds true even when the row already exists and will therefore actually be updated.
     #[serde(default, rename = "insertOrUpdate")]
-    pub insert_or_update: Option<Write>,
+    pub insert_or_update: ::core::option::Option<::std::boxed::Box<Write>>,
     /// Like insert, except that if the row already exists, it is deleted, and the column values provided are inserted instead. Unlike insert_or_update, this means any values not explicitly written become NULL. In an interleaved table, if you create the child table with the ON DELETE CASCADE annotation, then replacing a parent row also deletes the child rows. Otherwise, you must delete the child rows before you replace the parent row.
     #[serde(default)]
-    pub replace: Option<Write>,
+    pub replace: ::core::option::Option<::std::boxed::Box<Write>>,
     /// Send a message to a queue.
     #[serde(default)]
-    pub send: Option<Send>,
+    pub send: ::core::option::Option<::std::boxed::Box<Send>>,
     /// Update existing rows in a table. If any of the rows does not already exist, the transaction fails with error NOT_FOUND.
     #[serde(default)]
-    pub update: Option<Write>,
+    pub update: ::core::option::Option<::std::boxed::Box<Write>>,
 }
 
 /// A group of mutations to be committed together. Related mutations should be placed in a group. For example, two mutations inserting rows with the same primary key prefix in both parent and child tables are related.
@@ -1697,7 +1710,7 @@ pub struct Mutation {
 pub struct MutationGroup {
     /// Required. The mutations in this group.
     #[serde(default)]
-    pub mutations: Option<Vec<Mutation>>,
+    pub mutations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Mutation>>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1705,19 +1718,19 @@ pub struct MutationGroup {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Encapsulates progress related information for a Cloud Spanner long running operation.
@@ -1725,13 +1738,13 @@ pub struct Operation {
 pub struct OperationProgress {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Percent completion of the operation. Values are between 0 and 100 inclusive.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Time the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Metadata type for the long-running operation used to track the progress of optimizations performed on a newly restored database. This long-running operation is automatically created by the system after the successful completion of a database restore, and cannot be cancelled.
@@ -1739,10 +1752,10 @@ pub struct OperationProgress {
 pub struct OptimizeRestoredDatabaseMetadata {
     /// Name of the restored database being optimized.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The progress of the post-restore optimizations.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
 }
 
 /// Partial results from a streaming read or SQL query. Streaming reads and SQL queries better tolerate large result sets, large rows, and large values, but are a little trickier to consume.
@@ -1750,25 +1763,26 @@ pub struct OptimizeRestoredDatabaseMetadata {
 pub struct PartialResultSet {
     /// If true, then the final value in values is chunked, and must be combined with more values from subsequent PartialResultSets to obtain a complete field value.
     #[serde(default, rename = "chunkedValue")]
-    pub chunked_value: Option<bool>,
+    pub chunked_value: ::core::option::Option<bool>,
     /// Optional. Indicates whether this is the last PartialResultSet in the stream. The server might optionally set this field. Clients shouldn''t rely on this field being set in all cases.
     #[serde(default)]
-    pub last: Option<bool>,
+    pub last: ::core::option::Option<bool>,
     /// Metadata about the result set, such as row type information. Only present in the first response.
     #[serde(default)]
-    pub metadata: Option<ResultSetMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<ResultSetMetadata>>,
     /// Optional. A precommit token is included if the read-write transaction has multiplexed sessions enabled. Pass the precommit token with the highest sequence number from this transaction attempt to the Commit request for this transaction.
     #[serde(default, rename = "precommitToken")]
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    pub precommit_token:
+        ::core::option::Option<::std::boxed::Box<MultiplexedSessionPrecommitToken>>,
     /// Streaming calls might be interrupted for a variety of reasons, such as TCP connection loss. If this occurs, the stream of results can be resumed by re-sending the original request and including resume_token. Note that executing any other transaction in the same session invalidates the token.
     #[serde(default, rename = "resumeToken")]
-    pub resume_token: Option<String>,
+    pub resume_token: ::core::option::Option<String>,
     /// Query plan and execution statistics for the statement that produced this streaming result set. These can be requested by setting ExecuteSqlRequest.query_mode and are sent only once with the last response in the stream. This field is also present in the last response for DML statements.
     #[serde(default)]
-    pub stats: Option<ResultSetStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<ResultSetStats>>,
     /// A streamed result set consists of a stream of values, which might be split into many PartialResultSet messages to accommodate large rows and/or large values. Every N complete values defines a row, where N is equal to the number of entries in metadata.row_type.fields. Most values are encoded based on type as described here. It''s possible that the last value in values is "chunked", meaning that the rest of the value is sent in subsequent PartialResultSet(s). This is denoted by the chunked_value field. Two or more chunked values can be merged to form a complete value as follows: * bool/number/null: can''t be chunked * string: concatenate the strings * list: concatenate the lists. If the last element in a list is a string, list, or object, merge it with the first element in the next list by applying these rules recursively. * object: concatenate the (field name, field value) pairs. If a field name is duplicated, then apply these rules recursively to merge the field values. Some examples of merging: Strings are concatenated. "foo", "bar" =&gt; "foobar" Lists of non-strings are concatenated. [2, 3], [4] =&gt; [2, 3, 4] Lists are concatenated, but the last and first elements are merged because they are strings. ["a", "b"], ["c", "d"] =&gt; ["a", "bc", "d"] Lists are concatenated, but the last and first elements are merged because they are lists. Recursively, the last and first elements of the inner lists are merged because they are strings. ["a", ["b", "c"]], [["d"], "e"] =&gt; ["a", ["b", "cd"], "e"] Non-overlapping object fields are combined. {"a": "1"}, {"b": "2"} =&gt; {"a": "1", "b": 2"} Overlapping object fields are merged. {"a": "1"}, {"a": "2"} =&gt; {"a": "12"} Examples of merging objects containing lists of strings. {"a": ["1"]}, {"a": ["2"]} =&gt; {"a": ["12"]} For a more complete example, suppose a streaming SQL query is yielding a result set whose rows contain a single string field. The following PartialResultSets might be yielded: { "metadata": { ... } "values": ["Hello", "W"] "chunked_value": true "resume_token": "Af65..." } { "values": ["orl"] "chunked_value": true } { "values": ["d"] "resume_token": "Zx1B..." } This sequence of PartialResultSets encodes two rows, one containing the field value "Hello", and a second containing the field value "World" = "W" + "orl" + "d". Not all PartialResultSets contain a resume_token. Execution can only be resumed from a previously yielded resume_token. For the above sequence of PartialResultSets, resuming the query with "resume_token": "Af65..." yields results from the PartialResultSet with value "orl".
     #[serde(default)]
-    pub values: Option<Vec<serde_json::Value>>,
+    pub values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Information returned for each partition returned in a PartitionResponse.
@@ -1776,7 +1790,7 @@ pub struct PartialResultSet {
 pub struct Partition {
     /// This token can be passed to Read, StreamingRead, ExecuteSql, or ExecuteStreamingSql requests to restrict the results to those identified by this partition token.
     #[serde(default, rename = "partitionToken")]
-    pub partition_token: Option<String>,
+    pub partition_token: ::core::option::Option<String>,
 }
 
 /// A partition end record serves as a notification that the client should stop reading the partition. No further records are expected to be retrieved on it.
@@ -1784,13 +1798,13 @@ pub struct Partition {
 pub struct PartitionEndRecord {
     /// End timestamp at which the change stream partition is terminated. All changes generated by this partition will have timestamps &lt;= end_timestamp. DataChangeRecord.commit_timestamps, PartitionStartRecord.start_timestamps, PartitionEventRecord.commit_timestamps, and PartitionEndRecord.end_timestamps can have the same value in the same partition. PartitionEndRecord is the last record returned for a partition.
     #[serde(default, rename = "endTimestamp")]
-    pub end_timestamp: Option<String>,
+    pub end_timestamp: ::core::option::Option<String>,
     /// Unique partition identifier describing the terminated change stream partition. partition_token is equal to the partition token of the change stream partition currently queried to return this PartitionEndRecord.
     #[serde(default, rename = "partitionToken")]
-    pub partition_token: Option<String>,
+    pub partition_token: ::core::option::Option<String>,
     /// Record sequence numbers are unique and monotonically increasing (but not necessarily contiguous) for a specific timestamp across record types in the same partition. To guarantee ordered processing, the reader should process records (of potentially different types) in record_sequence order for a specific timestamp in the same partition.
     #[serde(default, rename = "recordSequence")]
-    pub record_sequence: Option<String>,
+    pub record_sequence: ::core::option::Option<String>,
 }
 
 /// A partition event record describes key range changes for a change stream partition. The changes to a row defined by its primary key can be captured in one change stream partition for a specific time range, and then be captured in a different change stream partition for a different time range. This movement of key ranges across change stream partitions is a reflection of activities, such as Spanner''s dynamic splitting and load balancing, etc. Processing this event is needed if users want to guarantee processing of the changes for any key in timestamp order. If time ordered processing of changes for a primary key is not needed, this event can be ignored. To guarantee time ordered processing for each primary key, if the event describes move-ins, the reader of this partition needs to wait until the readers of the source partitions have processed all records with timestamps &lt;= this PartitionEventRecord.commit_timestamp, before advancing beyond this PartitionEventRecord. If the event describes move-outs, the reader can notify the readers of the destination partitions that they can continue processing.
@@ -1798,19 +1812,19 @@ pub struct PartitionEndRecord {
 pub struct PartitionEventRecord {
     /// Indicates the commit timestamp at which the key range change occurred. DataChangeRecord.commit_timestamps, PartitionStartRecord.start_timestamps, PartitionEventRecord.commit_timestamps, and PartitionEndRecord.end_timestamps can have the same value in the same partition.
     #[serde(default, rename = "commitTimestamp")]
-    pub commit_timestamp: Option<String>,
+    pub commit_timestamp: ::core::option::Option<String>,
     /// Set when one or more key ranges are moved into the change stream partition identified by partition_token. Example: Two key ranges are moved into partition (P1) from partition (P2) and partition (P3) in a single transaction at timestamp T. The PartitionEventRecord returned in P1 will reflect the move as: PartitionEventRecord { commit_timestamp: T partition_token: "P1" move_in_events { source_partition_token: "P2" } move_in_events { source_partition_token: "P3" } } The PartitionEventRecord returned in P2 will reflect the move as: PartitionEventRecord { commit_timestamp: T partition_token: "P2" move_out_events { destination_partition_token: "P1" } } The PartitionEventRecord returned in P3 will reflect the move as: PartitionEventRecord { commit_timestamp: T partition_token: "P3" move_out_events { destination_partition_token: "P1" } }
     #[serde(default, rename = "moveInEvents")]
-    pub move_in_events: Option<Vec<MoveInEvent>>,
+    pub move_in_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MoveInEvent>>>,
     /// Set when one or more key ranges are moved out of the change stream partition identified by partition_token. Example: Two key ranges are moved out of partition (P1) to partition (P2) and partition (P3) in a single transaction at timestamp T. The PartitionEventRecord returned in P1 will reflect the move as: PartitionEventRecord { commit_timestamp: T partition_token: "P1" move_out_events { destination_partition_token: "P2" } move_out_events { destination_partition_token: "P3" } } The PartitionEventRecord returned in P2 will reflect the move as: PartitionEventRecord { commit_timestamp: T partition_token: "P2" move_in_events { source_partition_token: "P1" } } The PartitionEventRecord returned in P3 will reflect the move as: PartitionEventRecord { commit_timestamp: T partition_token: "P3" move_in_events { source_partition_token: "P1" } }
     #[serde(default, rename = "moveOutEvents")]
-    pub move_out_events: Option<Vec<MoveOutEvent>>,
+    pub move_out_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MoveOutEvent>>>,
     /// Unique partition identifier describing the partition this event occurred on. partition_token is equal to the partition token of the change stream partition currently queried to return this PartitionEventRecord.
     #[serde(default, rename = "partitionToken")]
-    pub partition_token: Option<String>,
+    pub partition_token: ::core::option::Option<String>,
     /// Record sequence numbers are unique and monotonically increasing (but not necessarily contiguous) for a specific timestamp across record types in the same partition. To guarantee ordered processing, the reader should process records (of potentially different types) in record_sequence order for a specific timestamp in the same partition.
     #[serde(default, rename = "recordSequence")]
-    pub record_sequence: Option<String>,
+    pub record_sequence: ::core::option::Option<String>,
 }
 
 /// Options for a PartitionQueryRequest and PartitionReadRequest.
@@ -1818,10 +1832,10 @@ pub struct PartitionEventRecord {
 pub struct PartitionOptions {
     /// **Note:** This hint is currently ignored by PartitionQuery and PartitionRead requests. The desired maximum number of partitions to return. For example, this might be set to the number of workers available. The default for this option is currently 10,000. The maximum value is currently 200,000. This is only a hint. The actual number of partitions returned can be smaller or larger than this maximum count request.
     #[serde(default, rename = "maxPartitions")]
-    pub max_partitions: Option<String>,
+    pub max_partitions: ::core::option::Option<String>,
     /// **Note:** This hint is currently ignored by PartitionQuery and PartitionRead requests. The desired data size for each partition generated. The default for this option is currently 1 GiB. This is only a hint. The actual size of each partition can be smaller or larger than this size request.
     #[serde(default, rename = "partitionSizeBytes")]
-    pub partition_size_bytes: Option<String>,
+    pub partition_size_bytes: ::core::option::Option<String>,
 }
 
 /// The request for PartitionQuery
@@ -1829,19 +1843,19 @@ pub struct PartitionOptions {
 pub struct PartitionQueryRequest {
     /// Optional. It isn''t always possible for Cloud Spanner to infer the right SQL type from a JSON value. For example, values of type BYTES and values of type STRING both appear in params as JSON strings. In these cases, param_types can be used to specify the exact SQL type for some or all of the SQL query parameters. See the definition of Type for more information about SQL types.
     #[serde(default, rename = "paramTypes")]
-    pub param_types: Option<serde_json::Value>,
+    pub param_types: ::core::option::Option<serde_json::Value>,
     /// Optional. Parameter names and values that bind to placeholders in the SQL string. A parameter placeholder consists of the @ character followed by the parameter name (for example, @firstName). Parameter names can contain letters, numbers, and underscores. Parameters can appear anywhere that a literal value is expected. The same parameter name can be used more than once, for example: "WHERE id &gt; @msg_id AND id &lt; @msg_id + 100" It''s an error to execute a SQL statement with unbound parameters.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// Additional options that affect how many partitions are created.
     #[serde(default, rename = "partitionOptions")]
-    pub partition_options: Option<PartitionOptions>,
+    pub partition_options: ::core::option::Option<::std::boxed::Box<PartitionOptions>>,
     /// Required. The query request to generate partitions for. The request fails if the query isn''t root partitionable. For a query to be root partitionable, it needs to satisfy a few conditions. For example, if the query execution plan contains a distributed union operator, then it must be the first operator in the plan. For more information about other conditions, see [Read data in parallel](https://cloud.google.com/spanner/docs/reads#read_data_in_parallel). The query request must not contain DML commands, such as INSERT, UPDATE, or DELETE. Use ExecuteStreamingSql with a PartitionedDml transaction for large, partition-friendly DML operations.
     #[serde(default)]
-    pub sql: Option<String>,
+    pub sql: ::core::option::Option<String>,
     /// Read-only snapshot transactions are supported, read and write and single-use transactions are not.
     #[serde(default)]
-    pub transaction: Option<TransactionSelector>,
+    pub transaction: ::core::option::Option<::std::boxed::Box<TransactionSelector>>,
 }
 
 /// The request for PartitionRead
@@ -1849,22 +1863,22 @@ pub struct PartitionQueryRequest {
 pub struct PartitionReadRequest {
     /// The columns of table to be returned for each row matching this request.
     #[serde(default)]
-    pub columns: Option<Vec<String>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
     /// If non-empty, the name of an index on table. This index is used instead of the table primary key when interpreting key_set and sorting result rows. See key_set for further information.
     #[serde(default)]
-    pub index: Option<String>,
+    pub index: ::core::option::Option<String>,
     /// Required. key_set identifies the rows to be yielded. key_set names the primary keys of the rows in table to be yielded, unless index is present. If index is present, then key_set instead names index keys in index. It isn''t an error for the key_set to name rows that don''t exist in the database. Read yields nothing for nonexistent rows.
     #[serde(default, rename = "keySet")]
-    pub key_set: Option<KeySet>,
+    pub key_set: ::core::option::Option<::std::boxed::Box<KeySet>>,
     /// Additional options that affect how many partitions are created.
     #[serde(default, rename = "partitionOptions")]
-    pub partition_options: Option<PartitionOptions>,
+    pub partition_options: ::core::option::Option<::std::boxed::Box<PartitionOptions>>,
     /// Required. The name of the table in the database to be read.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
     /// Read only snapshot transactions are supported, read/write and single use transactions are not.
     #[serde(default)]
-    pub transaction: Option<TransactionSelector>,
+    pub transaction: ::core::option::Option<::std::boxed::Box<TransactionSelector>>,
 }
 
 /// The response for PartitionQuery or PartitionRead
@@ -1872,10 +1886,10 @@ pub struct PartitionReadRequest {
 pub struct PartitionResponse {
     /// Partitions created by this request.
     #[serde(default)]
-    pub partitions: Option<Vec<Partition>>,
+    pub partitions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Partition>>>,
     /// Transaction created by this request.
     #[serde(default)]
-    pub transaction: Option<Transaction>,
+    pub transaction: ::core::option::Option<::std::boxed::Box<Transaction>>,
 }
 
 /// A partition start record serves as a notification that the client should schedule the partitions to be queried. PartitionStartRecord returns information about one or more partitions.
@@ -1883,13 +1897,13 @@ pub struct PartitionResponse {
 pub struct PartitionStartRecord {
     /// Unique partition identifiers to be used in queries.
     #[serde(default, rename = "partitionTokens")]
-    pub partition_tokens: Option<Vec<String>>,
+    pub partition_tokens: ::core::option::Option<::std::vec::Vec<String>>,
     /// Record sequence numbers are unique and monotonically increasing (but not necessarily contiguous) for a specific timestamp across record types in the same partition. To guarantee ordered processing, the reader should process records (of potentially different types) in record_sequence order for a specific timestamp in the same partition.
     #[serde(default, rename = "recordSequence")]
-    pub record_sequence: Option<String>,
+    pub record_sequence: ::core::option::Option<String>,
     /// Start timestamp at which the partitions should be queried to return change stream records with timestamps &gt;= start_timestamp. DataChangeRecord.commit_timestamps, PartitionStartRecord.start_timestamps, PartitionEventRecord.commit_timestamps, and PartitionEndRecord.end_timestamps can have the same value in the same partition.
     #[serde(default, rename = "startTimestamp")]
-    pub start_timestamp: Option<String>,
+    pub start_timestamp: ::core::option::Option<String>,
 }
 
 /// Node information for nodes appearing in a QueryPlan.plan_nodes.
@@ -1897,25 +1911,25 @@ pub struct PartitionStartRecord {
 pub struct PlanNode {
     /// List of child node indexes and their relationship to this parent.
     #[serde(default, rename = "childLinks")]
-    pub child_links: Option<Vec<ChildLink>>,
+    pub child_links: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ChildLink>>>,
     /// The display name for the node.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The execution statistics associated with the node, contained in a group of key-value pairs. Only present if the plan was returned as a result of a profile query. For example, number of executions, number of rows/time per execution etc.
     #[serde(default, rename = "executionStats")]
-    pub execution_stats: Option<serde_json::Value>,
+    pub execution_stats: ::core::option::Option<serde_json::Value>,
     /// The PlanNode''s index in node list.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// Used to determine the type of node. May be needed for visualizing different kinds of nodes differently. For example, If the node is a SCALAR node, it will have a condensed representation which can be used to directly embed a description of the node in its parent. // TODO: enum values: ["KIND_UNSPECIFIED", "RELATIONAL", "SCALAR"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Attributes relevant to the node contained in a group of key-value pairs. For example, a Parameter Reference node could have the following information in its metadata: { "parameter_reference": "param1", "parameter_type": "array" }
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Condensed representation for SCALAR nodes.
     #[serde(default, rename = "shortRepresentation")]
-    pub short_representation: Option<ShortRepresentation>,
+    pub short_representation: ::core::option::Option<::std::boxed::Box<ShortRepresentation>>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -1923,13 +1937,13 @@ pub struct PlanNode {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// A message representing a key prefix node in the key prefix hierarchy. for eg. Bigtable keyspaces are lexicographically ordered mappings of keys to values. Keys often have a shared prefix structure where users use the keys to organize data. Eg ///employee In this case Keysight will possibly use one node for a company and reuse it for all employees that fall under the company. Doing so improves legibility in the UI.
@@ -1937,19 +1951,19 @@ pub struct Policy {
 pub struct PrefixNode {
     /// Whether this corresponds to a data_source name.
     #[serde(default, rename = "dataSourceNode")]
-    pub data_source_node: Option<bool>,
+    pub data_source_node: ::core::option::Option<bool>,
     /// The depth in the prefix hierarchy.
     #[serde(default)]
-    pub depth: Option<i32>,
+    pub depth: ::core::option::Option<i32>,
     /// The index of the end key bucket of the range that this node spans.
     #[serde(default, rename = "endIndex")]
-    pub end_index: Option<i32>,
+    pub end_index: ::core::option::Option<i32>,
     /// The index of the start key bucket of the range that this node spans.
     #[serde(default, rename = "startIndex")]
-    pub start_index: Option<i32>,
+    pub start_index: ::core::option::Option<i32>,
     /// The string represented by the prefix node.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// Output of query advisor analysis.
@@ -1957,7 +1971,7 @@ pub struct PrefixNode {
 pub struct QueryAdvisorResult {
     /// Optional. Index Recommendation for a query. This is an optional field and the recommendation will only be available when the recommendation guarantees significant improvement in query performance.
     #[serde(default, rename = "indexAdvice")]
-    pub index_advice: Option<Vec<IndexAdvice>>,
+    pub index_advice: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IndexAdvice>>>,
 }
 
 /// Query optimizer configuration.
@@ -1965,10 +1979,10 @@ pub struct QueryAdvisorResult {
 pub struct QueryOptions {
     /// An option to control the selection of optimizer statistics package. This parameter allows individual queries to use a different query optimizer statistics package. Specifying latest as a value instructs Cloud Spanner to use the latest generated statistics package. If not specified, Cloud Spanner uses the statistics package set at the database level options, or the latest package if the database option isn''t set. The statistics package requested by the query has to be exempt from garbage collection. This can be achieved with the following DDL statement: sql ALTER STATISTICS SET OPTIONS (allow_gc=false)  The list of available statistics packages can be queried from INFORMATION_SCHEMA.SPANNER_STATISTICS. Executing a SQL statement with an invalid optimizer statistics package or with a statistics package that allows garbage collection fails with an INVALID_ARGUMENT error.
     #[serde(default, rename = "optimizerStatisticsPackage")]
-    pub optimizer_statistics_package: Option<String>,
+    pub optimizer_statistics_package: ::core::option::Option<String>,
     /// An option to control the selection of optimizer version. This parameter allows individual queries to pick different query optimizer versions. Specifying latest as a value instructs Cloud Spanner to use the latest supported query optimizer version. If not specified, Cloud Spanner uses the optimizer version set at the database level options. Any other positive integer (from the list of supported optimizer versions) overrides the default optimizer version for query execution. The list of supported optimizer versions can be queried from SPANNER_SYS.SUPPORTED_OPTIMIZER_VERSIONS. Executing a SQL statement with an invalid optimizer version fails with an INVALID_ARGUMENT error. See https://cloud.google.com/spanner/docs/query-optimizer/manage-query-optimizer for more information on managing the query optimizer. The optimizer_version statement hint has precedence over this setting.
     #[serde(default, rename = "optimizerVersion")]
-    pub optimizer_version: Option<String>,
+    pub optimizer_version: ::core::option::Option<String>,
 }
 
 /// Contains an ordered list of nodes appearing in the query plan.
@@ -1976,10 +1990,10 @@ pub struct QueryOptions {
 pub struct QueryPlan {
     /// The nodes in the query plan. Plan nodes are returned in pre-order starting with the plan root. Each PlanNode''s id corresponds to its index in plan_nodes.
     #[serde(default, rename = "planNodes")]
-    pub plan_nodes: Option<Vec<PlanNode>>,
+    pub plan_nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlanNode>>>,
     /// Optional. The advise/recommendations for a query. Currently this field will be serving index recommendations for a query.
     #[serde(default, rename = "queryAdvice")]
-    pub query_advice: Option<QueryAdvisorResult>,
+    pub query_advice: ::core::option::Option<::std::boxed::Box<QueryAdvisorResult>>,
 }
 
 /// Information about the dual-region quorum.
@@ -1987,16 +2001,16 @@ pub struct QueryPlan {
 pub struct QuorumInfo {
     /// Output only. The etag is used for optimistic concurrency control as a way to help prevent simultaneous ChangeQuorum requests that might create a race condition.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Whether this ChangeQuorum is Google or User initiated. // TODO: enum values: ["INITIATOR_UNSPECIFIED", "GOOGLE", "USER"]
     #[serde(default)]
-    pub initiator: Option<String>,
+    pub initiator: ::core::option::Option<String>,
     /// Output only. The type of this quorum. See QuorumType for more information about quorum type specifications.
     #[serde(default, rename = "quorumType")]
-    pub quorum_type: Option<QuorumType>,
+    pub quorum_type: ::core::option::Option<::std::boxed::Box<QuorumType>>,
     /// Output only. The timestamp when the request was triggered.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Information about the database quorum type. This only applies to dual-region instance configs.
@@ -2004,10 +2018,10 @@ pub struct QuorumInfo {
 pub struct QuorumType {
     /// Dual-region quorum type.
     #[serde(default, rename = "dualRegion")]
-    pub dual_region: Option<serde_json::Value>,
+    pub dual_region: ::core::option::Option<serde_json::Value>,
     /// Single-region quorum type.
     #[serde(default, rename = "singleRegion")]
-    pub single_region: Option<SingleRegionQuorum>,
+    pub single_region: ::core::option::Option<::std::boxed::Box<SingleRegionQuorum>>,
 }
 
 /// Message type to initiate a read-only transaction.
@@ -2015,22 +2029,22 @@ pub struct QuorumType {
 pub struct ReadOnly {
     /// Executes all reads at a timestamp that is exact_staleness old. The timestamp is chosen soon after the read is started. Guarantees that all writes that have committed more than the specified number of seconds ago are visible. Because Cloud Spanner chooses the exact timestamp, this mode works even if the client''s local clock is substantially skewed from Cloud Spanner commit timestamps. Useful for reading at nearby replicas without the distributed timestamp negotiation overhead of max_staleness.
     #[serde(default, rename = "exactStaleness")]
-    pub exact_staleness: Option<String>,
+    pub exact_staleness: ::core::option::Option<String>,
     /// Read data at a timestamp &gt;= NOW - max_staleness seconds. Guarantees that all writes that have committed more than the specified number of seconds ago are visible. Because Cloud Spanner chooses the exact timestamp, this mode works even if the client''s local clock is substantially skewed from Cloud Spanner commit timestamps. Useful for reading the freshest data available at a nearby replica, while bounding the possible staleness if the local replica has fallen behind. Note that this option can only be used in single-use transactions.
     #[serde(default, rename = "maxStaleness")]
-    pub max_staleness: Option<String>,
+    pub max_staleness: ::core::option::Option<String>,
     /// Executes all reads at a timestamp &gt;= min_read_timestamp. This is useful for requesting fresher data than some previous read, or data that is fresh enough to observe the effects of some previously committed transaction whose timestamp is known. Note that this option can only be used in single-use transactions. A timestamp in RFC3339 UTC \"Zulu\" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
     #[serde(default, rename = "minReadTimestamp")]
-    pub min_read_timestamp: Option<String>,
+    pub min_read_timestamp: ::core::option::Option<String>,
     /// Executes all reads at the given timestamp. Unlike other modes, reads at a specific timestamp are repeatable; the same read at the same timestamp always returns the same data. If the timestamp is in the future, the read is blocked until the specified timestamp, modulo the read''s deadline. Useful for large scale consistent reads such as mapreduces, or for coordinating many reads against a consistent snapshot of the data. A timestamp in RFC3339 UTC \"Zulu\" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
     #[serde(default, rename = "readTimestamp")]
-    pub read_timestamp: Option<String>,
+    pub read_timestamp: ::core::option::Option<String>,
     /// If true, the Cloud Spanner-selected read timestamp is included in the Transaction message that describes the transaction.
     #[serde(default, rename = "returnReadTimestamp")]
-    pub return_read_timestamp: Option<bool>,
+    pub return_read_timestamp: ::core::option::Option<bool>,
     /// Read at a timestamp where all previously committed transactions are visible.
     #[serde(default)]
-    pub strong: Option<bool>,
+    pub strong: ::core::option::Option<bool>,
 }
 
 /// The request for Read and StreamingRead.
@@ -2038,43 +2052,43 @@ pub struct ReadOnly {
 pub struct ReadRequest {
     /// Required. The columns of table to be returned for each row matching this request.
     #[serde(default)]
-    pub columns: Option<Vec<String>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
     /// If this is for a partitioned read and this field is set to true, the request is executed with Spanner Data Boost independent compute resources. If the field is set to true but the request doesn''t set partition_token, the API returns an INVALID_ARGUMENT error.
     #[serde(default, rename = "dataBoostEnabled")]
-    pub data_boost_enabled: Option<bool>,
+    pub data_boost_enabled: ::core::option::Option<bool>,
     /// Directed read options for this request.
     #[serde(default, rename = "directedReadOptions")]
-    pub directed_read_options: Option<DirectedReadOptions>,
+    pub directed_read_options: ::core::option::Option<::std::boxed::Box<DirectedReadOptions>>,
     /// If non-empty, the name of an index on table. This index is used instead of the table primary key when interpreting key_set and sorting result rows. See key_set for further information.
     #[serde(default)]
-    pub index: Option<String>,
+    pub index: ::core::option::Option<String>,
     /// Required. key_set identifies the rows to be yielded. key_set names the primary keys of the rows in table to be yielded, unless index is present. If index is present, then key_set instead names index keys in index. If the partition_token field is empty, rows are yielded in table primary key order (if index is empty) or index key order (if index is non-empty). If the partition_token field isn''t empty, rows are yielded in an unspecified order. It isn''t an error for the key_set to name rows that don''t exist in the database. Read yields nothing for nonexistent rows.
     #[serde(default, rename = "keySet")]
-    pub key_set: Option<KeySet>,
+    pub key_set: ::core::option::Option<::std::boxed::Box<KeySet>>,
     /// If greater than zero, only the first limit rows are yielded. If limit is zero, the default is no limit. A limit can''t be specified if partition_token is set.
     #[serde(default)]
-    pub limit: Option<String>,
+    pub limit: ::core::option::Option<String>,
     /// Optional. Lock Hint for the request, it can only be used with read-write transactions. // TODO: enum values: ["LOCK_HINT_UNSPECIFIED", "LOCK_HINT_SHARED", "LOCK_HINT_EXCLUSIVE"]
     #[serde(default, rename = "lockHint")]
-    pub lock_hint: Option<String>,
+    pub lock_hint: ::core::option::Option<String>,
     /// Optional. Order for the returned rows. By default, Spanner returns result rows in primary key order except for PartitionRead requests. For applications that don''t require rows to be returned in primary key (ORDER_BY_PRIMARY_KEY) order, setting ORDER_BY_NO_ORDER option allows Spanner to optimize row retrieval, resulting in lower latencies in certain cases (for example, bulk point lookups). // TODO: enum values: ["ORDER_BY_UNSPECIFIED", "ORDER_BY_PRIMARY_KEY", "ORDER_BY_NO_ORDER"]
     #[serde(default, rename = "orderBy")]
-    pub order_by: Option<String>,
+    pub order_by: ::core::option::Option<String>,
     /// If present, results are restricted to the specified partition previously created using PartitionRead. There must be an exact match for the values of fields common to this message and the PartitionReadRequest message used to create this partition_token.
     #[serde(default, rename = "partitionToken")]
-    pub partition_token: Option<String>,
+    pub partition_token: ::core::option::Option<String>,
     /// Common options for this request.
     #[serde(default, rename = "requestOptions")]
-    pub request_options: Option<RequestOptions>,
+    pub request_options: ::core::option::Option<::std::boxed::Box<RequestOptions>>,
     /// If this request is resuming a previously interrupted read, resume_token should be copied from the last PartialResultSet yielded before the interruption. Doing this enables the new read to resume where the last read left off. The rest of the request parameters must exactly match the request that yielded this token.
     #[serde(default, rename = "resumeToken")]
-    pub resume_token: Option<String>,
+    pub resume_token: ::core::option::Option<String>,
     /// Required. The name of the table in the database to be read.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
     /// The transaction to use. If none is provided, the default is a temporary read-only transaction with strong concurrency.
     #[serde(default)]
-    pub transaction: Option<TransactionSelector>,
+    pub transaction: ::core::option::Option<::std::boxed::Box<TransactionSelector>>,
 }
 
 /// Message type to initiate a read-write transaction. Currently this transaction type has no options.
@@ -2082,10 +2096,10 @@ pub struct ReadRequest {
 pub struct ReadWrite {
     /// Optional. Clients should pass the transaction ID of the previous transaction attempt that was aborted if this transaction is being executed on a multiplexed session.
     #[serde(default, rename = "multiplexedSessionPreviousTransactionId")]
-    pub multiplexed_session_previous_transaction_id: Option<String>,
+    pub multiplexed_session_previous_transaction_id: ::core::option::Option<String>,
     /// Read lock mode for the transaction. // TODO: enum values: ["READ_LOCK_MODE_UNSPECIFIED", "PESSIMISTIC", "OPTIMISTIC"]
     #[serde(default, rename = "readLockMode")]
-    pub read_lock_mode: Option<String>,
+    pub read_lock_mode: ::core::option::Option<String>,
 }
 
 /// ReplicaComputeCapacity describes the amount of server resources that are allocated to each replica identified by the replica selection.
@@ -2093,13 +2107,13 @@ pub struct ReadWrite {
 pub struct ReplicaComputeCapacity {
     /// The number of nodes allocated to each replica. This may be zero in API responses for instances that are not yet in state READY.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// The number of processing units allocated to each replica. This may be zero in API responses for instances that are not yet in state READY.
     #[serde(default, rename = "processingUnits")]
-    pub processing_units: Option<i32>,
+    pub processing_units: ::core::option::Option<i32>,
     /// Required. Identifies replicas by specified properties. All replicas in the selection have the same amount of compute capacity.
     #[serde(default, rename = "replicaSelection")]
-    pub replica_selection: Option<InstanceReplicaSelection>,
+    pub replica_selection: ::core::option::Option<::std::boxed::Box<InstanceReplicaSelection>>,
 }
 
 /// ReplicaInfo resource type.
@@ -2107,13 +2121,13 @@ pub struct ReplicaComputeCapacity {
 pub struct ReplicaInfo {
     /// If true, this location is designated as the default leader location where leader replicas are placed. See the [region types documentation](https://cloud.google.com/spanner/docs/instances#region_types) for more details.
     #[serde(default, rename = "defaultLeaderLocation")]
-    pub default_leader_location: Option<bool>,
+    pub default_leader_location: ::core::option::Option<bool>,
     /// The location of the serving resources, e.g., "us-central1".
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The type of replica. // TODO: enum values: ["TYPE_UNSPECIFIED", "READ_WRITE", "READ_ONLY", "WITNESS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The directed read replica selector. Callers must provide one or more of the following fields for replica selection: * location - The location must be one of the regions within the multi-region configuration of your database. * type - The type of the replica. Some examples of using replica_selectors are: * location:us-east1 --&gt; The "us-east1" replica(s) of any available type is used to process the request. * type:READ_ONLY --&gt; The "READ_ONLY" type replica(s) in the nearest available location are used to process the request. * location:us-east1 type:READ_ONLY --&gt; The "READ_ONLY" type replica(s) in location "us-east1" is used to process the request.
@@ -2121,10 +2135,10 @@ pub struct ReplicaInfo {
 pub struct ReplicaSelection {
     /// The location or region of the serving requests, for example, "us-east1".
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The type of replica. // TODO: enum values: ["TYPE_UNSPECIFIED", "READ_WRITE", "READ_ONLY"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Common request options for various APIs.
@@ -2132,16 +2146,16 @@ pub struct ReplicaSelection {
 pub struct RequestOptions {
     /// Optional. Optional context that may be needed for some requests.
     #[serde(default, rename = "clientContext")]
-    pub client_context: Option<ClientContext>,
+    pub client_context: ::core::option::Option<::std::boxed::Box<ClientContext>>,
     /// Priority for the request. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "PRIORITY_LOW", "PRIORITY_MEDIUM", "PRIORITY_HIGH"]
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
     /// A per-request tag which can be applied to queries or reads, used for statistics collection. Both request_tag and transaction_tag can be specified for a read or query that belongs to a transaction. This field is ignored for requests where it''s not applicable (for example, CommitRequest). Legal characters for request_tag values are all printable characters (ASCII 32 - 126) and the length of a request_tag is limited to 50 characters. Values that exceed this limit are truncated. Any leading underscore (_) characters are removed from the string.
     #[serde(default, rename = "requestTag")]
-    pub request_tag: Option<String>,
+    pub request_tag: ::core::option::Option<String>,
     /// A tag used for statistics collection about this transaction. Both request_tag and transaction_tag can be specified for a read or query that belongs to a transaction. To enable tagging on a transaction, transaction_tag must be set to the same value for all requests belonging to the same transaction, including BeginTransaction. If this request doesn''t belong to any transaction, transaction_tag is ignored. Legal characters for transaction_tag values are all printable characters (ASCII 32 - 126) and the length of a transaction_tag is limited to 50 characters. Values that exceed this limit are truncated. Any leading underscore (_) characters are removed from the string.
     #[serde(default, rename = "transactionTag")]
-    pub transaction_tag: Option<String>,
+    pub transaction_tag: ::core::option::Option<String>,
 }
 
 /// Encryption configuration for the restored database.
@@ -2149,13 +2163,13 @@ pub struct RequestOptions {
 pub struct RestoreDatabaseEncryptionConfig {
     /// Required. The encryption type of the restored database. // TODO: enum values: ["ENCRYPTION_TYPE_UNSPECIFIED", "USE_CONFIG_DEFAULT_OR_BACKUP_ENCRYPTION", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
-    pub encryption_type: Option<String>,
+    pub encryption_type: ::core::option::Option<String>,
     /// Optional. This field is maintained for backwards compatibility. For new callers, we recommend using kms_key_names to specify the KMS key. Only use kms_key_name if the location of the KMS key matches the database instance''s configuration (location) exactly. For example, if the KMS location is in us-central1 or nam3, then the database instance must also be in us-central1 or nam3. The Cloud KMS key that is used to encrypt and decrypt the restored database. Set this field only when encryption_type is CUSTOMER_MANAGED_ENCRYPTION. Values are of the form projects//locations//keyRings//cryptoKeys/.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Optional. Specifies the KMS configuration for one or more keys used to encrypt the database. Values have the form projects//locations//keyRings//cryptoKeys/. The keys referenced by kms_key_names must fully cover all regions of the database''s instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type GOOGLE_MANAGED, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type USER_MANAGED, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren''t supported for USER_MANAGED type instance configurations.
     #[serde(default, rename = "kmsKeyNames")]
-    pub kms_key_names: Option<Vec<String>>,
+    pub kms_key_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata type for the long-running operation returned by RestoreDatabase.
@@ -2163,22 +2177,22 @@ pub struct RestoreDatabaseEncryptionConfig {
 pub struct RestoreDatabaseMetadata {
     /// Information about the backup used to restore the database.
     #[serde(default, rename = "backupInfo")]
-    pub backup_info: Option<BackupInfo>,
+    pub backup_info: ::core::option::Option<::std::boxed::Box<BackupInfo>>,
     /// The time at which cancellation of this operation was received. Operations.CancelOperation starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// Name of the database being created and restored to.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// If exists, the name of the long-running operation that will be used to track the post-restore optimization process to optimize the performance of the restored database, and remove the dependency on the restore source. The name is of the form projects//instances//databases//operations/ where the is the name of database being created and restored to. The metadata type of the long-running operation is OptimizeRestoredDatabaseMetadata. This long-running operation will be automatically created by the system after the RestoreDatabase long-running operation completes successfully. This operation will not be created if the restore was not successful.
     #[serde(default, rename = "optimizeDatabaseOperationName")]
-    pub optimize_database_operation_name: Option<String>,
+    pub optimize_database_operation_name: ::core::option::Option<String>,
     /// The progress of the RestoreDatabase operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// The type of the restore source. // TODO: enum values: ["TYPE_UNSPECIFIED", "BACKUP"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// The request for RestoreDatabase.
@@ -2186,13 +2200,14 @@ pub struct RestoreDatabaseMetadata {
 pub struct RestoreDatabaseRequest {
     /// Name of the backup from which to restore. Values are of the form projects//instances//backups/.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
     /// Required. The id of the database to create and restore to. This database must not already exist. The database_id appended to parent forms the full database name of the form projects//instances//databases/.
     #[serde(default, rename = "databaseId")]
-    pub database_id: Option<String>,
+    pub database_id: ::core::option::Option<String>,
     /// Optional. An encryption configuration describing the encryption type and key resources in Cloud KMS used to encrypt/decrypt the database to restore to. If this field is not specified, the restored database will use the same encryption configuration as the backup by default, namely encryption_type = USE_CONFIG_DEFAULT_OR_BACKUP_ENCRYPTION.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<RestoreDatabaseEncryptionConfig>,
+    pub encryption_config:
+        ::core::option::Option<::std::boxed::Box<RestoreDatabaseEncryptionConfig>>,
 }
 
 /// Information about the database restore.
@@ -2200,10 +2215,10 @@ pub struct RestoreDatabaseRequest {
 pub struct RestoreInfo {
     /// Information about the backup used to restore the database. The backup may no longer exist.
     #[serde(default, rename = "backupInfo")]
-    pub backup_info: Option<BackupInfo>,
+    pub backup_info: ::core::option::Option<::std::boxed::Box<BackupInfo>>,
     /// The type of the restore source. // TODO: enum values: ["TYPE_UNSPECIFIED", "BACKUP"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// Results from Read or ExecuteSql.
@@ -2211,16 +2226,17 @@ pub struct RestoreInfo {
 pub struct ResultSet {
     /// Metadata about the result set, such as row type information.
     #[serde(default)]
-    pub metadata: Option<ResultSetMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<ResultSetMetadata>>,
     /// Optional. A precommit token is included if the read-write transaction is on a multiplexed session. Pass the precommit token with the highest sequence number from this transaction attempt to the Commit request for this transaction.
     #[serde(default, rename = "precommitToken")]
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    pub precommit_token:
+        ::core::option::Option<::std::boxed::Box<MultiplexedSessionPrecommitToken>>,
     /// Each element in rows is a row whose format is defined by metadata.row_type. The ith element in each row matches the ith field in metadata.row_type. Elements are encoded based on type as described here.
     #[serde(default)]
-    pub rows: Option<Vec<Vec<serde_json::Value>>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
     /// Query plan and execution statistics for the SQL statement that produced this result set. These can be requested by setting ExecuteSqlRequest.query_mode. DML statements always produce stats containing the number of rows modified, unless executed using the ExecuteSqlRequest.QueryMode.PLAN ExecuteSqlRequest.query_mode. Other fields might or might not be populated, based on the ExecuteSqlRequest.query_mode.
     #[serde(default)]
-    pub stats: Option<ResultSetStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<ResultSetStats>>,
 }
 
 /// Metadata about a ResultSet or PartialResultSet.
@@ -2228,13 +2244,13 @@ pub struct ResultSet {
 pub struct ResultSetMetadata {
     /// Indicates the field names and types for the rows in the result set. For example, a SQL query like "SELECT UserId, UserName FROM Users" could return a row_type value like: "fields": [ { "name": "UserId", "type": { "code": "INT64" } }, { "name": "UserName", "type": { "code": "STRING" } }, ]
     #[serde(default, rename = "rowType")]
-    pub row_type: Option<StructType>,
+    pub row_type: ::core::option::Option<::std::boxed::Box<StructType>>,
     /// If the read or SQL query began a transaction as a side-effect, the information about the new transaction is yielded here.
     #[serde(default)]
-    pub transaction: Option<Transaction>,
+    pub transaction: ::core::option::Option<::std::boxed::Box<Transaction>>,
     /// A SQL query can be parameterized. In PLAN mode, these parameters can be undeclared. This indicates the field names and types for those undeclared parameters in the SQL query. For example, a SQL query like "SELECT * FROM Users where UserId = @userId and UserName = @userName " could return a undeclared_parameters value like: "fields": [ { "name": "UserId", "type": { "code": "INT64" } }, { "name": "UserName", "type": { "code": "STRING" } }, ]
     #[serde(default, rename = "undeclaredParameters")]
-    pub undeclared_parameters: Option<StructType>,
+    pub undeclared_parameters: ::core::option::Option<::std::boxed::Box<StructType>>,
 }
 
 /// Additional statistics about a ResultSet or PartialResultSet.
@@ -2242,16 +2258,16 @@ pub struct ResultSetMetadata {
 pub struct ResultSetStats {
     /// QueryPlan for the query associated with this result.
     #[serde(default, rename = "queryPlan")]
-    pub query_plan: Option<QueryPlan>,
+    pub query_plan: ::core::option::Option<::std::boxed::Box<QueryPlan>>,
     /// Aggregated statistics from the execution of the query. Only present when the query is profiled. For example, a query could return the statistics as follows: { "rows_returned": "3", "elapsed_time": "1.22 secs", "cpu_time": "1.19 secs" }
     #[serde(default, rename = "queryStats")]
-    pub query_stats: Option<serde_json::Value>,
+    pub query_stats: ::core::option::Option<serde_json::Value>,
     /// Standard DML returns an exact count of rows that were modified.
     #[serde(default, rename = "rowCountExact")]
-    pub row_count_exact: Option<String>,
+    pub row_count_exact: ::core::option::Option<String>,
     /// Partitioned DML doesn''t offer exactly-once semantics, so it returns a lower bound of the rows modified.
     #[serde(default, rename = "rowCountLowerBound")]
-    pub row_count_lower_bound: Option<String>,
+    pub row_count_lower_bound: ::core::option::Option<String>,
 }
 
 /// The request for Rollback.
@@ -2259,7 +2275,7 @@ pub struct ResultSetStats {
 pub struct RollbackRequest {
     /// Required. The transaction to roll back.
     #[serde(default, rename = "transactionId")]
-    pub transaction_id: Option<String>,
+    pub transaction_id: ::core::option::Option<String>,
 }
 
 /// Scan is a structure which describes Cloud Key Visualizer scan information.
@@ -2267,19 +2283,19 @@ pub struct RollbackRequest {
 pub struct Scan {
     /// Additional information provided by the implementer.
     #[serde(default)]
-    pub details: Option<serde_json::Value>,
+    pub details: ::core::option::Option<serde_json::Value>,
     /// The upper bound for when the scan is defined.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The unique name of the scan, specific to the Database service implementing this interface.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Cloud Key Visualizer scan data. Note, this field is not available to the ListScans method.
     #[serde(default, rename = "scanData")]
-    pub scan_data: Option<ScanData>,
+    pub scan_data: ::core::option::Option<::std::boxed::Box<ScanData>>,
     /// A range of time (inclusive) for when the scan is defined. The lower bound for when the scan is defined.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// ScanData contains Cloud Key Visualizer scan data used by the caller to construct a visualization.
@@ -2287,13 +2303,13 @@ pub struct Scan {
 pub struct ScanData {
     /// Cloud Key Visualizer scan data. The range of time this information covers is captured via the above time range fields. Note, this field is not available to the ListScans method.
     #[serde(default)]
-    pub data: Option<VisualizationData>,
+    pub data: ::core::option::Option<::std::boxed::Box<VisualizationData>>,
     /// The upper bound for when the contained data is defined.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// A range of time (inclusive) for when the contained data is defined. The lower bound for when the contained data is defined.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Arguments to send operations.
@@ -2301,16 +2317,16 @@ pub struct ScanData {
 pub struct Send {
     /// The time at which Spanner will begin attempting to deliver the message. If deliver_time is not set, Spanner will deliver the message immediately. If deliver_time is in the past, Spanner will replace it with a value closer to the current time.
     #[serde(default, rename = "deliverTime")]
-    pub deliver_time: Option<String>,
+    pub deliver_time: ::core::option::Option<String>,
     /// Required. The primary key of the message to be sent.
     #[serde(default)]
-    pub key: Option<Vec<serde_json::Value>>,
+    pub key: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// The payload of the message.
     #[serde(default)]
-    pub payload: Option<serde_json::Value>,
+    pub payload: ::core::option::Option<serde_json::Value>,
     /// Required. The queue to which the message will be sent.
     #[serde(default)]
-    pub queue: Option<String>,
+    pub queue: ::core::option::Option<String>,
 }
 
 /// A session in the Cloud Spanner API.
@@ -2318,22 +2334,22 @@ pub struct Send {
 pub struct Session {
     /// Output only. The approximate timestamp when the session is last used. It''s typically earlier than the actual last use time.
     #[serde(default, rename = "approximateLastUseTime")]
-    pub approximate_last_use_time: Option<String>,
+    pub approximate_last_use_time: ::core::option::Option<String>,
     /// Output only. The timestamp when the session is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The database role which created this session.
     #[serde(default, rename = "creatorRole")]
-    pub creator_role: Option<String>,
+    pub creator_role: ::core::option::Option<String>,
     /// The labels for the session. * Label keys must be between 1 and 63 characters long and must conform to the following regular expression: [a-z]([-a-z0-9]*[a-z0-9])?. * Label values must be between 0 and 63 characters long and must conform to the regular expression ([a-z]([-a-z0-9]*[a-z0-9])?)?. * No more than 64 labels can be associated with a given session. See https://goo.gl/xmQnxf for more information on and examples of labels.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. If true, specifies a multiplexed session. Use a multiplexed session for multiple, concurrent operations including any combination of read-only and read-write transactions. Use sessions.create to create multiplexed sessions. Don''t use BatchCreateSessions to create a multiplexed session. You can''t delete or list multiplexed sessions.
     #[serde(default)]
-    pub multiplexed: Option<bool>,
+    pub multiplexed: ::core::option::Option<bool>,
     /// Output only. The name of the session. This is always system-assigned.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -2341,7 +2357,7 @@ pub struct Session {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// Condensed representation of a node and its subtree. Only present for SCALAR PlanNode(s).
@@ -2349,10 +2365,10 @@ pub struct SetIamPolicyRequest {
 pub struct ShortRepresentation {
     /// A string representation of the expression subtree rooted at this node.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A mapping of (subquery variable name) -&gt; (subquery node id) for cases where the description string of this node references a SCALAR subquery contained in the expression subtree rooted at this node. The referenced SCALAR subquery may not necessarily be a direct child of this node.
     #[serde(default)]
-    pub subqueries: Option<serde_json::Value>,
+    pub subqueries: ::core::option::Option<serde_json::Value>,
 }
 
 /// Message type for a single-region quorum.
@@ -2360,7 +2376,7 @@ pub struct ShortRepresentation {
 pub struct SingleRegionQuorum {
     /// Required. The location of the serving region, for example, "us-central1". The location must be one of the regions within the dual-region instance configuration of your database. The list of valid locations is available using the GetInstanceConfig API. This should only be used if you plan to change quorum to the single-region quorum type.
     #[serde(default, rename = "servingLocation")]
-    pub serving_location: Option<String>,
+    pub serving_location: ::core::option::Option<String>,
 }
 
 /// The split points of a table or an index.
@@ -2368,16 +2384,16 @@ pub struct SingleRegionQuorum {
 pub struct SplitPoints {
     /// Optional. The expiration timestamp of the split points. A timestamp in the past means immediate expiration. The maximum value can be 30 days in the future. Defaults to 10 days in the future if not specified.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The index to split. If specified, the table field must refer to the index''s base table.
     #[serde(default)]
-    pub index: Option<String>,
+    pub index: ::core::option::Option<String>,
     /// Required. The list of split keys. In essence, the split boundaries.
     #[serde(default)]
-    pub keys: Option<Vec<Key>>,
+    pub keys: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Key>>>,
     /// The table to split.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
 }
 
 /// A single DML statement.
@@ -2385,13 +2401,13 @@ pub struct SplitPoints {
 pub struct Statement {
     /// It isn''t always possible for Cloud Spanner to infer the right SQL type from a JSON value. For example, values of type BYTES and values of type STRING both appear in params as JSON strings. In these cases, param_types can be used to specify the exact SQL type for some or all of the SQL statement parameters. See the definition of Type for more information about SQL types.
     #[serde(default, rename = "paramTypes")]
-    pub param_types: Option<serde_json::Value>,
+    pub param_types: ::core::option::Option<serde_json::Value>,
     /// Parameter names and values that bind to placeholders in the DML string. A parameter placeholder consists of the @ character followed by the parameter name (for example, @firstName). Parameter names can contain letters, numbers, and underscores. Parameters can appear anywhere that a literal value is expected. The same parameter name can be used more than once, for example: "WHERE id &gt; @msg_id AND id &lt; @msg_id + 100" It''s an error to execute a SQL statement with unbound parameters.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// Required. The DML string.
     #[serde(default)]
-    pub sql: Option<String>,
+    pub sql: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2399,13 +2415,13 @@ pub struct Statement {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// StructType defines the fields of a STRUCT type.
@@ -2413,7 +2429,7 @@ pub struct Status {
 pub struct StructType {
     /// The list of fields that make up this struct. Order is significant, because values of this struct type are represented as lists, where the order of field values matches the order of fields in the StructType. In turn, the order of fields matches the order of columns in a read request, or the order of fields in the SELECT clause of a query.
     #[serde(default)]
-    pub fields: Option<Vec<Field>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Field>>>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -2421,7 +2437,7 @@ pub struct StructType {
 pub struct TestIamPermissionsRequest {
     /// REQUIRED: The set of permissions to check for ''resource''. Permissions with wildcards (such as ''*'', ''spanner.*'', ''spanner.instances.*'') are not allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -2429,7 +2445,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A transaction.
@@ -2437,13 +2453,14 @@ pub struct TestIamPermissionsResponse {
 pub struct Transaction {
     /// id may be used to identify the transaction in subsequent Read, ExecuteSql, Commit, or Rollback calls. Single-use read-only transactions do not have IDs, because single-use transactions do not support multiple requests.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// A precommit token is included in the response of a BeginTransaction request if the read-write transaction is on a multiplexed session and a mutation_key was specified in the BeginTransaction. The precommit token with the highest sequence number from this transaction attempt should be passed to the Commit request for this transaction.
     #[serde(default, rename = "precommitToken")]
-    pub precommit_token: Option<MultiplexedSessionPrecommitToken>,
+    pub precommit_token:
+        ::core::option::Option<::std::boxed::Box<MultiplexedSessionPrecommitToken>>,
     /// For snapshot read-only transactions, the read timestamp chosen for the transaction. Not returned by default: see TransactionOptions.ReadOnly.return_read_timestamp. A timestamp in RFC3339 UTC \"Zulu\" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
     #[serde(default, rename = "readTimestamp")]
-    pub read_timestamp: Option<String>,
+    pub read_timestamp: ::core::option::Option<String>,
 }
 
 /// Options to use for transactions.
@@ -2451,19 +2468,19 @@ pub struct Transaction {
 pub struct TransactionOptions {
     /// When exclude_txn_from_change_streams is set to true, it prevents read or write transactions from being tracked in change streams. * If the DDL option allow_txn_exclusion is set to true, then the updates made within this transaction aren''t recorded in the change stream. * If you don''t set the DDL option allow_txn_exclusion or if it''s set to false, then the updates made within this transaction are recorded in the change stream. When exclude_txn_from_change_streams is set to false or not set, modifications from this transaction are recorded in all change streams that are tracking columns modified by these transactions. The exclude_txn_from_change_streams option can only be specified for read-write or partitioned DML transactions, otherwise the API returns an INVALID_ARGUMENT error.
     #[serde(default, rename = "excludeTxnFromChangeStreams")]
-    pub exclude_txn_from_change_streams: Option<bool>,
+    pub exclude_txn_from_change_streams: ::core::option::Option<bool>,
     /// Isolation level for the transaction. // TODO: enum values: ["ISOLATION_LEVEL_UNSPECIFIED", "SERIALIZABLE", "REPEATABLE_READ"]
     #[serde(default, rename = "isolationLevel")]
-    pub isolation_level: Option<String>,
+    pub isolation_level: ::core::option::Option<String>,
     /// Partitioned DML transaction. Authorization to begin a Partitioned DML transaction requires spanner.databases.beginPartitionedDmlTransaction permission on the session resource.
     #[serde(default, rename = "partitionedDml")]
-    pub partitioned_dml: Option<serde_json::Value>,
+    pub partitioned_dml: ::core::option::Option<serde_json::Value>,
     /// Transaction does not write. Authorization to begin a read-only transaction requires spanner.databases.beginReadOnlyTransaction permission on the session resource.
     #[serde(default, rename = "readOnly")]
-    pub read_only: Option<ReadOnly>,
+    pub read_only: ::core::option::Option<::std::boxed::Box<ReadOnly>>,
     /// Transaction may write. Authorization to begin a read-write transaction requires spanner.databases.beginOrRollbackReadWriteTransaction permission on the session resource.
     #[serde(default, rename = "readWrite")]
-    pub read_write: Option<ReadWrite>,
+    pub read_write: ::core::option::Option<::std::boxed::Box<ReadWrite>>,
 }
 
 /// This message is used to select the transaction in which a Read or ExecuteSql call runs. See TransactionOptions for more information about transactions.
@@ -2471,13 +2488,13 @@ pub struct TransactionOptions {
 pub struct TransactionSelector {
     /// Begin a new transaction and execute this read or SQL query in it. The transaction ID of the new transaction is returned in ResultSetMetadata.transaction, which is a Transaction.
     #[serde(default)]
-    pub begin: Option<TransactionOptions>,
+    pub begin: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
     /// Execute the read or SQL query in a previously-started transaction.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Execute the read or SQL query in a temporary transaction. This is the most efficient way to execute a transaction that consists of a single SQL query.
     #[serde(default, rename = "singleUse")]
-    pub single_use: Option<TransactionOptions>,
+    pub single_use: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
 }
 
 /// Type indicates the type of a Cloud Spanner value, as might be stored in a table cell or returned from an SQL query.
@@ -2485,19 +2502,19 @@ pub struct TransactionSelector {
 pub struct Type {
     /// If code == ARRAY, then array_element_type is the type of the array elements.
     #[serde(default, rename = "arrayElementType")]
-    pub array_element_type: Option<Type>,
+    pub array_element_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Required. The TypeCode for this type. // TODO: enum values: ["TYPE_CODE_UNSPECIFIED", "BOOL", "INT64", "FLOAT64", "FLOAT32", "TIMESTAMP", "DATE", "STRING", "BYTES", "ARRAY", "STRUCT", "NUMERIC", "JSON", "PROTO", "ENUM", "INTERVAL", "UUID"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// If code == PROTO or code == ENUM, then proto_type_fqn is the fully qualified name of the proto type representing the proto/enum definition.
     #[serde(default, rename = "protoTypeFqn")]
-    pub proto_type_fqn: Option<String>,
+    pub proto_type_fqn: ::core::option::Option<String>,
     /// If code == STRUCT, then struct_type provides type information for the struct''s fields.
     #[serde(default, rename = "structType")]
-    pub struct_type: Option<StructType>,
+    pub struct_type: ::core::option::Option<::std::boxed::Box<StructType>>,
     /// The TypeAnnotationCode that disambiguates SQL type that Spanner will use to represent values of this type during query processing. This is necessary for some type codes because a single TypeCode can be mapped to different SQL types depending on the SQL dialect. type_annotation typically is not needed to process the content of a value (it doesn''t affect serialization) and clients can ignore it on the read path. // TODO: enum values: ["TYPE_ANNOTATION_CODE_UNSPECIFIED", "PG_NUMERIC", "PG_JSONB", "PG_OID"]
     #[serde(default, rename = "typeAnnotation")]
-    pub type_annotation: Option<String>,
+    pub type_annotation: ::core::option::Option<String>,
 }
 
 /// Metadata type for the operation returned by UpdateDatabaseDdl.
@@ -2505,22 +2522,22 @@ pub struct Type {
 pub struct UpdateDatabaseDdlMetadata {
     /// The brief action info for the DDL statements. actions[i] is the brief info for statements[i].
     #[serde(default)]
-    pub actions: Option<Vec<DdlStatementActionInfo>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DdlStatementActionInfo>>>,
     /// Reports the commit timestamps of all statements that have succeeded so far, where commit_timestamps[i] is the commit timestamp for the statement statements[i].
     #[serde(default, rename = "commitTimestamps")]
-    pub commit_timestamps: Option<Vec<String>>,
+    pub commit_timestamps: ::core::option::Option<::std::vec::Vec<String>>,
     /// The database being modified.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// The progress of the UpdateDatabaseDdl operations. All DDL statements will have continuously updating progress, and progress[i] is the operation progress for statements[i]. Also, progress[i] will have start time and end time populated with commit timestamp of operation, as well as a progress of 100% once the operation has completed.
     #[serde(default)]
-    pub progress: Option<Vec<OperationProgress>>,
+    pub progress: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperationProgress>>>,
     /// For an update this list contains all the statements. For an individual statement, this list contains only that statement.
     #[serde(default)]
-    pub statements: Option<Vec<String>>,
+    pub statements: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. When true, indicates that the operation is throttled, for example, due to resource constraints. When resources become available the operation will resume and this field will be false again.
     #[serde(default)]
-    pub throttled: Option<bool>,
+    pub throttled: ::core::option::Option<bool>,
 }
 
 /// Enqueues the given DDL statements to be applied, in order but not necessarily all at once, to the database schema at some point (or points) in the future. The server checks that the statements are executable (syntactically valid, name tables that exist, etc.) before enqueueing them, but they may still fail upon later execution (for example, if a statement from another batch of statements is applied first and it conflicts in some way, or if there is some data-related problem like a NULL value in a column to which NOT NULL would be added). If a statement fails, all subsequent statements in the batch are automatically cancelled. Each batch of statements is assigned a name which can be used with the Operations API to monitor progress. See the operation_id field for more details.
@@ -2528,13 +2545,13 @@ pub struct UpdateDatabaseDdlMetadata {
 pub struct UpdateDatabaseDdlRequest {
     /// If empty, the new update request is assigned an automatically-generated operation ID. Otherwise, operation_id is used to construct the name of the resulting Operation. Specifying an explicit operation ID simplifies determining whether the statements were executed in the event that the UpdateDatabaseDdl call is replayed, or the return value is otherwise lost: the database and operation_id fields can be combined to form the name of the resulting longrunning.Operation: /operations/. operation_id should be unique within the database, and must be a valid identifier: a-z*. Note that automatically-generated operation IDs always begin with an underscore. If the named operation already exists, UpdateDatabaseDdl returns ALREADY_EXISTS.
     #[serde(default, rename = "operationId")]
-    pub operation_id: Option<String>,
+    pub operation_id: ::core::option::Option<String>,
     /// Optional. Proto descriptors used by CREATE/ALTER PROTO BUNDLE statements. Contains a protobuf-serialized [google.protobuf.FileDescriptorSet](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto). To generate it, [install](https://grpc.io/docs/protoc-installation/) and run protoc with --include_imports and --descriptor_set_out. For example, to generate for moon/shot/app.proto, run  $protoc --proto_path=/app_path --proto_path=/lib_path \ --include_imports \ --descriptor_set_out=descriptors.data \ moon/shot/app.proto  For more details, see protobuffer [self description](https://developers.google.com/protocol-buffers/docs/techniques#self-description).
     #[serde(default, rename = "protoDescriptors")]
-    pub proto_descriptors: Option<String>,
+    pub proto_descriptors: ::core::option::Option<String>,
     /// Required. DDL statements to be applied to the database.
     #[serde(default)]
-    pub statements: Option<Vec<String>>,
+    pub statements: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata type for the operation returned by UpdateDatabase.
@@ -2542,13 +2559,13 @@ pub struct UpdateDatabaseDdlRequest {
 pub struct UpdateDatabaseMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is best-effort).
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The progress of the UpdateDatabase operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// The request for UpdateDatabase.
     #[serde(default)]
-    pub request: Option<UpdateDatabaseRequest>,
+    pub request: ::core::option::Option<::std::boxed::Box<UpdateDatabaseRequest>>,
 }
 
 /// The request for UpdateDatabase.
@@ -2556,10 +2573,10 @@ pub struct UpdateDatabaseMetadata {
 pub struct UpdateDatabaseRequest {
     /// Required. The database to update. The name field of the database is of the form projects//instances//databases/.
     #[serde(default)]
-    pub database: Option<Database>,
+    pub database: ::core::option::Option<::std::boxed::Box<Database>>,
     /// Required. The list of fields to update. Currently, only enable_drop_protection field can be updated.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Metadata type for the operation returned by UpdateInstanceConfig.
@@ -2567,13 +2584,13 @@ pub struct UpdateDatabaseRequest {
 pub struct UpdateInstanceConfigMetadata {
     /// The time at which this operation was cancelled.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The desired instance configuration after updating.
     #[serde(default, rename = "instanceConfig")]
-    pub instance_config: Option<InstanceConfig>,
+    pub instance_config: ::core::option::Option<::std::boxed::Box<InstanceConfig>>,
     /// The progress of the UpdateInstanceConfig operation.
     #[serde(default)]
-    pub progress: Option<InstanceOperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<InstanceOperationProgress>>,
 }
 
 /// The request for UpdateInstanceConfig.
@@ -2581,13 +2598,13 @@ pub struct UpdateInstanceConfigMetadata {
 pub struct UpdateInstanceConfigRequest {
     /// Required. The user instance configuration to update, which must always include the instance configuration name. Otherwise, only fields mentioned in update_mask need be included. To prevent conflicts of concurrent updates, etag can be used.
     #[serde(default, rename = "instanceConfig")]
-    pub instance_config: Option<InstanceConfig>,
+    pub instance_config: ::core::option::Option<::std::boxed::Box<InstanceConfig>>,
     /// Required. A mask specifying which fields in InstanceConfig should be updated. The field mask must always be specified; this prevents any future fields in InstanceConfig from being erased accidentally by clients that do not know about them. Only display_name and labels can be updated.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
     /// An option to validate, but not actually execute, a request, and provide the same response.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Metadata type for the operation returned by UpdateInstance.
@@ -2595,19 +2612,19 @@ pub struct UpdateInstanceConfigRequest {
 pub struct UpdateInstanceMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The expected fulfillment period of this update operation. // TODO: enum values: ["FULFILLMENT_PERIOD_UNSPECIFIED", "FULFILLMENT_PERIOD_NORMAL", "FULFILLMENT_PERIOD_EXTENDED"]
     #[serde(default, rename = "expectedFulfillmentPeriod")]
-    pub expected_fulfillment_period: Option<String>,
+    pub expected_fulfillment_period: ::core::option::Option<String>,
     /// The desired end state of the update.
     #[serde(default)]
-    pub instance: Option<Instance>,
+    pub instance: ::core::option::Option<::std::boxed::Box<Instance>>,
     /// The time at which UpdateInstance request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Metadata type for the operation returned by UpdateInstancePartition.
@@ -2615,16 +2632,16 @@ pub struct UpdateInstanceMetadata {
 pub struct UpdateInstancePartitionMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
-    pub cancel_time: Option<String>,
+    pub cancel_time: ::core::option::Option<String>,
     /// The time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The desired end state of the update.
     #[serde(default, rename = "instancePartition")]
-    pub instance_partition: Option<InstancePartition>,
+    pub instance_partition: ::core::option::Option<::std::boxed::Box<InstancePartition>>,
     /// The time at which UpdateInstancePartition request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request for UpdateInstancePartition.
@@ -2632,10 +2649,10 @@ pub struct UpdateInstancePartitionMetadata {
 pub struct UpdateInstancePartitionRequest {
     /// Required. A mask specifying which fields in InstancePartition should be updated. The field mask must always be specified; this prevents any future fields in InstancePartition from being erased accidentally by clients that do not know about them.
     #[serde(default, rename = "fieldMask")]
-    pub field_mask: Option<String>,
+    pub field_mask: ::core::option::Option<String>,
     /// Required. The instance partition to update, which must always include the instance partition name. Otherwise, only fields mentioned in field_mask need be included.
     #[serde(default, rename = "instancePartition")]
-    pub instance_partition: Option<InstancePartition>,
+    pub instance_partition: ::core::option::Option<::std::boxed::Box<InstancePartition>>,
 }
 
 /// The request for UpdateInstance.
@@ -2643,10 +2660,10 @@ pub struct UpdateInstancePartitionRequest {
 pub struct UpdateInstanceRequest {
     /// Required. A mask specifying which fields in Instance should be updated. The field mask must always be specified; this prevents any future fields in Instance from being erased accidentally by clients that do not know about them.
     #[serde(default, rename = "fieldMask")]
-    pub field_mask: Option<String>,
+    pub field_mask: ::core::option::Option<String>,
     /// Required. The instance to update, which must always include the instance name. Otherwise, only fields mentioned in field_mask need be included.
     #[serde(default)]
-    pub instance: Option<Instance>,
+    pub instance: ::core::option::Option<::std::boxed::Box<Instance>>,
 }
 
 /// VisualizationData resource type.
@@ -2654,34 +2671,35 @@ pub struct UpdateInstanceRequest {
 pub struct VisualizationData {
     /// The token signifying the end of a data_source.
     #[serde(default, rename = "dataSourceEndToken")]
-    pub data_source_end_token: Option<String>,
+    pub data_source_end_token: ::core::option::Option<String>,
     /// The token delimiting a datasource name from the rest of a key in a data_source.
     #[serde(default, rename = "dataSourceSeparatorToken")]
-    pub data_source_separator_token: Option<String>,
+    pub data_source_separator_token: ::core::option::Option<String>,
     /// The list of messages (info, alerts, ...)
     #[serde(default, rename = "diagnosticMessages")]
-    pub diagnostic_messages: Option<Vec<DiagnosticMessage>>,
+    pub diagnostic_messages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiagnosticMessage>>>,
     /// We discretize the entire keyspace into buckets. Assuming each bucket has an inclusive keyrange and covers keys from k(i) ... k(n). In this case k(n) would be an end key for a given range. end_key_string is the collection of all such end keys
     #[serde(default, rename = "endKeyStrings")]
-    pub end_key_strings: Option<Vec<String>>,
+    pub end_key_strings: ::core::option::Option<::std::vec::Vec<String>>,
     /// Whether this scan contains PII.
     #[serde(default, rename = "hasPii")]
-    pub has_pii: Option<bool>,
+    pub has_pii: ::core::option::Option<bool>,
     /// Keys of key ranges that contribute significantly to a given metric Can be thought of as heavy hitters.
     #[serde(default, rename = "indexedKeys")]
-    pub indexed_keys: Option<Vec<String>>,
+    pub indexed_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// The token delimiting the key prefixes.
     #[serde(default, rename = "keySeparator")]
-    pub key_separator: Option<String>,
+    pub key_separator: ::core::option::Option<String>,
     /// The unit for the key: e.g. ''key'' or ''chunk''. // TODO: enum values: ["KEY_UNIT_UNSPECIFIED", "KEY", "CHUNK"]
     #[serde(default, rename = "keyUnit")]
-    pub key_unit: Option<String>,
+    pub key_unit: ::core::option::Option<String>,
     /// The list of data objects for each metric.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
     /// The list of extracted key prefix nodes used in the key prefix hierarchy.
     #[serde(default, rename = "prefixNodes")]
-    pub prefix_nodes: Option<Vec<PrefixNode>>,
+    pub prefix_nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PrefixNode>>>,
 }
 
 /// Arguments to insert, update, insert_or_update, and replace operations.
@@ -2689,11 +2707,11 @@ pub struct VisualizationData {
 pub struct Write {
     /// The names of the columns in table to be written. The list of columns must contain enough columns to allow Cloud Spanner to derive values for all primary key columns in the row(s) to be modified.
     #[serde(default)]
-    pub columns: Option<Vec<String>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The table whose rows will be written.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
     /// The values to be written. values can contain more than one list of values. If it does, then multiple rows are written, one for each entry in values. Each list in values must have exactly as many entries as there are entries in columns above. Sending multiple lists is equivalent to sending multiple Mutations, each containing one values entry and repeating table and columns. Individual values in each list are encoded as described here.
     #[serde(default)]
-    pub values: Option<Vec<Vec<serde_json::Value>>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
 }

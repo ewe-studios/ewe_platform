@@ -10,51 +10,51 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents an Agent. "A2A" below refers to the Agent-to-Agent protocol.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Agent {
     /// Output only. A stable, globally unique identifier for agents.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Output only. Attributes of the Agent. Valid values: * agentregistry.googleapis.com/system/Framework: {"framework": "google-adk"} - the agent framework used to develop the Agent. Example values: "google-adk", "langchain", "custom". * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the Agent. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Agent, for example, the Reasoning Engine URI.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Output only. Full Agent Card payload, when available.
     #[serde(default)]
-    pub card: Option<Card>,
+    pub card: ::core::option::Option<::std::boxed::Box<Card>>,
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The description of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The display name of the agent, often obtained from the A2A Agent Card.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The location where agent is hosted. The value is defined by the hosting environment (i.e. cloud provider).
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Identifier. The resource name of an Agent. Format: projects/{project}/locations/{location}/agents/{agent}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The connection details for the Agent.
     #[serde(default)]
-    pub protocols: Option<Vec<Protocol>>,
+    pub protocols: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Protocol>>>,
     /// Output only. Skills the agent possesses, often obtained from the A2A Agent Card.
     #[serde(default)]
-    pub skills: Option<Vec<Skill>>,
+    pub skills: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Skill>>>,
     /// Output only. A universally unique identifier for the Agent.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The version of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no version or agent is not an A2A Agent.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The spec of the agent.
@@ -62,10 +62,10 @@ pub struct Agent {
 pub struct AgentSpec {
     /// Optional. The content of the Agent spec in the JSON format. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
     #[serde(default)]
-    pub content: Option<serde_json::Value>,
+    pub content: ::core::option::Option<serde_json::Value>,
     /// Required. The type of the agent spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "A2A_AGENT_CARD"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Annotations describing the characteristics and behavior of a tool or operation.
@@ -73,19 +73,19 @@ pub struct AgentSpec {
 pub struct Annotations {
     /// Output only. If true, the tool may perform destructive updates to its environment. If false, the tool performs only additive updates. NOTE: This property is meaningful only when read_only_hint == false Default: true
     #[serde(default, rename = "destructiveHint")]
-    pub destructive_hint: Option<bool>,
+    pub destructive_hint: ::core::option::Option<bool>,
     /// Output only. If true, calling the tool repeatedly with the same arguments will have no additional effect on its environment. NOTE: This property is meaningful only when read_only_hint == false. Default: false
     #[serde(default, rename = "idempotentHint")]
-    pub idempotent_hint: Option<bool>,
+    pub idempotent_hint: ::core::option::Option<bool>,
     /// Output only. If true, this tool may interact with an "open world" of external entities. If false, the tool''s domain of interaction is closed. For example, the world of a web search tool is open, whereas that of a memory tool is not. Default: true
     #[serde(default, rename = "openWorldHint")]
-    pub open_world_hint: Option<bool>,
+    pub open_world_hint: ::core::option::Option<bool>,
     /// Output only. If true, the tool does not modify its environment. Default: false
     #[serde(default, rename = "readOnlyHint")]
-    pub read_only_hint: Option<bool>,
+    pub read_only_hint: ::core::option::Option<bool>,
     /// Output only. A human-readable title for the tool.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Full Agent Card payload, often obtained from the A2A Agent Card.
@@ -93,10 +93,10 @@ pub struct Annotations {
 pub struct Card {
     /// Output only. The content of the agent card.
     #[serde(default)]
-    pub content: Option<serde_json::Value>,
+    pub content: ::core::option::Option<serde_json::Value>,
     /// Output only. The type of agent card. // TODO: enum values: ["TYPE_UNSPECIFIED", "A2A_AGENT_CARD"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents an Endpoint.
@@ -104,28 +104,28 @@ pub struct Card {
 pub struct Endpoint {
     /// Output only. Attributes of the Endpoint. Valid values: * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Endpoint, for example, the GKE Deployment.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Description of an Endpoint.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Display name for the Endpoint.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. A stable, globally unique identifier for Endpoint.
     #[serde(default, rename = "endpointId")]
-    pub endpoint_id: Option<String>,
+    pub endpoint_id: ::core::option::Option<String>,
     /// Required. The connection details for the Endpoint.
     #[serde(default)]
-    pub interfaces: Option<Vec<Interface>>,
+    pub interfaces: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Interface>>>,
     /// Identifier. The resource name of the Endpoint. Format: projects/{project}/locations/{location}/endpoints/{endpoint}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The spec of the endpoint.
@@ -133,10 +133,10 @@ pub struct Endpoint {
 pub struct EndpointSpec {
     /// Optional. The content of the endpoint spec. Reserved for future use.
     #[serde(default)]
-    pub content: Option<serde_json::Value>,
+    pub content: ::core::option::Option<serde_json::Value>,
     /// Required. The type of the endpoint spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents the connection details for an Agent or MCP Server.
@@ -144,10 +144,10 @@ pub struct EndpointSpec {
 pub struct Interface {
     /// Required. The protocol binding of the interface. // TODO: enum values: ["PROTOCOL_BINDING_UNSPECIFIED", "JSONRPC", "GRPC", "HTTP_JSON"]
     #[serde(default, rename = "protocolBinding")]
-    pub protocol_binding: Option<String>,
+    pub protocol_binding: ::core::option::Option<String>,
     /// Required. The destination URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Message for response to listing Agents
@@ -155,10 +155,10 @@ pub struct Interface {
 pub struct ListAgentsResponse {
     /// The list of Agents.
     #[serde(default)]
-    pub agents: Option<Vec<Agent>>,
+    pub agents: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Agent>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Message for response to listing Endpoints
@@ -166,10 +166,10 @@ pub struct ListAgentsResponse {
 pub struct ListEndpointsResponse {
     /// The list of Endpoint resources matching the parent and filter criteria in the request. Each Endpoint resource follows the format: projects/{project}/locations/{location}/endpoints/{endpoint}.
     #[serde(default)]
-    pub endpoints: Option<Vec<Endpoint>>,
+    pub endpoints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Endpoint>>>,
     /// A token identifying a page of results the server should return. Used in page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -177,10 +177,10 @@ pub struct ListEndpointsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Message for response to listing McpServers
@@ -188,10 +188,10 @@ pub struct ListLocationsResponse {
 pub struct ListMcpServersResponse {
     /// The list of McpServers.
     #[serde(default, rename = "mcpServers")]
-    pub mcp_servers: Option<Vec<McpServer>>,
+    pub mcp_servers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<McpServer>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -199,13 +199,13 @@ pub struct ListMcpServersResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to listing Services
@@ -213,10 +213,10 @@ pub struct ListOperationsResponse {
 pub struct ListServicesResponse {
     /// A token identifying a page of results the server should return. Used in page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Service resources matching the parent and filter criteria in the request. Each Service resource follows the format: projects/{project}/locations/{location}/services/{service}.
     #[serde(default)]
-    pub services: Option<Vec<Service>>,
+    pub services: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Service>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -224,19 +224,19 @@ pub struct ListServicesResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Represents an MCP (Model Context Protocol) Server.
@@ -244,31 +244,31 @@ pub struct Location {
 pub struct McpServer {
     /// Output only. Attributes of the MCP Server. Valid values: * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the MCP Server. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the MCP Server, for example, the GKE Deployment.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The description of the MCP Server.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The display name of the MCP Server.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The connection details for the MCP Server.
     #[serde(default)]
-    pub interfaces: Option<Vec<Interface>>,
+    pub interfaces: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Interface>>>,
     /// Output only. A stable, globally unique identifier for MCP Servers.
     #[serde(default, rename = "mcpServerId")]
-    pub mcp_server_id: Option<String>,
+    pub mcp_server_id: ::core::option::Option<String>,
     /// Identifier. The resource name of the MCP Server. Format: projects/{project}/locations/{location}/mcpServers/{mcp_server}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Tools provided by the MCP Server.
     #[serde(default)]
-    pub tools: Option<Vec<Tool>>,
+    pub tools: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tool>>>,
     /// Output only. Update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The spec of the MCP Server.
@@ -276,10 +276,10 @@ pub struct McpServer {
 pub struct McpServerSpec {
     /// Optional. The content of the MCP Server spec. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
     #[serde(default)]
-    pub content: Option<serde_json::Value>,
+    pub content: ::core::option::Option<serde_json::Value>,
     /// Required. The type of the MCP Server spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "TOOL_SPEC"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -287,19 +287,19 @@ pub struct McpServerSpec {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -307,25 +307,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Represents the protocol of an Agent.
@@ -333,13 +333,13 @@ pub struct OperationMetadata {
 pub struct Protocol {
     /// Output only. The connection details for the Agent.
     #[serde(default)]
-    pub interfaces: Option<Vec<Interface>>,
+    pub interfaces: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Interface>>>,
     /// Output only. The version of the protocol, for example, the A2A Agent Card version.
     #[serde(default, rename = "protocolVersion")]
-    pub protocol_version: Option<String>,
+    pub protocol_version: ::core::option::Option<String>,
     /// Output only. The type of the protocol. // TODO: enum values: ["TYPE_UNSPECIFIED", "A2A_AGENT", "CUSTOM"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a user-defined Service.
@@ -347,34 +347,34 @@ pub struct Protocol {
 pub struct Service {
     /// Optional. The spec of the Agent. When agent_spec is set, the type of the service is Agent.
     #[serde(default, rename = "agentSpec")]
-    pub agent_spec: Option<AgentSpec>,
+    pub agent_spec: ::core::option::Option<::std::boxed::Box<AgentSpec>>,
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-defined description of an Service. Can have a maximum length of 2048 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. User-defined display name for the Service. Can have a maximum length of 63 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. The spec of the Endpoint. When endpoint_spec is set, the type of the service is Endpoint.
     #[serde(default, rename = "endpointSpec")]
-    pub endpoint_spec: Option<EndpointSpec>,
+    pub endpoint_spec: ::core::option::Option<::std::boxed::Box<EndpointSpec>>,
     /// Optional. The connection details for the Service.
     #[serde(default)]
-    pub interfaces: Option<Vec<Interface>>,
+    pub interfaces: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Interface>>>,
     /// Optional. The spec of the MCP Server. When mcp_server_spec is set, the type of the service is MCP Server.
     #[serde(default, rename = "mcpServerSpec")]
-    pub mcp_server_spec: Option<McpServerSpec>,
+    pub mcp_server_spec: ::core::option::Option<::std::boxed::Box<McpServerSpec>>,
     /// Identifier. The resource name of the Service. Format: projects/{project}/locations/{location}/services/{service}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The resource name of the resulting Agent, MCP Server, or Endpoint. Format: * projects/{project}/locations/{location}/mcpServers/{mcp_server} * projects/{project}/locations/{location}/agents/{agent} * projects/{project}/locations/{location}/endpoints/{endpoint}
     #[serde(default, rename = "registryResource")]
-    pub registry_resource: Option<String>,
+    pub registry_resource: ::core::option::Option<String>,
     /// Output only. Update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Represents the skills of an Agent.
@@ -382,19 +382,19 @@ pub struct Service {
 pub struct Skill {
     /// Output only. A more detailed description of the skill.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Example prompts or scenarios this skill can handle.
     #[serde(default)]
-    pub examples: Option<Vec<String>>,
+    pub examples: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. A unique identifier for the agent''s skill.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. A human-readable name for the agent''s skill.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Keywords describing the skill.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -402,13 +402,13 @@ pub struct Skill {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a single tool provided by an MCP Server.
@@ -416,11 +416,11 @@ pub struct Status {
 pub struct Tool {
     /// Output only. Annotations associated with the tool.
     #[serde(default)]
-    pub annotations: Option<Annotations>,
+    pub annotations: ::core::option::Option<::std::boxed::Box<Annotations>>,
     /// Output only. Description of what the tool does.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Human-readable name of the tool.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }

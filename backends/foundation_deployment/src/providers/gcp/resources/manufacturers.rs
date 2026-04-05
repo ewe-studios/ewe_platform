@@ -10,138 +10,141 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Attributes of the product. For more information, see https://support.google.com/manufacturers/answer/6124116.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attributes {
     /// The additional images of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#addlimage.
     #[serde(default, rename = "additionalImageLink")]
-    pub additional_image_link: Option<Vec<Image>>,
+    pub additional_image_link: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Image>>>,
     /// The target age group of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#agegroup.
     #[serde(default, rename = "ageGroup")]
-    pub age_group: Option<String>,
+    pub age_group: ::core::option::Option<String>,
     /// The brand name of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#brand.
     #[serde(default)]
-    pub brand: Option<String>,
+    pub brand: ::core::option::Option<String>,
     /// The capacity of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.
     #[serde(default)]
-    pub capacity: Option<Capacity>,
+    pub capacity: ::core::option::Option<::std::boxed::Box<Capacity>>,
     /// Optional. List of certifications claimed by this product.
     #[serde(default)]
-    pub certification: Option<Vec<GoogleShoppingManufacturersV1ProductCertification>>,
+    pub certification: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleShoppingManufacturersV1ProductCertification>>,
+    >,
     /// The color of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#color.
     #[serde(default)]
-    pub color: Option<String>,
+    pub color: ::core::option::Option<String>,
     /// The count of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#count.
     #[serde(default)]
-    pub count: Option<Count>,
+    pub count: ::core::option::Option<::std::boxed::Box<Count>>,
     /// The description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The disclosure date of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#disclosure.
     #[serde(default, rename = "disclosureDate")]
-    pub disclosure_date: Option<String>,
+    pub disclosure_date: ::core::option::Option<String>,
     /// A list of excluded destinations such as "ClientExport", "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information, see https://support.google.com/manufacturers/answer/7443550
     #[serde(default, rename = "excludedDestination")]
-    pub excluded_destination: Option<Vec<String>>,
+    pub excluded_destination: ::core::option::Option<::std::vec::Vec<String>>,
     /// The rich format description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#featuredesc.
     #[serde(default, rename = "featureDescription")]
-    pub feature_description: Option<Vec<FeatureDescription>>,
+    pub feature_description:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FeatureDescription>>>,
     /// The flavor of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#flavor.
     #[serde(default)]
-    pub flavor: Option<String>,
+    pub flavor: ::core::option::Option<String>,
     /// The format of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#format.
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// The target gender of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#gender.
     #[serde(default)]
-    pub gender: Option<String>,
+    pub gender: ::core::option::Option<String>,
     /// Grocery Attributes. See more at https://support.google.com/manufacturers/answer/12098458#grocery.
     #[serde(default)]
-    pub grocery: Option<Grocery>,
+    pub grocery: ::core::option::Option<::std::boxed::Box<Grocery>>,
     /// The Global Trade Item Number (GTIN) of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#gtin.
     #[serde(default)]
-    pub gtin: Option<Vec<String>>,
+    pub gtin: ::core::option::Option<::std::vec::Vec<String>>,
     /// The image of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#image.
     #[serde(default, rename = "imageLink")]
-    pub image_link: Option<Image>,
+    pub image_link: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A list of included destinations such as "ClientExport", "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information, see https://support.google.com/manufacturers/answer/7443550
     #[serde(default, rename = "includedDestination")]
-    pub included_destination: Option<Vec<String>>,
+    pub included_destination: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. List of countries to show this product in. Countries provided in this attribute will override any of the countries configured at feed level. The values should be: the [CLDR territory code](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) of the countries in which this item will be shown.
     #[serde(default, rename = "intendedCountry")]
-    pub intended_country: Option<Vec<String>>,
+    pub intended_country: ::core::option::Option<::std::vec::Vec<String>>,
     /// The item group id of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#itemgroupid.
     #[serde(default, rename = "itemGroupId")]
-    pub item_group_id: Option<String>,
+    pub item_group_id: ::core::option::Option<String>,
     /// The material of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#material.
     #[serde(default)]
-    pub material: Option<String>,
+    pub material: ::core::option::Option<String>,
     /// The Manufacturer Part Number (MPN) of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#mpn.
     #[serde(default)]
-    pub mpn: Option<String>,
+    pub mpn: ::core::option::Option<String>,
     /// Nutrition Attributes. See more at https://support.google.com/manufacturers/answer/12098458#food-servings.
     #[serde(default)]
-    pub nutrition: Option<Nutrition>,
+    pub nutrition: ::core::option::Option<::std::boxed::Box<Nutrition>>,
     /// The pattern of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#pattern.
     #[serde(default)]
-    pub pattern: Option<String>,
+    pub pattern: ::core::option::Option<String>,
     /// The details of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#productdetail.
     #[serde(default, rename = "productDetail")]
-    pub product_detail: Option<Vec<ProductDetail>>,
+    pub product_detail: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductDetail>>>,
     /// The product highlights. For more information, see https://support.google.com/manufacturers/answer/10066942
     #[serde(default, rename = "productHighlight")]
-    pub product_highlight: Option<Vec<String>>,
+    pub product_highlight: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the group of products related to the product. For more information, see https://support.google.com/manufacturers/answer/6124116#productline.
     #[serde(default, rename = "productLine")]
-    pub product_line: Option<String>,
+    pub product_line: ::core::option::Option<String>,
     /// The canonical name of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#productname.
     #[serde(default, rename = "productName")]
-    pub product_name: Option<String>,
+    pub product_name: ::core::option::Option<String>,
     /// The URL of the detail page of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#productpage.
     #[serde(default, rename = "productPageUrl")]
-    pub product_page_url: Option<String>,
+    pub product_page_url: ::core::option::Option<String>,
     /// The type or category of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#producttype.
     #[serde(default, rename = "productType")]
-    pub product_type: Option<Vec<String>>,
+    pub product_type: ::core::option::Option<::std::vec::Vec<String>>,
     /// The release date of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#release.
     #[serde(default, rename = "releaseDate")]
-    pub release_date: Option<String>,
+    pub release_date: ::core::option::Option<String>,
     /// Rich product content. For more information, see https://support.google.com/manufacturers/answer/9389865
     #[serde(default, rename = "richProductContent")]
-    pub rich_product_content: Option<Vec<String>>,
+    pub rich_product_content: ::core::option::Option<::std::vec::Vec<String>>,
     /// The scent of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#scent.
     #[serde(default)]
-    pub scent: Option<String>,
+    pub scent: ::core::option::Option<String>,
     /// The size of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#size.
     #[serde(default)]
-    pub size: Option<String>,
+    pub size: ::core::option::Option<String>,
     /// The size system of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#sizesystem.
     #[serde(default, rename = "sizeSystem")]
-    pub size_system: Option<String>,
+    pub size_system: ::core::option::Option<String>,
     /// The size type of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#sizetype.
     #[serde(default, rename = "sizeType")]
-    pub size_type: Option<Vec<String>>,
+    pub size_type: ::core::option::Option<::std::vec::Vec<String>>,
     /// The suggested retail price (MSRP) of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#price.
     #[serde(default, rename = "suggestedRetailPrice")]
-    pub suggested_retail_price: Option<Price>,
+    pub suggested_retail_price: ::core::option::Option<::std::boxed::Box<Price>>,
     /// The target client id. Should only be used in the accounts of the data partners. For more information, see https://support.google.com/manufacturers/answer/10857344
     #[serde(default, rename = "targetClientId")]
-    pub target_client_id: Option<String>,
+    pub target_client_id: ::core::option::Option<String>,
     /// The theme of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#theme.
     #[serde(default)]
-    pub theme: Option<String>,
+    pub theme: ::core::option::Option<String>,
     /// The title of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#title.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The videos of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#video.
     #[serde(default, rename = "videoLink")]
-    pub video_link: Option<Vec<String>>,
+    pub video_link: ::core::option::Option<::std::vec::Vec<String>>,
     /// Virtual Model (3d) asset link.
     #[serde(default, rename = "virtualModelLink")]
-    pub virtual_model_link: Option<String>,
+    pub virtual_model_link: ::core::option::Option<String>,
 }
 
 /// The capacity of a product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.
@@ -149,10 +152,10 @@ pub struct Attributes {
 pub struct Capacity {
     /// The unit of the capacity, i.e., MB, GB, or TB.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// The numeric value of the capacity.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Description of a certification.
@@ -160,25 +163,25 @@ pub struct Capacity {
 pub struct Certification {
     /// Required. Name of the certification body.
     #[serde(default)]
-    pub authority: Option<String>,
+    pub authority: ::core::option::Option<String>,
     /// Optional. A unique code to identify the certification.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Optional. A URL link to the certification.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// Optional. A URL link to the certification logo.
     #[serde(default)]
-    pub logo: Option<String>,
+    pub logo: ::core::option::Option<String>,
     /// Required. Name of the certification.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The expiration date (UTC).
     #[serde(default, rename = "validUntil")]
-    pub valid_until: Option<String>,
+    pub valid_until: ::core::option::Option<String>,
     /// Optional. A custom value of the certification.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// The number of products in a single package. For more information, see https://support.google.com/manufacturers/answer/6124116#count.
@@ -186,10 +189,10 @@ pub struct Certification {
 pub struct Count {
     /// The unit in which these products are counted.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// The numeric value of the number of products in a package.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// The destination status.
@@ -197,19 +200,19 @@ pub struct Count {
 pub struct DestinationStatus {
     /// Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is approved.
     #[serde(default, rename = "approvedCountries")]
-    pub approved_countries: Option<Vec<String>>,
+    pub approved_countries: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the destination.
     #[serde(default)]
-    pub destination: Option<String>,
+    pub destination: ::core::option::Option<String>,
     /// Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is disapproved.
     #[serde(default, rename = "disapprovedCountries")]
-    pub disapproved_countries: Option<Vec<String>>,
+    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is pending approval.
     #[serde(default, rename = "pendingCountries")]
-    pub pending_countries: Option<Vec<String>>,
+    pub pending_countries: ::core::option::Option<::std::vec::Vec<String>>,
     /// The status of the destination. // TODO: enum values: ["UNKNOWN", "ACTIVE", "PENDING", "DISAPPROVED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// A feature description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#featuredesc.
@@ -217,13 +220,13 @@ pub struct DestinationStatus {
 pub struct FeatureDescription {
     /// A short description of the feature.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// An optional image describing the feature.
     #[serde(default)]
-    pub image: Option<Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A detailed description of the feature.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Combination of float amount and unit.
@@ -231,10 +234,10 @@ pub struct FeatureDescription {
 pub struct FloatUnit {
     /// amount.
     #[serde(default)]
-    pub amount: Option<f64>,
+    pub amount: ::core::option::Option<f64>,
     /// unit.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
 }
 
 /// Description of a certification.
@@ -242,25 +245,25 @@ pub struct FloatUnit {
 pub struct GoogleShoppingManufacturersV1ProductCertification {
     /// Required. Name of the certification body.
     #[serde(default)]
-    pub authority: Option<String>,
+    pub authority: ::core::option::Option<String>,
     /// Optional. A unique code to identify the certification.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Optional. A URL link to the certification.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// Optional. A URL link to the certification logo.
     #[serde(default)]
-    pub logo: Option<String>,
+    pub logo: ::core::option::Option<String>,
     /// Required. Name of the certification.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The expiration date (UTC).
     #[serde(default, rename = "validUntil")]
-    pub valid_until: Option<String>,
+    pub valid_until: ::core::option::Option<String>,
     /// Optional. A custom value of the certification.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Grocery resource type.
@@ -268,31 +271,31 @@ pub struct GoogleShoppingManufacturersV1ProductCertification {
 pub struct Grocery {
     /// Active ingredients.
     #[serde(default, rename = "activeIngredients")]
-    pub active_ingredients: Option<String>,
+    pub active_ingredients: ::core::option::Option<String>,
     /// Alcohol by volume.
     #[serde(default, rename = "alcoholByVolume")]
-    pub alcohol_by_volume: Option<f64>,
+    pub alcohol_by_volume: ::core::option::Option<f64>,
     /// Allergens.
     #[serde(default)]
-    pub allergens: Option<String>,
+    pub allergens: ::core::option::Option<String>,
     /// Derived nutrition claim.
     #[serde(default, rename = "derivedNutritionClaim")]
-    pub derived_nutrition_claim: Option<Vec<String>>,
+    pub derived_nutrition_claim: ::core::option::Option<::std::vec::Vec<String>>,
     /// Directions.
     #[serde(default)]
-    pub directions: Option<String>,
+    pub directions: ::core::option::Option<String>,
     /// Indications.
     #[serde(default)]
-    pub indications: Option<String>,
+    pub indications: ::core::option::Option<String>,
     /// Ingredients.
     #[serde(default)]
-    pub ingredients: Option<String>,
+    pub ingredients: ::core::option::Option<String>,
     /// Nutrition claim.
     #[serde(default, rename = "nutritionClaim")]
-    pub nutrition_claim: Option<Vec<String>>,
+    pub nutrition_claim: ::core::option::Option<::std::vec::Vec<String>>,
     /// Storage instructions.
     #[serde(default, rename = "storageInstructions")]
-    pub storage_instructions: Option<String>,
+    pub storage_instructions: ::core::option::Option<String>,
 }
 
 /// An image.
@@ -300,13 +303,13 @@ pub struct Grocery {
 pub struct Image {
     /// The URL of the image. For crawled images, this is the provided URL. For uploaded images, this is a serving URL from Google if the image has been processed successfully.
     #[serde(default, rename = "imageUrl")]
-    pub image_url: Option<String>,
+    pub image_url: ::core::option::Option<String>,
     /// The status of the image. @OutputOnly // TODO: enum values: ["STATUS_UNSPECIFIED", "PENDING_PROCESSING", "PENDING_CRAWL", "OK", "ROBOTED", "XROBOTED", "CRAWL_ERROR", "PROCESSING_ERROR", "DECODING_ERROR", "TOO_BIG", "CRAWL_SKIPPED", "HOSTLOADED", "HTTP_404"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// The type of the image, i.e., crawled or uploaded. @OutputOnly // TODO: enum values: ["TYPE_UNSPECIFIED", "CRAWLED", "UPLOADED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Product issue.
@@ -314,31 +317,31 @@ pub struct Image {
 pub struct Issue {
     /// Output only. List of country codes (ISO 3166-1 alpha-2) where issue applies to the manufacturer product.
     #[serde(default, rename = "applicableCountries")]
-    pub applicable_countries: Option<Vec<String>>,
+    pub applicable_countries: ::core::option::Option<::std::vec::Vec<String>>,
     /// If present, the attribute that triggered the issue. For more information about attributes, see https://support.google.com/manufacturers/answer/6124116.
     #[serde(default)]
-    pub attribute: Option<String>,
+    pub attribute: ::core::option::Option<String>,
     /// Longer description of the issue focused on how to resolve it.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The destination this issue applies to.
     #[serde(default)]
-    pub destination: Option<String>,
+    pub destination: ::core::option::Option<String>,
     /// What needs to happen to resolve the issue. // TODO: enum values: ["RESOLUTION_UNSPECIFIED", "USER_ACTION", "PENDING_PROCESSING"]
     #[serde(default)]
-    pub resolution: Option<String>,
+    pub resolution: ::core::option::Option<String>,
     /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// The timestamp when this issue appeared.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// Short title describing the nature of the issue.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The server-generated type of the issue, for example, “INCORRECT_TEXT_FORMATTING”, “IMAGE_NOT_SERVEABLE”, etc.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Response for ListProductCertifications method.
@@ -346,10 +349,11 @@ pub struct Issue {
 pub struct ListProductCertificationsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The product certifications from the specified certification body.
     #[serde(default, rename = "productCertifications")]
-    pub product_certifications: Option<Vec<ProductCertification>>,
+    pub product_certifications:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductCertification>>>,
 }
 
 /// ListProductsResponse resource type.
@@ -357,10 +361,10 @@ pub struct ListProductCertificationsResponse {
 pub struct ListProductsResponse {
     /// The token for the retrieval of the next page of product statuses.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of the products.
     #[serde(default)]
-    pub products: Option<Vec<Product>>,
+    pub products: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Product>>>,
 }
 
 /// Nutrition resource type.
@@ -368,133 +372,134 @@ pub struct ListProductsResponse {
 pub struct Nutrition {
     /// Added sugars.
     #[serde(default, rename = "addedSugars")]
-    pub added_sugars: Option<FloatUnit>,
+    pub added_sugars: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Added sugars daily percentage.
     #[serde(default, rename = "addedSugarsDailyPercentage")]
-    pub added_sugars_daily_percentage: Option<f64>,
+    pub added_sugars_daily_percentage: ::core::option::Option<f64>,
     /// Calcium.
     #[serde(default)]
-    pub calcium: Option<FloatUnit>,
+    pub calcium: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Calcium daily percentage.
     #[serde(default, rename = "calciumDailyPercentage")]
-    pub calcium_daily_percentage: Option<f64>,
+    pub calcium_daily_percentage: ::core::option::Option<f64>,
     /// Cholesterol.
     #[serde(default)]
-    pub cholesterol: Option<FloatUnit>,
+    pub cholesterol: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Cholesterol daily percentage.
     #[serde(default, rename = "cholesterolDailyPercentage")]
-    pub cholesterol_daily_percentage: Option<f64>,
+    pub cholesterol_daily_percentage: ::core::option::Option<f64>,
     /// Dietary fiber.
     #[serde(default, rename = "dietaryFiber")]
-    pub dietary_fiber: Option<FloatUnit>,
+    pub dietary_fiber: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Dietary fiber daily percentage.
     #[serde(default, rename = "dietaryFiberDailyPercentage")]
-    pub dietary_fiber_daily_percentage: Option<f64>,
+    pub dietary_fiber_daily_percentage: ::core::option::Option<f64>,
     /// Mandatory Nutrition Facts. Energy.
     #[serde(default)]
-    pub energy: Option<FloatUnit>,
+    pub energy: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Energy from fat.
     #[serde(default, rename = "energyFromFat")]
-    pub energy_from_fat: Option<FloatUnit>,
+    pub energy_from_fat: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Folate daily percentage.
     #[serde(default, rename = "folateDailyPercentage")]
-    pub folate_daily_percentage: Option<f64>,
+    pub folate_daily_percentage: ::core::option::Option<f64>,
     /// Folate folic acid.
     #[serde(default, rename = "folateFolicAcid")]
-    pub folate_folic_acid: Option<FloatUnit>,
+    pub folate_folic_acid: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Folate mcg DFE.
     #[serde(default, rename = "folateMcgDfe")]
-    pub folate_mcg_dfe: Option<f64>,
+    pub folate_mcg_dfe: ::core::option::Option<f64>,
     /// Iron.
     #[serde(default)]
-    pub iron: Option<FloatUnit>,
+    pub iron: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Iron daily percentage.
     #[serde(default, rename = "ironDailyPercentage")]
-    pub iron_daily_percentage: Option<f64>,
+    pub iron_daily_percentage: ::core::option::Option<f64>,
     /// Monounsaturated fat.
     #[serde(default, rename = "monounsaturatedFat")]
-    pub monounsaturated_fat: Option<FloatUnit>,
+    pub monounsaturated_fat: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Nutrition fact measure.
     #[serde(default, rename = "nutritionFactMeasure")]
-    pub nutrition_fact_measure: Option<String>,
+    pub nutrition_fact_measure: ::core::option::Option<String>,
     /// Polyols.
     #[serde(default)]
-    pub polyols: Option<FloatUnit>,
+    pub polyols: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Polyunsaturated fat.
     #[serde(default, rename = "polyunsaturatedFat")]
-    pub polyunsaturated_fat: Option<FloatUnit>,
+    pub polyunsaturated_fat: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Potassium.
     #[serde(default)]
-    pub potassium: Option<FloatUnit>,
+    pub potassium: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Potassium daily percentage.
     #[serde(default, rename = "potassiumDailyPercentage")]
-    pub potassium_daily_percentage: Option<f64>,
+    pub potassium_daily_percentage: ::core::option::Option<f64>,
     /// Prepared size description.
     #[serde(default, rename = "preparedSizeDescription")]
-    pub prepared_size_description: Option<String>,
+    pub prepared_size_description: ::core::option::Option<String>,
     /// Protein.
     #[serde(default)]
-    pub protein: Option<FloatUnit>,
+    pub protein: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Protein daily percentage.
     #[serde(default, rename = "proteinDailyPercentage")]
-    pub protein_daily_percentage: Option<f64>,
+    pub protein_daily_percentage: ::core::option::Option<f64>,
     /// Saturated fat.
     #[serde(default, rename = "saturatedFat")]
-    pub saturated_fat: Option<FloatUnit>,
+    pub saturated_fat: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Saturated fat daily percentage.
     #[serde(default, rename = "saturatedFatDailyPercentage")]
-    pub saturated_fat_daily_percentage: Option<f64>,
+    pub saturated_fat_daily_percentage: ::core::option::Option<f64>,
     /// Food Serving Size. Serving size description.
     #[serde(default, rename = "servingSizeDescription")]
-    pub serving_size_description: Option<String>,
+    pub serving_size_description: ::core::option::Option<String>,
     /// Serving size measure.
     #[serde(default, rename = "servingSizeMeasure")]
-    pub serving_size_measure: Option<FloatUnit>,
+    pub serving_size_measure: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Servings per container.
     #[serde(default, rename = "servingsPerContainer")]
-    pub servings_per_container: Option<String>,
+    pub servings_per_container: ::core::option::Option<String>,
     /// Sodium.
     #[serde(default)]
-    pub sodium: Option<FloatUnit>,
+    pub sodium: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Sodium daily percentage.
     #[serde(default, rename = "sodiumDailyPercentage")]
-    pub sodium_daily_percentage: Option<f64>,
+    pub sodium_daily_percentage: ::core::option::Option<f64>,
     /// Starch.
     #[serde(default)]
-    pub starch: Option<FloatUnit>,
+    pub starch: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Total carbohydrate.
     #[serde(default, rename = "totalCarbohydrate")]
-    pub total_carbohydrate: Option<FloatUnit>,
+    pub total_carbohydrate: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Total carbohydrate daily percentage.
     #[serde(default, rename = "totalCarbohydrateDailyPercentage")]
-    pub total_carbohydrate_daily_percentage: Option<f64>,
+    pub total_carbohydrate_daily_percentage: ::core::option::Option<f64>,
     /// Total fat.
     #[serde(default, rename = "totalFat")]
-    pub total_fat: Option<FloatUnit>,
+    pub total_fat: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Total fat daily percentage.
     #[serde(default, rename = "totalFatDailyPercentage")]
-    pub total_fat_daily_percentage: Option<f64>,
+    pub total_fat_daily_percentage: ::core::option::Option<f64>,
     /// Total sugars.
     #[serde(default, rename = "totalSugars")]
-    pub total_sugars: Option<FloatUnit>,
+    pub total_sugars: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Total sugars daily percentage.
     #[serde(default, rename = "totalSugarsDailyPercentage")]
-    pub total_sugars_daily_percentage: Option<f64>,
+    pub total_sugars_daily_percentage: ::core::option::Option<f64>,
     /// Trans fat.
     #[serde(default, rename = "transFat")]
-    pub trans_fat: Option<FloatUnit>,
+    pub trans_fat: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Trans fat daily percentage.
     #[serde(default, rename = "transFatDailyPercentage")]
-    pub trans_fat_daily_percentage: Option<f64>,
+    pub trans_fat_daily_percentage: ::core::option::Option<f64>,
     /// Vitamin D.
     #[serde(default, rename = "vitaminD")]
-    pub vitamin_d: Option<FloatUnit>,
+    pub vitamin_d: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
     /// Vitamin D daily percentage.
     #[serde(default, rename = "vitaminDDailyPercentage")]
-    pub vitamin_d_daily_percentage: Option<f64>,
+    pub vitamin_d_daily_percentage: ::core::option::Option<f64>,
     /// Voluntary nutrition fact.
     #[serde(default, rename = "voluntaryNutritionFact")]
-    pub voluntary_nutrition_fact: Option<Vec<VoluntaryNutritionFact>>,
+    pub voluntary_nutrition_fact:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VoluntaryNutritionFact>>>,
 }
 
 /// A price.
@@ -502,10 +507,10 @@ pub struct Nutrition {
 pub struct Price {
     /// The numeric value of the price.
     #[serde(default)]
-    pub amount: Option<String>,
+    pub amount: ::core::option::Option<String>,
     /// The currency in which the price is denoted.
     #[serde(default)]
-    pub currency: Option<String>,
+    pub currency: ::core::option::Option<String>,
 }
 
 /// Product data.
@@ -513,31 +518,32 @@ pub struct Price {
 pub struct Product {
     /// Attributes of the product uploaded to the Manufacturer Center. Manually edited attributes are taken into account.
     #[serde(default)]
-    pub attributes: Option<Attributes>,
+    pub attributes: ::core::option::Option<::std::boxed::Box<Attributes>>,
     /// The content language of the product as a two-letter ISO 639-1 language code (for example, en).
     #[serde(default, rename = "contentLanguage")]
-    pub content_language: Option<String>,
+    pub content_language: ::core::option::Option<String>,
     /// The status of the destinations.
     #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses: Option<Vec<DestinationStatus>>,
+    pub destination_statuses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DestinationStatus>>>,
     /// Optional. The feed label for the product.
     #[serde(default, rename = "feedLabel")]
-    pub feed_label: Option<String>,
+    pub feed_label: ::core::option::Option<String>,
     /// A server-generated list of issues associated with the product.
     #[serde(default)]
-    pub issues: Option<Vec<Issue>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Issue>>>,
     /// Name in the format {target_country}:{content_language}:{product_id}. target_country - The target country of the product as a CLDR territory code (for example, US). content_language - The content language of the product as a two-letter ISO 639-1 language code (for example, en). product_id - The ID of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#id.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Parent ID in the format accounts/{account_id}. account_id - The ID of the Manufacturer Center account.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// The ID of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#id.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// The target country of the product as a CLDR territory code (for example, US).
     #[serde(default, rename = "targetCountry")]
-    pub target_country: Option<String>,
+    pub target_country: ::core::option::Option<String>,
 }
 
 /// Product certification data.
@@ -545,34 +551,35 @@ pub struct Product {
 pub struct ProductCertification {
     /// Required. This is the product''s brand name. The brand is used to help identify your product.
     #[serde(default)]
-    pub brand: Option<String>,
+    pub brand: ::core::option::Option<String>,
     /// Required. A list of certifications to link to the described product.
     #[serde(default)]
-    pub certification: Option<Vec<Certification>>,
+    pub certification: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Certification>>>,
     /// Optional. A 2-letter country code (ISO 3166-1 Alpha 2).
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<Vec<String>>,
+    pub country_code: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The statuses of the destinations.
     #[serde(default, rename = "destinationStatuses")]
-    pub destination_statuses: Option<Vec<DestinationStatus>>,
+    pub destination_statuses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DestinationStatus>>>,
     /// Output only. A server-generated list of issues associated with the product.
     #[serde(default)]
-    pub issues: Option<Vec<Issue>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Issue>>>,
     /// Optional. These are the Manufacturer Part Numbers (MPN). MPNs are used to uniquely identify a specific product among all products from the same manufacturer
     #[serde(default)]
-    pub mpn: Option<Vec<String>>,
+    pub mpn: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The unique name identifier of a product certification Format: accounts/{account}/languages/{language_code}/productCertifications/{id} Where id is a some unique identifier and language_code is a 2-letter ISO 639-1 code of a Shopping supported language according to https://support.google.com/merchants/answer/160637.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Another name for GTIN.
     #[serde(default, rename = "productCode")]
-    pub product_code: Option<Vec<String>>,
+    pub product_code: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. These are your own product categorization system in your product data.
     #[serde(default, rename = "productType")]
-    pub product_type: Option<Vec<String>>,
+    pub product_type: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. This is to clearly identify the product you are certifying.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A product detail of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#productdetail.
@@ -580,13 +587,13 @@ pub struct ProductCertification {
 pub struct ProductDetail {
     /// The name of the attribute.
     #[serde(default, rename = "attributeName")]
-    pub attribute_name: Option<String>,
+    pub attribute_name: ::core::option::Option<String>,
     /// The value of the attribute.
     #[serde(default, rename = "attributeValue")]
-    pub attribute_value: Option<String>,
+    pub attribute_value: ::core::option::Option<String>,
     /// A short section name that can be reused between multiple product details.
     #[serde(default, rename = "sectionName")]
-    pub section_name: Option<String>,
+    pub section_name: ::core::option::Option<String>,
 }
 
 /// Voluntary Nutrition Facts.
@@ -594,11 +601,11 @@ pub struct ProductDetail {
 pub struct VoluntaryNutritionFact {
     /// Daily percentage.
     #[serde(default, rename = "dailyPercentage")]
-    pub daily_percentage: Option<f64>,
+    pub daily_percentage: ::core::option::Option<f64>,
     /// Name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value.
     #[serde(default)]
-    pub value: Option<FloatUnit>,
+    pub value: ::core::option::Option<::std::boxed::Box<FloatUnit>>,
 }

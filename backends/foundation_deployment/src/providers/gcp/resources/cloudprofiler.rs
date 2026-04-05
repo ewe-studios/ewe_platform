@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// CreateProfileRequest describes a profile resource online creation request. The deployment field must be populated. The profile_type specifies the list of profile types supported by the agent. The creation call will hang until a profile of one of these types needs to be collected.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateProfileRequest {
     /// Deployment details.
     #[serde(default)]
-    pub deployment: Option<Deployment>,
+    pub deployment: ::core::option::Option<::std::boxed::Box<Deployment>>,
     /// One or more profile types that the agent is capable of providing.
     #[serde(default, rename = "profileType")]
-    pub profile_type: Option<Vec<String>>,
+    pub profile_type: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Deployment contains the deployment identification information.
@@ -29,13 +29,13 @@ pub struct CreateProfileRequest {
 pub struct Deployment {
     /// Labels identify the deployment within the user universe and same target. Validation regex for label names: ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$. Value for an individual label must be &lt;= 512 bytes, the total size of all label names and values must be &lt;= 1024 bytes. Label named "language" can be used to record the programming language of the profiled deployment. The standard choices for the value include "java", "go", "python", "ruby", "nodejs", "php", "dotnet". For deployments running on Google Cloud Platform, "zone" or "region" label should be present describing the deployment location. An example of a zone is "us-central1-a", an example of a region is "us-central1" or "us-central".
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Project ID is the ID of a cloud project. Validation regex: ^a-z{4,61}[a-z0-9]$.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Target is the service name used to group related deployments: * Service name for App Engine Flex / Standard. * Cluster and container name for GKE. * User-specified string for direct Compute Engine profiling (e.g. Java). * Job name for Dataflow. Validation regex: ^[a-z0-9]([-a-z0-9_.]{0,253}[a-z0-9])?$.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
 }
 
 /// ListProfileResponse contains the list of collected profiles for deployments in projects which the user has permissions to view.
@@ -43,13 +43,13 @@ pub struct Deployment {
 pub struct ListProfilesResponse {
     /// Token to receive the next page of results. This field maybe empty if there are no more profiles to fetch.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of profiles fetched.
     #[serde(default)]
-    pub profiles: Option<Vec<Profile>>,
+    pub profiles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Profile>>>,
     /// Number of profiles that were skipped in the current page since they were not able to be fetched successfully. This should typically be zero. A non-zero value may indicate a transient failure, in which case if the number is too high for your use case, the call may be retried.
     #[serde(default, rename = "skippedProfiles")]
-    pub skipped_profiles: Option<i32>,
+    pub skipped_profiles: ::core::option::Option<i32>,
 }
 
 /// Profile resource.
@@ -57,23 +57,23 @@ pub struct ListProfilesResponse {
 pub struct Profile {
     /// Deployment this profile corresponds to.
     #[serde(default)]
-    pub deployment: Option<Deployment>,
+    pub deployment: ::core::option::Option<::std::boxed::Box<Deployment>>,
     /// Duration of the profiling session. Input (for the offline mode) or output (for the online mode). The field represents requested profiling duration. It may slightly differ from the effective profiling duration, which is recorded in the profile data, in case the profiling can''t be stopped immediately (e.g. in case stopping the profiling is handled asynchronously).
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Input only. Labels associated to this specific profile. These labels will get merged with the deployment labels for the final data set. See documentation on deployment labels for validation rules and limits.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Opaque, server-assigned, unique ID for this profile.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Input only. Profile bytes, as a gzip compressed serialized proto, the format is https://github.com/google/pprof/blob/master/proto/profile.proto.
     #[serde(default, rename = "profileBytes")]
-    pub profile_bytes: Option<String>,
+    pub profile_bytes: ::core::option::Option<String>,
     /// Type of profile. For offline mode, this must be specified when creating the profile. For online mode it is assigned and returned by the server. // TODO: enum values: ["PROFILE_TYPE_UNSPECIFIED", "CPU", "WALL", "HEAP", "THREADS", "CONTENTION", "PEAK_HEAP", "HEAP_ALLOC"]
     #[serde(default, rename = "profileType")]
-    pub profile_type: Option<String>,
+    pub profile_type: ::core::option::Option<String>,
     /// Output only. Start time for the profile. This output is only present in response from the ListProfiles method.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }

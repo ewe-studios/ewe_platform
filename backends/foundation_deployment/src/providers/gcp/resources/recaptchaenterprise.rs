@@ -10,19 +10,22 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Account defender risk assessment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment {
     /// Output only. Account takeover risk assessment for this request.
     #[serde(default, rename = "accountTakeoverVerdict")]
-    pub account_takeover_verdict:
-        Option<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict>,
+    pub account_takeover_verdict: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict,
+        >,
+    >,
     /// Output only. Labels for this request.
     #[serde(default)]
-    pub labels: Option<Vec<String>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Risk explainability reasons for account defender.
@@ -30,7 +33,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment {
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason {
     /// Output only. A risk reason associated with this request. // TODO: enum values: ["RISK_REASON_UNSPECIFIED", "CLIENT_HISTORICAL_BOT_ACTIVITY", "ACCOUNT_IN_LARGE_RELATED_GROUP", "CLIENT_ACCESSED_MANY_ACCOUNTS"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Account takeover risk assessment.
@@ -38,15 +41,25 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskR
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict {
     /// Output only. Account takeover attempt probability. Values are from 0.0 (lowest risk) to 1.0 (highest risk).
     #[serde(default)]
-    pub risk: Option<f32>,
+    pub risk: ::core::option::Option<f32>,
     /// Output only. Unordered list. Reasons why the request appears risky. Risk reasons can be returned even if the risk is low, as trustworthy requests can still have some risk signals.
     #[serde(default, rename = "riskReasons")]
-    pub risk_reasons:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason>>,
+    pub risk_reasons: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason,
+            >,
+        >,
+    >,
     /// Output only. Unordered list. Reasons why the request appears trustworthy. Trust reasons can be returned even if the risk is high, as risky requests can still have some trust signals.
     #[serde(default, rename = "trustReasons")]
-    pub trust_reasons:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason>>,
+    pub trust_reasons: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason,
+            >,
+        >,
+    >,
 }
 
 /// Trust explainability reasons for account defender.
@@ -54,7 +67,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeo
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason {
     /// Output only. A trust reason associated with this request. // TODO: enum values: ["TRUST_REASON_UNSPECIFIED", "PROFILE_MATCH", "ACCOUNT_HISTORY_REPUTABLE"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Information about account verification, used for identity verification.
@@ -62,16 +75,20 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrust
 pub struct GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo {
     /// Optional. Endpoints that can be used for identity verification.
     #[serde(default)]
-    pub endpoints: Option<Vec<GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo>>,
+    pub endpoints: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo>,
+        >,
+    >,
     /// Optional. Language code preference for the verification message, set as a IETF BCP 47 language code.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Output only. Result of the latest account verification challenge. // TODO: enum values: ["RESULT_UNSPECIFIED", "SUCCESS_USER_VERIFIED", "ERROR_USER_NOT_VERIFIED", "ERROR_SITE_ONBOARDING_INCOMPLETE", "ERROR_RECIPIENT_NOT_ALLOWED", "ERROR_RECIPIENT_ABUSE_LIMIT_EXHAUSTED", "ERROR_CRITICAL_INTERNAL", "ERROR_CUSTOMER_QUOTA_EXHAUSTED", "ERROR_VERIFICATION_BYPASSED", "ERROR_VERDICT_MISMATCH"]
     #[serde(default, rename = "latestVerificationResult")]
-    pub latest_verification_result: Option<String>,
+    pub latest_verification_result: ::core::option::Option<String>,
     /// Username of the account that is being verified. Deprecated. Customers should now provide the account_id field in event.user_info.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// The AddIpOverride request message.
@@ -79,7 +96,8 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo {
 pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest {
     /// Required. IP override added to the key.
     #[serde(default, rename = "ipOverrideData")]
-    pub ip_override_data: Option<GoogleCloudRecaptchaenterpriseV1IpOverrideData>,
+    pub ip_override_data:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1IpOverrideData>>,
 }
 
 /// Settings specific to keys that can be used by Android apps.
@@ -87,13 +105,13 @@ pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest {
 pub struct GoogleCloudRecaptchaenterpriseV1AndroidKeySettings {
     /// Optional. If set to true, allowed_package_names are not enforced.
     #[serde(default, rename = "allowAllPackageNames")]
-    pub allow_all_package_names: Option<bool>,
+    pub allow_all_package_names: ::core::option::Option<bool>,
     /// Optional. Android package names of apps allowed to use the key. Example: ''com.companyname.appname'' Each key supports a maximum of 250 package names. To use a key on more apps, set allow_all_package_names to true. When this is set, you are responsible for validating the package name by checking the token_properties.android_package_name field in each assessment response against your list of allowed package names.
     #[serde(default, rename = "allowedPackageNames")]
-    pub allowed_package_names: Option<Vec<String>>,
+    pub allowed_package_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Set to true for keys that are used in an Android application that is available for download in app stores in addition to the Google Play Store.
     #[serde(default, rename = "supportNonGoogleAppStoreDistribution")]
-    pub support_non_google_app_store_distribution: Option<bool>,
+    pub support_non_google_app_store_distribution: ::core::option::Option<bool>,
 }
 
 /// The request message to annotate an Assessment.
@@ -101,23 +119,25 @@ pub struct GoogleCloudRecaptchaenterpriseV1AndroidKeySettings {
 pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest {
     /// Optional. A stable account identifier to apply to the assessment. This is an alternative to setting account_id in CreateAssessment, for example when a stable account identifier is not yet known in the initial request.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Optional. The annotation that is assigned to the Event. This field can be left empty to provide reasons that apply to an event without concluding whether the event is legitimate or fraudulent. // TODO: enum values: ["ANNOTATION_UNSPECIFIED", "LEGITIMATE", "FRAUDULENT", "PASSWORD_CORRECT", "PASSWORD_INCORRECT"]
     #[serde(default)]
-    pub annotation: Option<String>,
+    pub annotation: ::core::option::Option<String>,
     /// Optional. A stable hashed account identifier to apply to the assessment. This is an alternative to setting hashed_account_id in CreateAssessment, for example when a stable account identifier is not yet known in the initial request.
     #[serde(default, rename = "hashedAccountId")]
-    pub hashed_account_id: Option<String>,
+    pub hashed_account_id: ::core::option::Option<String>,
     /// Optional. If using an external multi-factor authentication provider, provide phone authentication details for fraud detection purposes.
     #[serde(default, rename = "phoneAuthenticationEvent")]
-    pub phone_authentication_event:
-        Option<GoogleCloudRecaptchaenterpriseV1PhoneAuthenticationEvent>,
+    pub phone_authentication_event: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1PhoneAuthenticationEvent>,
+    >,
     /// Optional. Reasons for the annotation that are assigned to the event.
     #[serde(default)]
-    pub reasons: Option<Vec<String>>,
+    pub reasons: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. If the assessment is part of a payment transaction, provide details on payment lifecycle events that occur in the transaction.
     #[serde(default, rename = "transactionEvent")]
-    pub transaction_event: Option<GoogleCloudRecaptchaenterpriseV1TransactionEvent>,
+    pub transaction_event:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionEvent>>,
 }
 
 /// Contains fields that are required to perform Apple-specific integrity checks.
@@ -125,13 +145,13 @@ pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest {
 pub struct GoogleCloudRecaptchaenterpriseV1AppleDeveloperId {
     /// Required. The Apple developer key ID (10-character string).
     #[serde(default, rename = "keyId")]
-    pub key_id: Option<String>,
+    pub key_id: ::core::option::Option<String>,
     /// Required. Input only. A private key (downloaded as a text file with a .p8 file extension) generated for your Apple Developer account. Ensure that Apple DeviceCheck is enabled for the private key.
     #[serde(default, rename = "privateKey")]
-    pub private_key: Option<String>,
+    pub private_key: ::core::option::Option<String>,
     /// Required. The Apple team ID (10-character string) owning the provisioning profile used to build your application.
     #[serde(default, rename = "teamId")]
-    pub team_id: Option<String>,
+    pub team_id: ::core::option::Option<String>,
 }
 
 /// A reCAPTCHA Enterprise assessment resource.
@@ -139,44 +159,57 @@ pub struct GoogleCloudRecaptchaenterpriseV1AppleDeveloperId {
 pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
     /// Output only. Assessment returned by account defender when an account identifier is provided.
     #[serde(default, rename = "accountDefenderAssessment")]
-    pub account_defender_assessment:
-        Option<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment>,
+    pub account_defender_assessment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment>,
+    >,
     /// Optional. Account verification information for identity verification. The assessment event must include a token and site key to use this feature.
     #[serde(default, rename = "accountVerification")]
-    pub account_verification: Option<GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo>,
+    pub account_verification: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo>,
+    >,
     /// Optional. The environment creating the assessment. This describes your environment (the system invoking CreateAssessment), NOT the environment of your user.
     #[serde(default, rename = "assessmentEnvironment")]
-    pub assessment_environment: Option<GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment>,
+    pub assessment_environment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment>,
+    >,
     /// Optional. The event being assessed.
     #[serde(default)]
-    pub event: Option<GoogleCloudRecaptchaenterpriseV1Event>,
+    pub event: ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1Event>>,
     /// Output only. Assessment returned when firewall policies belonging to the project are evaluated using the field firewall_policy_evaluation.
     #[serde(default, rename = "firewallPolicyAssessment")]
-    pub firewall_policy_assessment:
-        Option<GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment>,
+    pub firewall_policy_assessment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment>,
+    >,
     /// Output only. Assessment returned by Fraud Prevention when TransactionData is provided.
     #[serde(default, rename = "fraudPreventionAssessment")]
-    pub fraud_prevention_assessment:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment>,
+    pub fraud_prevention_assessment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment>,
+    >,
     /// Output only. Fraud Signals specific to the users involved in a payment transaction.
     #[serde(default, rename = "fraudSignals")]
-    pub fraud_signals: Option<GoogleCloudRecaptchaenterpriseV1FraudSignals>,
+    pub fraud_signals:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FraudSignals>>,
     /// Output only. Identifier. The resource name for the Assessment in the format projects/{project}/assessments/{assessment}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Assessment returned when a site key, a token, and a phone number as user_id are provided. Account defender and SMS toll fraud protection need to be enabled.
     #[serde(default, rename = "phoneFraudAssessment")]
-    pub phone_fraud_assessment: Option<GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment>,
+    pub phone_fraud_assessment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment>,
+    >,
     /// Optional. The private password leak verification field contains the parameters that are used to to check for leaks privately without sharing user credentials.
     #[serde(default, rename = "privatePasswordLeakVerification")]
-    pub private_password_leak_verification:
-        Option<GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification>,
+    pub private_password_leak_verification: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification>,
+    >,
     /// Output only. The risk analysis result for the event being assessed.
     #[serde(default, rename = "riskAnalysis")]
-    pub risk_analysis: Option<GoogleCloudRecaptchaenterpriseV1RiskAnalysis>,
+    pub risk_analysis:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1RiskAnalysis>>,
     /// Output only. Properties of the provided event token.
     #[serde(default, rename = "tokenProperties")]
-    pub token_properties: Option<GoogleCloudRecaptchaenterpriseV1TokenProperties>,
+    pub token_properties:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TokenProperties>>,
 }
 
 /// The environment creating the assessment. This describes your environment (the system invoking CreateAssessment), NOT the environment of your user.
@@ -184,10 +217,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
 pub struct GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment {
     /// Optional. Identifies the client module initiating the CreateAssessment request. This can be the link to the client module''s project. Examples include: - "github.com/GoogleCloudPlatform/recaptcha-enterprise-google-tag-manager" - "wordpress.org/plugins/recaptcha-something"
     #[serde(default)]
-    pub client: Option<String>,
+    pub client: ::core::option::Option<String>,
     /// Optional. The version of the client module. For example, "1.0.0".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Bot information and metadata.
@@ -195,10 +228,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment {
 pub struct GoogleCloudRecaptchaenterpriseV1Bot {
     /// Optional. Enumerated field representing the type of bot. // TODO: enum values: ["BOT_TYPE_UNSPECIFIED", "AI_AGENT", "CONTENT_SCRAPER", "SEARCH_INDEXER"]
     #[serde(default, rename = "botType")]
-    pub bot_type: Option<String>,
+    pub bot_type: ::core::option::Option<String>,
     /// Optional. Enumerated string value that indicates the identity of the bot, formatted in kebab-case.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metrics related to challenges.
@@ -206,16 +239,16 @@ pub struct GoogleCloudRecaptchaenterpriseV1Bot {
 pub struct GoogleCloudRecaptchaenterpriseV1ChallengeMetrics {
     /// Count of submitted challenge solutions that were incorrect or otherwise deemed suspicious such that a subsequent challenge was triggered.
     #[serde(default, rename = "failedCount")]
-    pub failed_count: Option<String>,
+    pub failed_count: ::core::option::Option<String>,
     /// Count of nocaptchas (successful verification without a challenge) issued.
     #[serde(default, rename = "nocaptchaCount")]
-    pub nocaptcha_count: Option<String>,
+    pub nocaptcha_count: ::core::option::Option<String>,
     /// Count of reCAPTCHA checkboxes or badges rendered. This is mostly equivalent to a count of pageloads for pages that include reCAPTCHA.
     #[serde(default, rename = "pageloadCount")]
-    pub pageload_count: Option<String>,
+    pub pageload_count: ::core::option::Option<String>,
     /// Count of nocaptchas (successful verification without a challenge) plus submitted challenge solutions that were correct and resulted in verification.
     #[serde(default, rename = "passedCount")]
-    pub passed_count: Option<String>,
+    pub passed_count: ::core::option::Option<String>,
 }
 
 /// Information about a verification endpoint that can be used for 2FA.
@@ -223,16 +256,16 @@ pub struct GoogleCloudRecaptchaenterpriseV1ChallengeMetrics {
 pub struct GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo {
     /// Email address for which to trigger a verification request.
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<String>,
+    pub email_address: ::core::option::Option<String>,
     /// Output only. Timestamp of the last successful verification for the endpoint, if any.
     #[serde(default, rename = "lastVerificationTime")]
-    pub last_verification_time: Option<String>,
+    pub last_verification_time: ::core::option::Option<String>,
     /// Phone number for which to trigger a verification request. Should be given in E.164 format.
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
     /// Output only. Token to provide to the client to trigger endpoint verification. It must be used within 15 minutes.
     #[serde(default, rename = "requestToken")]
-    pub request_token: Option<String>,
+    pub request_token: ::core::option::Option<String>,
 }
 
 /// The event being assessed.
@@ -240,52 +273,54 @@ pub struct GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo {
 pub struct GoogleCloudRecaptchaenterpriseV1Event {
     /// Optional. The expected action for this type of event. This should be the same action provided at token generation time on client-side platforms already integrated with recaptcha enterprise.
     #[serde(default, rename = "expectedAction")]
-    pub expected_action: Option<String>,
+    pub expected_action: ::core::option::Option<String>,
     /// Optional. Flag for a reCAPTCHA express request for an assessment without a token. If enabled, site_key must reference an Express site key.
     #[serde(default)]
-    pub express: Option<bool>,
+    pub express: ::core::option::Option<bool>,
     /// Optional. Flag for enabling firewall policy config assessment. If this flag is enabled, the firewall policy is evaluated and a suggested firewall action is returned in the response.
     #[serde(default, rename = "firewallPolicyEvaluation")]
-    pub firewall_policy_evaluation: Option<bool>,
+    pub firewall_policy_evaluation: ::core::option::Option<bool>,
     /// Optional. The Fraud Prevention setting for this assessment. // TODO: enum values: ["FRAUD_PREVENTION_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "fraudPrevention")]
-    pub fraud_prevention: Option<String>,
+    pub fraud_prevention: ::core::option::Option<String>,
     /// Optional. Deprecated: use user_info.account_id instead. Unique stable hashed user identifier for the request. The identifier must be hashed using hmac-sha256 with stable secret.
     #[serde(default, rename = "hashedAccountId")]
-    pub hashed_account_id: Option<String>,
+    pub hashed_account_id: ::core::option::Option<String>,
     /// Optional. HTTP header information about the request.
     #[serde(default)]
-    pub headers: Option<Vec<String>>,
+    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. JA3 fingerprint for SSL clients. To learn how to compute this fingerprint, please refer to https://github.com/salesforce/ja3.
     #[serde(default)]
-    pub ja3: Option<String>,
+    pub ja3: ::core::option::Option<String>,
     /// Optional. JA4 fingerprint for SSL clients. To learn how to compute this fingerprint, please refer to https://github.com/FoxIO-LLC/ja4.
     #[serde(default)]
-    pub ja4: Option<String>,
+    pub ja4: ::core::option::Option<String>,
     /// Optional. The URI resource the user requested that triggered an assessment.
     #[serde(default, rename = "requestedUri")]
-    pub requested_uri: Option<String>,
+    pub requested_uri: ::core::option::Option<String>,
     /// Optional. The site key that was used to invoke reCAPTCHA Enterprise on your site and generate the token.
     #[serde(default, rename = "siteKey")]
-    pub site_key: Option<String>,
+    pub site_key: ::core::option::Option<String>,
     /// Optional. The user response token provided by the reCAPTCHA Enterprise client-side integration on your site.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// Optional. Data describing a payment transaction to be assessed. Sending this data enables reCAPTCHA Enterprise Fraud Prevention and the FraudPreventionAssessment component in the response.
     #[serde(default, rename = "transactionData")]
-    pub transaction_data: Option<GoogleCloudRecaptchaenterpriseV1TransactionData>,
+    pub transaction_data:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionData>>,
     /// Optional. The user agent present in the request from the user''s device related to this event.
     #[serde(default, rename = "userAgent")]
-    pub user_agent: Option<String>,
+    pub user_agent: ::core::option::Option<String>,
     /// Optional. Information about the user that generates this event, when they can be identified. They are often identified through the use of an account for logged-in requests or login/registration requests, or by providing user identifiers for guest actions like checkout.
     #[serde(default, rename = "userInfo")]
-    pub user_info: Option<GoogleCloudRecaptchaenterpriseV1UserInfo>,
+    pub user_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1UserInfo>>,
     /// Optional. The IP address in the request from the user''s device related to this event.
     #[serde(default, rename = "userIpAddress")]
-    pub user_ip_address: Option<String>,
+    pub user_ip_address: ::core::option::Option<String>,
     /// Optional. Flag for running Web Application Firewall (WAF) token assessment. If enabled, the token must be specified, and have been created by a WAF-enabled key.
     #[serde(default, rename = "wafTokenAssessment")]
-    pub waf_token_assessment: Option<bool>,
+    pub waf_token_assessment: ::core::option::Option<bool>,
 }
 
 /// An individual action. Each action represents what to do if a policy matches.
@@ -293,22 +328,26 @@ pub struct GoogleCloudRecaptchaenterpriseV1Event {
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
     /// The user request did not match any policy and should be allowed access to the requested resource.
     #[serde(default)]
-    pub allow: Option<serde_json::Value>,
+    pub allow: ::core::option::Option<serde_json::Value>,
     /// This action denies access to a given page. The user gets an HTTP error code.
     #[serde(default)]
-    pub block: Option<serde_json::Value>,
+    pub block: ::core::option::Option<serde_json::Value>,
     /// This action injects reCAPTCHA JavaScript code into the HTML page returned by the site backend.
     #[serde(default, rename = "includeRecaptchaScript")]
-    pub include_recaptcha_script: Option<serde_json::Value>,
+    pub include_recaptcha_script: ::core::option::Option<serde_json::Value>,
     /// This action redirects the request to a reCAPTCHA interstitial to attach a token.
     #[serde(default)]
-    pub redirect: Option<serde_json::Value>,
+    pub redirect: ::core::option::Option<serde_json::Value>,
     /// This action sets a custom header but allow the request to continue to the customer backend.
     #[serde(default, rename = "setHeader")]
-    pub set_header: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction>,
+    pub set_header: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction>,
+    >,
     /// This action transparently serves a different page to an offending user.
     #[serde(default)]
-    pub substitute: Option<GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction>,
+    pub substitute: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction>,
+    >,
 }
 
 /// A set header action sets a header and forwards the request to the backend. This can be used to trigger custom protection implemented on the backend.
@@ -316,10 +355,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
     /// Optional. The header key to set in the request to the backend server.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Optional. The header value to set in the request to the backend server.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A substitute action transparently serves a different page than the one requested.
@@ -327,7 +366,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
     /// Optional. The address to redirect to. The target is a relative path in the current host. Example: "/blog/404.html".
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// A FirewallPolicy represents a single matching pattern and resulting actions to take.
@@ -335,19 +374,21 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
     /// Optional. The actions that the caller should take regarding user access. There should be at most one terminal action. A terminal action is any action that forces a response, such as AllowAction, BlockAction or SubstituteAction. Zero or more non-terminal actions such as SetHeader might be specified. A single policy can contain up to 16 actions.
     #[serde(default)]
-    pub actions: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallAction>>,
+    pub actions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FirewallAction>>,
+    >,
     /// Optional. A CEL (Common Expression Language) conditional expression that specifies if this policy applies to an incoming user request. If this condition evaluates to true and the requested path matched the path pattern, the associated actions should be executed by the caller. The condition string is checked for CEL syntax correctness on creation. For more information, see the [CEL spec](https://github.com/google/cel-spec) and its [language definition](https://github.com/google/cel-spec/blob/master/doc/langdef.md). A condition has a max length of 500 characters.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// Optional. A description of what this policy aims to achieve, for convenience purposes. The description can at most include 256 UTF-8 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Identifier. The resource name for the FirewallPolicy in the format projects/{project}/firewallpolicies/{firewallpolicy}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The path for which this policy applies, specified as a glob pattern. For more information on glob, see the [manual page](https://man7.org/linux/man-pages/man7/glob.7.html). A path has a max length of 200 characters.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// Policy config assessment.
@@ -355,10 +396,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment {
     /// Output only. If the processing of a policy config fails, an error is populated and the firewall_policy is left empty.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Output only. The policy that matched the request. If more than one policy may match, this is the first match. If no policy matches the incoming request, the policy field is left empty.
     #[serde(default, rename = "firewallPolicy")]
-    pub firewall_policy: Option<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>,
+    pub firewall_policy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>>,
 }
 
 /// Assessment for Fraud Prevention.
@@ -366,23 +408,35 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment {
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment {
     /// Output only. Assessment of this transaction for behavioral trust.
     #[serde(default, rename = "behavioralTrustVerdict")]
-    pub behavioral_trust_verdict:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict>,
+    pub behavioral_trust_verdict: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict,
+        >,
+    >,
     /// Output only. Assessment of this transaction for risk of being part of a card testing attack.
     #[serde(default, rename = "cardTestingVerdict")]
-    pub card_testing_verdict:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict>,
+    pub card_testing_verdict: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict,
+        >,
+    >,
     /// Output only. Reasons why the transaction is probably fraudulent and received a high transaction risk score.
     #[serde(default, rename = "riskReasons")]
-    pub risk_reasons:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason>>,
+    pub risk_reasons: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason>,
+        >,
+    >,
     /// Output only. Assessment of this transaction for risk of a stolen instrument.
     #[serde(default, rename = "stolenInstrumentVerdict")]
-    pub stolen_instrument_verdict:
-        Option<GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict>,
+    pub stolen_instrument_verdict: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict,
+        >,
+    >,
     /// Output only. Probability of this transaction being fraudulent. Summarizes the combined risk of attack vectors below. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default, rename = "transactionRisk")]
-    pub transaction_risk: Option<f32>,
+    pub transaction_risk: ::core::option::Option<f32>,
 }
 
 /// Information about behavioral trust of the transaction.
@@ -390,7 +444,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment {
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict {
     /// Output only. Probability of this transaction attempt being executed in a behaviorally trustworthy way. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default)]
-    pub trust: Option<f32>,
+    pub trust: ::core::option::Option<f32>,
 }
 
 /// Information about card testing fraud, where an adversary is testing fraudulently obtained cards or brute forcing their details.
@@ -398,7 +452,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTr
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict {
     /// Output only. Probability of this transaction attempt being part of a card testing attack. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default)]
-    pub risk: Option<f32>,
+    pub risk: ::core::option::Option<f32>,
 }
 
 /// Risk reasons applicable to the Fraud Prevention assessment.
@@ -406,7 +460,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingV
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason {
     /// Output only. Risk reasons applicable to the Fraud Prevention assessment. // TODO: enum values: ["REASON_UNSPECIFIED", "HIGH_TRANSACTION_VELOCITY", "EXCESSIVE_ENUMERATION_PATTERN", "SHORT_IDENTITY_HISTORY", "GEOLOCATION_DISCREPANCY", "ASSOCIATED_WITH_FRAUD_CLUSTER"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Information about stolen instrument fraud, where the user is not the legitimate owner of the instrument being used for the purchase.
@@ -414,7 +468,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason {
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict {
     /// Output only. Probability of this transaction being executed with a stolen instrument. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default)]
-    pub risk: Option<f32>,
+    pub risk: ::core::option::Option<f32>,
 }
 
 /// Fraud signals describing users and cards involved in the transaction.
@@ -422,10 +476,14 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstru
 pub struct GoogleCloudRecaptchaenterpriseV1FraudSignals {
     /// Output only. Signals describing the payment card or cards used in this transaction.
     #[serde(default, rename = "cardSignals")]
-    pub card_signals: Option<GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals>,
+    pub card_signals: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals>,
+    >,
     /// Output only. Signals describing the end user in this transaction.
     #[serde(default, rename = "userSignals")]
-    pub user_signals: Option<GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals>,
+    pub user_signals: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals>,
+    >,
 }
 
 /// Signals describing the payment card used in this transaction.
@@ -433,7 +491,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignals {
 pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals {
     /// Output only. The labels for the payment card in this transaction.
     #[serde(default, rename = "cardLabels")]
-    pub card_labels: Option<Vec<String>>,
+    pub card_labels: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Signals describing the user involved in this transaction.
@@ -441,10 +499,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals {
 pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals {
     /// Output only. This user (based on email, phone, and other identifiers) has been seen on the internet for at least this number of days.
     #[serde(default, rename = "activeDaysLowerBound")]
-    pub active_days_lower_bound: Option<i32>,
+    pub active_days_lower_bound: ::core::option::Option<i32>,
     /// Output only. Likelihood (from 0.0 to 1.0) this user includes synthetic components in their identity, such as a randomly generated email address, temporary phone number, or fake shipping address.
     #[serde(default, rename = "syntheticRisk")]
-    pub synthetic_risk: Option<f32>,
+    pub synthetic_risk: ::core::option::Option<f32>,
 }
 
 /// Settings specific to keys that can be used by iOS apps.
@@ -452,13 +510,14 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals {
 pub struct GoogleCloudRecaptchaenterpriseV1iOSKeySettings {
     /// Optional. If set to true, allowed_bundle_ids are not enforced.
     #[serde(default, rename = "allowAllBundleIds")]
-    pub allow_all_bundle_ids: Option<bool>,
+    pub allow_all_bundle_ids: ::core::option::Option<bool>,
     /// Optional. iOS bundle IDs of apps allowed to use the key. Example: ''com.companyname.productname.appname'' Each key supports a maximum of 250 bundle IDs. To use a key on more apps, set allow_all_bundle_ids to true. When this is set, you are responsible for validating the bundle id by checking the token_properties.ios_bundle_id field in each assessment response against your list of allowed bundle IDs.
     #[serde(default, rename = "allowedBundleIds")]
-    pub allowed_bundle_ids: Option<Vec<String>>,
+    pub allowed_bundle_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Apple Developer account details for the app that is protected by the reCAPTCHA Key. reCAPTCHA leverages platform-specific checks like Apple App Attest and Apple DeviceCheck to protect your app from abuse. Providing these fields allows reCAPTCHA to get a better assessment of the integrity of your app.
     #[serde(default, rename = "appleDeveloperId")]
-    pub apple_developer_id: Option<GoogleCloudRecaptchaenterpriseV1AppleDeveloperId>,
+    pub apple_developer_id:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1AppleDeveloperId>>,
 }
 
 /// Information about the IP or IP range override.
@@ -466,10 +525,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1iOSKeySettings {
 pub struct GoogleCloudRecaptchaenterpriseV1IpOverrideData {
     /// Required. The IP address to override (can be IPv4, IPv6 or CIDR). The IP override must be a valid IPv4 or IPv6 address, or a CIDR range. The IP override must be a public IP address. Example of IPv4: 168.192.5.6 Example of IPv6: 2001:0000:130F:0000:0000:09C0:876A:130B Example of IPv4 with CIDR: 168.192.5.0/24 Example of IPv6 with CIDR: 2001:0DB8:1234::/48
     #[serde(default)]
-    pub ip: Option<String>,
+    pub ip: ::core::option::Option<String>,
     /// Required. Describes the type of IP override. // TODO: enum values: ["OVERRIDE_TYPE_UNSPECIFIED", "ALLOW"]
     #[serde(default, rename = "overrideType")]
-    pub override_type: Option<String>,
+    pub override_type: ::core::option::Option<String>,
 }
 
 /// A key used to identify and configure applications (web and/or mobile) that use reCAPTCHA Enterprise.
@@ -477,34 +536,40 @@ pub struct GoogleCloudRecaptchaenterpriseV1IpOverrideData {
 pub struct GoogleCloudRecaptchaenterpriseV1Key {
     /// Settings for keys that can be used by Android apps.
     #[serde(default, rename = "androidSettings")]
-    pub android_settings: Option<GoogleCloudRecaptchaenterpriseV1AndroidKeySettings>,
+    pub android_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1AndroidKeySettings>,
+    >,
     /// Output only. The timestamp corresponding to the creation of this key.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Human-readable display name of this key. Modifiable by user.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Settings for keys that can be used by reCAPTCHA Express.
     #[serde(default, rename = "expressSettings")]
-    pub express_settings: Option<serde_json::Value>,
+    pub express_settings: ::core::option::Option<serde_json::Value>,
     /// Settings for keys that can be used by iOS apps.
     #[serde(default, rename = "iosSettings")]
-    pub ios_settings: Option<GoogleCloudRecaptchaenterpriseV1iOSKeySettings>,
+    pub ios_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1iOSKeySettings>>,
     /// Optional. See [Creating and managing labels] (https://cloud.google.com/recaptcha/docs/labels).
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name for the Key in the format projects/{project}/keys/{key}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Options for user acceptance testing.
     #[serde(default, rename = "testingOptions")]
-    pub testing_options: Option<GoogleCloudRecaptchaenterpriseV1TestingOptions>,
+    pub testing_options:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TestingOptions>>,
     /// Optional. Settings for Web Application Firewall (WAF).
     #[serde(default, rename = "wafSettings")]
-    pub waf_settings: Option<GoogleCloudRecaptchaenterpriseV1WafSettings>,
+    pub waf_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1WafSettings>>,
     /// Settings for keys that can be used by websites.
     #[serde(default, rename = "webSettings")]
-    pub web_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettings>,
+    pub web_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1WebKeySettings>>,
 }
 
 /// Response to request to list firewall policies belonging to a project.
@@ -512,10 +577,12 @@ pub struct GoogleCloudRecaptchaenterpriseV1Key {
 pub struct GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse {
     /// Policy details.
     #[serde(default, rename = "firewallPolicies")]
-    pub firewall_policies: Option<Vec<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>>,
+    pub firewall_policies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>>,
+    >,
     /// Token to retrieve the next page of results. It is set to empty if no policies remain in results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for ListIpOverrides.
@@ -523,10 +590,12 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse {
 pub struct GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse {
     /// IP Overrides details.
     #[serde(default, rename = "ipOverrides")]
-    pub ip_overrides: Option<Vec<GoogleCloudRecaptchaenterpriseV1IpOverrideData>>,
+    pub ip_overrides: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1IpOverrideData>>,
+    >,
     /// Token to retrieve the next page of results. If this field is empty, no keys remain in the results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response to request to list keys in a project.
@@ -534,10 +603,12 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse {
 pub struct GoogleCloudRecaptchaenterpriseV1ListKeysResponse {
     /// Key details.
     #[serde(default)]
-    pub keys: Option<Vec<GoogleCloudRecaptchaenterpriseV1Key>>,
+    pub keys: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1Key>>,
+    >,
     /// Token to retrieve the next page of results. It is set to empty if no keys remain in results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response to a ListRelatedAccountGroupMemberships call.
@@ -545,11 +616,14 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListKeysResponse {
 pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The memberships listed by the query.
     #[serde(default, rename = "relatedAccountGroupMemberships")]
-    pub related_account_group_memberships:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership>>,
+    pub related_account_group_memberships: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership>,
+        >,
+    >,
 }
 
 /// The response to a ListRelatedAccountGroups call.
@@ -557,10 +631,12 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsRes
 pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The groups of related accounts listed by the query.
     #[serde(default, rename = "relatedAccountGroups")]
-    pub related_account_groups: Option<Vec<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup>>,
+    pub related_account_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup>>,
+    >,
 }
 
 /// Metrics for a single Key.
@@ -568,16 +644,20 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse {
 pub struct GoogleCloudRecaptchaenterpriseV1Metrics {
     /// Metrics are continuous and in order by dates, and in the granularity of day. Only challenge-based keys (CHECKBOX, INVISIBLE) have challenge-based data.
     #[serde(default, rename = "challengeMetrics")]
-    pub challenge_metrics: Option<Vec<GoogleCloudRecaptchaenterpriseV1ChallengeMetrics>>,
+    pub challenge_metrics: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1ChallengeMetrics>>,
+    >,
     /// Output only. Identifier. The name of the metrics, in the format projects/{project}/keys/{key}/metrics.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Metrics are continuous and in order by dates, and in the granularity of day. All Key types should have score-based data.
     #[serde(default, rename = "scoreMetrics")]
-    pub score_metrics: Option<Vec<GoogleCloudRecaptchaenterpriseV1ScoreMetrics>>,
+    pub score_metrics: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1ScoreMetrics>>,
+    >,
     /// Inclusive start time aligned to a day in the America/Los_Angeles (Pacific) timezone.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The migrate key request message.
@@ -585,7 +665,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1Metrics {
 pub struct GoogleCloudRecaptchaenterpriseV1MigrateKeyRequest {
     /// Optional. If true, skips the billing check. A reCAPTCHA Enterprise key or migrated key behaves differently than a reCAPTCHA (non-Enterprise version) key when you reach a quota limit (see https://docs.cloud.google.com/recaptcha/quotas#quota_limit). To avoid any disruption of your usage, we check that a billing account is present. If your usage of reCAPTCHA is under the free quota, you can safely skip the billing check and proceed with the migration. See https://cloud.google.com/recaptcha/docs/billing-information.
     #[serde(default, rename = "skipBillingCheck")]
-    pub skip_billing_check: Option<bool>,
+    pub skip_billing_check: ::core::option::Option<bool>,
 }
 
 /// Details on a phone authentication event
@@ -593,10 +673,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1MigrateKeyRequest {
 pub struct GoogleCloudRecaptchaenterpriseV1PhoneAuthenticationEvent {
     /// Optional. The time at which the multi-factor authentication event (challenge or verification) occurred.
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<String>,
+    pub event_time: ::core::option::Option<String>,
     /// Required. Phone number in E.164 format for which a multi-factor authentication challenge was initiated, succeeded, or failed.
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
 }
 
 /// Assessment for Phone Fraud
@@ -604,7 +684,9 @@ pub struct GoogleCloudRecaptchaenterpriseV1PhoneAuthenticationEvent {
 pub struct GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment {
     /// Output only. Assessment of this phone event for risk of SMS toll fraud.
     #[serde(default, rename = "smsTollFraudVerdict")]
-    pub sms_toll_fraud_verdict: Option<GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict>,
+    pub sms_toll_fraud_verdict: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict>,
+    >,
 }
 
 /// Private password leak verification info.
@@ -612,16 +694,16 @@ pub struct GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment {
 pub struct GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification {
     /// Output only. List of prefixes of the encrypted potential password leaks that matched the given parameters. They must be compared with the client-side decryption prefix of reencrypted_user_credentials_hash
     #[serde(default, rename = "encryptedLeakMatchPrefixes")]
-    pub encrypted_leak_match_prefixes: Option<Vec<String>>,
+    pub encrypted_leak_match_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Encrypted Scrypt hash of the canonicalized username+password. It is re-encrypted by the server and returned through reencrypted_user_credentials_hash.
     #[serde(default, rename = "encryptedUserCredentialsHash")]
-    pub encrypted_user_credentials_hash: Option<String>,
+    pub encrypted_user_credentials_hash: ::core::option::Option<String>,
     /// Required. Exactly 26-bit prefix of the SHA-256 hash of the canonicalized username. It is used to look up password leaks associated with that hash prefix.
     #[serde(default, rename = "lookupHashPrefix")]
-    pub lookup_hash_prefix: Option<String>,
+    pub lookup_hash_prefix: ::core::option::Option<String>,
     /// Output only. Corresponds to the re-encryption of the encrypted_user_credentials_hash field. It is used to match potential password leaks within encrypted_leak_match_prefixes.
     #[serde(default, rename = "reencryptedUserCredentialsHash")]
-    pub reencrypted_user_credentials_hash: Option<String>,
+    pub reencrypted_user_credentials_hash: ::core::option::Option<String>,
 }
 
 /// A group of related accounts.
@@ -629,7 +711,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification {
 pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup {
     /// Required. Identifier. The resource name for the related account group in the format projects/{project}/relatedaccountgroups/{related_account_group}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A membership in a group of related accounts.
@@ -637,13 +719,13 @@ pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup {
 pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership {
     /// The unique stable account identifier of the member. The identifier corresponds to an account_id provided in a previous CreateAssessment or AnnotateAssessment call.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Deprecated: use account_id instead. The unique stable hashed account identifier of the member. The identifier corresponds to a hashed_account_id provided in a previous CreateAssessment or AnnotateAssessment call.
     #[serde(default, rename = "hashedAccountId")]
-    pub hashed_account_id: Option<String>,
+    pub hashed_account_id: ::core::option::Option<String>,
     /// Required. Identifier. The resource name for this membership in the format projects/{project}/relatedaccountgroups/{relatedaccountgroup}/memberships/{membership}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The RemoveIpOverride request message.
@@ -651,7 +733,8 @@ pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership {
 pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest {
     /// Required. IP override to be removed from the key.
     #[serde(default, rename = "ipOverrideData")]
-    pub ip_override_data: Option<GoogleCloudRecaptchaenterpriseV1IpOverrideData>,
+    pub ip_override_data:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1IpOverrideData>>,
 }
 
 /// The reorder firewall policies request message.
@@ -659,7 +742,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest {
 pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest {
     /// Required. A list containing all policy names, in the new order. Each name is in the format projects/{project}/firewallpolicies/{firewallpolicy}.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Secret key is used only in legacy reCAPTCHA. It must be used in a 3rd party integration with legacy reCAPTCHA.
@@ -667,7 +750,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest {
 pub struct GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse {
     /// The secret key (also known as shared secret) authorizes communication between your application backend and the reCAPTCHA Enterprise server to create an assessment. The secret key needs to be kept safe for security purposes.
     #[serde(default, rename = "legacySecretKey")]
-    pub legacy_secret_key: Option<String>,
+    pub legacy_secret_key: ::core::option::Option<String>,
 }
 
 /// Risk analysis result for an event.
@@ -675,19 +758,21 @@ pub struct GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse {
 pub struct GoogleCloudRecaptchaenterpriseV1RiskAnalysis {
     /// Output only. Challenge information for POLICY_BASED_CHALLENGE and INVISIBLE keys. // TODO: enum values: ["CHALLENGE_UNSPECIFIED", "NOCAPTCHA", "PASSED", "FAILED"]
     #[serde(default)]
-    pub challenge: Option<String>,
+    pub challenge: ::core::option::Option<String>,
     /// Output only. Additional reasons contributing to the risk analysis verdict. These reasons are available to Enterprise tier projects only. Contact sales for more information. The set of reasons is subject to change.
     #[serde(default, rename = "extendedVerdictReasons")]
-    pub extended_verdict_reasons: Option<Vec<String>>,
+    pub extended_verdict_reasons: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Reasons contributing to the risk analysis verdict.
     #[serde(default)]
-    pub reasons: Option<Vec<String>>,
+    pub reasons: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Legitimate event score from 0.0 to 1.0. (1.0 means very likely legitimate traffic while 0.0 means very likely non-legitimate traffic).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// Output only. Bots with identities that have been verified by reCAPTCHA and detected in the event.
     #[serde(default, rename = "verifiedBots")]
-    pub verified_bots: Option<Vec<GoogleCloudRecaptchaenterpriseV1Bot>>,
+    pub verified_bots: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1Bot>>,
+    >,
 }
 
 /// Metrics related to scoring.
@@ -695,10 +780,12 @@ pub struct GoogleCloudRecaptchaenterpriseV1RiskAnalysis {
 pub struct GoogleCloudRecaptchaenterpriseV1ScoreMetrics {
     /// Action-based metrics. The map key is the action name which specified by the site owners at time of the "execute" client-side call.
     #[serde(default, rename = "actionMetrics")]
-    pub action_metrics: Option<serde_json::Value>,
+    pub action_metrics: ::core::option::Option<serde_json::Value>,
     /// Aggregated score metrics for all traffic.
     #[serde(default, rename = "overallMetrics")]
-    pub overall_metrics: Option<GoogleCloudRecaptchaenterpriseV1ScoreDistribution>,
+    pub overall_metrics: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1ScoreDistribution>,
+    >,
 }
 
 /// The request message to search related account group memberships.
@@ -706,16 +793,16 @@ pub struct GoogleCloudRecaptchaenterpriseV1ScoreMetrics {
 pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsRequest {
     /// Optional. The unique stable account identifier used to search connections. The identifier should correspond to an account_id provided in a previous CreateAssessment or AnnotateAssessment call. Either hashed_account_id or account_id must be set, but not both.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Optional. Deprecated: use account_id instead. The unique stable hashed account identifier used to search connections. The identifier should correspond to a hashed_account_id provided in a previous CreateAssessment or AnnotateAssessment call. Either hashed_account_id or account_id must be set, but not both.
     #[serde(default, rename = "hashedAccountId")]
-    pub hashed_account_id: Option<String>,
+    pub hashed_account_id: ::core::option::Option<String>,
     /// Optional. The maximum number of groups to return. The service might return fewer than this value. If unspecified, at most 50 groups are returned. The maximum value is 1000; values above 1000 are coerced to 1000.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// Optional. A page token, received from a previous SearchRelatedAccountGroupMemberships call. Provide this to retrieve the subsequent page. When paginating, all other parameters provided to SearchRelatedAccountGroupMemberships must match the call that provided the page token.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
 }
 
 /// The response to a SearchRelatedAccountGroupMemberships call.
@@ -723,11 +810,14 @@ pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsR
 pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The queried memberships.
     #[serde(default, rename = "relatedAccountGroupMemberships")]
-    pub related_account_group_memberships:
-        Option<Vec<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership>>,
+    pub related_account_group_memberships: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership>,
+        >,
+    >,
 }
 
 /// Information about SMS toll fraud.
@@ -735,10 +825,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsR
 pub struct GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict {
     /// Output only. Reasons contributing to the SMS toll fraud verdict.
     #[serde(default)]
-    pub reasons: Option<Vec<String>>,
+    pub reasons: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Probability of an SMS event being fraudulent. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default)]
-    pub risk: Option<f32>,
+    pub risk: ::core::option::Option<f32>,
 }
 
 /// Options for user acceptance testing.
@@ -746,10 +836,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict {
 pub struct GoogleCloudRecaptchaenterpriseV1TestingOptions {
     /// Optional. For challenge-based keys only (CHECKBOX, INVISIBLE), all challenge requests for this site return nocaptcha if NOCAPTCHA, or an unsolvable challenge if CHALLENGE. // TODO: enum values: ["TESTING_CHALLENGE_UNSPECIFIED", "NOCAPTCHA", "UNSOLVABLE_CHALLENGE"]
     #[serde(default, rename = "testingChallenge")]
-    pub testing_challenge: Option<String>,
+    pub testing_challenge: ::core::option::Option<String>,
     /// Optional. All assessments for this Key return this score. Must be between 0 (likely not legitimate) and 1 (likely legitimate) inclusive.
     #[serde(default, rename = "testingScore")]
-    pub testing_score: Option<f32>,
+    pub testing_score: ::core::option::Option<f32>,
 }
 
 /// Properties of the provided event token.
@@ -757,25 +847,25 @@ pub struct GoogleCloudRecaptchaenterpriseV1TestingOptions {
 pub struct GoogleCloudRecaptchaenterpriseV1TokenProperties {
     /// Output only. Action name provided at token generation.
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Output only. The name of the Android package with which the token was generated (Android keys only).
     #[serde(default, rename = "androidPackageName")]
-    pub android_package_name: Option<String>,
+    pub android_package_name: ::core::option::Option<String>,
     /// Output only. The timestamp corresponding to the generation of the token.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The hostname of the page on which the token was generated (Web keys only).
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Output only. Reason associated with the response when valid = false. // TODO: enum values: ["INVALID_REASON_UNSPECIFIED", "UNKNOWN_INVALID_REASON", "MALFORMED", "EXPIRED", "DUPE", "MISSING", "BROWSER_ERROR", "UNEXPECTED_ACTION"]
     #[serde(default, rename = "invalidReason")]
-    pub invalid_reason: Option<String>,
+    pub invalid_reason: ::core::option::Option<String>,
     /// Output only. The ID of the iOS bundle with which the token was generated (iOS keys only).
     #[serde(default, rename = "iosBundleId")]
-    pub ios_bundle_id: Option<String>,
+    pub ios_bundle_id: ::core::option::Option<String>,
     /// Output only. Whether the provided user response token is valid. When valid = false, the reason could be specified in invalid_reason or it could also be due to a user failing to solve a challenge or a sitekey mismatch (i.e the sitekey used to generate the token was different than the one specified in the assessment).
     #[serde(default)]
-    pub valid: Option<bool>,
+    pub valid: ::core::option::Option<bool>,
 }
 
 /// Transaction data associated with a payment protected by reCAPTCHA Enterprise.
@@ -783,43 +873,55 @@ pub struct GoogleCloudRecaptchaenterpriseV1TokenProperties {
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionData {
     /// Optional. Address associated with the payment method when applicable.
     #[serde(default, rename = "billingAddress")]
-    pub billing_address: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
+    pub billing_address: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
+    >,
     /// Optional. The Bank Identification Number - generally the first 6 or 8 digits of the card.
     #[serde(default, rename = "cardBin")]
-    pub card_bin: Option<String>,
+    pub card_bin: ::core::option::Option<String>,
     /// Optional. The last four digits of the card.
     #[serde(default, rename = "cardLastFour")]
-    pub card_last_four: Option<String>,
+    pub card_last_four: ::core::option::Option<String>,
     /// Optional. The currency code in ISO-4217 format.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Optional. Information about the payment gateway''s response to the transaction.
     #[serde(default, rename = "gatewayInfo")]
-    pub gateway_info: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo>,
+    pub gateway_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo>,
+    >,
     /// Optional. Items purchased in this transaction.
     #[serde(default)]
-    pub items: Option<Vec<GoogleCloudRecaptchaenterpriseV1TransactionDataItem>>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionDataItem>>,
+    >,
     /// Optional. Information about the user or users fulfilling the transaction.
     #[serde(default)]
-    pub merchants: Option<Vec<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>>,
+    pub merchants: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>>,
+    >,
     /// Optional. The payment method for the transaction. The allowed values are: * credit-card * debit-card * gift-card * processor-{name} (If a third-party is used, for example, processor-paypal) * custom-{name} (If an alternative method is used, for example, custom-crypto)
     #[serde(default, rename = "paymentMethod")]
-    pub payment_method: Option<String>,
+    pub payment_method: ::core::option::Option<String>,
     /// Optional. Destination address if this transaction involves shipping a physical item.
     #[serde(default, rename = "shippingAddress")]
-    pub shipping_address: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
+    pub shipping_address: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionDataAddress>,
+    >,
     /// Optional. The value of shipping in the specified currency. 0 for free or no shipping.
     #[serde(default, rename = "shippingValue")]
-    pub shipping_value: Option<f64>,
+    pub shipping_value: ::core::option::Option<f64>,
     /// Unique identifier for the transaction. This custom identifier can be used to reference this transaction in the future, for example, labeling a refund or chargeback event. Two attempts at the same transaction should use the same transaction id.
     #[serde(default, rename = "transactionId")]
-    pub transaction_id: Option<String>,
+    pub transaction_id: ::core::option::Option<String>,
     /// Optional. Information about the user paying/initiating the transaction.
     #[serde(default)]
-    pub user: Option<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>,
+    pub user: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1TransactionDataUser>,
+    >,
     /// Optional. The decimal value of the transaction in the specified currency.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// Structured address format for billing and shipping addresses.
@@ -827,22 +929,22 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionData {
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataAddress {
     /// Optional. The first lines of the address. The first line generally contains the street name and number, and further lines may include information such as an apartment number.
     #[serde(default)]
-    pub address: Option<Vec<String>>,
+    pub address: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The state, province, or otherwise administrative area of the address.
     #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: Option<String>,
+    pub administrative_area: ::core::option::Option<String>,
     /// Optional. The town/city of the address.
     #[serde(default)]
-    pub locality: Option<String>,
+    pub locality: ::core::option::Option<String>,
     /// Optional. The postal or ZIP code of the address.
     #[serde(default, rename = "postalCode")]
-    pub postal_code: Option<String>,
+    pub postal_code: ::core::option::Option<String>,
     /// Optional. The recipient name, potentially including information such as "care of".
     #[serde(default)]
-    pub recipient: Option<String>,
+    pub recipient: ::core::option::Option<String>,
     /// Optional. The CLDR country/region of the address.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
 }
 
 /// Details about the transaction from the gateway.
@@ -850,16 +952,16 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataAddress {
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo {
     /// Optional. AVS response code from the gateway (available only when reCAPTCHA Enterprise is called after authorization).
     #[serde(default, rename = "avsResponseCode")]
-    pub avs_response_code: Option<String>,
+    pub avs_response_code: ::core::option::Option<String>,
     /// Optional. CVV response code from the gateway (available only when reCAPTCHA Enterprise is called after authorization).
     #[serde(default, rename = "cvvResponseCode")]
-    pub cvv_response_code: Option<String>,
+    pub cvv_response_code: ::core::option::Option<String>,
     /// Optional. Gateway response code describing the state of the transaction.
     #[serde(default, rename = "gatewayResponseCode")]
-    pub gateway_response_code: Option<String>,
+    pub gateway_response_code: ::core::option::Option<String>,
     /// Optional. Name of the gateway service (for example, stripe, square, paypal).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Line items being purchased in this transaction.
@@ -867,16 +969,16 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo {
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataItem {
     /// Optional. When a merchant is specified, its corresponding account_id. Necessary to populate marketplace-style transactions.
     #[serde(default, rename = "merchantAccountId")]
-    pub merchant_account_id: Option<String>,
+    pub merchant_account_id: ::core::option::Option<String>,
     /// Optional. The full name of the item.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The quantity of this item that is being purchased.
     #[serde(default)]
-    pub quantity: Option<String>,
+    pub quantity: ::core::option::Option<String>,
     /// Optional. The value per item that the user is paying, in the transaction currency, after discounts.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// Details about a user''s account involved in the transaction.
@@ -884,22 +986,22 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataItem {
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataUser {
     /// Optional. Unique account identifier for this user. If using account defender, this should match the hashed_account_id field. Otherwise, a unique and persistent identifier for this account.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Optional. The epoch milliseconds of the user''s account creation.
     #[serde(default, rename = "creationMs")]
-    pub creation_ms: Option<String>,
+    pub creation_ms: ::core::option::Option<String>,
     /// Optional. The email address of the user.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Optional. Whether the email has been verified to be accessible by the user (OTP or similar).
     #[serde(default, rename = "emailVerified")]
-    pub email_verified: Option<bool>,
+    pub email_verified: ::core::option::Option<bool>,
     /// Optional. The phone number of the user, with country code.
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
     /// Optional. Whether the phone number has been verified to be accessible by the user (OTP or similar).
     #[serde(default, rename = "phoneVerified")]
-    pub phone_verified: Option<bool>,
+    pub phone_verified: ::core::option::Option<bool>,
 }
 
 /// Describes an event in the lifecycle of a payment transaction.
@@ -907,16 +1009,16 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataUser {
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionEvent {
     /// Optional. Timestamp when this transaction event occurred; otherwise assumed to be the time of the API call.
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<String>,
+    pub event_time: ::core::option::Option<String>,
     /// Optional. The type of this transaction event. // TODO: enum values: ["TRANSACTION_EVENT_TYPE_UNSPECIFIED", "MERCHANT_APPROVE", "MERCHANT_DENY", "MANUAL_REVIEW", "AUTHORIZATION", "AUTHORIZATION_DECLINE", "PAYMENT_CAPTURE", "PAYMENT_CAPTURE_DECLINE", "CANCEL", "CHARGEBACK_INQUIRY", "CHARGEBACK_ALERT", "FRAUD_NOTIFICATION", "CHARGEBACK", "CHARGEBACK_REPRESENTMENT", "CHARGEBACK_REVERSE", "REFUND_REQUEST", "REFUND_DECLINE", "REFUND", "REFUND_REVERSE"]
     #[serde(default, rename = "eventType")]
-    pub event_type: Option<String>,
+    pub event_type: ::core::option::Option<String>,
     /// Optional. The reason or standardized code that corresponds with this transaction event, if one exists. For example, a CHARGEBACK event with code 6005.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// Optional. The value that corresponds with this transaction event, if one exists. For example, a refund event where $5.00 was refunded. Currency is obtained from the original transaction data.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// An identifier associated with a user.
@@ -924,13 +1026,13 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionEvent {
 pub struct GoogleCloudRecaptchaenterpriseV1UserId {
     /// Optional. An email address.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Optional. A phone number. Should use the E.164 format.
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
     /// Optional. A unique username, if different from all the other identifiers and account_id that are provided. Can be a unique login handle or display name for a user.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// User information associated with a request protected by reCAPTCHA Enterprise.
@@ -938,13 +1040,15 @@ pub struct GoogleCloudRecaptchaenterpriseV1UserId {
 pub struct GoogleCloudRecaptchaenterpriseV1UserInfo {
     /// Optional. For logged-in requests or login/registration requests, the unique account identifier associated with this user. You can use the username if it is stable (meaning it is the same for every request associated with the same user), or any stable user ID of your choice. Leave blank for non logged-in actions or guest checkout.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Optional. Creation time for this account associated with this user. Leave blank for non logged-in actions, guest checkout, or when there is no account associated with the current user.
     #[serde(default, rename = "createAccountTime")]
-    pub create_account_time: Option<String>,
+    pub create_account_time: ::core::option::Option<String>,
     /// Optional. Identifiers associated with this user or request.
     #[serde(default, rename = "userIds")]
-    pub user_ids: Option<Vec<GoogleCloudRecaptchaenterpriseV1UserId>>,
+    pub user_ids: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1UserId>>,
+    >,
 }
 
 /// Settings specific to keys that can be used for WAF (Web Application Firewall).
@@ -952,10 +1056,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1UserInfo {
 pub struct GoogleCloudRecaptchaenterpriseV1WafSettings {
     /// Required. The Web Application Firewall (WAF) feature for which this key is enabled. // TODO: enum values: ["WAF_FEATURE_UNSPECIFIED", "CHALLENGE_PAGE", "SESSION_TOKEN", "ACTION_TOKEN", "EXPRESS"]
     #[serde(default, rename = "wafFeature")]
-    pub waf_feature: Option<String>,
+    pub waf_feature: ::core::option::Option<String>,
     /// Required. The Web Application Firewall (WAF) service that uses this key. // TODO: enum values: ["WAF_SERVICE_UNSPECIFIED", "CA", "FASTLY", "CLOUDFLARE", "AKAMAI"]
     #[serde(default, rename = "wafService")]
-    pub waf_service: Option<String>,
+    pub waf_service: ::core::option::Option<String>,
 }
 
 /// Settings specific to keys that can be used by websites.
@@ -963,22 +1067,24 @@ pub struct GoogleCloudRecaptchaenterpriseV1WafSettings {
 pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettings {
     /// Optional. If set to true, it means allowed_domains are not enforced.
     #[serde(default, rename = "allowAllDomains")]
-    pub allow_all_domains: Option<bool>,
+    pub allow_all_domains: ::core::option::Option<bool>,
     /// Optional. If set to true, the key can be used on AMP (Accelerated Mobile Pages) websites. This is supported only for the SCORE integration type.
     #[serde(default, rename = "allowAmpTraffic")]
-    pub allow_amp_traffic: Option<bool>,
+    pub allow_amp_traffic: ::core::option::Option<bool>,
     /// Optional. Domains or subdomains of websites allowed to use the key. All subdomains of an allowed domain are automatically allowed. A valid domain requires a host and must not include any path, port, query or fragment. Examples: ''example.com'' or ''subdomain.example.com'' Each key supports a maximum of 250 domains. To use a key on more domains, set allow_all_domains to true. When this is set, you are responsible for validating the hostname by checking the token_properties.hostname field in each assessment response against your list of allowed domains.
     #[serde(default, rename = "allowedDomains")]
-    pub allowed_domains: Option<Vec<String>>,
+    pub allowed_domains: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Settings for the frequency and difficulty at which this key triggers captcha challenges. This should only be specified for IntegrationType CHECKBOX, INVISIBLE or POLICY_BASED_CHALLENGE. // TODO: enum values: ["CHALLENGE_SECURITY_PREFERENCE_UNSPECIFIED", "USABILITY", "BALANCE", "SECURITY"]
     #[serde(default, rename = "challengeSecurityPreference")]
-    pub challenge_security_preference: Option<String>,
+    pub challenge_security_preference: ::core::option::Option<String>,
     /// Optional. Challenge settings.
     #[serde(default, rename = "challengeSettings")]
-    pub challenge_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings>,
+    pub challenge_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings>,
+    >,
     /// Required. Describes how this key is integrated with the website. // TODO: enum values: ["INTEGRATION_TYPE_UNSPECIFIED", "SCORE", "CHECKBOX", "INVISIBLE", "POLICY_BASED_CHALLENGE"]
     #[serde(default, rename = "integrationType")]
-    pub integration_type: Option<String>,
+    pub integration_type: ::core::option::Option<String>,
 }
 
 /// Per-action challenge settings.
@@ -986,7 +1092,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettings {
 pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings {
     /// Required. A challenge is triggered if the end-user score is below that threshold. Value must be between 0 and 1 (inclusive).
     #[serde(default, rename = "scoreThreshold")]
-    pub score_threshold: Option<f32>,
+    pub score_threshold: ::core::option::Option<f32>,
 }
 
 /// Settings for POLICY_BASED_CHALLENGE keys to control when a challenge is triggered.
@@ -994,10 +1100,12 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings {
 pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings {
     /// Optional. The action to score threshold map. The action name should be the same as the action name passed in the data-action attribute (see https://cloud.google.com/recaptcha/docs/actions-website). Action names are case-insensitive. There is a maximum of 100 action settings. An action name has a maximum length of 100.
     #[serde(default, rename = "actionSettings")]
-    pub action_settings: Option<serde_json::Value>,
+    pub action_settings: ::core::option::Option<serde_json::Value>,
     /// Required. Defines when a challenge is triggered (unless the default threshold is overridden for the given action, see action_settings).
     #[serde(default, rename = "defaultSettings")]
-    pub default_settings: Option<GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings>,
+    pub default_settings: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings>,
+    >,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1005,11 +1113,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }

@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Attachment with specific information about the issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAdvisorynotificationsV1Attachment {
     /// A CSV file attachment. Max size is 10 MB.
     #[serde(default)]
-    pub csv: Option<GoogleCloudAdvisorynotificationsV1Csv>,
+    pub csv: ::core::option::Option<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1Csv>>,
     /// The title of the attachment.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// A representation of a CSV file attachment, as a list of column headers and a list of data rows.
@@ -29,10 +29,12 @@ pub struct GoogleCloudAdvisorynotificationsV1Attachment {
 pub struct GoogleCloudAdvisorynotificationsV1Csv {
     /// The list of data rows in a CSV file, as string arrays rather than as a single comma-separated string.
     #[serde(default, rename = "dataRows")]
-    pub data_rows: Option<Vec<GoogleCloudAdvisorynotificationsV1CsvCsvRow>>,
+    pub data_rows: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1CsvCsvRow>>,
+    >,
     /// The list of headers for data columns in a CSV file.
     #[serde(default)]
-    pub headers: Option<Vec<String>>,
+    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A representation of a single data row in a CSV file.
@@ -40,7 +42,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Csv {
 pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
     /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
     #[serde(default)]
-    pub entries: Option<Vec<String>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response of ListNotifications endpoint.
@@ -48,13 +50,15 @@ pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
 pub struct GoogleCloudAdvisorynotificationsV1ListNotificationsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of notifications under a given parent.
     #[serde(default)]
-    pub notifications: Option<Vec<GoogleCloudAdvisorynotificationsV1Notification>>,
+    pub notifications: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1Notification>>,
+    >,
     /// Estimation of a total number of notifications.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// A message which contains notification details.
@@ -62,16 +66,19 @@ pub struct GoogleCloudAdvisorynotificationsV1ListNotificationsResponse {
 pub struct GoogleCloudAdvisorynotificationsV1Message {
     /// The attachments to download.
     #[serde(default)]
-    pub attachments: Option<Vec<GoogleCloudAdvisorynotificationsV1Attachment>>,
+    pub attachments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1Attachment>>,
+    >,
     /// The message content.
     #[serde(default)]
-    pub body: Option<GoogleCloudAdvisorynotificationsV1MessageBody>,
+    pub body:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1MessageBody>>,
     /// The Message creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Time when Message was localized
     #[serde(default, rename = "localizationTime")]
-    pub localization_time: Option<String>,
+    pub localization_time: ::core::option::Option<String>,
 }
 
 /// A message body containing text.
@@ -79,7 +86,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Message {
 pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
     /// The text content of the message body.
     #[serde(default)]
-    pub text: Option<GoogleCloudAdvisorynotificationsV1Text>,
+    pub text: ::core::option::Option<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1Text>>,
 }
 
 /// A notification object for notifying customers about security and privacy issues.
@@ -87,19 +94,22 @@ pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
 pub struct GoogleCloudAdvisorynotificationsV1Notification {
     /// Output only. Time the notification was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// A list of messages in the notification.
     #[serde(default)]
-    pub messages: Option<Vec<GoogleCloudAdvisorynotificationsV1Message>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1Message>>,
+    >,
     /// The resource name of the notification. Format: organizations/{organization}/locations/{location}/notifications/{notification} or projects/{project}/locations/{location}/notifications/{notification}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Type of notification // TODO: enum values: ["NOTIFICATION_TYPE_UNSPECIFIED", "NOTIFICATION_TYPE_SECURITY_PRIVACY_ADVISORY", "NOTIFICATION_TYPE_SENSITIVE_ACTIONS", "NOTIFICATION_TYPE_SECURITY_MSA", "NOTIFICATION_TYPE_THREAT_HORIZONS"]
     #[serde(default, rename = "notificationType")]
-    pub notification_type: Option<String>,
+    pub notification_type: ::core::option::Option<String>,
     /// The subject line of the notification.
     #[serde(default)]
-    pub subject: Option<GoogleCloudAdvisorynotificationsV1Subject>,
+    pub subject:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1Subject>>,
 }
 
 /// Settings for each NotificationType.
@@ -107,7 +117,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Notification {
 pub struct GoogleCloudAdvisorynotificationsV1NotificationSettings {
     /// Whether the associated NotificationType is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Settings for Advisory Notifications.
@@ -115,13 +125,13 @@ pub struct GoogleCloudAdvisorynotificationsV1NotificationSettings {
 pub struct GoogleCloudAdvisorynotificationsV1Settings {
     /// Required. Fingerprint for optimistic concurrency returned in Get requests. Must be provided for Update requests. If the value provided does not match the value known to the server, ABORTED will be thrown, and the client should retry the read-modify-write cycle.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier. The resource name of the settings to retrieve. Format: organizations/{organization}/locations/{location}/settings or projects/{projects}/locations/{location}/settings.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Map of each notification type and its settings to get/set all settings at once. The server will validate the value for each notification type.
     #[serde(default, rename = "notificationSettings")]
-    pub notification_settings: Option<serde_json::Value>,
+    pub notification_settings: ::core::option::Option<serde_json::Value>,
 }
 
 /// A subject line of a notification.
@@ -129,7 +139,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Settings {
 pub struct GoogleCloudAdvisorynotificationsV1Subject {
     /// The text content.
     #[serde(default)]
-    pub text: Option<GoogleCloudAdvisorynotificationsV1Text>,
+    pub text: ::core::option::Option<::std::boxed::Box<GoogleCloudAdvisorynotificationsV1Text>>,
 }
 
 /// A text object containing the English text and its localized copies.
@@ -137,11 +147,11 @@ pub struct GoogleCloudAdvisorynotificationsV1Subject {
 pub struct GoogleCloudAdvisorynotificationsV1Text {
     /// The English copy.
     #[serde(default, rename = "enText")]
-    pub en_text: Option<String>,
+    pub en_text: ::core::option::Option<String>,
     /// Status of the localization. // TODO: enum values: ["LOCALIZATION_STATE_UNSPECIFIED", "LOCALIZATION_STATE_NOT_APPLICABLE", "LOCALIZATION_STATE_PENDING", "LOCALIZATION_STATE_COMPLETED"]
     #[serde(default, rename = "localizationState")]
-    pub localization_state: Option<String>,
+    pub localization_state: ::core::option::Option<String>,
     /// The requested localized copy (if applicable).
     #[serde(default, rename = "localizedText")]
-    pub localized_text: Option<String>,
+    pub localized_text: ::core::option::Option<String>,
 }

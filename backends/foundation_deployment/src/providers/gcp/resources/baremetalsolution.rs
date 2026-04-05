@@ -10,36 +10,36 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents an ''access point'' for the share.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AllowedClient {
     /// Allow dev flag. Which controls whether to allow creation of devices.
     #[serde(default, rename = "allowDev")]
-    pub allow_dev: Option<bool>,
+    pub allow_dev: ::core::option::Option<bool>,
     /// Allow the setuid flag.
     #[serde(default, rename = "allowSuid")]
-    pub allow_suid: Option<bool>,
+    pub allow_suid: ::core::option::Option<bool>,
     /// The subnet of IP addresses permitted to access the share.
     #[serde(default, rename = "allowedClientsCidr")]
-    pub allowed_clients_cidr: Option<String>,
+    pub allowed_clients_cidr: ::core::option::Option<String>,
     /// Mount permissions. // TODO: enum values: ["MOUNT_PERMISSIONS_UNSPECIFIED", "READ", "READ_WRITE"]
     #[serde(default, rename = "mountPermissions")]
-    pub mount_permissions: Option<String>,
+    pub mount_permissions: ::core::option::Option<String>,
     /// The network the access point sits on.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. The path to access NFS, in format shareIP:/InstanceID InstanceID is the generated ID instead of customer provided name. example like "10.0.0.0:/g123456789-nfs001"
     #[serde(default, rename = "nfsPath")]
-    pub nfs_path: Option<String>,
+    pub nfs_path: ::core::option::Option<String>,
     /// Disable root squashing, which is a feature of NFS. Root squash is a special mapping of the remote superuser (root) identity when using identity authentication.
     #[serde(default, rename = "noRootSquash")]
-    pub no_root_squash: Option<bool>,
+    pub no_root_squash: ::core::option::Option<bool>,
     /// Output only. The IP address of the share on this network. Assigned automatically during provisioning based on the network''s services_cidr.
     #[serde(default, rename = "shareIp")]
-    pub share_ip: Option<String>,
+    pub share_ip: ::core::option::Option<String>,
 }
 
 /// Message for detach specific LUN from an Instance.
@@ -47,10 +47,10 @@ pub struct AllowedClient {
 pub struct DetachLunRequest {
     /// Required. Name of the Lun to detach.
     #[serde(default)]
-    pub lun: Option<String>,
+    pub lun: ::core::option::Option<String>,
     /// If true, performs lun unmapping without instance reboot.
     #[serde(default, rename = "skipReboot")]
-    pub skip_reboot: Option<bool>,
+    pub skip_reboot: ::core::option::Option<bool>,
 }
 
 /// Each logical interface represents a logical abstraction of the underlying physical interface (for eg. bond, nic) of the instance. Each logical interface can effectively map to multiple network-IP pairs and still be mapped to one underlying physical interface.
@@ -58,13 +58,14 @@ pub struct DetachLunRequest {
 pub struct GoogleCloudBaremetalsolutionV2LogicalInterface {
     /// The index of the logical interface mapping to the index of the hardware bond or nic on the chosen network template. This field is deprecated.
     #[serde(default, rename = "interfaceIndex")]
-    pub interface_index: Option<i32>,
+    pub interface_index: ::core::option::Option<i32>,
     /// List of logical network interfaces within a logical interface.
     #[serde(default, rename = "logicalNetworkInterfaces")]
-    pub logical_network_interfaces: Option<Vec<LogicalNetworkInterface>>,
+    pub logical_network_interfaces:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LogicalNetworkInterface>>>,
     /// Interface name. This is of syntax or and forms part of the network template name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Logical interface.
@@ -72,13 +73,13 @@ pub struct GoogleCloudBaremetalsolutionV2LogicalInterface {
 pub struct GoogleCloudBaremetalsolutionV2ServerNetworkTemplateLogicalInterface {
     /// Interface name. This is not a globally unique identifier. Name is unique only inside the ServerNetworkTemplate. This is of syntax or and forms part of the network template name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// If true, interface must have network connected.
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
     /// Interface type. // TODO: enum values: ["INTERFACE_TYPE_UNSPECIFIED", "BOND", "NIC"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A server.
@@ -86,67 +87,69 @@ pub struct GoogleCloudBaremetalsolutionV2ServerNetworkTemplateLogicalInterface {
 pub struct Instance {
     /// Output only. Create a time stamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The firmware version for the instance.
     #[serde(default, rename = "firmwareVersion")]
-    pub firmware_version: Option<String>,
+    pub firmware_version: ::core::option::Option<String>,
     /// True if you enable hyperthreading for the server, otherwise false. The default value is false.
     #[serde(default, rename = "hyperthreadingEnabled")]
-    pub hyperthreading_enabled: Option<bool>,
+    pub hyperthreading_enabled: ::core::option::Option<bool>,
     /// Output only. An identifier for the Instance, generated by the backend.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. True if the interactive serial console feature is enabled for the instance, false otherwise. The default value is false.
     #[serde(default, rename = "interactiveSerialConsoleEnabled")]
-    pub interactive_serial_console_enabled: Option<bool>,
+    pub interactive_serial_console_enabled: ::core::option::Option<bool>,
     /// Optional. Name of the KMS crypto key version used to encrypt the initial passwords. The key has to have ASYMMETRIC_DECRYPT purpose. Format is projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}/cryptoKeyVersions/{version}.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// List of logical interfaces for the instance. The number of logical interfaces will be the same as number of hardware bond/nic on the chosen network template. For the non-multivlan configurations (for eg, existing servers) that use existing default network template (bondaa-bondaa), both the Instance.networks field and the Instance.logical_interfaces fields will be filled to ensure backward compatibility. For the others, only Instance.logical_interfaces will be filled.
     #[serde(default, rename = "logicalInterfaces")]
-    pub logical_interfaces: Option<Vec<GoogleCloudBaremetalsolutionV2LogicalInterface>>,
+    pub logical_interfaces: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudBaremetalsolutionV2LogicalInterface>>,
+    >,
     /// Output only. Text field about info for logging in.
     #[serde(default, rename = "loginInfo")]
-    pub login_info: Option<String>,
+    pub login_info: ::core::option::Option<String>,
     /// Immutable. List of LUNs associated with this server.
     #[serde(default)]
-    pub luns: Option<Vec<Lun>>,
+    pub luns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Lun>>>,
     /// Immutable. The server type. [Available server types](https://cloud.google.com/bare-metal/docs/bms-planning#server_configurations)
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Immutable. The resource name of this Instance. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. Format: projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Instance network template name. For eg, bondaa-bondaa, bondab-nic, etc. Generally, the template name follows the syntax of "bond" or "nic".
     #[serde(default, rename = "networkTemplate")]
-    pub network_template: Option<String>,
+    pub network_template: ::core::option::Option<String>,
     /// Output only. List of networks associated with this server.
     #[serde(default)]
-    pub networks: Option<Vec<Network>>,
+    pub networks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Network>>>,
     /// The OS image currently installed on the server.
     #[serde(default, rename = "osImage")]
-    pub os_image: Option<String>,
+    pub os_image: ::core::option::Option<String>,
     /// Immutable. Pod name. Pod is an independent part of infrastructure. Instance can only be connected to the assets (networks, volumes) allocated in the same pod.
     #[serde(default)]
-    pub pod: Option<String>,
+    pub pod: ::core::option::Option<String>,
     /// Optional. List of SSH Keys used during instance provisioning.
     #[serde(default, rename = "sshKeys")]
-    pub ssh_keys: Option<Vec<String>>,
+    pub ssh_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The state of the server. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "RUNNING", "DELETED", "UPDATING", "STARTING", "STOPPING", "SHUTDOWN"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Update a time stamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Input only. List of Volumes to attach to this Instance on creation. This field won''t be populated in Get/List responses.
     #[serde(default)]
-    pub volumes: Option<Vec<Volume>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Volume>>>,
     /// The workload profile for the instance. // TODO: enum values: ["WORKLOAD_PROFILE_UNSPECIFIED", "WORKLOAD_PROFILE_GENERIC", "WORKLOAD_PROFILE_HANA"]
     #[serde(default, rename = "workloadProfile")]
-    pub workload_profile: Option<String>,
+    pub workload_profile: ::core::option::Option<String>,
 }
 
 /// Configuration parameters for a new instance.
@@ -154,46 +157,48 @@ pub struct Instance {
 pub struct InstanceConfig {
     /// If true networks can be from different projects of the same vendor account.
     #[serde(default, rename = "accountNetworksEnabled")]
-    pub account_networks_enabled: Option<bool>,
+    pub account_networks_enabled: ::core::option::Option<bool>,
     /// Client network address. Filled if InstanceConfig.multivlan_config is false.
     #[serde(default, rename = "clientNetwork")]
-    pub client_network: Option<NetworkAddress>,
+    pub client_network: ::core::option::Option<::std::boxed::Box<NetworkAddress>>,
     /// Whether the instance should be provisioned with Hyperthreading enabled.
     #[serde(default)]
-    pub hyperthreading: Option<bool>,
+    pub hyperthreading: ::core::option::Option<bool>,
     /// A transient unique identifier to identify an instance within an ProvisioningConfig request.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Instance type. [Available types](https://cloud.google.com/bare-metal/docs/bms-planning#server_configurations)
     #[serde(default, rename = "instanceType")]
-    pub instance_type: Option<String>,
+    pub instance_type: ::core::option::Option<String>,
     /// Name of the KMS crypto key version used to encrypt the initial passwords. The key has to have ASYMMETRIC_DECRYPT purpose.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
     /// List of logical interfaces for the instance. The number of logical interfaces will be the same as number of hardware bond/nic on the chosen network template. Filled if InstanceConfig.multivlan_config is true.
     #[serde(default, rename = "logicalInterfaces")]
-    pub logical_interfaces: Option<Vec<GoogleCloudBaremetalsolutionV2LogicalInterface>>,
+    pub logical_interfaces: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudBaremetalsolutionV2LogicalInterface>>,
+    >,
     /// The name of the instance config.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The type of network configuration on the instance. // TODO: enum values: ["NETWORKCONFIG_UNSPECIFIED", "SINGLE_VLAN", "MULTI_VLAN"]
     #[serde(default, rename = "networkConfig")]
-    pub network_config: Option<String>,
+    pub network_config: ::core::option::Option<String>,
     /// Server network template name. Filled if InstanceConfig.multivlan_config is true.
     #[serde(default, rename = "networkTemplate")]
-    pub network_template: Option<String>,
+    pub network_template: ::core::option::Option<String>,
     /// OS image to initialize the instance. [Available images](https://cloud.google.com/bare-metal/docs/bms-planning#server_configurations)
     #[serde(default, rename = "osImage")]
-    pub os_image: Option<String>,
+    pub os_image: ::core::option::Option<String>,
     /// Private network address, if any. Filled if InstanceConfig.multivlan_config is false.
     #[serde(default, rename = "privateNetwork")]
-    pub private_network: Option<NetworkAddress>,
+    pub private_network: ::core::option::Option<::std::boxed::Box<NetworkAddress>>,
     /// Optional. List of names of ssh keys used to provision the instance.
     #[serde(default, rename = "sshKeyNames")]
-    pub ssh_key_names: Option<Vec<String>>,
+    pub ssh_key_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// User note field, it can be used by customers to add additional information for the BMS Ops team .
     #[serde(default, rename = "userNote")]
-    pub user_note: Option<String>,
+    pub user_note: ::core::option::Option<String>,
 }
 
 /// A resource budget.
@@ -201,19 +206,19 @@ pub struct InstanceConfig {
 pub struct InstanceQuota {
     /// Number of machines than can be created for the given location and instance_type.
     #[serde(default, rename = "availableMachineCount")]
-    pub available_machine_count: Option<i32>,
+    pub available_machine_count: ::core::option::Option<i32>,
     /// The gcp service of the provisioning quota.
     #[serde(default, rename = "gcpService")]
-    pub gcp_service: Option<String>,
+    pub gcp_service: ::core::option::Option<String>,
     /// Instance type. Deprecated: use gcp_service.
     #[serde(default, rename = "instanceType")]
-    pub instance_type: Option<String>,
+    pub instance_type: ::core::option::Option<String>,
     /// Location where the quota applies.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The name of the instance quota.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A GCP vlan attachment.
@@ -221,10 +226,10 @@ pub struct InstanceQuota {
 pub struct IntakeVlanAttachment {
     /// Identifier of the VLAN attachment.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Attachment pairing key.
     #[serde(default, rename = "pairingKey")]
-    pub pairing_key: Option<String>,
+    pub pairing_key: ::core::option::Option<String>,
 }
 
 /// Response message for the list of servers.
@@ -232,13 +237,13 @@ pub struct IntakeVlanAttachment {
 pub struct ListInstancesResponse {
     /// The list of servers.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -246,10 +251,10 @@ pub struct ListInstancesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message containing the list of storage volume luns.
@@ -257,13 +262,13 @@ pub struct ListLocationsResponse {
 pub struct ListLunsResponse {
     /// The list of luns.
     #[serde(default)]
-    pub luns: Option<Vec<Lun>>,
+    pub luns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Lun>>>,
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response with Networks with IPs
@@ -271,7 +276,7 @@ pub struct ListLunsResponse {
 pub struct ListNetworkUsageResponse {
     /// Networks with IPs.
     #[serde(default)]
-    pub networks: Option<Vec<NetworkUsage>>,
+    pub networks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkUsage>>>,
 }
 
 /// Response message containing the list of networks.
@@ -279,13 +284,13 @@ pub struct ListNetworkUsageResponse {
 pub struct ListNetworksResponse {
     /// The list of networks.
     #[serde(default)]
-    pub networks: Option<Vec<Network>>,
+    pub networks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Network>>>,
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message containing the list of NFS shares.
@@ -293,13 +298,13 @@ pub struct ListNetworksResponse {
 pub struct ListNfsSharesResponse {
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of NFS shares.
     #[serde(default, rename = "nfsShares")]
-    pub nfs_shares: Option<Vec<NfsShare>>,
+    pub nfs_shares: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NfsShare>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for getting all available OS images.
@@ -307,10 +312,10 @@ pub struct ListNfsSharesResponse {
 pub struct ListOSImagesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The OS images available.
     #[serde(default, rename = "osImages")]
-    pub os_images: Option<Vec<OSImage>>,
+    pub os_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OSImage>>>,
 }
 
 /// Response message for the list of provisioning quotas.
@@ -318,10 +323,11 @@ pub struct ListOSImagesResponse {
 pub struct ListProvisioningQuotasResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The provisioning quotas registered in this project.
     #[serde(default, rename = "provisioningQuotas")]
-    pub provisioning_quotas: Option<Vec<ProvisioningQuota>>,
+    pub provisioning_quotas:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProvisioningQuota>>>,
 }
 
 /// Message for response of ListSSHKeys.
@@ -329,10 +335,10 @@ pub struct ListProvisioningQuotasResponse {
 pub struct ListSSHKeysResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The SSH keys registered in the project.
     #[serde(default, rename = "sshKeys")]
-    pub ssh_keys: Option<Vec<SSHKey>>,
+    pub ssh_keys: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SSHKey>>>,
 }
 
 /// Response message containing the list of volume snapshots.
@@ -340,13 +346,14 @@ pub struct ListSSHKeysResponse {
 pub struct ListVolumeSnapshotsResponse {
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of snapshots.
     #[serde(default, rename = "volumeSnapshots")]
-    pub volume_snapshots: Option<Vec<VolumeSnapshot>>,
+    pub volume_snapshots:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VolumeSnapshot>>>,
 }
 
 /// Response message containing the list of storage volumes.
@@ -354,13 +361,13 @@ pub struct ListVolumeSnapshotsResponse {
 pub struct ListVolumesResponse {
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of storage volumes.
     #[serde(default)]
-    pub volumes: Option<Vec<Volume>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Volume>>>,
 }
 
 /// Response for LoadInstanceAuthInfo.
@@ -368,10 +375,10 @@ pub struct ListVolumesResponse {
 pub struct LoadInstanceAuthInfoResponse {
     /// List of ssh keys.
     #[serde(default, rename = "sshKeys")]
-    pub ssh_keys: Option<Vec<SSHKey>>,
+    pub ssh_keys: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SSHKey>>>,
     /// Map of username to the user account info.
     #[serde(default, rename = "userAccounts")]
-    pub user_accounts: Option<serde_json::Value>,
+    pub user_accounts: ::core::option::Option<serde_json::Value>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -379,19 +386,19 @@ pub struct LoadInstanceAuthInfoResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Each logical network interface is effectively a network and IP pair.
@@ -399,19 +406,19 @@ pub struct Location {
 pub struct LogicalNetworkInterface {
     /// Whether this interface is the default gateway for the instance. Only one interface can be the default gateway for the instance.
     #[serde(default, rename = "defaultGateway")]
-    pub default_gateway: Option<bool>,
+    pub default_gateway: ::core::option::Option<bool>,
     /// An identifier for the Network, generated by the backend.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// IP address in the network
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// Name of the network
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Type of network. // TODO: enum values: ["TYPE_UNSPECIFIED", "CLIENT", "PRIVATE"]
     #[serde(default, rename = "networkType")]
-    pub network_type: Option<String>,
+    pub network_type: ::core::option::Option<String>,
 }
 
 /// A storage volume logical unit number (LUN).
@@ -419,40 +426,40 @@ pub struct LogicalNetworkInterface {
 pub struct Lun {
     /// Display if this LUN is a boot LUN.
     #[serde(default, rename = "bootLun")]
-    pub boot_lun: Option<bool>,
+    pub boot_lun: ::core::option::Option<bool>,
     /// Output only. Time after which LUN will be fully deleted. It is filled only for LUNs in COOL_OFF state.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// An identifier for the LUN, generated by the backend.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Instances this Lun is attached to.
     #[serde(default)]
-    pub instances: Option<Vec<String>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<String>>,
     /// The LUN multiprotocol type ensures the characteristics of the LUN are optimized for each operating system. // TODO: enum values: ["MULTIPROTOCOL_TYPE_UNSPECIFIED", "LINUX"]
     #[serde(default, rename = "multiprotocolType")]
-    pub multiprotocol_type: Option<String>,
+    pub multiprotocol_type: ::core::option::Option<String>,
     /// Output only. The name of the LUN.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Display if this LUN can be shared between multiple physical servers.
     #[serde(default)]
-    pub shareable: Option<bool>,
+    pub shareable: ::core::option::Option<bool>,
     /// The size of this LUN, in GiB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<String>,
+    pub size_gb: ::core::option::Option<String>,
     /// The state of this storage volume. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "UPDATING", "READY", "DELETING", "COOL_OFF"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The storage type for this LUN. // TODO: enum values: ["STORAGE_TYPE_UNSPECIFIED", "SSD", "HDD"]
     #[serde(default, rename = "storageType")]
-    pub storage_type: Option<String>,
+    pub storage_type: ::core::option::Option<String>,
     /// Display the storage volume for this LUN.
     #[serde(default, rename = "storageVolume")]
-    pub storage_volume: Option<String>,
+    pub storage_volume: ::core::option::Option<String>,
     /// The WWID for this LUN.
     #[serde(default)]
-    pub wwid: Option<String>,
+    pub wwid: ::core::option::Option<String>,
 }
 
 /// A LUN(Logical Unit Number) range.
@@ -460,10 +467,10 @@ pub struct Lun {
 pub struct LunRange {
     /// Number of LUNs to create.
     #[serde(default)]
-    pub quantity: Option<i32>,
+    pub quantity: ::core::option::Option<i32>,
     /// The requested size of each LUN, in GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<i32>,
+    pub size_gb: ::core::option::Option<i32>,
 }
 
 /// A Network.
@@ -471,55 +478,56 @@ pub struct LunRange {
 pub struct Network {
     /// The cidr of the Network.
     #[serde(default)]
-    pub cidr: Option<String>,
+    pub cidr: ::core::option::Option<String>,
     /// Output only. Gateway ip address.
     #[serde(default, rename = "gatewayIp")]
-    pub gateway_ip: Option<String>,
+    pub gateway_ip: ::core::option::Option<String>,
     /// An identifier for the Network, generated by the backend.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// IP address configured.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// Whether network uses standard frames or jumbo ones.
     #[serde(default, rename = "jumboFramesEnabled")]
-    pub jumbo_frames_enabled: Option<bool>,
+    pub jumbo_frames_enabled: ::core::option::Option<bool>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// List of physical interfaces.
     #[serde(default, rename = "macAddress")]
-    pub mac_address: Option<Vec<String>>,
+    pub mac_address: ::core::option::Option<::std::vec::Vec<String>>,
     /// Input only. List of mount points to attach the network to.
     #[serde(default, rename = "mountPoints")]
-    pub mount_points: Option<Vec<NetworkMountPoint>>,
+    pub mount_points: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkMountPoint>>>,
     /// Output only. The resource name of this Network. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. Format: projects/{project}/locations/{location}/networks/{network}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. Pod name. Pod is an independent part of infrastructure. Network can only be connected to the assets (instances, nfsshares) allocated in the same pod.
     #[serde(default)]
-    pub pod: Option<String>,
+    pub pod: ::core::option::Option<String>,
     /// List of IP address reservations in this network. When updating this field, an error will be generated if a reservation conflicts with an IP address already allocated to a physical server.
     #[serde(default)]
-    pub reservations: Option<Vec<NetworkAddressReservation>>,
+    pub reservations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkAddressReservation>>>,
     /// IP range for reserved for services (e.g. NFS).
     #[serde(default, rename = "servicesCidr")]
-    pub services_cidr: Option<String>,
+    pub services_cidr: ::core::option::Option<String>,
     /// The Network state. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "PROVISIONED", "DEPROVISIONING", "UPDATING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The type of this network. // TODO: enum values: ["TYPE_UNSPECIFIED", "CLIENT", "PRIVATE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The vlan id of the Network.
     #[serde(default, rename = "vlanId")]
-    pub vlan_id: Option<String>,
+    pub vlan_id: ::core::option::Option<String>,
     /// The Vrf for the Network. Use this only if a new Vrf needs to be created.
     #[serde(default)]
-    pub vrf: Option<VRF>,
+    pub vrf: ::core::option::Option<::std::boxed::Box<VRF>>,
     /// Optional. The name of a pre-existing Vrf that the network should be attached to. Format is vrfs/{vrf}.
     #[serde(default, rename = "vrfAttachment")]
-    pub vrf_attachment: Option<String>,
+    pub vrf_attachment: ::core::option::Option<String>,
 }
 
 /// A network.
@@ -527,13 +535,13 @@ pub struct Network {
 pub struct NetworkAddress {
     /// IPv4 address to be assigned to the server.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Name of the existing network to use.
     #[serde(default, rename = "existingNetworkId")]
-    pub existing_network_id: Option<String>,
+    pub existing_network_id: ::core::option::Option<String>,
     /// Id of the network to use, within the same ProvisioningConfig request.
     #[serde(default, rename = "networkId")]
-    pub network_id: Option<String>,
+    pub network_id: ::core::option::Option<String>,
 }
 
 /// A reservation of one or more addresses in a network.
@@ -541,13 +549,13 @@ pub struct NetworkAddress {
 pub struct NetworkAddressReservation {
     /// The last address of this reservation block, inclusive. I.e., for cases when reservations are only single addresses, end_address and start_address will be the same. Must be specified as a single IPv4 address, e.g. 10.1.2.2.
     #[serde(default, rename = "endAddress")]
-    pub end_address: Option<String>,
+    pub end_address: ::core::option::Option<String>,
     /// A note about this reservation, intended for human consumption.
     #[serde(default)]
-    pub note: Option<String>,
+    pub note: ::core::option::Option<String>,
     /// The first address of this reservation block. Must be specified as a single IPv4 address, e.g. 10.1.2.2.
     #[serde(default, rename = "startAddress")]
-    pub start_address: Option<String>,
+    pub start_address: ::core::option::Option<String>,
 }
 
 /// Configuration parameters for a new network.
@@ -555,40 +563,41 @@ pub struct NetworkAddressReservation {
 pub struct NetworkConfig {
     /// Interconnect bandwidth. Set only when type is CLIENT. // TODO: enum values: ["BANDWIDTH_UNSPECIFIED", "BW_1_GBPS", "BW_2_GBPS", "BW_5_GBPS", "BW_10_GBPS"]
     #[serde(default)]
-    pub bandwidth: Option<String>,
+    pub bandwidth: ::core::option::Option<String>,
     /// CIDR range of the network.
     #[serde(default)]
-    pub cidr: Option<String>,
+    pub cidr: ::core::option::Option<String>,
     /// The GCP service of the network. Available gcp_service are in https://cloud.google.com/bare-metal/docs/bms-planning.
     #[serde(default, rename = "gcpService")]
-    pub gcp_service: Option<String>,
+    pub gcp_service: ::core::option::Option<String>,
     /// A transient unique identifier to identify a volume within an ProvisioningConfig request.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The JumboFramesEnabled option for customer to set.
     #[serde(default, rename = "jumboFramesEnabled")]
-    pub jumbo_frames_enabled: Option<bool>,
+    pub jumbo_frames_enabled: ::core::option::Option<bool>,
     /// Output only. The name of the network config.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Service CIDR, if any. // TODO: enum values: ["SERVICE_CIDR_UNSPECIFIED", "DISABLED", "HIGH_26", "HIGH_27", "HIGH_28"]
     #[serde(default, rename = "serviceCidr")]
-    pub service_cidr: Option<String>,
+    pub service_cidr: ::core::option::Option<String>,
     /// The type of this network, either Client or Private. // TODO: enum values: ["TYPE_UNSPECIFIED", "CLIENT", "PRIVATE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// User note field, it can be used by customers to add additional information for the BMS Ops team .
     #[serde(default, rename = "userNote")]
-    pub user_note: Option<String>,
+    pub user_note: ::core::option::Option<String>,
     /// List of VLAN attachments. As of now there are always 2 attachments, but it is going to change in the future (multi vlan). Use only one of vlan_attachments or vrf
     #[serde(default, rename = "vlanAttachments")]
-    pub vlan_attachments: Option<Vec<IntakeVlanAttachment>>,
+    pub vlan_attachments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IntakeVlanAttachment>>>,
     /// Whether the VLAN attachment pair is located in the same project.
     #[serde(default, rename = "vlanSameProject")]
-    pub vlan_same_project: Option<bool>,
+    pub vlan_same_project: ::core::option::Option<bool>,
     /// Optional. The name of a pre-existing Vrf that the network should be attached to. Format is vrfs/{vrf}. If vrf is specified, vlan_attachments must be empty.
     #[serde(default)]
-    pub vrf: Option<String>,
+    pub vrf: ::core::option::Option<String>,
 }
 
 /// Mount point for a network.
@@ -596,16 +605,16 @@ pub struct NetworkConfig {
 pub struct NetworkMountPoint {
     /// Network should be a default gateway.
     #[serde(default, rename = "defaultGateway")]
-    pub default_gateway: Option<bool>,
+    pub default_gateway: ::core::option::Option<bool>,
     /// Instance to attach network to.
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
     /// Ip address of the server.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// Logical interface to detach from.
     #[serde(default, rename = "logicalInterface")]
-    pub logical_interface: Option<String>,
+    pub logical_interface: ::core::option::Option<String>,
 }
 
 /// Network with all used IP addresses.
@@ -613,10 +622,10 @@ pub struct NetworkMountPoint {
 pub struct NetworkUsage {
     /// Network.
     #[serde(default)]
-    pub network: Option<Network>,
+    pub network: ::core::option::Option<::std::boxed::Box<Network>>,
     /// All used IP addresses in this network.
     #[serde(default, rename = "usedIps")]
-    pub used_ips: Option<Vec<String>>,
+    pub used_ips: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A NFS export entry.
@@ -624,25 +633,25 @@ pub struct NetworkUsage {
 pub struct NfsExport {
     /// Allow dev flag in NfsShare AllowedClientsRequest.
     #[serde(default, rename = "allowDev")]
-    pub allow_dev: Option<bool>,
+    pub allow_dev: ::core::option::Option<bool>,
     /// Allow the setuid flag.
     #[serde(default, rename = "allowSuid")]
-    pub allow_suid: Option<bool>,
+    pub allow_suid: ::core::option::Option<bool>,
     /// A CIDR range.
     #[serde(default)]
-    pub cidr: Option<String>,
+    pub cidr: ::core::option::Option<String>,
     /// Either a single machine, identified by an ID, or a comma-separated list of machine IDs.
     #[serde(default, rename = "machineId")]
-    pub machine_id: Option<String>,
+    pub machine_id: ::core::option::Option<String>,
     /// Network to use to publish the export.
     #[serde(default, rename = "networkId")]
-    pub network_id: Option<String>,
+    pub network_id: ::core::option::Option<String>,
     /// Disable root squashing, which is a feature of NFS. Root squash is a special mapping of the remote superuser (root) identity when using identity authentication.
     #[serde(default, rename = "noRootSquash")]
-    pub no_root_squash: Option<bool>,
+    pub no_root_squash: ::core::option::Option<bool>,
     /// Export permissions. // TODO: enum values: ["PERMISSIONS_UNSPECIFIED", "READ_ONLY", "READ_WRITE"]
     #[serde(default)]
-    pub permissions: Option<String>,
+    pub permissions: ::core::option::Option<String>,
 }
 
 /// An NFS share.
@@ -650,34 +659,34 @@ pub struct NfsExport {
 pub struct NfsShare {
     /// List of allowed access points.
     #[serde(default, rename = "allowedClients")]
-    pub allowed_clients: Option<Vec<AllowedClient>>,
+    pub allowed_clients: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AllowedClient>>>,
     /// Output only. An identifier for the NFS share, generated by the backend. This is the same value as nfs_share_id and will replace it in the future.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Immutable. The name of the NFS share.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. An identifier for the NFS share, generated by the backend. This field will be deprecated in the future, use id instead.
     #[serde(default, rename = "nfsShareId")]
-    pub nfs_share_id: Option<String>,
+    pub nfs_share_id: ::core::option::Option<String>,
     /// Immutable. Pod name. Pod is an independent part of infrastructure. NFSShare can only be connected to the assets (networks, instances) allocated in the same pod.
     #[serde(default)]
-    pub pod: Option<String>,
+    pub pod: ::core::option::Option<String>,
     /// The requested size, in GiB.
     #[serde(default, rename = "requestedSizeGib")]
-    pub requested_size_gib: Option<String>,
+    pub requested_size_gib: ::core::option::Option<String>,
     /// Output only. The state of the NFS share. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONED", "CREATING", "UPDATING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Immutable. The storage type of the underlying volume. // TODO: enum values: ["STORAGE_TYPE_UNSPECIFIED", "SSD", "HDD"]
     #[serde(default, rename = "storageType")]
-    pub storage_type: Option<String>,
+    pub storage_type: ::core::option::Option<String>,
     /// Output only. The underlying volume of the share. Created automatically during provisioning.
     #[serde(default)]
-    pub volume: Option<String>,
+    pub volume: ::core::option::Option<String>,
 }
 
 /// Operation System image.
@@ -685,19 +694,19 @@ pub struct NfsShare {
 pub struct OSImage {
     /// Instance types this image is applicable to. [Available types](https://cloud.google.com/bare-metal/docs/bms-planning#server_configurations)
     #[serde(default, rename = "applicableInstanceTypes")]
-    pub applicable_instance_types: Option<Vec<String>>,
+    pub applicable_instance_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// OS Image code.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// OS Image description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. OS Image''s unique name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Network templates that can be used with this OS Image.
     #[serde(default, rename = "supportedNetworkTemplates")]
-    pub supported_network_templates: Option<Vec<String>>,
+    pub supported_network_templates: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -705,19 +714,19 @@ pub struct OSImage {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// A provisioning configuration.
@@ -725,49 +734,49 @@ pub struct Operation {
 pub struct ProvisioningConfig {
     /// Output only. URI to Cloud Console UI view of this provisioning config.
     #[serde(default, rename = "cloudConsoleUri")]
-    pub cloud_console_uri: Option<String>,
+    pub cloud_console_uri: ::core::option::Option<String>,
     /// Optional. The user-defined identifier of the provisioning config.
     #[serde(default, rename = "customId")]
-    pub custom_id: Option<String>,
+    pub custom_id: ::core::option::Option<String>,
     /// Email provided to send a confirmation with provisioning config to. Deprecated in favour of email field in request messages.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// A service account to enable customers to access instance credentials upon handover.
     #[serde(default, rename = "handoverServiceAccount")]
-    pub handover_service_account: Option<String>,
+    pub handover_service_account: ::core::option::Option<String>,
     /// Instances to be created.
     #[serde(default)]
-    pub instances: Option<Vec<InstanceConfig>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstanceConfig>>>,
     /// Optional. Location name of this ProvisioningConfig. It is optional only for Intake UI transition period.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The system-generated name of the provisioning config. This follows the UUID format.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Networks to be created.
     #[serde(default)]
-    pub networks: Option<Vec<NetworkConfig>>,
+    pub networks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkConfig>>>,
     /// Optional. Pod name. Pod is an independent part of infrastructure. Instance can be connected to the assets (networks, volumes, nfsshares) allocated in the same pod only.
     #[serde(default)]
-    pub pod: Option<String>,
+    pub pod: ::core::option::Option<String>,
     /// Output only. State of ProvisioningConfig. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "SUBMITTED", "PROVISIONING", "PROVISIONED", "VALIDATED", "CANCELLED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional status messages associated with the FAILED state.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// A generated ticket id to track provisioning request.
     #[serde(default, rename = "ticketId")]
-    pub ticket_id: Option<String>,
+    pub ticket_id: ::core::option::Option<String>,
     /// Output only. Last update timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Volumes to be created.
     #[serde(default)]
-    pub volumes: Option<Vec<VolumeConfig>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VolumeConfig>>>,
     /// If true, VPC SC is enabled for the cluster.
     #[serde(default, rename = "vpcScEnabled")]
-    pub vpc_sc_enabled: Option<bool>,
+    pub vpc_sc_enabled: ::core::option::Option<bool>,
 }
 
 /// A provisioning quota for a given project.
@@ -775,31 +784,31 @@ pub struct ProvisioningConfig {
 pub struct ProvisioningQuota {
     /// The asset type of this provisioning quota. // TODO: enum values: ["ASSET_TYPE_UNSPECIFIED", "ASSET_TYPE_SERVER", "ASSET_TYPE_STORAGE", "ASSET_TYPE_NETWORK"]
     #[serde(default, rename = "assetType")]
-    pub asset_type: Option<String>,
+    pub asset_type: ::core::option::Option<String>,
     /// The available count of the provisioning quota.
     #[serde(default, rename = "availableCount")]
-    pub available_count: Option<i32>,
+    pub available_count: ::core::option::Option<i32>,
     /// The gcp service of the provisioning quota.
     #[serde(default, rename = "gcpService")]
-    pub gcp_service: Option<String>,
+    pub gcp_service: ::core::option::Option<String>,
     /// Instance quota.
     #[serde(default, rename = "instanceQuota")]
-    pub instance_quota: Option<InstanceQuota>,
+    pub instance_quota: ::core::option::Option<::std::boxed::Box<InstanceQuota>>,
     /// The specific location of the provisioining quota.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The name of the provisioning quota.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Network bandwidth, Gbps
     #[serde(default, rename = "networkBandwidth")]
-    pub network_bandwidth: Option<String>,
+    pub network_bandwidth: ::core::option::Option<String>,
     /// Server count.
     #[serde(default, rename = "serverCount")]
-    pub server_count: Option<String>,
+    pub server_count: ::core::option::Option<String>,
     /// Storage size (GB).
     #[serde(default, rename = "storageGib")]
-    pub storage_gib: Option<String>,
+    pub storage_gib: ::core::option::Option<String>,
 }
 
 /// QOS policy parameters.
@@ -807,7 +816,7 @@ pub struct ProvisioningQuota {
 pub struct QosPolicy {
     /// The bandwidth permitted by the QOS policy, in gbps.
     #[serde(default, rename = "bandwidthGbps")]
-    pub bandwidth_gbps: Option<f64>,
+    pub bandwidth_gbps: ::core::option::Option<f64>,
 }
 
 /// Message requesting to perform reimage operation on a server.
@@ -815,13 +824,13 @@ pub struct QosPolicy {
 pub struct ReimageInstanceRequest {
     /// Optional. Name of the KMS crypto key version used to encrypt the initial passwords. The key has to have ASYMMETRIC_DECRYPT purpose. Format is projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}/cryptoKeyVersions/{version}.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
     /// Required. The OS image code of the image which will be used in the reimage operation.
     #[serde(default, rename = "osImage")]
-    pub os_image: Option<String>,
+    pub os_image: ::core::option::Option<String>,
     /// Optional. List of SSH Keys used during reimaging an instance.
     #[serde(default, rename = "sshKeys")]
-    pub ssh_keys: Option<Vec<String>>,
+    pub ssh_keys: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message requesting rename of a server.
@@ -829,7 +838,7 @@ pub struct ReimageInstanceRequest {
 pub struct RenameInstanceRequest {
     /// Required. The new id of the instance.
     #[serde(default, rename = "newInstanceId")]
-    pub new_instance_id: Option<String>,
+    pub new_instance_id: ::core::option::Option<String>,
 }
 
 /// Message requesting rename of a server.
@@ -837,7 +846,7 @@ pub struct RenameInstanceRequest {
 pub struct RenameNetworkRequest {
     /// Required. The new id of the network.
     #[serde(default, rename = "newNetworkId")]
-    pub new_network_id: Option<String>,
+    pub new_network_id: ::core::option::Option<String>,
 }
 
 /// Message requesting rename of a server.
@@ -845,7 +854,7 @@ pub struct RenameNetworkRequest {
 pub struct RenameNfsShareRequest {
     /// Required. The new id of the nfsshare.
     #[serde(default, rename = "newNfsshareId")]
-    pub new_nfsshare_id: Option<String>,
+    pub new_nfsshare_id: ::core::option::Option<String>,
 }
 
 /// Message requesting rename of a server.
@@ -853,7 +862,7 @@ pub struct RenameNfsShareRequest {
 pub struct RenameVolumeRequest {
     /// Required. The new id of the volume.
     #[serde(default, rename = "newVolumeId")]
-    pub new_volume_id: Option<String>,
+    pub new_volume_id: ::core::option::Option<String>,
 }
 
 /// Request for emergency resize Volume.
@@ -861,7 +870,7 @@ pub struct RenameVolumeRequest {
 pub struct ResizeVolumeRequest {
     /// New Volume size, in GiB.
     #[serde(default, rename = "sizeGib")]
-    pub size_gib: Option<String>,
+    pub size_gib: ::core::option::Option<String>,
 }
 
 /// An SSH key, used for authorizing with the interactive serial console feature.
@@ -869,10 +878,10 @@ pub struct ResizeVolumeRequest {
 pub struct SSHKey {
     /// Output only. The name of this SSH key. Currently, the only valid value for the location is "global".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The public SSH key. This must be in OpenSSH .authorized_keys format.
     #[serde(default, rename = "publicKey")]
-    pub public_key: Option<String>,
+    pub public_key: ::core::option::Option<String>,
 }
 
 /// Network template.
@@ -880,14 +889,17 @@ pub struct SSHKey {
 pub struct ServerNetworkTemplate {
     /// Instance types this template is applicable to.
     #[serde(default, rename = "applicableInstanceTypes")]
-    pub applicable_instance_types: Option<Vec<String>>,
+    pub applicable_instance_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Logical interfaces.
     #[serde(default, rename = "logicalInterfaces")]
-    pub logical_interfaces:
-        Option<Vec<GoogleCloudBaremetalsolutionV2ServerNetworkTemplateLogicalInterface>>,
+    pub logical_interfaces: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudBaremetalsolutionV2ServerNetworkTemplateLogicalInterface>,
+        >,
+    >,
     /// Output only. Template''s unique name. The full resource name follows the pattern: projects/{project}/locations/{location}/serverNetworkTemplate/{server_network_template} Generally, the {server_network_template} follows the syntax of "bond" or "nic".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Details about snapshot space reservation and usage on the storage volume.
@@ -895,16 +907,16 @@ pub struct ServerNetworkTemplate {
 pub struct SnapshotReservationDetail {
     /// The space on this storage volume reserved for snapshots, shown in GiB.
     #[serde(default, rename = "reservedSpaceGib")]
-    pub reserved_space_gib: Option<String>,
+    pub reserved_space_gib: ::core::option::Option<String>,
     /// Percent of the total Volume size reserved for snapshot copies. Enabling snapshots requires reserving 20% or more of the storage volume space for snapshots. Maximum reserved space for snapshots is 40%. Setting this field will effectively set snapshot_enabled to true.
     #[serde(default, rename = "reservedSpacePercent")]
-    pub reserved_space_percent: Option<i32>,
+    pub reserved_space_percent: ::core::option::Option<i32>,
     /// The amount, in GiB, of available space in this storage volume''s reserved snapshot space.
     #[serde(default, rename = "reservedSpaceRemainingGib")]
-    pub reserved_space_remaining_gib: Option<String>,
+    pub reserved_space_remaining_gib: ::core::option::Option<String>,
     /// The percent of snapshot space on this storage volume actually being used by the snapshot copies. This value might be higher than 100% if the snapshot copies have overflowed into the data portion of the storage volume.
     #[serde(default, rename = "reservedSpaceUsedPercent")]
-    pub reserved_space_used_percent: Option<i32>,
+    pub reserved_space_used_percent: ::core::option::Option<i32>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -912,13 +924,13 @@ pub struct SnapshotReservationDetail {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Request for SubmitProvisioningConfig.
@@ -926,10 +938,10 @@ pub struct Status {
 pub struct SubmitProvisioningConfigRequest {
     /// Optional. Email provided to send a confirmation with provisioning config to.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Required. The ProvisioningConfig to create.
     #[serde(default, rename = "provisioningConfig")]
-    pub provisioning_config: Option<ProvisioningConfig>,
+    pub provisioning_config: ::core::option::Option<::std::boxed::Box<ProvisioningConfig>>,
 }
 
 /// Response for SubmitProvisioningConfig.
@@ -937,7 +949,7 @@ pub struct SubmitProvisioningConfigRequest {
 pub struct SubmitProvisioningConfigResponse {
     /// The submitted provisioning config.
     #[serde(default, rename = "provisioningConfig")]
-    pub provisioning_config: Option<ProvisioningConfig>,
+    pub provisioning_config: ::core::option::Option<::std::boxed::Box<ProvisioningConfig>>,
 }
 
 /// User account provisioned for the customer.
@@ -945,10 +957,10 @@ pub struct SubmitProvisioningConfigResponse {
 pub struct UserAccount {
     /// Encrypted initial password value.
     #[serde(default, rename = "encryptedPassword")]
-    pub encrypted_password: Option<String>,
+    pub encrypted_password: ::core::option::Option<String>,
     /// KMS CryptoKey Version used to encrypt the password.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
 }
 
 /// A network VRF.
@@ -956,16 +968,17 @@ pub struct UserAccount {
 pub struct VRF {
     /// The name of the VRF.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The QOS policy applied to this VRF. The value is only meaningful when all the vlan attachments have the same QoS. This field should not be used for new integrations, use vlan attachment level qos instead. The field is left for backward-compatibility.
     #[serde(default, rename = "qosPolicy")]
-    pub qos_policy: Option<QosPolicy>,
+    pub qos_policy: ::core::option::Option<::std::boxed::Box<QosPolicy>>,
     /// The possible state of VRF. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "PROVISIONED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The list of VLAN attachments for the VRF.
     #[serde(default, rename = "vlanAttachments")]
-    pub vlan_attachments: Option<Vec<VlanAttachment>>,
+    pub vlan_attachments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VlanAttachment>>>,
 }
 
 /// VLAN attachment details.
@@ -973,25 +986,25 @@ pub struct VRF {
 pub struct VlanAttachment {
     /// Immutable. The identifier of the attachment within vrf.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. The name of the vlan attachment within vrf. This is of the form projects/{project_number}/regions/{region}/interconnectAttachments/{interconnect_attachment}
     #[serde(default, rename = "interconnectAttachment")]
-    pub interconnect_attachment: Option<String>,
+    pub interconnect_attachment: ::core::option::Option<String>,
     /// Input only. Pairing key.
     #[serde(default, rename = "pairingKey")]
-    pub pairing_key: Option<String>,
+    pub pairing_key: ::core::option::Option<String>,
     /// The peer IP of the attachment.
     #[serde(default, rename = "peerIp")]
-    pub peer_ip: Option<String>,
+    pub peer_ip: ::core::option::Option<String>,
     /// The peer vlan ID of the attachment.
     #[serde(default, rename = "peerVlanId")]
-    pub peer_vlan_id: Option<String>,
+    pub peer_vlan_id: ::core::option::Option<String>,
     /// The QOS policy applied to this VLAN attachment. This value should be preferred to using qos at vrf level.
     #[serde(default, rename = "qosPolicy")]
-    pub qos_policy: Option<QosPolicy>,
+    pub qos_policy: ::core::option::Option<::std::boxed::Box<QosPolicy>>,
     /// The router IP of the attachment.
     #[serde(default, rename = "routerIp")]
-    pub router_ip: Option<String>,
+    pub router_ip: ::core::option::Option<String>,
 }
 
 /// A storage volume.
@@ -999,76 +1012,77 @@ pub struct VlanAttachment {
 pub struct Volume {
     /// Output only. Is the Volume attached at at least one instance. This field is a lightweight counterpart of instances field. It is filled in List responses as well.
     #[serde(default)]
-    pub attached: Option<bool>,
+    pub attached: ::core::option::Option<bool>,
     /// The size, in GiB, that this storage volume has expanded as a result of an auto grow policy. In the absence of auto-grow, the value is 0.
     #[serde(default, rename = "autoGrownSizeGib")]
-    pub auto_grown_size_gib: Option<String>,
+    pub auto_grown_size_gib: ::core::option::Option<String>,
     /// Output only. Whether this volume is a boot volume. A boot volume is one which contains a boot LUN.
     #[serde(default, rename = "bootVolume")]
-    pub boot_volume: Option<bool>,
+    pub boot_volume: ::core::option::Option<bool>,
     /// The current size of this storage volume, in GiB, including space reserved for snapshots. This size might be different than the requested size if the storage volume has been configured with auto grow or auto shrink.
     #[serde(default, rename = "currentSizeGib")]
-    pub current_size_gib: Option<String>,
+    pub current_size_gib: ::core::option::Option<String>,
     /// Additional emergency size that was requested for this Volume, in GiB. current_size_gib includes this value.
     #[serde(default, rename = "emergencySizeGib")]
-    pub emergency_size_gib: Option<String>,
+    pub emergency_size_gib: ::core::option::Option<String>,
     /// Output only. Time after which volume will be fully deleted. It is filled only for volumes in COOLOFF state.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// An identifier for the Volume, generated by the backend.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Instances this Volume is attached to. This field is set only in Get requests.
     #[serde(default)]
-    pub instances: Option<Vec<String>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<String>>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Maximum size volume can be expanded to in case of evergency, in GiB.
     #[serde(default, rename = "maxSizeGib")]
-    pub max_size_gib: Option<String>,
+    pub max_size_gib: ::core::option::Option<String>,
     /// Output only. The resource name of this Volume. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. Format: projects/{project}/locations/{location}/volumes/{volume}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Input only. User-specified notes for new Volume. Used to provision Volumes that require manual intervention.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// Originally requested size, in GiB.
     #[serde(default, rename = "originallyRequestedSizeGib")]
-    pub originally_requested_size_gib: Option<String>,
+    pub originally_requested_size_gib: ::core::option::Option<String>,
     /// Immutable. Performance tier of the Volume. Default is SHARED. // TODO: enum values: ["VOLUME_PERFORMANCE_TIER_UNSPECIFIED", "VOLUME_PERFORMANCE_TIER_SHARED", "VOLUME_PERFORMANCE_TIER_ASSIGNED", "VOLUME_PERFORMANCE_TIER_HT", "VOLUME_PERFORMANCE_TIER_QOS2_PERFORMANCE"]
     #[serde(default, rename = "performanceTier")]
-    pub performance_tier: Option<String>,
+    pub performance_tier: ::core::option::Option<String>,
     /// Immutable. Pod name. Pod is an independent part of infrastructure. Volume can only be connected to the instances allocated in the same pod.
     #[serde(default)]
-    pub pod: Option<String>,
+    pub pod: ::core::option::Option<String>,
     /// Output only. Storage protocol for the Volume. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "FIBRE_CHANNEL", "NFS"]
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
     /// The space remaining in the storage volume for new LUNs, in GiB, excluding space reserved for snapshots.
     #[serde(default, rename = "remainingSpaceGib")]
-    pub remaining_space_gib: Option<String>,
+    pub remaining_space_gib: ::core::option::Option<String>,
     /// The requested size of this storage volume, in GiB.
     #[serde(default, rename = "requestedSizeGib")]
-    pub requested_size_gib: Option<String>,
+    pub requested_size_gib: ::core::option::Option<String>,
     /// The behavior to use when snapshot reserved space is full. // TODO: enum values: ["SNAPSHOT_AUTO_DELETE_BEHAVIOR_UNSPECIFIED", "DISABLED", "OLDEST_FIRST", "NEWEST_FIRST"]
     #[serde(default, rename = "snapshotAutoDeleteBehavior")]
-    pub snapshot_auto_delete_behavior: Option<String>,
+    pub snapshot_auto_delete_behavior: ::core::option::Option<String>,
     /// Whether snapshots are enabled.
     #[serde(default, rename = "snapshotEnabled")]
-    pub snapshot_enabled: Option<bool>,
+    pub snapshot_enabled: ::core::option::Option<bool>,
     /// Details about snapshot space reservation and usage on the storage volume.
     #[serde(default, rename = "snapshotReservationDetail")]
-    pub snapshot_reservation_detail: Option<SnapshotReservationDetail>,
+    pub snapshot_reservation_detail:
+        ::core::option::Option<::std::boxed::Box<SnapshotReservationDetail>>,
     /// The state of this storage volume. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "DELETING", "UPDATING", "COOL_OFF"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The storage type for this volume. // TODO: enum values: ["STORAGE_TYPE_UNSPECIFIED", "SSD", "HDD"]
     #[serde(default, rename = "storageType")]
-    pub storage_type: Option<String>,
+    pub storage_type: ::core::option::Option<String>,
     /// The workload profile for the volume. // TODO: enum values: ["WORKLOAD_PROFILE_UNSPECIFIED", "GENERIC", "HANA"]
     #[serde(default, rename = "workloadProfile")]
-    pub workload_profile: Option<String>,
+    pub workload_profile: ::core::option::Option<String>,
 }
 
 /// Configuration parameters for a new volume.
@@ -1076,40 +1090,40 @@ pub struct Volume {
 pub struct VolumeConfig {
     /// The GCP service of the storage volume. Available gcp_service are in https://cloud.google.com/bare-metal/docs/bms-planning.
     #[serde(default, rename = "gcpService")]
-    pub gcp_service: Option<String>,
+    pub gcp_service: ::core::option::Option<String>,
     /// A transient unique identifier to identify a volume within an ProvisioningConfig request.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// LUN ranges to be configured. Set only when protocol is PROTOCOL_FC.
     #[serde(default, rename = "lunRanges")]
-    pub lun_ranges: Option<Vec<LunRange>>,
+    pub lun_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LunRange>>>,
     /// Machine ids connected to this volume. Set only when protocol is PROTOCOL_FC.
     #[serde(default, rename = "machineIds")]
-    pub machine_ids: Option<Vec<String>>,
+    pub machine_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The name of the volume config.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// NFS exports. Set only when protocol is PROTOCOL_NFS.
     #[serde(default, rename = "nfsExports")]
-    pub nfs_exports: Option<Vec<NfsExport>>,
+    pub nfs_exports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NfsExport>>>,
     /// Performance tier of the Volume. Default is SHARED. // TODO: enum values: ["VOLUME_PERFORMANCE_TIER_UNSPECIFIED", "VOLUME_PERFORMANCE_TIER_SHARED", "VOLUME_PERFORMANCE_TIER_ASSIGNED", "VOLUME_PERFORMANCE_TIER_HT", "VOLUME_PERFORMANCE_TIER_QOS2_PERFORMANCE"]
     #[serde(default, rename = "performanceTier")]
-    pub performance_tier: Option<String>,
+    pub performance_tier: ::core::option::Option<String>,
     /// Volume protocol. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "PROTOCOL_FC", "PROTOCOL_NFS"]
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
     /// The requested size of this volume, in GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<i32>,
+    pub size_gb: ::core::option::Option<i32>,
     /// Whether snapshots should be enabled.
     #[serde(default, rename = "snapshotsEnabled")]
-    pub snapshots_enabled: Option<bool>,
+    pub snapshots_enabled: ::core::option::Option<bool>,
     /// The type of this Volume. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLASH", "DISK"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// User note field, it can be used by customers to add additional information for the BMS Ops team .
     #[serde(default, rename = "userNote")]
-    pub user_note: Option<String>,
+    pub user_note: ::core::option::Option<String>,
 }
 
 /// A snapshot of a volume. Only boot volumes can have snapshots.
@@ -1117,20 +1131,20 @@ pub struct VolumeConfig {
 pub struct VolumeSnapshot {
     /// Output only. The creation time of the snapshot.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The description of the snapshot.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. An identifier for the snapshot, generated by the backend.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The name of the snapshot.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The name of the volume which this snapshot belongs to.
     #[serde(default, rename = "storageVolume")]
-    pub storage_volume: Option<String>,
+    pub storage_volume: ::core::option::Option<String>,
     /// Output only. The type of the snapshot which indicates whether it was scheduled or manual/ad-hoc. // TODO: enum values: ["SNAPSHOT_TYPE_UNSPECIFIED", "AD_HOC", "SCHEDULED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }

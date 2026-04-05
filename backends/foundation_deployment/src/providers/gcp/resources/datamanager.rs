@@ -10,27 +10,27 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Identifiers and other information used to match the conversion event with other online activity (such as ad clicks).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdIdentifiers {
     /// Optional. The click identifier for clicks associated with app events and originating from iOS devices starting with iOS14.
     #[serde(default)]
-    pub gbraid: Option<String>,
+    pub gbraid: ::core::option::Option<String>,
     /// Optional. The Google click ID (gclid) associated with this event.
     #[serde(default)]
-    pub gclid: Option<String>,
+    pub gclid: ::core::option::Option<String>,
     /// Optional. Information gathered about the device being used (if any) at the time of landing onto the advertiser’s site after interacting with the ad.
     #[serde(default, rename = "landingPageDeviceInfo")]
-    pub landing_page_device_info: Option<DeviceInfo>,
+    pub landing_page_device_info: ::core::option::Option<::std::boxed::Box<DeviceInfo>>,
     /// Optional. Session attributes for event attribution and modeling.
     #[serde(default, rename = "sessionAttributes")]
-    pub session_attributes: Option<String>,
+    pub session_attributes: ::core::option::Option<String>,
     /// Optional. The click identifier for clicks associated with web events and originating from iOS devices starting with iOS14.
     #[serde(default)]
-    pub wbraid: Option<String>,
+    pub wbraid: ::core::option::Option<String>,
 }
 
 /// Address information for the user.
@@ -38,16 +38,16 @@ pub struct AdIdentifiers {
 pub struct AddressInfo {
     /// Required. Family (last) name of the user, all lowercase, with no punctuation, no leading or trailing whitespace, and hashed as SHA-256.
     #[serde(default, rename = "familyName")]
-    pub family_name: Option<String>,
+    pub family_name: ::core::option::Option<String>,
     /// Required. Given (first) name of the user, all lowercase, with no punctuation, no leading or trailing whitespace, and hashed as SHA-256.
     #[serde(default, rename = "givenName")]
-    pub given_name: Option<String>,
+    pub given_name: ::core::option::Option<String>,
     /// Required. The postal code of the user''s address.
     #[serde(default, rename = "postalCode")]
-    pub postal_code: Option<String>,
+    pub postal_code: ::core::option::Option<String>,
     /// Required. The 2-letter region code in ISO-3166-1 alpha-2 of the user''s address.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
 }
 
 /// The audience member to be operated on.
@@ -55,25 +55,25 @@ pub struct AddressInfo {
 pub struct AudienceMember {
     /// Optional. The consent setting for the user.
     #[serde(default)]
-    pub consent: Option<Consent>,
+    pub consent: ::core::option::Option<::std::boxed::Box<Consent>>,
     /// Optional. Defines which Destination to send the audience member to.
     #[serde(default, rename = "destinationReferences")]
-    pub destination_references: Option<Vec<String>>,
+    pub destination_references: ::core::option::Option<::std::vec::Vec<String>>,
     /// Data identifying the user''s mobile devices.
     #[serde(default, rename = "mobileData")]
-    pub mobile_data: Option<MobileData>,
+    pub mobile_data: ::core::option::Option<::std::boxed::Box<MobileData>>,
     /// [Publisher Advertiser Identity Reconciliation (PAIR) IDs](//support.google.com/admanager/answer/15067908). This feature is only available to data partners.
     #[serde(default, rename = "pairData")]
-    pub pair_data: Option<PairData>,
+    pub pair_data: ::core::option::Option<::std::boxed::Box<PairData>>,
     /// Data related to publisher provided identifiers. This feature is only available to data partners.
     #[serde(default, rename = "ppidData")]
-    pub ppid_data: Option<PpidData>,
+    pub ppid_data: ::core::option::Option<::std::boxed::Box<PpidData>>,
     /// User-provided data that identifies the user.
     #[serde(default, rename = "userData")]
-    pub user_data: Option<UserData>,
+    pub user_data: ::core::option::Option<::std::boxed::Box<UserData>>,
     /// Data related to unique identifiers for a user, as defined by the advertiser.
     #[serde(default, rename = "userIdData")]
-    pub user_id_data: Option<UserIdData>,
+    pub user_id_data: ::core::option::Option<::std::boxed::Box<UserIdData>>,
 }
 
 /// A data encryption key wrapped by an AWS KMS key.
@@ -81,16 +81,16 @@ pub struct AudienceMember {
 pub struct AwsWrappedKeyInfo {
     /// Required. The base64 encoded encrypted data encryption key.
     #[serde(default, rename = "encryptedDek")]
-    pub encrypted_dek: Option<String>,
+    pub encrypted_dek: ::core::option::Option<String>,
     /// Required. The URI of the AWS KMS key used to decrypt the DEK. Should be in the format of arn:{partition}:kms:{region}:{account_id}:key/{key_id} or aws-kms://arn:{partition}:kms:{region}:{account_id}:key/{key_id}
     #[serde(default, rename = "kekUri")]
-    pub kek_uri: Option<String>,
+    pub kek_uri: ::core::option::Option<String>,
     /// Required. The type of algorithm used to encrypt the data. // TODO: enum values: ["KEY_TYPE_UNSPECIFIED", "XCHACHA20_POLY1305"]
     #[serde(default, rename = "keyType")]
-    pub key_type: Option<String>,
+    pub key_type: ::core::option::Option<String>,
     /// Required. The Amazon Resource Name of the IAM Role to assume for KMS decryption access. Should be in the format of arn:{partition}:iam::{account_id}:role/{role_name}
     #[serde(default, rename = "roleArn")]
-    pub role_arn: Option<String>,
+    pub role_arn: ::core::option::Option<String>,
 }
 
 /// Baseline criteria against which insights are compared.
@@ -98,10 +98,10 @@ pub struct AwsWrappedKeyInfo {
 pub struct Baseline {
     /// The baseline location of the request. Baseline location is an OR-list of the requested regions.
     #[serde(default, rename = "baselineLocation")]
-    pub baseline_location: Option<Location>,
+    pub baseline_location: ::core::option::Option<::std::boxed::Box<Location>>,
     /// If set to true, the service will try to automatically detect the baseline location for insights.
     #[serde(default, rename = "locationAutoDetectionEnabled")]
-    pub location_auto_detection_enabled: Option<bool>,
+    pub location_auto_detection_enabled: ::core::option::Option<bool>,
 }
 
 /// The cart data associated with the event.
@@ -109,19 +109,19 @@ pub struct Baseline {
 pub struct CartData {
     /// Optional. The list of items associated with the event.
     #[serde(default)]
-    pub items: Option<Vec<Item>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Item>>>,
     /// Optional. The Merchant Center feed label associated with the feed of the items.
     #[serde(default, rename = "merchantFeedLabel")]
-    pub merchant_feed_label: Option<String>,
+    pub merchant_feed_label: ::core::option::Option<String>,
     /// Optional. The language code in ISO 639-1 associated with the Merchant Center feed of the items.where your items are uploaded.
     #[serde(default, rename = "merchantFeedLanguageCode")]
-    pub merchant_feed_language_code: Option<String>,
+    pub merchant_feed_language_code: ::core::option::Option<String>,
     /// Optional. The Merchant Center ID associated with the items.
     #[serde(default, rename = "merchantId")]
-    pub merchant_id: Option<String>,
+    pub merchant_id: ::core::option::Option<String>,
     /// Optional. The sum of all discounts associated with the transaction.
     #[serde(default, rename = "transactionDiscount")]
-    pub transaction_discount: Option<f64>,
+    pub transaction_discount: ::core::option::Option<f64>,
 }
 
 /// [Digital Markets Act (DMA)](//digital-markets-act.ec.europa.eu/index_en) consent settings for the user.
@@ -129,10 +129,10 @@ pub struct CartData {
 pub struct Consent {
     /// Optional. Represents if the user consents to ad personalization. // TODO: enum values: ["CONSENT_STATUS_UNSPECIFIED", "CONSENT_GRANTED", "CONSENT_DENIED"]
     #[serde(default, rename = "adPersonalization")]
-    pub ad_personalization: Option<String>,
+    pub ad_personalization: ::core::option::Option<String>,
     /// Optional. Represents if the user consents to ad user data. // TODO: enum values: ["CONSENT_STATUS_UNSPECIFIED", "CONSENT_GRANTED", "CONSENT_DENIED"]
     #[serde(default, rename = "adUserData")]
-    pub ad_user_data: Option<String>,
+    pub ad_user_data: ::core::option::Option<String>,
 }
 
 /// Additional information when CONTACT_ID is one of the upload_key_types.
@@ -140,10 +140,10 @@ pub struct Consent {
 pub struct ContactIdInfo {
     /// Optional. Immutable. Source of the upload data // TODO: enum values: ["DATA_SOURCE_TYPE_UNSPECIFIED", "DATA_SOURCE_TYPE_FIRST_PARTY", "DATA_SOURCE_TYPE_THIRD_PARTY_CREDIT_BUREAU", "DATA_SOURCE_TYPE_THIRD_PARTY_VOTER_FILE", "DATA_SOURCE_TYPE_THIRD_PARTY_PARTNER_DATA"]
     #[serde(default, rename = "dataSourceType")]
-    pub data_source_type: Option<String>,
+    pub data_source_type: ::core::option::Option<String>,
     /// Output only. Match rate for customer match user lists.
     #[serde(default, rename = "matchRatePercentage")]
-    pub match_rate_percentage: Option<i32>,
+    pub match_rate_percentage: ::core::option::Option<i32>,
 }
 
 /// Custom variable for ads conversions.
@@ -151,13 +151,13 @@ pub struct ContactIdInfo {
 pub struct CustomVariable {
     /// Optional. Reference string used to determine which of the Event.destination_references the custom variable should be sent to. If empty, the Event.destination_references will be used.
     #[serde(default, rename = "destinationReferences")]
-    pub destination_references: Option<Vec<String>>,
+    pub destination_references: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The value to store for the custom variable.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
     /// Optional. The name of the custom variable to set. If the variable is not found for the given destination, it will be ignored.
     #[serde(default)]
-    pub variable: Option<String>,
+    pub variable: ::core::option::Option<String>,
 }
 
 /// The Google product you''re sending data to. For example, a Google Ads account.
@@ -165,19 +165,19 @@ pub struct CustomVariable {
 pub struct Destination {
     /// Optional. An account that the calling user''s login_account has access to, through an established account link. For example, a data partner''s login_account might have access to a client''s linked_account. The partner might use this field to send data from the linked_account to another operating_account.
     #[serde(default, rename = "linkedAccount")]
-    pub linked_account: Option<ProductAccount>,
+    pub linked_account: ::core::option::Option<::std::boxed::Box<ProductAccount>>,
     /// Optional. The account used to make this API call. To add or remove data from the operating_account, this login_account must have write access to the operating_account. For example, a manager account of the operating_account, or an account with an established link to the operating_account.
     #[serde(default, rename = "loginAccount")]
-    pub login_account: Option<ProductAccount>,
+    pub login_account: ::core::option::Option<::std::boxed::Box<ProductAccount>>,
     /// Required. The account to send the data to or remove the data from.
     #[serde(default, rename = "operatingAccount")]
-    pub operating_account: Option<ProductAccount>,
+    pub operating_account: ::core::option::Option<::std::boxed::Box<ProductAccount>>,
     /// Required. The object within the product account to ingest into. For example, a Google Ads audience ID, a Display & Video 360 audience ID or a Google Ads conversion action ID.
     #[serde(default, rename = "productDestinationId")]
-    pub product_destination_id: Option<String>,
+    pub product_destination_id: ::core::option::Option<String>,
     /// Optional. ID for this Destination resource, unique within the request. Use to reference this Destination in the IngestEventsRequest and IngestAudienceMembersRequest.
     #[serde(default)]
-    pub reference: Option<String>,
+    pub reference: ::core::option::Option<String>,
 }
 
 /// Information about the device being used (if any) when the event happened.
@@ -185,10 +185,10 @@ pub struct Destination {
 pub struct DeviceInfo {
     /// Optional. The IP address of the device for the given context. **Note:** Google Ads does not support IP address matching for end users in the European Economic Area (EEA), United Kingdom (UK), or Switzerland (CH). Add logic to conditionally exclude sharing IP addresses from users from these regions and ensure that you provide users with clear and comprehensive information about the data you collect on your sites, apps, and other properties and get consent where required by law or any applicable Google policies. See the [About offline conversion imports](https://support.google.com/google-ads/answer/2998031) page for more details.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// Optional. The user-agent string of the device for the given context.
     #[serde(default, rename = "userAgent")]
-    pub user_agent: Option<String>,
+    pub user_agent: ::core::option::Option<String>,
 }
 
 /// Encryption information for the data being ingested.
@@ -196,10 +196,10 @@ pub struct DeviceInfo {
 pub struct EncryptionInfo {
     /// Amazon Web Services wrapped key information.
     #[serde(default, rename = "awsWrappedKeyInfo")]
-    pub aws_wrapped_key_info: Option<AwsWrappedKeyInfo>,
+    pub aws_wrapped_key_info: ::core::option::Option<::std::boxed::Box<AwsWrappedKeyInfo>>,
     /// Google Cloud Platform wrapped key information.
     #[serde(default, rename = "gcpWrappedKeyInfo")]
-    pub gcp_wrapped_key_info: Option<GcpWrappedKeyInfo>,
+    pub gcp_wrapped_key_info: ::core::option::Option<::std::boxed::Box<GcpWrappedKeyInfo>>,
 }
 
 /// The error count for a given error reason.
@@ -207,10 +207,10 @@ pub struct EncryptionInfo {
 pub struct ErrorCount {
     /// The error reason of the failed records. // TODO: enum values: ["PROCESSING_ERROR_REASON_UNSPECIFIED", "PROCESSING_ERROR_REASON_INVALID_CUSTOM_VARIABLE", "PROCESSING_ERROR_REASON_CUSTOM_VARIABLE_NOT_ENABLED", "PROCESSING_ERROR_REASON_EVENT_TOO_OLD", "PROCESSING_ERROR_REASON_DENIED_CONSENT", "PROCESSING_ERROR_REASON_NO_CONSENT", "PROCESSING_ERROR_REASON_UNKNOWN_CONSENT", "PROCESSING_ERROR_REASON_DUPLICATE_GCLID", "PROCESSING_ERROR_REASON_DUPLICATE_TRANSACTION_ID", "PROCESSING_ERROR_REASON_INVALID_GBRAID", "PROCESSING_ERROR_REASON_INVALID_GCLID", "PROCESSING_ERROR_REASON_INVALID_MERCHANT_ID", "PROCESSING_ERROR_REASON_INVALID_WBRAID", "PROCESSING_ERROR_REASON_INTERNAL_ERROR", "PROCESSING_ERROR_REASON_DESTINATION_ACCOUNT_ENHANCED_CONVERSIONS_TERMS_NOT_SIGNED", "PROCESSING_ERROR_REASON_INVALID_EVENT", "PROCESSING_ERROR_REASON_INSUFFICIENT_MATCHED_TRANSACTIONS", "PROCESSING_ERROR_REASON_INSUFFICIENT_TRANSACTIONS", "PROCESSING_ERROR_REASON_INVALID_FORMAT", "PROCESSING_ERROR_REASON_DECRYPTION_ERROR", "PROCESSING_ERROR_REASON_DEK_DECRYPTION_ERROR", "PROCESSING_ERROR_REASON_INVALID_WIP", "PROCESSING_ERROR_REASON_INVALID_KEK", "PROCESSING_ERROR_REASON_WIP_AUTH_FAILED", "PROCESSING_ERROR_REASON_KEK_PERMISSION_DENIED", "PROCESSING_ERROR_REASON_AWS_AUTH_FAILED", "PROCESSING_ERROR_REASON_USER_IDENTIFIER_DECRYPTION_ERROR", "PROCESSING_ERROR_OPERATING_ACCOUNT_MISMATCH_FOR_AD_IDENTIFIER"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// The count of records that failed to upload for a given reason.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// Error counts for each type of error.
@@ -218,7 +218,7 @@ pub struct ErrorCount {
 pub struct ErrorInfo {
     /// A list of errors and counts per error reason. May not be populated in all cases.
     #[serde(default, rename = "errorCounts")]
-    pub error_counts: Option<Vec<ErrorCount>>,
+    pub error_counts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ErrorCount>>>,
 }
 
 /// An event representing a user interaction with an advertiser''s website or app.
@@ -226,61 +226,64 @@ pub struct ErrorInfo {
 pub struct Event {
     /// Optional. Identifiers and other information used to match the conversion event with other online activity (such as ad clicks).
     #[serde(default, rename = "adIdentifiers")]
-    pub ad_identifiers: Option<AdIdentifiers>,
+    pub ad_identifiers: ::core::option::Option<::std::boxed::Box<AdIdentifiers>>,
     /// Optional. A bucket of any [event parameters](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events) to be included within the event that were not already specified using other structured fields.
     #[serde(default, rename = "additionalEventParameters")]
-    pub additional_event_parameters: Option<Vec<EventParameter>>,
+    pub additional_event_parameters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventParameter>>>,
     /// Optional. Information about the transaction and items associated with the event.
     #[serde(default, rename = "cartData")]
-    pub cart_data: Option<CartData>,
+    pub cart_data: ::core::option::Option<::std::boxed::Box<CartData>>,
     /// Optional. A unique identifier for the user instance of a web client for this GA4 web stream.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Optional. Information about whether the associated user has provided different types of consent.
     #[serde(default)]
-    pub consent: Option<Consent>,
+    pub consent: ::core::option::Option<::std::boxed::Box<Consent>>,
     /// Optional. The conversion value associated with the event, for value-based conversions.
     #[serde(default, rename = "conversionValue")]
-    pub conversion_value: Option<f64>,
+    pub conversion_value: ::core::option::Option<f64>,
     /// Optional. The currency code associated with all monetary values within this event.
     #[serde(default)]
-    pub currency: Option<String>,
+    pub currency: ::core::option::Option<String>,
     /// Optional. Additional key/value pair information to send to the conversion containers (conversion action or FL activity).
     #[serde(default, rename = "customVariables")]
-    pub custom_variables: Option<Vec<CustomVariable>>,
+    pub custom_variables:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomVariable>>>,
     /// Optional. Reference string used to determine the destination. If empty, the event will be sent to all destinations in the request.
     #[serde(default, rename = "destinationReferences")]
-    pub destination_references: Option<Vec<String>>,
+    pub destination_references: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Information gathered about the device being used (if any) when the event happened.
     #[serde(default, rename = "eventDeviceInfo")]
-    pub event_device_info: Option<DeviceInfo>,
+    pub event_device_info: ::core::option::Option<::std::boxed::Box<DeviceInfo>>,
     /// Optional. The name of the event. Required for GA4 events.
     #[serde(default, rename = "eventName")]
-    pub event_name: Option<String>,
+    pub event_name: ::core::option::Option<String>,
     /// Optional. Signal for where the event happened (web, app, in-store, etc.). // TODO: enum values: ["EVENT_SOURCE_UNSPECIFIED", "WEB", "APP", "IN_STORE", "PHONE", "OTHER"]
     #[serde(default, rename = "eventSource")]
-    pub event_source: Option<String>,
+    pub event_source: ::core::option::Option<String>,
     /// Required. The time the event occurred.
     #[serde(default, rename = "eventTimestamp")]
-    pub event_timestamp: Option<String>,
+    pub event_timestamp: ::core::option::Option<String>,
     /// Optional. A list of key/value pairs for experimental fields that may eventually be promoted to be part of the API.
     #[serde(default, rename = "experimentalFields")]
-    pub experimental_fields: Option<Vec<ExperimentalField>>,
+    pub experimental_fields:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExperimentalField>>>,
     /// Optional. The last time the event was updated.
     #[serde(default, rename = "lastUpdatedTimestamp")]
-    pub last_updated_timestamp: Option<String>,
+    pub last_updated_timestamp: ::core::option::Option<String>,
     /// Optional. The unique identifier for this event. Required for conversions using multiple data sources.
     #[serde(default, rename = "transactionId")]
-    pub transaction_id: Option<String>,
+    pub transaction_id: ::core::option::Option<String>,
     /// Optional. Pieces of user provided data, representing the user the event is associated with.
     #[serde(default, rename = "userData")]
-    pub user_data: Option<UserData>,
+    pub user_data: ::core::option::Option<::std::boxed::Box<UserData>>,
     /// Optional. A unique identifier for a user, as defined by the advertiser.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
     /// Optional. Advertiser-assessed information about the user at the time that the event happened.
     #[serde(default, rename = "userProperties")]
-    pub user_properties: Option<UserProperties>,
+    pub user_properties: ::core::option::Option<::std::boxed::Box<UserProperties>>,
 }
 
 /// Event parameter for GA4 events.
@@ -288,10 +291,10 @@ pub struct Event {
 pub struct EventParameter {
     /// Required. The name of the parameter to use.
     #[serde(default, rename = "parameterName")]
-    pub parameter_name: Option<String>,
+    pub parameter_name: ::core::option::Option<String>,
     /// Required. The string representation of the value of the parameter to set.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Experimental field representing unofficial fields.
@@ -299,10 +302,10 @@ pub struct EventParameter {
 pub struct ExperimentalField {
     /// Optional. The name of the field to use.
     #[serde(default)]
-    pub field: Option<String>,
+    pub field: ::core::option::Option<String>,
     /// Optional. The value the field to set.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Information about the Google Cloud Platform wrapped key.
@@ -310,16 +313,16 @@ pub struct ExperimentalField {
 pub struct GcpWrappedKeyInfo {
     /// Required. The base64 encoded encrypted data encryption key.
     #[serde(default, rename = "encryptedDek")]
-    pub encrypted_dek: Option<String>,
+    pub encrypted_dek: ::core::option::Option<String>,
     /// Required. Google Cloud Platform [Cloud Key Management Service resource ID](//cloud.google.com/kms/docs/getting-resource-ids). Should be in the format of projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{key} or gcp-kms://projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{key}
     #[serde(default, rename = "kekUri")]
-    pub kek_uri: Option<String>,
+    pub kek_uri: ::core::option::Option<String>,
     /// Required. The type of algorithm used to encrypt the data. // TODO: enum values: ["KEY_TYPE_UNSPECIFIED", "XCHACHA20_POLY1305"]
     #[serde(default, rename = "keyType")]
-    pub key_type: Option<String>,
+    pub key_type: ::core::option::Option<String>,
     /// Required. The [Workload Identity](//cloud.google.com/iam/docs/workload-identity-federation) pool provider required to use KEK.
     #[serde(default, rename = "wipProvider")]
-    pub wip_provider: Option<String>,
+    pub wip_provider: ::core::option::Option<String>,
 }
 
 /// Request to upload audience members to the provided destinations. Returns an IngestAudienceMembersResponse.
@@ -327,25 +330,26 @@ pub struct GcpWrappedKeyInfo {
 pub struct IngestAudienceMembersRequest {
     /// Required. The list of users to send to the specified destinations. At most 10000 AudienceMember resources can be sent in a single request.
     #[serde(default, rename = "audienceMembers")]
-    pub audience_members: Option<Vec<AudienceMember>>,
+    pub audience_members:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AudienceMember>>>,
     /// Optional. Request-level consent to apply to all users in the request. User-level consent overrides request-level consent, and can be specified in each AudienceMember.
     #[serde(default)]
-    pub consent: Option<Consent>,
+    pub consent: ::core::option::Option<::std::boxed::Box<Consent>>,
     /// Required. The list of destinations to send the audience members to.
     #[serde(default)]
-    pub destinations: Option<Vec<Destination>>,
+    pub destinations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Destination>>>,
     /// Optional. Required for UserData uploads. The encoding type of the user identifiers. For hashed user identifiers, this is the encoding type of the hashed string. For encrypted hashed user identifiers, this is the encoding type of the outer encrypted string, but not necessarily the inner hashed string, meaning the inner hashed string could be encoded in a different way than the outer encrypted string. For non UserData uploads, this field is ignored. // TODO: enum values: ["ENCODING_UNSPECIFIED", "HEX", "BASE64"]
     #[serde(default)]
-    pub encoding: Option<String>,
+    pub encoding: ::core::option::Option<String>,
     /// Optional. Encryption information for UserData uploads. If not set, it''s assumed that uploaded identifying information is hashed but not encrypted. For non UserData uploads, this field is ignored.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Optional. The terms of service that the user has accepted/rejected.
     #[serde(default, rename = "termsOfService")]
-    pub terms_of_service: Option<TermsOfService>,
+    pub terms_of_service: ::core::option::Option<::std::boxed::Box<TermsOfService>>,
     /// Optional. For testing purposes. If true, the request is validated but not executed. Only errors are returned, not results.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response from the IngestAudienceMembersRequest.
@@ -353,7 +357,7 @@ pub struct IngestAudienceMembersRequest {
 pub struct IngestAudienceMembersResponse {
     /// The auto-generated ID of the request.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// The status of the ingest audience members request.
@@ -361,19 +365,21 @@ pub struct IngestAudienceMembersResponse {
 pub struct IngestAudienceMembersStatus {
     /// The status of the mobile data ingestion to the destination.
     #[serde(default, rename = "mobileDataIngestionStatus")]
-    pub mobile_data_ingestion_status: Option<IngestMobileDataStatus>,
+    pub mobile_data_ingestion_status:
+        ::core::option::Option<::std::boxed::Box<IngestMobileDataStatus>>,
     /// The status of the pair data ingestion to the destination.
     #[serde(default, rename = "pairDataIngestionStatus")]
-    pub pair_data_ingestion_status: Option<IngestPairDataStatus>,
+    pub pair_data_ingestion_status: ::core::option::Option<::std::boxed::Box<IngestPairDataStatus>>,
     /// The status of the ppid data ingestion to the destination.
     #[serde(default, rename = "ppidDataIngestionStatus")]
-    pub ppid_data_ingestion_status: Option<IngestPpidDataStatus>,
+    pub ppid_data_ingestion_status: ::core::option::Option<::std::boxed::Box<IngestPpidDataStatus>>,
     /// The status of the user data ingestion to the destination.
     #[serde(default, rename = "userDataIngestionStatus")]
-    pub user_data_ingestion_status: Option<IngestUserDataStatus>,
+    pub user_data_ingestion_status: ::core::option::Option<::std::boxed::Box<IngestUserDataStatus>>,
     /// The status of the user id data ingestion to the destination.
     #[serde(default, rename = "userIdDataIngestionStatus")]
-    pub user_id_data_ingestion_status: Option<IngestUserIdDataStatus>,
+    pub user_id_data_ingestion_status:
+        ::core::option::Option<::std::boxed::Box<IngestUserIdDataStatus>>,
 }
 
 /// Request to upload audience members to the provided destinations. Returns an IngestEventsResponse.
@@ -381,22 +387,22 @@ pub struct IngestAudienceMembersStatus {
 pub struct IngestEventsRequest {
     /// Optional. Request-level consent to apply to all users in the request. User-level consent overrides request-level consent, and can be specified in each Event.
     #[serde(default)]
-    pub consent: Option<Consent>,
+    pub consent: ::core::option::Option<::std::boxed::Box<Consent>>,
     /// Required. The list of destinations to send the events to.
     #[serde(default)]
-    pub destinations: Option<Vec<Destination>>,
+    pub destinations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Destination>>>,
     /// Optional. Required for UserData uploads. The encoding type of the user identifiers. For hashed user identifiers, this is the encoding type of the hashed string. For encrypted hashed user identifiers, this is the encoding type of the outer encrypted string, but not necessarily the inner hashed string, meaning the inner hashed string could be encoded in a different way than the outer encrypted string. For non UserData uploads, this field is ignored. // TODO: enum values: ["ENCODING_UNSPECIFIED", "HEX", "BASE64"]
     #[serde(default)]
-    pub encoding: Option<String>,
+    pub encoding: ::core::option::Option<String>,
     /// Optional. Encryption information for UserData uploads. If not set, it''s assumed that uploaded identifying information is hashed but not encrypted. For non UserData uploads, this field is ignored.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Required. The list of events to send to the specified destinations. At most 2000 Event resources can be sent in a single request.
     #[serde(default)]
-    pub events: Option<Vec<Event>>,
+    pub events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Event>>>,
     /// Optional. For testing purposes. If true, the request is validated but not executed. Only errors are returned, not results.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response from the IngestEventsRequest.
@@ -404,7 +410,7 @@ pub struct IngestEventsRequest {
 pub struct IngestEventsResponse {
     /// The auto-generated ID of the request.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// The status of the events ingestion to the destination.
@@ -412,7 +418,7 @@ pub struct IngestEventsResponse {
 pub struct IngestEventsStatus {
     /// The total count of events sent in the upload request. Includes all events in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// The status of the mobile data ingestion to the destination containing stats related to the ingestion.
@@ -420,10 +426,10 @@ pub struct IngestEventsStatus {
 pub struct IngestMobileDataStatus {
     /// The total count of mobile ids sent in the upload request for the destination. Includes all mobile ids in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "mobileIdCount")]
-    pub mobile_id_count: Option<String>,
+    pub mobile_id_count: ::core::option::Option<String>,
     /// The total count of audience members sent in the upload request for the destination. Includes all audience members in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// The status of the pair data ingestion to the destination containing stats related to the ingestion.
@@ -431,10 +437,10 @@ pub struct IngestMobileDataStatus {
 pub struct IngestPairDataStatus {
     /// The total count of pair ids sent in the upload request for the destination. Includes all pair ids in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "pairIdCount")]
-    pub pair_id_count: Option<String>,
+    pub pair_id_count: ::core::option::Option<String>,
     /// The total count of audience members sent in the upload request for the destination. Includes all audience members in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// The status of the ppid data ingestion to the destination containing stats related to the ingestion.
@@ -442,10 +448,10 @@ pub struct IngestPairDataStatus {
 pub struct IngestPpidDataStatus {
     /// The total count of ppids sent in the upload request for the destination. Includes all ppids in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "ppidCount")]
-    pub ppid_count: Option<String>,
+    pub ppid_count: ::core::option::Option<String>,
     /// The total count of audience members sent in the upload request for the destination. Includes all audience members in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// The status of the user data ingestion to the destination containing stats related to the ingestion.
@@ -453,13 +459,13 @@ pub struct IngestPpidDataStatus {
 pub struct IngestUserDataStatus {
     /// The total count of audience members sent in the upload request for the destination. Includes all audience members in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
     /// The match rate range of the upload. // TODO: enum values: ["MATCH_RATE_RANGE_UNKNOWN", "MATCH_RATE_RANGE_NOT_ELIGIBLE", "MATCH_RATE_RANGE_LESS_THAN_20", "MATCH_RATE_RANGE_20_TO_30", "MATCH_RATE_RANGE_31_TO_40", "MATCH_RATE_RANGE_41_TO_50", "MATCH_RATE_RANGE_51_TO_60", "MATCH_RATE_RANGE_61_TO_70", "MATCH_RATE_RANGE_71_TO_80", "MATCH_RATE_RANGE_81_TO_90", "MATCH_RATE_RANGE_91_TO_100"]
     #[serde(default, rename = "uploadMatchRateRange")]
-    pub upload_match_rate_range: Option<String>,
+    pub upload_match_rate_range: ::core::option::Option<String>,
     /// The total count of user identifiers sent in the upload request for the destination. Includes all user identifiers in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "userIdentifierCount")]
-    pub user_identifier_count: Option<String>,
+    pub user_identifier_count: ::core::option::Option<String>,
 }
 
 /// The status of the user id data ingestion to the destination containing stats related to the ingestion.
@@ -467,10 +473,10 @@ pub struct IngestUserDataStatus {
 pub struct IngestUserIdDataStatus {
     /// The total count of audience members sent in the upload request for the destination. Includes all audience members in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
     /// The total count of user ids sent in the upload request for the destination. Includes all user ids in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "userIdCount")]
-    pub user_id_count: Option<String>,
+    pub user_id_count: ::core::option::Option<String>,
 }
 
 /// Represents a user list that is populated by user provided data.
@@ -478,25 +484,25 @@ pub struct IngestUserIdDataStatus {
 pub struct IngestedUserListInfo {
     /// Optional. Additional information when CONTACT_ID is one of the upload_key_types.
     #[serde(default, rename = "contactIdInfo")]
-    pub contact_id_info: Option<ContactIdInfo>,
+    pub contact_id_info: ::core::option::Option<::std::boxed::Box<ContactIdInfo>>,
     /// Optional. Additional information when MOBILE_ID is one of the upload_key_types.
     #[serde(default, rename = "mobileIdInfo")]
-    pub mobile_id_info: Option<MobileIdInfo>,
+    pub mobile_id_info: ::core::option::Option<::std::boxed::Box<MobileIdInfo>>,
     /// Optional. Additional information when PAIR_ID is one of the upload_key_types. This feature is only available to data partners.
     #[serde(default, rename = "pairIdInfo")]
-    pub pair_id_info: Option<PairIdInfo>,
+    pub pair_id_info: ::core::option::Option<::std::boxed::Box<PairIdInfo>>,
     /// Optional. Additional information for partner audiences. This feature is only available to data partners.
     #[serde(default, rename = "partnerAudienceInfo")]
-    pub partner_audience_info: Option<PartnerAudienceInfo>,
+    pub partner_audience_info: ::core::option::Option<::std::boxed::Box<PartnerAudienceInfo>>,
     /// Optional. Additional information for PSEUDONYMOUS_ID is one of the upload_key_types.
     #[serde(default, rename = "pseudonymousIdInfo")]
-    pub pseudonymous_id_info: Option<PseudonymousIdInfo>,
+    pub pseudonymous_id_info: ::core::option::Option<::std::boxed::Box<PseudonymousIdInfo>>,
     /// Required. Immutable. Upload key types of this user list.
     #[serde(default, rename = "uploadKeyTypes")]
-    pub upload_key_types: Option<Vec<String>>,
+    pub upload_key_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Additional information when USER_ID is one of the upload_key_types.
     #[serde(default, rename = "userIdInfo")]
-    pub user_id_info: Option<UserIdInfo>,
+    pub user_id_info: ::core::option::Option<::std::boxed::Box<UserIdInfo>>,
 }
 
 /// Represents an item in the cart associated with the event.
@@ -504,19 +510,20 @@ pub struct IngestedUserListInfo {
 pub struct Item {
     /// Optional. A bucket of any [event parameters related to an item](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events) to be included within the event that were not already specified using other structured fields.
     #[serde(default, rename = "additionalItemParameters")]
-    pub additional_item_parameters: Option<Vec<ItemParameter>>,
+    pub additional_item_parameters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ItemParameter>>>,
     /// Optional. A unique identifier to reference the item.
     #[serde(default, rename = "itemId")]
-    pub item_id: Option<String>,
+    pub item_id: ::core::option::Option<String>,
     /// Optional. The product ID within the Merchant Center account.
     #[serde(default, rename = "merchantProductId")]
-    pub merchant_product_id: Option<String>,
+    pub merchant_product_id: ::core::option::Option<String>,
     /// Optional. The number of this item associated with the event.
     #[serde(default)]
-    pub quantity: Option<String>,
+    pub quantity: ::core::option::Option<String>,
     /// Optional. The unit price excluding tax, shipping, and any transaction level discounts.
     #[serde(default, rename = "unitPrice")]
-    pub unit_price: Option<f64>,
+    pub unit_price: ::core::option::Option<f64>,
 }
 
 /// A bucket of any [event parameters related to an item](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events) to be included within the event that were not already specified using other structured fields.
@@ -524,10 +531,10 @@ pub struct Item {
 pub struct ItemParameter {
     /// Required. The name of the parameter to use.
     #[serde(default, rename = "parameterName")]
-    pub parameter_name: Option<String>,
+    pub parameter_name: ::core::option::Option<String>,
     /// Required. The string representation of the value of the parameter to set.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Response from the ListUserListDirectLicensesRequest.
@@ -535,10 +542,11 @@ pub struct ItemParameter {
 pub struct ListUserListDirectLicensesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The licenses for the given user list in the request.
     #[serde(default, rename = "userListDirectLicenses")]
-    pub user_list_direct_licenses: Option<Vec<UserListDirectLicense>>,
+    pub user_list_direct_licenses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserListDirectLicense>>>,
 }
 
 /// Response from the ListUserListGlobalLicensesCustomerInfoRequest.
@@ -546,10 +554,12 @@ pub struct ListUserListDirectLicensesResponse {
 pub struct ListUserListGlobalLicenseCustomerInfosResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The customer information for the given license in the request.
     #[serde(default, rename = "userListGlobalLicenseCustomerInfos")]
-    pub user_list_global_license_customer_infos: Option<Vec<UserListGlobalLicenseCustomerInfo>>,
+    pub user_list_global_license_customer_infos: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<UserListGlobalLicenseCustomerInfo>>,
+    >,
 }
 
 /// Response from the ListUserListGlobalLicensesRequest.
@@ -557,10 +567,11 @@ pub struct ListUserListGlobalLicenseCustomerInfosResponse {
 pub struct ListUserListGlobalLicensesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The licenses for the given user list in the request.
     #[serde(default, rename = "userListGlobalLicenses")]
-    pub user_list_global_licenses: Option<Vec<UserListGlobalLicense>>,
+    pub user_list_global_licenses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserListGlobalLicense>>>,
 }
 
 /// Response message for ListUserLists.
@@ -568,10 +579,10 @@ pub struct ListUserListGlobalLicensesResponse {
 pub struct ListUserListsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The user lists from the specified account.
     #[serde(default, rename = "userLists")]
-    pub user_lists: Option<Vec<UserList>>,
+    pub user_lists: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserList>>>,
 }
 
 /// The baseline location of the request. Baseline location is on OR-list of ISO 3166-1 alpha-2 region codes of the requested regions.
@@ -579,7 +590,7 @@ pub struct ListUserListsResponse {
 pub struct Location {
     /// List of ISO 3166-1 alpha-2 region codes.
     #[serde(default, rename = "regionCodes")]
-    pub region_codes: Option<Vec<String>>,
+    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Insights for marketing data. This feature is only available to data partners.
@@ -587,10 +598,11 @@ pub struct Location {
 pub struct MarketingDataInsight {
     /// Insights for values of a given dimension.
     #[serde(default)]
-    pub attributes: Option<Vec<MarketingDataInsightsAttribute>>,
+    pub attributes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MarketingDataInsightsAttribute>>>,
     /// The dimension to which the insight belongs. // TODO: enum values: ["AUDIENCE_INSIGHTS_DIMENSION_UNSPECIFIED", "AUDIENCE_INSIGHTS_DIMENSION_UNKNOWN", "AFFINITY_USER_INTEREST", "IN_MARKET_USER_INTEREST", "AGE_RANGE", "GENDER"]
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
 }
 
 /// Insights for a collection of related attributes of the same dimension.
@@ -598,16 +610,16 @@ pub struct MarketingDataInsight {
 pub struct MarketingDataInsightsAttribute {
     /// Age range of the audience for which the lift is provided. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "AGE_RANGE_UNKNOWN", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_UP"]
     #[serde(default, rename = "ageRange")]
-    pub age_range: Option<String>,
+    pub age_range: ::core::option::Option<String>,
     /// Gender of the audience for which the lift is provided. // TODO: enum values: ["GENDER_UNSPECIFIED", "GENDER_UNKNOWN", "GENDER_MALE", "GENDER_FEMALE"]
     #[serde(default)]
-    pub gender: Option<String>,
+    pub gender: ::core::option::Option<String>,
     /// Measure of lift that the audience has for the attribute value as compared to the baseline. Range [0-1].
     #[serde(default)]
-    pub lift: Option<f32>,
+    pub lift: ::core::option::Option<f32>,
     /// The user interest ID.
     #[serde(default, rename = "userInterestId")]
-    pub user_interest_id: Option<String>,
+    pub user_interest_id: ::core::option::Option<String>,
 }
 
 /// Mobile IDs for the audience. At least one mobile ID is required.
@@ -615,7 +627,7 @@ pub struct MarketingDataInsightsAttribute {
 pub struct MobileData {
     /// Required. The list of mobile device IDs (advertising ID/IDFA). At most 10 mobileIds can be provided in a single AudienceMember.
     #[serde(default, rename = "mobileIds")]
-    pub mobile_ids: Option<Vec<String>>,
+    pub mobile_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Additional information when MOBILE_ID is one of the upload_key_types.
@@ -623,13 +635,13 @@ pub struct MobileData {
 pub struct MobileIdInfo {
     /// Required. Immutable. A string that uniquely identifies a mobile application from which the data was collected.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Optional. Immutable. Source of the upload data. // TODO: enum values: ["DATA_SOURCE_TYPE_UNSPECIFIED", "DATA_SOURCE_TYPE_FIRST_PARTY", "DATA_SOURCE_TYPE_THIRD_PARTY_CREDIT_BUREAU", "DATA_SOURCE_TYPE_THIRD_PARTY_VOTER_FILE", "DATA_SOURCE_TYPE_THIRD_PARTY_PARTNER_DATA"]
     #[serde(default, rename = "dataSourceType")]
-    pub data_source_type: Option<String>,
+    pub data_source_type: ::core::option::Option<String>,
     /// Required. Immutable. The key space of mobile IDs. // TODO: enum values: ["KEY_SPACE_UNSPECIFIED", "IOS", "ANDROID"]
     #[serde(default, rename = "keySpace")]
-    pub key_space: Option<String>,
+    pub key_space: ::core::option::Option<String>,
 }
 
 /// [PAIR](//support.google.com/admanager/answer/15067908) IDs for the audience. At least one PAIR ID is required. This feature is only available to data partners.
@@ -637,7 +649,7 @@ pub struct MobileIdInfo {
 pub struct PairData {
     /// Required. Cleanroom-provided PII data, hashed with SHA256, and encrypted with an EC commutative cipher using publisher key for the [PAIR]((//support.google.com/admanager/answer/15067908)) user list. At most 10 pairIds can be provided in a single AudienceMember.
     #[serde(default, rename = "pairIds")]
-    pub pair_ids: Option<Vec<String>>,
+    pub pair_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Additional information when PAIR_ID is one of the upload_key_types. This feature is only available to data partners.
@@ -645,19 +657,19 @@ pub struct PairData {
 pub struct PairIdInfo {
     /// Optional. The count of the advertiser''s first party data records that have been uploaded to a clean room provider. This does not signify the size of a PAIR user list.
     #[serde(default, rename = "advertiserIdentifierCount")]
-    pub advertiser_identifier_count: Option<String>,
+    pub advertiser_identifier_count: ::core::option::Option<String>,
     /// Required. Immutable. Identifies a unique advertiser to publisher relationship with one clean room provider or across multiple clean room providers.
     #[serde(default, rename = "cleanRoomIdentifier")]
-    pub clean_room_identifier: Option<String>,
+    pub clean_room_identifier: ::core::option::Option<String>,
     /// Required. This field denotes the percentage of membership match of this user list with the corresponding publisher''s first party data. Must be between 0 and 100 inclusive.
     #[serde(default, rename = "matchRatePercentage")]
-    pub match_rate_percentage: Option<i32>,
+    pub match_rate_percentage: ::core::option::Option<i32>,
     /// Required. Immutable. Identifies the publisher that the Publisher Advertiser Identity Reconciliation user list is reconciled with. This field is provided by the cleanroom provider and is only unique in the scope of that cleanroom. This cannot be used as a global identifier across multiple cleanrooms.
     #[serde(default, rename = "publisherId")]
-    pub publisher_id: Option<String>,
+    pub publisher_id: ::core::option::Option<String>,
     /// Required. Descriptive name of the publisher to be displayed in the UI for a better targeting experience.
     #[serde(default, rename = "publisherName")]
-    pub publisher_name: Option<String>,
+    pub publisher_name: ::core::option::Option<String>,
 }
 
 /// Additional information for partner audiences. This feature is only available to data partners.
@@ -665,10 +677,10 @@ pub struct PairIdInfo {
 pub struct PartnerAudienceInfo {
     /// Optional. The commerce partner name. Only allowed if partner_audience_source is COMMERCE_AUDIENCE.
     #[serde(default, rename = "commercePartner")]
-    pub commerce_partner: Option<String>,
+    pub commerce_partner: ::core::option::Option<String>,
     /// Required. Immutable. The source of the partner audience. // TODO: enum values: ["PARTNER_AUDIENCE_SOURCE_UNSPECIFIED", "COMMERCE_AUDIENCE", "LINEAR_TV_AUDIENCE", "AGENCY_PROVIDER_AUDIENCE"]
     #[serde(default, rename = "partnerAudienceSource")]
-    pub partner_audience_source: Option<String>,
+    pub partner_audience_source: ::core::option::Option<String>,
 }
 
 /// A partner link between an owning account and a partner account.
@@ -676,16 +688,16 @@ pub struct PartnerAudienceInfo {
 pub struct PartnerLink {
     /// Identifier. The name of the partner link. Format: accountTypes/{account_type}/accounts/{account}/partnerLinks/{partner_link}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The owning account granting access to the partner account.
     #[serde(default, rename = "owningAccount")]
-    pub owning_account: Option<ProductAccount>,
+    pub owning_account: ::core::option::Option<::std::boxed::Box<ProductAccount>>,
     /// Required. The partner account granted access by the owning account.
     #[serde(default, rename = "partnerAccount")]
-    pub partner_account: Option<ProductAccount>,
+    pub partner_account: ::core::option::Option<::std::boxed::Box<ProductAccount>>,
     /// Output only. The partner link ID.
     #[serde(default, rename = "partnerLinkId")]
-    pub partner_link_id: Option<String>,
+    pub partner_link_id: ::core::option::Option<String>,
 }
 
 /// Publisher provided identifiers data holding the ppids. At least one ppid is required. This feature is only available to data partners.
@@ -693,7 +705,7 @@ pub struct PartnerLink {
 pub struct PpidData {
     /// Required. The list of publisher provided identifiers for a user.
     #[serde(default)]
-    pub ppids: Option<Vec<String>>,
+    pub ppids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a specific account.
@@ -701,13 +713,13 @@ pub struct PpidData {
 pub struct ProductAccount {
     /// Required. The ID of the account. For example, your Google Ads account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Optional. The type of the account. For example, GOOGLE_ADS. Either account_type or the deprecated product is required. If both are set, the values must match. // TODO: enum values: ["ACCOUNT_TYPE_UNSPECIFIED", "GOOGLE_ADS", "DISPLAY_VIDEO_PARTNER", "DISPLAY_VIDEO_ADVERTISER", "DATA_PARTNER", "GOOGLE_ANALYTICS_PROPERTY", "GOOGLE_AD_MANAGER_AUDIENCE_LINK"]
     #[serde(default, rename = "accountType")]
-    pub account_type: Option<String>,
+    pub account_type: ::core::option::Option<String>,
     /// Deprecated. Use account_type instead. // TODO: enum values: ["PRODUCT_UNSPECIFIED", "GOOGLE_ADS", "DISPLAY_VIDEO_PARTNER", "DISPLAY_VIDEO_ADVERTISER", "DATA_PARTNER"]
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
 }
 
 /// Additional information when PSEUDONYMOUS_ID is one of the upload_key_types.
@@ -715,10 +727,10 @@ pub struct ProductAccount {
 pub struct PseudonymousIdInfo {
     /// Optional. Immutable. The number of billable records (e.g. uploaded or matched).
     #[serde(default, rename = "billableRecordCount")]
-    pub billable_record_count: Option<String>,
+    pub billable_record_count: ::core::option::Option<String>,
     /// Output only. Sync status of the user list. // TODO: enum values: ["SYNC_STATUS_UNSPECIFIED", "CREATED", "READY_FOR_USE", "FAILED"]
     #[serde(default, rename = "syncStatus")]
-    pub sync_status: Option<String>,
+    pub sync_status: ::core::option::Option<String>,
 }
 
 /// Request to remove users from an audience in the provided destinations. Returns a RemoveAudienceMembersResponse.
@@ -726,19 +738,20 @@ pub struct PseudonymousIdInfo {
 pub struct RemoveAudienceMembersRequest {
     /// Required. The list of users to remove.
     #[serde(default, rename = "audienceMembers")]
-    pub audience_members: Option<Vec<AudienceMember>>,
+    pub audience_members:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AudienceMember>>>,
     /// Required. The list of destinations to remove the users from.
     #[serde(default)]
-    pub destinations: Option<Vec<Destination>>,
+    pub destinations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Destination>>>,
     /// Optional. Required for UserData uploads. The encoding type of the user identifiers. Applies to only the outer encoding for encrypted user identifiers. For non UserData uploads, this field is ignored. // TODO: enum values: ["ENCODING_UNSPECIFIED", "HEX", "BASE64"]
     #[serde(default)]
-    pub encoding: Option<String>,
+    pub encoding: ::core::option::Option<String>,
     /// Optional. Encryption information for UserData uploads. If not set, it''s assumed that uploaded identifying information is hashed but not encrypted. For non UserData uploads, this field is ignored.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Optional. For testing purposes. If true, the request is validated but not executed. Only errors are returned, not results.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response from the RemoveAudienceMembersRequest.
@@ -746,7 +759,7 @@ pub struct RemoveAudienceMembersRequest {
 pub struct RemoveAudienceMembersResponse {
     /// The auto-generated ID of the request.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// The status of the remove audience members request.
@@ -754,19 +767,21 @@ pub struct RemoveAudienceMembersResponse {
 pub struct RemoveAudienceMembersStatus {
     /// The status of the mobile data removal from the destination.
     #[serde(default, rename = "mobileDataRemovalStatus")]
-    pub mobile_data_removal_status: Option<RemoveMobileDataStatus>,
+    pub mobile_data_removal_status:
+        ::core::option::Option<::std::boxed::Box<RemoveMobileDataStatus>>,
     /// The status of the pair data removal from the destination.
     #[serde(default, rename = "pairDataRemovalStatus")]
-    pub pair_data_removal_status: Option<RemovePairDataStatus>,
+    pub pair_data_removal_status: ::core::option::Option<::std::boxed::Box<RemovePairDataStatus>>,
     /// The status of the ppid data removal from the destination.
     #[serde(default, rename = "ppidDataRemovalStatus")]
-    pub ppid_data_removal_status: Option<RemovePpidDataStatus>,
+    pub ppid_data_removal_status: ::core::option::Option<::std::boxed::Box<RemovePpidDataStatus>>,
     /// The status of the user data removal from the destination.
     #[serde(default, rename = "userDataRemovalStatus")]
-    pub user_data_removal_status: Option<RemoveUserDataStatus>,
+    pub user_data_removal_status: ::core::option::Option<::std::boxed::Box<RemoveUserDataStatus>>,
     /// The status of the user id data removal from the destination.
     #[serde(default, rename = "userIdDataRemovalStatus")]
-    pub user_id_data_removal_status: Option<RemoveUserIdDataStatus>,
+    pub user_id_data_removal_status:
+        ::core::option::Option<::std::boxed::Box<RemoveUserIdDataStatus>>,
 }
 
 /// The status of the mobile data removal from the destination.
@@ -774,10 +789,10 @@ pub struct RemoveAudienceMembersStatus {
 pub struct RemoveMobileDataStatus {
     /// The total count of mobile Ids sent in the removal request. Includes all mobile ids in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "mobileIdCount")]
-    pub mobile_id_count: Option<String>,
+    pub mobile_id_count: ::core::option::Option<String>,
     /// The total count of audience members sent in the removal request. Includes all audience members in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// The status of the pair data removal from the destination.
@@ -785,10 +800,10 @@ pub struct RemoveMobileDataStatus {
 pub struct RemovePairDataStatus {
     /// The total count of pair ids sent in the removal request. Includes all pair ids in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "pairIdCount")]
-    pub pair_id_count: Option<String>,
+    pub pair_id_count: ::core::option::Option<String>,
     /// The total count of audience members sent in the removal request. Includes all audience members in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// The status of the ppid data removal from the destination.
@@ -796,10 +811,10 @@ pub struct RemovePairDataStatus {
 pub struct RemovePpidDataStatus {
     /// The total count of ppids sent in the removal request. Includes all ppids in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "ppidCount")]
-    pub ppid_count: Option<String>,
+    pub ppid_count: ::core::option::Option<String>,
     /// The total count of audience members sent in the removal request. Includes all audience members in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// The status of the user data removal from the destination.
@@ -807,10 +822,10 @@ pub struct RemovePpidDataStatus {
 pub struct RemoveUserDataStatus {
     /// The total count of audience members sent in the removal request. Includes all audience members in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
     /// The total count of user identifiers sent in the removal request. Includes all user identifiers in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "userIdentifierCount")]
-    pub user_identifier_count: Option<String>,
+    pub user_identifier_count: ::core::option::Option<String>,
 }
 
 /// The status of the user id data removal from the destination.
@@ -818,10 +833,10 @@ pub struct RemoveUserDataStatus {
 pub struct RemoveUserIdDataStatus {
     /// The total count of audience members sent in the removal request. Includes all audience members in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
     /// The total count of user ids sent in the removal request. Includes all user ids in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "userIdCount")]
-    pub user_id_count: Option<String>,
+    pub user_id_count: ::core::option::Option<String>,
 }
 
 /// A request status per destination.
@@ -829,25 +844,27 @@ pub struct RemoveUserIdDataStatus {
 pub struct RequestStatusPerDestination {
     /// The status of the ingest audience members request.
     #[serde(default, rename = "audienceMembersIngestionStatus")]
-    pub audience_members_ingestion_status: Option<IngestAudienceMembersStatus>,
+    pub audience_members_ingestion_status:
+        ::core::option::Option<::std::boxed::Box<IngestAudienceMembersStatus>>,
     /// The status of the remove audience members request.
     #[serde(default, rename = "audienceMembersRemovalStatus")]
-    pub audience_members_removal_status: Option<RemoveAudienceMembersStatus>,
+    pub audience_members_removal_status:
+        ::core::option::Option<::std::boxed::Box<RemoveAudienceMembersStatus>>,
     /// A destination within a DM API request.
     #[serde(default)]
-    pub destination: Option<Destination>,
+    pub destination: ::core::option::Option<::std::boxed::Box<Destination>>,
     /// An error info error containing the error reason and error counts related to the upload.
     #[serde(default, rename = "errorInfo")]
-    pub error_info: Option<ErrorInfo>,
+    pub error_info: ::core::option::Option<::std::boxed::Box<ErrorInfo>>,
     /// The status of the ingest events request.
     #[serde(default, rename = "eventsIngestionStatus")]
-    pub events_ingestion_status: Option<IngestEventsStatus>,
+    pub events_ingestion_status: ::core::option::Option<::std::boxed::Box<IngestEventsStatus>>,
     /// The request status of the destination. // TODO: enum values: ["REQUEST_STATUS_UNKNOWN", "SUCCESS", "PROCESSING", "FAILED", "PARTIAL_SUCCESS"]
     #[serde(default, rename = "requestStatus")]
-    pub request_status: Option<String>,
+    pub request_status: ::core::option::Option<String>,
     /// A warning info containing the warning reason and warning counts related to the upload.
     #[serde(default, rename = "warningInfo")]
-    pub warning_info: Option<WarningInfo>,
+    pub warning_info: ::core::option::Option<::std::boxed::Box<WarningInfo>>,
 }
 
 /// Request message for DM API MarketingDataInsightsService.RetrieveInsights
@@ -855,10 +872,10 @@ pub struct RequestStatusPerDestination {
 pub struct RetrieveInsightsRequest {
     /// Required. Baseline for the insights requested.
     #[serde(default)]
-    pub baseline: Option<Baseline>,
+    pub baseline: ::core::option::Option<::std::boxed::Box<Baseline>>,
     /// Required. The user list ID for which insights are requested.
     #[serde(default, rename = "userListId")]
-    pub user_list_id: Option<String>,
+    pub user_list_id: ::core::option::Option<String>,
 }
 
 /// Response message for DM API MarketingDataInsightsService.RetrieveInsights
@@ -866,7 +883,8 @@ pub struct RetrieveInsightsRequest {
 pub struct RetrieveInsightsResponse {
     /// Contains the insights for the marketing data.
     #[serde(default, rename = "marketingDataInsights")]
-    pub marketing_data_insights: Option<Vec<MarketingDataInsight>>,
+    pub marketing_data_insights:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MarketingDataInsight>>>,
 }
 
 /// Response from the RetrieveRequestStatusRequest.
@@ -874,7 +892,8 @@ pub struct RetrieveInsightsResponse {
 pub struct RetrieveRequestStatusResponse {
     /// A list of request statuses per destination. The order of the statuses matches the order of the destinations in the original request.
     #[serde(default, rename = "requestStatusPerDestination")]
-    pub request_status_per_destination: Option<Vec<RequestStatusPerDestination>>,
+    pub request_status_per_destination:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RequestStatusPerDestination>>>,
 }
 
 /// Response from the SearchPartnerLinksRequest.
@@ -882,10 +901,10 @@ pub struct RetrieveRequestStatusResponse {
 pub struct SearchPartnerLinksResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The partner links for the given account.
     #[serde(default, rename = "partnerLinks")]
-    pub partner_links: Option<Vec<PartnerLink>>,
+    pub partner_links: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PartnerLink>>>,
 }
 
 /// Estimated number of members in this user list in different target networks.
@@ -893,10 +912,10 @@ pub struct SearchPartnerLinksResponse {
 pub struct SizeInfo {
     /// Output only. Estimated number of members in this user list, on the Google Display Network.
     #[serde(default, rename = "displayNetworkMembersCount")]
-    pub display_network_members_count: Option<String>,
+    pub display_network_members_count: ::core::option::Option<String>,
     /// Output only. Estimated number of members in this user list in the google.com domain. These are the members available for targeting in Search campaigns.
     #[serde(default, rename = "searchNetworkMembersCount")]
-    pub search_network_members_count: Option<String>,
+    pub search_network_members_count: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -904,13 +923,13 @@ pub struct SizeInfo {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Eligibility information for different target networks.
@@ -918,10 +937,10 @@ pub struct Status {
 pub struct TargetNetworkInfo {
     /// Output only. Indicates this user list is eligible for Google Display Network.
     #[serde(default, rename = "eligibleForDisplay")]
-    pub eligible_for_display: Option<bool>,
+    pub eligible_for_display: ::core::option::Option<bool>,
     /// Optional. Indicates if this user list is eligible for Google Search Network.
     #[serde(default, rename = "eligibleForSearch")]
-    pub eligible_for_search: Option<bool>,
+    pub eligible_for_search: ::core::option::Option<bool>,
 }
 
 /// The terms of service that the user has accepted/rejected.
@@ -929,7 +948,7 @@ pub struct TargetNetworkInfo {
 pub struct TermsOfService {
     /// Optional. The Customer Match terms of service: https://support.google.com/adspolicy/answer/6299717. This must be accepted when ingesting UserData or MobileData. This field is not required for Partner Match User list. // TODO: enum values: ["TERMS_OF_SERVICE_STATUS_UNSPECIFIED", "ACCEPTED", "REJECTED"]
     #[serde(default, rename = "customerMatchTermsOfServiceStatus")]
-    pub customer_match_terms_of_service_status: Option<String>,
+    pub customer_match_terms_of_service_status: ::core::option::Option<String>,
 }
 
 /// Data that identifies the user. At least one identifier is required.
@@ -937,7 +956,8 @@ pub struct TermsOfService {
 pub struct UserData {
     /// Required. The identifiers for the user. It''s possible to provide multiple instances of the same type of data (for example, multiple email addresses). To increase the likelihood of a match, provide as many identifiers as possible. At most 10 userIdentifiers can be provided in a single AudienceMember or Event.
     #[serde(default, rename = "userIdentifiers")]
-    pub user_identifiers: Option<Vec<UserIdentifier>>,
+    pub user_identifiers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserIdentifier>>>,
 }
 
 /// User id data holding the user id.
@@ -945,7 +965,7 @@ pub struct UserData {
 pub struct UserIdData {
     /// Required. A unique identifier for a user, as defined by the advertiser.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Additional information when USER_ID is one of the upload_key_types.
@@ -953,7 +973,7 @@ pub struct UserIdData {
 pub struct UserIdInfo {
     /// Optional. Immutable. Source of the upload data. // TODO: enum values: ["DATA_SOURCE_TYPE_UNSPECIFIED", "DATA_SOURCE_TYPE_FIRST_PARTY", "DATA_SOURCE_TYPE_THIRD_PARTY_CREDIT_BUREAU", "DATA_SOURCE_TYPE_THIRD_PARTY_VOTER_FILE", "DATA_SOURCE_TYPE_THIRD_PARTY_PARTNER_DATA"]
     #[serde(default, rename = "dataSourceType")]
-    pub data_source_type: Option<String>,
+    pub data_source_type: ::core::option::Option<String>,
 }
 
 /// A single identifier for the user.
@@ -961,13 +981,13 @@ pub struct UserIdInfo {
 pub struct UserIdentifier {
     /// The known components of a user''s address. Holds a grouping of identifiers that are matched all at once.
     #[serde(default)]
-    pub address: Option<AddressInfo>,
+    pub address: ::core::option::Option<::std::boxed::Box<AddressInfo>>,
     /// Hashed email address using SHA-256 hash function after normalization.
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<String>,
+    pub email_address: ::core::option::Option<String>,
     /// Hashed phone number using SHA-256 hash function after normalization (E164 standard).
     #[serde(default, rename = "phoneNumber")]
-    pub phone_number: Option<String>,
+    pub phone_number: ::core::option::Option<String>,
 }
 
 /// A user list resource.
@@ -975,46 +995,46 @@ pub struct UserIdentifier {
 pub struct UserList {
     /// Output only. The reason this account has been granted access to the list. // TODO: enum values: ["ACCESS_REASON_UNSPECIFIED", "OWNED", "SHARED", "LICENSED", "SUBSCRIBED", "AFFILIATED"]
     #[serde(default, rename = "accessReason")]
-    pub access_reason: Option<String>,
+    pub access_reason: ::core::option::Option<String>,
     /// Optional. Indicates if this share is still enabled. When a user list is shared with the account this field is set to ENABLED. Later the user list owner can decide to revoke the share and make it DISABLED. // TODO: enum values: ["ACCESS_STATUS_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "accountAccessStatus")]
-    pub account_access_status: Option<String>,
+    pub account_access_status: ::core::option::Option<String>,
     /// Output only. The reason why this user list membership status is closed. // TODO: enum values: ["CLOSING_REASON_UNSPECIFIED", "UNUSED"]
     #[serde(default, rename = "closingReason")]
-    pub closing_reason: Option<String>,
+    pub closing_reason: ::core::option::Option<String>,
     /// Optional. A description of the user list.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The display name of the user list.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The unique ID of the user list.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. Represents a user list that is populated by user ingested data.
     #[serde(default, rename = "ingestedUserListInfo")]
-    pub ingested_user_list_info: Option<IngestedUserListInfo>,
+    pub ingested_user_list_info: ::core::option::Option<::std::boxed::Box<IngestedUserListInfo>>,
     /// Optional. An ID from external system. It is used by user list sellers to correlate IDs on their systems.
     #[serde(default, rename = "integrationCode")]
-    pub integration_code: Option<String>,
+    pub integration_code: ::core::option::Option<String>,
     /// Optional. The duration a user remains in the user list. Valid durations are exact multiples of 24 hours (86400 seconds). Providing a value that is not an exact multiple of 24 hours will result in an INVALID_ARGUMENT error.
     #[serde(default, rename = "membershipDuration")]
-    pub membership_duration: Option<String>,
+    pub membership_duration: ::core::option::Option<String>,
     /// Optional. Membership status of this user list. // TODO: enum values: ["MEMBERSHIP_STATUS_UNSPECIFIED", "OPEN", "CLOSED"]
     #[serde(default, rename = "membershipStatus")]
-    pub membership_status: Option<String>,
+    pub membership_status: ::core::option::Option<String>,
     /// Identifier. The resource name of the user list. Format: accountTypes/{account_type}/accounts/{account}/userLists/{user_list}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. An option that indicates if a user may edit a list.
     #[serde(default, rename = "readOnly")]
-    pub read_only: Option<bool>,
+    pub read_only: ::core::option::Option<bool>,
     /// Output only. Estimated number of members in this user list in different target networks.
     #[serde(default, rename = "sizeInfo")]
-    pub size_info: Option<SizeInfo>,
+    pub size_info: ::core::option::Option<::std::boxed::Box<SizeInfo>>,
     /// Optional. Eligibility information for different target networks.
     #[serde(default, rename = "targetNetworkInfo")]
-    pub target_network_info: Option<TargetNetworkInfo>,
+    pub target_network_info: ::core::option::Option<::std::boxed::Box<TargetNetworkInfo>>,
 }
 
 /// A user list direct license. This feature is only available to data partners.
@@ -1022,34 +1042,35 @@ pub struct UserList {
 pub struct UserListDirectLicense {
     /// Output only. Name of client customer which the user list is being licensed to. This field is read-only.
     #[serde(default, rename = "clientAccountDisplayName")]
-    pub client_account_display_name: Option<String>,
+    pub client_account_display_name: ::core::option::Option<String>,
     /// Immutable. ID of client customer which the user list is being licensed to.
     #[serde(default, rename = "clientAccountId")]
-    pub client_account_id: Option<String>,
+    pub client_account_id: ::core::option::Option<String>,
     /// Immutable. Account type of client customer which the user list is being licensed to. // TODO: enum values: ["USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_UNKNOWN", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_GOOGLE_ADS", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_DISPLAY_VIDEO_PARTNER", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_DISPLAY_VIDEO_ADVERTISER", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_GOOGLE_AD_MANAGER_AUDIENCE_LINK"]
     #[serde(default, rename = "clientAccountType")]
-    pub client_account_type: Option<String>,
+    pub client_account_type: ::core::option::Option<String>,
     /// Output only. Pricing history of this user list license. This field is read-only.
     #[serde(default, rename = "historicalPricings")]
-    pub historical_pricings: Option<Vec<UserListLicensePricing>>,
+    pub historical_pricings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserListLicensePricing>>>,
     /// Output only. Metrics related to this license This field is read-only and only populated if the start and end dates are set in the ListUserListDirectLicenses call
     #[serde(default)]
-    pub metrics: Option<UserListLicenseMetrics>,
+    pub metrics: ::core::option::Option<::std::boxed::Box<UserListLicenseMetrics>>,
     /// Identifier. The resource name of the user list direct license.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. UserListDirectLicense pricing.
     #[serde(default)]
-    pub pricing: Option<UserListLicensePricing>,
+    pub pricing: ::core::option::Option<::std::boxed::Box<UserListLicensePricing>>,
     /// Optional. Status of UserListDirectLicense - ENABLED or DISABLED. // TODO: enum values: ["USER_LIST_LICENSE_STATUS_UNSPECIFIED", "USER_LIST_LICENSE_STATUS_ENABLED", "USER_LIST_LICENSE_STATUS_DISABLED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Output only. Name of the user list being licensed. This field is read-only.
     #[serde(default, rename = "userListDisplayName")]
-    pub user_list_display_name: Option<String>,
+    pub user_list_display_name: ::core::option::Option<String>,
     /// Immutable. ID of the user list being licensed.
     #[serde(default, rename = "userListId")]
-    pub user_list_id: Option<String>,
+    pub user_list_id: ::core::option::Option<String>,
 }
 
 /// A user list global license. This feature is only available to data partners.
@@ -1057,28 +1078,29 @@ pub struct UserListDirectLicense {
 pub struct UserListGlobalLicense {
     /// Output only. Pricing history of this user list license. This field is read-only.
     #[serde(default, rename = "historicalPricings")]
-    pub historical_pricings: Option<Vec<UserListLicensePricing>>,
+    pub historical_pricings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserListLicensePricing>>>,
     /// Immutable. Product type of client customer which the user list is being licensed to. // TODO: enum values: ["USER_LIST_GLOBAL_LICENSE_TYPE_UNSPECIFIED", "USER_LIST_GLOBAL_LICENSE_TYPE_RESELLER", "USER_LIST_GLOBAL_LICENSE_TYPE_DATA_MART_SELL_SIDE", "USER_LIST_GLOBAL_LICENSE_TYPE_DATA_MART_BUY_SIDE"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
     /// Output only. Metrics related to this license This field is read-only and only populated if the start and end dates are set in the ListUserListGlobalLicenses call
     #[serde(default)]
-    pub metrics: Option<UserListLicenseMetrics>,
+    pub metrics: ::core::option::Option<::std::boxed::Box<UserListLicenseMetrics>>,
     /// Identifier. The resource name of the user list global license.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. UserListGlobalLicense pricing.
     #[serde(default)]
-    pub pricing: Option<UserListLicensePricing>,
+    pub pricing: ::core::option::Option<::std::boxed::Box<UserListLicensePricing>>,
     /// Optional. Status of UserListGlobalLicense - ENABLED or DISABLED. // TODO: enum values: ["USER_LIST_LICENSE_STATUS_UNSPECIFIED", "USER_LIST_LICENSE_STATUS_ENABLED", "USER_LIST_LICENSE_STATUS_DISABLED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Output only. Name of the user list being licensed. This field is read-only.
     #[serde(default, rename = "userListDisplayName")]
-    pub user_list_display_name: Option<String>,
+    pub user_list_display_name: ::core::option::Option<String>,
     /// Immutable. ID of the user list being licensed.
     #[serde(default, rename = "userListId")]
-    pub user_list_id: Option<String>,
+    pub user_list_id: ::core::option::Option<String>,
 }
 
 /// Information about a customer of a user list global license. This will automatically be created by the system when a customer purchases a global license.
@@ -1086,37 +1108,38 @@ pub struct UserListGlobalLicense {
 pub struct UserListGlobalLicenseCustomerInfo {
     /// Output only. Name of client customer which the user list is being licensed to.
     #[serde(default, rename = "clientAccountDisplayName")]
-    pub client_account_display_name: Option<String>,
+    pub client_account_display_name: ::core::option::Option<String>,
     /// Output only. ID of client customer which the user list is being licensed to.
     #[serde(default, rename = "clientAccountId")]
-    pub client_account_id: Option<String>,
+    pub client_account_id: ::core::option::Option<String>,
     /// Output only. Product type of client customer which the user list is being licensed to. // TODO: enum values: ["USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_UNKNOWN", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_GOOGLE_ADS", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_DISPLAY_VIDEO_PARTNER", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_DISPLAY_VIDEO_ADVERTISER", "USER_LIST_LICENSE_CLIENT_ACCOUNT_TYPE_GOOGLE_AD_MANAGER_AUDIENCE_LINK"]
     #[serde(default, rename = "clientAccountType")]
-    pub client_account_type: Option<String>,
+    pub client_account_type: ::core::option::Option<String>,
     /// Output only. Pricing history of this user list license.
     #[serde(default, rename = "historicalPricings")]
-    pub historical_pricings: Option<Vec<UserListLicensePricing>>,
+    pub historical_pricings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserListLicensePricing>>>,
     /// Output only. Product type of client customer which the user list is being licensed to. // TODO: enum values: ["USER_LIST_GLOBAL_LICENSE_TYPE_UNSPECIFIED", "USER_LIST_GLOBAL_LICENSE_TYPE_RESELLER", "USER_LIST_GLOBAL_LICENSE_TYPE_DATA_MART_SELL_SIDE", "USER_LIST_GLOBAL_LICENSE_TYPE_DATA_MART_BUY_SIDE"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
     /// Output only. Metrics related to this license This field is only populated if the start and end dates are set in the ListUserListGlobalLicenseCustomerInfos call.
     #[serde(default)]
-    pub metrics: Option<UserListLicenseMetrics>,
+    pub metrics: ::core::option::Option<::std::boxed::Box<UserListLicenseMetrics>>,
     /// Identifier. The resource name of the user list global license customer.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. UserListDirectLicense pricing.
     #[serde(default)]
-    pub pricing: Option<UserListLicensePricing>,
+    pub pricing: ::core::option::Option<::std::boxed::Box<UserListLicensePricing>>,
     /// Output only. Status of UserListDirectLicense - ENABLED or DISABLED. // TODO: enum values: ["USER_LIST_LICENSE_STATUS_UNSPECIFIED", "USER_LIST_LICENSE_STATUS_ENABLED", "USER_LIST_LICENSE_STATUS_DISABLED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Output only. Name of the user list being licensed.
     #[serde(default, rename = "userListDisplayName")]
-    pub user_list_display_name: Option<String>,
+    pub user_list_display_name: ::core::option::Option<String>,
     /// Output only. ID of the user list being licensed.
     #[serde(default, rename = "userListId")]
-    pub user_list_id: Option<String>,
+    pub user_list_id: ::core::option::Option<String>,
 }
 
 /// Metrics related to a user list license.
@@ -1124,19 +1147,19 @@ pub struct UserListGlobalLicenseCustomerInfo {
 pub struct UserListLicenseMetrics {
     /// Output only. The number of clicks for the user list license.
     #[serde(default, rename = "clickCount")]
-    pub click_count: Option<String>,
+    pub click_count: ::core::option::Option<String>,
     /// Output only. The end date (inclusive) of the metrics in the format YYYYMMDD. For example, 20260102 represents January 2, 2026. If start_date is used in the filter, end_date is also required. If neither start_date nor end_date are included in the filter, the UserListLicenseMetrics fields will not be populated in the response.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// Output only. The number of impressions for the user list license.
     #[serde(default, rename = "impressionCount")]
-    pub impression_count: Option<String>,
+    pub impression_count: ::core::option::Option<String>,
     /// Output only. The revenue for the user list license in USD micros.
     #[serde(default, rename = "revenueUsdMicros")]
-    pub revenue_usd_micros: Option<String>,
+    pub revenue_usd_micros: ::core::option::Option<String>,
     /// Output only. The start date (inclusive) of the metrics in the format YYYYMMDD. For example, 20260102 represents January 2, 2026. If end_date is used in the filter, start_date is also required. If neither start_date nor end_date are included in the filter, the UserListLicenseMetrics fields will not be populated in the response.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
 }
 
 /// A user list license pricing.
@@ -1144,31 +1167,31 @@ pub struct UserListLicenseMetrics {
 pub struct UserListLicensePricing {
     /// Output only. The buyer approval state of this pricing. This field is read-only. // TODO: enum values: ["USER_LIST_PRICING_BUYER_APPROVAL_STATE_UNSPECIFIED", "PENDING", "APPROVED", "REJECTED"]
     #[serde(default, rename = "buyerApprovalState")]
-    pub buyer_approval_state: Option<String>,
+    pub buyer_approval_state: ::core::option::Option<String>,
     /// Optional. The cost associated with the model, in micro units (10^-6), in the currency specified by the currency_code field. For example, 2000000 means $2 if currency_code is USD.
     #[serde(default, rename = "costMicros")]
-    pub cost_micros: Option<String>,
+    pub cost_micros: ::core::option::Option<String>,
     /// Immutable. The cost type of this pricing. Can be set only in the create operation. Can''t be updated for an existing license. // TODO: enum values: ["USER_LIST_PRICING_COST_TYPE_UNSPECIFIED", "CPC", "CPM", "MEDIA_SHARE"]
     #[serde(default, rename = "costType")]
-    pub cost_type: Option<String>,
+    pub cost_type: ::core::option::Option<String>,
     /// Optional. The currency in which cost and max_cost is specified. Must be a three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Optional. End time of the pricing.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. The maximum CPM a commerce audience can be charged when the MEDIA_SHARE cost type is used. The value is in micro units (10^-6) and in the currency specified by the currency_code field. For example, 2000000 means $2 if currency_code is USD. This is only relevant when cost_type is MEDIA_SHARE. When cost_type is not MEDIA_SHARE, and this field is set, a MAX_COST_NOT_ALLOWED error will be returned. If not set or set to0, there is no cap.
     #[serde(default, rename = "maxCostMicros")]
-    pub max_cost_micros: Option<String>,
+    pub max_cost_micros: ::core::option::Option<String>,
     /// Output only. Whether this pricing is active.
     #[serde(default, rename = "pricingActive")]
-    pub pricing_active: Option<bool>,
+    pub pricing_active: ::core::option::Option<bool>,
     /// Output only. The ID of this pricing.
     #[serde(default, rename = "pricingId")]
-    pub pricing_id: Option<String>,
+    pub pricing_id: ::core::option::Option<String>,
     /// Output only. Start time of the pricing.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Advertiser-assessed information about the user at the time that the event happened. See https://support.google.com/google-ads/answer/14007601 for more details.
@@ -1176,13 +1199,14 @@ pub struct UserListLicensePricing {
 pub struct UserProperties {
     /// Optional. A bucket of any additional [user properties](https://developers.google.com/analytics/devguides/collection/protocol/ga4/user-properties) for the user associated with this event.
     #[serde(default, rename = "additionalUserProperties")]
-    pub additional_user_properties: Option<Vec<UserProperty>>,
+    pub additional_user_properties:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserProperty>>>,
     /// Optional. Type of the customer associated with the event. // TODO: enum values: ["CUSTOMER_TYPE_UNSPECIFIED", "NEW", "RETURNING", "REENGAGED"]
     #[serde(default, rename = "customerType")]
-    pub customer_type: Option<String>,
+    pub customer_type: ::core::option::Option<String>,
     /// Optional. The advertiser-assessed value of the customer. // TODO: enum values: ["CUSTOMER_VALUE_BUCKET_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
     #[serde(default, rename = "customerValueBucket")]
-    pub customer_value_bucket: Option<String>,
+    pub customer_value_bucket: ::core::option::Option<String>,
 }
 
 /// A bucket of any additional [user properties](https://developers.google.com/analytics/devguides/collection/protocol/ga4/user-properties) for the user associated with this event.
@@ -1190,10 +1214,10 @@ pub struct UserProperties {
 pub struct UserProperty {
     /// Required. The name of the user property to use.
     #[serde(default, rename = "propertyName")]
-    pub property_name: Option<String>,
+    pub property_name: ::core::option::Option<String>,
     /// Required. The string representation of the value of the user property to use.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// The warning count for a given warning reason.
@@ -1201,10 +1225,10 @@ pub struct UserProperty {
 pub struct WarningCount {
     /// The warning reason. // TODO: enum values: ["PROCESSING_WARNING_REASON_UNSPECIFIED", "PROCESSING_WARNING_REASON_KEK_PERMISSION_DENIED", "PROCESSING_WARNING_REASON_DEK_DECRYPTION_ERROR", "PROCESSING_WARNING_REASON_DECRYPTION_ERROR", "PROCESSING_WARNING_REASON_WIP_AUTH_FAILED", "PROCESSING_WARNING_REASON_INVALID_WIP", "PROCESSING_WARNING_REASON_INVALID_KEK", "PROCESSING_WARNING_REASON_USER_IDENTIFIER_DECRYPTION_ERROR", "PROCESSING_WARNING_REASON_INTERNAL_ERROR", "PROCESSING_WARNING_REASON_AWS_AUTH_FAILED"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// The count of records that have a warning.
     #[serde(default, rename = "recordCount")]
-    pub record_count: Option<String>,
+    pub record_count: ::core::option::Option<String>,
 }
 
 /// Warning counts for each type of warning.
@@ -1212,5 +1236,5 @@ pub struct WarningCount {
 pub struct WarningInfo {
     /// A list of warnings and counts per warning reason.
     #[serde(default, rename = "warningCounts")]
-    pub warning_counts: Option<Vec<WarningCount>>,
+    pub warning_counts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WarningCount>>>,
 }

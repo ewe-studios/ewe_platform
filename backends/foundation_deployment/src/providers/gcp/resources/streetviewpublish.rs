@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Request to delete multiple Photos.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchDeletePhotosRequest {
     /// Required. IDs of the Photos. HTTP GET requests require the following syntax for the URL query parameter: photoIds=&photoIds=&....
     #[serde(default, rename = "photoIds")]
-    pub photo_ids: Option<Vec<String>>,
+    pub photo_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response to batch delete of one or more Photos.
@@ -26,7 +26,7 @@ pub struct BatchDeletePhotosRequest {
 pub struct BatchDeletePhotosResponse {
     /// The status for the operation to delete a single Photo in the batch request.
     #[serde(default)]
-    pub status: Option<Vec<Status>>,
+    pub status: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
 }
 
 /// Response to batch get of Photos.
@@ -34,7 +34,7 @@ pub struct BatchDeletePhotosResponse {
 pub struct BatchGetPhotosResponse {
     /// List of results for each individual Photo requested, in the same order as the requests in BatchGetPhotos.
     #[serde(default)]
-    pub results: Option<Vec<PhotoResponse>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PhotoResponse>>>,
 }
 
 /// Request to update the metadata of photos. Updating the pixels of photos is not supported.
@@ -42,7 +42,8 @@ pub struct BatchGetPhotosResponse {
 pub struct BatchUpdatePhotosRequest {
     /// Required. List of UpdatePhotoRequests.
     #[serde(default, rename = "updatePhotoRequests")]
-    pub update_photo_requests: Option<Vec<UpdatePhotoRequest>>,
+    pub update_photo_requests:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpdatePhotoRequest>>>,
 }
 
 /// Response to batch update of metadata of one or more Photos.
@@ -50,7 +51,7 @@ pub struct BatchUpdatePhotosRequest {
 pub struct BatchUpdatePhotosResponse {
     /// List of results for each individual Photo updated, in the same order as the request.
     #[serde(default)]
-    pub results: Option<Vec<PhotoResponse>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PhotoResponse>>>,
 }
 
 /// A connection is the link from a source photo to a destination photo.
@@ -58,7 +59,7 @@ pub struct BatchUpdatePhotosResponse {
 pub struct Connection {
     /// Required. The destination of the connection from the containing photo to another photo.
     #[serde(default)]
-    pub target: Option<PhotoId>,
+    pub target: ::core::option::Option<::std::boxed::Box<PhotoId>>,
 }
 
 /// Details related to ProcessingFailureReason#GPS_DATA_GAP. If there are multiple GPS data gaps, only the one with the largest duration is reported here.
@@ -66,10 +67,10 @@ pub struct Connection {
 pub struct GpsDataGapFailureDetails {
     /// The duration of the gap in GPS data that was found.
     #[serde(default, rename = "gapDuration")]
-    pub gap_duration: Option<String>,
+    pub gap_duration: ::core::option::Option<String>,
     /// Relative time (from the start of the video stream) when the gap started.
     #[serde(default, rename = "gapStartTime")]
-    pub gap_start_time: Option<String>,
+    pub gap_start_time: ::core::option::Option<String>,
 }
 
 /// IMU data from the device sensors.
@@ -77,13 +78,13 @@ pub struct GpsDataGapFailureDetails {
 pub struct Imu {
     /// The accelerometer measurements in meters/sec^2 with increasing timestamps from devices.
     #[serde(default, rename = "accelMpsps")]
-    pub accel_mpsps: Option<Vec<Measurement3d>>,
+    pub accel_mpsps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Measurement3d>>>,
     /// The gyroscope measurements in radians/sec with increasing timestamps from devices.
     #[serde(default, rename = "gyroRps")]
-    pub gyro_rps: Option<Vec<Measurement3d>>,
+    pub gyro_rps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Measurement3d>>>,
     /// The magnetometer measurements of the magnetic field in microtesla (uT) with increasing timestamps from devices.
     #[serde(default, rename = "magUt")]
-    pub mag_ut: Option<Vec<Measurement3d>>,
+    pub mag_ut: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Measurement3d>>>,
 }
 
 /// Details related to ProcessingFailureReason#IMU_DATA_GAP. If there are multiple IMU data gaps, only the one with the largest duration is reported here.
@@ -91,10 +92,10 @@ pub struct Imu {
 pub struct ImuDataGapFailureDetails {
     /// The duration of the gap in IMU data that was found.
     #[serde(default, rename = "gapDuration")]
-    pub gap_duration: Option<String>,
+    pub gap_duration: ::core::option::Option<String>,
     /// Relative time (from the start of the video stream) when the gap started.
     #[serde(default, rename = "gapStartTime")]
-    pub gap_start_time: Option<String>,
+    pub gap_start_time: ::core::option::Option<String>,
 }
 
 /// Details related to ProcessingFailureReason#INSUFFICIENT_GPS.
@@ -102,7 +103,7 @@ pub struct ImuDataGapFailureDetails {
 pub struct InsufficientGpsFailureDetails {
     /// The number of GPS points that were found in the video.
     #[serde(default, rename = "gpsPointsFound")]
-    pub gps_points_found: Option<i32>,
+    pub gps_points_found: ::core::option::Option<i32>,
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
@@ -110,10 +111,10 @@ pub struct InsufficientGpsFailureDetails {
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// The longitude in degrees. It must be in the range [-180.0, +180.0].
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
 }
 
 /// A rectangle in geographical coordinates.
@@ -121,10 +122,10 @@ pub struct LatLng {
 pub struct LatLngBounds {
     /// The northeast corner of these bounds.
     #[serde(default)]
-    pub northeast: Option<LatLng>,
+    pub northeast: ::core::option::Option<::std::boxed::Box<LatLng>>,
     /// The southwest corner of these bounds.
     #[serde(default)]
-    pub southwest: Option<LatLng>,
+    pub southwest: ::core::option::Option<::std::boxed::Box<LatLng>>,
 }
 
 /// Level information containing level number and its corresponding name.
@@ -132,10 +133,10 @@ pub struct LatLngBounds {
 pub struct Level {
     /// Required. A name assigned to this Level, restricted to 3 characters. Consider how the elevator buttons would be labeled for this level if there was an elevator.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Floor number, used for ordering. 0 indicates the ground level, 1 indicates the first level above ground level, -1 indicates the first level under ground level. Non-integer values are OK.
     #[serde(default)]
-    pub number: Option<f64>,
+    pub number: ::core::option::Option<f64>,
 }
 
 /// Response to list all photo sequences that belong to a user.
@@ -143,10 +144,10 @@ pub struct Level {
 pub struct ListPhotoSequencesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of photo sequences via Operation interface. The maximum number of items returned is based on the pageSize field in the request. Each item in the list can have three possible states, * Operation.done = false, if the processing of PhotoSequence is not finished yet. * Operation.done = true and Operation.error is populated, if there was an error in processing. * Operation.done = true and Operation.response contains a PhotoSequence message, In each sequence, only Id is populated.
     #[serde(default, rename = "photoSequences")]
-    pub photo_sequences: Option<Vec<Operation>>,
+    pub photo_sequences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
 }
 
 /// Response to list all photos that belong to a user.
@@ -154,10 +155,10 @@ pub struct ListPhotoSequencesResponse {
 pub struct ListPhotosResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of photos. The pageSize field in the request determines the number of items returned.
     #[serde(default)]
-    pub photos: Option<Vec<Photo>>,
+    pub photos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Photo>>>,
 }
 
 /// A Generic 3d measurement sample.
@@ -165,16 +166,16 @@ pub struct ListPhotosResponse {
 pub struct Measurement3d {
     /// The timestamp of the IMU measurement.
     #[serde(default, rename = "captureTime")]
-    pub capture_time: Option<String>,
+    pub capture_time: ::core::option::Option<String>,
     /// The sensor measurement in the x axis.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// The sensor measurement in the y axis.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
     /// The sensor measurement in the z axis.
     #[serde(default)]
-    pub z: Option<f32>,
+    pub z: ::core::option::Option<f32>,
 }
 
 /// Details related to PhotoSequenceProcessingFailureReason#NO_OVERLAP_GPS.
@@ -182,16 +183,16 @@ pub struct Measurement3d {
 pub struct NoOverlapGpsFailureDetails {
     /// Time of last recorded GPS point.
     #[serde(default, rename = "gpsEndTime")]
-    pub gps_end_time: Option<String>,
+    pub gps_end_time: ::core::option::Option<String>,
     /// Time of first recorded GPS point.
     #[serde(default, rename = "gpsStartTime")]
-    pub gps_start_time: Option<String>,
+    pub gps_start_time: ::core::option::Option<String>,
     /// End time of video.
     #[serde(default, rename = "videoEndTime")]
-    pub video_end_time: Option<String>,
+    pub video_end_time: ::core::option::Option<String>,
     /// Start time of video.
     #[serde(default, rename = "videoStartTime")]
-    pub video_start_time: Option<String>,
+    pub video_start_time: ::core::option::Option<String>,
 }
 
 /// Details related to ProcessingFailureReason#NOT_OUTDOORS. If there are multiple indoor frames found, the first frame is recorded here.
@@ -199,7 +200,7 @@ pub struct NoOverlapGpsFailureDetails {
 pub struct NotOutdoorsFailureDetails {
     /// Relative time (from the start of the video stream) when an indoor frame was found.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -207,19 +208,19 @@ pub struct NotOutdoorsFailureDetails {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Photo is used to store 360 photos along with photo metadata.
@@ -227,43 +228,43 @@ pub struct Operation {
 pub struct Photo {
     /// Optional. Absolute time when the photo was captured. When the photo has no exif timestamp, this is used to set a timestamp in the photo metadata.
     #[serde(default, rename = "captureTime")]
-    pub capture_time: Option<String>,
+    pub capture_time: ::core::option::Option<String>,
     /// Optional. Connections to other photos. A connection represents the link from this photo to another photo.
     #[serde(default)]
-    pub connections: Option<Vec<Connection>>,
+    pub connections: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Connection>>>,
     /// Output only. The download URL for the photo bytes. This field is set only when GetPhotoRequest.view is set to PhotoView.INCLUDE_DOWNLOAD_URL.
     #[serde(default, rename = "downloadUrl")]
-    pub download_url: Option<String>,
+    pub download_url: ::core::option::Option<String>,
     /// Output only. Status in Google Maps, whether this photo was published or rejected. // TODO: enum values: ["UNSPECIFIED_MAPS_PUBLISH_STATUS", "PUBLISHED", "REJECTED_UNKNOWN"]
     #[serde(default, rename = "mapsPublishStatus")]
-    pub maps_publish_status: Option<String>,
+    pub maps_publish_status: ::core::option::Option<String>,
     /// Required. Output only. Required when updating a photo. Output only when creating a photo. Identifier for the photo, which is unique among all photos in Google.
     #[serde(default, rename = "photoId")]
-    pub photo_id: Option<PhotoId>,
+    pub photo_id: ::core::option::Option<::std::boxed::Box<PhotoId>>,
     /// Optional. Places where this photo belongs.
     #[serde(default)]
-    pub places: Option<Vec<Place>>,
+    pub places: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Place>>>,
     /// Optional. Pose of the photo.
     #[serde(default)]
-    pub pose: Option<Pose>,
+    pub pose: ::core::option::Option<::std::boxed::Box<Pose>>,
     /// Output only. The share link for the photo.
     #[serde(default, rename = "shareLink")]
-    pub share_link: Option<String>,
+    pub share_link: ::core::option::Option<String>,
     /// Output only. The thumbnail URL for showing a preview of the given photo.
     #[serde(default, rename = "thumbnailUrl")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: ::core::option::Option<String>,
     /// Output only. Status of rights transfer on this photo. // TODO: enum values: ["TRANSFER_STATUS_UNKNOWN", "NEVER_TRANSFERRED", "PENDING", "COMPLETED", "REJECTED", "EXPIRED", "CANCELLED", "RECEIVED_VIA_TRANSFER"]
     #[serde(default, rename = "transferStatus")]
-    pub transfer_status: Option<String>,
+    pub transfer_status: ::core::option::Option<String>,
     /// Input only. Required when creating a photo. Input only. The resource URL where the photo bytes are uploaded to.
     #[serde(default, rename = "uploadReference")]
-    pub upload_reference: Option<UploadRef>,
+    pub upload_reference: ::core::option::Option<::std::boxed::Box<UploadRef>>,
     /// Output only. Time when the image was uploaded.
     #[serde(default, rename = "uploadTime")]
-    pub upload_time: Option<String>,
+    pub upload_time: ::core::option::Option<String>,
     /// Output only. View count of the photo.
     #[serde(default, rename = "viewCount")]
-    pub view_count: Option<String>,
+    pub view_count: ::core::option::Option<String>,
 }
 
 /// Identifier for a Photo.
@@ -271,7 +272,7 @@ pub struct Photo {
 pub struct PhotoId {
     /// A unique identifier for a photo.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Response payload for a single Photo in batch operations including BatchGetPhotos and BatchUpdatePhotos.
@@ -279,10 +280,10 @@ pub struct PhotoId {
 pub struct PhotoResponse {
     /// The Photo resource, if the request was successful.
     #[serde(default)]
-    pub photo: Option<Photo>,
+    pub photo: ::core::option::Option<::std::boxed::Box<Photo>>,
     /// The status for the operation to get or update a single photo in the batch request.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// A sequence of 360 photos along with metadata.
@@ -290,49 +291,49 @@ pub struct PhotoResponse {
 pub struct PhotoSequence {
     /// Optional. Absolute time when the photo sequence starts to be captured. If the photo sequence is a video, this is the start time of the video. If this field is populated in input, it overrides the capture time in the video or XDM file.
     #[serde(default, rename = "captureTimeOverride")]
-    pub capture_time_override: Option<String>,
+    pub capture_time_override: ::core::option::Option<String>,
     /// Output only. The computed distance of the photo sequence in meters.
     #[serde(default, rename = "distanceMeters")]
-    pub distance_meters: Option<f64>,
+    pub distance_meters: ::core::option::Option<f64>,
     /// Output only. If this sequence has failure_reason set, this may contain additional details about the failure.
     #[serde(default, rename = "failureDetails")]
-    pub failure_details: Option<ProcessingFailureDetails>,
+    pub failure_details: ::core::option::Option<::std::boxed::Box<ProcessingFailureDetails>>,
     /// Output only. If this sequence has processing_state = FAILED, this will contain the reason why it failed. If the processing_state is any other value, this field will be unset. // TODO: enum values: ["PROCESSING_FAILURE_REASON_UNSPECIFIED", "LOW_RESOLUTION", "DUPLICATE", "INSUFFICIENT_GPS", "NO_OVERLAP_GPS", "INVALID_GPS", "FAILED_TO_REFINE_POSITIONS", "TAKEDOWN", "CORRUPT_VIDEO", "INTERNAL", "INVALID_VIDEO_FORMAT", "INVALID_VIDEO_DIMENSIONS", "INVALID_CAPTURE_TIME", "GPS_DATA_GAP", "JUMPY_GPS", "INVALID_IMU", "INSUFFICIENT_IMU", "INSUFFICIENT_OVERLAP_TIME_SERIES", "IMU_DATA_GAP", "UNSUPPORTED_CAMERA", "NOT_OUTDOORS", "INSUFFICIENT_VIDEO_FRAMES", "INSUFFICIENT_MOVEMENT", "MAST_DOWN", "CAMERA_COVERED"]
     #[serde(default, rename = "failureReason")]
-    pub failure_reason: Option<String>,
+    pub failure_reason: ::core::option::Option<String>,
     /// Output only. The filename of the upload. Does not include the directory path. Only available if the sequence was uploaded on a platform that provides the filename.
     #[serde(default)]
-    pub filename: Option<String>,
+    pub filename: ::core::option::Option<String>,
     /// Input only. If both raw_gps_timeline and the Camera Motion Metadata Track (CAMM) contain GPS measurements, indicate which takes precedence. // TODO: enum values: ["PHOTO_SEQUENCE", "CAMERA_MOTION_METADATA_TRACK"]
     #[serde(default, rename = "gpsSource")]
-    pub gps_source: Option<String>,
+    pub gps_source: ::core::option::Option<String>,
     /// Output only. Unique identifier for the photo sequence. This also acts as a long running operation ID if uploading is performed asynchronously.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Input only. Three axis IMU data for the collection. If this data is too large to put in the request, then it should be put in the CAMM track for the video. This data always takes precedence over the equivalent CAMM data, if it exists.
     #[serde(default)]
-    pub imu: Option<Imu>,
+    pub imu: ::core::option::Option<::std::boxed::Box<Imu>>,
     /// Output only. Photos with increasing timestamps.
     #[serde(default)]
-    pub photos: Option<Vec<Photo>>,
+    pub photos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Photo>>>,
     /// Output only. The processing state of this sequence. // TODO: enum values: ["PROCESSING_STATE_UNSPECIFIED", "PENDING", "PROCESSING", "PROCESSED", "FAILED"]
     #[serde(default, rename = "processingState")]
-    pub processing_state: Option<String>,
+    pub processing_state: ::core::option::Option<String>,
     /// Input only. Raw GPS measurements with increasing timestamps from the device that aren''t time synced with each photo. These raw measurements will be used to infer the pose of each frame. Required in input when InputType is VIDEO and raw GPS measurements are not in Camera Motion Metadata Track (CAMM). User can indicate which takes precedence using gps_source if raw GPS measurements are provided in both raw_gps_timeline and Camera Motion Metadata Track (CAMM).
     #[serde(default, rename = "rawGpsTimeline")]
-    pub raw_gps_timeline: Option<Vec<Pose>>,
+    pub raw_gps_timeline: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Pose>>>,
     /// Output only. A rectangular box that encapsulates every image in this photo sequence.
     #[serde(default, rename = "sequenceBounds")]
-    pub sequence_bounds: Option<LatLngBounds>,
+    pub sequence_bounds: ::core::option::Option<::std::boxed::Box<LatLngBounds>>,
     /// Input only. Required when creating photo sequence. The resource name where the bytes of the photo sequence (in the form of video) are uploaded.
     #[serde(default, rename = "uploadReference")]
-    pub upload_reference: Option<UploadRef>,
+    pub upload_reference: ::core::option::Option<::std::boxed::Box<UploadRef>>,
     /// Output only. The time this photo sequence was created in uSV Store service.
     #[serde(default, rename = "uploadTime")]
-    pub upload_time: Option<String>,
+    pub upload_time: ::core::option::Option<String>,
     /// Output only. The total number of views that all the published images in this PhotoSequence have received.
     #[serde(default, rename = "viewCount")]
-    pub view_count: Option<String>,
+    pub view_count: ::core::option::Option<String>,
 }
 
 /// Place metadata for an entity.
@@ -340,13 +341,13 @@ pub struct PhotoSequence {
 pub struct Place {
     /// Output only. The language_code that the name is localized with. This should be the language_code specified in the request, but may be a fallback.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Output only. The name of the place, localized to the language_code.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Place identifier, as described in https://developers.google.com/places/place-id.
     #[serde(default, rename = "placeId")]
-    pub place_id: Option<String>,
+    pub place_id: ::core::option::Option<String>,
 }
 
 /// Raw pose measurement for an entity.
@@ -354,28 +355,28 @@ pub struct Place {
 pub struct Pose {
     /// The estimated horizontal accuracy of this pose in meters with 68% confidence (one standard deviation). For example, on Android, this value is available from this method: https://developer.android.com/reference/android/location/Location#getAccuracy(). Other platforms have different methods of obtaining similar accuracy estimations.
     #[serde(default, rename = "accuracyMeters")]
-    pub accuracy_meters: Option<f32>,
+    pub accuracy_meters: ::core::option::Option<f32>,
     /// Altitude of the pose in meters above WGS84 ellipsoid. NaN indicates an unmeasured quantity.
     #[serde(default)]
-    pub altitude: Option<f64>,
+    pub altitude: ::core::option::Option<f64>,
     /// Time of the GPS record since UTC epoch.
     #[serde(default, rename = "gpsRecordTimestampUnixEpoch")]
-    pub gps_record_timestamp_unix_epoch: Option<String>,
+    pub gps_record_timestamp_unix_epoch: ::core::option::Option<String>,
     /// The following pose parameters pertain to the center of the photo. They match https://developers.google.com/streetview/spherical-metadata. Compass heading, measured at the center of the photo in degrees clockwise from North. Value must be &gt;=0 and &lt;360. NaN indicates an unmeasured quantity.
     #[serde(default)]
-    pub heading: Option<f64>,
+    pub heading: ::core::option::Option<f64>,
     /// Latitude and longitude pair of the pose, as explained here: https://cloud.google.com/datastore/docs/reference/rest/Shared.Types/LatLng When creating a Photo, if the latitude and longitude pair are not provided, the geolocation from the exif header is used. A latitude and longitude pair not provided in the photo or exif header causes the photo process to fail.
     #[serde(default, rename = "latLngPair")]
-    pub lat_lng_pair: Option<LatLng>,
+    pub lat_lng_pair: ::core::option::Option<::std::boxed::Box<LatLng>>,
     /// Level (the floor in a building) used to configure vertical navigation.
     #[serde(default)]
-    pub level: Option<Level>,
+    pub level: ::core::option::Option<::std::boxed::Box<Level>>,
     /// Pitch, measured at the center of the photo in degrees. Value must be &gt;=-90 and &lt;= 90. A value of -90 means looking directly down, and a value of 90 means looking directly up. NaN indicates an unmeasured quantity.
     #[serde(default)]
-    pub pitch: Option<f64>,
+    pub pitch: ::core::option::Option<f64>,
     /// Roll, measured in degrees. Value must be &gt;= 0 and &lt;360. A value of 0 means level with the horizon. NaN indicates an unmeasured quantity.
     #[serde(default)]
-    pub roll: Option<f64>,
+    pub roll: ::core::option::Option<f64>,
 }
 
 /// Additional details to accompany the ProcessingFailureReason enum. This message is always expected to be used in conjunction with ProcessingFailureReason, and the oneof value set in this message should match the FailureReason.
@@ -383,19 +384,21 @@ pub struct Pose {
 pub struct ProcessingFailureDetails {
     /// See GpsDataGapFailureDetails.
     #[serde(default, rename = "gpsDataGapDetails")]
-    pub gps_data_gap_details: Option<GpsDataGapFailureDetails>,
+    pub gps_data_gap_details: ::core::option::Option<::std::boxed::Box<GpsDataGapFailureDetails>>,
     /// See ImuDataGapFailureDetails.
     #[serde(default, rename = "imuDataGapDetails")]
-    pub imu_data_gap_details: Option<ImuDataGapFailureDetails>,
+    pub imu_data_gap_details: ::core::option::Option<::std::boxed::Box<ImuDataGapFailureDetails>>,
     /// See InsufficientGpsFailureDetails.
     #[serde(default, rename = "insufficientGpsDetails")]
-    pub insufficient_gps_details: Option<InsufficientGpsFailureDetails>,
+    pub insufficient_gps_details:
+        ::core::option::Option<::std::boxed::Box<InsufficientGpsFailureDetails>>,
     /// See NoOverlapGpsFailureDetails.
     #[serde(default, rename = "noOverlapGpsDetails")]
-    pub no_overlap_gps_details: Option<NoOverlapGpsFailureDetails>,
+    pub no_overlap_gps_details:
+        ::core::option::Option<::std::boxed::Box<NoOverlapGpsFailureDetails>>,
     /// See NotOutdoorsFailureDetails.
     #[serde(default, rename = "notOutdoorsDetails")]
-    pub not_outdoors_details: Option<NotOutdoorsFailureDetails>,
+    pub not_outdoors_details: ::core::option::Option<::std::boxed::Box<NotOutdoorsFailureDetails>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -403,13 +406,13 @@ pub struct ProcessingFailureDetails {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Request to update the metadata of a Photo. Updating the pixels of a photo is not supported.
@@ -417,10 +420,10 @@ pub struct Status {
 pub struct UpdatePhotoRequest {
     /// Required. Photo object containing the new metadata.
     #[serde(default)]
-    pub photo: Option<Photo>,
+    pub photo: ::core::option::Option<::std::boxed::Box<Photo>>,
     /// Required. Mask that identifies fields on the photo metadata to update. If not present, the old Photo metadata is entirely replaced with the new Photo metadata in this request. The update fails if invalid fields are specified. Multiple fields can be specified in a comma-delimited list. The following fields are valid: * pose.heading * pose.lat_lng_pair * pose.pitch * pose.roll * pose.level * pose.altitude * connections * places &gt; Note: When updateMask contains repeated fields, the entire set of repeated values get replaced with the new contents. For example, if updateMask contains connections and UpdatePhotoRequest.photo.connections is empty, all connections are removed.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Upload reference for media files.
@@ -428,5 +431,5 @@ pub struct UpdatePhotoRequest {
 pub struct UploadRef {
     /// An upload reference should be unique for each user. It follows the form: "https://streetviewpublish.googleapis.com/media/user/{account_id}/photo/{upload_reference}"
     #[serde(default, rename = "uploadUrl")]
-    pub upload_url: Option<String>,
+    pub upload_url: ::core::option::Option<String>,
 }

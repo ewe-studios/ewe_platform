@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Configures consent audit log config for FHIR create, read, update, and delete (CRUD) operations. Cloud audit log for healthcare API must be [enabled](https://cloud.google.com/logging/docs/audit/configure-data-access#config-console-enable). The consent-related logs are included as part of protoPayload.metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessDeterminationLogConfig {
     /// Optional. Controls the amount of detail to include as part of the audit logs. // TODO: enum values: ["LOG_LEVEL_UNSPECIFIED", "DISABLED", "MINIMUM", "VERBOSE"]
     #[serde(default, rename = "logLevel")]
-    pub log_level: Option<String>,
+    pub log_level: ::core::option::Option<String>,
 }
 
 /// Activates the latest revision of the specified Consent by committing a new revision with state updated to ACTIVE. If the latest revision of the given Consent is in the ACTIVE state, no new revision is committed. A FAILED_PRECONDITION error occurs if the latest revision of the given consent is in the REJECTED or REVOKED state.
@@ -26,13 +26,13 @@ pub struct AccessDeterminationLogConfig {
 pub struct ActivateConsentRequest {
     /// Required. The resource name of the Consent artifact that contains documentation of the user''s consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}. If the draft Consent had a Consent artifact, this Consent artifact overwrites it.
     #[serde(default, rename = "consentArtifact")]
-    pub consent_artifact: Option<String>,
+    pub consent_artifact: ::core::option::Option<String>,
     /// Timestamp in UTC of when this Consent is considered expired.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The time to live for this Consent from when it is marked as active.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// List of admin Consent resources to be applied.
@@ -40,7 +40,7 @@ pub struct ActivateConsentRequest {
 pub struct AdminConsents {
     /// Optional. The versioned names of the admin Consent resource(s), in the format projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}/_history/{version_id}. For FHIR stores with disable_resource_versioning=true, the format is projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The request to analyze healthcare entities in a document.
@@ -48,13 +48,13 @@ pub struct AdminConsents {
 pub struct AnalyzeEntitiesRequest {
     /// Optional. Alternative output format to be generated based on the results of analysis. // TODO: enum values: ["ALTERNATIVE_OUTPUT_FORMAT_UNSPECIFIED", "FHIR_BUNDLE"]
     #[serde(default, rename = "alternativeOutputFormat")]
-    pub alternative_output_format: Option<String>,
+    pub alternative_output_format: ::core::option::Option<String>,
     /// document_content is a document to be annotated.
     #[serde(default, rename = "documentContent")]
-    pub document_content: Option<String>,
+    pub document_content: ::core::option::Option<String>,
     /// A list of licensed vocabularies to use in the request, in addition to the default unlicensed vocabularies.
     #[serde(default, rename = "licensedVocabularies")]
-    pub licensed_vocabularies: Option<Vec<String>>,
+    pub licensed_vocabularies: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Includes recognized entity mentions and relationships between them.
@@ -62,16 +62,17 @@ pub struct AnalyzeEntitiesRequest {
 pub struct AnalyzeEntitiesResponse {
     /// The union of all the candidate entities that the entity_mentions in this response could link to. These are UMLS concepts or normalized mention content.
     #[serde(default)]
-    pub entities: Option<Vec<Entity>>,
+    pub entities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entity>>>,
     /// The entity_mentions field contains all the annotated medical entities that were mentioned in the provided document.
     #[serde(default, rename = "entityMentions")]
-    pub entity_mentions: Option<Vec<EntityMention>>,
+    pub entity_mentions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntityMention>>>,
     /// The FHIR bundle ([R4](http://hl7.org/fhir/R4/bundle.html)) that includes all the entities, the entity mentions, and the relationships in JSON format.
     #[serde(default, rename = "fhirBundle")]
-    pub fhir_bundle: Option<String>,
+    pub fhir_bundle: ::core::option::Option<String>,
     /// relationships contains all the binary relationships that were identified between entity mentions within the provided document.
     #[serde(default)]
-    pub relationships: Option<Vec<EntityMentionRelationship>>,
+    pub relationships:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntityMentionRelationship>>>,
 }
 
 /// Contains the error details of the unsupported admin Consent resources for when the ApplyAdminConsents method fails to apply one or more Consent resources.
@@ -79,10 +80,10 @@ pub struct AnalyzeEntitiesResponse {
 pub struct ApplyAdminConsentsErrorDetail {
     /// The list of Consent resources that are unsupported or cannot be applied and the error associated with each of them.
     #[serde(default, rename = "consentErrors")]
-    pub consent_errors: Option<Vec<ConsentErrors>>,
+    pub consent_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConsentErrors>>>,
     /// The currently in progress non-validate-only ApplyAdminConsents operation ID if exist.
     #[serde(default, rename = "existingOperationId")]
-    pub existing_operation_id: Option<String>,
+    pub existing_operation_id: ::core::option::Option<String>,
 }
 
 /// Request to apply the admin Consent resources for the specified FHIR store.
@@ -90,10 +91,10 @@ pub struct ApplyAdminConsentsErrorDetail {
 pub struct ApplyAdminConsentsRequest {
     /// A new list of admin Consent resources to be applied. Any existing enforced Consents, which are specified in consent_config.enforced_admin_consents of the FhirStore, that are not part of this list will be disabled. An empty list is equivalent to clearing or disabling all Consents enforced on the FHIR store. When a FHIR store has disable_resource_versioning=true and this list contains a Consent resource that exists in consent_config.enforced_admin_consents, the method enforces any updates to the existing resource since the last enforcement. If the existing resource hasn''t been updated since the last enforcement, the resource is unaffected. After the method finishes, the resulting consent enforcement model is determined by the contents of the Consent resource(s) when the method was called: * When disable_resource_versioning=true, the result is identical to the current resource(s) in the FHIR store. * When disable_resource_versioning=false, the result is based on the historical version(s) of the Consent resource(s) at the point in time when the method was called. At most 200 Consents can be specified.
     #[serde(default, rename = "newConsentsList")]
-    pub new_consents_list: Option<AdminConsents>,
+    pub new_consents_list: ::core::option::Option<::std::boxed::Box<AdminConsents>>,
     /// Optional. If true, the method only validates Consent resources to make sure they are supported. Otherwise, the method applies the aggregate consent information to update the enforcement model and reindex the FHIR resources. If all Consent resources can be applied successfully, the ApplyAdminConsentsResponse is returned containing the following fields: * consent_apply_success to indicate the number of Consent resources applied. * affected_resources to indicate the number of resources that might have had their consent access changed. If, however, one or more Consent resources are unsupported or cannot be applied, the method fails and ApplyAdminConsentsErrorDetail is is returned with details about the unsupported Consent resources.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response when all admin Consent resources in scope were processed and all affected resources were reindexed successfully. This structure will be included in the response when the operation finishes successfully.
@@ -101,13 +102,13 @@ pub struct ApplyAdminConsentsRequest {
 pub struct ApplyAdminConsentsResponse {
     /// The number of resources (including the Consent resources) that may have consent access change.
     #[serde(default, rename = "affectedResources")]
-    pub affected_resources: Option<String>,
+    pub affected_resources: ::core::option::Option<String>,
     /// If validate_only=false in ApplyAdminConsentsRequest, this counter contains the number of Consent resources that were successfully applied. Otherwise, it is the number of Consent resources that are supported.
     #[serde(default, rename = "consentApplySuccess")]
-    pub consent_apply_success: Option<String>,
+    pub consent_apply_success: ::core::option::Option<String>,
     /// The number of resources (including the Consent resources) that ApplyAdminConsents failed to re-index.
     #[serde(default, rename = "failedResources")]
-    pub failed_resources: Option<String>,
+    pub failed_resources: ::core::option::Option<String>,
 }
 
 /// Request to apply the Consent resources for the specified FHIR store.
@@ -115,13 +116,13 @@ pub struct ApplyAdminConsentsResponse {
 pub struct ApplyConsentsRequest {
     /// Optional. Scope down to a list of patients.
     #[serde(default, rename = "patientScope")]
-    pub patient_scope: Option<PatientScope>,
+    pub patient_scope: ::core::option::Option<::std::boxed::Box<PatientScope>>,
     /// Optional. Scope down to patients whose most recent consent changes are in the time range. Can only be used with a versioning store (i.e. when disable_resource_versioning is set to false).
     #[serde(default, rename = "timeRange")]
-    pub time_range: Option<TimeRange>,
+    pub time_range: ::core::option::Option<::std::boxed::Box<TimeRange>>,
     /// Optional. If true, the method only validates Consent resources to make sure they are supported. When the operation completes, ApplyConsentsResponse is returned where consent_apply_success and consent_apply_failure indicate supported and unsupported (or invalid) Consent resources, respectively. Otherwise, the method propagates the aggregate consensual information to the patient''s resources. Upon success, affected_resources in the ApplyConsentsResponse indicates the number of resources that may have consensual access changed.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response when all Consent resources in scope were processed and all affected resources were reindexed successfully. This structure is included in the response when the operation finishes successfully.
@@ -129,16 +130,16 @@ pub struct ApplyConsentsRequest {
 pub struct ApplyConsentsResponse {
     /// The number of resources (including the Consent resources) that may have consensual access change.
     #[serde(default, rename = "affectedResources")]
-    pub affected_resources: Option<String>,
+    pub affected_resources: ::core::option::Option<String>,
     /// If validate_only = false in ApplyConsentsRequest, this counter is the number of Consent resources that were failed to apply. Otherwise, it is the number of Consent resources that are not supported or invalid.
     #[serde(default, rename = "consentApplyFailure")]
-    pub consent_apply_failure: Option<String>,
+    pub consent_apply_failure: ::core::option::Option<String>,
     /// If validate_only = false in ApplyConsentsRequest, this counter is the number of Consent resources that were successfully applied. Otherwise, it is the number of Consent resources that are supported.
     #[serde(default, rename = "consentApplySuccess")]
-    pub consent_apply_success: Option<String>,
+    pub consent_apply_success: ::core::option::Option<String>,
     /// The number of resources (including the Consent resources) that ApplyConsents failed to re-index.
     #[serde(default, rename = "failedResources")]
-    pub failed_resources: Option<String>,
+    pub failed_resources: ::core::option::Option<String>,
 }
 
 /// An attribute value for a Consent or User data mapping. Each Attribute must have a corresponding AttributeDefinition in the consent store that defines the default and allowed values.
@@ -146,10 +147,10 @@ pub struct ApplyConsentsResponse {
 pub struct Attribute {
     /// Indicates the name of an attribute defined in the consent store.
     #[serde(default, rename = "attributeDefinitionId")]
-    pub attribute_definition_id: Option<String>,
+    pub attribute_definition_id: ::core::option::Option<String>,
     /// Required. The value of the attribute. Must be an acceptable value as defined in the consent store. For example, if the consent store defines "data type" with acceptable values "questionnaire" and "step-count", when the attribute name is data type, this field must contain one of those values.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A client-defined consent attribute.
@@ -157,22 +158,22 @@ pub struct Attribute {
 pub struct AttributeDefinition {
     /// Required. Possible values for the attribute. The number of allowed values must not exceed 500. An empty list is invalid. The list can only be expanded after creation.
     #[serde(default, rename = "allowedValues")]
-    pub allowed_values: Option<Vec<String>>,
+    pub allowed_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The category of the attribute. The value of this field cannot be changed after creation. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "RESOURCE", "REQUEST"]
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// Optional. Default values of the attribute in Consents. If no default values are specified, it defaults to an empty value.
     #[serde(default, rename = "consentDefaultValues")]
-    pub consent_default_values: Option<Vec<String>>,
+    pub consent_default_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Default value of the attribute in User data mappings. If no default value is specified, it defaults to an empty value. This field is only applicable to attributes of the category RESOURCE.
     #[serde(default, rename = "dataMappingDefaultValue")]
-    pub data_mapping_default_value: Option<String>,
+    pub data_mapping_default_value: ::core::option::Option<String>,
     /// Optional. A description of the attribute.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Identifier. Resource name of the Attribute definition, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/attributeDefinitions/{attribute_definition_id}. Cannot be changed after creation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
@@ -180,10 +181,11 @@ pub struct AttributeDefinition {
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    pub audit_log_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditLogConfig>>>,
     /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -191,10 +193,10 @@ pub struct AuditConfig {
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: Option<Vec<String>>,
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -202,13 +204,13 @@ pub struct AuditLogConfig {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// BlobStorageInfo contains details about the data stored in Blob Storage for the referenced resource. Note: Storage class is only valid for DICOM and hence will only be populated for DICOM resources.
@@ -216,13 +218,13 @@ pub struct Binding {
 pub struct BlobStorageInfo {
     /// Size in bytes of data stored in Blob Storage.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
     /// The storage class in which the Blob data is stored. // TODO: enum values: ["BLOB_STORAGE_CLASS_UNSPECIFIED", "STANDARD", "NEARLINE", "COLDLINE", "ARCHIVE"]
     #[serde(default, rename = "storageClass")]
-    pub storage_class: Option<String>,
+    pub storage_class: ::core::option::Option<String>,
     /// The time at which the storage class was updated. This is used to compute early deletion fees of the resource.
     #[serde(default, rename = "storageClassUpdateTime")]
-    pub storage_class_update_time: Option<String>,
+    pub storage_class_update_time: ::core::option::Option<String>,
 }
 
 /// Settings for data stored in Blob storage.
@@ -230,7 +232,7 @@ pub struct BlobStorageInfo {
 pub struct BlobStorageSettings {
     /// The Storage class in which the Blob data is stored. // TODO: enum values: ["BLOB_STORAGE_CLASS_UNSPECIFIED", "STANDARD", "NEARLINE", "COLDLINE", "ARCHIVE"]
     #[serde(default, rename = "blobStorageClass")]
-    pub blob_storage_class: Option<String>,
+    pub blob_storage_class: ::core::option::Option<String>,
 }
 
 /// Request to bulk delete FHIR resources.
@@ -238,16 +240,17 @@ pub struct BlobStorageSettings {
 pub struct BulkDeleteResourcesRequest {
     /// Optional. The Cloud Storage output destination. The Healthcare Service Agent account requires the roles/storage.objectAdmin role on the Cloud Storage location. The deleted resources outputs are organized by FHIR resource types. The server creates one or more objects per resource type. Each object contains newline delimited strings in the format {resourceType}/{resourceId}.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudHealthcareV1FhirGcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1FhirGcsDestination>>,
     /// Optional. String of comma-delimited FHIR resource types. If provided, only resources of the specified resource type(s) will be deleted.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Optional. If provided, only resources updated before or atthis time are deleted. The time uses the format YYYY-MM-DDThh:mm:ss.sss+zz:zz. For example, 2015-02-07T13:28:17.239+02:00 or 2017-01-01T00:00:00Z. The time must be specified to the second and include a time zone.
     #[serde(default)]
-    pub until: Option<String>,
+    pub until: ::core::option::Option<String>,
     /// Optional. Specifies which version of the resources to delete. // TODO: enum values: ["VERSION_CONFIG_UNSPECIFIED", "ALL", "CURRENT_ONLY", "HISTORY_ONLY"]
     #[serde(default, rename = "versionConfig")]
-    pub version_config: Option<String>,
+    pub version_config: ::core::option::Option<String>,
 }
 
 /// The configuration for exporting to Cloud Storage using the bulk export API.
@@ -255,7 +258,7 @@ pub struct BulkDeleteResourcesRequest {
 pub struct BulkExportGcsDestination {
     /// Optional. URI for a Cloud Storage directory where the server writes result files, in the format gs://{bucket-id}/{path/to/destination/dir}. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced in uri_prefix.
     #[serde(default, rename = "uriPrefix")]
-    pub uri_prefix: Option<String>,
+    pub uri_prefix: ::core::option::Option<String>,
 }
 
 /// Mask a string by replacing its characters with a fixed character.
@@ -263,7 +266,7 @@ pub struct BulkExportGcsDestination {
 pub struct CharacterMaskConfig {
     /// Optional. Character to mask the sensitive values. If not supplied, defaults to "*".
     #[serde(default, rename = "maskingCharacter")]
-    pub masking_character: Option<String>,
+    pub masking_character: ::core::option::Option<String>,
 }
 
 /// Checks if a particular data_id of a User data mapping in the given consent store is consented for a given use.
@@ -271,16 +274,16 @@ pub struct CharacterMaskConfig {
 pub struct CheckDataAccessRequest {
     /// Optional. Specific Consents to evaluate the access request against. These Consents must have the same user_id as the evaluated User data mapping, must exist in the current consent_store, and have a state of either ACTIVE or DRAFT. A maximum of 100 Consents can be provided here. If no selection is specified, the access request is evaluated against all ACTIVE unexpired Consents with the same user_id as the evaluated User data mapping.
     #[serde(default, rename = "consentList")]
-    pub consent_list: Option<ConsentList>,
+    pub consent_list: ::core::option::Option<::std::boxed::Box<ConsentList>>,
     /// Required. The unique identifier of the resource to check access for. This identifier must correspond to a User data mapping in the given consent store.
     #[serde(default, rename = "dataId")]
-    pub data_id: Option<String>,
+    pub data_id: ::core::option::Option<String>,
     /// The values of request attributes associated with this access request.
     #[serde(default, rename = "requestAttributes")]
-    pub request_attributes: Option<serde_json::Value>,
+    pub request_attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. The view for CheckDataAccessResponse. If unspecified, defaults to BASIC and returns consented as TRUE or FALSE. // TODO: enum values: ["RESPONSE_VIEW_UNSPECIFIED", "BASIC", "FULL"]
     #[serde(default, rename = "responseView")]
-    pub response_view: Option<String>,
+    pub response_view: ::core::option::Option<String>,
 }
 
 /// Checks if a particular data_id of a User data mapping in the given consent store is consented for a given use.
@@ -288,10 +291,10 @@ pub struct CheckDataAccessRequest {
 pub struct CheckDataAccessResponse {
     /// The resource names of all evaluated Consents mapped to their evaluation.
     #[serde(default, rename = "consentDetails")]
-    pub consent_details: Option<serde_json::Value>,
+    pub consent_details: ::core::option::Option<serde_json::Value>,
     /// Whether the requested resource is consented for the given use.
     #[serde(default)]
-    pub consented: Option<bool>,
+    pub consented: ::core::option::Option<bool>,
 }
 
 /// Represents a user''s consent.
@@ -299,34 +302,36 @@ pub struct CheckDataAccessResponse {
 pub struct Consent {
     /// Required. The resource name of the Consent artifact that contains proof of the end user''s consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}.
     #[serde(default, rename = "consentArtifact")]
-    pub consent_artifact: Option<String>,
+    pub consent_artifact: ::core::option::Option<String>,
     /// Timestamp in UTC of when this Consent is considered expired.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Optional. User-supplied key-value pairs used to organize Consent resources. Metadata keys must: - be between 1 and 63 characters long - have a UTF-8 encoding of maximum 128 bytes - begin with a letter - consist of up to 63 characters including lowercase letters, numeric characters, underscores, and dashes Metadata values must be: - be between 1 and 63 characters long - have a UTF-8 encoding of maximum 128 bytes - consist of up to 63 characters including lowercase letters, numeric characters, underscores, and dashes No more than 64 metadata entries can be associated with a given consent.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Identifier. Resource name of the Consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consents/{consent_id}. Cannot be changed after creation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Represents a user''s consent in terms of the resources that can be accessed and under what conditions.
     #[serde(default)]
-    pub policies: Option<Vec<GoogleCloudHealthcareV1ConsentPolicy>>,
+    pub policies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudHealthcareV1ConsentPolicy>>,
+    >,
     /// Output only. The timestamp that the revision was created.
     #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: Option<String>,
+    pub revision_create_time: ::core::option::Option<String>,
     /// Output only. The revision ID of the Consent. The format is an 8-character hexadecimal string. Refer to a specific revision of a Consent by appending @{revision_id} to the Consent''s resource name.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Required. Indicates the current state of this Consent. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ARCHIVED", "REVOKED", "DRAFT", "REJECTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Input only. The time to live for this Consent from when it is created.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Required. User''s UUID provided by the client.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// The accessor scope that describes who can access, for what purpose, in which environment.
@@ -334,13 +339,13 @@ pub struct Consent {
 pub struct ConsentAccessorScope {
     /// An individual, group, or access role that identifies the accessor or a characteristic of the accessor. This can be a resource ID (such as {resourceType}/{id}) or an external URI. This value must be present.
     #[serde(default)]
-    pub actor: Option<String>,
+    pub actor: ::core::option::Option<String>,
     /// An abstract identifier that describes the environment or conditions under which the accessor is acting. If it''s not specified, it applies to all environments.
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// The intent of data use. If it''s not specified, it applies to all purposes.
     #[serde(default)]
-    pub purpose: Option<String>,
+    pub purpose: ::core::option::Option<String>,
 }
 
 /// Documentation of a user''s consent.
@@ -348,28 +353,29 @@ pub struct ConsentAccessorScope {
 pub struct ConsentArtifact {
     /// Optional. Screenshots, PDFs, or other binary information documenting the user''s consent.
     #[serde(default, rename = "consentContentScreenshots")]
-    pub consent_content_screenshots: Option<Vec<Image>>,
+    pub consent_content_screenshots:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Image>>>,
     /// Optional. An string indicating the version of the consent information shown to the user.
     #[serde(default, rename = "consentContentVersion")]
-    pub consent_content_version: Option<String>,
+    pub consent_content_version: ::core::option::Option<String>,
     /// Optional. A signature from a guardian.
     #[serde(default, rename = "guardianSignature")]
-    pub guardian_signature: Option<Signature>,
+    pub guardian_signature: ::core::option::Option<::std::boxed::Box<Signature>>,
     /// Optional. Metadata associated with the Consent artifact. For example, the consent locale or user agent version.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Identifier. Resource name of the Consent artifact, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}. Cannot be changed after creation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. User''s UUID provided by the client.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
     /// Optional. User''s signature.
     #[serde(default, rename = "userSignature")]
-    pub user_signature: Option<Signature>,
+    pub user_signature: ::core::option::Option<::std::boxed::Box<Signature>>,
     /// Optional. A signature from a witness.
     #[serde(default, rename = "witnessSignature")]
-    pub witness_signature: Option<Signature>,
+    pub witness_signature: ::core::option::Option<::std::boxed::Box<Signature>>,
 }
 
 /// Configures whether to enforce consent for the FHIR store and which consent enforcement version is being used.
@@ -377,19 +383,20 @@ pub struct ConsentArtifact {
 pub struct ConsentConfig {
     /// Optional. Specifies how the server logs the consent-aware requests. If not specified, the AccessDeterminationLogConfig.LogLevel.MINIMUM option is used.
     #[serde(default, rename = "accessDeterminationLogConfig")]
-    pub access_determination_log_config: Option<AccessDeterminationLogConfig>,
+    pub access_determination_log_config:
+        ::core::option::Option<::std::boxed::Box<AccessDeterminationLogConfig>>,
     /// Optional. The default value is false. If set to true, when accessing FHIR resources, the consent headers will be verified against consents given by patients. See the ConsentEnforcementVersion for the supported consent headers.
     #[serde(default, rename = "accessEnforced")]
-    pub access_enforced: Option<bool>,
+    pub access_enforced: ::core::option::Option<bool>,
     /// Optional. Different options to configure the behaviour of the server when handling the X-Consent-Scope header.
     #[serde(default, rename = "consentHeaderHandling")]
-    pub consent_header_handling: Option<ConsentHeaderHandling>,
+    pub consent_header_handling: ::core::option::Option<::std::boxed::Box<ConsentHeaderHandling>>,
     /// Output only. The versioned names of the enforced admin Consent resource(s), in the format projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}/_history/{version_id}. For FHIR stores with disable_resource_versioning=true, the format is projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}. This field can only be updated using ApplyAdminConsents.
     #[serde(default, rename = "enforcedAdminConsents")]
-    pub enforced_admin_consents: Option<Vec<String>>,
+    pub enforced_admin_consents: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Specifies which consent enforcement version is being used for this FHIR store. This field can only be set once by either CreateFhirStore or UpdateFhirStore. After that, you must call ApplyConsents to change the version. // TODO: enum values: ["CONSENT_ENFORCEMENT_VERSION_UNSPECIFIED", "V1"]
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The Consent resource name and error.
@@ -397,10 +404,10 @@ pub struct ConsentConfig {
 pub struct ConsentErrors {
     /// The error code and message.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The versioned name of the admin Consent resource, in the format projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}/_history/{version_id}. For FHIR stores with disable_resource_versioning=true, the format is projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The detailed evaluation of a particular Consent.
@@ -408,7 +415,7 @@ pub struct ConsentErrors {
 pub struct ConsentEvaluation {
     /// The evaluation result. // TODO: enum values: ["EVALUATION_RESULT_UNSPECIFIED", "NOT_APPLICABLE", "NO_MATCHING_POLICY", "NO_SATISFIED_POLICY", "HAS_SATISFIED_POLICY"]
     #[serde(default, rename = "evaluationResult")]
-    pub evaluation_result: Option<String>,
+    pub evaluation_result: ::core::option::Option<String>,
 }
 
 /// How the server handles the consent header.
@@ -416,7 +423,7 @@ pub struct ConsentEvaluation {
 pub struct ConsentHeaderHandling {
     /// Optional. Specifies the default server behavior when the header is empty. If not specified, the ScopeProfile.PERMIT_EMPTY_SCOPE option is used. // TODO: enum values: ["SCOPE_PROFILE_UNSPECIFIED", "PERMIT_EMPTY_SCOPE", "REQUIRED_ON_READ"]
     #[serde(default)]
-    pub profile: Option<String>,
+    pub profile: ::core::option::Option<String>,
 }
 
 /// List of resource names of Consent resources.
@@ -424,7 +431,7 @@ pub struct ConsentHeaderHandling {
 pub struct ConsentList {
     /// The resource names of the Consents to evaluate against, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consents/{consent_id}.
     #[serde(default)]
-    pub consents: Option<Vec<String>>,
+    pub consents: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a consent store.
@@ -432,16 +439,16 @@ pub struct ConsentList {
 pub struct ConsentStore {
     /// Optional. Default time to live for Consents created in this store. Must be at least 24 hours. Updating this field will not affect the expiration time of existing consents.
     #[serde(default, rename = "defaultConsentTtl")]
-    pub default_consent_ttl: Option<String>,
+    pub default_consent_ttl: ::core::option::Option<String>,
     /// Optional. If true, UpdateConsent creates the Consent if it does not already exist. If unspecified, defaults to false.
     #[serde(default, rename = "enableConsentCreateOnUpdate")]
-    pub enable_consent_create_on_update: Option<bool>,
+    pub enable_consent_create_on_update: ::core::option::Option<bool>,
     /// Optional. User-supplied key-value pairs used to organize consent stores. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62}. Label values must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63}. No more than 64 labels can be associated with a given store. For more information: https://cloud.google.com/healthcare/docs/how-tos/labeling-resources
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. Resource name of the consent store, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}. Cannot be changed after creation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Creates a new message.
@@ -449,7 +456,7 @@ pub struct ConsentStore {
 pub struct CreateMessageRequest {
     /// Required. HL7v2 message.
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
 }
 
 /// Pseudonymization method that generates surrogates via cryptographic hashing. Uses SHA-256. Outputs a base64-encoded representation of the hashed output (for example, L7k0BHmF1ha5U3NfGykjro4xWi1MPVQPjhMAZbSV9mM=).
@@ -457,10 +464,10 @@ pub struct CreateMessageRequest {
 pub struct CryptoHashConfig {
     /// An AES 128/192/256 bit key. Causes the hash to be computed based on this key. A default key is generated for each Deidentify operation and is used when neither crypto_key nor kms_wrapped is specified. Must not be set if kms_wrapped is set.
     #[serde(default, rename = "cryptoKey")]
-    pub crypto_key: Option<String>,
+    pub crypto_key: ::core::option::Option<String>,
     /// KMS wrapped key. Must not be set if crypto_key is set.
     #[serde(default, rename = "kmsWrapped")]
-    pub kms_wrapped: Option<KmsWrappedCryptoKey>,
+    pub kms_wrapped: ::core::option::Option<::std::boxed::Box<KmsWrappedCryptoKey>>,
 }
 
 /// A message representing a health dataset. A health dataset represents a collection of healthcare data pertaining to one or more patients. This may include multiple modalities of healthcare data, such as electronic medical records or medical imaging data.
@@ -468,19 +475,19 @@ pub struct CryptoHashConfig {
 pub struct Dataset {
     /// Optional. Customer-managed encryption key spec for a Dataset. If set, this Dataset and all of its sub-resources will be secured by this key. If empty, the Dataset is secured by the default Google encryption key.
     #[serde(default, rename = "encryptionSpec")]
-    pub encryption_spec: Option<EncryptionSpec>,
+    pub encryption_spec: ::core::option::Option<::std::boxed::Box<EncryptionSpec>>,
     /// Identifier. Resource name of the dataset, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Whether the dataset satisfies zone isolation.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Whether the dataset satisfies zone separation.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Optional. The default timezone used by this dataset. Must be a either a valid IANA time zone name such as "America/New_York" or empty, which defaults to UTC. This is used for parsing times in resources, such as HL7 messages, where no explicit timezone is specified.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// Shift a date forward or backward in time by a random amount which is consistent for a given patient and crypto key combination.
@@ -488,10 +495,10 @@ pub struct Dataset {
 pub struct DateShiftConfig {
     /// An AES 128/192/256 bit key. The date shift is computed based on this key and the patient ID. If the patient ID is empty for a DICOM resource, the date shift is computed based on this key and the study instance UID. If crypto_key is not set, then kms_wrapped is used to calculate the date shift. If neither is set, a default key is generated for each de-identify operation. Must not be set if kms_wrapped is set.
     #[serde(default, rename = "cryptoKey")]
-    pub crypto_key: Option<String>,
+    pub crypto_key: ::core::option::Option<String>,
     /// KMS wrapped key. If kms_wrapped is not set, then crypto_key is used to calculate the date shift. If neither is set, a default key is generated for each de-identify operation. Must not be set if crypto_key is set.
     #[serde(default, rename = "kmsWrapped")]
-    pub kms_wrapped: Option<KmsWrappedCryptoKey>,
+    pub kms_wrapped: ::core::option::Option<::std::boxed::Box<KmsWrappedCryptoKey>>,
 }
 
 /// Contains configuration for streaming de-identified FHIR export.
@@ -499,10 +506,10 @@ pub struct DateShiftConfig {
 pub struct DeidentifiedStoreDestination {
     /// Optional. The configuration to use when de-identifying resources that are added to this store.
     #[serde(default)]
-    pub config: Option<DeidentifyConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<DeidentifyConfig>>,
     /// Optional. The full resource name of a Cloud Healthcare FHIR store, for example, projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}.
     #[serde(default)]
-    pub store: Option<String>,
+    pub store: ::core::option::Option<String>,
 }
 
 /// Configures de-id options specific to different types of content. Each submessage customizes the handling of an https://tools.ietf.org/html/rfc6838 media type or subtype. Configs are applied in a nested manner at runtime.
@@ -510,19 +517,19 @@ pub struct DeidentifiedStoreDestination {
 pub struct DeidentifyConfig {
     /// Optional. Configures de-id of application/DICOM content.
     #[serde(default)]
-    pub dicom: Option<DicomConfig>,
+    pub dicom: ::core::option::Option<::std::boxed::Box<DicomConfig>>,
     /// Optional. Configures de-id of application/FHIR content.
     #[serde(default)]
-    pub fhir: Option<FhirConfig>,
+    pub fhir: ::core::option::Option<::std::boxed::Box<FhirConfig>>,
     /// Optional. Configures de-identification of image pixels wherever they are found in the source_dataset.
     #[serde(default)]
-    pub image: Option<ImageConfig>,
+    pub image: ::core::option::Option<::std::boxed::Box<ImageConfig>>,
     /// Optional. Configures de-identification of text wherever it is found in the source_dataset.
     #[serde(default)]
-    pub text: Option<TextConfig>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextConfig>>,
     /// Optional. Ensures in-flight data remains in the region of origin during de-identification. The default value is false. Using this option results in a significant reduction of throughput, and is not compatible with LOCATION or ORGANIZATION_NAME infoTypes. LOCATION must be excluded within TextConfig, and must also be excluded within ImageConfig if image redaction is required.
     #[serde(default, rename = "useRegionalDataProcessing")]
-    pub use_regional_data_processing: Option<bool>,
+    pub use_regional_data_processing: ::core::option::Option<bool>,
 }
 
 /// Redacts identifying information from the specified dataset.
@@ -530,13 +537,13 @@ pub struct DeidentifyConfig {
 pub struct DeidentifyDatasetRequest {
     /// Deidentify configuration. Only one of config and gcs_config_uri can be specified.
     #[serde(default)]
-    pub config: Option<DeidentifyConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<DeidentifyConfig>>,
     /// Required. The name of the dataset resource to create and write the redacted data to. * The destination dataset must not exist. * The destination dataset must be in the same location as the source dataset. De-identifying data across multiple locations is not supported.
     #[serde(default, rename = "destinationDataset")]
-    pub destination_dataset: Option<String>,
+    pub destination_dataset: ::core::option::Option<String>,
     /// Cloud Storage location to read the JSON cloud.healthcare.deidentify.DeidentifyConfig from, overriding the default config. Must be of the form gs://{bucket_id}/path/to/object. The Cloud Storage location must grant the Cloud IAM role roles/storage.objectViewer to the project''s Cloud Healthcare Service Agent service account. Only one of config and gcs_config_uri can be specified.
     #[serde(default, rename = "gcsConfigUri")]
-    pub gcs_config_uri: Option<String>,
+    pub gcs_config_uri: ::core::option::Option<String>,
 }
 
 /// Creates a new DICOM store with sensitive information de-identified.
@@ -544,16 +551,16 @@ pub struct DeidentifyDatasetRequest {
 pub struct DeidentifyDicomStoreRequest {
     /// Deidentify configuration. Only one of config and gcs_config_uri can be specified.
     #[serde(default)]
-    pub config: Option<DeidentifyConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<DeidentifyConfig>>,
     /// Required. The name of the DICOM store to write the redacted data to. For example, projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_store_id}. * The destination dataset and DICOM store must exist. * The source dataset and destination dataset must both reside in the same location. De-identifying data across multiple locations is not supported. * The caller must have the healthcare.dicomStores.dicomWebWrite permission to write to the destination DICOM store.
     #[serde(default, rename = "destinationStore")]
-    pub destination_store: Option<String>,
+    pub destination_store: ::core::option::Option<String>,
     /// Filter configuration.
     #[serde(default, rename = "filterConfig")]
-    pub filter_config: Option<DicomFilterConfig>,
+    pub filter_config: ::core::option::Option<::std::boxed::Box<DicomFilterConfig>>,
     /// Cloud Storage location to read the JSON cloud.healthcare.deidentify.DeidentifyConfig from, overriding the default config. Must be of the form gs://{bucket_id}/path/to/object. The Cloud Storage location must grant the Cloud IAM role roles/storage.objectViewer to the project''s Cloud Healthcare Service Agent service account. Only one of config and gcs_config_uri can be specified.
     #[serde(default, rename = "gcsConfigUri")]
-    pub gcs_config_uri: Option<String>,
+    pub gcs_config_uri: ::core::option::Option<String>,
 }
 
 /// Creates a new FHIR store with sensitive information de-identified.
@@ -561,19 +568,19 @@ pub struct DeidentifyDicomStoreRequest {
 pub struct DeidentifyFhirStoreRequest {
     /// Deidentify configuration. Only one of config and gcs_config_uri can be specified.
     #[serde(default)]
-    pub config: Option<DeidentifyConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<DeidentifyConfig>>,
     /// Required. The name of the FHIR store to write the redacted data to. For example, projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}. * The destination dataset and FHIR store must exist. * The source dataset and destination dataset must both reside in the same location. De-identifying data across multiple locations is not supported. * The caller must have the healthcare.fhirResources.update permission to write to the destination FHIR store.
     #[serde(default, rename = "destinationStore")]
-    pub destination_store: Option<String>,
+    pub destination_store: ::core::option::Option<String>,
     /// Cloud Storage location to read the JSON cloud.healthcare.deidentify.DeidentifyConfig from, overriding the default config. Must be of the form gs://{bucket_id}/path/to/object. The Cloud Storage location must grant the Cloud IAM role roles/storage.objectViewer to the project''s Cloud Healthcare Service Agent service account. Only one of config and gcs_config_uri can be specified.
     #[serde(default, rename = "gcsConfigUri")]
-    pub gcs_config_uri: Option<String>,
+    pub gcs_config_uri: ::core::option::Option<String>,
     /// A filter specifying the resources to include in the output. If not specified, all resources are included in the output.
     #[serde(default, rename = "resourceFilter")]
-    pub resource_filter: Option<FhirFilter>,
+    pub resource_filter: ::core::option::Option<::std::boxed::Box<FhirFilter>>,
     /// If true, skips resources that are created or modified after the de-identify operation is created.
     #[serde(default, rename = "skipModifiedResources")]
-    pub skip_modified_resources: Option<bool>,
+    pub skip_modified_resources: ::core::option::Option<bool>,
 }
 
 /// Specifies the parameters needed for de-identification of DICOM stores.
@@ -581,16 +588,16 @@ pub struct DeidentifyFhirStoreRequest {
 pub struct DicomConfig {
     /// Tag filtering profile that determines which tags to keep/remove. // TODO: enum values: ["TAG_FILTER_PROFILE_UNSPECIFIED", "MINIMAL_KEEP_LIST_PROFILE", "ATTRIBUTE_CONFIDENTIALITY_BASIC_PROFILE", "KEEP_ALL_PROFILE", "DEIDENTIFY_TAG_CONTENTS"]
     #[serde(default, rename = "filterProfile")]
-    pub filter_profile: Option<String>,
+    pub filter_profile: ::core::option::Option<String>,
     /// List of tags to keep. Remove all other tags.
     #[serde(default, rename = "keepList")]
-    pub keep_list: Option<TagFilterList>,
+    pub keep_list: ::core::option::Option<::std::boxed::Box<TagFilterList>>,
     /// List of tags to remove. Keep all other tags.
     #[serde(default, rename = "removeList")]
-    pub remove_list: Option<TagFilterList>,
+    pub remove_list: ::core::option::Option<::std::boxed::Box<TagFilterList>>,
     /// Optional. If true, skip replacing StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, and MediaStorageSOPInstanceUID and leave them untouched. The Cloud Healthcare API regenerates these UIDs by default based on the DICOM Standard''s reasoning: "Whilst these UIDs cannot be mapped directly to an individual out of context, given access to the original images, or to a database of the original images containing the UIDs, it would be possible to recover the individual''s identity." https://dicom.nema.org/medical/dicom/current/output/chtml/part15/sect_E.3.9.html
     #[serde(default, rename = "skipIdRedaction")]
-    pub skip_id_redaction: Option<bool>,
+    pub skip_id_redaction: ::core::option::Option<bool>,
 }
 
 /// Specifies the filter configuration for DICOM resources.
@@ -598,7 +605,7 @@ pub struct DicomConfig {
 pub struct DicomFilterConfig {
     /// The Cloud Storage location of the filter configuration file. The gcs_uri must be in the format gs://bucket/path/to/object. The filter configuration file must contain a list of resource paths separated by newline characters (\n or \r\n). Each resource path must be in the format "/studies/{studyUID}[/series/{seriesUID}[/instances/{instanceUID}]]" The Cloud Healthcare API service account must have the roles/storage.objectViewer Cloud IAM role for this Cloud Storage location.
     #[serde(default, rename = "resourcePathsGcsUri")]
-    pub resource_paths_gcs_uri: Option<String>,
+    pub resource_paths_gcs_uri: ::core::option::Option<String>,
 }
 
 /// Contains the configuration for DICOM notifications.
@@ -606,7 +613,7 @@ pub struct DicomFilterConfig {
 pub struct DicomNotificationConfig {
     /// Required. The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that notifications of changes are published on. Supplied by the client. The notification is a PubsubMessage with the following fields: * PubsubMessage.Data contains the resource name. * PubsubMessage.MessageId is the ID of this notification. It is guaranteed to be unique within the topic. * PubsubMessage.PublishTime is the time when the message was published. * PubsubMessage.Attributes contains the following attributes: * action: The name of the endpoint that generated the notification. Possible values are StoreInstances, SetBlobSettings, ImportDicomData, etc. * lastUpdatedTime: The latest timestamp when the DICOM instance was updated. * storeName: The resource name of the DICOM store, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_store_id}. * studyInstanceUID: The study UID of the DICOM instance that was changed. * seriesInstanceUID: The series UID of the DICOM instance that was changed. * sopInstanceUID: The instance UID of the DICOM instance that was changed. * versionId: The version ID of the DICOM instance that was changed. * modality: The modality tag of the DICOM instance that was changed. * previousStorageClass: The storage class where the DICOM instance was previously stored if the storage class was changed. * storageClass: The storage class where the DICOM instance is currently stored. Note that notifications are only sent if the topic is non-empty. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. The Cloud Healthcare API service account, service-@gcp-sa-healthcare.iam.gserviceaccount.com, must have the pubsub.topics.publish permission (which is typically included in roles/pubsub.publisher role) on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail (https://cloud.google.com/healthcare-api/docs/permissions-healthcare-api-gcp-products#dicom_fhir_and_hl7v2_store_cloud_pubsub_permissions). If a notification can''t be published to Pub/Sub, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare-api/docs/how-tos/logging).
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
 }
 
 /// Represents a DICOM store.
@@ -614,19 +621,22 @@ pub struct DicomNotificationConfig {
 pub struct DicomStore {
     /// User-supplied key-value pairs used to organize DICOM stores. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. Resource name of the DICOM store, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_store_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Notification destination for new DICOM instances. Supplied by the client.
     #[serde(default, rename = "notificationConfig")]
-    pub notification_config: Option<NotificationConfig>,
+    pub notification_config: ::core::option::Option<::std::boxed::Box<NotificationConfig>>,
     /// Optional. Specifies where and whether to send notifications upon changes to a DICOM store.
     #[serde(default, rename = "notificationConfigs")]
-    pub notification_configs: Option<Vec<DicomNotificationConfig>>,
+    pub notification_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DicomNotificationConfig>>>,
     /// Optional. A list of streaming configs used to configure the destination of streaming exports for every DICOM instance insertion in this DICOM store. After a new config is added to stream_configs, DICOM instance insertions are streamed to the new destination. When a config is removed from stream_configs, the server stops streaming to that destination. Each config must contain a unique destination.
     #[serde(default, rename = "streamConfigs")]
-    pub stream_configs: Option<Vec<GoogleCloudHealthcareV1DicomStreamConfig>>,
+    pub stream_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudHealthcareV1DicomStreamConfig>>,
+    >,
 }
 
 /// DicomStoreMetrics contains metrics describing a DICOM store.
@@ -634,22 +644,22 @@ pub struct DicomStore {
 pub struct DicomStoreMetrics {
     /// Total blob storage bytes for all instances in the store.
     #[serde(default, rename = "blobStorageSizeBytes")]
-    pub blob_storage_size_bytes: Option<String>,
+    pub blob_storage_size_bytes: ::core::option::Option<String>,
     /// Number of instances in the store.
     #[serde(default, rename = "instanceCount")]
-    pub instance_count: Option<String>,
+    pub instance_count: ::core::option::Option<String>,
     /// Resource name of the DICOM store, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_store_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Number of series in the store.
     #[serde(default, rename = "seriesCount")]
-    pub series_count: Option<String>,
+    pub series_count: ::core::option::Option<String>,
     /// Total structured storage bytes for all instances in the store.
     #[serde(default, rename = "structuredStorageSizeBytes")]
-    pub structured_storage_size_bytes: Option<String>,
+    pub structured_storage_size_bytes: ::core::option::Option<String>,
     /// Number of studies in the store.
     #[serde(default, rename = "studyCount")]
-    pub study_count: Option<String>,
+    pub study_count: ::core::option::Option<String>,
 }
 
 /// Represents a customer-managed encryption key spec that can be applied to a resource.
@@ -657,7 +667,7 @@ pub struct DicomStoreMetrics {
 pub struct EncryptionSpec {
     /// Required. The resource name of customer-managed encryption key that is used to secure a resource and its sub-resources. Only the key in the same location as this Dataset is allowed to be used for encryption. Format is: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// The candidate entities that an entity mention could link to.
@@ -665,13 +675,13 @@ pub struct EncryptionSpec {
 pub struct Entity {
     /// entity_id is a first class field entity_id uniquely identifies this concept and its meta-vocabulary. For example, "UMLS/C0000970".
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// preferred_term is the preferred term for this concept. For example, "Acetaminophen". For ad hoc entities formed by normalization, this is the most popular unnormalized string.
     #[serde(default, rename = "preferredTerm")]
-    pub preferred_term: Option<String>,
+    pub preferred_term: ::core::option::Option<String>,
     /// Vocabulary codes are first-class fields and differentiated from the concept unique identifier (entity_id). vocabulary_codes contains the representation of this concept in particular vocabularies, such as ICD-10, SNOMED-CT and RxNORM. These are prefixed by the name of the vocabulary, followed by the unique code within that vocabulary. For example, "RXNORM/A10334543".
     #[serde(default, rename = "vocabularyCodes")]
-    pub vocabulary_codes: Option<Vec<String>>,
+    pub vocabulary_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// An entity mention in the document.
@@ -679,28 +689,28 @@ pub struct Entity {
 pub struct EntityMention {
     /// The certainty assessment of the entity mention. Its value is one of: LIKELY, SOMEWHAT_LIKELY, UNCERTAIN, SOMEWHAT_UNLIKELY, UNLIKELY, CONDITIONAL
     #[serde(default, rename = "certaintyAssessment")]
-    pub certainty_assessment: Option<Feature>,
+    pub certainty_assessment: ::core::option::Option<::std::boxed::Box<Feature>>,
     /// The model''s confidence in this entity mention annotation. A number between 0 and 1.
     #[serde(default)]
-    pub confidence: Option<f64>,
+    pub confidence: ::core::option::Option<f64>,
     /// linked_entities are candidate ontological concepts that this entity mention may refer to. They are sorted by decreasing confidence.
     #[serde(default, rename = "linkedEntities")]
-    pub linked_entities: Option<Vec<LinkedEntity>>,
+    pub linked_entities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LinkedEntity>>>,
     /// mention_id uniquely identifies each entity mention in a single response.
     #[serde(default, rename = "mentionId")]
-    pub mention_id: Option<String>,
+    pub mention_id: ::core::option::Option<String>,
     /// The subject this entity mention relates to. Its value is one of: PATIENT, FAMILY_MEMBER, OTHER
     #[serde(default)]
-    pub subject: Option<Feature>,
+    pub subject: ::core::option::Option<::std::boxed::Box<Feature>>,
     /// How this entity mention relates to the subject temporally. Its value is one of: CURRENT, CLINICAL_HISTORY, FAMILY_HISTORY, UPCOMING, ALLERGY
     #[serde(default, rename = "temporalAssessment")]
-    pub temporal_assessment: Option<Feature>,
+    pub temporal_assessment: ::core::option::Option<::std::boxed::Box<Feature>>,
     /// text is the location of the entity mention in the document.
     #[serde(default)]
-    pub text: Option<TextSpan>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextSpan>>,
     /// The semantic type of the entity: UNKNOWN_ENTITY_TYPE, ALONE, ANATOMICAL_STRUCTURE, ASSISTED_LIVING, BF_RESULT, BM_RESULT, BM_UNIT, BM_VALUE, BODY_FUNCTION, BODY_MEASUREMENT, COMPLIANT, DOESNOT_FOLLOWUP, FAMILY, FOLLOWSUP, LABORATORY_DATA, LAB_RESULT, LAB_UNIT, LAB_VALUE, MEDICAL_DEVICE, MEDICINE, MED_DOSE, MED_DURATION, MED_FORM, MED_FREQUENCY, MED_ROUTE, MED_STATUS, MED_STRENGTH, MED_TOTALDOSE, MED_UNIT, NON_COMPLIANT, OTHER_LIVINGSTATUS, PROBLEM, PROCEDURE, PROCEDURE_RESULT, PROC_METHOD, REASON_FOR_NONCOMPLIANCE, SEVERITY, SUBSTANCE_ABUSE, UNCLEAR_FOLLOWUP.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Defines directed relationship from one entity mention to another.
@@ -708,13 +718,13 @@ pub struct EntityMention {
 pub struct EntityMentionRelationship {
     /// The model''s confidence in this annotation. A number between 0 and 1.
     #[serde(default)]
-    pub confidence: Option<f64>,
+    pub confidence: ::core::option::Option<f64>,
     /// object_id is the id of the object entity mention.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<String>,
+    pub object_id: ::core::option::Option<String>,
     /// subject_id is the id of the subject entity mention.
     #[serde(default, rename = "subjectId")]
-    pub subject_id: Option<String>,
+    pub subject_id: ::core::option::Option<String>,
 }
 
 /// Evaluate a user''s Consents for all matching User data mappings. Note: User data mappings are indexed asynchronously, causing slight delays between the time mappings are created or updated and when they are included in EvaluateUserConsents results.
@@ -722,25 +732,25 @@ pub struct EntityMentionRelationship {
 pub struct EvaluateUserConsentsRequest {
     /// Optional. Specific Consents to evaluate the access request against. These Consents must have the same user_id as the User data mappings being evalauted, must exist in the current consent_store, and must have a state of either ACTIVE or DRAFT. A maximum of 100 Consents can be provided here. If unspecified, all ACTIVE unexpired Consents in the current consent_store will be evaluated.
     #[serde(default, rename = "consentList")]
-    pub consent_list: Option<ConsentList>,
+    pub consent_list: ::core::option::Option<::std::boxed::Box<ConsentList>>,
     /// Optional. Limit on the number of User data mappings to return in a single response. If not specified, 100 is used. May not be larger than 1000.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// Optional. Token to retrieve the next page of results, or empty to get the first page.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Required. The values of request attributes associated with this access request.
     #[serde(default, rename = "requestAttributes")]
-    pub request_attributes: Option<serde_json::Value>,
+    pub request_attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. The values of resource attributes associated with the resources being requested. If no values are specified, then all resources are queried.
     #[serde(default, rename = "resourceAttributes")]
-    pub resource_attributes: Option<serde_json::Value>,
+    pub resource_attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. The view for EvaluateUserConsentsResponse. If unspecified, defaults to BASIC and returns consented as TRUE or FALSE. // TODO: enum values: ["RESPONSE_VIEW_UNSPECIFIED", "BASIC", "FULL"]
     #[serde(default, rename = "responseView")]
-    pub response_view: Option<String>,
+    pub response_view: ::core::option::Option<String>,
     /// Required. User ID to evaluate consents for.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// EvaluateUserConsentsResponse resource type.
@@ -748,10 +758,10 @@ pub struct EvaluateUserConsentsRequest {
 pub struct EvaluateUserConsentsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list. This token is valid for 72 hours after it is created.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The consent evaluation result for each data_id.
     #[serde(default)]
-    pub results: Option<Vec<Result>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiResult>>>,
 }
 
 /// The enforcing consent''s metadata.
@@ -759,25 +769,26 @@ pub struct EvaluateUserConsentsResponse {
 pub struct ExplainDataAccessConsentInfo {
     /// The compartment base resources that matched a cascading policy. Each resource has the following format: projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/{resource_type}/{resource_id}
     #[serde(default, rename = "cascadeOrigins")]
-    pub cascade_origins: Option<Vec<String>>,
+    pub cascade_origins: ::core::option::Option<::std::vec::Vec<String>>,
     /// The resource name of this consent resource, in the format: projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}.
     #[serde(default, rename = "consentResource")]
-    pub consent_resource: Option<String>,
+    pub consent_resource: ::core::option::Option<String>,
     /// Last enforcement timestamp of this consent resource.
     #[serde(default, rename = "enforcementTime")]
-    pub enforcement_time: Option<String>,
+    pub enforcement_time: ::core::option::Option<String>,
     /// A list of all the matching accessor scopes of this consent policy that enforced ExplainDataAccessConsentScope.accessor_scope.
     #[serde(default, rename = "matchingAccessorScopes")]
-    pub matching_accessor_scopes: Option<Vec<ConsentAccessorScope>>,
+    pub matching_accessor_scopes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConsentAccessorScope>>>,
     /// The patient owning the consent (only applicable for patient consents), in the format: projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Patient/{patient_id}
     #[serde(default, rename = "patientConsentOwner")]
-    pub patient_consent_owner: Option<String>,
+    pub patient_consent_owner: ::core::option::Option<String>,
     /// The policy type of consent resource (e.g. PATIENT, ADMIN). // TODO: enum values: ["CONSENT_POLICY_TYPE_UNSPECIFIED", "CONSENT_POLICY_TYPE_PATIENT", "CONSENT_POLICY_TYPE_ADMIN"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The consent''s variant combinations. A single consent may have multiple variants.
     #[serde(default)]
-    pub variants: Option<Vec<String>>,
+    pub variants: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A single consent scope that provides info on who has access to the requested resource scope for a particular purpose and environment, enforced by which consent.
@@ -785,16 +796,18 @@ pub struct ExplainDataAccessConsentInfo {
 pub struct ExplainDataAccessConsentScope {
     /// The accessor scope that describes who can access, for what purpose, and in which environment.
     #[serde(default, rename = "accessorScope")]
-    pub accessor_scope: Option<ConsentAccessorScope>,
+    pub accessor_scope: ::core::option::Option<::std::boxed::Box<ConsentAccessorScope>>,
     /// Whether the current consent scope is permitted or denied access on the requested resource. // TODO: enum values: ["CONSENT_DECISION_TYPE_UNSPECIFIED", "CONSENT_DECISION_TYPE_PERMIT", "CONSENT_DECISION_TYPE_DENY"]
     #[serde(default)]
-    pub decision: Option<String>,
+    pub decision: ::core::option::Option<String>,
     /// Metadata of the consent resources that enforce the consent scope''s access.
     #[serde(default, rename = "enforcingConsents")]
-    pub enforcing_consents: Option<Vec<ExplainDataAccessConsentInfo>>,
+    pub enforcing_consents:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExplainDataAccessConsentInfo>>>,
     /// Other consent scopes that created exceptions within this scope.
     #[serde(default)]
-    pub exceptions: Option<Vec<ExplainDataAccessConsentScope>>,
+    pub exceptions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExplainDataAccessConsentScope>>>,
 }
 
 /// List of consent scopes that are applicable to the explained access on a given resource.
@@ -802,10 +815,11 @@ pub struct ExplainDataAccessConsentScope {
 pub struct ExplainDataAccessResponse {
     /// List of applicable consent scopes. Sorted in order of actor such that scopes belonging to the same actor will be adjacent to each other in the list.
     #[serde(default, rename = "consentScopes")]
-    pub consent_scopes: Option<Vec<ExplainDataAccessConsentScope>>,
+    pub consent_scopes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExplainDataAccessConsentScope>>>,
     /// Warnings associated with this response. It inform user with exceeded scope limit errors.
     #[serde(default)]
-    pub warning: Option<String>,
+    pub warning: ::core::option::Option<String>,
 }
 
 /// Exports data from the specified DICOM store. If a given resource, such as a DICOM object with the same SOPInstance UID, already exists in the output, it is overwritten with the version in the source dataset. Exported DICOM data persists when the DICOM store from which it was exported is deleted.
@@ -813,10 +827,12 @@ pub struct ExplainDataAccessResponse {
 pub struct ExportDicomDataRequest {
     /// The BigQuery output destination. You can only export to a BigQuery dataset that''s in the same project as the DICOM store you''re exporting from. The Cloud Healthcare Service Agent requires two IAM roles on the BigQuery location: roles/bigquery.dataEditor and roles/bigquery.jobUser.
     #[serde(default, rename = "bigqueryDestination")]
-    pub bigquery_destination: Option<GoogleCloudHealthcareV1DicomBigQueryDestination>,
+    pub bigquery_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1DicomBigQueryDestination>>,
     /// The Cloud Storage output destination. The Cloud Healthcare Service Agent requires the roles/storage.objectAdmin Cloud IAM roles on the Cloud Storage location.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudHealthcareV1DicomGcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1DicomGcsDestination>>,
 }
 
 /// Request to schedule an export.
@@ -824,19 +840,19 @@ pub struct ExportDicomDataRequest {
 pub struct ExportMessagesRequest {
     /// The end of the range in send_time (MSH.7, https://www.hl7.org/documentcenter/public_temp_2E58C1F9-1C23-BA17-0C6126475344DA9D/wg/conf/HL7MSH.htm) to process. If not specified, the time when the export is scheduled is used. This value has to come after the start_time defined below. Only messages whose send_time lies in the range start_time (inclusive) to end_time (exclusive) are exported.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Restricts messages exported to those matching a filter, only applicable to PubsubDestination and GcsDestination. The following syntax is available: * A string field value can be written as text inside quotation marks, for example "query text". The only valid relational operation for text fields is equality (=), where text is searched within the field, rather than having the field be equal to the text. For example, "Comment = great" returns messages with great in the comment field. * A number field value can be written as an integer, a decimal, or an exponential. The valid relational operators for number fields are the equality operator (=), along with the less than/greater than operators (&lt;, &lt;=, &gt;, &gt;=). Note that there is no inequality (!=) operator. You can prepend the NOT operator to an expression to negate it. * A date field value must be written in the yyyy-mm-dd format. Fields with date and time use the RFC3339 time format. Leading zeros are required for one-digit months and days. The valid relational operators for date fields are the equality operator (=) , along with the less than/greater than operators (&lt;, &lt;=, &gt;, &gt;=). Note that there is no inequality (!=) operator. You can prepend the NOT operator to an expression to negate it. * Multiple field query expressions can be combined in one query by adding AND or OR operators between the expressions. If a boolean operator appears within a quoted string, it is not treated as special, and is just another part of the character string to be matched. You can prepend the NOT operator to an expression to negate it. The following fields and functions are available for filtering: * message_type, from the MSH-9.1 field. For example, NOT message_type = "ADT". * send_date or sendDate, the yyyy-mm-dd date the message was sent in the dataset''s time_zone, from the MSH-7 segment. For example, send_date &lt; "2017-01-02". * send_time, the timestamp when the message was sent, using the RFC3339 time format for comparisons, from the MSH-7 segment. For example, send_time &lt; "2017-01-02T00:00:00-05:00". * create_time, the timestamp when the message was created in the HL7v2 store. Use the RFC3339 time format for comparisons. For example, create_time &lt; "2017-01-02T00:00:00-05:00". * send_facility, the care center that the message came from, from the MSH-4 segment. For example, send_facility = "ABC". Note: The filter will be applied to every message in the HL7v2 store whose send_time lies in the range defined by the start_time and the end_time. Even if the filter only matches a small set of messages, the export operation can still take a long time to finish when a lot of messages are between the specified start_time and end_time range.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Export to a Cloud Storage destination.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GcsDestination>,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GcsDestination>>,
     /// Export messages to a Pub/Sub topic.
     #[serde(default, rename = "pubsubDestination")]
-    pub pubsub_destination: Option<PubsubDestination>,
+    pub pubsub_destination: ::core::option::Option<::std::boxed::Box<PubsubDestination>>,
     /// The start of the range in send_time (MSH.7, https://www.hl7.org/documentcenter/public_temp_2E58C1F9-1C23-BA17-0C6126475344DA9D/wg/conf/HL7MSH.htm) to process. If not specified, the UNIX epoch (1970-01-01T00:00:00Z) is used. This value has to come before the end_time defined below. Only messages whose send_time lies in the range start_time (inclusive) to end_time (exclusive) are exported.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Request to export resources.
@@ -844,16 +860,18 @@ pub struct ExportMessagesRequest {
 pub struct ExportResourcesRequest {
     /// If provided, only resources updated after this time are exported. The time uses the format YYYY-MM-DDThh:mm:ss.sss+zz:zz. For example, 2015-02-07T13:28:17.239+02:00 or 2017-01-01T00:00:00Z. The time must be specified to the second and include a time zone.
     #[serde(default, rename = "_since")]
-    pub since: Option<String>,
+    pub since: ::core::option::Option<String>,
     /// String of comma-delimited FHIR resource types. If provided, only resources of the specified resource type(s) are exported.
     #[serde(default, rename = "_type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The BigQuery output destination. The Cloud Healthcare Service Agent requires two IAM roles on the BigQuery location: roles/bigquery.dataEditor and roles/bigquery.jobUser. The output is one BigQuery table per resource type. Unlike when setting BigQueryDestination for StreamConfig, ExportResources does not create BigQuery views.
     #[serde(default, rename = "bigqueryDestination")]
-    pub bigquery_destination: Option<GoogleCloudHealthcareV1FhirBigQueryDestination>,
+    pub bigquery_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1FhirBigQueryDestination>>,
     /// The Cloud Storage output destination. The Healthcare Service Agent account requires the roles/storage.objectAdmin role on the Cloud Storage location. The exported outputs are organized by FHIR resource types. The server creates one object per resource type. Each object contains newline delimited JSON, and each line is a FHIR resource.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudHealthcareV1FhirGcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1FhirGcsDestination>>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -861,16 +879,16 @@ pub struct ExportResourcesRequest {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A feature of an entity mention.
@@ -878,10 +896,10 @@ pub struct Expr {
 pub struct Feature {
     /// The model''s confidence in this feature annotation. A number between 0 and 1.
     #[serde(default)]
-    pub confidence: Option<f64>,
+    pub confidence: ::core::option::Option<f64>,
     /// The value of this feature annotation. Its range depends on the type of the feature.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Specifies how to handle de-identification of a FHIR store.
@@ -889,10 +907,11 @@ pub struct Feature {
 pub struct FhirConfig {
     /// Optional. The behaviour for handling FHIR extensions that aren''t otherwise specified for de-identification. If true, all extensions are preserved during de-identification by default. If false or unspecified, all extensions are removed during de-identification by default.
     #[serde(default, rename = "defaultKeepExtensions")]
-    pub default_keep_extensions: Option<bool>,
+    pub default_keep_extensions: ::core::option::Option<bool>,
     /// Optional. Specifies FHIR paths to match and how to transform them. Any field that is not matched by a FieldMetadata is passed through to the output dataset unmodified. All extensions will be processed according to default_keep_extensions.
     #[serde(default, rename = "fieldMetadataList")]
-    pub field_metadata_list: Option<Vec<FieldMetadata>>,
+    pub field_metadata_list:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldMetadata>>>,
 }
 
 /// Filter configuration.
@@ -900,7 +919,7 @@ pub struct FhirConfig {
 pub struct FhirFilter {
     /// List of resources to include in the output. If this list is empty or not specified, all resources are included in the output.
     #[serde(default)]
-    pub resources: Option<Resources>,
+    pub resources: ::core::option::Option<::std::boxed::Box<Resources>>,
 }
 
 /// Contains the configuration for FHIR notifications.
@@ -908,13 +927,13 @@ pub struct FhirFilter {
 pub struct FhirNotificationConfig {
     /// Optional. The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that notifications of changes are published on. Supplied by the client. The notification is a PubsubMessage with the following fields: * PubsubMessage.Data contains the resource name. * PubsubMessage.MessageId is the ID of this notification. It is guaranteed to be unique within the topic. * PubsubMessage.PublishTime is the time when the message was published. Note that notifications are only sent if the topic is non-empty. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. The Cloud Healthcare API service account, service-@gcp-sa-healthcare.iam.gserviceaccount.com, must have publisher permissions on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail (https://cloud.google.com/healthcare-api/docs/permissions-healthcare-api-gcp-products#dicom_fhir_and_hl7v2_store_cloud_pubsub_permissions). If a notification can''t be published to Pub/Sub, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare-api/docs/how-tos/logging).
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
     /// Optional. Whether to send full FHIR resource to this Pub/Sub topic. The default value is false.
     #[serde(default, rename = "sendFullResource")]
-    pub send_full_resource: Option<bool>,
+    pub send_full_resource: ::core::option::Option<bool>,
     /// Optional. Whether to send full FHIR resource to this Pub/Sub topic for deleting FHIR resource. The default value is false. Note that setting this to true does not guarantee that all previous resources will be sent in the format of full FHIR resource. When a resource change is too large or during heavy traffic, only the resource name will be sent. Clients should always check the "payloadType" label from a Pub/Sub message to determine whether it needs to fetch the full previous resource as a separate operation.
     #[serde(default, rename = "sendPreviousResourceOnDelete")]
-    pub send_previous_resource_on_delete: Option<bool>,
+    pub send_previous_resource_on_delete: ::core::option::Option<bool>,
 }
 
 /// Represents a FHIR store.
@@ -922,46 +941,48 @@ pub struct FhirNotificationConfig {
 pub struct FhirStore {
     /// Optional. FHIR bulk export exports resources to the specified Cloud Storage destination. A Cloud Storage destination is a URI for a Cloud Storage directory where result files will be written. Only used in the spec-defined bulk $export methods. The Cloud Healthcare Service Agent requires the roles/storage.objectAdmin Cloud IAM role on the destination.
     #[serde(default, rename = "bulkExportGcsDestination")]
-    pub bulk_export_gcs_destination: Option<BulkExportGcsDestination>,
+    pub bulk_export_gcs_destination:
+        ::core::option::Option<::std::boxed::Box<BulkExportGcsDestination>>,
     /// Optional. Enable parsing of references within complex FHIR data types such as Extensions. If this value is set to ENABLED, then features like referential integrity and Bundle reference rewriting apply to all references. If this flag has not been specified the behavior of the FHIR store will not change, references in complex data types will not be parsed. New stores will have this value set to ENABLED after a notification period. Warning: turning on this flag causes processing existing resources to fail if they contain references to non-existent resources. Cannot be disabled in R5. // TODO: enum values: ["COMPLEX_DATA_TYPE_REFERENCE_PARSING_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "complexDataTypeReferenceParsing")]
-    pub complex_data_type_reference_parsing: Option<String>,
+    pub complex_data_type_reference_parsing: ::core::option::Option<String>,
     /// Optional. Specifies whether this store has consent enforcement. Not available for DSTU2 FHIR version due to absence of Consent resources. Not supported for R5 FHIR version.
     #[serde(default, rename = "consentConfig")]
-    pub consent_config: Option<ConsentConfig>,
+    pub consent_config: ::core::option::Option<::std::boxed::Box<ConsentConfig>>,
     /// Optional. If true, overrides the default search behavior for this FHIR store to handling=strict which returns an error for unrecognized search parameters. If false, uses the FHIR specification default handling=lenient which ignores unrecognized search parameters. The handling can always be changed from the default on an individual API call by setting the HTTP header Prefer: handling=strict or Prefer: handling=lenient. Defaults to false.
     #[serde(default, rename = "defaultSearchHandlingStrict")]
-    pub default_search_handling_strict: Option<bool>,
+    pub default_search_handling_strict: ::core::option::Option<bool>,
     /// Immutable. Whether to disable referential integrity in this FHIR store. This field is immutable after FHIR store creation. The default value is false, meaning that the API enforces referential integrity and fails the requests that result in inconsistent state in the FHIR store. When this field is set to true, the API skips referential integrity checks. Consequently, operations that rely on references, such as GetPatientEverything, do not return all the results if broken references exist.
     #[serde(default, rename = "disableReferentialIntegrity")]
-    pub disable_referential_integrity: Option<bool>,
+    pub disable_referential_integrity: ::core::option::Option<bool>,
     /// Immutable. Whether to disable resource versioning for this FHIR store. This field can not be changed after the creation of FHIR store. If set to false, all write operations cause historical versions to be recorded automatically. The historical versions can be fetched through the history APIs, but cannot be updated. If set to true, no historical versions are kept. The server sends errors for attempts to read the historical versions. Defaults to false.
     #[serde(default, rename = "disableResourceVersioning")]
-    pub disable_resource_versioning: Option<bool>,
+    pub disable_resource_versioning: ::core::option::Option<bool>,
     /// Optional. Whether this FHIR store has the [updateCreate capability](https://www.hl7.org/fhir/capabilitystatement-definitions.html#CapabilityStatement.rest.resource.updateCreate). This determines if the client can use an Update operation to create a new resource with a client-specified ID. If false, all IDs are server-assigned through the Create operation and attempts to update a non-existent resource return errors. It is strongly advised not to include or encode any sensitive data such as patient identifiers in client-specified resource IDs. Those IDs are part of the FHIR resource path recorded in Cloud audit logs and Pub/Sub notifications. Those IDs can also be contained in reference fields within other resources. Defaults to false.
     #[serde(default, rename = "enableUpdateCreate")]
-    pub enable_update_create: Option<bool>,
+    pub enable_update_create: ::core::option::Option<bool>,
     /// User-supplied key-value pairs used to organize FHIR stores. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Identifier. Resource name of the FHIR store, of the form projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Deprecated. Use notification_configs instead. If non-empty, publish all resource modifications of this FHIR store to this destination. The Pub/Sub message attributes contain a map with a string describing the action that has triggered the notification. For example, "action":"CreateResource". Not supported in R5. Use notification_configs instead.
     #[serde(default, rename = "notificationConfig")]
-    pub notification_config: Option<NotificationConfig>,
+    pub notification_config: ::core::option::Option<::std::boxed::Box<NotificationConfig>>,
     /// Optional. Specifies where and whether to send notifications upon changes to a FHIR store.
     #[serde(default, rename = "notificationConfigs")]
-    pub notification_configs: Option<Vec<FhirNotificationConfig>>,
+    pub notification_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FhirNotificationConfig>>>,
     /// Optional. A list of streaming configs that configure the destinations of streaming export for every resource mutation in this FHIR store. Each store is allowed to have up to 10 streaming configs. After a new config is added, the next resource mutation is streamed to the new location in addition to the existing ones. When a location is removed from the list, the server stops streaming to that location. Before adding a new config, you must add the required [bigquery.dataEditor](https://cloud.google.com/bigquery/docs/access-control#bigquery.dataEditor) role to your project''s **Cloud Healthcare Service Agent** [service account](https://cloud.google.com/iam/docs/service-accounts). Some lag (typically on the order of dozens of seconds) is expected before the results show up in the streaming destination.
     #[serde(default, rename = "streamConfigs")]
-    pub stream_configs: Option<Vec<StreamConfig>>,
+    pub stream_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StreamConfig>>>,
     /// Optional. Configuration for how to validate incoming FHIR resources against configured profiles.
     #[serde(default, rename = "validationConfig")]
-    pub validation_config: Option<ValidationConfig>,
+    pub validation_config: ::core::option::Option<::std::boxed::Box<ValidationConfig>>,
     /// Required. Immutable. The FHIR specification version that this FHIR store supports natively. This field is immutable after store creation. Requests are rejected if they contain FHIR resources of a different version. Version is required for every FHIR store. // TODO: enum values: ["VERSION_UNSPECIFIED", "DSTU2", "STU3", "R4", "R5"]
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Count of resources and total storage size by type for a given FHIR store.
@@ -969,16 +990,16 @@ pub struct FhirStore {
 pub struct FhirStoreMetric {
     /// The total count of FHIR resources in the store of this resource type.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// The FHIR resource type this metric applies to.
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
     /// The total amount of structured storage used by FHIR resources of this resource type in the store.
     #[serde(default, rename = "structuredStorageSizeBytes")]
-    pub structured_storage_size_bytes: Option<String>,
+    pub structured_storage_size_bytes: ::core::option::Option<String>,
     /// The total amount of versioned storage used by versioned FHIR resources of this resource type in the store.
     #[serde(default, rename = "versionedStorageSizeBytes")]
-    pub versioned_storage_size_bytes: Option<String>,
+    pub versioned_storage_size_bytes: ::core::option::Option<String>,
 }
 
 /// List of metrics for a given FHIR store.
@@ -986,10 +1007,10 @@ pub struct FhirStoreMetric {
 pub struct FhirStoreMetrics {
     /// List of FhirStoreMetric by resource type.
     #[serde(default)]
-    pub metrics: Option<Vec<FhirStoreMetric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FhirStoreMetric>>>,
     /// The resource name of the FHIR store to get metrics for, in the format projects/{project_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A (sub) field of a type.
@@ -997,19 +1018,19 @@ pub struct FhirStoreMetrics {
 pub struct Field {
     /// The maximum number of times this field can be repeated. 0 or -1 means unbounded.
     #[serde(default, rename = "maxOccurs")]
-    pub max_occurs: Option<i32>,
+    pub max_occurs: ::core::option::Option<i32>,
     /// The minimum number of times this field must be present/repeated.
     #[serde(default, rename = "minOccurs")]
-    pub min_occurs: Option<i32>,
+    pub min_occurs: ::core::option::Option<i32>,
     /// The name of the field. For example, "PID-1" or just "1".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The HL7v2 table this field refers to. For example, PID-15 (Patient''s Primary Language) usually refers to table "0296".
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
     /// The type of this field. A Type with this name must be defined in an Hl7TypesConfig.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Specifies FHIR paths to match, and how to handle de-identification of matching fields.
@@ -1017,10 +1038,10 @@ pub struct Field {
 pub struct FieldMetadata {
     /// Optional. Deidentify action for one field. // TODO: enum values: ["ACTION_UNSPECIFIED", "TRANSFORM", "INSPECT_AND_TRANSFORM", "DO_NOT_TRANSFORM"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Optional. List of paths to FHIR fields to be redacted. Each path is a period-separated list where each component is either a field name or FHIR type name, for example: Patient, HumanName. For "choice" types (those defined in the FHIR spec with the form: field[x]) we use two separate components. For example, "deceasedAge.unit" is matched by "Deceased.Age.unit". Supported types are: AdministrativeGenderCode, Base64Binary, Boolean, Code, Date, DateTime, Decimal, HumanName, Id, Instant, Integer, LanguageCode, Markdown, Oid, PositiveInt, String, UnsignedInt, Uri, Uuid, Xhtml.
     #[serde(default)]
-    pub paths: Option<Vec<String>>,
+    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Cloud Storage output destination. The Cloud Healthcare Service Agent requires the roles/storage.objectAdmin Cloud IAM roles on the Cloud Storage location.
@@ -1028,13 +1049,13 @@ pub struct FieldMetadata {
 pub struct GcsDestination {
     /// The format of the exported HL7v2 message files. // TODO: enum values: ["CONTENT_STRUCTURE_UNSPECIFIED", "MESSAGE_JSON"]
     #[serde(default, rename = "contentStructure")]
-    pub content_structure: Option<String>,
+    pub content_structure: ::core::option::Option<String>,
     /// Specifies the parts of the Message resource to include in the export. If not specified, FULL is used. // TODO: enum values: ["MESSAGE_VIEW_UNSPECIFIED", "RAW_ONLY", "PARSED_ONLY", "FULL", "SCHEMATIZED_ONLY", "BASIC"]
     #[serde(default, rename = "messageView")]
-    pub message_view: Option<String>,
+    pub message_view: ::core::option::Option<String>,
     /// URI of an existing Cloud Storage directory where the server writes result files, in the format gs://{bucket-id}/{path/to/destination/dir}. If there is no trailing slash, the service appends one when composing the object path.
     #[serde(default, rename = "uriPrefix")]
-    pub uri_prefix: Option<String>,
+    pub uri_prefix: ::core::option::Option<String>,
 }
 
 /// Specifies the configuration for importing data from Cloud Storage.
@@ -1042,7 +1063,7 @@ pub struct GcsDestination {
 pub struct GcsSource {
     /// Points to a Cloud Storage URI containing file(s) to import. The URI must be in the following format: gs://{bucket_id}/{object_id}. The URI can include wildcards in object_id and thus identify multiple files. Supported wildcards: * * to match 0 or more non-separator characters * ** to match 0 or more characters (including separators). Must be used at the end of a path and with no other wildcards in the path. Can also be used with a file extension (such as .ndjson), which imports all files with the extension in the specified directory and its sub-directories. For example, gs://my-bucket/my-directory/**.ndjson imports all files with .ndjson extensions in my-directory/ and its sub-directories. * ? to match 1 character Files matching the wildcard are expected to contain content only, no metadata.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Cloud Storage location for export.
@@ -1050,7 +1071,7 @@ pub struct GcsSource {
 pub struct GoogleCloudHealthcareV1ConsentGcsDestination {
     /// URI for a Cloud Storage directory where the server writes result files, in the format gs://{bucket-id}/{path/to/destination/dir}. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket and directory referenced in uri_prefix.
     #[serde(default, rename = "uriPrefix")]
-    pub uri_prefix: Option<String>,
+    pub uri_prefix: ::core::option::Option<String>,
 }
 
 /// Represents a user''s consent in terms of the resources that can be accessed and under what conditions.
@@ -1058,10 +1079,10 @@ pub struct GoogleCloudHealthcareV1ConsentGcsDestination {
 pub struct GoogleCloudHealthcareV1ConsentPolicy {
     /// Required. The request conditions to meet to grant access. In addition to any supported comparison operators, authorization rules may have IN operator as well as at most 10 logical operators that are limited to AND (&&), OR (||).
     #[serde(default, rename = "authorizationRule")]
-    pub authorization_rule: Option<Expr>,
+    pub authorization_rule: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// The resources that this policy applies to. A resource is a match if it matches all the attributes listed here. If empty, this policy applies to all User data mappings for the given user.
     #[serde(default, rename = "resourceAttributes")]
-    pub resource_attributes: Option<Vec<Attribute>>,
+    pub resource_attributes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Attribute>>>,
 }
 
 /// The BigQuery table where the server writes the output.
@@ -1069,22 +1090,22 @@ pub struct GoogleCloudHealthcareV1ConsentPolicy {
 pub struct GoogleCloudHealthcareV1DicomBigQueryDestination {
     /// Optional. Use write_disposition instead. If write_disposition is specified, this parameter is ignored. force=false is equivalent to write_disposition=WRITE_EMPTY and force=true is equivalent to write_disposition=WRITE_TRUNCATE.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Optional. If true, the source store name will be included as a column in the BigQuery schema.
     #[serde(default, rename = "includeSourceStore")]
-    pub include_source_store: Option<bool>,
+    pub include_source_store: ::core::option::Option<bool>,
     /// Optional. Setting this field will use flattened DICOM instances schema for the BigQuery table. The flattened schema will have one column for each DICOM tag.
     #[serde(default, rename = "schemaFlattened")]
-    pub schema_flattened: Option<serde_json::Value>,
+    pub schema_flattened: ::core::option::Option<serde_json::Value>,
     /// Optional. Setting this field will store all the DICOM tags as a JSON type in a single column.
     #[serde(default, rename = "schemaJson")]
-    pub schema_json: Option<serde_json::Value>,
+    pub schema_json: ::core::option::Option<serde_json::Value>,
     /// Optional. BigQuery URI to a table, up to 2000 characters long, in the format bq://projectId.bqDatasetId.tableId
     #[serde(default, rename = "tableUri")]
-    pub table_uri: Option<String>,
+    pub table_uri: ::core::option::Option<String>,
     /// Optional. Determines whether the existing table in the destination is to be overwritten or appended to. If a write_disposition is specified, the force parameter is ignored. // TODO: enum values: ["WRITE_DISPOSITION_UNSPECIFIED", "WRITE_EMPTY", "WRITE_TRUNCATE", "WRITE_APPEND"]
     #[serde(default, rename = "writeDisposition")]
-    pub write_disposition: Option<String>,
+    pub write_disposition: ::core::option::Option<String>,
 }
 
 /// The Cloud Storage location where the server writes the output and the export configuration.
@@ -1092,10 +1113,10 @@ pub struct GoogleCloudHealthcareV1DicomBigQueryDestination {
 pub struct GoogleCloudHealthcareV1DicomGcsDestination {
     /// MIME types supported by DICOM spec. Each file is written in the following format: .../{study_id}/{series_id}/{instance_id}[/{frame_number}].{extension} The frame_number component exists only for multi-frame instances. Supported MIME types are consistent with supported formats in DICOMweb: https://cloud.google.com/healthcare/docs/dicom#retrieve_transaction. Specifically, the following are supported: - application/dicom; transfer-syntax=1.2.840.10008.1.2 (DICOM Implicit VR Little Endian) - application/dicom; transfer-syntax=1.2.840.10008.1.2.1 (DICOM Explicit VR Little Endian) - application/dicom; transfer-syntax=1.2.840.10008.1.2.1.99 (DICOM Deflated Explicit VR Little Endian) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.50 (DICOM with embedded JPEG Baseline) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.51 (DICOM with embedded JPEG Extended) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.57 (DICOM with embedded JPEG Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.70 (DICOM with embedded JPEG Lossless First-Order Prediction) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.80 (DICOM with embedded JPEG-LS Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.81 (DICOM with embedded JPEG-LS Lossy (Near-Lossless)) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.90 (DICOM with embedded JPEG 2000 Lossless Only) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.91 (DICOM with embedded JPEG 2000) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.110 (DICOM with embedded JPEG XL Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.111 (DICOM with embedded JPEG XL JPEG Recompression) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.112 (DICOM with embedded JPEG XL) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.201 (DICOM with embedded High-Throughput JPEG 2000 Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.202 (DICOM with embedded High-Throughput JPEG 2000 with RPCL Options Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.203 (DICOM with embedded High-Throughput JPEG 2000) - application/dicom; transfer-syntax=1.2.840.10008.1.2.5 (DICOM with embedded RLE Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.8.1 (DICOM with embedded Deflated Image Frame Compression) - application/dicom; transfer-syntax=* (DICOM with no transcoding) - application/octet-stream; transfer-syntax=1.2.840.10008.1.2.1 (raw uncompressed PixelData) - application/octet-stream; transfer-syntax=* (raw PixelData in whatever format it was uploaded in) - image/jpeg; transfer-syntax=1.2.840.10008.1.2.4.50 (Consumer JPEG) - image/png The following extensions are used for output files: - application/dicom -&gt; .dcm - image/jpeg -&gt; .jpg - image/png -&gt; .png - application/octet-stream -&gt; no extension If unspecified, the instances are exported in the original DICOM format they were uploaded in.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// The Cloud Storage destination to export to. URI for a Cloud Storage directory where the server writes the result files, in the format gs://{bucket-id}/{path/to/destination/dir}). If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced in uri_prefix.
     #[serde(default, rename = "uriPrefix")]
-    pub uri_prefix: Option<String>,
+    pub uri_prefix: ::core::option::Option<String>,
 }
 
 /// Specifies the configuration for importing data from Cloud Storage.
@@ -1103,7 +1124,7 @@ pub struct GoogleCloudHealthcareV1DicomGcsDestination {
 pub struct GoogleCloudHealthcareV1DicomGcsSource {
     /// Points to a Cloud Storage URI containing file(s) with content only. The URI must be in the following format: gs://{bucket_id}/{object_id}. The URI can include wildcards in object_id and thus identify multiple files. Supported wildcards: * ''*'' to match 0 or more non-separator characters * ''**'' to match 0 or more characters (including separators). Must be used at the end of a path and with no other wildcards in the path. Can also be used with a file extension (such as .dcm), which imports all files with the extension in the specified directory and its sub-directories. For example, gs://my-bucket/my-directory/**.dcm imports all files with .dcm extensions in my-directory/ and its sub-directories. * ''?'' to match 1 character. All other URI formats are invalid. Files matching the wildcard are expected to contain content only, no metadata.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// StreamConfig specifies configuration for a streaming DICOM export.
@@ -1111,7 +1132,8 @@ pub struct GoogleCloudHealthcareV1DicomGcsSource {
 pub struct GoogleCloudHealthcareV1DicomStreamConfig {
     /// Results are appended to this table. The server creates a new table in the given BigQuery dataset if the specified table does not exist. To enable the Cloud Healthcare API to write to your BigQuery table, you must give the Cloud Healthcare API service account the bigquery.dataEditor role. The service account is: service-{PROJECT_NUMBER}@gcp-sa-healthcare.iam.gserviceaccount.com. The PROJECT_NUMBER identifies the project that the DICOM store resides in. To get the project number, go to the Cloud Console Dashboard. It is recommended to not have a custom schema in the destination table which could conflict with the schema created by the Cloud Healthcare API. Instance deletions are not applied to the destination table. The destination''s table schema will be automatically updated in case a new instance''s data is incompatible with the current schema. The schema should not be updated manually as this can cause incompatibilies that cannot be resolved automatically. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any instance that generates more than 1 MB of BigQuery data will not be streamed. If an instance cannot be streamed to BigQuery, errors will be logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).
     #[serde(default, rename = "bigqueryDestination")]
-    pub bigquery_destination: Option<GoogleCloudHealthcareV1DicomBigQueryDestination>,
+    pub bigquery_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1DicomBigQueryDestination>>,
 }
 
 /// The configuration for exporting to BigQuery.
@@ -1119,16 +1141,16 @@ pub struct GoogleCloudHealthcareV1DicomStreamConfig {
 pub struct GoogleCloudHealthcareV1FhirBigQueryDestination {
     /// Optional. BigQuery URI to an existing dataset, up to 2000 characters long, in the format bq://projectId.bqDatasetId.
     #[serde(default, rename = "datasetUri")]
-    pub dataset_uri: Option<String>,
+    pub dataset_uri: ::core::option::Option<String>,
     /// Optional. The default value is false. If this flag is TRUE, all tables are deleted from the dataset before the new exported tables are written. If the flag is not set and the destination dataset contains tables, the export call returns an error. If write_disposition is specified, this parameter is ignored. force=false is equivalent to write_disposition=WRITE_EMPTY and force=true is equivalent to write_disposition=WRITE_TRUNCATE.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Optional. The configuration for the exported BigQuery schema.
     #[serde(default, rename = "schemaConfig")]
-    pub schema_config: Option<SchemaConfig>,
+    pub schema_config: ::core::option::Option<::std::boxed::Box<SchemaConfig>>,
     /// Optional. Determines if existing data in the destination dataset is overwritten, appended to, or not written if the tables contain data. If a write_disposition is specified, the force parameter is ignored. // TODO: enum values: ["WRITE_DISPOSITION_UNSPECIFIED", "WRITE_EMPTY", "WRITE_TRUNCATE", "WRITE_APPEND"]
     #[serde(default, rename = "writeDisposition")]
-    pub write_disposition: Option<String>,
+    pub write_disposition: ::core::option::Option<String>,
 }
 
 /// The configuration for exporting to Cloud Storage.
@@ -1136,7 +1158,7 @@ pub struct GoogleCloudHealthcareV1FhirBigQueryDestination {
 pub struct GoogleCloudHealthcareV1FhirGcsDestination {
     /// URI for a Cloud Storage directory where result files should be written, in the format of gs://{bucket-id}/{path/to/destination/dir}. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced in uri_prefix.
     #[serde(default, rename = "uriPrefix")]
-    pub uri_prefix: Option<String>,
+    pub uri_prefix: ::core::option::Option<String>,
 }
 
 /// Specifies the configuration for importing data from Cloud Storage.
@@ -1144,16 +1166,16 @@ pub struct GoogleCloudHealthcareV1FhirGcsDestination {
 pub struct GoogleCloudHealthcareV1FhirGcsSource {
     /// Points to a Cloud Storage URI containing file(s) to import. The URI must be in the following format: gs://{bucket_id}/{object_id}. The URI can include wildcards in object_id and thus identify multiple files. Supported wildcards: * * to match 0 or more non-separator characters * ** to match 0 or more characters (including separators). Must be used at the end of a path and with no other wildcards in the path. Can also be used with a file extension (such as .ndjson), which imports all files with the extension in the specified directory and its sub-directories. For example, gs://my-bucket/my-directory/**.ndjson imports all files with .ndjson extensions in my-directory/ and its sub-directories. * ? to match 1 character Files matching the wildcard are expected to contain content only, no metadata.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Construct representing a logical group or a segment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroupOrSegment {
     #[serde(default)]
-    pub group: Option<SchemaGroup>,
+    pub group: ::core::option::Option<::std::boxed::Box<SchemaGroup>>,
     #[serde(default)]
-    pub segment: Option<SchemaSegment>,
+    pub segment: ::core::option::Option<::std::boxed::Box<SchemaSegment>>,
 }
 
 /// Root config message for HL7v2 schema. This contains a schema structure of groups and segments, and filters that determine which messages to apply the schema structure to.
@@ -1161,10 +1183,10 @@ pub struct GroupOrSegment {
 pub struct Hl7SchemaConfig {
     /// Map from each HL7v2 message type and trigger event pair, such as ADT_A04, to its schema configuration root group.
     #[serde(default, rename = "messageSchemaConfigs")]
-    pub message_schema_configs: Option<serde_json::Value>,
+    pub message_schema_configs: ::core::option::Option<serde_json::Value>,
     /// Each VersionSource is tested and only if they all match is the schema used for the message.
     #[serde(default)]
-    pub version: Option<Vec<VersionSource>>,
+    pub version: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VersionSource>>>,
 }
 
 /// Root config for HL7v2 datatype definitions for a specific HL7v2 version.
@@ -1172,10 +1194,10 @@ pub struct Hl7SchemaConfig {
 pub struct Hl7TypesConfig {
     /// The HL7v2 type definitions.
     #[serde(default, rename = "type")]
-    pub type_: Option<Vec<Type>>,
+    pub type_: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Type>>>,
     /// The version selectors that this config applies to. A message must match ALL version sources to apply.
     #[serde(default)]
-    pub version: Option<Vec<VersionSource>>,
+    pub version: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VersionSource>>>,
 }
 
 /// Specifies where and whether to send notifications upon changes to a data store.
@@ -1183,10 +1205,10 @@ pub struct Hl7TypesConfig {
 pub struct Hl7v2NotificationConfig {
     /// Optional. Restricts notifications sent for messages matching a filter. If this is empty, all messages are matched. The following syntax is available: * A string field value can be written as text inside quotation marks, for example "query text". The only valid relational operation for text fields is equality (=), where text is searched within the field, rather than having the field be equal to the text. For example, "Comment = great" returns messages with great in the comment field. * A number field value can be written as an integer, a decimal, or an exponential. The valid relational operators for number fields are the equality operator (=), along with the less than/greater than operators (&lt;, &lt;=, &gt;, &gt;=). Note that there is no inequality (!=) operator. You can prepend the NOT operator to an expression to negate it. * A date field value must be written in yyyy-mm-dd form. Fields with date and time use the RFC3339 time format. Leading zeros are required for one-digit months and days. The valid relational operators for date fields are the equality operator (=) , along with the less than/greater than operators (&lt;, &lt;=, &gt;, &gt;=). Note that there is no inequality (!=) operator. You can prepend the NOT operator to an expression to negate it. * Multiple field query expressions can be combined in one query by adding AND or OR operators between the expressions. If a boolean operator appears within a quoted string, it is not treated as special, it''s just another part of the character string to be matched. You can prepend the NOT operator to an expression to negate it. The following fields and functions are available for filtering: * message_type, from the MSH-9.1 field. For example, NOT message_type = "ADT". * send_date or sendDate, the YYYY-MM-DD date the message was sent in the dataset''s time_zone, from the MSH-7 segment. For example, send_date &lt; "2017-01-02". * send_time, the timestamp when the message was sent, using the RFC3339 time format for comparisons, from the MSH-7 segment. For example, send_time &lt; "2017-01-02T00:00:00-05:00". * create_time, the timestamp when the message was created in the HL7v2 store. Use the RFC3339 time format for comparisons. For example, create_time &lt; "2017-01-02T00:00:00-05:00". * send_facility, the care center that the message came from, from the MSH-4 segment. For example, send_facility = "ABC". * PatientId(value, type), which matches if the message lists a patient having an ID of the given value and type in the PID-2, PID-3, or PID-4 segments. For example, PatientId("123456", "MRN"). * labels.x, a string value of the label with key x as set using the Message.labels map. For example, labels."priority"="high". The operator :* can be used to assert the existence of a label. For example, labels."priority":*.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that notifications of changes are published on. Supplied by the client. The notification is a PubsubMessage with the following fields: * PubsubMessage.Data contains the resource name. * PubsubMessage.MessageId is the ID of this notification. It''s guaranteed to be unique within the topic. * PubsubMessage.PublishTime is the time when the message was published. Note that notifications are only sent if the topic is non-empty. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. The Cloud Healthcare API service account, service-PROJECT_NUMBER@gcp-sa-healthcare.iam.gserviceaccount.com, must have publisher permissions on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail. If a notification cannot be published to Pub/Sub, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
 }
 
 /// Represents an HL7v2 store.
@@ -1194,19 +1216,20 @@ pub struct Hl7v2NotificationConfig {
 pub struct Hl7v2Store {
     /// User-supplied key-value pairs used to organize HL7v2 stores. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. Resource name of the HL7v2 store, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/hl7V2Stores/{hl7v2_store_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. A list of notification configs. Each configuration uses a filter to determine whether to publish a message (both Ingest & Create) on the corresponding notification destination. Only the message name is sent as part of the notification. Supplied by the client.
     #[serde(default, rename = "notificationConfigs")]
-    pub notification_configs: Option<Vec<Hl7v2NotificationConfig>>,
+    pub notification_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hl7v2NotificationConfig>>>,
     /// Optional. The configuration for the parser. It determines how the server parses the messages.
     #[serde(default, rename = "parserConfig")]
-    pub parser_config: Option<ParserConfig>,
+    pub parser_config: ::core::option::Option<::std::boxed::Box<ParserConfig>>,
     /// Optional. Determines whether to reject duplicate messages. A duplicate message is a message with the same raw bytes as a message that has already been ingested/created in this HL7v2 store. The default value is false, meaning that the store accepts the duplicate messages and it also returns the same ACK message in the IngestMessageResponse as has been returned previously. Note that only one resource is created in the store. When this field is set to true, CreateMessage/IngestMessage requests with a duplicate message will be rejected by the store, and IngestMessageErrorDetail returns a NACK message upon rejection.
     #[serde(default, rename = "rejectDuplicateMessage")]
-    pub reject_duplicate_message: Option<bool>,
+    pub reject_duplicate_message: ::core::option::Option<bool>,
 }
 
 /// Count of messages and total storage size by type for a given HL7 store.
@@ -1214,13 +1237,13 @@ pub struct Hl7v2Store {
 pub struct Hl7v2StoreMetric {
     /// The total count of HL7v2 messages in the store for the given message type.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// The Hl7v2 message type this metric applies to, such as ADT or ORU.
     #[serde(default, rename = "messageType")]
-    pub message_type: Option<String>,
+    pub message_type: ::core::option::Option<String>,
     /// The total amount of structured storage used by HL7v2 messages of this message type in the store.
     #[serde(default, rename = "structuredStorageSizeBytes")]
-    pub structured_storage_size_bytes: Option<String>,
+    pub structured_storage_size_bytes: ::core::option::Option<String>,
 }
 
 /// List of metrics for a given HL7v2 store.
@@ -1228,10 +1251,10 @@ pub struct Hl7v2StoreMetric {
 pub struct Hl7v2StoreMetrics {
     /// List of HL7v2 store metrics by message type.
     #[serde(default)]
-    pub metrics: Option<Vec<Hl7v2StoreMetric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hl7v2StoreMetric>>>,
     /// The resource name of the HL7v2 store to get metrics for, in the format projects/{project_id}/datasets/{dataset_id}/hl7V2Stores/{hl7v2_store_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
@@ -1239,13 +1262,13 @@ pub struct Hl7v2StoreMetrics {
 pub struct HttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
-    pub content_type: Option<String>,
+    pub content_type: ::core::option::Option<String>,
     /// The HTTP request/response body as raw binary.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// Application specific response metadata. Must be set in the first response for streaming APIs.
     #[serde(default)]
-    pub extensions: Option<Vec<serde_json::Value>>,
+    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Raw bytes representing consent artifact content.
@@ -1253,10 +1276,10 @@ pub struct HttpBody {
 pub struct Image {
     /// Input only. Points to a Cloud Storage URI containing the consent artifact content. The URI must be in the following format: gs://{bucket_id}/{object_id}. The Cloud Healthcare API service account must have the roles/storage.objectViewer Cloud IAM role for this Cloud Storage location. The consent artifact content at this URI is copied to a Cloud Storage location managed by the Cloud Healthcare API. Responses to fetching requests return the consent artifact content in raw_bytes.
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
     /// Consent artifact content represented as a stream of bytes. This field is populated when returned in GetConsentArtifact response, but not included in CreateConsentArtifact and ListConsentArtifact response.
     #[serde(default, rename = "rawBytes")]
-    pub raw_bytes: Option<String>,
+    pub raw_bytes: ::core::option::Option<String>,
 }
 
 /// Specifies how to handle de-identification of image pixels.
@@ -1264,7 +1287,7 @@ pub struct Image {
 pub struct ImageConfig {
     /// Optional. Determines how to redact text from image. // TODO: enum values: ["TEXT_REDACTION_MODE_UNSPECIFIED", "REDACT_ALL_TEXT", "REDACT_SENSITIVE_TEXT", "REDACT_NO_TEXT"]
     #[serde(default, rename = "textRedactionMode")]
-    pub text_redaction_mode: Option<String>,
+    pub text_redaction_mode: ::core::option::Option<String>,
 }
 
 /// Imports data into the specified DICOM store. Returns an error if any of the files to import are not DICOM files. This API accepts duplicate DICOM instances by ignoring the newly-pushed instance. It does not overwrite.
@@ -1272,10 +1295,11 @@ pub struct ImageConfig {
 pub struct ImportDicomDataRequest {
     /// Optional. The blob storage settings for the data imported by this operation.
     #[serde(default, rename = "blobStorageSettings")]
-    pub blob_storage_settings: Option<BlobStorageSettings>,
+    pub blob_storage_settings: ::core::option::Option<::std::boxed::Box<BlobStorageSettings>>,
     /// Cloud Storage source data location and import configuration. The Cloud Healthcare Service Agent requires the roles/storage.objectViewer Cloud IAM roles on the Cloud Storage location.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudHealthcareV1DicomGcsSource>,
+    pub gcs_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1DicomGcsSource>>,
 }
 
 /// Request to import messages.
@@ -1283,7 +1307,7 @@ pub struct ImportDicomDataRequest {
 pub struct ImportMessagesRequest {
     /// Cloud Storage source data location and import configuration. The Cloud Healthcare Service Agent requires the roles/storage.objectViewer Cloud IAM roles on the Cloud Storage location.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsSource>>,
 }
 
 /// Request to import resources.
@@ -1291,10 +1315,10 @@ pub struct ImportMessagesRequest {
 pub struct ImportResourcesRequest {
     /// The content structure in the source location. If not specified, the server treats the input source files as BUNDLE. // TODO: enum values: ["CONTENT_STRUCTURE_UNSPECIFIED", "BUNDLE", "RESOURCE", "BUNDLE_PRETTY", "RESOURCE_PRETTY"]
     #[serde(default, rename = "contentStructure")]
-    pub content_structure: Option<String>,
+    pub content_structure: ::core::option::Option<String>,
     /// Cloud Storage source data location and import configuration. The Healthcare Service Agent account requires the roles/storage.objectAdmin role on the Cloud Storage location. Each Cloud Storage object should be a text file that contains the format specified in ContentStructure.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudHealthcareV1FhirGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1FhirGcsSource>>,
 }
 
 /// A transformation to apply to text that is identified as a specific info_type.
@@ -1302,22 +1326,22 @@ pub struct ImportResourcesRequest {
 pub struct InfoTypeTransformation {
     /// Config for character mask.
     #[serde(default, rename = "characterMaskConfig")]
-    pub character_mask_config: Option<CharacterMaskConfig>,
+    pub character_mask_config: ::core::option::Option<::std::boxed::Box<CharacterMaskConfig>>,
     /// Config for crypto hash.
     #[serde(default, rename = "cryptoHashConfig")]
-    pub crypto_hash_config: Option<CryptoHashConfig>,
+    pub crypto_hash_config: ::core::option::Option<::std::boxed::Box<CryptoHashConfig>>,
     /// Config for date shift.
     #[serde(default, rename = "dateShiftConfig")]
-    pub date_shift_config: Option<DateShiftConfig>,
+    pub date_shift_config: ::core::option::Option<::std::boxed::Box<DateShiftConfig>>,
     /// Optional. InfoTypes to apply this transformation to. If this is not specified, the transformation applies to any info_type.
     #[serde(default, rename = "infoTypes")]
-    pub info_types: Option<Vec<String>>,
+    pub info_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Config for text redaction.
     #[serde(default, rename = "redactConfig")]
-    pub redact_config: Option<serde_json::Value>,
+    pub redact_config: ::core::option::Option<serde_json::Value>,
     /// Config for replace with InfoType.
     #[serde(default, rename = "replaceWithInfoTypeConfig")]
-    pub replace_with_info_type_config: Option<serde_json::Value>,
+    pub replace_with_info_type_config: ::core::option::Option<serde_json::Value>,
 }
 
 /// Ingests a message into the specified HL7v2 store.
@@ -1325,7 +1349,7 @@ pub struct InfoTypeTransformation {
 pub struct IngestMessageRequest {
     /// Required. HL7v2 message to ingest.
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
 }
 
 /// Acknowledges that a message has been ingested into the specified HL7v2 store.
@@ -1333,10 +1357,10 @@ pub struct IngestMessageRequest {
 pub struct IngestMessageResponse {
     /// HL7v2 ACK message.
     #[serde(default, rename = "hl7Ack")]
-    pub hl7_ack: Option<String>,
+    pub hl7_ack: ::core::option::Option<String>,
     /// Created message resource.
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
 }
 
 /// Include to use an existing data crypto key wrapped by KMS. The wrapped key must be a 128-, 192-, or 256-bit key. The key must grant the Cloud IAM permission cloudkms.cryptoKeyVersions.useToDecrypt to the project''s Cloud Healthcare Service Agent service account. For more information, see [Creating a wrapped key] (https://cloud.google.com/dlp/docs/create-wrapped-key).
@@ -1344,10 +1368,10 @@ pub struct IngestMessageResponse {
 pub struct KmsWrappedCryptoKey {
     /// Required. The resource name of the KMS CryptoKey to use for unwrapping. For example, projects/{project_id}/locations/{location_id}/keyRings/{keyring}/cryptoKeys/{key}.
     #[serde(default, rename = "cryptoKey")]
-    pub crypto_key: Option<String>,
+    pub crypto_key: ::core::option::Option<String>,
     /// Required. The wrapped data crypto key.
     #[serde(default, rename = "wrappedKey")]
-    pub wrapped_key: Option<String>,
+    pub wrapped_key: ::core::option::Option<String>,
 }
 
 /// EntityMentions can be linked to multiple entities using a LinkedEntity message lets us add other fields, e.g. confidence.
@@ -1355,7 +1379,7 @@ pub struct KmsWrappedCryptoKey {
 pub struct LinkedEntity {
     /// entity_id is a concept unique identifier. These are prefixed by a string that identifies the entity coding system, followed by the unique identifier within that system. For example, "UMLS/C0000970". This also supports ad hoc entities, which are formed by normalizing entity mention content.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
 }
 
 /// ListAttributeDefinitionsResponse resource type.
@@ -1363,10 +1387,11 @@ pub struct LinkedEntity {
 pub struct ListAttributeDefinitionsResponse {
     /// The returned Attribute definitions. The maximum number of attributes returned is determined by the value of page_size in the ListAttributeDefinitionsRequest.
     #[serde(default, rename = "attributeDefinitions")]
-    pub attribute_definitions: Option<Vec<AttributeDefinition>>,
+    pub attribute_definitions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AttributeDefinition>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListConsentArtifactsResponse resource type.
@@ -1374,10 +1399,11 @@ pub struct ListAttributeDefinitionsResponse {
 pub struct ListConsentArtifactsResponse {
     /// The returned Consent artifacts. The maximum number of artifacts returned is determined by the value of page_size in the ListConsentArtifactsRequest.
     #[serde(default, rename = "consentArtifacts")]
-    pub consent_artifacts: Option<Vec<ConsentArtifact>>,
+    pub consent_artifacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConsentArtifact>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListConsentRevisionsResponse resource type.
@@ -1385,10 +1411,10 @@ pub struct ListConsentArtifactsResponse {
 pub struct ListConsentRevisionsResponse {
     /// The returned Consent revisions. The maximum number of revisions returned is determined by the value of page_size in the ListConsentRevisionsRequest.
     #[serde(default)]
-    pub consents: Option<Vec<Consent>>,
+    pub consents: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Consent>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListConsentStoresResponse resource type.
@@ -1396,10 +1422,10 @@ pub struct ListConsentRevisionsResponse {
 pub struct ListConsentStoresResponse {
     /// The returned consent stores. The maximum number of stores returned is determined by the value of page_size in the ListConsentStoresRequest.
     #[serde(default, rename = "consentStores")]
-    pub consent_stores: Option<Vec<ConsentStore>>,
+    pub consent_stores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConsentStore>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListConsentsResponse resource type.
@@ -1407,10 +1433,10 @@ pub struct ListConsentStoresResponse {
 pub struct ListConsentsResponse {
     /// The returned Consents. The maximum number of Consents returned is determined by the value of page_size in the ListConsentsRequest.
     #[serde(default)]
-    pub consents: Option<Vec<Consent>>,
+    pub consents: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Consent>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Lists the available datasets.
@@ -1418,10 +1444,10 @@ pub struct ListConsentsResponse {
 pub struct ListDatasetsResponse {
     /// The first page of datasets.
     #[serde(default)]
-    pub datasets: Option<Vec<Dataset>>,
+    pub datasets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dataset>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Lists the DICOM stores in the given dataset.
@@ -1429,10 +1455,10 @@ pub struct ListDatasetsResponse {
 pub struct ListDicomStoresResponse {
     /// The returned DICOM stores. Won''t be more DICOM stores than the value of page_size in the request.
     #[serde(default, rename = "dicomStores")]
-    pub dicom_stores: Option<Vec<DicomStore>>,
+    pub dicom_stores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DicomStore>>>,
     /// Token to retrieve the next page of results or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Lists the FHIR stores in the given dataset.
@@ -1440,10 +1466,10 @@ pub struct ListDicomStoresResponse {
 pub struct ListFhirStoresResponse {
     /// The returned FHIR stores. Won''t be more FHIR stores than the value of page_size in the request.
     #[serde(default, rename = "fhirStores")]
-    pub fhir_stores: Option<Vec<FhirStore>>,
+    pub fhir_stores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FhirStore>>>,
     /// Token to retrieve the next page of results or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Lists the HL7v2 stores in the given dataset.
@@ -1451,10 +1477,10 @@ pub struct ListFhirStoresResponse {
 pub struct ListHl7v2StoresResponse {
     /// The returned HL7v2 stores. Won''t be more HL7v2 stores than the value of page_size in the request.
     #[serde(default, rename = "hl7V2Stores")]
-    pub hl7v2_stores: Option<Vec<Hl7v2Store>>,
+    pub hl7v2_stores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hl7v2Store>>>,
     /// Token to retrieve the next page of results or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1462,10 +1488,10 @@ pub struct ListHl7v2StoresResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Lists the messages in the specified HL7v2 store.
@@ -1473,10 +1499,10 @@ pub struct ListLocationsResponse {
 pub struct ListMessagesResponse {
     /// The returned Messages. Won''t be more Messages than the value of page_size in the request. See view for populated fields.
     #[serde(default, rename = "hl7V2Messages")]
-    pub hl7v2_messages: Option<Vec<Message>>,
+    pub hl7v2_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Token to retrieve the next page of results or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1484,13 +1510,13 @@ pub struct ListMessagesResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ListUserDataMappingsResponse resource type.
@@ -1498,10 +1524,11 @@ pub struct ListOperationsResponse {
 pub struct ListUserDataMappingsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The returned User data mappings. The maximum number of User data mappings returned is determined by the value of page_size in the ListUserDataMappingsRequest.
     #[serde(default, rename = "userDataMappings")]
-    pub user_data_mappings: Option<Vec<UserDataMapping>>,
+    pub user_data_mappings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UserDataMapping>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1509,19 +1536,19 @@ pub struct ListUserDataMappingsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A complete HL7v2 message. See [Introduction to HL7 Standards] (https://www.hl7.org/implement/standards/index.cfm?ref=common) for details on the standard.
@@ -1529,34 +1556,34 @@ pub struct Location {
 pub struct Message {
     /// Output only. The datetime when the message was created. Set by the server.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Raw message bytes.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// User-supplied key-value pairs used to organize HL7v2 stores. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The message type for this message. MSH-9.1.
     #[serde(default, rename = "messageType")]
-    pub message_type: Option<String>,
+    pub message_type: ::core::option::Option<String>,
     /// Output only. Resource name of the Message, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/hl7V2Stores/{hl7_v2_store_id}/messages/{message_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The parsed version of the raw message data.
     #[serde(default, rename = "parsedData")]
-    pub parsed_data: Option<ParsedData>,
+    pub parsed_data: ::core::option::Option<::std::boxed::Box<ParsedData>>,
     /// Output only. All patient IDs listed in the PID-2, PID-3, and PID-4 segments of this message.
     #[serde(default, rename = "patientIds")]
-    pub patient_ids: Option<Vec<PatientId>>,
+    pub patient_ids: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PatientId>>>,
     /// Output only. The parsed version of the raw message data schematized according to this store''s schemas and type definitions.
     #[serde(default, rename = "schematizedData")]
-    pub schematized_data: Option<SchematizedData>,
+    pub schematized_data: ::core::option::Option<::std::boxed::Box<SchematizedData>>,
     /// Output only. The hospital that this message came from. MSH-4.
     #[serde(default, rename = "sendFacility")]
-    pub send_facility: Option<String>,
+    pub send_facility: ::core::option::Option<String>,
     /// Output only. The datetime the sending application sent this message. MSH-7.
     #[serde(default, rename = "sendTime")]
-    pub send_time: Option<String>,
+    pub send_time: ::core::option::Option<String>,
 }
 
 /// Specifies where to send notifications upon changes to a data store.
@@ -1564,10 +1591,10 @@ pub struct Message {
 pub struct NotificationConfig {
     /// The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that notifications of changes are published on. Supplied by the client. PubsubMessage.Data contains the resource name. PubsubMessage.MessageId is the ID of this message. It is guaranteed to be unique within the topic. PubsubMessage.PublishTime is the time at which the message was published. Notifications are only sent if the topic is non-empty. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. Cloud Healthcare API service account must have publisher permissions on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail. If a notification can''t be published to Pub/Sub, errors are logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)). If the number of errors exceeds a certain rate, some aren''t submitted. Note that not all operations trigger notifications, see [Configuring Pub/Sub notifications](https://cloud.google.com/healthcare/docs/how-tos/pubsub) for specific details.
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
     /// Indicates whether or not to send Pub/Sub notifications on bulk import. Only supported for DICOM imports.
     #[serde(default, rename = "sendForBulkImport")]
-    pub send_for_bulk_import: Option<bool>,
+    pub send_for_bulk_import: ::core::option::Option<bool>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1575,19 +1602,19 @@ pub struct NotificationConfig {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// OperationMetadata provides information about the operation execution. Returned in the long-running operation''s metadata field.
@@ -1595,28 +1622,28 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// The name of the API method that initiated the operation.
     #[serde(default, rename = "apiMethodName")]
-    pub api_method_name: Option<String>,
+    pub api_method_name: ::core::option::Option<String>,
     /// Specifies if cancellation was requested for the operation.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     #[serde(default)]
-    pub counter: Option<ProgressCounter>,
+    pub counter: ::core::option::Option<::std::boxed::Box<ProgressCounter>>,
     /// The time at which the operation was created by the API.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time at which execution was completed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// A link to audit and error logs in the log viewer. Error logs are generated only by some operations, listed at [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging).
     #[serde(default, rename = "logsUrl")]
-    pub logs_url: Option<String>,
+    pub logs_url: ::core::option::Option<String>,
 }
 
 /// The content of a HL7v2 message in a structured format.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParsedData {
     #[serde(default)]
-    pub segments: Option<Vec<Segment>>,
+    pub segments: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Segment>>>,
 }
 
 /// The configuration for the parser. It determines how the server parses the messages.
@@ -1624,16 +1651,16 @@ pub struct ParsedData {
 pub struct ParserConfig {
     /// Optional. Determines whether messages with no header are allowed.
     #[serde(default, rename = "allowNullHeader")]
-    pub allow_null_header: Option<bool>,
+    pub allow_null_header: ::core::option::Option<bool>,
     /// Optional. Schemas used to parse messages in this store, if schematized parsing is desired.
     #[serde(default)]
-    pub schema: Option<SchemaPackage>,
+    pub schema: ::core::option::Option<::std::boxed::Box<SchemaPackage>>,
     /// Optional. Byte(s) to use as the segment terminator. If this is unset, ''\r'' is used as segment terminator, matching the HL7 version 2 specification.
     #[serde(default, rename = "segmentTerminator")]
-    pub segment_terminator: Option<String>,
+    pub segment_terminator: ::core::option::Option<String>,
     /// Immutable. Determines the version of both the default parser to be used when schema is not given, as well as the schematized parser used when schema is specified. This field is immutable after HL7v2 store creation. // TODO: enum values: ["PARSER_VERSION_UNSPECIFIED", "V1", "V2", "V3"]
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// A patient identifier and associated type.
@@ -1641,10 +1668,10 @@ pub struct ParserConfig {
 pub struct PatientId {
     /// ID type. For example, MRN or NHS.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The patient''s unique identifier.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Apply consents given by a list of patients.
@@ -1652,7 +1679,7 @@ pub struct PatientId {
 pub struct PatientScope {
     /// Optional. The list of patient IDs whose Consent resources will be enforced. At most 10,000 patients can be specified. An empty list is equivalent to all patients (meaning the entire FHIR store).
     #[serde(default, rename = "patientIds")]
-    pub patient_ids: Option<Vec<String>>,
+    pub patient_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -1660,16 +1687,16 @@ pub struct PatientScope {
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: Option<Vec<AuditConfig>>,
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditConfig>>>,
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// ProgressCounter provides counters to describe an operation''s progress.
@@ -1677,19 +1704,19 @@ pub struct Policy {
 pub struct ProgressCounter {
     /// The number of units that failed in the operation.
     #[serde(default)]
-    pub failure: Option<String>,
+    pub failure: ::core::option::Option<String>,
     /// The number of units that are pending in the operation.
     #[serde(default)]
-    pub pending: Option<String>,
+    pub pending: ::core::option::Option<String>,
     /// The number of secondary units that failed in the operation.
     #[serde(default, rename = "secondaryFailure")]
-    pub secondary_failure: Option<String>,
+    pub secondary_failure: ::core::option::Option<String>,
     /// The number of secondary units that succeeded in the operation.
     #[serde(default, rename = "secondarySuccess")]
-    pub secondary_success: Option<String>,
+    pub secondary_success: ::core::option::Option<String>,
     /// The number of units that succeeded in the operation.
     #[serde(default)]
-    pub success: Option<String>,
+    pub success: ::core::option::Option<String>,
 }
 
 /// The Pub/Sub output destination. The Cloud Healthcare Service Agent requires the roles/pubsub.publisher Cloud IAM role on the Pub/Sub topic.
@@ -1697,7 +1724,7 @@ pub struct ProgressCounter {
 pub struct PubsubDestination {
     /// The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that Pub/Sub messages are published on. Supplied by the client. The PubsubMessage contains the following fields: * PubsubMessage.Data contains the resource name. * PubsubMessage.MessageId is the ID of this notification. It is guaranteed to be unique within the topic. * PubsubMessage.PublishTime is the time when the message was published. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. The Cloud Healthcare API service account, service-PROJECT_NUMBER@gcp-sa-healthcare.iam.gserviceaccount.com, must have publisher permissions on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail.
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
 }
 
 /// Queries all data_ids that are consented for a given use in the given consent store and writes them to a specified destination. The returned Operation includes a progress counter for the number of User data mappings processed. Errors are logged to Cloud Logging (see [Viewing error logs in Cloud Logging] (https://cloud.google.com/healthcare/docs/how-tos/logging) and [QueryAccessibleData] for a sample log entry).
@@ -1705,13 +1732,14 @@ pub struct PubsubDestination {
 pub struct QueryAccessibleDataRequest {
     /// The Cloud Storage destination. The Cloud Healthcare API service account must have the roles/storage.objectAdmin Cloud IAM role for this Cloud Storage location.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudHealthcareV1ConsentGcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1ConsentGcsDestination>>,
     /// The values of request attributes associated with this access request.
     #[serde(default, rename = "requestAttributes")]
-    pub request_attributes: Option<serde_json::Value>,
+    pub request_attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. The values of resource attributes associated with the type of resources being requested. If no values are specified, then all resource types are included in the output.
     #[serde(default, rename = "resourceAttributes")]
-    pub resource_attributes: Option<serde_json::Value>,
+    pub resource_attributes: ::core::option::Option<serde_json::Value>,
 }
 
 /// Response for successful QueryAccessibleData operations. This structure is included in the response upon operation completion.
@@ -1719,7 +1747,7 @@ pub struct QueryAccessibleDataRequest {
 pub struct QueryAccessibleDataResponse {
     /// List of files, each of which contains a list of data_id(s) that are consented for a specified use in the request.
     #[serde(default, rename = "gcsUris")]
-    pub gcs_uris: Option<Vec<String>>,
+    pub gcs_uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Rejects the latest revision of the specified Consent by committing a new revision with state updated to REJECTED. If the latest revision of the given Consent is in the REJECTED state, no new revision is committed.
@@ -1727,7 +1755,7 @@ pub struct QueryAccessibleDataResponse {
 pub struct RejectConsentRequest {
     /// Optional. The resource name of the Consent artifact that contains documentation of the user''s rejection of the draft Consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}. If the draft Consent had a Consent artifact, this Consent artifact overwrites it.
     #[serde(default, rename = "consentArtifact")]
-    pub consent_artifact: Option<String>,
+    pub consent_artifact: ::core::option::Option<String>,
 }
 
 /// A list of FHIR resources.
@@ -1735,21 +1763,21 @@ pub struct RejectConsentRequest {
 pub struct Resources {
     /// List of resources IDs. For example, "Patient/1234".
     #[serde(default)]
-    pub resources: Option<Vec<String>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The consent evaluation result for a single data_id.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Result {
+pub struct ApiResult {
     /// The resource names of all evaluated Consents mapped to their evaluation.
     #[serde(default, rename = "consentDetails")]
-    pub consent_details: Option<serde_json::Value>,
+    pub consent_details: ::core::option::Option<serde_json::Value>,
     /// Whether the resource is consented for the given use.
     #[serde(default)]
-    pub consented: Option<bool>,
+    pub consented: ::core::option::Option<bool>,
     /// The unique identifier of the evaluated resource.
     #[serde(default, rename = "dataId")]
-    pub data_id: Option<String>,
+    pub data_id: ::core::option::Option<String>,
 }
 
 /// Revokes the latest revision of the specified Consent by committing a new revision with state updated to REVOKED. If the latest revision of the given Consent is in the REVOKED state, no new revision is committed.
@@ -1757,7 +1785,7 @@ pub struct Result {
 pub struct RevokeConsentRequest {
     /// Optional. The resource name of the Consent artifact that contains proof of the user''s revocation of the Consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}.
     #[serde(default, rename = "consentArtifact")]
-    pub consent_artifact: Option<String>,
+    pub consent_artifact: ::core::option::Option<String>,
 }
 
 /// RollbackFhirResourceFilteringFields resource type.
@@ -1765,10 +1793,10 @@ pub struct RevokeConsentRequest {
 pub struct RollbackFhirResourceFilteringFields {
     /// Optional. A filter expression that matches data in the Resource.meta element. Supports all filters in [AIP-160](https://google.aip.dev/160) except the "has" (:) operator. Supports the following custom functions: * tag("") = "" for tag filtering. * extension_value_ts("") =  for filtering extensions with a timestamp, where  is a Unix timestamp. Supports the &gt;, &lt;, &lt;=, &gt;=, and != comparison operators.
     #[serde(default, rename = "metadataFilter")]
-    pub metadata_filter: Option<String>,
+    pub metadata_filter: ::core::option::Option<String>,
     /// Optional. A list of operation IDs to roll back.
     #[serde(default, rename = "operationIds")]
-    pub operation_ids: Option<Vec<String>>,
+    pub operation_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// RollbackFhirResourcesRequest resource type.
@@ -1776,28 +1804,29 @@ pub struct RollbackFhirResourceFilteringFields {
 pub struct RollbackFhirResourcesRequest {
     /// Optional. CREATE/UPDATE/DELETE/ALL for reverting all txns of a certain type. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ALL", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "changeType")]
-    pub change_type: Option<String>,
+    pub change_type: ::core::option::Option<String>,
     /// Optional. Specifies whether to exclude earlier rollbacks.
     #[serde(default, rename = "excludeRollbacks")]
-    pub exclude_rollbacks: Option<bool>,
+    pub exclude_rollbacks: ::core::option::Option<bool>,
     /// Optional. Parameters for filtering resources
     #[serde(default, rename = "filteringFields")]
-    pub filtering_fields: Option<RollbackFhirResourceFilteringFields>,
+    pub filtering_fields:
+        ::core::option::Option<::std::boxed::Box<RollbackFhirResourceFilteringFields>>,
     /// Optional. When enabled, changes will be reverted without explicit confirmation
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Optional. Cloud Storage object containing list of {resourceType}/{resourceId} lines, identifying resources to be reverted
     #[serde(default, rename = "inputGcsObject")]
-    pub input_gcs_object: Option<String>,
+    pub input_gcs_object: ::core::option::Option<String>,
     /// Required. Bucket to deposit result
     #[serde(default, rename = "resultGcsBucket")]
-    pub result_gcs_bucket: Option<String>,
+    pub result_gcs_bucket: ::core::option::Option<String>,
     /// Required. Time point to rollback to.
     #[serde(default, rename = "rollbackTime")]
-    pub rollback_time: Option<String>,
+    pub rollback_time: ::core::option::Option<String>,
     /// Optional. If specified, revert only resources of these types
     #[serde(default, rename = "type")]
-    pub type_: Option<Vec<String>>,
+    pub type_: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Final response of rollback FIHR resources request.
@@ -1805,7 +1834,7 @@ pub struct RollbackFhirResourcesRequest {
 pub struct RollbackFhirResourcesResponse {
     /// The name of the FHIR store to rollback, in the format of "projects/{project_id}/locations/{location_id}/datasets/{dataset_id} /fhirStores/{fhir_store_id}".
     #[serde(default, rename = "fhirStore")]
-    pub fhir_store: Option<String>,
+    pub fhir_store: ::core::option::Option<String>,
 }
 
 /// Filtering fields for an HL7v2 rollback. Currently only supports a list of operation ids to roll back.
@@ -1813,7 +1842,7 @@ pub struct RollbackFhirResourcesResponse {
 pub struct RollbackHL7MessagesFilteringFields {
     /// Optional. A list of operation IDs to roll back.
     #[serde(default, rename = "operationIds")]
-    pub operation_ids: Option<Vec<String>>,
+    pub operation_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Point in time recovery rollback request.
@@ -1821,25 +1850,26 @@ pub struct RollbackHL7MessagesFilteringFields {
 pub struct RollbackHl7v2MessagesRequest {
     /// Optional. CREATE/UPDATE/DELETE/ALL for reverting all txns of a certain type. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ALL", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "changeType")]
-    pub change_type: Option<String>,
+    pub change_type: ::core::option::Option<String>,
     /// Optional. Specifies whether to exclude earlier rollbacks.
     #[serde(default, rename = "excludeRollbacks")]
-    pub exclude_rollbacks: Option<bool>,
+    pub exclude_rollbacks: ::core::option::Option<bool>,
     /// Optional. Parameters for filtering.
     #[serde(default, rename = "filteringFields")]
-    pub filtering_fields: Option<RollbackHL7MessagesFilteringFields>,
+    pub filtering_fields:
+        ::core::option::Option<::std::boxed::Box<RollbackHL7MessagesFilteringFields>>,
     /// Optional. When enabled, changes will be reverted without explicit confirmation.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Optional. Cloud storage object containing list of {resourceId} lines, identifying resources to be reverted
     #[serde(default, rename = "inputGcsObject")]
-    pub input_gcs_object: Option<String>,
+    pub input_gcs_object: ::core::option::Option<String>,
     /// Required. Bucket to deposit result
     #[serde(default, rename = "resultGcsBucket")]
-    pub result_gcs_bucket: Option<String>,
+    pub result_gcs_bucket: ::core::option::Option<String>,
     /// Required. Times point to rollback to.
     #[serde(default, rename = "rollbackTime")]
-    pub rollback_time: Option<String>,
+    pub rollback_time: ::core::option::Option<String>,
 }
 
 /// Final response of rollback HL7v2 messages request.
@@ -1847,7 +1877,7 @@ pub struct RollbackHl7v2MessagesRequest {
 pub struct RollbackHl7v2MessagesResponse {
     /// The name of the HL7v2 store to rollback, in the format of "projects/{project_id}/locations/{location_id}/datasets/{dataset_id} /hl7v2Stores/{hl7v2_store_id}".
     #[serde(default, rename = "hl7v2Store")]
-    pub hl7v2_store: Option<String>,
+    pub hl7v2_store: ::core::option::Option<String>,
 }
 
 /// Configuration for the FHIR BigQuery schema. Determines how the server generates the schema.
@@ -1855,13 +1885,13 @@ pub struct RollbackHl7v2MessagesResponse {
 pub struct SchemaConfig {
     /// The configuration for exported BigQuery tables to be partitioned by FHIR resource''s last updated time column.
     #[serde(default, rename = "lastUpdatedPartitionConfig")]
-    pub last_updated_partition_config: Option<TimePartitioning>,
+    pub last_updated_partition_config: ::core::option::Option<::std::boxed::Box<TimePartitioning>>,
     /// The depth for all recursive structures in the output analytics schema. For example, concept in the CodeSystem resource is a recursive structure; when the depth is 2, the CodeSystem table will have a column called concept.concept but not concept.concept.concept. If not specified or set to 0, the server will use the default value 2. The maximum depth allowed is 5.
     #[serde(default, rename = "recursiveStructureDepth")]
-    pub recursive_structure_depth: Option<String>,
+    pub recursive_structure_depth: ::core::option::Option<String>,
     /// Specifies the output schema type. Schema type is required. // TODO: enum values: ["SCHEMA_TYPE_UNSPECIFIED", "ANALYTICS", "ANALYTICS_V2"]
     #[serde(default, rename = "schemaType")]
-    pub schema_type: Option<String>,
+    pub schema_type: ::core::option::Option<String>,
 }
 
 /// An HL7v2 logical group construct.
@@ -1869,19 +1899,19 @@ pub struct SchemaConfig {
 pub struct SchemaGroup {
     /// True indicates that this is a choice group, meaning that only one of its segments can exist in a given message.
     #[serde(default)]
-    pub choice: Option<bool>,
+    pub choice: ::core::option::Option<bool>,
     /// The maximum number of times this group can be repeated. 0 or -1 means unbounded.
     #[serde(default, rename = "maxOccurs")]
-    pub max_occurs: Option<i32>,
+    pub max_occurs: ::core::option::Option<i32>,
     /// Nested groups and/or segments.
     #[serde(default)]
-    pub members: Option<Vec<GroupOrSegment>>,
+    pub members: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GroupOrSegment>>>,
     /// The minimum number of times this group must be present/repeated.
     #[serde(default, rename = "minOccurs")]
-    pub min_occurs: Option<i32>,
+    pub min_occurs: ::core::option::Option<i32>,
     /// The name of this group. For example, "ORDER_DETAIL".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A schema package contains a set of schemas and type definitions.
@@ -1889,19 +1919,19 @@ pub struct SchemaGroup {
 pub struct SchemaPackage {
     /// Optional. Flag to ignore all min_occurs restrictions in the schema. This means that incoming messages can omit any group, segment, field, component, or subcomponent.
     #[serde(default, rename = "ignoreMinOccurs")]
-    pub ignore_min_occurs: Option<bool>,
+    pub ignore_min_occurs: ::core::option::Option<bool>,
     /// Optional. Schema configs that are layered based on their VersionSources that match the incoming message. Schema configs present in higher indices override those in lower indices with the same message type and trigger event if their VersionSources all match an incoming message.
     #[serde(default)]
-    pub schemas: Option<Vec<Hl7SchemaConfig>>,
+    pub schemas: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hl7SchemaConfig>>>,
     /// Optional. Determines how messages that fail to parse are handled. // TODO: enum values: ["SCHEMATIZED_PARSING_TYPE_UNSPECIFIED", "SOFT_FAIL", "HARD_FAIL"]
     #[serde(default, rename = "schematizedParsingType")]
-    pub schematized_parsing_type: Option<String>,
+    pub schematized_parsing_type: ::core::option::Option<String>,
     /// Optional. Schema type definitions that are layered based on their VersionSources that match the incoming message. Type definitions present in higher indices override those in lower indices with the same type name if their VersionSources all match an incoming message.
     #[serde(default)]
-    pub types: Option<Vec<Hl7TypesConfig>>,
+    pub types: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hl7TypesConfig>>>,
     /// Optional. Determines how unexpected segments (segments not matched to the schema) are handled. // TODO: enum values: ["UNEXPECTED_SEGMENT_HANDLING_MODE_UNSPECIFIED", "FAIL", "SKIP", "PARSE"]
     #[serde(default, rename = "unexpectedSegmentHandling")]
-    pub unexpected_segment_handling: Option<String>,
+    pub unexpected_segment_handling: ::core::option::Option<String>,
 }
 
 /// An HL7v2 Segment.
@@ -1909,13 +1939,13 @@ pub struct SchemaPackage {
 pub struct SchemaSegment {
     /// The maximum number of times this segment can be present in this group. 0 or -1 means unbounded.
     #[serde(default, rename = "maxOccurs")]
-    pub max_occurs: Option<i32>,
+    pub max_occurs: ::core::option::Option<i32>,
     /// The minimum number of times this segment can be present in this group.
     #[serde(default, rename = "minOccurs")]
-    pub min_occurs: Option<i32>,
+    pub min_occurs: ::core::option::Option<i32>,
     /// The Segment type. For example, "PID".
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The content of an HL7v2 message in a structured format as specified by a schema.
@@ -1923,10 +1953,10 @@ pub struct SchemaSegment {
 pub struct SchematizedData {
     /// JSON output of the parser.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// The error output of the parser.
     #[serde(default)]
-    pub error: Option<String>,
+    pub error: ::core::option::Option<String>,
 }
 
 /// A segment in a structured format.
@@ -1934,13 +1964,13 @@ pub struct SchematizedData {
 pub struct Segment {
     /// A mapping from the positional location to the value. The key string uses zero-based indexes separated by dots to identify Fields, components and sub-components. A bracket notation is also used to identify different instances of a repeated field. Regex for key: (\d+)(\[\d+\])?(.\d+)?(.\d+)? Examples of (key, value) pairs: * (0.1, "hemoglobin") denotes that the first component of Field 0 has the value "hemoglobin". * (1.1.2, "CBC") denotes that the second sub-component of the first component of Field 1 has the value "CBC". * (1[0].1, "HbA1c") denotes that the first component of the first Instance of Field 1, which is repeated, has the value "HbA1c".
     #[serde(default)]
-    pub fields: Option<serde_json::Value>,
+    pub fields: ::core::option::Option<serde_json::Value>,
     /// A string that indicates the type of segment. For example, EVN or PID.
     #[serde(default, rename = "segmentId")]
-    pub segment_id: Option<String>,
+    pub segment_id: ::core::option::Option<String>,
     /// Set ID for segments that can be in a set. This can be empty if it''s missing or isn''t applicable.
     #[serde(default, rename = "setId")]
-    pub set_id: Option<String>,
+    pub set_id: ::core::option::Option<String>,
 }
 
 /// SeriesMetrics contains metrics describing a DICOM series.
@@ -1948,16 +1978,16 @@ pub struct Segment {
 pub struct SeriesMetrics {
     /// Total blob storage bytes for all instances in the series.
     #[serde(default, rename = "blobStorageSizeBytes")]
-    pub blob_storage_size_bytes: Option<String>,
+    pub blob_storage_size_bytes: ::core::option::Option<String>,
     /// Number of instances in the series.
     #[serde(default, rename = "instanceCount")]
-    pub instance_count: Option<String>,
+    pub instance_count: ::core::option::Option<String>,
     /// The series resource path. For example, projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_store_id}/dicomWeb/studies/{study_uid}/series/{series_uid}.
     #[serde(default)]
-    pub series: Option<String>,
+    pub series: ::core::option::Option<String>,
     /// Total structured storage bytes for all instances in the series.
     #[serde(default, rename = "structuredStorageSizeBytes")]
-    pub structured_storage_size_bytes: Option<String>,
+    pub structured_storage_size_bytes: ::core::option::Option<String>,
 }
 
 /// Request message for SetBlobStorageSettings method.
@@ -1965,10 +1995,10 @@ pub struct SeriesMetrics {
 pub struct SetBlobStorageSettingsRequest {
     /// The blob storage settings to update for the specified resources. Only fields listed in update_mask are applied.
     #[serde(default, rename = "blobStorageSettings")]
-    pub blob_storage_settings: Option<BlobStorageSettings>,
+    pub blob_storage_settings: ::core::option::Option<::std::boxed::Box<BlobStorageSettings>>,
     /// Optional. A filter configuration. If filter_config is specified, set the value of resource to the resource name of a DICOM store in the format projects/{projectID}/locations/{locationID}/datasets/{datasetID}/dicomStores/{dicomStoreID}.
     #[serde(default, rename = "filterConfig")]
-    pub filter_config: Option<DicomFilterConfig>,
+    pub filter_config: ::core::option::Option<::std::boxed::Box<DicomFilterConfig>>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -1976,10 +2006,10 @@ pub struct SetBlobStorageSettingsRequest {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
     /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// User signature.
@@ -1987,16 +2017,16 @@ pub struct SetIamPolicyRequest {
 pub struct Signature {
     /// Optional. An image of the user''s signature.
     #[serde(default)]
-    pub image: Option<Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Optional. Metadata associated with the user''s signature. For example, the user''s name or the user''s title.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Optional. Timestamp of the signature.
     #[serde(default, rename = "signatureTime")]
-    pub signature_time: Option<String>,
+    pub signature_time: ::core::option::Option<String>,
     /// Required. User''s UUID provided by the client.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2004,13 +2034,13 @@ pub struct Signature {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// StorageInfo encapsulates all the storage info of a resource.
@@ -2018,13 +2048,13 @@ pub struct Status {
 pub struct StorageInfo {
     /// Info about the data stored in blob storage for the resource.
     #[serde(default, rename = "blobStorageInfo")]
-    pub blob_storage_info: Option<BlobStorageInfo>,
+    pub blob_storage_info: ::core::option::Option<::std::boxed::Box<BlobStorageInfo>>,
     /// The resource whose storage info is returned. For example: projects/{projectID}/locations/{locationID}/datasets/{datasetID}/dicomStores/{dicomStoreID}/dicomWeb/studies/{studyUID}/series/{seriesUID}/instances/{instanceUID}
     #[serde(default, rename = "referencedResource")]
-    pub referenced_resource: Option<String>,
+    pub referenced_resource: ::core::option::Option<String>,
     /// Info about the data stored in structured storage for the resource.
     #[serde(default, rename = "structuredStorageInfo")]
-    pub structured_storage_info: Option<StructuredStorageInfo>,
+    pub structured_storage_info: ::core::option::Option<::std::boxed::Box<StructuredStorageInfo>>,
 }
 
 /// Contains configuration for streaming FHIR export.
@@ -2032,13 +2062,15 @@ pub struct StorageInfo {
 pub struct StreamConfig {
     /// Optional. The destination BigQuery structure that contains both the dataset location and corresponding schema config. The output is organized in one table per resource type. The server reuses the existing tables (if any) that are named after the resource types. For example, "Patient", "Observation". When there is no existing table for a given resource type, the server attempts to create one. When a table schema doesn''t align with the schema config, either because of existing incompatible schema or out of band incompatible modification, the server does not stream in new data. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any resource mutation that generates more than 1 MB of BigQuery data is not streamed. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. Results are written to BigQuery tables according to the parameters in BigQueryDestination.WriteDisposition. Different versions of the same resource are distinguishable by the meta.versionId and meta.lastUpdated columns. The operation (CREATE/UPDATE/DELETE) that results in the new version is recorded in the meta.tag. The tables contain all historical resource versions since streaming was enabled. For query convenience, the server also creates one view per table of the same name containing only the current resource version. The streamed data in the BigQuery dataset is not guaranteed to be completely unique. The combination of the id and meta.versionId columns should ideally identify a single unique row. But in rare cases, duplicates may exist. At query time, users may use the SQL select statement to keep only one of the duplicate rows given an id and meta.versionId pair. Alternatively, the server created view mentioned above also filters out duplicates. If a resource mutation cannot be streamed to BigQuery, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).
     #[serde(default, rename = "bigqueryDestination")]
-    pub bigquery_destination: Option<GoogleCloudHealthcareV1FhirBigQueryDestination>,
+    pub bigquery_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudHealthcareV1FhirBigQueryDestination>>,
     /// The destination FHIR store for de-identified resources. After this field is added, all subsequent creates/updates/patches to the source store will be de-identified using the provided configuration and applied to the destination store. Resources deleted from the source store will be deleted from the destination store. Importing resources to the source store will not trigger the streaming. If the source store already contains resources when this option is enabled, those resources will not be copied to the destination store unless they are subsequently updated. This may result in invalid references in the destination store. Before adding this config, you must grant the healthcare.fhirResources.update permission on the destination store to your project''s **Cloud Healthcare Service Agent** [service account](https://cloud.google.com/healthcare/docs/how-tos/permissions-healthcare-api-gcp-products#the_cloud_healthcare_service_agent). The destination store must set enable_update_create to true. The destination store must have disable_referential_integrity set to true. If a resource cannot be de-identified, errors will be logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)). Not supported for R5 stores.
     #[serde(default, rename = "deidentifiedStoreDestination")]
-    pub deidentified_store_destination: Option<DeidentifiedStoreDestination>,
+    pub deidentified_store_destination:
+        ::core::option::Option<::std::boxed::Box<DeidentifiedStoreDestination>>,
     /// Optional. Supply a FHIR resource type (such as "Patient" or "Observation"). See https://www.hl7.org/fhir/valueset-resource-types.html for a list of all FHIR resource types. The server treats an empty list as an intent to stream all the supported resource types in this FHIR store.
     #[serde(default, rename = "resourceTypes")]
-    pub resource_types: Option<Vec<String>>,
+    pub resource_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// StructuredStorageInfo contains details about the data stored in Structured Storage for the referenced resource.
@@ -2046,7 +2078,7 @@ pub struct StreamConfig {
 pub struct StructuredStorageInfo {
     /// Size in bytes of data stored in structured storage.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
 }
 
 /// StudyMetrics contains metrics describing a DICOM study.
@@ -2054,19 +2086,19 @@ pub struct StructuredStorageInfo {
 pub struct StudyMetrics {
     /// Total blob storage bytes for all instances in the study.
     #[serde(default, rename = "blobStorageSizeBytes")]
-    pub blob_storage_size_bytes: Option<String>,
+    pub blob_storage_size_bytes: ::core::option::Option<String>,
     /// Number of instances in the study.
     #[serde(default, rename = "instanceCount")]
-    pub instance_count: Option<String>,
+    pub instance_count: ::core::option::Option<String>,
     /// Number of series in the study.
     #[serde(default, rename = "seriesCount")]
-    pub series_count: Option<String>,
+    pub series_count: ::core::option::Option<String>,
     /// Total structured storage bytes for all instances in the study.
     #[serde(default, rename = "structuredStorageSizeBytes")]
-    pub structured_storage_size_bytes: Option<String>,
+    pub structured_storage_size_bytes: ::core::option::Option<String>,
     /// The study resource path. For example, projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_store_id}/dicomWeb/studies/{study_uid}.
     #[serde(default)]
-    pub study: Option<String>,
+    pub study: ::core::option::Option<String>,
 }
 
 /// List of tags to be filtered.
@@ -2074,7 +2106,7 @@ pub struct StudyMetrics {
 pub struct TagFilterList {
     /// Optional. Tags to be filtered. Tags must be DICOM Data Elements, File Meta Elements, or Directory Structuring Elements, as defined at: https://dicom.nema.org/medical/dicom/current/output/html/part06.html#table_6-1,. They may be provided by "Keyword" or "Tag". For example "PatientID", "00100010".
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -2082,7 +2114,7 @@ pub struct TagFilterList {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -2090,7 +2122,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// TextConfig resource type.
@@ -2098,13 +2130,15 @@ pub struct TestIamPermissionsResponse {
 pub struct TextConfig {
     /// Optional. Transformations to apply to the detected data, overridden by exclude_info_types.
     #[serde(default, rename = "additionalTransformations")]
-    pub additional_transformations: Option<Vec<InfoTypeTransformation>>,
+    pub additional_transformations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InfoTypeTransformation>>>,
     /// Optional. InfoTypes to skip transforming, overriding additional_transformations.
     #[serde(default, rename = "excludeInfoTypes")]
-    pub exclude_info_types: Option<Vec<String>>,
+    pub exclude_info_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The transformations to apply to the detected data. Deprecated. Use additional_transformations instead.
     #[serde(default)]
-    pub transformations: Option<Vec<InfoTypeTransformation>>,
+    pub transformations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InfoTypeTransformation>>>,
 }
 
 /// A span of text in the provided document.
@@ -2112,10 +2146,10 @@ pub struct TextConfig {
 pub struct TextSpan {
     /// The unicode codepoint index of the beginning of this span.
     #[serde(default, rename = "beginOffset")]
-    pub begin_offset: Option<i32>,
+    pub begin_offset: ::core::option::Option<i32>,
     /// The original text contained in this span.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// Configuration for FHIR BigQuery time-partitioned tables.
@@ -2123,10 +2157,10 @@ pub struct TextSpan {
 pub struct TimePartitioning {
     /// Number of milliseconds for which to keep the storage for a partition.
     #[serde(default, rename = "expirationMs")]
-    pub expiration_ms: Option<String>,
+    pub expiration_ms: ::core::option::Option<String>,
     /// Type of partitioning. // TODO: enum values: ["PARTITION_TYPE_UNSPECIFIED", "HOUR", "DAY", "MONTH", "YEAR"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Apply consents given by patients whose most recent consent changes are in the time range. Note that after identifying these patients, the server applies all Consent resources given by those patients, not just the Consent resources within the timestamp in the range.
@@ -2134,10 +2168,10 @@ pub struct TimePartitioning {
 pub struct TimeRange {
     /// Optional. The latest consent change time, in format YYYY-MM-DDThh:mm:ss.sss+zz:zz If not specified, the system uses the time when ApplyConsents was called.
     #[serde(default)]
-    pub end: Option<String>,
+    pub end: ::core::option::Option<String>,
     /// Optional. The earliest consent change time, in format YYYY-MM-DDThh:mm:ss.sss+zz:zz If not specified, the system uses the FHIR store creation time.
     #[serde(default)]
-    pub start: Option<String>,
+    pub start: ::core::option::Option<String>,
 }
 
 /// A type definition for some HL7v2 type (incl. Segments and Datatypes).
@@ -2145,13 +2179,13 @@ pub struct TimeRange {
 pub struct Type {
     /// The (sub) fields this type has (if not primitive).
     #[serde(default)]
-    pub fields: Option<Vec<Field>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Field>>>,
     /// The name of this type. This would be the segment or datatype name. For example, "PID" or "XPN".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// If this is a primitive type then this field is the type of the primitive For example, STRING. Leave unspecified for composite types. // TODO: enum values: ["PRIMITIVE_UNSPECIFIED", "STRING", "VARIES", "UNESCAPED_STRING"]
     #[serde(default)]
-    pub primitive: Option<String>,
+    pub primitive: ::core::option::Option<String>,
 }
 
 /// Maps a resource to the associated user and Attributes.
@@ -2159,22 +2193,22 @@ pub struct Type {
 pub struct UserDataMapping {
     /// Output only. Indicates the time when this mapping was archived.
     #[serde(default, rename = "archiveTime")]
-    pub archive_time: Option<String>,
+    pub archive_time: ::core::option::Option<String>,
     /// Output only. Indicates whether this mapping is archived.
     #[serde(default)]
-    pub archived: Option<bool>,
+    pub archived: ::core::option::Option<bool>,
     /// Required. A unique identifier for the mapped resource.
     #[serde(default, rename = "dataId")]
-    pub data_id: Option<String>,
+    pub data_id: ::core::option::Option<String>,
     /// Resource name of the User data mapping, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/userDataMappings/{user_data_mapping_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Attributes of the resource. Only explicitly set attributes are displayed here. Attribute definitions with defaults set implicitly apply to these User data mappings. Attributes listed here must be single valued, that is, exactly one value is specified for the field "values" in each Attribute.
     #[serde(default, rename = "resourceAttributes")]
-    pub resource_attributes: Option<Vec<Attribute>>,
+    pub resource_attributes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Attribute>>>,
     /// Required. User''s UUID provided by the client.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Contains the configuration for FHIR profiles and validation.
@@ -2182,22 +2216,22 @@ pub struct UserDataMapping {
 pub struct ValidationConfig {
     /// Optional. Whether to disable FHIRPath validation for incoming resources. The default value is false. Set this to true to disable checking incoming resources for conformance against FHIRPath requirement defined in the FHIR specification. This property only affects resource types that do not have profiles configured for them, any rules in enabled implementation guides will still be enforced.
     #[serde(default, rename = "disableFhirpathValidation")]
-    pub disable_fhirpath_validation: Option<bool>,
+    pub disable_fhirpath_validation: ::core::option::Option<bool>,
     /// Optional. Whether to disable profile validation for this FHIR store. The default value is false. Set this to true to disable checking incoming resources for conformance against structure definitions in this FHIR store.
     #[serde(default, rename = "disableProfileValidation")]
-    pub disable_profile_validation: Option<bool>,
+    pub disable_profile_validation: ::core::option::Option<bool>,
     /// Optional. Whether to disable reference type validation for incoming resources. The default value is false. Set this to true to disable checking incoming resources for conformance against reference type requirement defined in the FHIR specification. This property only affects resource types that do not have profiles configured for them, any rules in enabled implementation guides will still be enforced.
     #[serde(default, rename = "disableReferenceTypeValidation")]
-    pub disable_reference_type_validation: Option<bool>,
+    pub disable_reference_type_validation: ::core::option::Option<bool>,
     /// Optional. Whether to disable required fields validation for incoming resources. The default value is false. Set this to true to disable checking incoming resources for conformance against required fields requirement defined in the FHIR specification. This property only affects resource types that do not have profiles configured for them, any rules in enabled implementation guides will still be enforced.
     #[serde(default, rename = "disableRequiredFieldValidation")]
-    pub disable_required_field_validation: Option<bool>,
+    pub disable_required_field_validation: ::core::option::Option<bool>,
     /// Optional. Whether to enable FHIRPath validation for incoming resource types that have profiles configured for them in the enabled_implementation_guides list. Set this to true to enable checking incoming resources for conformance against FHIRPath requirements defined in the configured profiles.
     #[serde(default, rename = "enableFhirpathProfileValidation")]
-    pub enable_fhirpath_profile_validation: Option<bool>,
+    pub enable_fhirpath_profile_validation: ::core::option::Option<bool>,
     /// Optional. A list of implementation guide URLs in this FHIR store that are used to configure the profiles to use for validation. For example, to use the US Core profiles for validation, set enabled_implementation_guides to ["http://hl7.org/fhir/us/core/ImplementationGuide/ig"]. If enabled_implementation_guides is empty or omitted, then incoming resources are only required to conform to the base FHIR profiles. Otherwise, a resource must conform to at least one profile listed in the global property of one of the enabled ImplementationGuides. The Cloud Healthcare API does not currently enforce all of the rules in a StructureDefinition. The following rules are supported: - min/max - minValue/maxValue - maxLength - type - fixed[x] - pattern[x] on simple types - slicing, when using "value" as the discriminator type - FHIRPath constraints (only when enable_fhirpath_profile_validation is true) When a URL cannot be resolved (for example, in a type assertion), the server does not return an error.
     #[serde(default, rename = "enabledImplementationGuides")]
-    pub enabled_implementation_guides: Option<Vec<String>>,
+    pub enabled_implementation_guides: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Describes a selector for extracting and matching an MSH field to a value.
@@ -2205,8 +2239,8 @@ pub struct ValidationConfig {
 pub struct VersionSource {
     /// The field to extract from the MSH segment. For example, "3.1" or "18[1].1".
     #[serde(default, rename = "mshField")]
-    pub msh_field: Option<String>,
+    pub msh_field: ::core::option::Option<String>,
     /// The value to match with the field. For example, "My Application Name" or "2.3".
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }

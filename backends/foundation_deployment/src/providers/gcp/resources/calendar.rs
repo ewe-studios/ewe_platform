@@ -10,27 +10,27 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Acl resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Acl {
     /// ETag of the collection.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// List of rules on the access control list.
     #[serde(default)]
-    pub items: Option<Vec<AclRule>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AclRule>>>,
     /// Type of the collection ("calendar#acl").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token used to access the next page of this result. Omitted if no further results are available, in which case nextSyncToken is provided.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Token used at a later point in time to retrieve only the entries that have changed since this result was returned. Omitted if further results are available, in which case nextPageToken is provided.
     #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: Option<String>,
+    pub next_sync_token: ::core::option::Option<String>,
 }
 
 /// AclRule resource type.
@@ -38,19 +38,19 @@ pub struct Acl {
 pub struct AclRule {
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier of the Access Control List (ACL) rule. See Sharing calendars.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Type of the resource ("calendar#aclRule").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The role assigned to the scope. Possible values are:  
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// The extent to which calendar access is granted by this ACL rule.
     #[serde(default)]
-    pub scope: Option<serde_json::Value>,
+    pub scope: ::core::option::Option<serde_json::Value>,
 }
 
 /// Calendar resource type.
@@ -58,34 +58,34 @@ pub struct AclRule {
 pub struct Calendar {
     /// Whether this calendar automatically accepts invitations. Only valid for resource calendars.
     #[serde(default, rename = "autoAcceptInvitations")]
-    pub auto_accept_invitations: Option<bool>,
+    pub auto_accept_invitations: ::core::option::Option<bool>,
     /// Conferencing properties for this calendar, for example what types of conferences are allowed.
     #[serde(default, rename = "conferenceProperties")]
-    pub conference_properties: Option<ConferenceProperties>,
+    pub conference_properties: ::core::option::Option<::std::boxed::Box<ConferenceProperties>>,
     /// The email of the owner of the calendar. Set only for secondary calendars. Read-only.
     #[serde(default, rename = "dataOwner")]
-    pub data_owner: Option<String>,
+    pub data_owner: ::core::option::Option<String>,
     /// Description of the calendar. Optional.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier of the calendar. To retrieve IDs call the calendarList.list() method.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Type of the resource ("calendar#calendar").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Geographic location of the calendar as free-form text. Optional.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Title of the calendar.
     #[serde(default)]
-    pub summary: Option<String>,
+    pub summary: ::core::option::Option<String>,
     /// The time zone of the calendar. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) Optional.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// CalendarList resource type.
@@ -93,19 +93,19 @@ pub struct Calendar {
 pub struct CalendarList {
     /// ETag of the collection.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Calendars that are present on the user''s calendar list.
     #[serde(default)]
-    pub items: Option<Vec<CalendarListEntry>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CalendarListEntry>>>,
     /// Type of the collection ("calendar#calendarList").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token used to access the next page of this result. Omitted if no further results are available, in which case nextSyncToken is provided.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Token used at a later point in time to retrieve only the entries that have changed since this result was returned. Omitted if further results are available, in which case nextPageToken is provided.
     #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: Option<String>,
+    pub next_sync_token: ::core::option::Option<String>,
 }
 
 /// CalendarListEntry resource type.
@@ -113,67 +113,68 @@ pub struct CalendarList {
 pub struct CalendarListEntry {
     /// The effective access role that the authenticated user has on the calendar. Read-only. Possible values are:  
     #[serde(default, rename = "accessRole")]
-    pub access_role: Option<String>,
+    pub access_role: ::core::option::Option<String>,
     /// Whether this calendar automatically accepts invitations. Only valid for resource calendars. Read-only.
     #[serde(default, rename = "autoAcceptInvitations")]
-    pub auto_accept_invitations: Option<bool>,
+    pub auto_accept_invitations: ::core::option::Option<bool>,
     /// The main color of the calendar in the hexadecimal format "#0088aa". This property supersedes the index-based colorId property. To set or change this property, you need to specify colorRgbFormat=true in the parameters of the insert, update and patch methods. Optional.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: Option<String>,
+    pub background_color: ::core::option::Option<String>,
     /// The color of the calendar. This is an ID referring to an entry in the calendar section of the colors definition (see the colors endpoint). This property is superseded by the backgroundColor and foregroundColor properties and can be ignored when using these properties. Optional.
     #[serde(default, rename = "colorId")]
-    pub color_id: Option<String>,
+    pub color_id: ::core::option::Option<String>,
     /// Conferencing properties for this calendar, for example what types of conferences are allowed.
     #[serde(default, rename = "conferenceProperties")]
-    pub conference_properties: Option<ConferenceProperties>,
+    pub conference_properties: ::core::option::Option<::std::boxed::Box<ConferenceProperties>>,
     /// The email of the owner of the calendar. Set only for secondary calendars. Read-only.
     #[serde(default, rename = "dataOwner")]
-    pub data_owner: Option<String>,
+    pub data_owner: ::core::option::Option<String>,
     /// The default reminders that the authenticated user has for this calendar.
     #[serde(default, rename = "defaultReminders")]
-    pub default_reminders: Option<Vec<EventReminder>>,
+    pub default_reminders:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventReminder>>>,
     /// Whether this calendar list entry has been deleted from the calendar list. Read-only. Optional. The default is False.
     #[serde(default)]
-    pub deleted: Option<bool>,
+    pub deleted: ::core::option::Option<bool>,
     /// Description of the calendar. Optional. Read-only.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The foreground color of the calendar in the hexadecimal format "#ffffff". This property supersedes the index-based colorId property. To set or change this property, you need to specify colorRgbFormat=true in the parameters of the insert, update and patch methods. Optional.
     #[serde(default, rename = "foregroundColor")]
-    pub foreground_color: Option<String>,
+    pub foreground_color: ::core::option::Option<String>,
     /// Whether the calendar has been hidden from the list. Optional. The attribute is only returned when the calendar is hidden, in which case the value is true.
     #[serde(default)]
-    pub hidden: Option<bool>,
+    pub hidden: ::core::option::Option<bool>,
     /// Identifier of the calendar.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Type of the resource ("calendar#calendarListEntry").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Geographic location of the calendar as free-form text. Optional. Read-only.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The notifications that the authenticated user is receiving for this calendar.
     #[serde(default, rename = "notificationSettings")]
-    pub notification_settings: Option<serde_json::Value>,
+    pub notification_settings: ::core::option::Option<serde_json::Value>,
     /// Whether the calendar is the primary calendar of the authenticated user. Read-only. Optional. The default is False.
     #[serde(default)]
-    pub primary: Option<bool>,
+    pub primary: ::core::option::Option<bool>,
     /// Whether the calendar content shows up in the calendar UI. Optional. The default is False.
     #[serde(default)]
-    pub selected: Option<bool>,
+    pub selected: ::core::option::Option<bool>,
     /// Title of the calendar. Read-only.
     #[serde(default)]
-    pub summary: Option<String>,
+    pub summary: ::core::option::Option<String>,
     /// The summary that the authenticated user has set for this calendar. Optional.
     #[serde(default, rename = "summaryOverride")]
-    pub summary_override: Option<String>,
+    pub summary_override: ::core::option::Option<String>,
     /// The time zone of the calendar. Optional. Read-only.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// CalendarNotification resource type.
@@ -181,10 +182,10 @@ pub struct CalendarListEntry {
 pub struct CalendarNotification {
     /// The method used to deliver the notification. The possible value is:  
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// The type of notification. Possible values are:  
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Channel resource type.
@@ -192,34 +193,34 @@ pub struct CalendarNotification {
 pub struct Channel {
     /// The address where notifications are delivered for this channel.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Date and time of notification channel expiration, expressed as a Unix timestamp, in milliseconds. Optional.
     #[serde(default)]
-    pub expiration: Option<String>,
+    pub expiration: ::core::option::Option<String>,
     /// A UUID or similar unique string that identifies this channel.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies this as a notification channel used to watch for changes to a resource, which is "api#channel".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Additional parameters controlling delivery channel behavior. Optional.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// A Boolean value to indicate whether payload is wanted. Optional.
     #[serde(default)]
-    pub payload: Option<bool>,
+    pub payload: ::core::option::Option<bool>,
     /// An opaque ID that identifies the resource being watched on this channel. Stable across different API versions.
     #[serde(default, rename = "resourceId")]
-    pub resource_id: Option<String>,
+    pub resource_id: ::core::option::Option<String>,
     /// A version-specific identifier for the watched resource.
     #[serde(default, rename = "resourceUri")]
-    pub resource_uri: Option<String>,
+    pub resource_uri: ::core::option::Option<String>,
     /// An arbitrary string delivered to the target address with each notification delivered over this channel. Optional.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// The type of delivery mechanism used for this channel. Valid values are "web_hook" (or "webhook"). Both values refer to a channel where Http requests are used to deliver messages.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// ColorDefinition resource type.
@@ -227,10 +228,10 @@ pub struct Channel {
 pub struct ColorDefinition {
     /// The background color associated with this color definition.
     #[serde(default)]
-    pub background: Option<String>,
+    pub background: ::core::option::Option<String>,
     /// The foreground color that can be used to write on top of a background with ''background'' color.
     #[serde(default)]
-    pub foreground: Option<String>,
+    pub foreground: ::core::option::Option<String>,
 }
 
 /// Colors resource type.
@@ -238,16 +239,16 @@ pub struct ColorDefinition {
 pub struct Colors {
     /// A global palette of calendar colors, mapping from the color ID to its definition. A calendarListEntry resource refers to one of these color IDs in its colorId field. Read-only.
     #[serde(default)]
-    pub calendar: Option<serde_json::Value>,
+    pub calendar: ::core::option::Option<serde_json::Value>,
     /// A global palette of event colors, mapping from the color ID to its definition. An event resource may refer to one of these color IDs in its colorId field. Read-only.
     #[serde(default)]
-    pub event: Option<serde_json::Value>,
+    pub event: ::core::option::Option<serde_json::Value>,
     /// Type of the resource ("calendar#colors").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Last modification time of the color palette (as a RFC3339 timestamp). Read-only.
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
 }
 
 /// ConferenceData resource type.
@@ -255,25 +256,25 @@ pub struct Colors {
 pub struct ConferenceData {
     /// The ID of the conference.
     #[serde(default, rename = "conferenceId")]
-    pub conference_id: Option<String>,
+    pub conference_id: ::core::option::Option<String>,
     /// The conference solution, such as Google Meet.
     #[serde(default, rename = "conferenceSolution")]
-    pub conference_solution: Option<ConferenceSolution>,
+    pub conference_solution: ::core::option::Option<::std::boxed::Box<ConferenceSolution>>,
     /// A request to generate a new conference and attach it to the event. The data is generated asynchronously. To see whether the data is present check the status field.
     #[serde(default, rename = "createRequest")]
-    pub create_request: Option<CreateConferenceRequest>,
+    pub create_request: ::core::option::Option<::std::boxed::Box<CreateConferenceRequest>>,
     /// Information about individual conference entry points, such as URLs or phone numbers.
     #[serde(default, rename = "entryPoints")]
-    pub entry_points: Option<Vec<EntryPoint>>,
+    pub entry_points: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntryPoint>>>,
     /// Additional notes (such as instructions from the domain administrator, legal notices) to display to the user. Can contain HTML. The maximum length is 2048 characters. Optional.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// Additional properties related to a conference. An example would be a solution-specific setting for enabling video streaming.
     #[serde(default)]
-    pub parameters: Option<ConferenceParameters>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<ConferenceParameters>>,
     /// The signature of the conference data.
     #[serde(default)]
-    pub signature: Option<String>,
+    pub signature: ::core::option::Option<String>,
 }
 
 /// ConferenceParameters resource type.
@@ -281,7 +282,8 @@ pub struct ConferenceData {
 pub struct ConferenceParameters {
     /// Additional add-on specific data.
     #[serde(default, rename = "addOnParameters")]
-    pub add_on_parameters: Option<ConferenceParametersAddOnParameters>,
+    pub add_on_parameters:
+        ::core::option::Option<::std::boxed::Box<ConferenceParametersAddOnParameters>>,
 }
 
 /// ConferenceProperties resource type.
@@ -289,7 +291,7 @@ pub struct ConferenceParameters {
 pub struct ConferenceProperties {
     /// The types of conference solutions that are supported for this calendar.
     #[serde(default, rename = "allowedConferenceSolutionTypes")]
-    pub allowed_conference_solution_types: Option<Vec<String>>,
+    pub allowed_conference_solution_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ConferenceRequestStatus resource type.
@@ -297,7 +299,7 @@ pub struct ConferenceProperties {
 pub struct ConferenceRequestStatus {
     /// The current status of the conference create request. Read-only.
     #[serde(default, rename = "statusCode")]
-    pub status_code: Option<String>,
+    pub status_code: ::core::option::Option<String>,
 }
 
 /// ConferenceSolution resource type.
@@ -305,13 +307,13 @@ pub struct ConferenceRequestStatus {
 pub struct ConferenceSolution {
     /// The user-visible icon for this solution.
     #[serde(default, rename = "iconUri")]
-    pub icon_uri: Option<String>,
+    pub icon_uri: ::core::option::Option<String>,
     /// The key which can uniquely identify the conference solution for this event.
     #[serde(default)]
-    pub key: Option<ConferenceSolutionKey>,
+    pub key: ::core::option::Option<::std::boxed::Box<ConferenceSolutionKey>>,
     /// The user-visible name of this solution. Not localized.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// ConferenceSolutionKey resource type.
@@ -319,7 +321,7 @@ pub struct ConferenceSolution {
 pub struct ConferenceSolutionKey {
     /// The conference solution type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// CreateConferenceRequest resource type.
@@ -327,13 +329,13 @@ pub struct ConferenceSolutionKey {
 pub struct CreateConferenceRequest {
     /// The conference solution, such as Hangouts or Google Meet.
     #[serde(default, rename = "conferenceSolutionKey")]
-    pub conference_solution_key: Option<ConferenceSolutionKey>,
+    pub conference_solution_key: ::core::option::Option<::std::boxed::Box<ConferenceSolutionKey>>,
     /// The client-generated unique ID for this request.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// The status of the conference create request.
     #[serde(default)]
-    pub status: Option<ConferenceRequestStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ConferenceRequestStatus>>,
 }
 
 /// EntryPoint resource type.
@@ -341,34 +343,34 @@ pub struct CreateConferenceRequest {
 pub struct EntryPoint {
     /// The access code to access the conference. The maximum length is 128 characters.
     #[serde(default, rename = "accessCode")]
-    pub access_code: Option<String>,
+    pub access_code: ::core::option::Option<String>,
     /// Features of the entry point, such as being toll or toll-free. One entry point can have multiple features. However, toll and toll-free cannot be both set on the same entry point.
     #[serde(default, rename = "entryPointFeatures")]
-    pub entry_point_features: Option<Vec<String>>,
+    pub entry_point_features: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of the conference entry point.
     #[serde(default, rename = "entryPointType")]
-    pub entry_point_type: Option<String>,
+    pub entry_point_type: ::core::option::Option<String>,
     /// The label for the URI. Visible to end users. Not localized. The maximum length is 512 characters.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The meeting code to access the conference. The maximum length is 128 characters.
     #[serde(default, rename = "meetingCode")]
-    pub meeting_code: Option<String>,
+    pub meeting_code: ::core::option::Option<String>,
     /// The passcode to access the conference. The maximum length is 128 characters.
     #[serde(default)]
-    pub passcode: Option<String>,
+    pub passcode: ::core::option::Option<String>,
     /// The password to access the conference. The maximum length is 128 characters.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// The PIN to access the conference. The maximum length is 128 characters.
     #[serde(default)]
-    pub pin: Option<String>,
+    pub pin: ::core::option::Option<String>,
     /// The CLDR/ISO 3166 region code for the country associated with this phone access. Example: "SE" for Sweden.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
     /// The URI of the entry point. The maximum length is 1300 characters.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Error resource type.
@@ -376,10 +378,10 @@ pub struct EntryPoint {
 pub struct Error {
     /// Domain, or broad category, of the error.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Specific reason for the error. Some of the possible values are:  
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Event resource type.
@@ -387,133 +389,135 @@ pub struct Error {
 pub struct Event {
     /// Whether anyone can invite themselves to the event (deprecated). Optional. The default is False.
     #[serde(default, rename = "anyoneCanAddSelf")]
-    pub anyone_can_add_self: Option<bool>,
+    pub anyone_can_add_self: ::core::option::Option<bool>,
     /// File attachments for the event.
     #[serde(default)]
-    pub attachments: Option<Vec<EventAttachment>>,
+    pub attachments: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventAttachment>>>,
     /// The attendees of the event. See the Events with attendees guide for more information on scheduling events with other calendar users. Service accounts need to use domain-wide delegation of authority to populate the attendee list.
     #[serde(default)]
-    pub attendees: Option<Vec<EventAttendee>>,
+    pub attendees: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventAttendee>>>,
     /// Whether attendees may have been omitted from the event''s representation. When retrieving an event, this may be due to a restriction specified by the maxAttendee query parameter. When updating an event, this can be used to only update the participant''s response. Optional. The default is False.
     #[serde(default, rename = "attendeesOmitted")]
-    pub attendees_omitted: Option<bool>,
+    pub attendees_omitted: ::core::option::Option<bool>,
     /// Birthday or special event data. Used if eventType is "birthday". Immutable.
     #[serde(default, rename = "birthdayProperties")]
-    pub birthday_properties: Option<EventBirthdayProperties>,
+    pub birthday_properties: ::core::option::Option<::std::boxed::Box<EventBirthdayProperties>>,
     /// The color of the event. This is an ID referring to an entry in the event section of the colors definition (see the  colors endpoint). Optional.
     #[serde(default, rename = "colorId")]
-    pub color_id: Option<String>,
+    pub color_id: ::core::option::Option<String>,
     /// The conference-related information, such as details of a Google Meet conference. To create new conference details use the createRequest field. To persist your changes, remember to set the conferenceDataVersion request parameter to 1 for all event modification requests. Warning: Reusing Google Meet conference data across different events can cause access issues and expose meeting details to unintended users. To help ensure meeting privacy, always generate a unique conference for each event by using the createRequest field.
     #[serde(default, rename = "conferenceData")]
-    pub conference_data: Option<ConferenceData>,
+    pub conference_data: ::core::option::Option<::std::boxed::Box<ConferenceData>>,
     /// Creation time of the event (as a RFC3339 timestamp). Read-only.
     #[serde(default)]
-    pub created: Option<String>,
+    pub created: ::core::option::Option<String>,
     /// The creator of the event. Read-only.
     #[serde(default)]
-    pub creator: Option<serde_json::Value>,
+    pub creator: ::core::option::Option<serde_json::Value>,
     /// Description of the event. Can contain HTML. Optional.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The (exclusive) end time of the event. For a recurring event, this is the end time of the first instance.
     #[serde(default)]
-    pub end: Option<EventDateTime>,
+    pub end: ::core::option::Option<::std::boxed::Box<EventDateTime>>,
     /// Whether the end time is actually unspecified. An end time is still provided for compatibility reasons, even if this attribute is set to True. The default is False.
     #[serde(default, rename = "endTimeUnspecified")]
-    pub end_time_unspecified: Option<bool>,
+    pub end_time_unspecified: ::core::option::Option<bool>,
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specific type of the event. This cannot be modified after the event is created. Possible values are:  
     #[serde(default, rename = "eventType")]
-    pub event_type: Option<String>,
+    pub event_type: ::core::option::Option<String>,
     /// Extended properties of the event.
     #[serde(default, rename = "extendedProperties")]
-    pub extended_properties: Option<serde_json::Value>,
+    pub extended_properties: ::core::option::Option<serde_json::Value>,
     /// Focus Time event data. Used if eventType is focusTime.
     #[serde(default, rename = "focusTimeProperties")]
-    pub focus_time_properties: Option<EventFocusTimeProperties>,
+    pub focus_time_properties: ::core::option::Option<::std::boxed::Box<EventFocusTimeProperties>>,
     /// A gadget that extends this event. Gadgets are deprecated; this structure is instead only used for returning birthday calendar metadata.
     #[serde(default)]
-    pub gadget: Option<serde_json::Value>,
+    pub gadget: ::core::option::Option<serde_json::Value>,
     /// Whether attendees other than the organizer can invite others to the event. Optional. The default is True.
     #[serde(default, rename = "guestsCanInviteOthers")]
-    pub guests_can_invite_others: Option<bool>,
+    pub guests_can_invite_others: ::core::option::Option<bool>,
     /// Whether attendees other than the organizer can modify the event. Optional. The default is False.
     #[serde(default, rename = "guestsCanModify")]
-    pub guests_can_modify: Option<bool>,
+    pub guests_can_modify: ::core::option::Option<bool>,
     /// Whether attendees other than the organizer can see who the event''s attendees are. Optional. The default is True.
     #[serde(default, rename = "guestsCanSeeOtherGuests")]
-    pub guests_can_see_other_guests: Option<bool>,
+    pub guests_can_see_other_guests: ::core::option::Option<bool>,
     /// An absolute link to the Google Hangout associated with this event. Read-only.
     #[serde(default, rename = "hangoutLink")]
-    pub hangout_link: Option<String>,
+    pub hangout_link: ::core::option::Option<String>,
     /// An absolute link to this event in the Google Calendar Web UI. Read-only.
     #[serde(default, rename = "htmlLink")]
-    pub html_link: Option<String>,
+    pub html_link: ::core::option::Option<String>,
     /// Event unique identifier as defined in RFC5545. It is used to uniquely identify events accross calendaring systems and must be supplied when importing events via the import method.
     #[serde(default, rename = "iCalUID")]
-    pub i_cal_u_i_d: Option<String>,
+    pub i_cal_u_i_d: ::core::option::Option<String>,
     /// Opaque identifier of the event. When creating new single or recurring events, you can specify their IDs. Provided IDs must follow these rules:  
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Type of the resource ("calendar#event").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Geographic location of the event as free-form text. Optional.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Whether this is a locked event copy where no changes can be made to the main event fields "summary", "description", "location", "start", "end" or "recurrence". The default is False. Read-Only.
     #[serde(default)]
-    pub locked: Option<bool>,
+    pub locked: ::core::option::Option<bool>,
     /// The organizer of the event. If the organizer is also an attendee, this is indicated with a separate entry in attendees with the organizer field set to True. To change the organizer, use the move operation. Read-only, except when importing an event.
     #[serde(default)]
-    pub organizer: Option<serde_json::Value>,
+    pub organizer: ::core::option::Option<serde_json::Value>,
     /// For an instance of a recurring event, this is the time at which this event would start according to the recurrence data in the recurring event identified by recurringEventId. It uniquely identifies the instance within the recurring event series even if the instance was moved to a different time. Immutable.
     #[serde(default, rename = "originalStartTime")]
-    pub original_start_time: Option<EventDateTime>,
+    pub original_start_time: ::core::option::Option<::std::boxed::Box<EventDateTime>>,
     /// Out of office event data. Used if eventType is outOfOffice.
     #[serde(default, rename = "outOfOfficeProperties")]
-    pub out_of_office_properties: Option<EventOutOfOfficeProperties>,
+    pub out_of_office_properties:
+        ::core::option::Option<::std::boxed::Box<EventOutOfOfficeProperties>>,
     /// If set to True, Event propagation is disabled. Note that it is not the same thing as Private event properties. Optional. Immutable. The default is False.
     #[serde(default, rename = "privateCopy")]
-    pub private_copy: Option<bool>,
+    pub private_copy: ::core::option::Option<bool>,
     /// List of RRULE, EXRULE, RDATE and EXDATE lines for a recurring event, as specified in RFC5545. Note that DTSTART and DTEND lines are not allowed in this field; event start and end times are specified in the start and end fields. This field is omitted for single events or instances of recurring events.
     #[serde(default)]
-    pub recurrence: Option<Vec<String>>,
+    pub recurrence: ::core::option::Option<::std::vec::Vec<String>>,
     /// For an instance of a recurring event, this is the id of the recurring event to which this instance belongs. Immutable.
     #[serde(default, rename = "recurringEventId")]
-    pub recurring_event_id: Option<String>,
+    pub recurring_event_id: ::core::option::Option<String>,
     /// Information about the event''s reminders for the authenticated user. Note that changing reminders does not also change the updated property of the enclosing event.
     #[serde(default)]
-    pub reminders: Option<serde_json::Value>,
+    pub reminders: ::core::option::Option<serde_json::Value>,
     /// Sequence number as per iCalendar.
     #[serde(default)]
-    pub sequence: Option<i32>,
+    pub sequence: ::core::option::Option<i32>,
     /// Source from which the event was created. For example, a web page, an email message or any document identifiable by an URL with HTTP or HTTPS scheme. Can only be seen or modified by the creator of the event.
     #[serde(default)]
-    pub source: Option<serde_json::Value>,
+    pub source: ::core::option::Option<serde_json::Value>,
     /// The (inclusive) start time of the event. For a recurring event, this is the start time of the first instance.
     #[serde(default)]
-    pub start: Option<EventDateTime>,
+    pub start: ::core::option::Option<::std::boxed::Box<EventDateTime>>,
     /// Status of the event. Optional. Possible values are:  
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Title of the event.
     #[serde(default)]
-    pub summary: Option<String>,
+    pub summary: ::core::option::Option<String>,
     /// Whether the event blocks time on the calendar. Optional. Possible values are:  
     #[serde(default)]
-    pub transparency: Option<String>,
+    pub transparency: ::core::option::Option<String>,
     /// Last modification time of the main event data (as a RFC3339 timestamp). Updating event reminders will not cause this to change. Read-only.
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
     /// Visibility of the event. Optional. Possible values are:  
     #[serde(default)]
-    pub visibility: Option<String>,
+    pub visibility: ::core::option::Option<String>,
     /// Working location event data.
     #[serde(default, rename = "workingLocationProperties")]
-    pub working_location_properties: Option<EventWorkingLocationProperties>,
+    pub working_location_properties:
+        ::core::option::Option<::std::boxed::Box<EventWorkingLocationProperties>>,
 }
 
 /// EventAttachment resource type.
@@ -521,19 +525,19 @@ pub struct Event {
 pub struct EventAttachment {
     /// ID of the attached file. Read-only.
     #[serde(default, rename = "fileId")]
-    pub file_id: Option<String>,
+    pub file_id: ::core::option::Option<String>,
     /// URL link to the attachment.
     #[serde(default, rename = "fileUrl")]
-    pub file_url: Option<String>,
+    pub file_url: ::core::option::Option<String>,
     /// URL link to the attachment''s icon. This field can only be modified for custom third-party attachments.
     #[serde(default, rename = "iconLink")]
-    pub icon_link: Option<String>,
+    pub icon_link: ::core::option::Option<String>,
     /// Internet media type (MIME type) of the attachment.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Attachment title.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// EventAttendee resource type.
@@ -541,34 +545,34 @@ pub struct EventAttachment {
 pub struct EventAttendee {
     /// Number of additional guests. Optional. The default is 0.
     #[serde(default, rename = "additionalGuests")]
-    pub additional_guests: Option<i32>,
+    pub additional_guests: ::core::option::Option<i32>,
     /// The attendee''s response comment. Optional.
     #[serde(default)]
-    pub comment: Option<String>,
+    pub comment: ::core::option::Option<String>,
     /// The attendee''s name, if available. Optional.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The attendee''s email address, if available. This field must be present when adding an attendee. It must be a valid email address as per RFC5322.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The attendee''s Profile ID, if available.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Whether this is an optional attendee. Optional. The default is False.
     #[serde(default)]
-    pub optional: Option<bool>,
+    pub optional: ::core::option::Option<bool>,
     /// Whether the attendee is the organizer of the event. Read-only. The default is False.
     #[serde(default)]
-    pub organizer: Option<bool>,
+    pub organizer: ::core::option::Option<bool>,
     /// Whether the attendee is a resource. Can only be set when the attendee is added to the event for the first time. Subsequent modifications are ignored. Optional. The default is False.
     #[serde(default)]
-    pub resource: Option<bool>,
+    pub resource: ::core::option::Option<bool>,
     /// The attendee''s response status. Possible values are:  
     #[serde(default, rename = "responseStatus")]
-    pub response_status: Option<String>,
+    pub response_status: ::core::option::Option<String>,
     /// Whether this entry represents the calendar on which this copy of the event appears. Read-only. The default is False.
     #[serde(default, rename = "self")]
-    pub self_: Option<bool>,
+    pub self_: ::core::option::Option<bool>,
 }
 
 /// EventBirthdayProperties resource type.
@@ -576,13 +580,13 @@ pub struct EventAttendee {
 pub struct EventBirthdayProperties {
     /// Resource name of the contact this birthday event is linked to. This can be used to fetch contact details from People API. Format: "people/c12345". Read-only.
     #[serde(default)]
-    pub contact: Option<String>,
+    pub contact: ::core::option::Option<String>,
     /// Custom type label specified for this event. This is populated if birthdayProperties.type is set to "custom". Read-only.
     #[serde(default, rename = "customTypeName")]
-    pub custom_type_name: Option<String>,
+    pub custom_type_name: ::core::option::Option<String>,
     /// Type of birthday or special event. Possible values are:  
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// EventDateTime resource type.
@@ -590,13 +594,13 @@ pub struct EventBirthdayProperties {
 pub struct EventDateTime {
     /// The date, in the format "yyyy-mm-dd", if this is an all-day event.
     #[serde(default)]
-    pub date: Option<String>,
+    pub date: ::core::option::Option<String>,
     /// The time, as a combined date-time value (formatted according to RFC3339). A time zone offset is required unless a time zone is explicitly specified in timeZone.
     #[serde(default, rename = "dateTime")]
-    pub date_time: Option<String>,
+    pub date_time: ::core::option::Option<String>,
     /// The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// EventFocusTimeProperties resource type.
@@ -604,13 +608,13 @@ pub struct EventDateTime {
 pub struct EventFocusTimeProperties {
     /// Whether to decline meeting invitations which overlap Focus Time events. Valid values are declineNone, meaning that no meeting invitations are declined; declineAllConflictingInvitations, meaning that all conflicting meeting invitations that conflict with the event are declined; and declineOnlyNewConflictingInvitations, meaning that only new conflicting meeting invitations which arrive while the Focus Time event is present are to be declined.
     #[serde(default, rename = "autoDeclineMode")]
-    pub auto_decline_mode: Option<String>,
+    pub auto_decline_mode: ::core::option::Option<String>,
     /// The status to mark the user in Chat and related products. This can be available or doNotDisturb.
     #[serde(default, rename = "chatStatus")]
-    pub chat_status: Option<String>,
+    pub chat_status: ::core::option::Option<String>,
     /// Response message to set if an existing event or new invitation is automatically declined by Calendar.
     #[serde(default, rename = "declineMessage")]
-    pub decline_message: Option<String>,
+    pub decline_message: ::core::option::Option<String>,
 }
 
 /// EventOutOfOfficeProperties resource type.
@@ -618,10 +622,10 @@ pub struct EventFocusTimeProperties {
 pub struct EventOutOfOfficeProperties {
     /// Whether to decline meeting invitations which overlap Out of office events. Valid values are declineNone, meaning that no meeting invitations are declined; declineAllConflictingInvitations, meaning that all conflicting meeting invitations that conflict with the event are declined; and declineOnlyNewConflictingInvitations, meaning that only new conflicting meeting invitations which arrive while the Out of office event is present are to be declined.
     #[serde(default, rename = "autoDeclineMode")]
-    pub auto_decline_mode: Option<String>,
+    pub auto_decline_mode: ::core::option::Option<String>,
     /// Response message to set if an existing event or new invitation is automatically declined by Calendar.
     #[serde(default, rename = "declineMessage")]
-    pub decline_message: Option<String>,
+    pub decline_message: ::core::option::Option<String>,
 }
 
 /// EventReminder resource type.
@@ -629,10 +633,10 @@ pub struct EventOutOfOfficeProperties {
 pub struct EventReminder {
     /// The method used by this reminder. Possible values are:  
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Number of minutes before the start of the event when the reminder should trigger. Valid values are between 0 and 40320 (4 weeks in minutes).
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
 }
 
 /// EventWorkingLocationProperties resource type.
@@ -640,16 +644,16 @@ pub struct EventReminder {
 pub struct EventWorkingLocationProperties {
     /// If present, specifies that the user is working from a custom location.
     #[serde(default, rename = "customLocation")]
-    pub custom_location: Option<serde_json::Value>,
+    pub custom_location: ::core::option::Option<serde_json::Value>,
     /// If present, specifies that the user is working at home.
     #[serde(default, rename = "homeOffice")]
-    pub home_office: Option<serde_json::Value>,
+    pub home_office: ::core::option::Option<serde_json::Value>,
     /// If present, specifies that the user is working from an office.
     #[serde(default, rename = "officeLocation")]
-    pub office_location: Option<serde_json::Value>,
+    pub office_location: ::core::option::Option<serde_json::Value>,
     /// Type of the working location. Possible values are:  
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Events resource type.
@@ -657,37 +661,38 @@ pub struct EventWorkingLocationProperties {
 pub struct Events {
     /// The user''s access role for this calendar. Read-only. Possible values are:  
     #[serde(default, rename = "accessRole")]
-    pub access_role: Option<String>,
+    pub access_role: ::core::option::Option<String>,
     /// The default reminders on the calendar for the authenticated user. These reminders apply to all events on this calendar that do not explicitly override them (i.e. do not have reminders.useDefault set to True).
     #[serde(default, rename = "defaultReminders")]
-    pub default_reminders: Option<Vec<EventReminder>>,
+    pub default_reminders:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventReminder>>>,
     /// Description of the calendar. Read-only.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// ETag of the collection.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// List of events on the calendar.
     #[serde(default)]
-    pub items: Option<Vec<Event>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Event>>>,
     /// Type of the collection ("calendar#events").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token used to access the next page of this result. Omitted if no further results are available, in which case nextSyncToken is provided.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Token used at a later point in time to retrieve only the entries that have changed since this result was returned. Omitted if further results are available, in which case nextPageToken is provided.
     #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: Option<String>,
+    pub next_sync_token: ::core::option::Option<String>,
     /// Title of the calendar. Read-only.
     #[serde(default)]
-    pub summary: Option<String>,
+    pub summary: ::core::option::Option<String>,
     /// The time zone of the calendar. Read-only.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// Last modification time of the calendar (as a RFC3339 timestamp). Read-only.
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
 }
 
 /// FreeBusyCalendar resource type.
@@ -695,10 +700,10 @@ pub struct Events {
 pub struct FreeBusyCalendar {
     /// List of time ranges during which this calendar should be regarded as busy.
     #[serde(default)]
-    pub busy: Option<Vec<TimePeriod>>,
+    pub busy: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TimePeriod>>>,
     /// Optional error(s) (if computation for the calendar failed).
     #[serde(default)]
-    pub errors: Option<Vec<Error>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Error>>>,
 }
 
 /// FreeBusyGroup resource type.
@@ -706,10 +711,10 @@ pub struct FreeBusyCalendar {
 pub struct FreeBusyGroup {
     /// List of calendars'' identifiers within a group.
     #[serde(default)]
-    pub calendars: Option<Vec<String>>,
+    pub calendars: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional error(s) (if computation for the group failed).
     #[serde(default)]
-    pub errors: Option<Vec<Error>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Error>>>,
 }
 
 /// FreeBusyRequest resource type.
@@ -717,22 +722,22 @@ pub struct FreeBusyGroup {
 pub struct FreeBusyRequest {
     /// Maximal number of calendars for which FreeBusy information is to be provided. Optional. Maximum value is 50.
     #[serde(default, rename = "calendarExpansionMax")]
-    pub calendar_expansion_max: Option<i32>,
+    pub calendar_expansion_max: ::core::option::Option<i32>,
     /// Maximal number of calendar identifiers to be provided for a single group. Optional. An error is returned for a group with more members than this value. Maximum value is 100.
     #[serde(default, rename = "groupExpansionMax")]
-    pub group_expansion_max: Option<i32>,
+    pub group_expansion_max: ::core::option::Option<i32>,
     /// List of calendars and/or groups to query.
     #[serde(default)]
-    pub items: Option<Vec<FreeBusyRequestItem>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FreeBusyRequestItem>>>,
     /// The end of the interval for the query formatted as per RFC3339.
     #[serde(default, rename = "timeMax")]
-    pub time_max: Option<String>,
+    pub time_max: ::core::option::Option<String>,
     /// The start of the interval for the query formatted as per RFC3339.
     #[serde(default, rename = "timeMin")]
-    pub time_min: Option<String>,
+    pub time_min: ::core::option::Option<String>,
     /// Time zone used in the response. Optional. The default is UTC.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// FreeBusyRequestItem resource type.
@@ -740,7 +745,7 @@ pub struct FreeBusyRequest {
 pub struct FreeBusyRequestItem {
     /// The identifier of a calendar or a group.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// FreeBusyResponse resource type.
@@ -748,19 +753,19 @@ pub struct FreeBusyRequestItem {
 pub struct FreeBusyResponse {
     /// List of free/busy information for calendars.
     #[serde(default)]
-    pub calendars: Option<serde_json::Value>,
+    pub calendars: ::core::option::Option<serde_json::Value>,
     /// Expansion of groups.
     #[serde(default)]
-    pub groups: Option<serde_json::Value>,
+    pub groups: ::core::option::Option<serde_json::Value>,
     /// Type of the resource ("calendar#freeBusy").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The end of the interval.
     #[serde(default, rename = "timeMax")]
-    pub time_max: Option<String>,
+    pub time_max: ::core::option::Option<String>,
     /// The start of the interval.
     #[serde(default, rename = "timeMin")]
-    pub time_min: Option<String>,
+    pub time_min: ::core::option::Option<String>,
 }
 
 /// Setting resource type.
@@ -768,16 +773,16 @@ pub struct FreeBusyResponse {
 pub struct Setting {
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The id of the user setting.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Type of the resource ("calendar#setting").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Value of the user setting. The format of the value depends on the ID of the setting. It must always be a UTF-8 string of length up to 1024 characters.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Settings resource type.
@@ -785,19 +790,19 @@ pub struct Setting {
 pub struct Settings {
     /// Etag of the collection.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// List of user settings.
     #[serde(default)]
-    pub items: Option<Vec<Setting>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Setting>>>,
     /// Type of the collection ("calendar#settings").
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token used to access the next page of this result. Omitted if no further results are available, in which case nextSyncToken is provided.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Token used at a later point in time to retrieve only the entries that have changed since this result was returned. Omitted if further results are available, in which case nextPageToken is provided.
     #[serde(default, rename = "nextSyncToken")]
-    pub next_sync_token: Option<String>,
+    pub next_sync_token: ::core::option::Option<String>,
 }
 
 /// TimePeriod resource type.
@@ -805,8 +810,8 @@ pub struct Settings {
 pub struct TimePeriod {
     /// The (exclusive) end of the time period.
     #[serde(default)]
-    pub end: Option<String>,
+    pub end: ::core::option::Option<String>,
     /// The (inclusive) start of the time period.
     #[serde(default)]
-    pub start: Option<String>,
+    pub start: ::core::option::Option<String>,
 }

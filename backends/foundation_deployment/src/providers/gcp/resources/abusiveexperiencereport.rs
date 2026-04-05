@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Response message for GetSiteSummary.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SiteSummaryResponse {
     /// The site''s Abusive Experience Report status. // TODO: enum values: ["UNKNOWN", "PASSING", "FAILING"]
     #[serde(default, rename = "abusiveStatus")]
-    pub abusive_status: Option<String>,
+    pub abusive_status: ::core::option::Option<String>,
     /// The time at which [enforcement](https://support.google.com/webtools/answer/7538608) against the site began or will begin. Not set when the filter_status is OFF.
     #[serde(default, rename = "enforcementTime")]
-    pub enforcement_time: Option<String>,
+    pub enforcement_time: ::core::option::Option<String>,
     /// The site''s [enforcement status](https://support.google.com/webtools/answer/7538608). // TODO: enum values: ["UNKNOWN", "ON", "OFF", "PAUSED", "PENDING"]
     #[serde(default, rename = "filterStatus")]
-    pub filter_status: Option<String>,
+    pub filter_status: ::core::option::Option<String>,
     /// The time at which the site''s status last changed.
     #[serde(default, rename = "lastChangeTime")]
-    pub last_change_time: Option<String>,
+    pub last_change_time: ::core::option::Option<String>,
     /// A link to the full Abusive Experience Report for the site. Not set in ViolatingSitesResponse. Note that you must complete the [Search Console verification process](https://support.google.com/webmasters/answer/9008080) for the site before you can access the full report.
     #[serde(default, rename = "reportUrl")]
-    pub report_url: Option<String>,
+    pub report_url: ::core::option::Option<String>,
     /// The name of the reviewed site, e.g. google.com.
     #[serde(default, rename = "reviewedSite")]
-    pub reviewed_site: Option<String>,
+    pub reviewed_site: ::core::option::Option<String>,
     /// Whether the site is currently under review.
     #[serde(default, rename = "underReview")]
-    pub under_review: Option<bool>,
+    pub under_review: ::core::option::Option<bool>,
 }
 
 /// Response message for ListViolatingSites.
@@ -44,5 +44,6 @@ pub struct SiteSummaryResponse {
 pub struct ViolatingSitesResponse {
     /// The list of violating sites.
     #[serde(default, rename = "violatingSites")]
-    pub violating_sites: Option<Vec<SiteSummaryResponse>>,
+    pub violating_sites:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SiteSummaryResponse>>>,
 }

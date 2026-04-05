@@ -10,27 +10,27 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Configuration for custom Active View video viewability metrics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActiveViewVideoViewabilityMetricConfig {
     /// Required. The display name of the custom metric.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The minimum visible video duration required (in seconds) in order for an impression to be recorded. You must specify minimum_duration, minimum_quartile or both. If both are specified, an impression meets the metric criteria if either requirement is met (whichever happens first). // TODO: enum values: ["VIDEO_DURATION_UNSPECIFIED", "VIDEO_DURATION_SECONDS_NONE", "VIDEO_DURATION_SECONDS_0", "VIDEO_DURATION_SECONDS_1", "VIDEO_DURATION_SECONDS_2", "VIDEO_DURATION_SECONDS_3", "VIDEO_DURATION_SECONDS_4", "VIDEO_DURATION_SECONDS_5", "VIDEO_DURATION_SECONDS_6", "VIDEO_DURATION_SECONDS_7", "VIDEO_DURATION_SECONDS_8", "VIDEO_DURATION_SECONDS_9", "VIDEO_DURATION_SECONDS_10", "VIDEO_DURATION_SECONDS_11", "VIDEO_DURATION_SECONDS_12", "VIDEO_DURATION_SECONDS_13", "VIDEO_DURATION_SECONDS_14", "VIDEO_DURATION_SECONDS_15", "VIDEO_DURATION_SECONDS_30", "VIDEO_DURATION_SECONDS_45", "VIDEO_DURATION_SECONDS_60"]
     #[serde(default, rename = "minimumDuration")]
-    pub minimum_duration: Option<String>,
+    pub minimum_duration: ::core::option::Option<String>,
     /// The minimum visible video duration required, based on the video quartiles, in order for an impression to be recorded. You must specify minimum_duration, minimum_quartile or both. If both are specified, an impression meets the metric criteria if either requirement is met (whichever happens first). // TODO: enum values: ["VIDEO_DURATION_QUARTILE_UNSPECIFIED", "VIDEO_DURATION_QUARTILE_NONE", "VIDEO_DURATION_QUARTILE_FIRST", "VIDEO_DURATION_QUARTILE_SECOND", "VIDEO_DURATION_QUARTILE_THIRD", "VIDEO_DURATION_QUARTILE_FOURTH"]
     #[serde(default, rename = "minimumQuartile")]
-    pub minimum_quartile: Option<String>,
+    pub minimum_quartile: ::core::option::Option<String>,
     /// Required. The minimum percentage of the video ad''s pixels visible on the screen in order for an impression to be recorded. // TODO: enum values: ["VIEWABILITY_PERCENT_UNSPECIFIED", "VIEWABILITY_PERCENT_0", "VIEWABILITY_PERCENT_25", "VIEWABILITY_PERCENT_50", "VIEWABILITY_PERCENT_75", "VIEWABILITY_PERCENT_100"]
     #[serde(default, rename = "minimumViewability")]
-    pub minimum_viewability: Option<String>,
+    pub minimum_viewability: ::core::option::Option<String>,
     /// Required. The minimum percentage of the video ad''s volume required in order for an impression to be recorded. // TODO: enum values: ["VIDEO_VOLUME_PERCENT_UNSPECIFIED", "VIDEO_VOLUME_PERCENT_0", "VIDEO_VOLUME_PERCENT_10"]
     #[serde(default, rename = "minimumVolume")]
-    pub minimum_volume: Option<String>,
+    pub minimum_volume: ::core::option::Option<String>,
 }
 
 /// A single ad asset.
@@ -38,19 +38,19 @@ pub struct ActiveViewVideoViewabilityMetricConfig {
 pub struct AdAsset {
     /// Output only. The ID of the ad asset. Referred to as the asset ID when assigned to an ad.
     #[serde(default, rename = "adAssetId")]
-    pub ad_asset_id: Option<String>,
+    pub ad_asset_id: ::core::option::Option<String>,
     /// Required. The type of the ad asset. // TODO: enum values: ["AD_ASSET_TYPE_UNSPECIFIED", "AD_ASSET_TYPE_IMAGE", "AD_ASSET_TYPE_YOUTUBE_VIDEO"]
     #[serde(default, rename = "adAssetType")]
-    pub ad_asset_type: Option<String>,
+    pub ad_asset_type: ::core::option::Option<String>,
     /// Output only. The entity status of the ad asset. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Identifier. The resource name of the ad asset.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Youtube video asset data.
     #[serde(default, rename = "youtubeVideoAsset")]
-    pub youtube_video_asset: Option<YoutubeVideoAsset>,
+    pub youtube_video_asset: ::core::option::Option<::std::boxed::Box<YoutubeVideoAsset>>,
 }
 
 /// A single ad group associated with a line item.
@@ -58,37 +58,38 @@ pub struct AdAsset {
 pub struct AdGroup {
     /// Required. Immutable. The format of the ads in the ad group. // TODO: enum values: ["AD_GROUP_FORMAT_UNSPECIFIED", "AD_GROUP_FORMAT_IN_STREAM", "AD_GROUP_FORMAT_VIDEO_DISCOVERY", "AD_GROUP_FORMAT_BUMPER", "AD_GROUP_FORMAT_NON_SKIPPABLE_IN_STREAM", "AD_GROUP_FORMAT_AUDIO", "AD_GROUP_FORMAT_RESPONSIVE", "AD_GROUP_FORMAT_REACH", "AD_GROUP_FORMAT_MASTHEAD", "AD_GROUP_FORMAT_DEMAND_GEN"]
     #[serde(default, rename = "adGroupFormat")]
-    pub ad_group_format: Option<String>,
+    pub ad_group_format: ::core::option::Option<String>,
     /// Output only. The unique ID of the ad group. Assigned by the system.
     #[serde(default, rename = "adGroupId")]
-    pub ad_group_id: Option<String>,
+    pub ad_group_id: ::core::option::Option<String>,
     /// Optional. Specifies the inventory control of the ad group. This field is required for Demand Gen ad groups.
     #[serde(default, rename = "adGroupInventoryControl")]
-    pub ad_group_inventory_control: Option<AdGroupInventoryControl>,
+    pub ad_group_inventory_control:
+        ::core::option::Option<::std::boxed::Box<AdGroupInventoryControl>>,
     /// Output only. The unique ID of the advertiser the ad group belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Optional. The bidding strategy used by the ad group. Only the youtubeAndPartnersBid and demandGenBid field can be used in the bidding strategy.
     #[serde(default, rename = "bidStrategy")]
-    pub bid_strategy: Option<BiddingStrategy>,
+    pub bid_strategy: ::core::option::Option<::std::boxed::Box<BiddingStrategy>>,
     /// Required. The display name of the ad group. Must be UTF-8 encoded with a maximum size of 255 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Controls whether or not the ad group can spend its budget and bid on inventory. If the ad group''s parent line item is not active, the ad group can''t spend its budget even if its own status is ENTITY_STATUS_ACTIVE. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Required. Immutable. The unique ID of the line item that the ad group belongs to.
     #[serde(default, rename = "lineItemId")]
-    pub line_item_id: Option<String>,
+    pub line_item_id: ::core::option::Option<String>,
     /// Output only. Identifier. The resource name of the ad group.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The settings of the product feed in this ad group.
     #[serde(default, rename = "productFeedData")]
-    pub product_feed_data: Option<ProductFeedData>,
+    pub product_feed_data: ::core::option::Option<::std::boxed::Box<ProductFeedData>>,
     /// Optional. The [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the ad group.
     #[serde(default, rename = "targetingExpansion")]
-    pub targeting_expansion: Option<TargetingExpansionConfig>,
+    pub targeting_expansion: ::core::option::Option<::std::boxed::Box<TargetingExpansionConfig>>,
 }
 
 /// A single ad associated with an ad group.
@@ -96,67 +97,67 @@ pub struct AdGroup {
 pub struct AdGroupAd {
     /// Output only. The unique ID of the ad. Assigned by the system.
     #[serde(default, rename = "adGroupAdId")]
-    pub ad_group_ad_id: Option<String>,
+    pub ad_group_ad_id: ::core::option::Option<String>,
     /// Required. Immutable. The unique ID of the ad group that the ad belongs to.
     #[serde(default, rename = "adGroupId")]
-    pub ad_group_id: Option<String>,
+    pub ad_group_id: ::core::option::Option<String>,
     /// Output only. The policy approval status of the ad.
     #[serde(default, rename = "adPolicy")]
-    pub ad_policy: Option<AdPolicy>,
+    pub ad_policy: ::core::option::Option<::std::boxed::Box<AdPolicy>>,
     /// Output only. List of URLs used by the ad.
     #[serde(default, rename = "adUrls")]
-    pub ad_urls: Option<Vec<AdUrl>>,
+    pub ad_urls: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdUrl>>>,
     /// Output only. The unique ID of the advertiser the ad belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Output only. Details of an [audio ad](//support.google.com/displayvideo/answer/6274216) used for reach marketing objectives.
     #[serde(default, rename = "audioAd")]
-    pub audio_ad: Option<AudioAd>,
+    pub audio_ad: ::core::option::Option<::std::boxed::Box<AudioAd>>,
     /// Output only. Details of a [non-skippable short video ad](//support.google.com/displayvideo/answer/6274216), equal to or less than 6 seconds, used for reach.
     #[serde(default, rename = "bumperAd")]
-    pub bumper_ad: Option<BumperAd>,
+    pub bumper_ad: ::core::option::Option<::std::boxed::Box<BumperAd>>,
     /// Optional. The DCM tracking ad info. Only valid for Demand Gen ads. To remove the DCM tracking ad info, please leave this field empty. Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "dcmTrackingInfo")]
-    pub dcm_tracking_info: Option<DcmTrackingInfo>,
+    pub dcm_tracking_info: ::core::option::Option<::std::boxed::Box<DcmTrackingInfo>>,
     /// Details of a [Demand Gen carousel ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#CarouselAd).
     #[serde(default, rename = "demandGenCarouselAd")]
-    pub demand_gen_carousel_ad: Option<DemandGenCarouselAd>,
+    pub demand_gen_carousel_ad: ::core::option::Option<::std::boxed::Box<DemandGenCarouselAd>>,
     /// Details of a [Demand Gen image ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#ImageAd).
     #[serde(default, rename = "demandGenImageAd")]
-    pub demand_gen_image_ad: Option<DemandGenImageAd>,
+    pub demand_gen_image_ad: ::core::option::Option<::std::boxed::Box<DemandGenImageAd>>,
     /// Details of a [Demand Gen product ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#Product-onlyAd).
     #[serde(default, rename = "demandGenProductAd")]
-    pub demand_gen_product_ad: Option<DemandGenProductAd>,
+    pub demand_gen_product_ad: ::core::option::Option<::std::boxed::Box<DemandGenProductAd>>,
     /// Details of a [Demand Gen video ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#VideoAd).
     #[serde(default, rename = "demandGenVideoAd")]
-    pub demand_gen_video_ad: Option<DemandGenVideoAd>,
+    pub demand_gen_video_ad: ::core::option::Option<::std::boxed::Box<DemandGenVideoAd>>,
     /// Required. The display name of the ad. Must be UTF-8 encoded with a maximum size of 255 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Details of an ad sourced from a Display & Video 360 creative.
     #[serde(default, rename = "displayVideoSourceAd")]
-    pub display_video_source_ad: Option<DisplayVideoSourceAd>,
+    pub display_video_source_ad: ::core::option::Option<::std::boxed::Box<DisplayVideoSourceAd>>,
     /// Required. The entity status of the ad. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Output only. Details of an [in-stream ad skippable after 5 seconds](//support.google.com/displayvideo/answer/6274216), used for brand awareness or reach marketing objectives.
     #[serde(default, rename = "inStreamAd")]
-    pub in_stream_ad: Option<InStreamAd>,
+    pub in_stream_ad: ::core::option::Option<::std::boxed::Box<InStreamAd>>,
     /// Output only. Details of an [ad served on the YouTube Home feed](//support.google.com/google-ads/answer/9709826).
     #[serde(default, rename = "mastheadAd")]
-    pub masthead_ad: Option<MastheadAd>,
+    pub masthead_ad: ::core::option::Option<::std::boxed::Box<MastheadAd>>,
     /// Output only. The resource name of the ad.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Details of a [non-skippable short in-stream video ad](//support.google.com/displayvideo/answer/6274216), between 6 and 15 seconds, used for reach marketing objectives.
     #[serde(default, rename = "nonSkippableAd")]
-    pub non_skippable_ad: Option<NonSkippableAd>,
+    pub non_skippable_ad: ::core::option::Option<::std::boxed::Box<NonSkippableAd>>,
     /// Output only. Details of an [ad promoting a video](//support.google.com/displayvideo/answer/6274216) that shows in places of discovery.
     #[serde(default, rename = "videoDiscoverAd")]
-    pub video_discover_ad: Option<VideoDiscoveryAd>,
+    pub video_discover_ad: ::core::option::Option<::std::boxed::Box<VideoDiscoveryAd>>,
     /// Output only. Details of an [ad used in a video action campaign](//support.google.com/google-ads/answer/10147229) to drive actions to the business, service or product.
     #[serde(default, rename = "videoPerformanceAd")]
-    pub video_performance_ad: Option<VideoPerformanceAd>,
+    pub video_performance_ad: ::core::option::Option<::std::boxed::Box<VideoPerformanceAd>>,
 }
 
 /// Wrapper object associating an AssignedTargetingOption resource and the ad group it is assigned to.
@@ -164,10 +165,11 @@ pub struct AdGroupAd {
 pub struct AdGroupAssignedTargetingOption {
     /// The ID of the ad group the assigned targeting option is assigned to.
     #[serde(default, rename = "adGroupId")]
-    pub ad_group_id: Option<String>,
+    pub ad_group_id: ::core::option::Option<String>,
     /// The assigned targeting option resource.
     #[serde(default, rename = "assignedTargetingOption")]
-    pub assigned_targeting_option: Option<AssignedTargetingOption>,
+    pub assigned_targeting_option:
+        ::core::option::Option<::std::boxed::Box<AssignedTargetingOption>>,
 }
 
 /// The inventory control of the ad group.
@@ -175,10 +177,10 @@ pub struct AdGroupAssignedTargetingOption {
 pub struct AdGroupInventoryControl {
     /// The inventory strategy. // TODO: enum values: ["AD_GROUP_INVENTORY_STRATEGY_UNSPECIFIED", "AD_GROUP_INVENTORY_STRATEGY_ALL_GOOGLE_AND_DISPLAY_NETWORK_INVENTORY", "AD_GROUP_INVENTORY_STRATEGY_ALL_GOOGLE_INVENTORY"]
     #[serde(default, rename = "adGroupInventoryStrategy")]
-    pub ad_group_inventory_strategy: Option<String>,
+    pub ad_group_inventory_strategy: ::core::option::Option<String>,
     /// The selected inventories.
     #[serde(default, rename = "selectedInventories")]
-    pub selected_inventories: Option<SelectedInventories>,
+    pub selected_inventories: ::core::option::Option<::std::boxed::Box<SelectedInventories>>,
 }
 
 /// A single ad policy associated with an ad group ad.
@@ -186,13 +188,14 @@ pub struct AdGroupInventoryControl {
 pub struct AdPolicy {
     /// The policy approval status of an ad, indicating the approval decision. // TODO: enum values: ["AD_POLICY_APPROVAL_STATUS_UNKNOWN", "DISAPPROVED", "APPROVED_LIMITED", "APPROVED", "AREA_OF_INTEREST_ONLY"]
     #[serde(default, rename = "adPolicyApprovalStatus")]
-    pub ad_policy_approval_status: Option<String>,
+    pub ad_policy_approval_status: ::core::option::Option<String>,
     /// The policy review status of an ad, indicating where in the review process the ad is currently. // TODO: enum values: ["AD_POLICY_REVIEW_STATUS_UNKNOWN", "REVIEW_IN_PROGRESS", "REVIEWED", "UNDER_APPEAL", "ELIGIBLE_MAY_SERVE"]
     #[serde(default, rename = "adPolicyReviewStatus")]
-    pub ad_policy_review_status: Option<String>,
+    pub ad_policy_review_status: ::core::option::Option<String>,
     /// The entries for each policy topic identified as relating to the ad. Each entry includes the topic, restriction level, and guidance on how to fix policy issues.
     #[serde(default, rename = "adPolicyTopicEntry")]
-    pub ad_policy_topic_entry: Option<Vec<AdPolicyTopicEntry>>,
+    pub ad_policy_topic_entry:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdPolicyTopicEntry>>>,
 }
 
 /// Represents a country restriction.
@@ -200,10 +203,10 @@ pub struct AdPolicy {
 pub struct AdPolicyCriterionRestriction {
     /// The country criterion id.
     #[serde(default, rename = "countryCriterionId")]
-    pub country_criterion_id: Option<String>,
+    pub country_criterion_id: ::core::option::Option<String>,
     /// Localized name for the country. May be empty.
     #[serde(default, rename = "countryLabel")]
-    pub country_label: Option<String>,
+    pub country_label: ::core::option::Option<String>,
 }
 
 /// Information on how to appeal a policy decision.
@@ -211,10 +214,10 @@ pub struct AdPolicyCriterionRestriction {
 pub struct AdPolicyTopicAppealInfo {
     /// Only available when appeal_type is APPEAL_FORM.
     #[serde(default, rename = "appealFormLink")]
-    pub appeal_form_link: Option<String>,
+    pub appeal_form_link: ::core::option::Option<String>,
     /// Whether the decision can be appealed through a self-service appeal or an appeal form. // TODO: enum values: ["AD_POLICY_APPEAL_TYPE_UNKNOWN", "SELF_SERVICE_APPEAL", "APPEAL_FORM"]
     #[serde(default, rename = "appealType")]
-    pub appeal_type: Option<String>,
+    pub appeal_type: ::core::option::Option<String>,
 }
 
 /// Details on ad serving constraints.
@@ -222,27 +225,31 @@ pub struct AdPolicyTopicAppealInfo {
 pub struct AdPolicyTopicConstraint {
     /// Countries where the resource''s domain is not covered by the certificates associated with it.
     #[serde(default, rename = "certificateDomainMismatchCountryList")]
-    pub certificate_domain_mismatch_country_list:
-        Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    pub certificate_domain_mismatch_country_list: ::core::option::Option<
+        ::std::boxed::Box<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    >,
     /// Countries where a certificate is required for serving.
     #[serde(default, rename = "certificateMissingCountryList")]
-    pub certificate_missing_country_list:
-        Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    pub certificate_missing_country_list: ::core::option::Option<
+        ::std::boxed::Box<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    >,
     /// Countries where the ad cannot serve.
     #[serde(default, rename = "countryConstraint")]
-    pub country_constraint: Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    pub country_constraint: ::core::option::Option<
+        ::std::boxed::Box<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
+    >,
     /// Certificate is required to serve in any country and the existing certificate does not cover the ad''s domain.
     #[serde(default, rename = "globalCertificateDomainMismatch")]
-    pub global_certificate_domain_mismatch: Option<serde_json::Value>,
+    pub global_certificate_domain_mismatch: ::core::option::Option<serde_json::Value>,
     /// Certificate is required to serve in any country.
     #[serde(default, rename = "globalCertificateMissing")]
-    pub global_certificate_missing: Option<serde_json::Value>,
+    pub global_certificate_missing: ::core::option::Option<serde_json::Value>,
     /// Link to the form to request a certificate for the constraint.
     #[serde(default, rename = "requestCertificateFormLink")]
-    pub request_certificate_form_link: Option<String>,
+    pub request_certificate_form_link: ::core::option::Option<String>,
     /// Reseller constraint.
     #[serde(default, rename = "resellerConstraint")]
-    pub reseller_constraint: Option<serde_json::Value>,
+    pub reseller_constraint: ::core::option::Option<serde_json::Value>,
 }
 
 /// A list of countries where the ad cannot serve due to policy constraints.
@@ -250,7 +257,8 @@ pub struct AdPolicyTopicConstraint {
 pub struct AdPolicyTopicConstraintAdPolicyCountryConstraintList {
     /// Countries where the ad cannot serve.
     #[serde(default)]
-    pub countries: Option<Vec<AdPolicyCriterionRestriction>>,
+    pub countries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdPolicyCriterionRestriction>>>,
 }
 
 /// An entry describing how an ad has been identified as relating to an ad policy.
@@ -258,34 +266,36 @@ pub struct AdPolicyTopicConstraintAdPolicyCountryConstraintList {
 pub struct AdPolicyTopicEntry {
     /// Information on how to appeal the policy decision.
     #[serde(default, rename = "appealInfo")]
-    pub appeal_info: Option<AdPolicyTopicAppealInfo>,
+    pub appeal_info: ::core::option::Option<::std::boxed::Box<AdPolicyTopicAppealInfo>>,
     /// Ad policy help center link for the policy topic.
     #[serde(default, rename = "helpCenterLink")]
-    pub help_center_link: Option<String>,
+    pub help_center_link: ::core::option::Option<String>,
     /// The source of the policy decision. // TODO: enum values: ["AD_POLICY_DECISION_TYPE_UNKNOWN", "PURSUANT_TO_NOTICE", "GOOGLE_INVESTIGATION"]
     #[serde(default, rename = "policyDecisionType")]
-    pub policy_decision_type: Option<String>,
+    pub policy_decision_type: ::core::option::Option<String>,
     /// The policy enforcement means used in the policy review. // TODO: enum values: ["AD_POLICY_ENFORCEMENT_MEANS_UNKNOWN", "AUTOMATED", "HUMAN_REVIEW"]
     #[serde(default, rename = "policyEnforcementMeans")]
-    pub policy_enforcement_means: Option<String>,
+    pub policy_enforcement_means: ::core::option::Option<String>,
     /// Localized label text for policy. Examples include "Trademarks in text", "Contains Alcohol", etc.
     #[serde(default, rename = "policyLabel")]
-    pub policy_label: Option<String>,
+    pub policy_label: ::core::option::Option<String>,
     /// The policy topic. Examples include "TRADEMARKS", "ALCOHOL", etc.
     #[serde(default, rename = "policyTopic")]
-    pub policy_topic: Option<String>,
+    pub policy_topic: ::core::option::Option<String>,
     /// The serving constraints relevant to the policy decision.
     #[serde(default, rename = "policyTopicConstraints")]
-    pub policy_topic_constraints: Option<Vec<AdPolicyTopicConstraint>>,
+    pub policy_topic_constraints:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdPolicyTopicConstraint>>>,
     /// A short summary description of the policy topic.
     #[serde(default, rename = "policyTopicDescription")]
-    pub policy_topic_description: Option<String>,
+    pub policy_topic_description: ::core::option::Option<String>,
     /// The evidence used in the policy decision.
     #[serde(default, rename = "policyTopicEvidences")]
-    pub policy_topic_evidences: Option<Vec<AdPolicyTopicEvidence>>,
+    pub policy_topic_evidences:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdPolicyTopicEvidence>>>,
     /// How ad serving will be affected due to the relation to the ad policy topic. // TODO: enum values: ["AD_POLICY_TOPIC_ENTRY_TYPE_UNKNOWN", "PROHIBITED", "FULLY_LIMITED", "LIMITED", "DESCRIPTIVE", "BROADENING", "AREA_OF_INTEREST_ONLY"]
     #[serde(default, rename = "policyTopicType")]
-    pub policy_topic_type: Option<String>,
+    pub policy_topic_type: ::core::option::Option<String>,
 }
 
 /// Evidence information used in the policy decision.
@@ -293,37 +303,41 @@ pub struct AdPolicyTopicEntry {
 pub struct AdPolicyTopicEvidence {
     /// Counterfeit enforcement that caused a policy violation.
     #[serde(default)]
-    pub counterfeit: Option<AdPolicyTopicEvidenceCounterfeit>,
+    pub counterfeit: ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceCounterfeit>>,
     /// A mismatch between the ad destination URLs.
     #[serde(default, rename = "destinationMismatch")]
-    pub destination_mismatch: Option<AdPolicyTopicEvidenceDestinationMismatch>,
+    pub destination_mismatch:
+        ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceDestinationMismatch>>,
     /// Information on HTTP or DNS errors related to the ad destination.
     #[serde(default, rename = "destinationNotWorking")]
-    pub destination_not_working: Option<AdPolicyTopicEvidenceDestinationNotWorking>,
+    pub destination_not_working:
+        ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceDestinationNotWorking>>,
     /// The text in the destination of the ad that is causing a policy violation.
     #[serde(default, rename = "destinationTextList")]
-    pub destination_text_list: Option<AdPolicyTopicEvidenceDestinationTextList>,
+    pub destination_text_list:
+        ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceDestinationTextList>>,
     /// HTTP code returned when the final URL was crawled.
     #[serde(default, rename = "httpCode")]
-    pub http_code: Option<i32>,
+    pub http_code: ::core::option::Option<i32>,
     /// The language the ad was detected to be written in. This field uses IETF language tags, such as "en-US".
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Legal related regulation enforcement that caused a policy violation.
     #[serde(default, rename = "legalRemoval")]
-    pub legal_removal: Option<AdPolicyTopicEvidenceLegalRemoval>,
+    pub legal_removal: ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceLegalRemoval>>,
     /// T&S proactive enforcement that caused a policy violation.
     #[serde(default, rename = "regionalRequirements")]
-    pub regional_requirements: Option<AdPolicyTopicEvidenceRegionalRequirements>,
+    pub regional_requirements:
+        ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceRegionalRequirements>>,
     /// List of evidence found in the text of the ad.
     #[serde(default, rename = "textList")]
-    pub text_list: Option<AdPolicyTopicEvidenceTextList>,
+    pub text_list: ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceTextList>>,
     /// Trademark terms that caused a policy violation.
     #[serde(default)]
-    pub trademark: Option<AdPolicyTopicEvidenceTrademark>,
+    pub trademark: ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceTrademark>>,
     /// List of websites linked with the ad.
     #[serde(default, rename = "websiteList")]
-    pub website_list: Option<AdPolicyTopicEvidenceWebsiteList>,
+    pub website_list: ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceWebsiteList>>,
 }
 
 /// Details on the counterfeit enforcement that caused a policy violation.
@@ -331,7 +345,7 @@ pub struct AdPolicyTopicEvidence {
 pub struct AdPolicyTopicEvidenceCounterfeit {
     /// The content or product owners that made a complaint.
     #[serde(default)]
-    pub owners: Option<Vec<String>>,
+    pub owners: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Details on a mismatch between destination URL types.
@@ -339,7 +353,7 @@ pub struct AdPolicyTopicEvidenceCounterfeit {
 pub struct AdPolicyTopicEvidenceDestinationMismatch {
     /// The set of URLs that do not match. The list can include single or multiple uri types. Example 1: [DISPLAY_URL, FINAL_URL] means ad display URL does not match with the ad final URL. Example 2: [FINAL_URL] means ad final URL did not match the crawled url, which is also considered as destination mismatch.
     #[serde(default, rename = "uriTypes")]
-    pub uri_types: Option<Vec<String>>,
+    pub uri_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Details for on HTTP or DNS errors related to the ad destination.
@@ -347,19 +361,19 @@ pub struct AdPolicyTopicEvidenceDestinationMismatch {
 pub struct AdPolicyTopicEvidenceDestinationNotWorking {
     /// The device where visiting the URL resulted in the error. // TODO: enum values: ["AD_POLICY_TOPIC_EVIDENCE_DESTINATION_NOT_WORKING_DEVICE_TYPE_UNKNOWN", "DESKTOP", "ANDROID", "IOS"]
     #[serde(default)]
-    pub device: Option<String>,
+    pub device: ::core::option::Option<String>,
     /// The type of DNS error. // TODO: enum values: ["AD_POLICY_TOPIC_EVIDENCE_DESTINATION_NOT_WORKING_DNS_ERROR_TYPE_UNKNOWN", "HOSTNAME_NOT_FOUND", "GOOGLE_CRAWLER_DNS_ISSUE"]
     #[serde(default, rename = "dnsErrorType")]
-    pub dns_error_type: Option<String>,
+    pub dns_error_type: ::core::option::Option<String>,
     /// The full URL that didn''t work.
     #[serde(default, rename = "expandedUri")]
-    pub expanded_uri: Option<String>,
+    pub expanded_uri: ::core::option::Option<String>,
     /// The HTTP error code.
     #[serde(default, rename = "httpErrorCode")]
-    pub http_error_code: Option<String>,
+    pub http_error_code: ::core::option::Option<String>,
     /// The last time the error was seen when navigating to URL.
     #[serde(default, rename = "lastCheckedTime")]
-    pub last_checked_time: Option<String>,
+    pub last_checked_time: ::core::option::Option<String>,
 }
 
 /// A list of destination text that violated the policy.
@@ -367,7 +381,7 @@ pub struct AdPolicyTopicEvidenceDestinationNotWorking {
 pub struct AdPolicyTopicEvidenceDestinationTextList {
     /// Destination text that caused the policy finding.
     #[serde(default, rename = "destinationTexts")]
-    pub destination_texts: Option<Vec<String>>,
+    pub destination_texts: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Legal related regulation enforcement, either from DMCA or local legal regulation.
@@ -375,19 +389,21 @@ pub struct AdPolicyTopicEvidenceDestinationTextList {
 pub struct AdPolicyTopicEvidenceLegalRemoval {
     /// The type of complaint causing the legal removal. // TODO: enum values: ["AD_POLICY_TOPIC_EVIDENCE_LEGAL_REMOVAL_COMPLAINT_TYPE_UNKNOWN", "COPYRIGHT", "COURT_ORDER", "LOCAL_LEGAL"]
     #[serde(default, rename = "complaintType")]
-    pub complaint_type: Option<String>,
+    pub complaint_type: ::core::option::Option<String>,
     /// The countries restricted due to the legal removal.
     #[serde(default, rename = "countryRestrictions")]
-    pub country_restrictions: Option<Vec<AdPolicyCriterionRestriction>>,
+    pub country_restrictions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdPolicyCriterionRestriction>>>,
     /// Details on the DMCA regulation legal removal.
     #[serde(default)]
-    pub dmca: Option<AdPolicyTopicEvidenceLegalRemovalDmca>,
+    pub dmca: ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceLegalRemovalDmca>>,
     /// Details on the local legal regulation legal removal.
     #[serde(default, rename = "localLegal")]
-    pub local_legal: Option<AdPolicyTopicEvidenceLegalRemovalLocalLegal>,
+    pub local_legal:
+        ::core::option::Option<::std::boxed::Box<AdPolicyTopicEvidenceLegalRemovalLocalLegal>>,
     /// The urls restricted due to the legal removal.
     #[serde(default, rename = "restrictedUris")]
-    pub restricted_uris: Option<Vec<String>>,
+    pub restricted_uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// DMCA complaint details.
@@ -395,7 +411,7 @@ pub struct AdPolicyTopicEvidenceLegalRemoval {
 pub struct AdPolicyTopicEvidenceLegalRemovalDmca {
     /// The entity who made the legal complaint.
     #[serde(default)]
-    pub complainant: Option<String>,
+    pub complainant: ::core::option::Option<String>,
 }
 
 /// Local legal regulation details.
@@ -403,7 +419,7 @@ pub struct AdPolicyTopicEvidenceLegalRemovalDmca {
 pub struct AdPolicyTopicEvidenceLegalRemovalLocalLegal {
     /// Type of law for the legal notice.
     #[serde(default, rename = "lawType")]
-    pub law_type: Option<String>,
+    pub law_type: ::core::option::Option<String>,
 }
 
 /// Trust & Safety (T&S) proactive enforcement for policies meant to address regional requirements. This is considered a Google-owned investigation instead of a regulation notice since it''s proactive T&S enforcement.
@@ -411,8 +427,11 @@ pub struct AdPolicyTopicEvidenceLegalRemovalLocalLegal {
 pub struct AdPolicyTopicEvidenceRegionalRequirements {
     /// List of regional requirements.
     #[serde(default, rename = "regionalRequirementsEntries")]
-    pub regional_requirements_entries:
-        Option<Vec<AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry>>,
+    pub regional_requirements_entries: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry>,
+        >,
+    >,
 }
 
 /// Policy level regional legal violation details.
@@ -420,10 +439,11 @@ pub struct AdPolicyTopicEvidenceRegionalRequirements {
 pub struct AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry {
     /// The countries restricted due to the legal policy.
     #[serde(default, rename = "countryRestrictions")]
-    pub country_restrictions: Option<Vec<AdPolicyCriterionRestriction>>,
+    pub country_restrictions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdPolicyCriterionRestriction>>>,
     /// The legal policy that is being violated.
     #[serde(default, rename = "legalPolicy")]
-    pub legal_policy: Option<String>,
+    pub legal_policy: ::core::option::Option<String>,
 }
 
 /// A list of fragments of text that violated the policy.
@@ -431,7 +451,7 @@ pub struct AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry {
 pub struct AdPolicyTopicEvidenceTextList {
     /// The fragments of text from the resource that caused the policy finding.
     #[serde(default)]
-    pub texts: Option<Vec<String>>,
+    pub texts: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Trademark terms that caused a policy violation.
@@ -439,13 +459,14 @@ pub struct AdPolicyTopicEvidenceTextList {
 pub struct AdPolicyTopicEvidenceTrademark {
     /// Countries where the policy violation is relevant.
     #[serde(default, rename = "countryRestrictions")]
-    pub country_restrictions: Option<Vec<AdPolicyCriterionRestriction>>,
+    pub country_restrictions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdPolicyCriterionRestriction>>>,
     /// The trademark content owner.
     #[serde(default)]
-    pub owner: Option<String>,
+    pub owner: ::core::option::Option<String>,
     /// The trademark term.
     #[serde(default)]
-    pub term: Option<String>,
+    pub term: ::core::option::Option<String>,
 }
 
 /// A list of websites that violated the policy.
@@ -453,7 +474,7 @@ pub struct AdPolicyTopicEvidenceTrademark {
 pub struct AdPolicyTopicEvidenceWebsiteList {
     /// Websites that caused the policy finding.
     #[serde(default)]
-    pub websites: Option<Vec<String>>,
+    pub websites: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Additional URLs related to the ad, including beacons.
@@ -461,10 +482,10 @@ pub struct AdPolicyTopicEvidenceWebsiteList {
 pub struct AdUrl {
     /// The type of the Ad URL. // TODO: enum values: ["AD_URL_TYPE_UNSPECIFIED", "AD_URL_TYPE_BEACON_IMPRESSION", "AD_URL_TYPE_BEACON_EXPANDABLE_DCM_IMPRESSION", "AD_URL_TYPE_BEACON_CLICK", "AD_URL_TYPE_BEACON_SKIP"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The URL string value.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Details of Scope3 (previously known as Adloox) brand safety settings.
@@ -472,55 +493,56 @@ pub struct AdUrl {
 pub struct Adloox {
     /// Optional. Adult and Explicit Sexual Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "adultExplicitSexualContent")]
-    pub adult_explicit_sexual_content: Option<String>,
+    pub adult_explicit_sexual_content: ::core::option::Option<String>,
     /// Optional. Arms and Ammunition Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "armsAmmunitionContent")]
-    pub arms_ammunition_content: Option<String>,
+    pub arms_ammunition_content: ::core::option::Option<String>,
     /// Optional. Crime and Harmful Acts Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(
         default,
         rename = "crimeHarmfulActsIndividualsSocietyHumanRightsViolationsContent"
     )]
-    pub crime_harmful_acts_individuals_society_human_rights_violations_content: Option<String>,
+    pub crime_harmful_acts_individuals_society_human_rights_violations_content:
+        ::core::option::Option<String>,
     /// Optional. Death, Injury, or Military Conflict Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "deathInjuryMilitaryConflictContent")]
-    pub death_injury_military_conflict_content: Option<String>,
+    pub death_injury_military_conflict_content: ::core::option::Option<String>,
     /// Optional. Debated Sensitive Social Issue Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "debatedSensitiveSocialIssueContent")]
-    pub debated_sensitive_social_issue_content: Option<String>,
+    pub debated_sensitive_social_issue_content: ::core::option::Option<String>,
     /// Optional. IAB viewability threshold for display ads. // TODO: enum values: ["DISPLAY_IAB_VIEWABILITY_UNSPECIFIED", "DISPLAY_IAB_VIEWABILITY_10", "DISPLAY_IAB_VIEWABILITY_20", "DISPLAY_IAB_VIEWABILITY_35", "DISPLAY_IAB_VIEWABILITY_50", "DISPLAY_IAB_VIEWABILITY_75"]
     #[serde(default, rename = "displayIabViewability")]
-    pub display_iab_viewability: Option<String>,
+    pub display_iab_viewability: ::core::option::Option<String>,
     /// Scope3 categories to exclude.
     #[serde(default, rename = "excludedAdlooxCategories")]
-    pub excluded_adloox_categories: Option<Vec<String>>,
+    pub excluded_adloox_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Scope3''s fraud IVT MFA categories to exclude.
     #[serde(default, rename = "excludedFraudIvtMfaCategories")]
-    pub excluded_fraud_ivt_mfa_categories: Option<Vec<String>>,
+    pub excluded_fraud_ivt_mfa_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Hate Speech and Acts of Aggression Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "hateSpeechActsAggressionContent")]
-    pub hate_speech_acts_aggression_content: Option<String>,
+    pub hate_speech_acts_aggression_content: ::core::option::Option<String>,
     /// Optional. Illegal Drugs/Alcohol Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "illegalDrugsTobaccoEcigarettesVapingAlcoholContent")]
-    pub illegal_drugs_tobacco_ecigarettes_vaping_alcohol_content: Option<String>,
+    pub illegal_drugs_tobacco_ecigarettes_vaping_alcohol_content: ::core::option::Option<String>,
     /// Optional. Misinformation Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "misinformationContent")]
-    pub misinformation_content: Option<String>,
+    pub misinformation_content: ::core::option::Option<String>,
     /// Optional. Obscenity and Profanity Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "obscenityProfanityContent")]
-    pub obscenity_profanity_content: Option<String>,
+    pub obscenity_profanity_content: ::core::option::Option<String>,
     /// Optional. Online Piracy Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "onlinePiracyContent")]
-    pub online_piracy_content: Option<String>,
+    pub online_piracy_content: ::core::option::Option<String>,
     /// Optional. Spam or Harmful Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "spamHarmfulContent")]
-    pub spam_harmful_content: Option<String>,
+    pub spam_harmful_content: ::core::option::Option<String>,
     /// Optional. Terrorism Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "terrorismContent")]
-    pub terrorism_content: Option<String>,
+    pub terrorism_content: ::core::option::Option<String>,
     /// Optional. IAB viewability threshold for video ads. // TODO: enum values: ["VIDEO_IAB_VIEWABILITY_UNSPECIFIED", "VIDEO_IAB_VIEWABILITY_10", "VIDEO_IAB_VIEWABILITY_20", "VIDEO_IAB_VIEWABILITY_35", "VIDEO_IAB_VIEWABILITY_50", "VIDEO_IAB_VIEWABILITY_75"]
     #[serde(default, rename = "videoIabViewability")]
-    pub video_iab_viewability: Option<String>,
+    pub video_iab_viewability: ::core::option::Option<String>,
 }
 
 /// A single advertiser in Display & Video 360 (DV360).
@@ -528,49 +550,49 @@ pub struct Adloox {
 pub struct Advertiser {
     /// Required. Immutable. Ad server related settings of the advertiser.
     #[serde(default, rename = "adServerConfig")]
-    pub ad_server_config: Option<AdvertiserAdServerConfig>,
+    pub ad_server_config: ::core::option::Option<::std::boxed::Box<AdvertiserAdServerConfig>>,
     /// Output only. The unique ID of the advertiser. Assigned by the system.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Required. Billing related settings of the advertiser.
     #[serde(default, rename = "billingConfig")]
-    pub billing_config: Option<AdvertiserBillingConfig>,
+    pub billing_config: ::core::option::Option<::std::boxed::Box<AdvertiserBillingConfig>>,
     /// Optional. Whether this advertiser contains line items that serve European Union political ads. If this field is set to DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING, then the following will happen: * Any new line items created under this advertiser will be assigned DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING if not otherwise specified. * Any existing line items under this advertiser that do not have a set value be updated to DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING within a day. // TODO: enum values: ["EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN", "CONTAINS_EU_POLITICAL_ADVERTISING", "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING"]
     #[serde(default, rename = "containsEuPoliticalAds")]
-    pub contains_eu_political_ads: Option<String>,
+    pub contains_eu_political_ads: ::core::option::Option<String>,
     /// Required. Creative related settings of the advertiser.
     #[serde(default, rename = "creativeConfig")]
-    pub creative_config: Option<AdvertiserCreativeConfig>,
+    pub creative_config: ::core::option::Option<::std::boxed::Box<AdvertiserCreativeConfig>>,
     /// Settings that control how advertiser data may be accessed.
     #[serde(default, rename = "dataAccessConfig")]
-    pub data_access_config: Option<AdvertiserDataAccessConfig>,
+    pub data_access_config: ::core::option::Option<::std::boxed::Box<AdvertiserDataAccessConfig>>,
     /// Required. The display name of the advertiser. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Controls whether or not insertion orders and line items of the advertiser can spend their budgets and bid on inventory. * Accepted values are ENTITY_STATUS_ACTIVE, ENTITY_STATUS_PAUSED and ENTITY_STATUS_SCHEDULED_FOR_DELETION. * If set to ENTITY_STATUS_SCHEDULED_FOR_DELETION, the advertiser will be deleted 30 days from when it was first scheduled for deletion. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Required. General settings of the advertiser.
     #[serde(default, rename = "generalConfig")]
-    pub general_config: Option<AdvertiserGeneralConfig>,
+    pub general_config: ::core::option::Option<::std::boxed::Box<AdvertiserGeneralConfig>>,
     /// Integration details of the advertiser. Only integrationCode is currently applicable to advertiser. Other fields of IntegrationDetails are not supported and will be ignored if provided.
     #[serde(default, rename = "integrationDetails")]
-    pub integration_details: Option<IntegrationDetails>,
+    pub integration_details: ::core::option::Option<::std::boxed::Box<IntegrationDetails>>,
     /// Output only. The resource name of the advertiser.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Immutable. The unique ID of the partner that the advertiser belongs to.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
     /// Whether integration with Mediaocean (Prisma) is enabled. By enabling this, you agree to the following: On behalf of my company, I authorize Mediaocean (Prisma) to send budget segment plans to Google, and I authorize Google to send corresponding reporting and invoices from DV360 to Mediaocean for the purposes of budget planning, billing, and reconciliation for this advertiser.
     #[serde(default, rename = "prismaEnabled")]
-    pub prisma_enabled: Option<bool>,
+    pub prisma_enabled: ::core::option::Option<bool>,
     /// Targeting settings related to ad serving of the advertiser.
     #[serde(default, rename = "servingConfig")]
-    pub serving_config: Option<AdvertiserTargetingConfig>,
+    pub serving_config: ::core::option::Option<::std::boxed::Box<AdvertiserTargetingConfig>>,
     /// Output only. The timestamp when the advertiser was last updated. Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Ad server related settings of an advertiser.
@@ -578,10 +600,10 @@ pub struct Advertiser {
 pub struct AdvertiserAdServerConfig {
     /// The configuration for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.
     #[serde(default, rename = "cmHybridConfig")]
-    pub cm_hybrid_config: Option<CmHybridConfig>,
+    pub cm_hybrid_config: ::core::option::Option<::std::boxed::Box<CmHybridConfig>>,
     /// The configuration for advertisers that use third-party ad servers only.
     #[serde(default, rename = "thirdPartyOnlyConfig")]
-    pub third_party_only_config: Option<ThirdPartyOnlyConfig>,
+    pub third_party_only_config: ::core::option::Option<::std::boxed::Box<ThirdPartyOnlyConfig>>,
 }
 
 /// Billing related settings of an advertiser.
@@ -589,7 +611,7 @@ pub struct AdvertiserAdServerConfig {
 pub struct AdvertiserBillingConfig {
     /// Required. The ID of a billing profile assigned to the advertiser.
     #[serde(default, rename = "billingProfileId")]
-    pub billing_profile_id: Option<String>,
+    pub billing_profile_id: ::core::option::Option<String>,
 }
 
 /// Creatives related settings of an advertiser.
@@ -597,16 +619,16 @@ pub struct AdvertiserBillingConfig {
 pub struct AdvertiserCreativeConfig {
     /// Whether or not the advertiser is enabled for dynamic creatives.
     #[serde(default, rename = "dynamicCreativeEnabled")]
-    pub dynamic_creative_enabled: Option<bool>,
+    pub dynamic_creative_enabled: ::core::option::Option<bool>,
     /// An ID for configuring campaign monitoring provided by Integral Ad Service (IAS). The DV360 system will append an IAS "Campaign Monitor" tag containing this ID to the creative tag.
     #[serde(default, rename = "iasClientId")]
-    pub ias_client_id: Option<String>,
+    pub ias_client_id: ::core::option::Option<String>,
     /// Whether or not to disable Google''s About this Ad feature that adds badging (to identify the content as an ad) and transparency information (on interaction with About this Ad) to your ads for Online Behavioral Advertising (OBA) and regulatory requirements. About this Ad gives users greater control over the ads they see and helps you explain why they''re seeing your ad. [Learn more](//support.google.com/displayvideo/answer/14315795). If you choose to set this field to true, note that ads served through Display & Video 360 must comply to the following: * Be Online Behavioral Advertising (OBA) compliant, as per your contract with Google Marketing Platform. * In the European Economic Area (EEA), include transparency information and a mechanism for users to report illegal content in ads. If using an alternative ad badging, transparency, and reporting solution, you must ensure it includes the required transparency information and illegal content flagging mechanism and that you notify Google of any illegal content reports using the appropriate [form](//support.google.com/legal/troubleshooter/1114905?sjid=6787484030557261960-EU#ts=2981967%2C2982031%2C12980091).
     #[serde(default, rename = "obaComplianceDisabled")]
-    pub oba_compliance_disabled: Option<bool>,
+    pub oba_compliance_disabled: ::core::option::Option<bool>,
     /// By setting this field to true, you, on behalf of your company, authorize Google to use video creatives associated with this Display & Video 360 advertiser to provide reporting and features related to the advertiser''s television campaigns. Applicable only when the advertiser has a CM360 hybrid ad server configuration.
     #[serde(default, rename = "videoCreativeDataSharingAuthorized")]
-    pub video_creative_data_sharing_authorized: Option<bool>,
+    pub video_creative_data_sharing_authorized: ::core::option::Option<bool>,
 }
 
 /// Settings that control how advertiser related data may be accessed.
@@ -614,7 +636,7 @@ pub struct AdvertiserCreativeConfig {
 pub struct AdvertiserDataAccessConfig {
     /// Structured Data Files (SDF) settings for the advertiser. If not specified, the SDF settings of the parent partner are used.
     #[serde(default, rename = "sdfConfig")]
-    pub sdf_config: Option<AdvertiserSdfConfig>,
+    pub sdf_config: ::core::option::Option<::std::boxed::Box<AdvertiserSdfConfig>>,
 }
 
 /// General settings of an advertiser.
@@ -622,13 +644,13 @@ pub struct AdvertiserDataAccessConfig {
 pub struct AdvertiserGeneralConfig {
     /// Required. Immutable. Advertiser''s currency in ISO 4217 format. Accepted codes and the currencies they represent are: Currency Code : Currency Name * ARS : Argentine Peso * AUD : Australian Dollar * BRL : Brazilian Real * CAD : Canadian Dollar * CHF : Swiss Franc * CLP : Chilean Peso * CNY : Chinese Yuan * COP : Colombian Peso * CZK : Czech Koruna * DKK : Danish Krone * EGP : Egyption Pound * EUR : Euro * GBP : British Pound * HKD : Hong Kong Dollar * HUF : Hungarian Forint * IDR : Indonesian Rupiah * ILS : Israeli Shekel * INR : Indian Rupee * JPY : Japanese Yen * KRW : South Korean Won * MXN : Mexican Pesos * MYR : Malaysian Ringgit * NGN : Nigerian Naira * NOK : Norwegian Krone * NZD : New Zealand Dollar * PEN : Peruvian Nuevo Sol * PLN : Polish Zloty * RON : New Romanian Leu * RUB : Russian Ruble * SEK : Swedish Krona * TRY : Turkish Lira * TWD : New Taiwan Dollar * USD : US Dollar * ZAR : South African Rand
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Required. The domain URL of the advertiser''s primary website. The system will send this information to publishers that require website URL to associate a campaign with an advertiser. Provide a URL with no path or query string, beginning with http: or https:. For example, http://www.example.com
     #[serde(default, rename = "domainUrl")]
-    pub domain_url: Option<String>,
+    pub domain_url: ::core::option::Option<String>,
     /// Output only. The standard TZ database name of the advertiser''s time zone. For example, America/New_York. See more at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones For CM360 hybrid advertisers, the time zone is the same as that of the associated CM360 account; for third-party only advertisers, the time zone is the same as that of the parent partner.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// Structured Data Files (SDF) settings of an advertiser.
@@ -636,10 +658,10 @@ pub struct AdvertiserGeneralConfig {
 pub struct AdvertiserSdfConfig {
     /// Whether or not this advertiser overrides the SDF configuration of its parent partner. By default, an advertiser inherits the SDF configuration from the parent partner. To override the partner configuration, set this field to true and provide the new configuration in sdfConfig.
     #[serde(default, rename = "overridePartnerSdfConfig")]
-    pub override_partner_sdf_config: Option<bool>,
+    pub override_partner_sdf_config: ::core::option::Option<bool>,
     /// The SDF configuration for the advertiser. * Required when overridePartnerSdfConfig is true. * Output only when overridePartnerSdfConfig is false.
     #[serde(default, rename = "sdfConfig")]
-    pub sdf_config: Option<SdfConfig>,
+    pub sdf_config: ::core::option::Option<::std::boxed::Box<SdfConfig>>,
 }
 
 /// Targeting settings related to ad serving of an advertiser.
@@ -647,7 +669,7 @@ pub struct AdvertiserSdfConfig {
 pub struct AdvertiserTargetingConfig {
     /// Whether or not connected TV devices are exempt from viewability targeting for all video line items under the advertiser.
     #[serde(default, rename = "exemptTvFromViewabilityTargeting")]
-    pub exempt_tv_from_viewability_targeting: Option<bool>,
+    pub exempt_tv_from_viewability_targeting: ::core::option::Option<bool>,
 }
 
 /// Represents a targetable age range. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_AGE_RANGE.
@@ -655,7 +677,7 @@ pub struct AdvertiserTargetingConfig {
 pub struct AgeRangeAssignedTargetingOptionDetails {
     /// Required. The age range of an audience. We only support targeting a continuous age range of an audience. Thus, the age range represented in this field can be 1) targeted solely, or, 2) part of a larger continuous age range. The reach of a continuous age range targeting can be expanded by also targeting an audience of an unknown age. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_PLUS", "AGE_RANGE_UNKNOWN", "AGE_RANGE_18_20", "AGE_RANGE_21_24", "AGE_RANGE_25_29", "AGE_RANGE_30_34", "AGE_RANGE_35_39", "AGE_RANGE_40_44", "AGE_RANGE_45_49", "AGE_RANGE_50_54", "AGE_RANGE_55_59", "AGE_RANGE_60_64"]
     #[serde(default, rename = "ageRange")]
-    pub age_range: Option<String>,
+    pub age_range: ::core::option::Option<String>,
 }
 
 /// Represents a targetable age range. This will be populated in the age_range_details field when targeting_type is TARGETING_TYPE_AGE_RANGE.
@@ -663,7 +685,7 @@ pub struct AgeRangeAssignedTargetingOptionDetails {
 pub struct AgeRangeTargetingOptionDetails {
     /// Output only. The age range of an audience. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_PLUS", "AGE_RANGE_UNKNOWN", "AGE_RANGE_18_20", "AGE_RANGE_21_24", "AGE_RANGE_25_29", "AGE_RANGE_30_34", "AGE_RANGE_35_39", "AGE_RANGE_40_44", "AGE_RANGE_45_49", "AGE_RANGE_50_54", "AGE_RANGE_55_59", "AGE_RANGE_60_64"]
     #[serde(default, rename = "ageRange")]
-    pub age_range: Option<String>,
+    pub age_range: ::core::option::Option<String>,
 }
 
 /// Rule-based algorithm.
@@ -671,13 +693,14 @@ pub struct AgeRangeTargetingOptionDetails {
 pub struct AlgorithmRules {
     /// Attribution model for the algorithm. This field is only supported for allowlisted partners.
     #[serde(default, rename = "attributionModelId")]
-    pub attribution_model_id: Option<String>,
+    pub attribution_model_id: ::core::option::Option<String>,
     /// Rules for the impression signals.
     #[serde(default, rename = "impressionSignalRuleset")]
-    pub impression_signal_ruleset: Option<AlgorithmRulesRuleset>,
+    pub impression_signal_ruleset: ::core::option::Option<::std::boxed::Box<AlgorithmRulesRuleset>>,
     /// Rules for the post-impression signals. This field is only supported for allowlisted partners.
     #[serde(default, rename = "postImpressionSignalRuleset")]
-    pub post_impression_signal_ruleset: Option<AlgorithmRulesRuleset>,
+    pub post_impression_signal_ruleset:
+        ::core::option::Option<::std::boxed::Box<AlgorithmRulesRuleset>>,
 }
 
 /// A value to compare the signal to.
@@ -685,46 +708,46 @@ pub struct AlgorithmRules {
 pub struct AlgorithmRulesComparisonValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Video content duration value. // TODO: enum values: ["CONTENT_DURATION_UNSPECIFIED", "CONTENT_DURATION_UNKNOWN", "CONTENT_DURATION_0_TO_1_MIN", "CONTENT_DURATION_1_TO_5_MIN", "CONTENT_DURATION_5_TO_15_MIN", "CONTENT_DURATION_15_TO_30_MIN", "CONTENT_DURATION_30_TO_60_MIN", "CONTENT_DURATION_OVER_60_MIN"]
     #[serde(default, rename = "contentDurationValue")]
-    pub content_duration_value: Option<String>,
+    pub content_duration_value: ::core::option::Option<String>,
     /// Video genre id value.
     #[serde(default, rename = "contentGenreIdValue")]
-    pub content_genre_id_value: Option<String>,
+    pub content_genre_id_value: ::core::option::Option<String>,
     /// Video delivery type value. // TODO: enum values: ["CONTENT_STREAM_TYPE_UNSPECIFIED", "CONTENT_LIVE_STREAM", "CONTENT_ON_DEMAND"]
     #[serde(default, rename = "contentStreamTypeValue")]
-    pub content_stream_type_value: Option<String>,
+    pub content_stream_type_value: ::core::option::Option<String>,
     /// Creative dimension value.
     #[serde(default, rename = "creativeDimensionValue")]
-    pub creative_dimension_value: Option<Dimensions>,
+    pub creative_dimension_value: ::core::option::Option<::std::boxed::Box<Dimensions>>,
     /// Day and time value. Only TIME_ZONE_RESOLUTION_END_USER is supported.
     #[serde(default, rename = "dayAndTimeValue")]
-    pub day_and_time_value: Option<DayAndTime>,
+    pub day_and_time_value: ::core::option::Option<::std::boxed::Box<DayAndTime>>,
     /// Device type value. // TODO: enum values: ["RULE_DEVICE_TYPE_UNSPECIFIED", "RULE_DEVICE_TYPE_COMPUTER", "RULE_DEVICE_TYPE_CONNECTED_TV", "RULE_DEVICE_TYPE_SMART_PHONE", "RULE_DEVICE_TYPE_TABLET", "RULE_DEVICE_TYPE_CONNECTED_DEVICE", "RULE_DEVICE_TYPE_SET_TOP_BOX"]
     #[serde(default, rename = "deviceTypeValue")]
-    pub device_type_value: Option<String>,
+    pub device_type_value: ::core::option::Option<String>,
     /// Double value.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// Environment value. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "ENVIRONMENT_WEB_OPTIMIZED", "ENVIRONMENT_WEB_NOT_OPTIMIZED", "ENVIRONMENT_APP"]
     #[serde(default, rename = "environmentValue")]
-    pub environment_value: Option<String>,
+    pub environment_value: ::core::option::Option<String>,
     /// Exchange value. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default, rename = "exchangeValue")]
-    pub exchange_value: Option<String>,
+    pub exchange_value: ::core::option::Option<String>,
     /// Integer value.
     #[serde(default, rename = "int64Value")]
-    pub int64_value: Option<String>,
+    pub int64_value: ::core::option::Option<String>,
     /// Ad position value. // TODO: enum values: ["ON_SCREEN_POSITION_UNSPECIFIED", "ON_SCREEN_POSITION_UNKNOWN", "ON_SCREEN_POSITION_ABOVE_THE_FOLD", "ON_SCREEN_POSITION_BELOW_THE_FOLD"]
     #[serde(default, rename = "onScreenPositionValue")]
-    pub on_screen_position_value: Option<String>,
+    pub on_screen_position_value: ::core::option::Option<String>,
     /// String value.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
     /// Video player size value. This field is only supported for allowlisted partners. // TODO: enum values: ["VIDEO_PLAYER_SIZE_UNSPECIFIED", "VIDEO_PLAYER_SIZE_SMALL", "VIDEO_PLAYER_SIZE_LARGE", "VIDEO_PLAYER_SIZE_HD", "VIDEO_PLAYER_SIZE_UNKNOWN"]
     #[serde(default, rename = "videoPlayerSizeValue")]
-    pub video_player_size_value: Option<String>,
+    pub video_player_size_value: ::core::option::Option<String>,
 }
 
 /// The rule to score impressions based on Floodlight conversion events.
@@ -732,13 +755,13 @@ pub struct AlgorithmRulesComparisonValue {
 pub struct AlgorithmRulesFloodlightActivityConversionSignal {
     /// Required. The type of conversions to be used in impression value computation, for example, post-click conversions. // TODO: enum values: ["CONVERSION_COUNTING_UNSPECIFIED", "ALL_CONVERSIONS", "POST_CLICK", "POST_VIEW"]
     #[serde(default, rename = "conversionCounting")]
-    pub conversion_counting: Option<String>,
+    pub conversion_counting: ::core::option::Option<String>,
     /// Required. The way to acquire value from the floodlight activity, for example, count of the conversion. // TODO: enum values: ["COUNTING_METHOD_UNSPECIFIED", "CONVERSIONS_COUNT", "SALES_QUANTITY", "SALES_VALUE", "UNIQUE_COUNT"]
     #[serde(default, rename = "countingMethod")]
-    pub counting_method: Option<String>,
+    pub counting_method: ::core::option::Option<String>,
     /// Required. Id of the floodlight activity.
     #[serde(default, rename = "floodlightActivityId")]
-    pub floodlight_activity_id: Option<String>,
+    pub floodlight_activity_id: ::core::option::Option<String>,
 }
 
 /// Set of conditions. The return value of the rule is either: * The return value for single met condition or * The defined default return value if no conditions are met.
@@ -746,10 +769,11 @@ pub struct AlgorithmRulesFloodlightActivityConversionSignal {
 pub struct AlgorithmRulesRule {
     /// List of conditions in this rule. The criteria among conditions should be mutually exclusive.
     #[serde(default)]
-    pub conditions: Option<Vec<AlgorithmRulesRuleCondition>>,
+    pub conditions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AlgorithmRulesRuleCondition>>>,
     /// The default return value applied when none of the conditions are met.
     #[serde(default, rename = "defaultReturnValue")]
-    pub default_return_value: Option<AlgorithmRulesSignalValue>,
+    pub default_return_value: ::core::option::Option<::std::boxed::Box<AlgorithmRulesSignalValue>>,
 }
 
 /// Set of signal comparisons. Equivalent of an if statement.
@@ -757,10 +781,11 @@ pub struct AlgorithmRulesRule {
 pub struct AlgorithmRulesRuleCondition {
     /// The value returned if the signalComparisons condition evaluates to TRUE.
     #[serde(default, rename = "returnValue")]
-    pub return_value: Option<AlgorithmRulesSignalValue>,
+    pub return_value: ::core::option::Option<::std::boxed::Box<AlgorithmRulesSignalValue>>,
     /// List of comparisons that build if statement condition. The comparisons are combined into a single condition with AND logical operators.
     #[serde(default, rename = "signalComparisons")]
-    pub signal_comparisons: Option<Vec<AlgorithmRulesSignalComparison>>,
+    pub signal_comparisons:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AlgorithmRulesSignalComparison>>>,
 }
 
 /// A ruleset consisting of a list of rules and how to aggregate the resulting values.
@@ -768,13 +793,13 @@ pub struct AlgorithmRulesRuleCondition {
 pub struct AlgorithmRulesRuleset {
     /// How to aggregate values of evaluated rules. // TODO: enum values: ["RULE_AGGREGATION_TYPE_UNSPECIFIED", "SUM_OF_VALUES", "PRODUCT_OF_VALUES", "MAXIMUM_VALUE"]
     #[serde(default, rename = "aggregationType")]
-    pub aggregation_type: Option<String>,
+    pub aggregation_type: ::core::option::Option<String>,
     /// Maximum value the ruleset can evaluate to.
     #[serde(default, rename = "maxValue")]
-    pub max_value: Option<f64>,
+    pub max_value: ::core::option::Option<f64>,
     /// List of rules to generate the impression value.
     #[serde(default)]
-    pub rules: Option<Vec<AlgorithmRulesRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AlgorithmRulesRule>>>,
 }
 
 /// Signal used to evaluate rules.
@@ -782,13 +807,13 @@ pub struct AlgorithmRulesRuleset {
 pub struct AlgorithmRulesSignal {
     /// Signal based on active views. This field is only supported for allowlisted partners. // TODO: enum values: ["ACTIVE_VIEW_SIGNAL_UNSPECIFIED", "ACTIVE_VIEW_VIEWED", "AUDIBLE", "VIDEO_COMPLETED", "TIME_ON_SCREEN", "VIDEO_PLAYER_SIZE", "COMPLETED_IN_VIEW_AUDIBLE"]
     #[serde(default, rename = "activeViewSignal")]
-    pub active_view_signal: Option<String>,
+    pub active_view_signal: ::core::option::Option<String>,
     /// Signal based on clicks. This field is only supported for allowlisted partners. // TODO: enum values: ["CLICK_SIGNAL_UNSPECIFIED", "CLICK"]
     #[serde(default, rename = "clickSignal")]
-    pub click_signal: Option<String>,
+    pub click_signal: ::core::option::Option<String>,
     /// Signal based on impressions. // TODO: enum values: ["IMPRESSION_SIGNAL_UNSPECIFIED", "DAY_AND_TIME", "DEVICE_TYPE", "AD_POSITION", "OPERATING_SYSTEM_ID", "MOBILE_MODEL_ID", "EXCHANGE", "ENVIRONMENT", "COUNTRY_ID", "CITY_ID", "BROWSER_ID", "CREATIVE_DIMENSION", "VIDEO_CONTENT_DURATION_BUCKET", "VIDEO_DELIVERY_TYPE", "VIDEO_GENRE_ID"]
     #[serde(default, rename = "impressionSignal")]
-    pub impression_signal: Option<String>,
+    pub impression_signal: ::core::option::Option<String>,
 }
 
 /// A single comparison. The comparison compares the signal to the comparisonValue. The comparison of siteId==123 is represented with the following field values: * signal has an impressionSignal of SITE_ID. * comparisonOperator is set to EQUAL. * comparisonValue is set to 123.
@@ -796,13 +821,13 @@ pub struct AlgorithmRulesSignal {
 pub struct AlgorithmRulesSignalComparison {
     /// Operator used to compare the two values. In the resulting experession, the signal will be the first value and the comparisonValue will be the second. // TODO: enum values: ["COMPARISON_OPERATOR_UNSPECIFIED", "EQUAL", "GREATER_THAN", "LESS_THAN", "GREATER_THAN_OR_EQUAL_TO", "LESS_THAN_OR_EQUAL_TO", "LIST_CONTAINS"]
     #[serde(default, rename = "comparisonOperator")]
-    pub comparison_operator: Option<String>,
+    pub comparison_operator: ::core::option::Option<String>,
     /// Value to compare signal to.
     #[serde(default, rename = "comparisonValue")]
-    pub comparison_value: Option<AlgorithmRulesComparisonValue>,
+    pub comparison_value: ::core::option::Option<::std::boxed::Box<AlgorithmRulesComparisonValue>>,
     /// Signal to compare.
     #[serde(default)]
-    pub signal: Option<AlgorithmRulesSignal>,
+    pub signal: ::core::option::Option<::std::boxed::Box<AlgorithmRulesSignal>>,
 }
 
 /// Adjusted value of the signal used for rule evaluation.
@@ -810,14 +835,14 @@ pub struct AlgorithmRulesSignalComparison {
 pub struct AlgorithmRulesSignalValue {
     /// Signal based on active views. Only TIME_ON_SCREEN is supported. This field is only supported for allowlisted partners. // TODO: enum values: ["ACTIVE_VIEW_SIGNAL_UNSPECIFIED", "ACTIVE_VIEW_VIEWED", "AUDIBLE", "VIDEO_COMPLETED", "TIME_ON_SCREEN", "VIDEO_PLAYER_SIZE", "COMPLETED_IN_VIEW_AUDIBLE"]
     #[serde(default, rename = "activeViewSignal")]
-    pub active_view_signal: Option<String>,
+    pub active_view_signal: ::core::option::Option<String>,
     /// Signal based on floodlight conversion events. This field is only supported for allowlisted partners.
     #[serde(default, rename = "floodlightActivityConversionSignal")]
     pub floodlight_activity_conversion_signal:
-        Option<AlgorithmRulesFloodlightActivityConversionSignal>,
+        ::core::option::Option<::std::boxed::Box<AlgorithmRulesFloodlightActivityConversionSignal>>,
     /// Value to use as result.
     #[serde(default)]
-    pub number: Option<f64>,
+    pub number: ::core::option::Option<f64>,
 }
 
 /// Details for assigned app targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_APP.
@@ -825,16 +850,16 @@ pub struct AlgorithmRulesSignalValue {
 pub struct AppAssignedTargetingOptionDetails {
     /// Required. The ID of the app. Android''s Play store app uses bundle ID, for example com.google.android.gm. Apple''s App store app ID uses 9 digit string, for example 422689480.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Indicates the platform of the targeted app. If this field is not specified, the app platform will be assumed to be mobile (i.e., Android or iOS), and we will derive the appropriate mobile platform from the app ID. // TODO: enum values: ["APP_PLATFORM_UNSPECIFIED", "APP_PLATFORM_IOS", "APP_PLATFORM_ANDROID", "APP_PLATFORM_ROKU", "APP_PLATFORM_AMAZON_FIRETV", "APP_PLATFORM_PLAYSTATION", "APP_PLATFORM_APPLE_TV", "APP_PLATFORM_XBOX", "APP_PLATFORM_SAMSUNG_TV", "APP_PLATFORM_ANDROID_TV", "APP_PLATFORM_GENERIC_CTV", "APP_PLATFORM_LG_TV", "APP_PLATFORM_VIZIO_TV", "APP_PLATFORM_VIDAA"]
     #[serde(default, rename = "appPlatform")]
-    pub app_platform: Option<String>,
+    pub app_platform: ::core::option::Option<String>,
     /// Output only. The display name of the app.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
 }
 
 /// Details for assigned app category targeting option. This will be populated in the app_category_details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_APP_CATEGORY.
@@ -842,13 +867,13 @@ pub struct AppAssignedTargetingOptionDetails {
 pub struct AppCategoryAssignedTargetingOptionDetails {
     /// Output only. The display name of the app category.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_APP_CATEGORY.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable collection of apps. A collection lets you target dynamic groups of related apps that are maintained by the platform, for example All Apps/Google Play/Games. This will be populated in the app_category_details field when targeting_type is TARGETING_TYPE_APP_CATEGORY.
@@ -856,7 +881,7 @@ pub struct AppCategoryAssignedTargetingOptionDetails {
 pub struct AppCategoryTargetingOptionDetails {
     /// Output only. The name of the app collection.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// A single asset.
@@ -864,10 +889,10 @@ pub struct AppCategoryTargetingOptionDetails {
 pub struct Asset {
     /// The asset content. For uploaded assets, the content is the serving path.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Media ID of the uploaded asset. This is a unique identifier for the asset. This ID can be passed to other API calls, e.g. CreateCreative to associate the asset with a creative. The Media ID space updated on **April 5, 2023**. Update media IDs cached before **April 5, 2023** by retrieving the new media ID from associated creative resources or re-uploading the asset.
     #[serde(default, rename = "mediaId")]
-    pub media_id: Option<String>,
+    pub media_id: ::core::option::Option<String>,
 }
 
 /// Asset association for the creative.
@@ -875,10 +900,10 @@ pub struct Asset {
 pub struct AssetAssociation {
     /// Optional. The associated asset.
     #[serde(default)]
-    pub asset: Option<Asset>,
+    pub asset: ::core::option::Option<::std::boxed::Box<Asset>>,
     /// Optional. The role of this asset for the creative. // TODO: enum values: ["ASSET_ROLE_UNSPECIFIED", "ASSET_ROLE_MAIN", "ASSET_ROLE_BACKUP", "ASSET_ROLE_POLITE_LOAD", "ASSET_ROLE_HEADLINE", "ASSET_ROLE_LONG_HEADLINE", "ASSET_ROLE_BODY", "ASSET_ROLE_LONG_BODY", "ASSET_ROLE_CAPTION_URL", "ASSET_ROLE_CALL_TO_ACTION", "ASSET_ROLE_ADVERTISER_NAME", "ASSET_ROLE_PRICE", "ASSET_ROLE_ANDROID_APP_ID", "ASSET_ROLE_IOS_APP_ID", "ASSET_ROLE_RATING", "ASSET_ROLE_ICON", "ASSET_ROLE_COVER_IMAGE", "ASSET_ROLE_BACKGROUND_COLOR", "ASSET_ROLE_ACCENT_COLOR", "ASSET_ROLE_REQUIRE_LOGO", "ASSET_ROLE_REQUIRE_IMAGE", "ASSET_ROLE_ENABLE_ASSET_ENHANCEMENTS"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// An assignment between a targetable inventory source and an inventory source group.
@@ -886,13 +911,13 @@ pub struct AssetAssociation {
 pub struct AssignedInventorySource {
     /// Output only. The unique ID of the assigned inventory source. The ID is only unique within a given inventory source group. It may be reused in other contexts.
     #[serde(default, rename = "assignedInventorySourceId")]
-    pub assigned_inventory_source_id: Option<String>,
+    pub assigned_inventory_source_id: ::core::option::Option<String>,
     /// Required. The ID of the inventory source entity being targeted.
     #[serde(default, rename = "inventorySourceId")]
-    pub inventory_source_id: Option<String>,
+    pub inventory_source_id: ::core::option::Option<String>,
     /// Output only. The resource name of the assigned inventory source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An assignment between a location list and a relevant targeting option.
@@ -900,13 +925,13 @@ pub struct AssignedInventorySource {
 pub struct AssignedLocation {
     /// Output only. The unique ID of the assigned location. The ID is only unique within a location list. It may be reused in other contexts.
     #[serde(default, rename = "assignedLocationId")]
-    pub assigned_location_id: Option<String>,
+    pub assigned_location_id: ::core::option::Option<String>,
     /// Output only. The resource name of the assigned location.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The ID of the targeting option assigned to the location list.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// A single assigned targeting option, which defines the state of a targeting option for an entity with targeting settings.
@@ -914,173 +939,221 @@ pub struct AssignedLocation {
 pub struct AssignedTargetingOption {
     /// Age range details. This field will be populated when the targeting_type is TARGETING_TYPE_AGE_RANGE.
     #[serde(default, rename = "ageRangeDetails")]
-    pub age_range_details: Option<AgeRangeAssignedTargetingOptionDetails>,
+    pub age_range_details:
+        ::core::option::Option<::std::boxed::Box<AgeRangeAssignedTargetingOptionDetails>>,
     /// App category details. This field will be populated when the targeting_type is TARGETING_TYPE_APP_CATEGORY.
     #[serde(default, rename = "appCategoryDetails")]
-    pub app_category_details: Option<AppCategoryAssignedTargetingOptionDetails>,
+    pub app_category_details:
+        ::core::option::Option<::std::boxed::Box<AppCategoryAssignedTargetingOptionDetails>>,
     /// App details. This field will be populated when the targeting_type is TARGETING_TYPE_APP.
     #[serde(default, rename = "appDetails")]
-    pub app_details: Option<AppAssignedTargetingOptionDetails>,
+    pub app_details: ::core::option::Option<::std::boxed::Box<AppAssignedTargetingOptionDetails>>,
     /// Output only. The unique ID of the assigned targeting option. The ID is only unique within a given resource and targeting type. It may be reused in other contexts.
     #[serde(default, rename = "assignedTargetingOptionId")]
-    pub assigned_targeting_option_id: Option<String>,
+    pub assigned_targeting_option_id: ::core::option::Option<String>,
     /// Output only. An alias for the assigned_targeting_option_id. This value can be used in place of assignedTargetingOptionId when retrieving or deleting existing targeting. This field will only be supported for all assigned targeting options of the following targeting types: * TARGETING_TYPE_AGE_RANGE * TARGETING_TYPE_DEVICE_TYPE * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_ENVIRONMENT * TARGETING_TYPE_EXCHANGE * TARGETING_TYPE_GENDER * TARGETING_TYPE_HOUSEHOLD_INCOME * TARGETING_TYPE_NATIVE_CONTENT_POSITION * TARGETING_TYPE_OMID * TARGETING_TYPE_PARENTAL_STATUS * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_VIDEO_PLAYER_SIZE * TARGETING_TYPE_VIEWABILITY This field is also supported for line item assigned targeting options of the following targeting types: * TARGETING_TYPE_CONTENT_INSTREAM_POSITION * TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION
     #[serde(default, rename = "assignedTargetingOptionIdAlias")]
-    pub assigned_targeting_option_id_alias: Option<String>,
+    pub assigned_targeting_option_id_alias: ::core::option::Option<String>,
     /// Audience targeting details. This field will be populated when the targeting_type is TARGETING_TYPE_AUDIENCE_GROUP. You can only target one audience group option per resource.
     #[serde(default, rename = "audienceGroupDetails")]
-    pub audience_group_details: Option<AudienceGroupAssignedTargetingOptionDetails>,
+    pub audience_group_details:
+        ::core::option::Option<::std::boxed::Box<AudienceGroupAssignedTargetingOptionDetails>>,
     /// Audio content type details. This field will be populated when the targeting_type is TARGETING_TYPE_AUDIO_CONTENT_TYPE.
     #[serde(default, rename = "audioContentTypeDetails")]
-    pub audio_content_type_details: Option<AudioContentTypeAssignedTargetingOptionDetails>,
+    pub audio_content_type_details:
+        ::core::option::Option<::std::boxed::Box<AudioContentTypeAssignedTargetingOptionDetails>>,
     /// Authorized seller status details. This field will be populated when the targeting_type is TARGETING_TYPE_AUTHORIZED_SELLER_STATUS. You can only target one authorized seller status option per resource. If a resource doesn''t have an authorized seller status option, all authorized sellers indicated as DIRECT or RESELLER in the ads.txt file are targeted by default.
     #[serde(default, rename = "authorizedSellerStatusDetails")]
-    pub authorized_seller_status_details:
-        Option<AuthorizedSellerStatusAssignedTargetingOptionDetails>,
+    pub authorized_seller_status_details: ::core::option::Option<
+        ::std::boxed::Box<AuthorizedSellerStatusAssignedTargetingOptionDetails>,
+    >,
     /// Browser details. This field will be populated when the targeting_type is TARGETING_TYPE_BROWSER.
     #[serde(default, rename = "browserDetails")]
-    pub browser_details: Option<BrowserAssignedTargetingOptionDetails>,
+    pub browser_details:
+        ::core::option::Option<::std::boxed::Box<BrowserAssignedTargetingOptionDetails>>,
     /// Business chain details. This field will be populated when the targeting_type is TARGETING_TYPE_BUSINESS_CHAIN.
     #[serde(default, rename = "businessChainDetails")]
-    pub business_chain_details: Option<BusinessChainAssignedTargetingOptionDetails>,
+    pub business_chain_details:
+        ::core::option::Option<::std::boxed::Box<BusinessChainAssignedTargetingOptionDetails>>,
     /// Carrier and ISP details. This field will be populated when the targeting_type is TARGETING_TYPE_CARRIER_AND_ISP.
     #[serde(default, rename = "carrierAndIspDetails")]
-    pub carrier_and_isp_details: Option<CarrierAndIspAssignedTargetingOptionDetails>,
+    pub carrier_and_isp_details:
+        ::core::option::Option<::std::boxed::Box<CarrierAndIspAssignedTargetingOptionDetails>>,
     /// Category details. This field will be populated when the targeting_type is TARGETING_TYPE_CATEGORY. Targeting a category will also target its subcategories. If a category is excluded from targeting and a subcategory is included, the exclusion will take precedence.
     #[serde(default, rename = "categoryDetails")]
-    pub category_details: Option<CategoryAssignedTargetingOptionDetails>,
+    pub category_details:
+        ::core::option::Option<::std::boxed::Box<CategoryAssignedTargetingOptionDetails>>,
     /// Channel details. This field will be populated when the targeting_type is TARGETING_TYPE_CHANNEL.
     #[serde(default, rename = "channelDetails")]
-    pub channel_details: Option<ChannelAssignedTargetingOptionDetails>,
+    pub channel_details:
+        ::core::option::Option<::std::boxed::Box<ChannelAssignedTargetingOptionDetails>>,
     /// Content duration details. This field will be populated when the targeting_type is TARGETING_TYPE_CONTENT_DURATION.
     #[serde(default, rename = "contentDurationDetails")]
-    pub content_duration_details: Option<ContentDurationAssignedTargetingOptionDetails>,
+    pub content_duration_details:
+        ::core::option::Option<::std::boxed::Box<ContentDurationAssignedTargetingOptionDetails>>,
     /// Content genre details. This field will be populated when the targeting_type is TARGETING_TYPE_CONTENT_GENRE.
     #[serde(default, rename = "contentGenreDetails")]
-    pub content_genre_details: Option<ContentGenreAssignedTargetingOptionDetails>,
+    pub content_genre_details:
+        ::core::option::Option<::std::boxed::Box<ContentGenreAssignedTargetingOptionDetails>>,
     /// Content instream position details. This field will be populated when the targeting_type is TARGETING_TYPE_CONTENT_INSTREAM_POSITION.
     #[serde(default, rename = "contentInstreamPositionDetails")]
-    pub content_instream_position_details:
-        Option<ContentInstreamPositionAssignedTargetingOptionDetails>,
+    pub content_instream_position_details: ::core::option::Option<
+        ::std::boxed::Box<ContentInstreamPositionAssignedTargetingOptionDetails>,
+    >,
     /// Content outstream position details. This field will be populated when the targeting_type is TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION.
     #[serde(default, rename = "contentOutstreamPositionDetails")]
-    pub content_outstream_position_details:
-        Option<ContentOutstreamPositionAssignedTargetingOptionDetails>,
+    pub content_outstream_position_details: ::core::option::Option<
+        ::std::boxed::Box<ContentOutstreamPositionAssignedTargetingOptionDetails>,
+    >,
     /// Content duration details. This field will be populated when the TargetingType is TARGETING_TYPE_CONTENT_STREAM_TYPE.
     #[serde(default, rename = "contentStreamTypeDetails")]
-    pub content_stream_type_details: Option<ContentStreamTypeAssignedTargetingOptionDetails>,
+    pub content_stream_type_details:
+        ::core::option::Option<::std::boxed::Box<ContentStreamTypeAssignedTargetingOptionDetails>>,
     /// Content theme details. This field will be populated when the targeting_type is TARGETING_TYPE_CONTENT_THEME_EXCLUSION. Content theme are targeting exclusions. Advertiser level content theme exclusions, if set, are always applied in serving (even though they aren''t visible in resource settings). Resource settings can exclude content theme in addition to advertiser exclusions.
     #[serde(default, rename = "contentThemeExclusionDetails")]
-    pub content_theme_exclusion_details: Option<ContentThemeAssignedTargetingOptionDetails>,
+    pub content_theme_exclusion_details:
+        ::core::option::Option<::std::boxed::Box<ContentThemeAssignedTargetingOptionDetails>>,
     /// Day and time details. This field will be populated when the targeting_type is TARGETING_TYPE_DAY_AND_TIME.
     #[serde(default, rename = "dayAndTimeDetails")]
-    pub day_and_time_details: Option<DayAndTimeAssignedTargetingOptionDetails>,
+    pub day_and_time_details:
+        ::core::option::Option<::std::boxed::Box<DayAndTimeAssignedTargetingOptionDetails>>,
     /// Device make and model details. This field will be populated when the targeting_type is TARGETING_TYPE_DEVICE_MAKE_MODEL.
     #[serde(default, rename = "deviceMakeModelDetails")]
-    pub device_make_model_details: Option<DeviceMakeModelAssignedTargetingOptionDetails>,
+    pub device_make_model_details:
+        ::core::option::Option<::std::boxed::Box<DeviceMakeModelAssignedTargetingOptionDetails>>,
     /// Device Type details. This field will be populated when the targeting_type is TARGETING_TYPE_DEVICE_TYPE.
     #[serde(default, rename = "deviceTypeDetails")]
-    pub device_type_details: Option<DeviceTypeAssignedTargetingOptionDetails>,
+    pub device_type_details:
+        ::core::option::Option<::std::boxed::Box<DeviceTypeAssignedTargetingOptionDetails>>,
     /// Digital content label details. This field will be populated when the targeting_type is TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION. Digital content labels are targeting exclusions. Advertiser level digital content label exclusions, if set, are always applied in serving (even though they aren''t visible in resource settings). Resource settings can exclude content labels in addition to advertiser exclusions, but can''t override them. A line item won''t serve if all the digital content labels are excluded.
     #[serde(default, rename = "digitalContentLabelExclusionDetails")]
-    pub digital_content_label_exclusion_details:
-        Option<DigitalContentLabelAssignedTargetingOptionDetails>,
+    pub digital_content_label_exclusion_details: ::core::option::Option<
+        ::std::boxed::Box<DigitalContentLabelAssignedTargetingOptionDetails>,
+    >,
     /// Environment details. This field will be populated when the targeting_type is TARGETING_TYPE_ENVIRONMENT.
     #[serde(default, rename = "environmentDetails")]
-    pub environment_details: Option<EnvironmentAssignedTargetingOptionDetails>,
+    pub environment_details:
+        ::core::option::Option<::std::boxed::Box<EnvironmentAssignedTargetingOptionDetails>>,
     /// Exchange details. This field will be populated when the targeting_type is TARGETING_TYPE_EXCHANGE.
     #[serde(default, rename = "exchangeDetails")]
-    pub exchange_details: Option<ExchangeAssignedTargetingOptionDetails>,
+    pub exchange_details:
+        ::core::option::Option<::std::boxed::Box<ExchangeAssignedTargetingOptionDetails>>,
     /// Gender details. This field will be populated when the targeting_type is TARGETING_TYPE_GENDER.
     #[serde(default, rename = "genderDetails")]
-    pub gender_details: Option<GenderAssignedTargetingOptionDetails>,
+    pub gender_details:
+        ::core::option::Option<::std::boxed::Box<GenderAssignedTargetingOptionDetails>>,
     /// Geographic region details. This field will be populated when the targeting_type is TARGETING_TYPE_GEO_REGION.
     #[serde(default, rename = "geoRegionDetails")]
-    pub geo_region_details: Option<GeoRegionAssignedTargetingOptionDetails>,
+    pub geo_region_details:
+        ::core::option::Option<::std::boxed::Box<GeoRegionAssignedTargetingOptionDetails>>,
     /// Household income details. This field will be populated when the targeting_type is TARGETING_TYPE_HOUSEHOLD_INCOME.
     #[serde(default, rename = "householdIncomeDetails")]
-    pub household_income_details: Option<HouseholdIncomeAssignedTargetingOptionDetails>,
+    pub household_income_details:
+        ::core::option::Option<::std::boxed::Box<HouseholdIncomeAssignedTargetingOptionDetails>>,
     /// Output only. The inheritance status of the assigned targeting option. // TODO: enum values: ["INHERITANCE_UNSPECIFIED", "NOT_INHERITED", "INHERITED_FROM_PARTNER", "INHERITED_FROM_ADVERTISER"]
     #[serde(default)]
-    pub inheritance: Option<String>,
+    pub inheritance: ::core::option::Option<String>,
     /// Inventory source details. This field will be populated when the targeting_type is TARGETING_TYPE_INVENTORY_SOURCE.
     #[serde(default, rename = "inventorySourceDetails")]
-    pub inventory_source_details: Option<InventorySourceAssignedTargetingOptionDetails>,
+    pub inventory_source_details:
+        ::core::option::Option<::std::boxed::Box<InventorySourceAssignedTargetingOptionDetails>>,
     /// Inventory source group details. This field will be populated when the targeting_type is TARGETING_TYPE_INVENTORY_SOURCE_GROUP.
     #[serde(default, rename = "inventorySourceGroupDetails")]
-    pub inventory_source_group_details: Option<InventorySourceGroupAssignedTargetingOptionDetails>,
+    pub inventory_source_group_details: ::core::option::Option<
+        ::std::boxed::Box<InventorySourceGroupAssignedTargetingOptionDetails>,
+    >,
     /// Keyword details. This field will be populated when the targeting_type is TARGETING_TYPE_KEYWORD. A maximum of 5000 direct negative keywords can be assigned to a resource. No limit on number of positive keywords that can be assigned.
     #[serde(default, rename = "keywordDetails")]
-    pub keyword_details: Option<KeywordAssignedTargetingOptionDetails>,
+    pub keyword_details:
+        ::core::option::Option<::std::boxed::Box<KeywordAssignedTargetingOptionDetails>>,
     /// Language details. This field will be populated when the targeting_type is TARGETING_TYPE_LANGUAGE.
     #[serde(default, rename = "languageDetails")]
-    pub language_details: Option<LanguageAssignedTargetingOptionDetails>,
+    pub language_details:
+        ::core::option::Option<::std::boxed::Box<LanguageAssignedTargetingOptionDetails>>,
     /// Output only. The resource name for this assigned targeting option.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Native content position details. This field will be populated when the targeting_type is TARGETING_TYPE_NATIVE_CONTENT_POSITION.
     #[serde(default, rename = "nativeContentPositionDetails")]
-    pub native_content_position_details:
-        Option<NativeContentPositionAssignedTargetingOptionDetails>,
+    pub native_content_position_details: ::core::option::Option<
+        ::std::boxed::Box<NativeContentPositionAssignedTargetingOptionDetails>,
+    >,
     /// Keyword details. This field will be populated when the targeting_type is TARGETING_TYPE_NEGATIVE_KEYWORD_LIST. A maximum of 4 negative keyword lists can be assigned to a resource.
     #[serde(default, rename = "negativeKeywordListDetails")]
-    pub negative_keyword_list_details: Option<NegativeKeywordListAssignedTargetingOptionDetails>,
+    pub negative_keyword_list_details: ::core::option::Option<
+        ::std::boxed::Box<NegativeKeywordListAssignedTargetingOptionDetails>,
+    >,
     /// Open Measurement enabled inventory details. This field will be populated when the targeting_type is TARGETING_TYPE_OMID.
     #[serde(default, rename = "omidDetails")]
-    pub omid_details: Option<OmidAssignedTargetingOptionDetails>,
+    pub omid_details: ::core::option::Option<::std::boxed::Box<OmidAssignedTargetingOptionDetails>>,
     /// On screen position details. This field will be populated when the targeting_type is TARGETING_TYPE_ON_SCREEN_POSITION.
     #[serde(default, rename = "onScreenPositionDetails")]
-    pub on_screen_position_details: Option<OnScreenPositionAssignedTargetingOptionDetails>,
+    pub on_screen_position_details:
+        ::core::option::Option<::std::boxed::Box<OnScreenPositionAssignedTargetingOptionDetails>>,
     /// Operating system details. This field will be populated when the targeting_type is TARGETING_TYPE_OPERATING_SYSTEM.
     #[serde(default, rename = "operatingSystemDetails")]
-    pub operating_system_details: Option<OperatingSystemAssignedTargetingOptionDetails>,
+    pub operating_system_details:
+        ::core::option::Option<::std::boxed::Box<OperatingSystemAssignedTargetingOptionDetails>>,
     /// Parental status details. This field will be populated when the targeting_type is TARGETING_TYPE_PARENTAL_STATUS.
     #[serde(default, rename = "parentalStatusDetails")]
-    pub parental_status_details: Option<ParentalStatusAssignedTargetingOptionDetails>,
+    pub parental_status_details:
+        ::core::option::Option<::std::boxed::Box<ParentalStatusAssignedTargetingOptionDetails>>,
     /// POI details. This field will be populated when the targeting_type is TARGETING_TYPE_POI.
     #[serde(default, rename = "poiDetails")]
-    pub poi_details: Option<PoiAssignedTargetingOptionDetails>,
+    pub poi_details: ::core::option::Option<::std::boxed::Box<PoiAssignedTargetingOptionDetails>>,
     /// Proximity location list details. This field will be populated when the targeting_type is TARGETING_TYPE_PROXIMITY_LOCATION_LIST.
     #[serde(default, rename = "proximityLocationListDetails")]
-    pub proximity_location_list_details:
-        Option<ProximityLocationListAssignedTargetingOptionDetails>,
+    pub proximity_location_list_details: ::core::option::Option<
+        ::std::boxed::Box<ProximityLocationListAssignedTargetingOptionDetails>,
+    >,
     /// Regional location list details. This field will be populated when the targeting_type is TARGETING_TYPE_REGIONAL_LOCATION_LIST.
     #[serde(default, rename = "regionalLocationListDetails")]
-    pub regional_location_list_details: Option<RegionalLocationListAssignedTargetingOptionDetails>,
+    pub regional_location_list_details: ::core::option::Option<
+        ::std::boxed::Box<RegionalLocationListAssignedTargetingOptionDetails>,
+    >,
     /// Sensitive category details. This field will be populated when the targeting_type is TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION. Sensitive categories are targeting exclusions. Advertiser level sensitive category exclusions, if set, are always applied in serving (even though they aren''t visible in resource settings). Resource settings can exclude sensitive categories in addition to advertiser exclusions, but can''t override them.
     #[serde(default, rename = "sensitiveCategoryExclusionDetails")]
     pub sensitive_category_exclusion_details:
-        Option<SensitiveCategoryAssignedTargetingOptionDetails>,
+        ::core::option::Option<::std::boxed::Box<SensitiveCategoryAssignedTargetingOptionDetails>>,
     /// Session position details. This field will be populated when the targeting_type is TARGETING_TYPE_SESSION_POSITION.
     #[serde(default, rename = "sessionPositionDetails")]
-    pub session_position_details: Option<SessionPositionAssignedTargetingOptionDetails>,
+    pub session_position_details:
+        ::core::option::Option<::std::boxed::Box<SessionPositionAssignedTargetingOptionDetails>>,
     /// Sub-exchange details. This field will be populated when the targeting_type is TARGETING_TYPE_SUB_EXCHANGE.
     #[serde(default, rename = "subExchangeDetails")]
-    pub sub_exchange_details: Option<SubExchangeAssignedTargetingOptionDetails>,
+    pub sub_exchange_details:
+        ::core::option::Option<::std::boxed::Box<SubExchangeAssignedTargetingOptionDetails>>,
     /// Output only. Identifies the type of this assigned targeting option. // TODO: enum values: ["TARGETING_TYPE_UNSPECIFIED", "TARGETING_TYPE_CHANNEL", "TARGETING_TYPE_APP_CATEGORY", "TARGETING_TYPE_APP", "TARGETING_TYPE_URL", "TARGETING_TYPE_DAY_AND_TIME", "TARGETING_TYPE_AGE_RANGE", "TARGETING_TYPE_REGIONAL_LOCATION_LIST", "TARGETING_TYPE_PROXIMITY_LOCATION_LIST", "TARGETING_TYPE_GENDER", "TARGETING_TYPE_VIDEO_PLAYER_SIZE", "TARGETING_TYPE_USER_REWARDED_CONTENT", "TARGETING_TYPE_PARENTAL_STATUS", "TARGETING_TYPE_CONTENT_INSTREAM_POSITION", "TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION", "TARGETING_TYPE_DEVICE_TYPE", "TARGETING_TYPE_AUDIENCE_GROUP", "TARGETING_TYPE_BROWSER", "TARGETING_TYPE_HOUSEHOLD_INCOME", "TARGETING_TYPE_ON_SCREEN_POSITION", "TARGETING_TYPE_THIRD_PARTY_VERIFIER", "TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION", "TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION", "TARGETING_TYPE_ENVIRONMENT", "TARGETING_TYPE_CARRIER_AND_ISP", "TARGETING_TYPE_OPERATING_SYSTEM", "TARGETING_TYPE_DEVICE_MAKE_MODEL", "TARGETING_TYPE_KEYWORD", "TARGETING_TYPE_NEGATIVE_KEYWORD_LIST", "TARGETING_TYPE_VIEWABILITY", "TARGETING_TYPE_CATEGORY", "TARGETING_TYPE_INVENTORY_SOURCE", "TARGETING_TYPE_LANGUAGE", "TARGETING_TYPE_AUTHORIZED_SELLER_STATUS", "TARGETING_TYPE_GEO_REGION", "TARGETING_TYPE_INVENTORY_SOURCE_GROUP", "TARGETING_TYPE_EXCHANGE", "TARGETING_TYPE_SUB_EXCHANGE", "TARGETING_TYPE_POI", "TARGETING_TYPE_BUSINESS_CHAIN", "TARGETING_TYPE_CONTENT_DURATION", "TARGETING_TYPE_CONTENT_STREAM_TYPE", "TARGETING_TYPE_NATIVE_CONTENT_POSITION", "TARGETING_TYPE_OMID", "TARGETING_TYPE_AUDIO_CONTENT_TYPE", "TARGETING_TYPE_CONTENT_GENRE", "TARGETING_TYPE_YOUTUBE_VIDEO", "TARGETING_TYPE_YOUTUBE_CHANNEL", "TARGETING_TYPE_SESSION_POSITION", "TARGETING_TYPE_CONTENT_THEME_EXCLUSION"]
     #[serde(default, rename = "targetingType")]
-    pub targeting_type: Option<String>,
+    pub targeting_type: ::core::option::Option<String>,
     /// Third party verification details. This field will be populated when the targeting_type is TARGETING_TYPE_THIRD_PARTY_VERIFIER.
     #[serde(default, rename = "thirdPartyVerifierDetails")]
-    pub third_party_verifier_details: Option<ThirdPartyVerifierAssignedTargetingOptionDetails>,
+    pub third_party_verifier_details:
+        ::core::option::Option<::std::boxed::Box<ThirdPartyVerifierAssignedTargetingOptionDetails>>,
     /// URL details. This field will be populated when the targeting_type is TARGETING_TYPE_URL.
     #[serde(default, rename = "urlDetails")]
-    pub url_details: Option<UrlAssignedTargetingOptionDetails>,
+    pub url_details: ::core::option::Option<::std::boxed::Box<UrlAssignedTargetingOptionDetails>>,
     /// User rewarded content details. This field will be populated when the targeting_type is TARGETING_TYPE_USER_REWARDED_CONTENT.
     #[serde(default, rename = "userRewardedContentDetails")]
-    pub user_rewarded_content_details: Option<UserRewardedContentAssignedTargetingOptionDetails>,
+    pub user_rewarded_content_details: ::core::option::Option<
+        ::std::boxed::Box<UserRewardedContentAssignedTargetingOptionDetails>,
+    >,
     /// Video player size details. This field will be populated when the targeting_type is TARGETING_TYPE_VIDEO_PLAYER_SIZE.
     #[serde(default, rename = "videoPlayerSizeDetails")]
-    pub video_player_size_details: Option<VideoPlayerSizeAssignedTargetingOptionDetails>,
+    pub video_player_size_details:
+        ::core::option::Option<::std::boxed::Box<VideoPlayerSizeAssignedTargetingOptionDetails>>,
     /// Viewability details. This field will be populated when the targeting_type is TARGETING_TYPE_VIEWABILITY. You can only target one viewability option per resource.
     #[serde(default, rename = "viewabilityDetails")]
-    pub viewability_details: Option<ViewabilityAssignedTargetingOptionDetails>,
+    pub viewability_details:
+        ::core::option::Option<::std::boxed::Box<ViewabilityAssignedTargetingOptionDetails>>,
     /// YouTube channel details. This field will be populated when the targeting_type is TARGETING_TYPE_YOUTUBE_CHANNEL.
     #[serde(default, rename = "youtubeChannelDetails")]
-    pub youtube_channel_details: Option<YoutubeChannelAssignedTargetingOptionDetails>,
+    pub youtube_channel_details:
+        ::core::option::Option<::std::boxed::Box<YoutubeChannelAssignedTargetingOptionDetails>>,
     /// YouTube video details. This field will be populated when the targeting_type is TARGETING_TYPE_YOUTUBE_VIDEO.
     #[serde(default, rename = "youtubeVideoDetails")]
-    pub youtube_video_details: Option<YoutubeVideoAssignedTargetingOptionDetails>,
+    pub youtube_video_details:
+        ::core::option::Option<::std::boxed::Box<YoutubeVideoAssignedTargetingOptionDetails>>,
 }
 
 /// A single assigned user role, which defines a user''s authorized interaction with a specified partner or advertiser.
@@ -1088,16 +1161,16 @@ pub struct AssignedTargetingOption {
 pub struct AssignedUserRole {
     /// The ID of the advertiser that the assigend user role applies to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Output only. The ID of the assigned user role.
     #[serde(default, rename = "assignedUserRoleId")]
-    pub assigned_user_role_id: Option<String>,
+    pub assigned_user_role_id: ::core::option::Option<String>,
     /// The ID of the partner that the assigned user role applies to.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
     /// Required. The user role to assign to a user for the entity. // TODO: enum values: ["USER_ROLE_UNSPECIFIED", "ADMIN", "ADMIN_PARTNER_CLIENT", "STANDARD", "STANDARD_PLANNER", "STANDARD_PLANNER_LIMITED", "STANDARD_PARTNER_CLIENT", "READ_ONLY", "REPORTING_ONLY", "LIMITED_REPORTING_ONLY", "CREATIVE", "CREATIVE_ADMIN"]
     #[serde(default, rename = "userRole")]
-    pub user_role: Option<String>,
+    pub user_role: ::core::option::Option<String>,
 }
 
 /// Assigned audience group targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_AUDIENCE_GROUP. The relation between each group is UNION, except for excluded_first_and_third_party_audience_group and excluded_google_audience_group, of which COMPLEMENT is used as an INTERSECTION with other groups.
@@ -1105,23 +1178,28 @@ pub struct AssignedUserRole {
 pub struct AudienceGroupAssignedTargetingOptionDetails {
     /// Optional. The first party and partner audience ids and recencies of the excluded first party and partner audience group. Used for negative targeting. The COMPLEMENT of the UNION of this group and other excluded audience groups is used as an INTERSECTION to any positive audience targeting. All items are logically ‘OR’ of each other.
     #[serde(default, rename = "excludedFirstPartyAndPartnerAudienceGroup")]
-    pub excluded_first_party_and_partner_audience_group: Option<FirstPartyAndPartnerAudienceGroup>,
+    pub excluded_first_party_and_partner_audience_group:
+        ::core::option::Option<::std::boxed::Box<FirstPartyAndPartnerAudienceGroup>>,
     /// Optional. The Google audience ids of the excluded Google audience group. Used for negative targeting. The COMPLEMENT of the UNION of this group and other excluded audience groups is used as an INTERSECTION to any positive audience targeting. Only contains Affinity, In-market and Installed-apps type Google audiences. All items are logically ‘OR’ of each other.
     #[serde(default, rename = "excludedGoogleAudienceGroup")]
-    pub excluded_google_audience_group: Option<GoogleAudienceGroup>,
+    pub excluded_google_audience_group:
+        ::core::option::Option<::std::boxed::Box<GoogleAudienceGroup>>,
     /// Optional. The combined audience ids of the included combined audience group. Contains combined audience ids only.
     #[serde(default, rename = "includedCombinedAudienceGroup")]
-    pub included_combined_audience_group: Option<CombinedAudienceGroup>,
+    pub included_combined_audience_group:
+        ::core::option::Option<::std::boxed::Box<CombinedAudienceGroup>>,
     /// Optional. The custom list ids of the included custom list group. Contains custom list ids only.
     #[serde(default, rename = "includedCustomListGroup")]
-    pub included_custom_list_group: Option<CustomListGroup>,
+    pub included_custom_list_group: ::core::option::Option<::std::boxed::Box<CustomListGroup>>,
     /// Optional. The first party and partner audience ids and recencies of included first party and partner audience groups. Each first party and partner audience group contains first party and partner audience ids only. The relation between each first party and partner audience group is INTERSECTION, and the result is UNION''ed with other audience groups. Repeated groups with the same settings will be ignored.
     #[serde(default, rename = "includedFirstPartyAndPartnerAudienceGroups")]
-    pub included_first_party_and_partner_audience_groups:
-        Option<Vec<FirstPartyAndPartnerAudienceGroup>>,
+    pub included_first_party_and_partner_audience_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<FirstPartyAndPartnerAudienceGroup>>,
+    >,
     /// Optional. The Google audience ids of the included Google audience group. Contains Google audience ids only.
     #[serde(default, rename = "includedGoogleAudienceGroup")]
-    pub included_google_audience_group: Option<GoogleAudienceGroup>,
+    pub included_google_audience_group:
+        ::core::option::Option<::std::boxed::Box<GoogleAudienceGroup>>,
 }
 
 /// Details for an audio ad.
@@ -1129,16 +1207,16 @@ pub struct AudienceGroupAssignedTargetingOptionDetails {
 pub struct AudioAd {
     /// The webpage address that appears with the ad.
     #[serde(default, rename = "displayUrl")]
-    pub display_url: Option<String>,
+    pub display_url: ::core::option::Option<String>,
     /// The URL address of the webpage that people reach after they click the ad.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// The URL address loaded in the background for tracking purposes.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// The YouTube video of the ad.
     #[serde(default)]
-    pub video: Option<YoutubeVideoDetails>,
+    pub video: ::core::option::Option<::std::boxed::Box<YoutubeVideoDetails>>,
 }
 
 /// Details for audio content type assigned targeting option. This will be populated in the audio_content_type_details field when targeting_type is TARGETING_TYPE_AUDIO_CONTENT_TYPE. Explicitly targeting all options is not supported. Remove all audio content type targeting options to achieve this effect.
@@ -1146,7 +1224,7 @@ pub struct AudioAd {
 pub struct AudioContentTypeAssignedTargetingOptionDetails {
     /// Required. The audio content type. // TODO: enum values: ["AUDIO_CONTENT_TYPE_UNSPECIFIED", "AUDIO_CONTENT_TYPE_UNKNOWN", "AUDIO_CONTENT_TYPE_MUSIC", "AUDIO_CONTENT_TYPE_BROADCAST", "AUDIO_CONTENT_TYPE_PODCAST"]
     #[serde(default, rename = "audioContentType")]
-    pub audio_content_type: Option<String>,
+    pub audio_content_type: ::core::option::Option<String>,
 }
 
 /// Represents a targetable audio content type. This will be populated in the audio_content_type_details field when targeting_type is TARGETING_TYPE_AUDIO_CONTENT_TYPE.
@@ -1154,7 +1232,7 @@ pub struct AudioContentTypeAssignedTargetingOptionDetails {
 pub struct AudioContentTypeTargetingOptionDetails {
     /// Output only. The audio content type. // TODO: enum values: ["AUDIO_CONTENT_TYPE_UNSPECIFIED", "AUDIO_CONTENT_TYPE_UNKNOWN", "AUDIO_CONTENT_TYPE_MUSIC", "AUDIO_CONTENT_TYPE_BROADCAST", "AUDIO_CONTENT_TYPE_PODCAST"]
     #[serde(default, rename = "audioContentType")]
-    pub audio_content_type: Option<String>,
+    pub audio_content_type: ::core::option::Option<String>,
 }
 
 /// The length an audio or a video has been played.
@@ -1162,10 +1240,10 @@ pub struct AudioContentTypeTargetingOptionDetails {
 pub struct AudioVideoOffset {
     /// Optional. The offset in percentage of the audio or video duration.
     #[serde(default)]
-    pub percentage: Option<String>,
+    pub percentage: ::core::option::Option<String>,
     /// Optional. The offset in seconds from the start of the audio or video.
     #[serde(default)]
-    pub seconds: Option<String>,
+    pub seconds: ::core::option::Option<String>,
 }
 
 /// Response message for AdvertiserService.AuditAdvertiser.
@@ -1173,28 +1251,28 @@ pub struct AudioVideoOffset {
 pub struct AuditAdvertiserResponse {
     /// The number of individual targeting options from the following targeting types that are assigned to a line item under this advertiser. These individual targeting options count towards the limit of 4500000 ad group targeting options per advertiser. Qualifying Targeting types: * Channels, URLs, apps, and collections * Demographic * Google Audiences, including Affinity, Custom Affinity, and In-market audiences * Inventory source * Keyword * Mobile app category * User lists * Video targeting * Viewability
     #[serde(default, rename = "adGroupCriteriaCount")]
-    pub ad_group_criteria_count: Option<String>,
+    pub ad_group_criteria_count: ::core::option::Option<String>,
     /// The number of individual targeting options from the following targeting types that are assigned to a line item under this advertiser. These individual targeting options count towards the limit of 900000 campaign targeting options per advertiser. Qualifying Targeting types: * Position * Browser * Connection speed * Day and time * Device and operating system * Digital content label * Sensitive categories * Environment * Geography, including business chains and proximity * ISP * Language * Third-party verification
     #[serde(default, rename = "campaignCriteriaCount")]
-    pub campaign_criteria_count: Option<String>,
+    pub campaign_criteria_count: ::core::option::Option<String>,
     /// The number of channels created under this advertiser. These channels count towards the limit of 1000 channels per advertiser.
     #[serde(default, rename = "channelsCount")]
-    pub channels_count: Option<String>,
+    pub channels_count: ::core::option::Option<String>,
     /// The number of negative keyword lists created under this advertiser. These negative keyword lists count towards the limit of 20 negative keyword lists per advertiser.
     #[serde(default, rename = "negativeKeywordListsCount")]
-    pub negative_keyword_lists_count: Option<String>,
+    pub negative_keyword_lists_count: ::core::option::Option<String>,
     /// The number of negatively targeted channels created under this advertiser. These negatively targeted channels count towards the limit of 5 negatively targeted channels per advertiser.
     #[serde(default, rename = "negativelyTargetedChannelsCount")]
-    pub negatively_targeted_channels_count: Option<String>,
+    pub negatively_targeted_channels_count: ::core::option::Option<String>,
     /// The number of ACTIVE and PAUSED campaigns under this advertiser. These campaigns count towards the limit of 9999 campaigns per advertiser.
     #[serde(default, rename = "usedCampaignsCount")]
-    pub used_campaigns_count: Option<String>,
+    pub used_campaigns_count: ::core::option::Option<String>,
     /// The number of ACTIVE, PAUSED and DRAFT insertion orders under this advertiser. These insertion orders count towards the limit of 9999 insertion orders per advertiser.
     #[serde(default, rename = "usedInsertionOrdersCount")]
-    pub used_insertion_orders_count: Option<String>,
+    pub used_insertion_orders_count: ::core::option::Option<String>,
     /// The number of ACTIVE, PAUSED, and DRAFT line items under this advertiser. These line items count towards the limit of 9999 line items per advertiser.
     #[serde(default, rename = "usedLineItemsCount")]
-    pub used_line_items_count: Option<String>,
+    pub used_line_items_count: ::core::option::Option<String>,
 }
 
 /// Represents an assigned authorized seller status. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_AUTHORIZED_SELLER_STATUS. If a resource does not have an TARGETING_TYPE_AUTHORIZED_SELLER_STATUS assigned targeting option, it is using the "Authorized Direct Sellers and Resellers" option.
@@ -1202,10 +1280,10 @@ pub struct AuditAdvertiserResponse {
 pub struct AuthorizedSellerStatusAssignedTargetingOptionDetails {
     /// Output only. The authorized seller status to target. // TODO: enum values: ["AUTHORIZED_SELLER_STATUS_UNSPECIFIED", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_DIRECT_SELLERS_ONLY", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_AND_NON_PARTICIPATING_PUBLISHERS"]
     #[serde(default, rename = "authorizedSellerStatus")]
-    pub authorized_seller_status: Option<String>,
+    pub authorized_seller_status: ::core::option::Option<String>,
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_AUTHORIZED_SELLER_STATUS.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable authorized seller status. This will be populated in the authorized_seller_status_details field when targeting_type is TARGETING_TYPE_AUTHORIZED_SELLER_STATUS.
@@ -1213,7 +1291,7 @@ pub struct AuthorizedSellerStatusAssignedTargetingOptionDetails {
 pub struct AuthorizedSellerStatusTargetingOptionDetails {
     /// Output only. The authorized seller status. // TODO: enum values: ["AUTHORIZED_SELLER_STATUS_UNSPECIFIED", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_DIRECT_SELLERS_ONLY", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_AND_NON_PARTICIPATING_PUBLISHERS"]
     #[serde(default, rename = "authorizedSellerStatus")]
-    pub authorized_seller_status: Option<String>,
+    pub authorized_seller_status: ::core::option::Option<String>,
 }
 
 /// Settings that control the bid strategy. Bid strategy determines the bid price.
@@ -1221,19 +1299,22 @@ pub struct AuthorizedSellerStatusTargetingOptionDetails {
 pub struct BiddingStrategy {
     /// A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.
     #[serde(default, rename = "demandGenBid")]
-    pub demand_gen_bid: Option<DemandGenBiddingStrategy>,
+    pub demand_gen_bid: ::core::option::Option<::std::boxed::Box<DemandGenBiddingStrategy>>,
     /// A strategy that uses a fixed bid price.
     #[serde(default, rename = "fixedBid")]
-    pub fixed_bid: Option<FixedBidStrategy>,
+    pub fixed_bid: ::core::option::Option<::std::boxed::Box<FixedBidStrategy>>,
     /// A strategy that automatically adjusts the bid to optimize to your performance goal while spending the full budget. At insertion order level, the markup_type of line items cannot be set to PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM. In addition, the performance_goal_type value assigned to an insertion order determines the possible line_item_type values available for line items under that insertion order: * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA, BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC, and BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED only allow for LINE_ITEM_TYPE_DISPLAY_DEFAULT or LINE_ITEM_TYPE_VIDEO_DEFAULT line items. * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA and BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN only allow for LINE_ITEM_TYPE_VIDEO_DEFAULT line items. * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH only allows for LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP line items.
     #[serde(default, rename = "maximizeSpendAutoBid")]
-    pub maximize_spend_auto_bid: Option<MaximizeSpendBidStrategy>,
+    pub maximize_spend_auto_bid:
+        ::core::option::Option<::std::boxed::Box<MaximizeSpendBidStrategy>>,
     /// A strategy that automatically adjusts the bid to meet or beat a specified performance goal. It is to be used only for a line item entity.
     #[serde(default, rename = "performanceGoalAutoBid")]
-    pub performance_goal_auto_bid: Option<PerformanceGoalBidStrategy>,
+    pub performance_goal_auto_bid:
+        ::core::option::Option<::std::boxed::Box<PerformanceGoalBidStrategy>>,
     /// A bid strategy used by YouTube and Partners resources. It can only be used for a YouTube and Partners line item or ad group entity.
     #[serde(default, rename = "youtubeAndPartnersBid")]
-    pub youtube_and_partners_bid: Option<YoutubeAndPartnersBiddingStrategy>,
+    pub youtube_and_partners_bid:
+        ::core::option::Option<::std::boxed::Box<YoutubeAndPartnersBiddingStrategy>>,
 }
 
 /// Details for assigned browser targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_BROWSER.
@@ -1241,13 +1322,13 @@ pub struct BiddingStrategy {
 pub struct BrowserAssignedTargetingOptionDetails {
     /// Output only. The display name of the browser.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted. All assigned browser targeting options on the same resource must have the same value for this field.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_BROWSER.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable browser. This will be populated in the browser_details field when targeting_type is TARGETING_TYPE_BROWSER.
@@ -1255,7 +1336,7 @@ pub struct BrowserAssignedTargetingOptionDetails {
 pub struct BrowserTargetingOptionDetails {
     /// Output only. The display name of the browser.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Summarized information of an individual campaign budget.
@@ -1263,19 +1344,19 @@ pub struct BrowserTargetingOptionDetails {
 pub struct BudgetSummary {
     /// Corresponds to the external_budget_id of a campaign budget. If the value is not set in the campaign budget, this field will be empty.
     #[serde(default, rename = "externalBudgetId")]
-    pub external_budget_id: Option<String>,
+    pub external_budget_id: ::core::option::Option<String>,
     /// The sum of charges made under this budget before taxes, in micros of the invoice''s currency. For example, if currency_code is USD, then 1000000 represents one US dollar.
     #[serde(default, rename = "preTaxAmountMicros")]
-    pub pre_tax_amount_micros: Option<String>,
+    pub pre_tax_amount_micros: ::core::option::Option<String>,
     /// Relevant client, product, and estimate codes from the Mediaocean Prisma tool. Only applicable for campaign budgets with an external_budget_source of EXTERNAL_BUDGET_SOURCE_MEDIA_OCEAN.
     #[serde(default, rename = "prismaCpeCode")]
-    pub prisma_cpe_code: Option<PrismaCpeCode>,
+    pub prisma_cpe_code: ::core::option::Option<::std::boxed::Box<PrismaCpeCode>>,
     /// The amount of tax applied to charges under this budget, in micros of the invoice''s currency. For example, if currency_code is USD, then 1000000 represents one US dollar.
     #[serde(default, rename = "taxAmountMicros")]
-    pub tax_amount_micros: Option<String>,
+    pub tax_amount_micros: ::core::option::Option<String>,
     /// The total sum of charges made under this budget, including tax, in micros of the invoice''s currency. For example, if currency_code is USD, then 1000000 represents one US dollar.
     #[serde(default, rename = "totalAmountMicros")]
-    pub total_amount_micros: Option<String>,
+    pub total_amount_micros: ::core::option::Option<String>,
 }
 
 /// A request message for BulkCreateAdAssets.
@@ -1283,7 +1364,7 @@ pub struct BudgetSummary {
 pub struct BulkCreateAdAssetsRequest {
     /// Required. Ad assets to create. Only supports assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
     #[serde(default, rename = "adAssets")]
-    pub ad_assets: Option<Vec<AdAsset>>,
+    pub ad_assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdAsset>>>,
 }
 
 /// A response message for BulkCreateAdAssets.
@@ -1291,7 +1372,7 @@ pub struct BulkCreateAdAssetsRequest {
 pub struct BulkCreateAdAssetsResponse {
     /// The created ad assets.
     #[serde(default, rename = "adAssets")]
-    pub ad_assets: Option<Vec<AdAsset>>,
+    pub ad_assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdAsset>>>,
 }
 
 /// Request message for BulkEditAdGroupAssignedTargetingOptions.
@@ -1299,13 +1380,17 @@ pub struct BulkCreateAdAssetsResponse {
 pub struct BulkEditAdGroupAssignedTargetingOptionsRequest {
     /// Required. The IDs of the ad groups the assigned targeting options will belong to. A maximum of 25 ad group IDs can be specified.
     #[serde(default, rename = "adGroupIds")]
-    pub ad_group_ids: Option<Vec<String>>,
+    pub ad_group_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionRequest. Supported targeting types: * TARGETING_TYPE_AGE_RANGE * TARGETING_TYPE_APP * TARGETING_TYPE_APP_CATEGORY * TARGETING_TYPE_AUDIENCE_GROUP * TARGETING_TYPE_CATEGORY * TARGETING_TYPE_GENDER * TARGETING_TYPE_GEO_REGION * TARGETING_TYPE_HOUSEHOLD_INCOME * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_LANGUAGE * TARGETING_TYPE_PARENTAL_STATUS * TARGETING_TYPE_REGIONAL_LOCATION_LIST * TARGETING_TYPE_URL * TARGETING_TYPE_YOUTUBE_CHANNEL * TARGETING_TYPE_YOUTUBE_VIDEO
     #[serde(default, rename = "createRequests")]
-    pub create_requests: Option<Vec<CreateAssignedTargetingOptionsRequest>>,
+    pub create_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CreateAssignedTargetingOptionsRequest>>,
+    >,
     /// Optional. The assigned targeting options to delete in batch, specified as a list of DeleteAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_AGE_RANGE * TARGETING_TYPE_APP * TARGETING_TYPE_APP_CATEGORY * TARGETING_TYPE_AUDIENCE_GROUP * TARGETING_TYPE_CATEGORY * TARGETING_TYPE_GENDER * TARGETING_TYPE_GEO_REGION * TARGETING_TYPE_HOUSEHOLD_INCOME * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_LANGUAGE * TARGETING_TYPE_PARENTAL_STATUS * TARGETING_TYPE_REGIONAL_LOCATION_LIST * TARGETING_TYPE_URL * TARGETING_TYPE_YOUTUBE_CHANNEL * TARGETING_TYPE_YOUTUBE_VIDEO
     #[serde(default, rename = "deleteRequests")]
-    pub delete_requests: Option<Vec<DeleteAssignedTargetingOptionsRequest>>,
+    pub delete_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<DeleteAssignedTargetingOptionsRequest>>,
+    >,
 }
 
 /// Response message for BulkEditAssignedTargetingOptions.
@@ -1313,13 +1398,13 @@ pub struct BulkEditAdGroupAssignedTargetingOptionsRequest {
 pub struct BulkEditAdGroupAssignedTargetingOptionsResponse {
     /// Output only. The error information for each ad group that failed to update.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Output only. The IDs of the ad groups which failed to update.
     #[serde(default, rename = "failedAdGroupIds")]
-    pub failed_ad_group_ids: Option<Vec<String>>,
+    pub failed_ad_group_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The IDs of the ad groups which were successfully updated.
     #[serde(default, rename = "updatedAdGroupIds")]
-    pub updated_ad_group_ids: Option<Vec<String>>,
+    pub updated_ad_group_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for BulkEditAdvertiserAssignedTargetingOptions.
@@ -1327,10 +1412,14 @@ pub struct BulkEditAdGroupAssignedTargetingOptionsResponse {
 pub struct BulkEditAdvertiserAssignedTargetingOptionsRequest {
     /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_OMID * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_INVENTORY_MODE
     #[serde(default, rename = "createRequests")]
-    pub create_requests: Option<Vec<CreateAssignedTargetingOptionsRequest>>,
+    pub create_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CreateAssignedTargetingOptionsRequest>>,
+    >,
     /// The assigned targeting options to delete in batch, specified as a list of DeleteAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_OMID * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_INVENTORY_MODE
     #[serde(default, rename = "deleteRequests")]
-    pub delete_requests: Option<Vec<DeleteAssignedTargetingOptionsRequest>>,
+    pub delete_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<DeleteAssignedTargetingOptionsRequest>>,
+    >,
 }
 
 /// BulkEditAdvertiserAssignedTargetingOptionsResponse resource type.
@@ -1338,7 +1427,8 @@ pub struct BulkEditAdvertiserAssignedTargetingOptionsRequest {
 pub struct BulkEditAdvertiserAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "createdAssignedTargetingOptions")]
-    pub created_assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub created_assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
 }
 
 /// Request message for AssignedInventorySourceService.BulkEdit.
@@ -1346,16 +1436,17 @@ pub struct BulkEditAdvertiserAssignedTargetingOptionsResponse {
 pub struct BulkEditAssignedInventorySourcesRequest {
     /// The ID of the advertiser that owns the parent inventory source group. The parent partner does not have access to these assigned inventory sources.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// The assigned inventory sources to create in bulk, specified as a list of AssignedInventorySources.
     #[serde(default, rename = "createdAssignedInventorySources")]
-    pub created_assigned_inventory_sources: Option<Vec<AssignedInventorySource>>,
+    pub created_assigned_inventory_sources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedInventorySource>>>,
     /// The IDs of the assigned inventory sources to delete in bulk, specified as a list of assigned_inventory_source_ids.
     #[serde(default, rename = "deletedAssignedInventorySources")]
-    pub deleted_assigned_inventory_sources: Option<Vec<String>>,
+    pub deleted_assigned_inventory_sources: ::core::option::Option<::std::vec::Vec<String>>,
     /// The ID of the partner that owns the inventory source group. Only this partner has write access to these assigned inventory sources.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
 }
 
 /// Response message for AssignedInventorySourceService.BulkEdit.
@@ -1363,7 +1454,8 @@ pub struct BulkEditAssignedInventorySourcesRequest {
 pub struct BulkEditAssignedInventorySourcesResponse {
     /// The list of assigned inventory sources that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "assignedInventorySources")]
-    pub assigned_inventory_sources: Option<Vec<AssignedInventorySource>>,
+    pub assigned_inventory_sources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedInventorySource>>>,
 }
 
 /// Request message for AssignedLocationService.BulkEditAssignedLocations.
@@ -1371,10 +1463,11 @@ pub struct BulkEditAssignedInventorySourcesResponse {
 pub struct BulkEditAssignedLocationsRequest {
     /// The assigned locations to create in bulk, specified as a list of AssignedLocation resources.
     #[serde(default, rename = "createdAssignedLocations")]
-    pub created_assigned_locations: Option<Vec<AssignedLocation>>,
+    pub created_assigned_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedLocation>>>,
     /// The IDs of the assigned locations to delete in bulk, specified as a list of assignedLocationId values.
     #[serde(default, rename = "deletedAssignedLocations")]
-    pub deleted_assigned_locations: Option<Vec<String>>,
+    pub deleted_assigned_locations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// BulkEditAssignedLocationsResponse resource type.
@@ -1382,7 +1475,8 @@ pub struct BulkEditAssignedLocationsRequest {
 pub struct BulkEditAssignedLocationsResponse {
     /// The list of assigned locations that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "assignedLocations")]
-    pub assigned_locations: Option<Vec<AssignedLocation>>,
+    pub assigned_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedLocation>>>,
 }
 
 /// Request message for BulkEditLineItemsAssignedTargetingOptions.
@@ -1390,13 +1484,17 @@ pub struct BulkEditAssignedLocationsResponse {
 pub struct BulkEditAssignedTargetingOptionsRequest {
     /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types include: * TARGETING_TYPE_AGE_RANGE * TARGETING_TYPE_APP * TARGETING_TYPE_APP_CATEGORY * TARGETING_TYPE_AUDIENCE_GROUP * TARGETING_TYPE_AUDIO_CONTENT_TYPE * TARGETING_TYPE_AUTHORIZED_SELLER_STATUS * TARGETING_TYPE_BROWSER * TARGETING_TYPE_BUSINESS_CHAIN * TARGETING_TYPE_CARRIER_AND_ISP * TARGETING_TYPE_CATEGORY * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_CONTENT_DURATION * TARGETING_TYPE_CONTENT_GENRE * TARGETING_TYPE_CONTENT_INSTREAM_POSITION * TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION * TARGETING_TYPE_CONTENT_STREAM_TYPE * TARGETING_TYPE_DAY_AND_TIME * TARGETING_TYPE_DEVICE_MAKE_MODEL * TARGETING_TYPE_DEVICE_TYPE * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_ENVIRONMENT * TARGETING_TYPE_EXCHANGE * TARGETING_TYPE_GENDER * TARGETING_TYPE_GEO_REGION * TARGETING_TYPE_HOUSEHOLD_INCOME * TARGETING_TYPE_INVENTORY_SOURCE * TARGETING_TYPE_INVENTORY_SOURCE_GROUP * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_LANGUAGE * TARGETING_TYPE_NATIVE_CONTENT_POSITION * TARGETING_TYPE_NEGATIVE_KEYWORD_LIST * TARGETING_TYPE_OMID * TARGETING_TYPE_ON_SCREEN_POSITION * TARGETING_TYPE_OPERATING_SYSTEM * TARGETING_TYPE_PARENTAL_STATUS * TARGETING_TYPE_POI * TARGETING_TYPE_PROXIMITY_LOCATION_LIST * TARGETING_TYPE_REGIONAL_LOCATION_LIST * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_SUB_EXCHANGE * TARGETING_TYPE_THIRD_PARTY_VERIFIER * TARGETING_TYPE_URL * TARGETING_TYPE_USER_REWARDED_CONTENT * TARGETING_TYPE_VIDEO_PLAYER_SIZE * TARGETING_TYPE_VIEWABILITY
     #[serde(default, rename = "createRequests")]
-    pub create_requests: Option<Vec<CreateAssignedTargetingOptionsRequest>>,
+    pub create_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CreateAssignedTargetingOptionsRequest>>,
+    >,
     /// The assigned targeting options to delete in batch, specified as a list of DeleteAssignedTargetingOptionsRequest. Supported targeting types include: * TARGETING_TYPE_AGE_RANGE * TARGETING_TYPE_APP * TARGETING_TYPE_APP_CATEGORY * TARGETING_TYPE_AUDIENCE_GROUP * TARGETING_TYPE_AUDIO_CONTENT_TYPE * TARGETING_TYPE_AUTHORIZED_SELLER_STATUS * TARGETING_TYPE_BROWSER * TARGETING_TYPE_BUSINESS_CHAIN * TARGETING_TYPE_CARRIER_AND_ISP * TARGETING_TYPE_CATEGORY * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_CONTENT_DURATION * TARGETING_TYPE_CONTENT_GENRE * TARGETING_TYPE_CONTENT_INSTREAM_POSITION * TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION * TARGETING_TYPE_CONTENT_STREAM_TYPE * TARGETING_TYPE_DAY_AND_TIME * TARGETING_TYPE_DEVICE_MAKE_MODEL * TARGETING_TYPE_DEVICE_TYPE * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_ENVIRONMENT * TARGETING_TYPE_EXCHANGE * TARGETING_TYPE_GENDER * TARGETING_TYPE_GEO_REGION * TARGETING_TYPE_HOUSEHOLD_INCOME * TARGETING_TYPE_INVENTORY_SOURCE * TARGETING_TYPE_INVENTORY_SOURCE_GROUP * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_LANGUAGE * TARGETING_TYPE_NATIVE_CONTENT_POSITION * TARGETING_TYPE_NEGATIVE_KEYWORD_LIST * TARGETING_TYPE_OMID * TARGETING_TYPE_ON_SCREEN_POSITION * TARGETING_TYPE_OPERATING_SYSTEM * TARGETING_TYPE_PARENTAL_STATUS * TARGETING_TYPE_POI * TARGETING_TYPE_PROXIMITY_LOCATION_LIST * TARGETING_TYPE_REGIONAL_LOCATION_LIST * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_SUB_EXCHANGE * TARGETING_TYPE_THIRD_PARTY_VERIFIER * TARGETING_TYPE_URL * TARGETING_TYPE_USER_REWARDED_CONTENT * TARGETING_TYPE_VIDEO_PLAYER_SIZE * TARGETING_TYPE_VIEWABILITY
     #[serde(default, rename = "deleteRequests")]
-    pub delete_requests: Option<Vec<DeleteAssignedTargetingOptionsRequest>>,
+    pub delete_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<DeleteAssignedTargetingOptionsRequest>>,
+    >,
     /// Required. The ID of the line items whose targeting is being updated.
     #[serde(default, rename = "lineItemIds")]
-    pub line_item_ids: Option<Vec<String>>,
+    pub line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// BulkEditAssignedTargetingOptionsResponse resource type.
@@ -1404,13 +1502,13 @@ pub struct BulkEditAssignedTargetingOptionsRequest {
 pub struct BulkEditAssignedTargetingOptionsResponse {
     /// The error information for each line item that failed to update.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Output only. The IDs of the line items which failed.
     #[serde(default, rename = "failedLineItemIds")]
-    pub failed_line_item_ids: Option<Vec<String>>,
+    pub failed_line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The IDs of the line items which successfully updated.
     #[serde(default, rename = "updatedLineItemIds")]
-    pub updated_line_item_ids: Option<Vec<String>>,
+    pub updated_line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for BulkEditAssignedUserRoles.
@@ -1418,10 +1516,11 @@ pub struct BulkEditAssignedTargetingOptionsResponse {
 pub struct BulkEditAssignedUserRolesRequest {
     /// The assigned user roles to create in batch, specified as a list of AssignedUserRoles.
     #[serde(default, rename = "createdAssignedUserRoles")]
-    pub created_assigned_user_roles: Option<Vec<AssignedUserRole>>,
+    pub created_assigned_user_roles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedUserRole>>>,
     /// The assigned user roles to delete in batch, specified as a list of assigned_user_role_ids. The format of assigned_user_role_id is entityType-entityid, for example partner-123.
     #[serde(default, rename = "deletedAssignedUserRoles")]
-    pub deleted_assigned_user_roles: Option<Vec<String>>,
+    pub deleted_assigned_user_roles: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// BulkEditAssignedUserRolesResponse resource type.
@@ -1429,7 +1528,8 @@ pub struct BulkEditAssignedUserRolesRequest {
 pub struct BulkEditAssignedUserRolesResponse {
     /// The list of assigned user roles that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "createdAssignedUserRoles")]
-    pub created_assigned_user_roles: Option<Vec<AssignedUserRole>>,
+    pub created_assigned_user_roles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedUserRole>>>,
 }
 
 /// Request message for NegativeKeywordService.BulkEditNegativeKeywords.
@@ -1437,10 +1537,11 @@ pub struct BulkEditAssignedUserRolesResponse {
 pub struct BulkEditNegativeKeywordsRequest {
     /// The negative keywords to create in batch, specified as a list of NegativeKeywords.
     #[serde(default, rename = "createdNegativeKeywords")]
-    pub created_negative_keywords: Option<Vec<NegativeKeyword>>,
+    pub created_negative_keywords:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NegativeKeyword>>>,
     /// The negative keywords to delete in batch, specified as a list of keyword_values.
     #[serde(default, rename = "deletedNegativeKeywords")]
-    pub deleted_negative_keywords: Option<Vec<String>>,
+    pub deleted_negative_keywords: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for NegativeKeywordService.BulkEditNegativeKeywords.
@@ -1448,7 +1549,8 @@ pub struct BulkEditNegativeKeywordsRequest {
 pub struct BulkEditNegativeKeywordsResponse {
     /// The list of negative keywords that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "negativeKeywords")]
-    pub negative_keywords: Option<Vec<NegativeKeyword>>,
+    pub negative_keywords:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NegativeKeyword>>>,
 }
 
 /// Request message for BulkEditPartnerAssignedTargetingOptions.
@@ -1456,10 +1558,14 @@ pub struct BulkEditNegativeKeywordsResponse {
 pub struct BulkEditPartnerAssignedTargetingOptionsRequest {
     /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL
     #[serde(default, rename = "createRequests")]
-    pub create_requests: Option<Vec<CreateAssignedTargetingOptionsRequest>>,
+    pub create_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CreateAssignedTargetingOptionsRequest>>,
+    >,
     /// The assigned targeting options to delete in batch, specified as a list of DeleteAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL
     #[serde(default, rename = "deleteRequests")]
-    pub delete_requests: Option<Vec<DeleteAssignedTargetingOptionsRequest>>,
+    pub delete_requests: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<DeleteAssignedTargetingOptionsRequest>>,
+    >,
 }
 
 /// BulkEditPartnerAssignedTargetingOptionsResponse resource type.
@@ -1467,7 +1573,8 @@ pub struct BulkEditPartnerAssignedTargetingOptionsRequest {
 pub struct BulkEditPartnerAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "createdAssignedTargetingOptions")]
-    pub created_assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub created_assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
 }
 
 /// Request message for SiteService.BulkEditSites.
@@ -1475,16 +1582,16 @@ pub struct BulkEditPartnerAssignedTargetingOptionsResponse {
 pub struct BulkEditSitesRequest {
     /// The ID of the advertiser that owns the parent channel.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// The sites to create in batch, specified as a list of Sites.
     #[serde(default, rename = "createdSites")]
-    pub created_sites: Option<Vec<Site>>,
+    pub created_sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Site>>>,
     /// The sites to delete in batch, specified as a list of site url_or_app_ids.
     #[serde(default, rename = "deletedSites")]
-    pub deleted_sites: Option<Vec<String>>,
+    pub deleted_sites: ::core::option::Option<::std::vec::Vec<String>>,
     /// The ID of the partner that owns the parent channel.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
 }
 
 /// Response message for SiteService.BulkEditSites.
@@ -1492,7 +1599,7 @@ pub struct BulkEditSitesRequest {
 pub struct BulkEditSitesResponse {
     /// The list of sites that have been successfully created. This list will be absent if empty.
     #[serde(default)]
-    pub sites: Option<Vec<Site>>,
+    pub sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Site>>>,
 }
 
 /// BulkListAdGroupAssignedTargetingOptionsResponse resource type.
@@ -1500,10 +1607,11 @@ pub struct BulkEditSitesResponse {
 pub struct BulkListAdGroupAssignedTargetingOptionsResponse {
     /// The list of wrapper objects, each providing an assigned targeting option and the ad group it is assigned to. This list will be absent if empty.
     #[serde(default, rename = "adGroupAssignedTargetingOptions")]
-    pub ad_group_assigned_targeting_options: Option<Vec<AdGroupAssignedTargetingOption>>,
+    pub ad_group_assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdGroupAssignedTargetingOption>>>,
     /// A token identifying the next page of results. This value should be specified as the pageToken in a subsequent call to BulkListAdGroupAssignedTargetingOptions to fetch the next page of results. This token will be absent if there are no more AdGroupAssignedTargetingOption resources to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// BulkListAdvertiserAssignedTargetingOptionsResponse resource type.
@@ -1511,10 +1619,11 @@ pub struct BulkListAdGroupAssignedTargetingOptionsResponse {
 pub struct BulkListAdvertiserAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
-    pub assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
     /// A token identifying the next page of results. This value should be specified as the pageToken in a subsequent BulkListAdvertiserAssignedTargetingOptionsRequest to fetch the next page of results. This token will be absent if there are no more assigned_targeting_options to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// BulkListAssignedTargetingOptionsResponse resource type.
@@ -1522,10 +1631,11 @@ pub struct BulkListAdvertiserAssignedTargetingOptionsResponse {
 pub struct BulkListAssignedTargetingOptionsResponse {
     /// The list of wrapper objects, each providing an assigned targeting option and the line item it is assigned to. This list will be absent if empty.
     #[serde(default, rename = "lineItemAssignedTargetingOptions")]
-    pub line_item_assigned_targeting_options: Option<Vec<LineItemAssignedTargetingOption>>,
+    pub line_item_assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LineItemAssignedTargetingOption>>>,
     /// A token identifying the next page of results. This value should be specified as the pageToken in a subsequent call to BulkListAssignedTargetingOptions to fetch the next page of results. This token will be absent if there are no more line_item_assigned_targeting_options to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Request message for LineItemService.BulkUpdateLineItems.
@@ -1533,13 +1643,13 @@ pub struct BulkListAssignedTargetingOptionsResponse {
 pub struct BulkUpdateLineItemsRequest {
     /// Required. IDs of line items to update.
     #[serde(default, rename = "lineItemIds")]
-    pub line_item_ids: Option<Vec<String>>,
+    pub line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. A line item object containing the fields to be updated and the new values to assign to all line items specified in line_item_ids."
     #[serde(default, rename = "targetLineItem")]
-    pub target_line_item: Option<LineItem>,
+    pub target_line_item: ::core::option::Option<::std::boxed::Box<LineItem>>,
     /// Required. A field mask identifying which fields to update. Only the following fields are currently supported: * entityStatus * containsEuPoliticalAds
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Response message for LineItemService.BulkUpdateLineItems.
@@ -1547,16 +1657,16 @@ pub struct BulkUpdateLineItemsRequest {
 pub struct BulkUpdateLineItemsResponse {
     /// Errors returned by line items that failed to update.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// The IDs of line items that failed to update.
     #[serde(default, rename = "failedLineItemIds")]
-    pub failed_line_item_ids: Option<Vec<String>>,
+    pub failed_line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The IDs of line items that are skipped for updates. For example, unnecessary mutates that will result in effectively no changes to line items will be skipped and corresponding line item IDs can be tracked here.
     #[serde(default, rename = "skippedLineItemIds")]
-    pub skipped_line_item_ids: Option<Vec<String>>,
+    pub skipped_line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The IDs of successfully updated line items.
     #[serde(default, rename = "updatedLineItemIds")]
-    pub updated_line_item_ids: Option<Vec<String>>,
+    pub updated_line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Details for a bumper ad.
@@ -1564,7 +1674,8 @@ pub struct BulkUpdateLineItemsResponse {
 pub struct BumperAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
-    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
+    pub common_in_stream_attribute:
+        ::core::option::Option<::std::boxed::Box<CommonInStreamAttribute>>,
 }
 
 /// Details for assigned Business chain targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_BUSINESS_CHAIN.
@@ -1572,16 +1683,16 @@ pub struct BumperAd {
 pub struct BusinessChainAssignedTargetingOptionDetails {
     /// Output only. The display name of a business chain, e.g. "KFC", "Chase Bank".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The radius of the area around the business chain that will be targeted. The units of the radius are specified by proximity_radius_unit. Must be 1 to 800 if unit is DISTANCE_UNIT_KILOMETERS and 1 to 500 if unit is DISTANCE_UNIT_MILES. The minimum increment for both cases is 0.1. Inputs will be rounded to the nearest acceptable value if it is too granular, e.g. 15.57 will become 15.6.
     #[serde(default, rename = "proximityRadiusAmount")]
-    pub proximity_radius_amount: Option<f64>,
+    pub proximity_radius_amount: ::core::option::Option<f64>,
     /// Required. The unit of distance by which the targeting radius is measured. // TODO: enum values: ["DISTANCE_UNIT_UNSPECIFIED", "DISTANCE_UNIT_MILES", "DISTANCE_UNIT_KILOMETERS"]
     #[serde(default, rename = "proximityRadiusUnit")]
-    pub proximity_radius_unit: Option<String>,
+    pub proximity_radius_unit: ::core::option::Option<String>,
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_BUSINESS_CHAIN. Accepted business chain targeting option IDs can be retrieved using SearchTargetingOptions.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Search terms for Business Chain targeting options. At least one of the field should be populated.
@@ -1589,10 +1700,10 @@ pub struct BusinessChainAssignedTargetingOptionDetails {
 pub struct BusinessChainSearchTerms {
     /// The search query for the desired business chain. The query must be the full name of the business, e.g. "KFC", "mercedes-benz".
     #[serde(default, rename = "businessChainQuery")]
-    pub business_chain_query: Option<String>,
+    pub business_chain_query: ::core::option::Option<String>,
     /// The search query for the desired geo region, e.g. "Seattle", "United State".
     #[serde(default, rename = "regionQuery")]
-    pub region_query: Option<String>,
+    pub region_query: ::core::option::Option<String>,
 }
 
 /// Represents a targetable business chain within a geo region. This will be populated in the business_chain_details field when targeting_type is TARGETING_TYPE_BUSINESS_CHAIN.
@@ -1600,13 +1711,13 @@ pub struct BusinessChainSearchTerms {
 pub struct BusinessChainTargetingOptionDetails {
     /// Output only. The display name of the business chain, e.g. "KFC", "Chase Bank".
     #[serde(default, rename = "businessChain")]
-    pub business_chain: Option<String>,
+    pub business_chain: ::core::option::Option<String>,
     /// Output only. The display name of the geographic region, e.g. "Ontario, Canada".
     #[serde(default, rename = "geoRegion")]
-    pub geo_region: Option<String>,
+    pub geo_region: ::core::option::Option<String>,
     /// Output only. The type of the geographic region. // TODO: enum values: ["GEO_REGION_TYPE_UNKNOWN", "GEO_REGION_TYPE_OTHER", "GEO_REGION_TYPE_COUNTRY", "GEO_REGION_TYPE_REGION", "GEO_REGION_TYPE_TERRITORY", "GEO_REGION_TYPE_PROVINCE", "GEO_REGION_TYPE_STATE", "GEO_REGION_TYPE_PREFECTURE", "GEO_REGION_TYPE_GOVERNORATE", "GEO_REGION_TYPE_CANTON", "GEO_REGION_TYPE_UNION_TERRITORY", "GEO_REGION_TYPE_AUTONOMOUS_COMMUNITY", "GEO_REGION_TYPE_DMA_REGION", "GEO_REGION_TYPE_METRO", "GEO_REGION_TYPE_CONGRESSIONAL_DISTRICT", "GEO_REGION_TYPE_COUNTY", "GEO_REGION_TYPE_MUNICIPALITY", "GEO_REGION_TYPE_CITY", "GEO_REGION_TYPE_POSTAL_CODE", "GEO_REGION_TYPE_DEPARTMENT", "GEO_REGION_TYPE_AIRPORT", "GEO_REGION_TYPE_TV_REGION", "GEO_REGION_TYPE_OKRUG", "GEO_REGION_TYPE_BOROUGH", "GEO_REGION_TYPE_CITY_REGION", "GEO_REGION_TYPE_ARRONDISSEMENT", "GEO_REGION_TYPE_NEIGHBORHOOD", "GEO_REGION_TYPE_UNIVERSITY", "GEO_REGION_TYPE_DISTRICT", "GEO_REGION_TYPE_NATIONAL_PARK", "GEO_REGION_TYPE_BARRIO", "GEO_REGION_TYPE_SUB_WARD", "GEO_REGION_TYPE_MUNICIPALITY_DISTRICT", "GEO_REGION_TYPE_SUB_DISTRICT", "GEO_REGION_TYPE_QUARTER", "GEO_REGION_TYPE_DIVISION", "GEO_REGION_TYPE_COMMUNE", "GEO_REGION_TYPE_COLLOQUIAL_AREA", "GEO_REGION_TYPE_POST_TOWN"]
     #[serde(default, rename = "geoRegionType")]
-    pub geo_region_type: Option<String>,
+    pub geo_region_type: ::core::option::Option<String>,
 }
 
 /// A single campaign.
@@ -1614,34 +1725,35 @@ pub struct BusinessChainTargetingOptionDetails {
 pub struct Campaign {
     /// Output only. The unique ID of the advertiser the campaign belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// The list of budgets available to this campaign. If this field is not set, the campaign uses an unlimited budget.
     #[serde(default, rename = "campaignBudgets")]
-    pub campaign_budgets: Option<Vec<CampaignBudget>>,
+    pub campaign_budgets:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CampaignBudget>>>,
     /// Required. The planned spend and duration of the campaign.
     #[serde(default, rename = "campaignFlight")]
-    pub campaign_flight: Option<CampaignFlight>,
+    pub campaign_flight: ::core::option::Option<::std::boxed::Box<CampaignFlight>>,
     /// Required. The goal of the campaign.
     #[serde(default, rename = "campaignGoal")]
-    pub campaign_goal: Option<CampaignGoal>,
+    pub campaign_goal: ::core::option::Option<::std::boxed::Box<CampaignGoal>>,
     /// Output only. The unique ID of the campaign. Assigned by the system.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Required. The display name of the campaign. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Controls whether or not the insertion orders under this campaign can spend their budgets and bid on inventory. * Accepted values are ENTITY_STATUS_ACTIVE, ENTITY_STATUS_ARCHIVED, and ENTITY_STATUS_PAUSED. * For CreateCampaign method, ENTITY_STATUS_ARCHIVED is not allowed. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Required. The frequency cap setting of the campaign. *Warning*: On **February 28, 2025**, frequency cap time periods greater than 30 days will no longer be accepted. [Read more about this announced change](/display-video/api/deprecations#features.lifetime_frequency_cap)
     #[serde(default, rename = "frequencyCap")]
-    pub frequency_cap: Option<FrequencyCap>,
+    pub frequency_cap: ::core::option::Option<::std::boxed::Box<FrequencyCap>>,
     /// Output only. The resource name of the campaign.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The timestamp when the campaign was last updated. Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Settings that control how the campaign budget is allocated.
@@ -1649,31 +1761,31 @@ pub struct Campaign {
 pub struct CampaignBudget {
     /// Required. The total amount the linked insertion order segments can budget. The amount is in micros. Must be greater than 0. For example, 500000000 represents 500 standard units of the currency.
     #[serde(default, rename = "budgetAmountMicros")]
-    pub budget_amount_micros: Option<String>,
+    pub budget_amount_micros: ::core::option::Option<String>,
     /// The unique ID of the campaign budget. Assigned by the system. Do not set for new budgets. Must be included when updating or adding budgets to campaign_budgets. Otherwise, a new ID will be generated and assigned.
     #[serde(default, rename = "budgetId")]
-    pub budget_id: Option<String>,
+    pub budget_id: ::core::option::Option<String>,
     /// Required. Immutable. Specifies whether the budget is measured in currency or impressions. // TODO: enum values: ["BUDGET_UNIT_UNSPECIFIED", "BUDGET_UNIT_CURRENCY", "BUDGET_UNIT_IMPRESSIONS"]
     #[serde(default, rename = "budgetUnit")]
-    pub budget_unit: Option<String>,
+    pub budget_unit: ::core::option::Option<String>,
     /// Required. The date range for the campaign budget. Linked budget segments may have a different date range. They are resolved relative to the parent advertiser''s time zone. Both start_date and end_date must be before the year 2037.
     #[serde(default, rename = "dateRange")]
-    pub date_range: Option<DateRange>,
+    pub date_range: ::core::option::Option<::std::boxed::Box<DateRange>>,
     /// Required. The display name of the budget. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. The ID identifying this budget to the external source. If this field is set and the invoice detail level of the corresponding billing profile is set to "Budget level PO", all impressions served against this budget will include this ID on the invoice. Must be unique under the campaign.
     #[serde(default, rename = "externalBudgetId")]
-    pub external_budget_id: Option<String>,
+    pub external_budget_id: ::core::option::Option<String>,
     /// Required. The external source of the budget. // TODO: enum values: ["EXTERNAL_BUDGET_SOURCE_UNSPECIFIED", "EXTERNAL_BUDGET_SOURCE_NONE", "EXTERNAL_BUDGET_SOURCE_MEDIA_OCEAN"]
     #[serde(default, rename = "externalBudgetSource")]
-    pub external_budget_source: Option<String>,
+    pub external_budget_source: ::core::option::Option<String>,
     /// Immutable. The ID used to group budgets to be included the same invoice. If this field is set and the invoice level of the corresponding billing profile is set to "Budget invoice grouping ID", all external_budget_id sharing the same invoice_grouping_id will be grouped in the same invoice.
     #[serde(default, rename = "invoiceGroupingId")]
-    pub invoice_grouping_id: Option<String>,
+    pub invoice_grouping_id: ::core::option::Option<String>,
     /// Additional metadata for use by the Mediaocean Prisma tool. Required for Mediaocean budgets. Only applicable to prisma_enabled advertisers.
     #[serde(default, rename = "prismaConfig")]
-    pub prisma_config: Option<PrismaConfig>,
+    pub prisma_config: ::core::option::Option<::std::boxed::Box<PrismaConfig>>,
 }
 
 /// Settings that track the planned spend and duration of a campaign.
@@ -1681,10 +1793,10 @@ pub struct CampaignBudget {
 pub struct CampaignFlight {
     /// Required. The dates that the campaign is expected to run. They are resolved relative to the parent advertiser''s time zone. * The dates specified here will not affect serving. They are used to generate alerts and warnings. For example, if the flight date of any child insertion order is outside the range of these dates, the user interface will show a warning. * start_date is required and must be the current date or later. * end_date is optional. If specified, it must be the start_date or later. * Any specified date must be before the year 2037.
     #[serde(default, rename = "plannedDates")]
-    pub planned_dates: Option<DateRange>,
+    pub planned_dates: ::core::option::Option<::std::boxed::Box<DateRange>>,
     /// The amount the campaign is expected to spend for its given planned_dates. This will not limit serving, but will be used for tracking spend in the DV360 UI. The amount is in micros. Must be greater than or equal to 0. For example, 500000000 represents 500 standard units of the currency.
     #[serde(default, rename = "plannedSpendAmountMicros")]
-    pub planned_spend_amount_micros: Option<String>,
+    pub planned_spend_amount_micros: ::core::option::Option<String>,
 }
 
 /// Settings that control the goal of a campaign.
@@ -1692,10 +1804,10 @@ pub struct CampaignFlight {
 pub struct CampaignGoal {
     /// Required. The type of the campaign goal. // TODO: enum values: ["CAMPAIGN_GOAL_TYPE_UNSPECIFIED", "CAMPAIGN_GOAL_TYPE_APP_INSTALL", "CAMPAIGN_GOAL_TYPE_BRAND_AWARENESS", "CAMPAIGN_GOAL_TYPE_OFFLINE_ACTION", "CAMPAIGN_GOAL_TYPE_ONLINE_ACTION"]
     #[serde(default, rename = "campaignGoalType")]
-    pub campaign_goal_type: Option<String>,
+    pub campaign_goal_type: ::core::option::Option<String>,
     /// Required. The performance goal of the campaign. Acceptable values for performance_goal_type are: * PERFORMANCE_GOAL_TYPE_CPM * PERFORMANCE_GOAL_TYPE_CPC * PERFORMANCE_GOAL_TYPE_CPA * PERFORMANCE_GOAL_TYPE_CPIAVC * PERFORMANCE_GOAL_TYPE_CTR * PERFORMANCE_GOAL_TYPE_VIEWABILITY * PERFORMANCE_GOAL_TYPE_OTHER
     #[serde(default, rename = "performanceGoal")]
-    pub performance_goal: Option<PerformanceGoal>,
+    pub performance_goal: ::core::option::Option<::std::boxed::Box<PerformanceGoal>>,
 }
 
 /// Details for a Demand Gen carousel card.
@@ -1703,25 +1815,25 @@ pub struct CampaignGoal {
 pub struct CarouselCard {
     /// Required. The call-to-action button shown on the card. Must use 10 characters or less.
     #[serde(default, rename = "callToAction")]
-    pub call_to_action: Option<String>,
+    pub call_to_action: ::core::option::Option<String>,
     /// Optional. The URL address of the webpage that people reach after they click the card on a mobile device.
     #[serde(default, rename = "finalMobileUrl")]
-    pub final_mobile_url: Option<String>,
+    pub final_mobile_url: ::core::option::Option<String>,
     /// Required. The URL address of the webpage that people reach after they click the card.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// Required. The headline of the card.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// Optional. The marketing image shown on the card.
     #[serde(default, rename = "marketingImage")]
-    pub marketing_image: Option<ImageAsset>,
+    pub marketing_image: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
     /// Optional. The portrait marketing image shown on the card.
     #[serde(default, rename = "portraitMarketingImage")]
-    pub portrait_marketing_image: Option<ImageAsset>,
+    pub portrait_marketing_image: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
     /// Optional. The square marketing image shown on the card.
     #[serde(default, rename = "squareMarketingImage")]
-    pub square_marketing_image: Option<ImageAsset>,
+    pub square_marketing_image: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
 }
 
 /// Details for assigned carrier and ISP targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_CARRIER_AND_ISP.
@@ -1729,13 +1841,13 @@ pub struct CarouselCard {
 pub struct CarrierAndIspAssignedTargetingOptionDetails {
     /// Output only. The display name of the carrier or ISP.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted. All assigned carrier and ISP targeting options on the same resource must have the same value for this field.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_CARRIER_AND_ISP.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable carrier or ISP. This will be populated in the carrier_and_isp_details field of a TargetingOption when targeting_type is TARGETING_TYPE_CARRIER_AND_ISP.
@@ -1743,10 +1855,10 @@ pub struct CarrierAndIspAssignedTargetingOptionDetails {
 pub struct CarrierAndIspTargetingOptionDetails {
     /// Output only. The display name of the carrier or ISP.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The type indicating if it''s carrier or ISP. // TODO: enum values: ["CARRIER_AND_ISP_TYPE_UNSPECIFIED", "CARRIER_AND_ISP_TYPE_ISP", "CARRIER_AND_ISP_TYPE_CARRIER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Assigned category targeting option details. This will be populated in the category_details field when targeting_type is TARGETING_TYPE_CATEGORY.
@@ -1754,13 +1866,13 @@ pub struct CarrierAndIspTargetingOptionDetails {
 pub struct CategoryAssignedTargetingOptionDetails {
     /// Output only. The display name of the category.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_CATEGORY.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable category. This will be populated in the category_details field of a TargetingOption when targeting_type is TARGETING_TYPE_CATEGORY.
@@ -1768,7 +1880,7 @@ pub struct CategoryAssignedTargetingOptionDetails {
 pub struct CategoryTargetingOptionDetails {
     /// Output only. The display name of the category.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// A single channel. Channels are custom groups of related websites and apps.
@@ -1776,25 +1888,25 @@ pub struct CategoryTargetingOptionDetails {
 pub struct Channel {
     /// The ID of the advertiser that owns the channel.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Output only. The unique ID of the channel. Assigned by the system.
     #[serde(default, rename = "channelId")]
-    pub channel_id: Option<String>,
+    pub channel_id: ::core::option::Option<String>,
     /// Required. The display name of the channel. Must be UTF-8 encoded with a maximum length of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The resource name of the channel.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Number of line items that are directly targeting this channel negatively.
     #[serde(default, rename = "negativelyTargetedLineItemCount")]
-    pub negatively_targeted_line_item_count: Option<String>,
+    pub negatively_targeted_line_item_count: ::core::option::Option<String>,
     /// The ID of the partner that owns the channel.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
     /// Output only. Number of line items that are directly targeting this channel positively.
     #[serde(default, rename = "positivelyTargetedLineItemCount")]
-    pub positively_targeted_line_item_count: Option<String>,
+    pub positively_targeted_line_item_count: ::core::option::Option<String>,
 }
 
 /// Details for assigned channel targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_CHANNEL.
@@ -1802,10 +1914,10 @@ pub struct Channel {
 pub struct ChannelAssignedTargetingOptionDetails {
     /// Required. ID of the channel. Should refer to the channel ID field on a [Partner-owned channel](partners.channels#Channel.FIELDS.channel_id) or [advertiser-owned channel](advertisers.channels#Channel.FIELDS.channel_id) resource.
     #[serde(default, rename = "channelId")]
-    pub channel_id: Option<String>,
+    pub channel_id: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted. For advertiser level assigned targeting option, this field must be true.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
 }
 
 /// Settings for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.
@@ -1813,25 +1925,25 @@ pub struct ChannelAssignedTargetingOptionDetails {
 pub struct CmHybridConfig {
     /// Required. Immutable. Account ID of the CM360 Floodlight configuration linked with the DV360 advertiser.
     #[serde(default, rename = "cmAccountId")]
-    pub cm_account_id: Option<String>,
+    pub cm_account_id: ::core::option::Option<String>,
     /// Output only. The set of CM360 Advertiser IDs sharing the CM360 Floodlight configuration.
     #[serde(default, rename = "cmAdvertiserIds")]
-    pub cm_advertiser_ids: Option<Vec<String>>,
+    pub cm_advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Immutable. ID of the CM360 Floodlight configuration linked with the DV360 advertiser.
     #[serde(default, rename = "cmFloodlightConfigId")]
-    pub cm_floodlight_config_id: Option<String>,
+    pub cm_floodlight_config_id: ::core::option::Option<String>,
     /// Required. Immutable. By setting this field to true, you, on behalf of your company, authorize the sharing of information from the given Floodlight configuration to this Display & Video 360 advertiser.
     #[serde(default, rename = "cmFloodlightLinkingAuthorized")]
-    pub cm_floodlight_linking_authorized: Option<bool>,
+    pub cm_floodlight_linking_authorized: ::core::option::Option<bool>,
     /// A list of CM360 sites whose placements will be synced to DV360 as creatives. If absent or empty in CreateAdvertiser method, the system will automatically create a CM360 site. Removing sites from this list may cause DV360 creatives synced from CM360 to be deleted. At least one site must be specified.
     #[serde(default, rename = "cmSyncableSiteIds")]
-    pub cm_syncable_site_ids: Option<Vec<String>>,
+    pub cm_syncable_site_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Whether or not to report DV360 cost to CM360.
     #[serde(default, rename = "dv360ToCmCostReportingEnabled")]
-    pub dv360_to_cm_cost_reporting_enabled: Option<bool>,
+    pub dv360_to_cm_cost_reporting_enabled: ::core::option::Option<bool>,
     /// Whether or not to include DV360 data in CM360 data transfer reports.
     #[serde(default, rename = "dv360ToCmDataSharingEnabled")]
-    pub dv360_to_cm_data_sharing_enabled: Option<bool>,
+    pub dv360_to_cm_data_sharing_enabled: ::core::option::Option<bool>,
 }
 
 /// A Campaign Manager 360 tracking ad.
@@ -1839,13 +1951,13 @@ pub struct CmHybridConfig {
 pub struct CmTrackingAd {
     /// Optional. The ad ID of the campaign manager 360 tracking Ad.
     #[serde(default, rename = "cmAdId")]
-    pub cm_ad_id: Option<String>,
+    pub cm_ad_id: ::core::option::Option<String>,
     /// Optional. The creative ID of the campaign manager 360 tracking Ad.
     #[serde(default, rename = "cmCreativeId")]
-    pub cm_creative_id: Option<String>,
+    pub cm_creative_id: ::core::option::Option<String>,
     /// Optional. The placement ID of the campaign manager 360 tracking Ad.
     #[serde(default, rename = "cmPlacementId")]
-    pub cm_placement_id: Option<String>,
+    pub cm_placement_id: ::core::option::Option<String>,
 }
 
 /// Describes a combined audience resource.
@@ -1853,13 +1965,13 @@ pub struct CmTrackingAd {
 pub struct CombinedAudience {
     /// Output only. The unique ID of the combined audience. Assigned by the system.
     #[serde(default, rename = "combinedAudienceId")]
-    pub combined_audience_id: Option<String>,
+    pub combined_audience_id: ::core::option::Option<String>,
     /// Output only. The display name of the combined audience. .
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The resource name of the combined audience.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Details of combined audience group. All combined audience targeting settings are logically ‘OR’ of each other.
@@ -1867,7 +1979,9 @@ pub struct CombinedAudience {
 pub struct CombinedAudienceGroup {
     /// Required. All combined audience targeting settings in combined audience group. Repeated settings with the same id will be ignored. The number of combined audience settings should be no more than five, error will be thrown otherwise.
     #[serde(default)]
-    pub settings: Option<Vec<CombinedAudienceTargetingSetting>>,
+    pub settings: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CombinedAudienceTargetingSetting>>,
+    >,
 }
 
 /// Details of combined audience targeting setting.
@@ -1875,7 +1989,7 @@ pub struct CombinedAudienceGroup {
 pub struct CombinedAudienceTargetingSetting {
     /// Required. Combined audience id of combined audience targeting setting. This id is combined_audience_id.
     #[serde(default, rename = "combinedAudienceId")]
-    pub combined_audience_id: Option<String>,
+    pub combined_audience_id: ::core::option::Option<String>,
 }
 
 /// Common attributes for in-stream, non-skippable and bumper ads.
@@ -1883,25 +1997,25 @@ pub struct CombinedAudienceTargetingSetting {
 pub struct CommonInStreamAttribute {
     /// The text on the call-to-action button.
     #[serde(default, rename = "actionButtonLabel")]
-    pub action_button_label: Option<String>,
+    pub action_button_label: ::core::option::Option<String>,
     /// The headline of the call-to-action banner.
     #[serde(default, rename = "actionHeadline")]
-    pub action_headline: Option<String>,
+    pub action_headline: ::core::option::Option<String>,
     /// The image which shows next to the video ad.
     #[serde(default, rename = "companionBanner")]
-    pub companion_banner: Option<ImageAsset>,
+    pub companion_banner: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
     /// The webpage address that appears with the ad.
     #[serde(default, rename = "displayUrl")]
-    pub display_url: Option<String>,
+    pub display_url: ::core::option::Option<String>,
     /// The URL address of the webpage that people reach after they click the ad.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// The URL address loaded in the background for tracking purposes.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// The YouTube video of the ad.
     #[serde(default)]
-    pub video: Option<YoutubeVideoDetails>,
+    pub video: ::core::option::Option<::std::boxed::Box<YoutubeVideoDetails>>,
 }
 
 /// User consent status.
@@ -1909,10 +2023,10 @@ pub struct CommonInStreamAttribute {
 pub struct Consent {
     /// Represents consent for ad personalization. // TODO: enum values: ["CONSENT_STATUS_UNSPECIFIED", "CONSENT_STATUS_GRANTED", "CONSENT_STATUS_DENIED"]
     #[serde(default, rename = "adPersonalization")]
-    pub ad_personalization: Option<String>,
+    pub ad_personalization: ::core::option::Option<String>,
     /// Represents consent for ad user data. // TODO: enum values: ["CONSENT_STATUS_UNSPECIFIED", "CONSENT_STATUS_GRANTED", "CONSENT_STATUS_DENIED"]
     #[serde(default, rename = "adUserData")]
-    pub ad_user_data: Option<String>,
+    pub ad_user_data: ::core::option::Option<String>,
 }
 
 /// Contact information defining a Customer Match audience member.
@@ -1920,22 +2034,22 @@ pub struct Consent {
 pub struct ContactInfo {
     /// Country code of the member. Must also be set with the following fields: * hashed_first_name * hashed_last_name * zip_codes
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// A list of SHA256 hashed email of the member. Before hashing, remove all whitespace and make sure the string is all lowercase.
     #[serde(default, rename = "hashedEmails")]
-    pub hashed_emails: Option<Vec<String>>,
+    pub hashed_emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// SHA256 hashed first name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_last_name * zip_codes
     #[serde(default, rename = "hashedFirstName")]
-    pub hashed_first_name: Option<String>,
+    pub hashed_first_name: ::core::option::Option<String>,
     /// SHA256 hashed last name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_first_name * zip_codes
     #[serde(default, rename = "hashedLastName")]
-    pub hashed_last_name: Option<String>,
+    pub hashed_last_name: ::core::option::Option<String>,
     /// A list of SHA256 hashed phone numbers of the member. Before hashing, all phone numbers must be formatted using the [E.164 format](//en.wikipedia.org/wiki/E.164) and include the country calling code.
     #[serde(default, rename = "hashedPhoneNumbers")]
-    pub hashed_phone_numbers: Option<Vec<String>>,
+    pub hashed_phone_numbers: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of zip codes of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name
     #[serde(default, rename = "zipCodes")]
-    pub zip_codes: Option<Vec<String>>,
+    pub zip_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Wrapper message for a list of contact information defining Customer Match audience members.
@@ -1943,10 +2057,10 @@ pub struct ContactInfo {
 pub struct ContactInfoList {
     /// Input only. The consent setting for the users in contact_infos. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to CONSENT_STATUS_DENIED, the request will return an error.
     #[serde(default)]
-    pub consent: Option<Consent>,
+    pub consent: ::core::option::Option<::std::boxed::Box<Consent>>,
     /// A list of ContactInfo objects defining Customer Match audience members. The size of members after splitting the contact_infos mustn''t be greater than 500,000.
     #[serde(default, rename = "contactInfos")]
-    pub contact_infos: Option<Vec<ContactInfo>>,
+    pub contact_infos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContactInfo>>>,
 }
 
 /// Details for content duration assigned targeting option. This will be populated in the content_duration_details field when targeting_type is TARGETING_TYPE_CONTENT_DURATION. Explicitly targeting all options is not supported. Remove all content duration targeting options to achieve this effect.
@@ -1954,10 +2068,10 @@ pub struct ContactInfoList {
 pub struct ContentDurationAssignedTargetingOptionDetails {
     /// Output only. The content duration. // TODO: enum values: ["CONTENT_DURATION_UNSPECIFIED", "CONTENT_DURATION_UNKNOWN", "CONTENT_DURATION_0_TO_1_MIN", "CONTENT_DURATION_1_TO_5_MIN", "CONTENT_DURATION_5_TO_15_MIN", "CONTENT_DURATION_15_TO_30_MIN", "CONTENT_DURATION_30_TO_60_MIN", "CONTENT_DURATION_OVER_60_MIN"]
     #[serde(default, rename = "contentDuration")]
-    pub content_duration: Option<String>,
+    pub content_duration: ::core::option::Option<String>,
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_CONTENT_DURATION.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable content duration. This will be populated in the content_duration_details field when targeting_type is TARGETING_TYPE_CONTENT_DURATION.
@@ -1965,7 +2079,7 @@ pub struct ContentDurationAssignedTargetingOptionDetails {
 pub struct ContentDurationTargetingOptionDetails {
     /// Output only. The content duration. // TODO: enum values: ["CONTENT_DURATION_UNSPECIFIED", "CONTENT_DURATION_UNKNOWN", "CONTENT_DURATION_0_TO_1_MIN", "CONTENT_DURATION_1_TO_5_MIN", "CONTENT_DURATION_5_TO_15_MIN", "CONTENT_DURATION_15_TO_30_MIN", "CONTENT_DURATION_30_TO_60_MIN", "CONTENT_DURATION_OVER_60_MIN"]
     #[serde(default, rename = "contentDuration")]
-    pub content_duration: Option<String>,
+    pub content_duration: ::core::option::Option<String>,
 }
 
 /// Details for content genre assigned targeting option. This will be populated in the content_genre_details field when targeting_type is TARGETING_TYPE_CONTENT_GENRE. Explicitly targeting all options is not supported. Remove all content genre targeting options to achieve this effect.
@@ -1973,13 +2087,13 @@ pub struct ContentDurationTargetingOptionDetails {
 pub struct ContentGenreAssignedTargetingOptionDetails {
     /// Output only. The display name of the content genre.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_CONTENT_GENRE.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable content genre. This will be populated in the content_genre_details field when targeting_type is TARGETING_TYPE_CONTENT_GENRE.
@@ -1987,7 +2101,7 @@ pub struct ContentGenreAssignedTargetingOptionDetails {
 pub struct ContentGenreTargetingOptionDetails {
     /// Output only. The display name of the content genre
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Assigned content instream position targeting option details. This will be populated in the content_instream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_INSTREAM_POSITION.
@@ -1995,10 +2109,10 @@ pub struct ContentGenreTargetingOptionDetails {
 pub struct ContentInstreamPositionAssignedTargetingOptionDetails {
     /// Output only. The ad type to target. Only applicable to insertion order targeting and new line items supporting the specified ad type will inherit this targeting option by default. Possible values are: * AD_TYPE_VIDEO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_VIDEO_DEFAULT. * AD_TYPE_AUDIO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_AUDIO_DEFAULT. // TODO: enum values: ["AD_TYPE_UNSPECIFIED", "AD_TYPE_DISPLAY", "AD_TYPE_VIDEO", "AD_TYPE_AUDIO"]
     #[serde(default, rename = "adType")]
-    pub ad_type: Option<String>,
+    pub ad_type: ::core::option::Option<String>,
     /// Required. The content instream position for video or audio ads. // TODO: enum values: ["CONTENT_INSTREAM_POSITION_UNSPECIFIED", "CONTENT_INSTREAM_POSITION_PRE_ROLL", "CONTENT_INSTREAM_POSITION_MID_ROLL", "CONTENT_INSTREAM_POSITION_POST_ROLL", "CONTENT_INSTREAM_POSITION_UNKNOWN"]
     #[serde(default, rename = "contentInstreamPosition")]
-    pub content_instream_position: Option<String>,
+    pub content_instream_position: ::core::option::Option<String>,
 }
 
 /// Represents a targetable content instream position, which could be used by video and audio ads. This will be populated in the content_instream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_INSTREAM_POSITION.
@@ -2006,7 +2120,7 @@ pub struct ContentInstreamPositionAssignedTargetingOptionDetails {
 pub struct ContentInstreamPositionTargetingOptionDetails {
     /// Output only. The content instream position. // TODO: enum values: ["CONTENT_INSTREAM_POSITION_UNSPECIFIED", "CONTENT_INSTREAM_POSITION_PRE_ROLL", "CONTENT_INSTREAM_POSITION_MID_ROLL", "CONTENT_INSTREAM_POSITION_POST_ROLL", "CONTENT_INSTREAM_POSITION_UNKNOWN"]
     #[serde(default, rename = "contentInstreamPosition")]
-    pub content_instream_position: Option<String>,
+    pub content_instream_position: ::core::option::Option<String>,
 }
 
 /// Assigned content outstream position targeting option details. This will be populated in the content_outstream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION.
@@ -2014,10 +2128,10 @@ pub struct ContentInstreamPositionTargetingOptionDetails {
 pub struct ContentOutstreamPositionAssignedTargetingOptionDetails {
     /// Output only. The ad type to target. Only applicable to insertion order targeting and new line items supporting the specified ad type will inherit this targeting option by default. Possible values are: * AD_TYPE_DISPLAY, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_DISPLAY_DEFAULT. * AD_TYPE_VIDEO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_VIDEO_DEFAULT. // TODO: enum values: ["AD_TYPE_UNSPECIFIED", "AD_TYPE_DISPLAY", "AD_TYPE_VIDEO", "AD_TYPE_AUDIO"]
     #[serde(default, rename = "adType")]
-    pub ad_type: Option<String>,
+    pub ad_type: ::core::option::Option<String>,
     /// Required. The content outstream position. // TODO: enum values: ["CONTENT_OUTSTREAM_POSITION_UNSPECIFIED", "CONTENT_OUTSTREAM_POSITION_UNKNOWN", "CONTENT_OUTSTREAM_POSITION_IN_ARTICLE", "CONTENT_OUTSTREAM_POSITION_IN_BANNER", "CONTENT_OUTSTREAM_POSITION_IN_FEED", "CONTENT_OUTSTREAM_POSITION_INTERSTITIAL"]
     #[serde(default, rename = "contentOutstreamPosition")]
-    pub content_outstream_position: Option<String>,
+    pub content_outstream_position: ::core::option::Option<String>,
 }
 
 /// Represents a targetable content outstream position, which could be used by display and video ads. This will be populated in the content_outstream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION.
@@ -2025,7 +2139,7 @@ pub struct ContentOutstreamPositionAssignedTargetingOptionDetails {
 pub struct ContentOutstreamPositionTargetingOptionDetails {
     /// Output only. The content outstream position. // TODO: enum values: ["CONTENT_OUTSTREAM_POSITION_UNSPECIFIED", "CONTENT_OUTSTREAM_POSITION_UNKNOWN", "CONTENT_OUTSTREAM_POSITION_IN_ARTICLE", "CONTENT_OUTSTREAM_POSITION_IN_BANNER", "CONTENT_OUTSTREAM_POSITION_IN_FEED", "CONTENT_OUTSTREAM_POSITION_INTERSTITIAL"]
     #[serde(default, rename = "contentOutstreamPosition")]
-    pub content_outstream_position: Option<String>,
+    pub content_outstream_position: ::core::option::Option<String>,
 }
 
 /// Details for content stream type assigned targeting option. This will be populated in the content_stream_type_details field when targeting_type is TARGETING_TYPE_CONTENT_STREAM_TYPE. Explicitly targeting all options is not supported. Remove all content stream type targeting options to achieve this effect.
@@ -2033,10 +2147,10 @@ pub struct ContentOutstreamPositionTargetingOptionDetails {
 pub struct ContentStreamTypeAssignedTargetingOptionDetails {
     /// Output only. The content stream type. // TODO: enum values: ["CONTENT_STREAM_TYPE_UNSPECIFIED", "CONTENT_LIVE_STREAM", "CONTENT_ON_DEMAND"]
     #[serde(default, rename = "contentStreamType")]
-    pub content_stream_type: Option<String>,
+    pub content_stream_type: ::core::option::Option<String>,
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_CONTENT_STREAM_TYPE.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable content stream type. This will be populated in the content_stream_type_details field when targeting_type is TARGETING_TYPE_CONTENT_STREAM_TYPE.
@@ -2044,7 +2158,7 @@ pub struct ContentStreamTypeAssignedTargetingOptionDetails {
 pub struct ContentStreamTypeTargetingOptionDetails {
     /// Output only. The content stream type. // TODO: enum values: ["CONTENT_STREAM_TYPE_UNSPECIFIED", "CONTENT_LIVE_STREAM", "CONTENT_ON_DEMAND"]
     #[serde(default, rename = "contentStreamType")]
-    pub content_stream_type: Option<String>,
+    pub content_stream_type: ::core::option::Option<String>,
 }
 
 /// Targeting details for content theme. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_CONTENT_THEME_EXCLUSION.
@@ -2052,13 +2166,13 @@ pub struct ContentStreamTypeTargetingOptionDetails {
 pub struct ContentThemeAssignedTargetingOptionDetails {
     /// Output only. An enum for the DV360 content theme classifier. // TODO: enum values: ["CONTENT_THEME_UNSPECIFIED", "CONTENT_THEME_FIGHTING_VIDEO_GAMES", "CONTENT_THEME_MATURE_GAMES", "CONTENT_THEME_NOT_YET_DETERMINED_HEALTH_SOURCES", "CONTENT_THEME_NOT_YET_DETERMINED_NEWS_SOURCES", "CONTENT_THEME_POLITICS", "CONTENT_THEME_RECENT_NEWS", "CONTENT_THEME_RELIGION", "CONTENT_THEME_UNPLEASANT_HEALTH_CONTENT", "CONTENT_THEME_UNPLEASANT_NEWS"]
     #[serde(default, rename = "contentTheme")]
-    pub content_theme: Option<String>,
+    pub content_theme: ::core::option::Option<String>,
     /// Required. An enum for the DV360 content theme classified to be EXCLUDED. // TODO: enum values: ["CONTENT_THEME_UNSPECIFIED", "CONTENT_THEME_FIGHTING_VIDEO_GAMES", "CONTENT_THEME_MATURE_GAMES", "CONTENT_THEME_NOT_YET_DETERMINED_HEALTH_SOURCES", "CONTENT_THEME_NOT_YET_DETERMINED_NEWS_SOURCES", "CONTENT_THEME_POLITICS", "CONTENT_THEME_RECENT_NEWS", "CONTENT_THEME_RELIGION", "CONTENT_THEME_UNPLEASANT_HEALTH_CONTENT", "CONTENT_THEME_UNPLEASANT_NEWS"]
     #[serde(default, rename = "excludedContentTheme")]
-    pub excluded_content_theme: Option<String>,
+    pub excluded_content_theme: ::core::option::Option<String>,
     /// Required. ID of the content theme to be EXCLUDED.
     #[serde(default, rename = "excludedTargetingOptionId")]
-    pub excluded_targeting_option_id: Option<String>,
+    pub excluded_targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable content theme. This will be populated in the content_theme_details field of the TargetingOption when targeting_type is TARGETING_TYPE_CONTENT_THEME_EXCLUSION.
@@ -2066,7 +2180,7 @@ pub struct ContentThemeAssignedTargetingOptionDetails {
 pub struct ContentThemeTargetingOptionDetails {
     /// Output only. An enum for the DV360 content theme content classifier. // TODO: enum values: ["CONTENT_THEME_UNSPECIFIED", "CONTENT_THEME_FIGHTING_VIDEO_GAMES", "CONTENT_THEME_MATURE_GAMES", "CONTENT_THEME_NOT_YET_DETERMINED_HEALTH_SOURCES", "CONTENT_THEME_NOT_YET_DETERMINED_NEWS_SOURCES", "CONTENT_THEME_POLITICS", "CONTENT_THEME_RECENT_NEWS", "CONTENT_THEME_RELIGION", "CONTENT_THEME_UNPLEASANT_HEALTH_CONTENT", "CONTENT_THEME_UNPLEASANT_NEWS"]
     #[serde(default, rename = "contentTheme")]
-    pub content_theme: Option<String>,
+    pub content_theme: ::core::option::Option<String>,
 }
 
 /// Settings that control how conversions are counted. All post-click conversions will be counted. A percentage value can be set for post-view conversions counting.
@@ -2074,13 +2188,15 @@ pub struct ContentThemeTargetingOptionDetails {
 pub struct ConversionCountingConfig {
     /// The Floodlight activity configs used to track conversions. The number of conversions counted is the sum of all of the conversions counted by all of the Floodlight activity IDs specified in this field. This field can''t be updated if a custom bidding algorithm is assigned to the line item. If you set this field and assign a custom bidding algorithm in the same request, the floodlight activities must match the ones used by the custom bidding algorithm.
     #[serde(default, rename = "floodlightActivityConfigs")]
-    pub floodlight_activity_configs: Option<Vec<TrackingFloodlightActivityConfig>>,
+    pub floodlight_activity_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<TrackingFloodlightActivityConfig>>,
+    >,
     /// The percentage of post-view conversions to count, in millis (1/1000 of a percent). Must be between 0 and 100000 inclusive. For example, to track 50% of the post-click conversions, set a value of 50000.
     #[serde(default, rename = "postViewCountPercentageMillis")]
-    pub post_view_count_percentage_millis: Option<String>,
+    pub post_view_count_percentage_millis: ::core::option::Option<String>,
     /// Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items.
     #[serde(default, rename = "primaryAttributionModelId")]
-    pub primary_attribution_model_id: Option<String>,
+    pub primary_attribution_model_id: ::core::option::Option<String>,
 }
 
 /// Counter event of the creative.
@@ -2088,10 +2204,10 @@ pub struct ConversionCountingConfig {
 pub struct CounterEvent {
     /// Required. The name of the counter event.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The name used to identify this counter event in reports.
     #[serde(default, rename = "reportingName")]
-    pub reporting_name: Option<String>,
+    pub reporting_name: ::core::option::Option<String>,
 }
 
 /// A request message for CreateAdAsset.
@@ -2099,7 +2215,7 @@ pub struct CounterEvent {
 pub struct CreateAdAssetRequest {
     /// Required. The ad asset to create. Only supports assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
     #[serde(default, rename = "adAsset")]
-    pub ad_asset: Option<AdAsset>,
+    pub ad_asset: ::core::option::Option<::std::boxed::Box<AdAsset>>,
 }
 
 /// A request message for CreateAsset.
@@ -2107,7 +2223,7 @@ pub struct CreateAdAssetRequest {
 pub struct CreateAssetRequest {
     /// Required. The filename of the asset, including the file extension. The filename must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default)]
-    pub filename: Option<String>,
+    pub filename: ::core::option::Option<String>,
 }
 
 /// A response message for CreateAsset.
@@ -2115,7 +2231,7 @@ pub struct CreateAssetRequest {
 pub struct CreateAssetResponse {
     /// The uploaded asset, if successful.
     #[serde(default)]
-    pub asset: Option<Asset>,
+    pub asset: ::core::option::Option<::std::boxed::Box<Asset>>,
 }
 
 /// A request listing which assigned targeting options of a given targeting type should be created and added.
@@ -2123,10 +2239,11 @@ pub struct CreateAssetResponse {
 pub struct CreateAssignedTargetingOptionsRequest {
     /// Required. The assigned targeting options to create and add.
     #[serde(default, rename = "assignedTargetingOptions")]
-    pub assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
     /// Required. Identifies the type of this assigned targeting option. // TODO: enum values: ["TARGETING_TYPE_UNSPECIFIED", "TARGETING_TYPE_CHANNEL", "TARGETING_TYPE_APP_CATEGORY", "TARGETING_TYPE_APP", "TARGETING_TYPE_URL", "TARGETING_TYPE_DAY_AND_TIME", "TARGETING_TYPE_AGE_RANGE", "TARGETING_TYPE_REGIONAL_LOCATION_LIST", "TARGETING_TYPE_PROXIMITY_LOCATION_LIST", "TARGETING_TYPE_GENDER", "TARGETING_TYPE_VIDEO_PLAYER_SIZE", "TARGETING_TYPE_USER_REWARDED_CONTENT", "TARGETING_TYPE_PARENTAL_STATUS", "TARGETING_TYPE_CONTENT_INSTREAM_POSITION", "TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION", "TARGETING_TYPE_DEVICE_TYPE", "TARGETING_TYPE_AUDIENCE_GROUP", "TARGETING_TYPE_BROWSER", "TARGETING_TYPE_HOUSEHOLD_INCOME", "TARGETING_TYPE_ON_SCREEN_POSITION", "TARGETING_TYPE_THIRD_PARTY_VERIFIER", "TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION", "TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION", "TARGETING_TYPE_ENVIRONMENT", "TARGETING_TYPE_CARRIER_AND_ISP", "TARGETING_TYPE_OPERATING_SYSTEM", "TARGETING_TYPE_DEVICE_MAKE_MODEL", "TARGETING_TYPE_KEYWORD", "TARGETING_TYPE_NEGATIVE_KEYWORD_LIST", "TARGETING_TYPE_VIEWABILITY", "TARGETING_TYPE_CATEGORY", "TARGETING_TYPE_INVENTORY_SOURCE", "TARGETING_TYPE_LANGUAGE", "TARGETING_TYPE_AUTHORIZED_SELLER_STATUS", "TARGETING_TYPE_GEO_REGION", "TARGETING_TYPE_INVENTORY_SOURCE_GROUP", "TARGETING_TYPE_EXCHANGE", "TARGETING_TYPE_SUB_EXCHANGE", "TARGETING_TYPE_POI", "TARGETING_TYPE_BUSINESS_CHAIN", "TARGETING_TYPE_CONTENT_DURATION", "TARGETING_TYPE_CONTENT_STREAM_TYPE", "TARGETING_TYPE_NATIVE_CONTENT_POSITION", "TARGETING_TYPE_OMID", "TARGETING_TYPE_AUDIO_CONTENT_TYPE", "TARGETING_TYPE_CONTENT_GENRE", "TARGETING_TYPE_YOUTUBE_VIDEO", "TARGETING_TYPE_YOUTUBE_CHANNEL", "TARGETING_TYPE_SESSION_POSITION", "TARGETING_TYPE_CONTENT_THEME_EXCLUSION"]
     #[serde(default, rename = "targetingType")]
-    pub targeting_type: Option<String>,
+    pub targeting_type: ::core::option::Option<String>,
 }
 
 /// Request message for [SdfDownloadTaskService.CreateSdfDownloadTask].
@@ -2134,22 +2251,22 @@ pub struct CreateAssignedTargetingOptionsRequest {
 pub struct CreateSdfDownloadTaskRequest {
     /// The ID of the advertiser to download SDF for.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Filters on entities by their entity IDs.
     #[serde(default, rename = "idFilter")]
-    pub id_filter: Option<IdFilter>,
+    pub id_filter: ::core::option::Option<::std::boxed::Box<IdFilter>>,
     /// Filters on Inventory Sources by their IDs.
     #[serde(default, rename = "inventorySourceFilter")]
-    pub inventory_source_filter: Option<InventorySourceFilter>,
+    pub inventory_source_filter: ::core::option::Option<::std::boxed::Box<InventorySourceFilter>>,
     /// Filters on selected file types. The entities in each file are filtered by a chosen set of filter entities. The filter entities must be the same type as, or a parent type of, the selected file types.
     #[serde(default, rename = "parentEntityFilter")]
-    pub parent_entity_filter: Option<ParentEntityFilter>,
+    pub parent_entity_filter: ::core::option::Option<::std::boxed::Box<ParentEntityFilter>>,
     /// The ID of the partner to download SDF for.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
     /// Required. The SDF version of the downloaded file. If set to SDF_VERSION_UNSPECIFIED, this will default to the version specified by the advertiser or partner identified by root_id. An advertiser inherits its SDF version from its partner unless configured otherwise. // TODO: enum values: ["SDF_VERSION_UNSPECIFIED", "SDF_VERSION_3_1", "SDF_VERSION_4", "SDF_VERSION_4_1", "SDF_VERSION_4_2", "SDF_VERSION_5", "SDF_VERSION_5_1", "SDF_VERSION_5_2", "SDF_VERSION_5_3", "SDF_VERSION_5_4", "SDF_VERSION_5_5", "SDF_VERSION_6", "SDF_VERSION_7", "SDF_VERSION_7_1", "SDF_VERSION_8", "SDF_VERSION_8_1", "SDF_VERSION_9", "SDF_VERSION_9_1", "SDF_VERSION_9_2"]
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// A single Creative.
@@ -2157,145 +2274,146 @@ pub struct CreateSdfDownloadTaskRequest {
 pub struct Creative {
     /// Optional. Additional dimensions. Applicable when creative_type is one of: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_EXPANDABLE * CREATIVE_TYPE_NATIVE * CREATIVE_TYPE_NATIVE_SITE_SQUARE * CREATIVE_TYPE_LIGHTBOX * CREATIVE_TYPE_PUBLISHER_HOSTED If this field is specified, width_pixels and height_pixels are both required and must be greater than or equal to 0.
     #[serde(default, rename = "additionalDimensions")]
-    pub additional_dimensions: Option<Vec<Dimensions>>,
+    pub additional_dimensions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dimensions>>>,
     /// Output only. The unique ID of the advertiser the creative belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Optional. Third-party HTML tracking tag to be appended to the creative tag.
     #[serde(default, rename = "appendedTag")]
-    pub appended_tag: Option<String>,
+    pub appended_tag: ::core::option::Option<String>,
     /// Required. Assets associated to this creative.
     #[serde(default)]
-    pub assets: Option<Vec<AssetAssociation>>,
+    pub assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssetAssociation>>>,
     /// Output only. The unique ID of the Campaign Manager 360 placement associated with the creative. This field is only applicable for creatives that are synced from Campaign Manager.
     #[serde(default, rename = "cmPlacementId")]
-    pub cm_placement_id: Option<String>,
+    pub cm_placement_id: ::core::option::Option<String>,
     /// Optional. The Campaign Manager 360 tracking ad associated with the creative. Optional for the following creative_type when created by an advertiser that uses both Campaign Manager 360 and third-party ad serving: * CREATIVE_TYPE_NATIVE * CREATIVE_TYPE_NATIVE_SITE_SQUARE Output only for other cases.
     #[serde(default, rename = "cmTrackingAd")]
-    pub cm_tracking_ad: Option<CmTrackingAd>,
+    pub cm_tracking_ad: ::core::option::Option<::std::boxed::Box<CmTrackingAd>>,
     /// Optional. The IDs of companion creatives for a video creative. You can assign existing display creatives (with image or HTML5 assets) to serve surrounding the publisher''s video player. Companions display around the video player while the video is playing and remain after the video has completed. Creatives contain additional dimensions can not be companion creatives. This field is only supported for the following creative_type: * CREATIVE_TYPE_AUDIO * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "companionCreativeIds")]
-    pub companion_creative_ids: Option<Vec<String>>,
+    pub companion_creative_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Counter events for a rich media creative. Counters track the number of times that a user interacts with any part of a rich media creative in a specified way (mouse-overs, mouse-outs, clicks, taps, data loading, keyboard entries, etc.). Any event that can be captured in the creative can be recorded as a counter. Leave it empty or unset for creatives containing image assets only.
     #[serde(default, rename = "counterEvents")]
-    pub counter_events: Option<Vec<CounterEvent>>,
+    pub counter_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CounterEvent>>>,
     /// Output only. The timestamp when the creative was created. Assigned by the system.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. A list of attributes of the creative that is generated by the system.
     #[serde(default, rename = "creativeAttributes")]
-    pub creative_attributes: Option<Vec<String>>,
+    pub creative_attributes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The unique ID of the creative. Assigned by the system.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// Required. Immutable. The type of the creative. // TODO: enum values: ["CREATIVE_TYPE_UNSPECIFIED", "CREATIVE_TYPE_STANDARD", "CREATIVE_TYPE_EXPANDABLE", "CREATIVE_TYPE_VIDEO", "CREATIVE_TYPE_NATIVE", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL", "CREATIVE_TYPE_NATIVE_SITE_SQUARE", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL_INTERSTITIAL", "CREATIVE_TYPE_LIGHTBOX", "CREATIVE_TYPE_NATIVE_APP_INSTALL", "CREATIVE_TYPE_NATIVE_APP_INSTALL_SQUARE", "CREATIVE_TYPE_AUDIO", "CREATIVE_TYPE_PUBLISHER_HOSTED", "CREATIVE_TYPE_NATIVE_VIDEO", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL_VIDEO", "CREATIVE_TYPE_ASSET_BASED_CREATIVE"]
     #[serde(default, rename = "creativeType")]
-    pub creative_type: Option<String>,
+    pub creative_type: ::core::option::Option<String>,
     /// Required. Primary dimensions of the creative. Applicable to all creative types. The value of width_pixels and height_pixels defaults to 0 when creative_type is one of: * CREATIVE_TYPE_VIDEO * CREATIVE_TYPE_AUDIO * CREATIVE_TYPE_NATIVE_VIDEO
     #[serde(default)]
-    pub dimensions: Option<Dimensions>,
+    pub dimensions: ::core::option::Option<::std::boxed::Box<Dimensions>>,
     /// Required. The display name of the creative. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Indicates whether the creative is dynamic.
     #[serde(default)]
-    pub dynamic: Option<bool>,
+    pub dynamic: ::core::option::Option<bool>,
     /// Required. Controls whether or not the creative can serve. Accepted values are: * ENTITY_STATUS_ACTIVE * ENTITY_STATUS_ARCHIVED * ENTITY_STATUS_PAUSED // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Required. Exit events for this creative. An exit (also known as a click tag) is any area in your creative that someone can click or tap to open an advertiser''s landing page. Every creative must include at least one exit. You can add an exit to your creative in any of the following ways: * Use Google Web Designer''s tap area. * Define a JavaScript variable called "clickTag". * Use the Enabler (Enabler.exit()) to track exits in rich media formats.
     #[serde(default, rename = "exitEvents")]
-    pub exit_events: Option<Vec<ExitEvent>>,
+    pub exit_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExitEvent>>>,
     /// Optional. Indicates the creative will automatically expand on hover. Optional and only valid for third-party expandable creatives. Third-party expandable creatives are creatives with following hosting source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_EXPANDABLE
     #[serde(default, rename = "expandOnHover")]
-    pub expand_on_hover: Option<bool>,
+    pub expand_on_hover: ::core::option::Option<bool>,
     /// Optional. Specifies the expanding direction of the creative. Required and only valid for third-party expandable creatives. Third-party expandable creatives are creatives with following hosting source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_EXPANDABLE // TODO: enum values: ["EXPANDING_DIRECTION_UNSPECIFIED", "EXPANDING_DIRECTION_NONE", "EXPANDING_DIRECTION_UP", "EXPANDING_DIRECTION_DOWN", "EXPANDING_DIRECTION_LEFT", "EXPANDING_DIRECTION_RIGHT", "EXPANDING_DIRECTION_UP_AND_LEFT", "EXPANDING_DIRECTION_UP_AND_RIGHT", "EXPANDING_DIRECTION_DOWN_AND_LEFT", "EXPANDING_DIRECTION_DOWN_AND_RIGHT", "EXPANDING_DIRECTION_UP_OR_DOWN", "EXPANDING_DIRECTION_LEFT_OR_RIGHT", "EXPANDING_DIRECTION_ANY_DIAGONAL"]
     #[serde(default, rename = "expandingDirection")]
-    pub expanding_direction: Option<String>,
+    pub expanding_direction: ::core::option::Option<String>,
     /// Required. Indicates where the creative is hosted. // TODO: enum values: ["HOSTING_SOURCE_UNSPECIFIED", "HOSTING_SOURCE_CM", "HOSTING_SOURCE_THIRD_PARTY", "HOSTING_SOURCE_HOSTED", "HOSTING_SOURCE_RICH_MEDIA"]
     #[serde(default, rename = "hostingSource")]
-    pub hosting_source: Option<String>,
+    pub hosting_source: ::core::option::Option<String>,
     /// Output only. Indicates the third-party VAST tag creative requires HTML5 Video support. Output only and only valid for third-party VAST tag creatives. Third-party VAST tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "html5Video")]
-    pub html5_video: Option<bool>,
+    pub html5_video: ::core::option::Option<bool>,
     /// Optional. Indicates whether Integral Ad Science (IAS) campaign monitoring is enabled. To enable this for the creative, make sure the Advertiser.creative_config.ias_client_id has been set to your IAS client ID.
     #[serde(default, rename = "iasCampaignMonitoring")]
-    pub ias_campaign_monitoring: Option<bool>,
+    pub ias_campaign_monitoring: ::core::option::Option<bool>,
     /// Optional. ID information used to link this creative to an external system. Must be UTF-8 encoded with a length of no more than 10,000 characters.
     #[serde(default, rename = "integrationCode")]
-    pub integration_code: Option<String>,
+    pub integration_code: ::core::option::Option<String>,
     /// Optional. JavaScript measurement URL from supported third-party verification providers (ComScore, DoubleVerify, IAS, Moat). HTML script tags are not supported. This field is only writeable in the following creative_type: * CREATIVE_TYPE_NATIVE * CREATIVE_TYPE_NATIVE_SITE_SQUARE * CREATIVE_TYPE_NATIVE_VIDEO
     #[serde(default, rename = "jsTrackerUrl")]
-    pub js_tracker_url: Option<String>,
+    pub js_tracker_url: ::core::option::Option<String>,
     /// Output only. The IDs of the line items this creative is associated with. To associate a creative to a line item, use LineItem.creative_ids instead.
     #[serde(default, rename = "lineItemIds")]
-    pub line_item_ids: Option<Vec<String>>,
+    pub line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Media duration of the creative. Applicable when creative_type is one of: * CREATIVE_TYPE_VIDEO * CREATIVE_TYPE_AUDIO * CREATIVE_TYPE_NATIVE_VIDEO * CREATIVE_TYPE_PUBLISHER_HOSTED
     #[serde(default, rename = "mediaDuration")]
-    pub media_duration: Option<String>,
+    pub media_duration: ::core::option::Option<String>,
     /// Output only. Indicates the third-party audio creative supports MP3. Output only and only valid for third-party audio creatives. Third-party audio creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_AUDIO
     #[serde(default, rename = "mp3Audio")]
-    pub mp3_audio: Option<bool>,
+    pub mp3_audio: ::core::option::Option<bool>,
     /// Output only. The resource name of the creative.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. User notes for this creative. Must be UTF-8 encoded with a length of no more than 20,000 characters.
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// Optional. Specifies the OBA icon for a video creative. This field is only supported in the following creative_type: * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "obaIcon")]
-    pub oba_icon: Option<ObaIcon>,
+    pub oba_icon: ::core::option::Option<::std::boxed::Box<ObaIcon>>,
     /// Output only. Indicates the third-party audio creative supports OGG. Output only and only valid for third-party audio creatives. Third-party audio creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_AUDIO
     #[serde(default, rename = "oggAudio")]
-    pub ogg_audio: Option<bool>,
+    pub ogg_audio: ::core::option::Option<bool>,
     /// Optional. Amount of time to play the video before counting a view. This field is required when skippable is true. This field is only supported for the following creative_type: * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "progressOffset")]
-    pub progress_offset: Option<AudioVideoOffset>,
+    pub progress_offset: ::core::option::Option<::std::boxed::Box<AudioVideoOffset>>,
     /// Optional. Indicates that the creative relies on HTML5 to render properly. Optional and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_EXPANDABLE
     #[serde(default, rename = "requireHtml5")]
-    pub require_html5: Option<bool>,
+    pub require_html5: ::core::option::Option<bool>,
     /// Optional. Indicates that the creative requires MRAID (Mobile Rich Media Ad Interface Definitions system). Set this if the creative relies on mobile gestures for interactivity, such as swiping or tapping. Optional and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_EXPANDABLE
     #[serde(default, rename = "requireMraid")]
-    pub require_mraid: Option<bool>,
+    pub require_mraid: ::core::option::Option<bool>,
     /// Optional. Indicates that the creative will wait for a return ping for attribution. Only valid when using a Campaign Manager 360 tracking ad with a third-party ad server parameter and the ${DC_DBM_TOKEN} macro. Optional and only valid for third-party tag creatives or third-party VAST tag creatives. Third-party tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_EXPANDABLE Third-party VAST tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_AUDIO * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "requirePingForAttribution")]
-    pub require_ping_for_attribution: Option<bool>,
+    pub require_ping_for_attribution: ::core::option::Option<bool>,
     /// Output only. The current status of the creative review process.
     #[serde(default, rename = "reviewStatus")]
-    pub review_status: Option<ReviewStatusInfo>,
+    pub review_status: ::core::option::Option<::std::boxed::Box<ReviewStatusInfo>>,
     /// Optional. Amount of time to play the video before the skip button appears. This field is required when skippable is true. This field is only supported for the following creative_type: * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "skipOffset")]
-    pub skip_offset: Option<AudioVideoOffset>,
+    pub skip_offset: ::core::option::Option<::std::boxed::Box<AudioVideoOffset>>,
     /// Optional. Whether the user can choose to skip a video creative. This field is only supported for the following creative_type: * CREATIVE_TYPE_VIDEO
     #[serde(default)]
-    pub skippable: Option<bool>,
+    pub skippable: ::core::option::Option<bool>,
     /// Optional. The original third-party tag used for the creative. Required and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_EXPANDABLE
     #[serde(default, rename = "thirdPartyTag")]
-    pub third_party_tag: Option<String>,
+    pub third_party_tag: ::core::option::Option<String>,
     /// Optional. Tracking URLs from third parties to track interactions with a video creative. This field is only supported for the following creative_type: * CREATIVE_TYPE_AUDIO * CREATIVE_TYPE_VIDEO * CREATIVE_TYPE_NATIVE_VIDEO
     #[serde(default, rename = "thirdPartyUrls")]
-    pub third_party_urls: Option<Vec<ThirdPartyUrl>>,
+    pub third_party_urls: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThirdPartyUrl>>>,
     /// Optional. Timer custom events for a rich media creative. Timers track the time during which a user views and interacts with a specified part of a rich media creative. A creative can have multiple timer events, each timed independently. Leave it empty or unset for creatives containing image assets only.
     #[serde(default, rename = "timerEvents")]
-    pub timer_events: Option<Vec<TimerEvent>>,
+    pub timer_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TimerEvent>>>,
     /// Optional. Tracking URLs for analytics providers or third-party ad technology vendors. The URLs must start with https: (except on inventory that doesn''t require SSL compliance). If using macros in your URL, use only macros supported by Display & Video 360. Standard URLs only, no IMG or SCRIPT tags. This field is only writeable in the following creative_type: * CREATIVE_TYPE_NATIVE * CREATIVE_TYPE_NATIVE_SITE_SQUARE * CREATIVE_TYPE_NATIVE_VIDEO
     #[serde(default, rename = "trackerUrls")]
-    pub tracker_urls: Option<Vec<String>>,
+    pub tracker_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Audio/Video transcodes. Display & Video 360 transcodes the main asset into a number of alternative versions that use different file formats or have different properties (resolution, audio bit rate, and video bit rate), each designed for specific video players or bandwidths. These transcodes give a publisher''s system more options to choose from for each impression on your video and ensures that the appropriate file serves based on the viewer’s connection and screen size. This field is only supported in the following creative_type: * CREATIVE_TYPE_VIDEO * CREATIVE_TYPE_NATIVE_VIDEO * CREATIVE_TYPE_AUDIO
     #[serde(default)]
-    pub transcodes: Option<Vec<Transcode>>,
+    pub transcodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Transcode>>>,
     /// Optional. An optional creative identifier provided by a registry that is unique across all platforms. Universal Ad ID is part of the VAST 4.0 standard. It can be modified after the creative is created. This field is only supported for the following creative_type: * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "universalAdId")]
-    pub universal_ad_id: Option<UniversalAdId>,
+    pub universal_ad_id: ::core::option::Option<::std::boxed::Box<UniversalAdId>>,
     /// Output only. The timestamp when the creative was last updated, either by the user or system (e.g. creative review). Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. The URL of the VAST tag for a third-party VAST tag creative. Required and only valid for third-party VAST tag creatives. Third-party VAST tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_AUDIO * CREATIVE_TYPE_VIDEO
     #[serde(default, rename = "vastTagUrl")]
-    pub vast_tag_url: Option<String>,
+    pub vast_tag_url: ::core::option::Option<String>,
     /// Output only. Indicates the third-party VAST tag creative requires VPAID (Digital Video Player-Ad Interface). Output only and only valid for third-party VAST tag creatives. Third-party VAST tag creatives are creatives with following hosting_source: * HOSTING_SOURCE_THIRD_PARTY combined with following creative_type: * CREATIVE_TYPE_VIDEO
     #[serde(default)]
-    pub vpaid: Option<bool>,
+    pub vpaid: ::core::option::Option<bool>,
 }
 
 /// Creative requirements configuration for the inventory source.
@@ -2303,13 +2421,15 @@ pub struct Creative {
 pub struct CreativeConfig {
     /// The type of creative that can be assigned to the inventory source. Only the following types are supported: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_VIDEO // TODO: enum values: ["CREATIVE_TYPE_UNSPECIFIED", "CREATIVE_TYPE_STANDARD", "CREATIVE_TYPE_EXPANDABLE", "CREATIVE_TYPE_VIDEO", "CREATIVE_TYPE_NATIVE", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL", "CREATIVE_TYPE_NATIVE_SITE_SQUARE", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL_INTERSTITIAL", "CREATIVE_TYPE_LIGHTBOX", "CREATIVE_TYPE_NATIVE_APP_INSTALL", "CREATIVE_TYPE_NATIVE_APP_INSTALL_SQUARE", "CREATIVE_TYPE_AUDIO", "CREATIVE_TYPE_PUBLISHER_HOSTED", "CREATIVE_TYPE_NATIVE_VIDEO", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL_VIDEO", "CREATIVE_TYPE_ASSET_BASED_CREATIVE"]
     #[serde(default, rename = "creativeType")]
-    pub creative_type: Option<String>,
+    pub creative_type: ::core::option::Option<String>,
     /// The configuration for display creatives. Applicable when creative_type is CREATIVE_TYPE_STANDARD.
     #[serde(default, rename = "displayCreativeConfig")]
-    pub display_creative_config: Option<InventorySourceDisplayCreativeConfig>,
+    pub display_creative_config:
+        ::core::option::Option<::std::boxed::Box<InventorySourceDisplayCreativeConfig>>,
     /// The configuration for video creatives. Applicable when creative_type is CREATIVE_TYPE_VIDEO.
     #[serde(default, rename = "videoCreativeConfig")]
-    pub video_creative_config: Option<InventorySourceVideoCreativeConfig>,
+    pub video_creative_config:
+        ::core::option::Option<::std::boxed::Box<InventorySourceVideoCreativeConfig>>,
 }
 
 /// A single custom bidding algorithm.
@@ -2317,34 +2437,35 @@ pub struct CreativeConfig {
 pub struct CustomBiddingAlgorithm {
     /// Immutable. The unique ID of the advertiser that owns the custom bidding algorithm.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Output only. The unique ID of the custom bidding algorithm. Assigned by the system.
     #[serde(default, rename = "customBiddingAlgorithmId")]
-    pub custom_bidding_algorithm_id: Option<String>,
+    pub custom_bidding_algorithm_id: ::core::option::Option<String>,
     /// Required. Immutable. The type of custom bidding algorithm. // TODO: enum values: ["CUSTOM_BIDDING_ALGORITHM_TYPE_UNSPECIFIED", "SCRIPT_BASED", "RULE_BASED"]
     #[serde(default, rename = "customBiddingAlgorithmType")]
-    pub custom_bidding_algorithm_type: Option<String>,
+    pub custom_bidding_algorithm_type: ::core::option::Option<String>,
     /// Required. The display name of the custom bidding algorithm. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Controls whether or not the custom bidding algorithm can be used as a bidding strategy. Accepted values are: * ENTITY_STATUS_ACTIVE * ENTITY_STATUS_ARCHIVED // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Output only. The details of custom bidding models for each advertiser who has access. This field may only include the details of the queried advertiser if the algorithm [owner](/display-video/api/reference/rest/v1/customBiddingAlgorithms#CustomBiddingAlgorithm.FIELDS.oneof_owner) is a partner and is being retrieved using an advertiser [accessor](/display-video/api/reference/rest/v1/customBiddingAlgorithms/list#body.QUERY_PARAMETERS.oneof_accessor).
     #[serde(default, rename = "modelDetails")]
-    pub model_details: Option<Vec<CustomBiddingModelDetails>>,
+    pub model_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomBiddingModelDetails>>>,
     /// Output only. The resource name of the custom bidding algorithm.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The unique ID of the partner that owns the custom bidding algorithm.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
     /// The IDs of the advertisers who have access to this algorithm. If advertiser_id is set, this field will only consist of that value. This field will not be set if the algorithm [owner](/display-video/api/reference/rest/v1/customBiddingAlgorithms#CustomBiddingAlgorithm.FIELDS.oneof_owner) is a partner and is being retrieved using an advertiser [accessor](/display-video/api/reference/rest/v1/customBiddingAlgorithms/list#body.QUERY_PARAMETERS.oneof_accessor).
     #[serde(default, rename = "sharedAdvertiserIds")]
-    pub shared_advertiser_ids: Option<Vec<String>>,
+    pub shared_advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Immutable. Designates the third party optimization partner that manages this algorithm. // TODO: enum values: ["UNKNOWN", "SCIBIDS", "ADELAIDE"]
     #[serde(default, rename = "thirdPartyOptimizationPartner")]
-    pub third_party_optimization_partner: Option<String>,
+    pub third_party_optimization_partner: ::core::option::Option<String>,
 }
 
 /// A single custom bidding algorithm rules.
@@ -2352,28 +2473,28 @@ pub struct CustomBiddingAlgorithm {
 pub struct CustomBiddingAlgorithmRules {
     /// Output only. Whether the rules resource is currently being used for scoring by the parent algorithm.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Output only. The time when the rules resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The unique ID of the custom bidding algorithm that the rules resource belongs to.
     #[serde(default, rename = "customBiddingAlgorithmId")]
-    pub custom_bidding_algorithm_id: Option<String>,
+    pub custom_bidding_algorithm_id: ::core::option::Option<String>,
     /// Output only. The unique ID of the rules resource.
     #[serde(default, rename = "customBiddingAlgorithmRulesId")]
-    pub custom_bidding_algorithm_rules_id: Option<String>,
+    pub custom_bidding_algorithm_rules_id: ::core::option::Option<String>,
     /// Output only. Error code of the rejected rules resource. This field will only be populated when the state is REJECTED.
     #[serde(default)]
-    pub error: Option<CustomBiddingAlgorithmRulesError>,
+    pub error: ::core::option::Option<::std::boxed::Box<CustomBiddingAlgorithmRulesError>>,
     /// Output only. The resource name of the rules resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Immutable. The reference to the uploaded AlgorithmRules file.
     #[serde(default)]
-    pub rules: Option<CustomBiddingAlgorithmRulesRef>,
+    pub rules: ::core::option::Option<::std::boxed::Box<CustomBiddingAlgorithmRulesRef>>,
     /// Output only. The state of the rules resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACCEPTED", "REJECTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// An error message for a CustomBiddingAlgorithmRules resource.
@@ -2381,7 +2502,7 @@ pub struct CustomBiddingAlgorithmRules {
 pub struct CustomBiddingAlgorithmRulesError {
     /// The type of error. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "SYNTAX_ERROR", "CONSTRAINT_VIOLATION_ERROR", "INTERNAL_ERROR"]
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
 }
 
 /// The reference to the uploaded AlgorithmRules file. Retrieve the location to upload new AlgorithmRules file to using customBiddingAlgorithms.uploadRules.
@@ -2389,7 +2510,7 @@ pub struct CustomBiddingAlgorithmRulesError {
 pub struct CustomBiddingAlgorithmRulesRef {
     /// A resource name to be used in media.download to download the rules files. Or media.upload to upload the rules files. Resource names have the format customBiddingAlgorithms/{custom_bidding_algorithm_id}/rulesRef/{ref_id}.
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// The details of a custom bidding algorithm model for a single shared advertiser.
@@ -2397,13 +2518,13 @@ pub struct CustomBiddingAlgorithmRulesRef {
 pub struct CustomBiddingModelDetails {
     /// The unique ID of the relevant advertiser.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// The readiness state of custom bidding model. // TODO: enum values: ["READINESS_STATE_UNSPECIFIED", "READINESS_STATE_ACTIVE", "READINESS_STATE_INSUFFICIENT_DATA", "READINESS_STATE_TRAINING", "READINESS_STATE_NO_VALID_SCRIPT", "READINESS_STATE_EVALUATION_FAILURE"]
     #[serde(default, rename = "readinessState")]
-    pub readiness_state: Option<String>,
+    pub readiness_state: ::core::option::Option<String>,
     /// Output only. The suspension state of custom bidding model. // TODO: enum values: ["SUSPENSION_STATE_UNSPECIFIED", "SUSPENSION_STATE_ENABLED", "SUSPENSION_STATE_DORMANT", "SUSPENSION_STATE_SUSPENDED"]
     #[serde(default, rename = "suspensionState")]
-    pub suspension_state: Option<String>,
+    pub suspension_state: ::core::option::Option<String>,
 }
 
 /// A single custom bidding script.
@@ -2411,28 +2532,28 @@ pub struct CustomBiddingModelDetails {
 pub struct CustomBiddingScript {
     /// Output only. Whether the script is currently being used for scoring by the parent algorithm.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Output only. The time when the script was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The unique ID of the custom bidding algorithm the script belongs to.
     #[serde(default, rename = "customBiddingAlgorithmId")]
-    pub custom_bidding_algorithm_id: Option<String>,
+    pub custom_bidding_algorithm_id: ::core::option::Option<String>,
     /// Output only. The unique ID of the custom bidding script.
     #[serde(default, rename = "customBiddingScriptId")]
-    pub custom_bidding_script_id: Option<String>,
+    pub custom_bidding_script_id: ::core::option::Option<String>,
     /// Output only. Error details of a rejected custom bidding script. This field will only be populated when state is REJECTED.
     #[serde(default)]
-    pub errors: Option<Vec<ScriptError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ScriptError>>>,
     /// Output only. The resource name of the custom bidding script.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The reference to the uploaded script file.
     #[serde(default)]
-    pub script: Option<CustomBiddingScriptRef>,
+    pub script: ::core::option::Option<::std::boxed::Box<CustomBiddingScriptRef>>,
     /// Output only. The state of the custom bidding script. // TODO: enum values: ["STATE_UNSPECIFIED", "ACCEPTED", "REJECTED", "PENDING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The reference to the uploaded custom bidding script file.
@@ -2440,7 +2561,7 @@ pub struct CustomBiddingScript {
 pub struct CustomBiddingScriptRef {
     /// A resource name to be used in media.download to Download the script files. Or media.upload to Upload the script files. Resource names have the format customBiddingAlgorithms/{custom_bidding_algorithm_id}/scriptRef/{ref_id}.
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// The key and value of a custom label.
@@ -2448,10 +2569,10 @@ pub struct CustomBiddingScriptRef {
 pub struct CustomLabel {
     /// The key of the label. // TODO: enum values: ["CUSTOM_LABEL_KEY_UNSPECIFIED", "CUSTOM_LABEL_KEY_0", "CUSTOM_LABEL_KEY_1", "CUSTOM_LABEL_KEY_2", "CUSTOM_LABEL_KEY_3", "CUSTOM_LABEL_KEY_4"]
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The value of the label.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Describes a custom list entity, such as a custom affinity or custom intent audience list.
@@ -2459,13 +2580,13 @@ pub struct CustomLabel {
 pub struct CustomList {
     /// Output only. The unique ID of the custom list. Assigned by the system.
     #[serde(default, rename = "customListId")]
-    pub custom_list_id: Option<String>,
+    pub custom_list_id: ::core::option::Option<String>,
     /// Output only. The display name of the custom list. .
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The resource name of the custom list.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Details of custom list group. All custom list targeting settings are logically ‘OR’ of each other.
@@ -2473,7 +2594,8 @@ pub struct CustomList {
 pub struct CustomListGroup {
     /// Required. All custom list targeting settings in custom list group. Repeated settings with the same id will be ignored.
     #[serde(default)]
-    pub settings: Option<Vec<CustomListTargetingSetting>>,
+    pub settings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomListTargetingSetting>>>,
 }
 
 /// Details of custom list targeting setting.
@@ -2481,7 +2603,7 @@ pub struct CustomListGroup {
 pub struct CustomListTargetingSetting {
     /// Required. Custom id of custom list targeting setting. This id is custom_list_id.
     #[serde(default, rename = "customListId")]
-    pub custom_list_id: Option<String>,
+    pub custom_list_id: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -2489,13 +2611,13 @@ pub struct CustomListTargetingSetting {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// A date range.
@@ -2503,10 +2625,10 @@ pub struct Date {
 pub struct DateRange {
     /// The upper bound of the date range, inclusive. Must specify a positive value for year, month, and day.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The lower bound of the date range, inclusive. Must specify a positive value for year, month, and day.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
 }
 
 /// Representation of time defined by day of the week and hour of the day.
@@ -2514,13 +2636,13 @@ pub struct DateRange {
 pub struct DayAndTime {
     /// Required. Day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: Option<String>,
+    pub day_of_week: ::core::option::Option<String>,
     /// Required. Hour of the day.
     #[serde(default, rename = "hourOfDay")]
-    pub hour_of_day: Option<i32>,
+    pub hour_of_day: ::core::option::Option<i32>,
     /// Required. The mechanism used to determine the relevant timezone. // TODO: enum values: ["TIME_ZONE_RESOLUTION_UNSPECIFIED", "TIME_ZONE_RESOLUTION_END_USER", "TIME_ZONE_RESOLUTION_ADVERTISER"]
     #[serde(default, rename = "timeZoneResolution")]
-    pub time_zone_resolution: Option<String>,
+    pub time_zone_resolution: ::core::option::Option<String>,
 }
 
 /// Representation of a segment of time defined on a specific day of the week and with a start and end time. The time represented by start_hour must be before the time represented by end_hour.
@@ -2528,16 +2650,16 @@ pub struct DayAndTime {
 pub struct DayAndTimeAssignedTargetingOptionDetails {
     /// Required. The day of the week for this day and time targeting setting. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: Option<String>,
+    pub day_of_week: ::core::option::Option<String>,
     /// Required. The end hour for day and time targeting. Must be between 1 (1 hour after start of day) and 24 (end of day).
     #[serde(default, rename = "endHour")]
-    pub end_hour: Option<i32>,
+    pub end_hour: ::core::option::Option<i32>,
     /// Required. The start hour for day and time targeting. Must be between 0 (start of day) and 23 (1 hour before end of day).
     #[serde(default, rename = "startHour")]
-    pub start_hour: Option<i32>,
+    pub start_hour: ::core::option::Option<i32>,
     /// Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For demand gen line items, this field is always TIME_ZONE_RESOLUTION_ADVERTISER. // TODO: enum values: ["TIME_ZONE_RESOLUTION_UNSPECIFIED", "TIME_ZONE_RESOLUTION_END_USER", "TIME_ZONE_RESOLUTION_ADVERTISER"]
     #[serde(default, rename = "timeZoneResolution")]
-    pub time_zone_resolution: Option<String>,
+    pub time_zone_resolution: ::core::option::Option<String>,
 }
 
 /// Details on the DCM tracking.
@@ -2545,13 +2667,13 @@ pub struct DayAndTimeAssignedTargetingOptionDetails {
 pub struct DcmTrackingInfo {
     /// Required. The DCM creative id.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
     /// Required. The DCM placement id.
     #[serde(default, rename = "placementId")]
-    pub placement_id: Option<String>,
+    pub placement_id: ::core::option::Option<String>,
     /// Required. The DCM tracking ad id.
     #[serde(default, rename = "trackingAdId")]
-    pub tracking_ad_id: Option<String>,
+    pub tracking_ad_id: ::core::option::Option<String>,
 }
 
 /// A request listing which assigned targeting options of a given targeting type should be deleted.
@@ -2559,10 +2681,10 @@ pub struct DcmTrackingInfo {
 pub struct DeleteAssignedTargetingOptionsRequest {
     /// Required. The assigned targeting option IDs to delete.
     #[serde(default, rename = "assignedTargetingOptionIds")]
-    pub assigned_targeting_option_ids: Option<Vec<String>>,
+    pub assigned_targeting_option_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Identifies the type of this assigned targeting option. // TODO: enum values: ["TARGETING_TYPE_UNSPECIFIED", "TARGETING_TYPE_CHANNEL", "TARGETING_TYPE_APP_CATEGORY", "TARGETING_TYPE_APP", "TARGETING_TYPE_URL", "TARGETING_TYPE_DAY_AND_TIME", "TARGETING_TYPE_AGE_RANGE", "TARGETING_TYPE_REGIONAL_LOCATION_LIST", "TARGETING_TYPE_PROXIMITY_LOCATION_LIST", "TARGETING_TYPE_GENDER", "TARGETING_TYPE_VIDEO_PLAYER_SIZE", "TARGETING_TYPE_USER_REWARDED_CONTENT", "TARGETING_TYPE_PARENTAL_STATUS", "TARGETING_TYPE_CONTENT_INSTREAM_POSITION", "TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION", "TARGETING_TYPE_DEVICE_TYPE", "TARGETING_TYPE_AUDIENCE_GROUP", "TARGETING_TYPE_BROWSER", "TARGETING_TYPE_HOUSEHOLD_INCOME", "TARGETING_TYPE_ON_SCREEN_POSITION", "TARGETING_TYPE_THIRD_PARTY_VERIFIER", "TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION", "TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION", "TARGETING_TYPE_ENVIRONMENT", "TARGETING_TYPE_CARRIER_AND_ISP", "TARGETING_TYPE_OPERATING_SYSTEM", "TARGETING_TYPE_DEVICE_MAKE_MODEL", "TARGETING_TYPE_KEYWORD", "TARGETING_TYPE_NEGATIVE_KEYWORD_LIST", "TARGETING_TYPE_VIEWABILITY", "TARGETING_TYPE_CATEGORY", "TARGETING_TYPE_INVENTORY_SOURCE", "TARGETING_TYPE_LANGUAGE", "TARGETING_TYPE_AUTHORIZED_SELLER_STATUS", "TARGETING_TYPE_GEO_REGION", "TARGETING_TYPE_INVENTORY_SOURCE_GROUP", "TARGETING_TYPE_EXCHANGE", "TARGETING_TYPE_SUB_EXCHANGE", "TARGETING_TYPE_POI", "TARGETING_TYPE_BUSINESS_CHAIN", "TARGETING_TYPE_CONTENT_DURATION", "TARGETING_TYPE_CONTENT_STREAM_TYPE", "TARGETING_TYPE_NATIVE_CONTENT_POSITION", "TARGETING_TYPE_OMID", "TARGETING_TYPE_AUDIO_CONTENT_TYPE", "TARGETING_TYPE_CONTENT_GENRE", "TARGETING_TYPE_YOUTUBE_VIDEO", "TARGETING_TYPE_YOUTUBE_CHANNEL", "TARGETING_TYPE_SESSION_POSITION", "TARGETING_TYPE_CONTENT_THEME_EXCLUSION"]
     #[serde(default, rename = "targetingType")]
-    pub targeting_type: Option<String>,
+    pub targeting_type: ::core::option::Option<String>,
 }
 
 /// Settings that control the bid strategy for Demand Gen resources.
@@ -2570,16 +2692,16 @@ pub struct DeleteAssignedTargetingOptionsRequest {
 pub struct DemandGenBiddingStrategy {
     /// Output only. If AG doesn''t set value for tCPA or tROAS, line item bidding value will be the effective_bidding_value, if the bidding strategy type is not tCPA or tROAS, effective_bidding_value is always 0. For line item, it will be the same as the value field.
     #[serde(default, rename = "effectiveBiddingValue")]
-    pub effective_bidding_value: Option<String>,
+    pub effective_bidding_value: ::core::option::Option<String>,
     /// Output only. Source of the effective bidding value. // TODO: enum values: ["BIDDING_SOURCE_UNSPECIFIED", "BIDDING_SOURCE_LINE_ITEM", "BIDDING_SOURCE_AD_GROUP"]
     #[serde(default, rename = "effectiveBiddingValueSource")]
-    pub effective_bidding_value_source: Option<String>,
+    pub effective_bidding_value_source: ::core::option::Option<String>,
     /// Optional. The type of the bidding strategy. This can only be set at the line item level. // TODO: enum values: ["DEMAND_GEN_BIDDING_STRATEGY_TYPE_UNSPECIFIED", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSIONS", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSION_VALUE", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CLICKS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Optional. The value used by the bidding strategy. This can be set at the line item and ad group level. This field is only applicable for the following strategy types: * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS Value of this field is in micros of the advertiser''s currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Details for a Demand Gen carousel ad.
@@ -2587,34 +2709,34 @@ pub struct DemandGenBiddingStrategy {
 pub struct DemandGenCarouselAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
-    pub business_name: Option<String>,
+    pub business_name: ::core::option::Option<String>,
     /// Required. The list of cards shown on the ad.
     #[serde(default)]
-    pub cards: Option<Vec<CarouselCard>>,
+    pub cards: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CarouselCard>>>,
     /// Optional. The custom parameters to pass custom values to tracking URL template.
     #[serde(default, rename = "customParameters")]
-    pub custom_parameters: Option<serde_json::Value>,
+    pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The description of the ad.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The URL address of the webpage that people reach after they click the ad.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// Optional. The suffix to append to landing page URLs.
     #[serde(default, rename = "finalUrlSuffix")]
-    pub final_url_suffix: Option<String>,
+    pub final_url_suffix: ::core::option::Option<String>,
     /// Required. The headline of the ad.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// Required. The logo image used by this ad.
     #[serde(default)]
-    pub logo: Option<ImageAsset>,
+    pub logo: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
     /// Output only. The URL address loaded in the background for tracking purposes.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// Optional. The tracking URL specified by the user manually.
     #[serde(default, rename = "userSpecifiedTrackingUrl")]
-    pub user_specified_tracking_url: Option<String>,
+    pub user_specified_tracking_url: ::core::option::Option<String>,
 }
 
 /// Details for a Demand Gen image ad.
@@ -2622,46 +2744,48 @@ pub struct DemandGenCarouselAd {
 pub struct DemandGenImageAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
-    pub business_name: Option<String>,
+    pub business_name: ::core::option::Option<String>,
     /// Required. The call-to-action button shown on the ad.
     #[serde(default, rename = "callToAction")]
-    pub call_to_action: Option<String>,
+    pub call_to_action: ::core::option::Option<String>,
     /// Optional. The custom parameters to pass custom values to tracking URL template.
     #[serde(default, rename = "customParameters")]
-    pub custom_parameters: Option<serde_json::Value>,
+    pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The list of descriptions shown on the ad.
     #[serde(default)]
-    pub descriptions: Option<Vec<String>>,
+    pub descriptions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The URL address of the webpage that people reach after they click the ad on a mobile device.
     #[serde(default, rename = "finalMobileUrl")]
-    pub final_mobile_url: Option<String>,
+    pub final_mobile_url: ::core::option::Option<String>,
     /// Required. The URL address of the webpage that people reach after they click the ad.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// Optional. The suffix to append to landing page URLs.
     #[serde(default, rename = "finalUrlSuffix")]
-    pub final_url_suffix: Option<String>,
+    pub final_url_suffix: ::core::option::Option<String>,
     /// Required. The list of headlines shown on the ad.
     #[serde(default)]
-    pub headlines: Option<Vec<String>>,
+    pub headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of logo images shown on the ad.
     #[serde(default, rename = "logoImages")]
-    pub logo_images: Option<Vec<ImageAsset>>,
+    pub logo_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageAsset>>>,
     /// The list of marketing images shown on the ad.
     #[serde(default, rename = "marketingImages")]
-    pub marketing_images: Option<Vec<ImageAsset>>,
+    pub marketing_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageAsset>>>,
     /// The list of portrait marketing images shown on the ad.
     #[serde(default, rename = "portraitMarketingImages")]
-    pub portrait_marketing_images: Option<Vec<ImageAsset>>,
+    pub portrait_marketing_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageAsset>>>,
     /// The list of square marketing images shown on the ad.
     #[serde(default, rename = "squareMarketingImages")]
-    pub square_marketing_images: Option<Vec<ImageAsset>>,
+    pub square_marketing_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageAsset>>>,
     /// Output only. The URL address loaded in the background for tracking purposes.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// Optional. The tracking URL specified by the user manually.
     #[serde(default, rename = "userSpecifiedTrackingUrl")]
-    pub user_specified_tracking_url: Option<String>,
+    pub user_specified_tracking_url: ::core::option::Option<String>,
 }
 
 /// Details for a Demand Gen product ad.
@@ -2669,40 +2793,40 @@ pub struct DemandGenImageAd {
 pub struct DemandGenProductAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
-    pub business_name: Option<String>,
+    pub business_name: ::core::option::Option<String>,
     /// Required. The call-to-action button shown on the ad. The supported values are: * AUTOMATED * APPLY_NOW * BOOK_NOW * CONTACT_US * DOWNLOAD * GET_QUOTE * LEARN_MORE * SHOP_NOW * SIGN_UP * SUBSCRIBE // TODO: enum values: ["CALL_TO_ACTION_UNSPECIFIED", "AUTOMATED", "LEARN_MORE", "GET_QUOTE", "APPLY_NOW", "SIGN_UP", "CONTACT_US", "SUBSCRIBE", "DOWNLOAD", "BOOK_NOW", "SHOP_NOW", "BUY_NOW", "DONATE_NOW", "ORDER_NOW", "PLAY_NOW", "SEE_MORE", "START_NOW", "VISIT_SITE", "WATCH_NOW"]
     #[serde(default, rename = "callToAction")]
-    pub call_to_action: Option<String>,
+    pub call_to_action: ::core::option::Option<String>,
     /// Optional. The custom parameters to pass custom values to tracking URL template.
     #[serde(default, rename = "customParameters")]
-    pub custom_parameters: Option<serde_json::Value>,
+    pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The description of the ad.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. The first piece after the domain in the display URL.
     #[serde(default, rename = "displayUrlBreadcrumb1")]
-    pub display_url_breadcrumb1: Option<String>,
+    pub display_url_breadcrumb1: ::core::option::Option<String>,
     /// Optional. The second piece after the domain in the display URL.
     #[serde(default, rename = "displayUrlBreadcrumb2")]
-    pub display_url_breadcrumb2: Option<String>,
+    pub display_url_breadcrumb2: ::core::option::Option<String>,
     /// Required. The URL address of the webpage that people reach after they click the ad.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// Optional. The suffix to append to landing page URLs.
     #[serde(default, rename = "finalUrlSuffix")]
-    pub final_url_suffix: Option<String>,
+    pub final_url_suffix: ::core::option::Option<String>,
     /// Required. The headline of the ad.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// Required. The logo image used by this ad.
     #[serde(default)]
-    pub logo: Option<ImageAsset>,
+    pub logo: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
     /// Output only. The URL address loaded in the background for tracking purposes.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// Optional. The tracking URL specified by the user manually.
     #[serde(default, rename = "userSpecifiedTrackingUrl")]
-    pub user_specified_tracking_url: Option<String>,
+    pub user_specified_tracking_url: ::core::option::Option<String>,
 }
 
 /// Settings for Demand Gen line items.
@@ -2710,13 +2834,14 @@ pub struct DemandGenProductAd {
 pub struct DemandGenSettings {
     /// Optional. Immutable. Whether location and language targeting can be set at the line item level. Otherwise, relevant targeting types must be assigned directly to the ad groups.
     #[serde(default, rename = "geoLanguageTargetingEnabled")]
-    pub geo_language_targeting_enabled: Option<bool>,
+    pub geo_language_targeting_enabled: ::core::option::Option<bool>,
     /// Optional. The ID of the merchant which is linked to the line item for product feed.
     #[serde(default, rename = "linkedMerchantId")]
-    pub linked_merchant_id: Option<String>,
+    pub linked_merchant_id: ::core::option::Option<String>,
     /// Optional. The third party measurement settings for the Demand Gen line item.
     #[serde(default, rename = "thirdPartyMeasurementConfigs")]
-    pub third_party_measurement_configs: Option<ThirdPartyMeasurementConfigs>,
+    pub third_party_measurement_configs:
+        ::core::option::Option<::std::boxed::Box<ThirdPartyMeasurementConfigs>>,
 }
 
 /// Details for a Demand Gen video ad.
@@ -2724,52 +2849,52 @@ pub struct DemandGenSettings {
 pub struct DemandGenVideoAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
-    pub business_name: Option<String>,
+    pub business_name: ::core::option::Option<String>,
     /// Required. The call-to-action button shown on the ad. The supported values are: * AUTOMATED * LEARN_MORE * GET_QUOTE * APPLY_NOW * SIGN_UP * CONTACT_US * SUBSCRIBE * DOWNLOAD * BOOK_NOW * SHOP_NOW * BUY_NOW * DONATE_NOW * ORDER_NOW * PLAY_NOW * SEE_MORE * START_NOW * VISIT_SITE * WATCH_NOW // TODO: enum values: ["CALL_TO_ACTION_UNSPECIFIED", "AUTOMATED", "LEARN_MORE", "GET_QUOTE", "APPLY_NOW", "SIGN_UP", "CONTACT_US", "SUBSCRIBE", "DOWNLOAD", "BOOK_NOW", "SHOP_NOW", "BUY_NOW", "DONATE_NOW", "ORDER_NOW", "PLAY_NOW", "SEE_MORE", "START_NOW", "VISIT_SITE", "WATCH_NOW"]
     #[serde(default, rename = "callToAction")]
-    pub call_to_action: Option<String>,
+    pub call_to_action: ::core::option::Option<String>,
     /// Optional. The companion banner used by this ad.
     #[serde(default, rename = "companionBanner")]
-    pub companion_banner: Option<ImageAsset>,
+    pub companion_banner: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
     /// Optional. The custom parameters to pass custom values to tracking URL template.
     #[serde(default, rename = "customParameters")]
-    pub custom_parameters: Option<serde_json::Value>,
+    pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The list of descriptions shown on the ad.
     #[serde(default)]
-    pub descriptions: Option<Vec<String>>,
+    pub descriptions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The first piece after the domain in the display URL.
     #[serde(default, rename = "displayUrlBreadcrumb1")]
-    pub display_url_breadcrumb1: Option<String>,
+    pub display_url_breadcrumb1: ::core::option::Option<String>,
     /// Optional. The second piece after the domain in the display URL.
     #[serde(default, rename = "displayUrlBreadcrumb2")]
-    pub display_url_breadcrumb2: Option<String>,
+    pub display_url_breadcrumb2: ::core::option::Option<String>,
     /// Optional. The URL address of the webpage that people reach after they click the ad on a mobile device.
     #[serde(default, rename = "finalMobileUrl")]
-    pub final_mobile_url: Option<String>,
+    pub final_mobile_url: ::core::option::Option<String>,
     /// Required. The URL address of the webpage that people reach after they click the ad.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// Optional. The suffix to append to landing page URLs.
     #[serde(default, rename = "finalUrlSuffix")]
-    pub final_url_suffix: Option<String>,
+    pub final_url_suffix: ::core::option::Option<String>,
     /// Required. The list of headlines shown on the ad.
     #[serde(default)]
-    pub headlines: Option<Vec<String>>,
+    pub headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The logo image used by this ad.
     #[serde(default)]
-    pub logo: Option<ImageAsset>,
+    pub logo: ::core::option::Option<::std::boxed::Box<ImageAsset>>,
     /// Required. The list of lone headlines shown on the ad.
     #[serde(default, rename = "longHeadlines")]
-    pub long_headlines: Option<Vec<String>>,
+    pub long_headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The URL address loaded in the background for tracking purposes.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// Optional. The tracking URL specified by the user manually.
     #[serde(default, rename = "userSpecifiedTrackingUrl")]
-    pub user_specified_tracking_url: Option<String>,
+    pub user_specified_tracking_url: ::core::option::Option<String>,
     /// Required. The list of YouTube video assets used by this ad.
     #[serde(default)]
-    pub videos: Option<Vec<YoutubeVideoDetails>>,
+    pub videos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<YoutubeVideoDetails>>>,
 }
 
 /// Assigned device make and model targeting option details. This will be populated in the device_make_model_details field when targeting_type is TARGETING_TYPE_DEVICE_MAKE_MODEL.
@@ -2777,13 +2902,13 @@ pub struct DemandGenVideoAd {
 pub struct DeviceMakeModelAssignedTargetingOptionDetails {
     /// Output only. The display name of the device make and model.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_DEVICE_MAKE_MODEL.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable device make and model. This will be populated in the device_make_model_details field of a TargetingOption when targeting_type is TARGETING_TYPE_DEVICE_MAKE_MODEL.
@@ -2791,7 +2916,7 @@ pub struct DeviceMakeModelAssignedTargetingOptionDetails {
 pub struct DeviceMakeModelTargetingOptionDetails {
     /// Output only. The display name of the device make and model.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Targeting details for device type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_DEVICE_TYPE.
@@ -2799,10 +2924,10 @@ pub struct DeviceMakeModelTargetingOptionDetails {
 pub struct DeviceTypeAssignedTargetingOptionDetails {
     /// Required. The display name of the device type. // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "DEVICE_TYPE_COMPUTER", "DEVICE_TYPE_CONNECTED_TV", "DEVICE_TYPE_SMART_PHONE", "DEVICE_TYPE_TABLET", "DEVICE_TYPE_CONNECTED_DEVICE"]
     #[serde(default, rename = "deviceType")]
-    pub device_type: Option<String>,
+    pub device_type: ::core::option::Option<String>,
     /// Output only. Bid multiplier allows you to show your ads more or less frequently based on the device type. It will apply a multiplier on the original bid price. When this field is 0, it indicates this field is not applicable instead of multiplying 0 on the original bid price. For example, if the bid price without multiplier is $10.0 and the multiplier is 1.5 for Tablet, the resulting bid price for Tablet will be $15.0. Only applicable to YouTube and Partners line items.
     #[serde(default, rename = "youtubeAndPartnersBidMultiplier")]
-    pub youtube_and_partners_bid_multiplier: Option<f64>,
+    pub youtube_and_partners_bid_multiplier: ::core::option::Option<f64>,
 }
 
 /// Represents a targetable device type. This will be populated in the device_type_details field of a TargetingOption when targeting_type is TARGETING_TYPE_DEVICE_TYPE.
@@ -2810,7 +2935,7 @@ pub struct DeviceTypeAssignedTargetingOptionDetails {
 pub struct DeviceTypeTargetingOptionDetails {
     /// Output only. The device type that is used to be targeted. // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "DEVICE_TYPE_COMPUTER", "DEVICE_TYPE_CONNECTED_TV", "DEVICE_TYPE_SMART_PHONE", "DEVICE_TYPE_TABLET", "DEVICE_TYPE_CONNECTED_DEVICE"]
     #[serde(default, rename = "deviceType")]
-    pub device_type: Option<String>,
+    pub device_type: ::core::option::Option<String>,
 }
 
 /// Targeting details for digital content label. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION.
@@ -2818,7 +2943,7 @@ pub struct DeviceTypeTargetingOptionDetails {
 pub struct DigitalContentLabelAssignedTargetingOptionDetails {
     /// Required. The display name of the digital content label rating tier to be EXCLUDED. // TODO: enum values: ["CONTENT_RATING_TIER_UNSPECIFIED", "CONTENT_RATING_TIER_UNRATED", "CONTENT_RATING_TIER_GENERAL", "CONTENT_RATING_TIER_PARENTAL_GUIDANCE", "CONTENT_RATING_TIER_TEENS", "CONTENT_RATING_TIER_MATURE", "CONTENT_RATING_TIER_FAMILIES"]
     #[serde(default, rename = "excludedContentRatingTier")]
-    pub excluded_content_rating_tier: Option<String>,
+    pub excluded_content_rating_tier: ::core::option::Option<String>,
 }
 
 /// Represents a targetable digital content label rating tier. This will be populated in the digital_content_label_details field of the TargetingOption when targeting_type is TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION.
@@ -2826,7 +2951,7 @@ pub struct DigitalContentLabelAssignedTargetingOptionDetails {
 pub struct DigitalContentLabelTargetingOptionDetails {
     /// Output only. An enum for the content label brand safety tiers. // TODO: enum values: ["CONTENT_RATING_TIER_UNSPECIFIED", "CONTENT_RATING_TIER_UNRATED", "CONTENT_RATING_TIER_GENERAL", "CONTENT_RATING_TIER_PARENTAL_GUIDANCE", "CONTENT_RATING_TIER_TEENS", "CONTENT_RATING_TIER_MATURE", "CONTENT_RATING_TIER_FAMILIES"]
     #[serde(default, rename = "contentRatingTier")]
-    pub content_rating_tier: Option<String>,
+    pub content_rating_tier: ::core::option::Option<String>,
 }
 
 /// Dimensions.
@@ -2834,10 +2959,10 @@ pub struct DigitalContentLabelTargetingOptionDetails {
 pub struct Dimensions {
     /// The height in pixels.
     #[serde(default, rename = "heightPixels")]
-    pub height_pixels: Option<i32>,
+    pub height_pixels: ::core::option::Option<i32>,
     /// The width in pixels.
     #[serde(default, rename = "widthPixels")]
-    pub width_pixels: Option<i32>,
+    pub width_pixels: ::core::option::Option<i32>,
 }
 
 /// The ad sourced from a DV360 creative.
@@ -2845,7 +2970,7 @@ pub struct Dimensions {
 pub struct DisplayVideoSourceAd {
     /// The ID of the source creative.
     #[serde(default, rename = "creativeId")]
-    pub creative_id: Option<String>,
+    pub creative_id: ::core::option::Option<String>,
 }
 
 /// Details of DoubleVerify settings.
@@ -2853,25 +2978,28 @@ pub struct DisplayVideoSourceAd {
 pub struct DoubleVerify {
     /// Avoid bidding on apps with the star ratings.
     #[serde(default, rename = "appStarRating")]
-    pub app_star_rating: Option<DoubleVerifyAppStarRating>,
+    pub app_star_rating: ::core::option::Option<::std::boxed::Box<DoubleVerifyAppStarRating>>,
     /// Avoid bidding on apps with the age rating.
     #[serde(default, rename = "avoidedAgeRatings")]
-    pub avoided_age_ratings: Option<Vec<String>>,
+    pub avoided_age_ratings: ::core::option::Option<::std::vec::Vec<String>>,
     /// DV Brand Safety Controls.
     #[serde(default, rename = "brandSafetyCategories")]
-    pub brand_safety_categories: Option<DoubleVerifyBrandSafetyCategories>,
+    pub brand_safety_categories:
+        ::core::option::Option<::std::boxed::Box<DoubleVerifyBrandSafetyCategories>>,
     /// The custom segment ID provided by DoubleVerify. The ID must start with "51" and consist of eight digits. Custom segment ID cannot be specified along with any of the following fields: * brand_safety_categories * avoided_age_ratings * app_star_rating * fraud_invalid_traffic
     #[serde(default, rename = "customSegmentId")]
-    pub custom_segment_id: Option<String>,
+    pub custom_segment_id: ::core::option::Option<String>,
     /// Display viewability settings (applicable to display line items only).
     #[serde(default, rename = "displayViewability")]
-    pub display_viewability: Option<DoubleVerifyDisplayViewability>,
+    pub display_viewability:
+        ::core::option::Option<::std::boxed::Box<DoubleVerifyDisplayViewability>>,
     /// Avoid Sites and Apps with historical Fraud & IVT Rates.
     #[serde(default, rename = "fraudInvalidTraffic")]
-    pub fraud_invalid_traffic: Option<DoubleVerifyFraudInvalidTraffic>,
+    pub fraud_invalid_traffic:
+        ::core::option::Option<::std::boxed::Box<DoubleVerifyFraudInvalidTraffic>>,
     /// Video viewability settings (applicable to video line items only).
     #[serde(default, rename = "videoViewability")]
-    pub video_viewability: Option<DoubleVerifyVideoViewability>,
+    pub video_viewability: ::core::option::Option<::std::boxed::Box<DoubleVerifyVideoViewability>>,
 }
 
 /// Details of DoubleVerify star ratings settings.
@@ -2879,10 +3007,10 @@ pub struct DoubleVerify {
 pub struct DoubleVerifyAppStarRating {
     /// Avoid bidding on apps with insufficient star ratings.
     #[serde(default, rename = "avoidInsufficientStarRating")]
-    pub avoid_insufficient_star_rating: Option<bool>,
+    pub avoid_insufficient_star_rating: ::core::option::Option<bool>,
     /// Avoid bidding on apps with the star ratings. // TODO: enum values: ["APP_STAR_RATE_UNSPECIFIED", "APP_STAR_RATE_1_POINT_5_LESS", "APP_STAR_RATE_2_LESS", "APP_STAR_RATE_2_POINT_5_LESS", "APP_STAR_RATE_3_LESS", "APP_STAR_RATE_3_POINT_5_LESS", "APP_STAR_RATE_4_LESS", "APP_STAR_RATE_4_POINT_5_LESS"]
     #[serde(default, rename = "avoidedStarRating")]
-    pub avoided_star_rating: Option<String>,
+    pub avoided_star_rating: ::core::option::Option<String>,
 }
 
 /// Settings for brand safety controls.
@@ -2890,13 +3018,13 @@ pub struct DoubleVerifyAppStarRating {
 pub struct DoubleVerifyBrandSafetyCategories {
     /// Unknown or unrateable.
     #[serde(default, rename = "avoidUnknownBrandSafetyCategory")]
-    pub avoid_unknown_brand_safety_category: Option<bool>,
+    pub avoid_unknown_brand_safety_category: ::core::option::Option<bool>,
     /// Brand safety high severity avoidance categories.
     #[serde(default, rename = "avoidedHighSeverityCategories")]
-    pub avoided_high_severity_categories: Option<Vec<String>>,
+    pub avoided_high_severity_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Brand safety medium severity avoidance categories.
     #[serde(default, rename = "avoidedMediumSeverityCategories")]
-    pub avoided_medium_severity_categories: Option<Vec<String>>,
+    pub avoided_medium_severity_categories: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Details of DoubleVerify display viewability settings.
@@ -2904,10 +3032,10 @@ pub struct DoubleVerifyBrandSafetyCategories {
 pub struct DoubleVerifyDisplayViewability {
     /// Target web and app inventory to maximize IAB viewable rate. // TODO: enum values: ["IAB_VIEWED_RATE_UNSPECIFIED", "IAB_VIEWED_RATE_80_PERCENT_HIGHER", "IAB_VIEWED_RATE_75_PERCENT_HIGHER", "IAB_VIEWED_RATE_70_PERCENT_HIGHER", "IAB_VIEWED_RATE_65_PERCENT_HIGHER", "IAB_VIEWED_RATE_60_PERCENT_HIGHER", "IAB_VIEWED_RATE_55_PERCENT_HIGHER", "IAB_VIEWED_RATE_50_PERCENT_HIGHER", "IAB_VIEWED_RATE_40_PERCENT_HIGHER", "IAB_VIEWED_RATE_30_PERCENT_HIGHER"]
     #[serde(default)]
-    pub iab: Option<String>,
+    pub iab: ::core::option::Option<String>,
     /// Target web and app inventory to maximize 100% viewable duration. // TODO: enum values: ["AVERAGE_VIEW_DURATION_UNSPECIFIED", "AVERAGE_VIEW_DURATION_5_SEC", "AVERAGE_VIEW_DURATION_10_SEC", "AVERAGE_VIEW_DURATION_15_SEC"]
     #[serde(default, rename = "viewableDuring")]
-    pub viewable_during: Option<String>,
+    pub viewable_during: ::core::option::Option<String>,
 }
 
 /// DoubleVerify Fraud & Invalid Traffic settings.
@@ -2915,10 +3043,10 @@ pub struct DoubleVerifyDisplayViewability {
 pub struct DoubleVerifyFraudInvalidTraffic {
     /// Insufficient Historical Fraud & IVT Stats.
     #[serde(default, rename = "avoidInsufficientOption")]
-    pub avoid_insufficient_option: Option<bool>,
+    pub avoid_insufficient_option: ::core::option::Option<bool>,
     /// Avoid Sites and Apps with historical Fraud & IVT. // TODO: enum values: ["FRAUD_UNSPECIFIED", "AD_IMPRESSION_FRAUD_100", "AD_IMPRESSION_FRAUD_50", "AD_IMPRESSION_FRAUD_25", "AD_IMPRESSION_FRAUD_10", "AD_IMPRESSION_FRAUD_8", "AD_IMPRESSION_FRAUD_6", "AD_IMPRESSION_FRAUD_4", "AD_IMPRESSION_FRAUD_2"]
     #[serde(default, rename = "avoidedFraudOption")]
-    pub avoided_fraud_option: Option<String>,
+    pub avoided_fraud_option: ::core::option::Option<String>,
 }
 
 /// Details of DoubleVerify video viewability settings.
@@ -2926,13 +3054,13 @@ pub struct DoubleVerifyFraudInvalidTraffic {
 pub struct DoubleVerifyVideoViewability {
     /// Target inventory to maximize impressions with 400x300 or greater player size. // TODO: enum values: ["PLAYER_SIZE_400X300_UNSPECIFIED", "PLAYER_SIZE_400X300_95", "PLAYER_SIZE_400X300_70", "PLAYER_SIZE_400X300_25", "PLAYER_SIZE_400X300_5"]
     #[serde(default, rename = "playerImpressionRate")]
-    pub player_impression_rate: Option<String>,
+    pub player_impression_rate: ::core::option::Option<String>,
     /// Target web inventory to maximize IAB viewable rate. // TODO: enum values: ["VIDEO_IAB_UNSPECIFIED", "IAB_VIEWABILITY_80_PERCENT_HIGHER", "IAB_VIEWABILITY_75_PERCENT_HIGHER", "IAB_VIEWABILITY_70_PERCENT_HIGHER", "IAB_VIEWABILITY_65_PERCENT_HIHGER", "IAB_VIEWABILITY_60_PERCENT_HIGHER", "IAB_VIEWABILITY_55_PERCENT_HIHGER", "IAB_VIEWABILITY_50_PERCENT_HIGHER", "IAB_VIEWABILITY_40_PERCENT_HIHGER", "IAB_VIEWABILITY_30_PERCENT_HIHGER"]
     #[serde(default, rename = "videoIab")]
-    pub video_iab: Option<String>,
+    pub video_iab: ::core::option::Option<String>,
     /// Target web inventory to maximize fully viewable rate. // TODO: enum values: ["VIDEO_VIEWABLE_RATE_UNSPECIFIED", "VIEWED_PERFORMANCE_40_PERCENT_HIGHER", "VIEWED_PERFORMANCE_35_PERCENT_HIGHER", "VIEWED_PERFORMANCE_30_PERCENT_HIGHER", "VIEWED_PERFORMANCE_25_PERCENT_HIGHER", "VIEWED_PERFORMANCE_20_PERCENT_HIGHER", "VIEWED_PERFORMANCE_10_PERCENT_HIGHER"]
     #[serde(default, rename = "videoViewableRate")]
-    pub video_viewable_rate: Option<String>,
+    pub video_viewable_rate: ::core::option::Option<String>,
 }
 
 /// Request message for LineItemService.DuplicateLineItem.
@@ -2940,10 +3068,10 @@ pub struct DoubleVerifyVideoViewability {
 pub struct DuplicateLineItemRequest {
     /// Whether this line item will serve European Union political ads. If contains_eu_political_ads has been set to DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING in the parent advertiser, then this field will be assigned DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING if not otherwise specified. This field can then be updated using the UI, API, or Structured Data Files. This field must be assigned when creating a new line item. Otherwise, **the advertisers.lineItems.create request will fail**. // TODO: enum values: ["EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN", "CONTAINS_EU_POLITICAL_ADVERTISING", "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING"]
     #[serde(default, rename = "containsEuPoliticalAds")]
-    pub contains_eu_political_ads: Option<String>,
+    pub contains_eu_political_ads: ::core::option::Option<String>,
     /// The display name of the new line item. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "targetDisplayName")]
-    pub target_display_name: Option<String>,
+    pub target_display_name: ::core::option::Option<String>,
 }
 
 /// DuplicateLineItemResponse resource type.
@@ -2951,7 +3079,7 @@ pub struct DuplicateLineItemRequest {
 pub struct DuplicateLineItemResponse {
     /// The ID of the created line item.
     #[serde(default, rename = "duplicateLineItemId")]
-    pub duplicate_line_item_id: Option<String>,
+    pub duplicate_line_item_id: ::core::option::Option<String>,
 }
 
 /// Request message for FirstAndThirdPartyAudienceService.EditCustomerMatchMembers.
@@ -2959,19 +3087,20 @@ pub struct DuplicateLineItemResponse {
 pub struct EditCustomerMatchMembersRequest {
     /// Input only. A list of contact information to define the members to be added.
     #[serde(default, rename = "addedContactInfoList")]
-    pub added_contact_info_list: Option<ContactInfoList>,
+    pub added_contact_info_list: ::core::option::Option<::std::boxed::Box<ContactInfoList>>,
     /// Input only. A list of mobile device IDs to define the members to be added.
     #[serde(default, rename = "addedMobileDeviceIdList")]
-    pub added_mobile_device_id_list: Option<MobileDeviceIdList>,
+    pub added_mobile_device_id_list: ::core::option::Option<::std::boxed::Box<MobileDeviceIdList>>,
     /// Required. The ID of the owner advertiser of the updated Customer Match FirstAndThirdPartyAudience.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Input only. A list of contact information to define the members to be removed.
     #[serde(default, rename = "removedContactInfoList")]
-    pub removed_contact_info_list: Option<ContactInfoList>,
+    pub removed_contact_info_list: ::core::option::Option<::std::boxed::Box<ContactInfoList>>,
     /// Input only. A list of mobile device IDs to define the members to be removed.
     #[serde(default, rename = "removedMobileDeviceIdList")]
-    pub removed_mobile_device_id_list: Option<MobileDeviceIdList>,
+    pub removed_mobile_device_id_list:
+        ::core::option::Option<::std::boxed::Box<MobileDeviceIdList>>,
 }
 
 /// The response of FirstAndThirdPartyAudienceService.EditCustomerMatchMembers.
@@ -2979,7 +3108,7 @@ pub struct EditCustomerMatchMembersRequest {
 pub struct EditCustomerMatchMembersResponse {
     /// Required. The ID of the updated Customer Match FirstPartyAndPartnerAudience.
     #[serde(default, rename = "firstPartyAndPartnerAudienceId")]
-    pub first_party_and_partner_audience_id: Option<String>,
+    pub first_party_and_partner_audience_id: ::core::option::Option<String>,
 }
 
 /// Request message for GuaranteedOrderService.EditGuaranteedOrderReadAccessors.
@@ -2987,16 +3116,16 @@ pub struct EditCustomerMatchMembersResponse {
 pub struct EditGuaranteedOrderReadAccessorsRequest {
     /// The advertisers to add as read accessors to the guaranteed order.
     #[serde(default, rename = "addedAdvertisers")]
-    pub added_advertisers: Option<Vec<String>>,
+    pub added_advertisers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The partner context in which the change is being made.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
     /// Whether to give all advertisers of the read/write accessor partner read access to the guaranteed order. Only applicable if read_write_partner_id is set in the guaranteed order.
     #[serde(default, rename = "readAccessInherited")]
-    pub read_access_inherited: Option<bool>,
+    pub read_access_inherited: ::core::option::Option<bool>,
     /// The advertisers to remove as read accessors to the guaranteed order.
     #[serde(default, rename = "removedAdvertisers")]
-    pub removed_advertisers: Option<Vec<String>>,
+    pub removed_advertisers: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EditGuaranteedOrderReadAccessorsResponse resource type.
@@ -3004,10 +3133,10 @@ pub struct EditGuaranteedOrderReadAccessorsRequest {
 pub struct EditGuaranteedOrderReadAccessorsResponse {
     /// Whether all advertisers of read_write_partner_id have read access to the guaranteed order.
     #[serde(default, rename = "readAccessInherited")]
-    pub read_access_inherited: Option<bool>,
+    pub read_access_inherited: ::core::option::Option<bool>,
     /// The IDs of advertisers with read access to the guaranteed order.
     #[serde(default, rename = "readAdvertiserIds")]
-    pub read_advertiser_ids: Option<Vec<String>>,
+    pub read_advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for InventorySourceService.EditInventorySourceReadWriteAccessors.
@@ -3015,13 +3144,15 @@ pub struct EditGuaranteedOrderReadAccessorsResponse {
 pub struct EditInventorySourceReadWriteAccessorsRequest {
     /// The advertisers to add or remove from the list of advertisers that have read/write access to the inventory source. This change will remove an existing partner read/write accessor.
     #[serde(default, rename = "advertisersUpdate")]
-    pub advertisers_update: Option<EditInventorySourceReadWriteAccessorsRequestAdvertisersUpdate>,
+    pub advertisers_update: ::core::option::Option<
+        ::std::boxed::Box<EditInventorySourceReadWriteAccessorsRequestAdvertisersUpdate>,
+    >,
     /// Set the partner context as read/write accessor of the inventory source. This will remove all other current read/write advertiser accessors.
     #[serde(default, rename = "assignPartner")]
-    pub assign_partner: Option<bool>,
+    pub assign_partner: ::core::option::Option<bool>,
     /// Required. The partner context by which the accessors change is being made.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
 }
 
 /// Update to the list of advertisers with read/write access to the inventory source.
@@ -3029,10 +3160,10 @@ pub struct EditInventorySourceReadWriteAccessorsRequest {
 pub struct EditInventorySourceReadWriteAccessorsRequestAdvertisersUpdate {
     /// The advertisers to add.
     #[serde(default, rename = "addedAdvertisers")]
-    pub added_advertisers: Option<Vec<String>>,
+    pub added_advertisers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The advertisers to remove.
     #[serde(default, rename = "removedAdvertisers")]
-    pub removed_advertisers: Option<Vec<String>>,
+    pub removed_advertisers: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Assigned environment targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_ENVIRONMENT.
@@ -3040,7 +3171,7 @@ pub struct EditInventorySourceReadWriteAccessorsRequestAdvertisersUpdate {
 pub struct EnvironmentAssignedTargetingOptionDetails {
     /// Required. The serving environment. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "ENVIRONMENT_WEB_OPTIMIZED", "ENVIRONMENT_WEB_NOT_OPTIMIZED", "ENVIRONMENT_APP"]
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
 }
 
 /// Represents a targetable environment. This will be populated in the environment_details field of a TargetingOption when targeting_type is TARGETING_TYPE_ENVIRONMENT.
@@ -3048,7 +3179,7 @@ pub struct EnvironmentAssignedTargetingOptionDetails {
 pub struct EnvironmentTargetingOptionDetails {
     /// Output only. The serving environment. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "ENVIRONMENT_WEB_OPTIMIZED", "ENVIRONMENT_WEB_NOT_OPTIMIZED", "ENVIRONMENT_APP"]
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
 }
 
 /// Details for assigned exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_EXCHANGE.
@@ -3056,7 +3187,7 @@ pub struct EnvironmentTargetingOptionDetails {
 pub struct ExchangeAssignedTargetingOptionDetails {
     /// Required. The enum value for the exchange. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
-    pub exchange: Option<String>,
+    pub exchange: ::core::option::Option<String>,
 }
 
 /// Settings that control which exchanges are enabled for a partner.
@@ -3064,7 +3195,8 @@ pub struct ExchangeAssignedTargetingOptionDetails {
 pub struct ExchangeConfig {
     /// All enabled exchanges in the partner. Duplicate enabled exchanges will be ignored.
     #[serde(default, rename = "enabledExchanges")]
-    pub enabled_exchanges: Option<Vec<ExchangeConfigEnabledExchange>>,
+    pub enabled_exchanges:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExchangeConfigEnabledExchange>>>,
 }
 
 /// An enabled exchange in the partner.
@@ -3072,16 +3204,16 @@ pub struct ExchangeConfig {
 pub struct ExchangeConfigEnabledExchange {
     /// The enabled exchange. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
-    pub exchange: Option<String>,
+    pub exchange: ::core::option::Option<String>,
     /// Output only. Agency ID of Google Ad Manager. The field is only relevant when Google Ad Manager is the enabled exchange.
     #[serde(default, rename = "googleAdManagerAgencyId")]
-    pub google_ad_manager_agency_id: Option<String>,
+    pub google_ad_manager_agency_id: ::core::option::Option<String>,
     /// Output only. Network ID of Google Ad Manager. The field is only relevant when Google Ad Manager is the enabled exchange.
     #[serde(default, rename = "googleAdManagerBuyerNetworkId")]
-    pub google_ad_manager_buyer_network_id: Option<String>,
+    pub google_ad_manager_buyer_network_id: ::core::option::Option<String>,
     /// Output only. Seat ID of the enabled exchange.
     #[serde(default, rename = "seatId")]
-    pub seat_id: Option<String>,
+    pub seat_id: ::core::option::Option<String>,
 }
 
 /// Exchange review status for the creative.
@@ -3089,10 +3221,10 @@ pub struct ExchangeConfigEnabledExchange {
 pub struct ExchangeReviewStatus {
     /// The exchange reviewing the creative. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
-    pub exchange: Option<String>,
+    pub exchange: ::core::option::Option<String>,
     /// Status of the exchange review. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "REVIEW_STATUS_APPROVED", "REVIEW_STATUS_REJECTED", "REVIEW_STATUS_PENDING"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Represents a targetable exchange. This will be populated in the exchange_details field of a TargetingOption when targeting_type is TARGETING_TYPE_EXCHANGE.
@@ -3100,7 +3232,7 @@ pub struct ExchangeReviewStatus {
 pub struct ExchangeTargetingOptionDetails {
     /// Output only. The type of exchange. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
-    pub exchange: Option<String>,
+    pub exchange: ::core::option::Option<String>,
 }
 
 /// Exit event of the creative.
@@ -3108,16 +3240,16 @@ pub struct ExchangeTargetingOptionDetails {
 pub struct ExitEvent {
     /// Optional. The name of the click tag of the exit event. The name must be unique within one creative. Leave it empty or unset for creatives containing image assets only.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The name used to identify this event in reports. Leave it empty or unset for creatives containing image assets only.
     #[serde(default, rename = "reportingName")]
-    pub reporting_name: Option<String>,
+    pub reporting_name: ::core::option::Option<String>,
     /// Required. The type of the exit event. // TODO: enum values: ["EXIT_EVENT_TYPE_UNSPECIFIED", "EXIT_EVENT_TYPE_DEFAULT", "EXIT_EVENT_TYPE_BACKUP"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Required. The click through URL of the exit event. This is required when type is: * EXIT_EVENT_TYPE_DEFAULT * EXIT_EVENT_TYPE_BACKUP
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Describes a first or partner audience list used for targeting. First party audiences are created via usage of client data. Partner audiences are provided by Third Party data providers and can only be licensed to customers.
@@ -3125,58 +3257,58 @@ pub struct ExitEvent {
 pub struct FirstPartyAndPartnerAudience {
     /// Output only. The estimated audience size for the Display network in the past month. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only returned in GET request.
     #[serde(default, rename = "activeDisplayAudienceSize")]
-    pub active_display_audience_size: Option<String>,
+    pub active_display_audience_size: ::core::option::Option<String>,
     /// Optional. The app_id matches with the type of the mobile_device_ids being uploaded. Only applicable to audience_type CUSTOMER_MATCH_DEVICE_ID
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Output only. The source of the audience. // TODO: enum values: ["AUDIENCE_SOURCE_UNSPECIFIED", "DISPLAY_VIDEO_360", "CAMPAIGN_MANAGER", "AD_MANAGER", "SEARCH_ADS_360", "YOUTUBE", "ADS_DATA_HUB"]
     #[serde(default, rename = "audienceSource")]
-    pub audience_source: Option<String>,
+    pub audience_source: ::core::option::Option<String>,
     /// Immutable. The type of the audience. // TODO: enum values: ["AUDIENCE_TYPE_UNSPECIFIED", "CUSTOMER_MATCH_CONTACT_INFO", "CUSTOMER_MATCH_DEVICE_ID", "CUSTOMER_MATCH_USER_ID", "ACTIVITY_BASED", "FREQUENCY_CAP", "TAG_BASED", "YOUTUBE_USERS", "THIRD_PARTY", "COMMERCE", "LINEAR", "AGENCY"]
     #[serde(default, rename = "audienceType")]
-    pub audience_type: Option<String>,
+    pub audience_type: ::core::option::Option<String>,
     /// Input only. A list of contact information to define the initial audience members. Only applicable to audience_type CUSTOMER_MATCH_CONTACT_INFO
     #[serde(default, rename = "contactInfoList")]
-    pub contact_info_list: Option<ContactInfoList>,
+    pub contact_info_list: ::core::option::Option<::std::boxed::Box<ContactInfoList>>,
     /// Optional. The user-provided description of the audience. Only applicable to first party audiences.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The estimated audience size for the Display network. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only returned in GET request.
     #[serde(default, rename = "displayAudienceSize")]
-    pub display_audience_size: Option<String>,
+    pub display_audience_size: ::core::option::Option<String>,
     /// Output only. The estimated desktop audience size in Display network. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only applicable to first party audiences. Only returned in GET request.
     #[serde(default, rename = "displayDesktopAudienceSize")]
-    pub display_desktop_audience_size: Option<String>,
+    pub display_desktop_audience_size: ::core::option::Option<String>,
     /// Output only. The estimated mobile app audience size in Display network. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only applicable to first party audiences. Only returned in GET request.
     #[serde(default, rename = "displayMobileAppAudienceSize")]
-    pub display_mobile_app_audience_size: Option<String>,
+    pub display_mobile_app_audience_size: ::core::option::Option<String>,
     /// Output only. The estimated mobile web audience size in Display network. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only applicable to first party audiences. Only returned in GET request.
     #[serde(default, rename = "displayMobileWebAudienceSize")]
-    pub display_mobile_web_audience_size: Option<String>,
+    pub display_mobile_web_audience_size: ::core::option::Option<String>,
     /// Optional. The display name of the first party and partner audience.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. The unique ID of the first party and partner audience. Assigned by the system.
     #[serde(default, rename = "firstPartyAndPartnerAudienceId")]
-    pub first_party_and_partner_audience_id: Option<String>,
+    pub first_party_and_partner_audience_id: ::core::option::Option<String>,
     /// Output only. Whether the audience is a first party and partner audience. // TODO: enum values: ["FIRST_PARTY_AND_PARTNER_AUDIENCE_TYPE_UNSPECIFIED", "TYPE_FIRST_PARTY", "TYPE_PARTNER"]
     #[serde(default, rename = "firstPartyAndPartnerAudienceType")]
-    pub first_party_and_partner_audience_type: Option<String>,
+    pub first_party_and_partner_audience_type: ::core::option::Option<String>,
     /// Output only. The estimated audience size for Gmail network. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only applicable to first party audiences. Only returned in GET request.
     #[serde(default, rename = "gmailAudienceSize")]
-    pub gmail_audience_size: Option<String>,
+    pub gmail_audience_size: ::core::option::Option<String>,
     /// Optional. The duration in days that an entry remains in the audience after the qualifying event. The set value must be greater than 0 and less than or equal to 540. Only applicable to first party audiences. This field is required if one of the following audience_type is used: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
     #[serde(default, rename = "membershipDurationDays")]
-    pub membership_duration_days: Option<String>,
+    pub membership_duration_days: ::core::option::Option<String>,
     /// Input only. A list of mobile device IDs to define the initial audience members. Only applicable to audience_type CUSTOMER_MATCH_DEVICE_ID
     #[serde(default, rename = "mobileDeviceIdList")]
-    pub mobile_device_id_list: Option<MobileDeviceIdList>,
+    pub mobile_device_id_list: ::core::option::Option<::std::boxed::Box<MobileDeviceIdList>>,
     /// Output only. The resource name of the first party and partner audience.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The estimated audience size for YouTube network. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only applicable to first party audiences. Only returned in GET request.
     #[serde(default, rename = "youtubeAudienceSize")]
-    pub youtube_audience_size: Option<String>,
+    pub youtube_audience_size: ::core::option::Option<String>,
 }
 
 /// Details of first party and partner audience group. All first party and partner audience targeting settings are logically ‘OR’ of each other.
@@ -3184,7 +3316,9 @@ pub struct FirstPartyAndPartnerAudience {
 pub struct FirstPartyAndPartnerAudienceGroup {
     /// Required. All first party and partner audience targeting settings in first party and partner audience group. Repeated settings with the same id are not allowed.
     #[serde(default)]
-    pub settings: Option<Vec<FirstPartyAndPartnerAudienceTargetingSetting>>,
+    pub settings: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<FirstPartyAndPartnerAudienceTargetingSetting>>,
+    >,
 }
 
 /// Details of first party and partner audience targeting setting.
@@ -3192,10 +3326,10 @@ pub struct FirstPartyAndPartnerAudienceGroup {
 pub struct FirstPartyAndPartnerAudienceTargetingSetting {
     /// Required. First party and partner audience id of the first party and partner audience targeting setting. This id is first_party_and_partner_audience_id.
     #[serde(default, rename = "firstPartyAndPartnerAudienceId")]
-    pub first_party_and_partner_audience_id: Option<String>,
+    pub first_party_and_partner_audience_id: ::core::option::Option<String>,
     /// Required. The recency of the first party and partner audience targeting setting. Only applicable to first party audiences, otherwise will be ignored. For more info, refer to https://support.google.com/displayvideo/answer/2949947#recency When unspecified, no recency limit will be used. // TODO: enum values: ["RECENCY_NO_LIMIT", "RECENCY_1_MINUTE", "RECENCY_5_MINUTES", "RECENCY_10_MINUTES", "RECENCY_15_MINUTES", "RECENCY_30_MINUTES", "RECENCY_1_HOUR", "RECENCY_2_HOURS", "RECENCY_3_HOURS", "RECENCY_6_HOURS", "RECENCY_12_HOURS", "RECENCY_1_DAY", "RECENCY_2_DAYS", "RECENCY_3_DAYS", "RECENCY_5_DAYS", "RECENCY_7_DAYS", "RECENCY_10_DAYS", "RECENCY_14_DAYS", "RECENCY_15_DAYS", "RECENCY_21_DAYS", "RECENCY_28_DAYS", "RECENCY_30_DAYS", "RECENCY_40_DAYS", "RECENCY_45_DAYS", "RECENCY_60_DAYS", "RECENCY_90_DAYS", "RECENCY_120_DAYS", "RECENCY_180_DAYS", "RECENCY_270_DAYS", "RECENCY_365_DAYS"]
     #[serde(default)]
-    pub recency: Option<String>,
+    pub recency: ::core::option::Option<String>,
 }
 
 /// A strategy that uses a fixed bidding price.
@@ -3203,7 +3337,7 @@ pub struct FirstPartyAndPartnerAudienceTargetingSetting {
 pub struct FixedBidStrategy {
     /// The fixed bid amount, in micros of the advertiser''s currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.
     #[serde(default, rename = "bidAmountMicros")]
-    pub bid_amount_micros: Option<String>,
+    pub bid_amount_micros: ::core::option::Option<String>,
 }
 
 /// A single Floodlight activity.
@@ -3211,28 +3345,29 @@ pub struct FixedBidStrategy {
 pub struct FloodlightActivity {
     /// Output only. IDs of the advertisers that have access to the parent Floodlight group. Only advertisers under the provided partner ID will be listed in this field.
     #[serde(default, rename = "advertiserIds")]
-    pub advertiser_ids: Option<Vec<String>>,
+    pub advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The display name of the Floodlight activity.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The unique ID of the Floodlight activity. Assigned by the system.
     #[serde(default, rename = "floodlightActivityId")]
-    pub floodlight_activity_id: Option<String>,
+    pub floodlight_activity_id: ::core::option::Option<String>,
     /// Required. Immutable. The ID of the parent Floodlight group.
     #[serde(default, rename = "floodlightGroupId")]
-    pub floodlight_group_id: Option<String>,
+    pub floodlight_group_id: ::core::option::Option<String>,
     /// Output only. The resource name of the Floodlight activity.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A list of configuration objects designating whether remarketing for this Floodlight Activity is enabled and available for a specifc advertiser. If enabled, this Floodlight Activity generates a remarketing user list that is able to be used in targeting under the advertiser.
     #[serde(default, rename = "remarketingConfigs")]
-    pub remarketing_configs: Option<Vec<RemarketingConfig>>,
+    pub remarketing_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RemarketingConfig>>>,
     /// Optional. Whether the Floodlight activity is served. // TODO: enum values: ["FLOODLIGHT_ACTIVITY_SERVING_STATUS_UNSPECIFIED", "FLOODLIGHT_ACTIVITY_SERVING_STATUS_ENABLED", "FLOODLIGHT_ACTIVITY_SERVING_STATUS_DISABLED"]
     #[serde(default, rename = "servingStatus")]
-    pub serving_status: Option<String>,
+    pub serving_status: ::core::option::Option<String>,
     /// Output only. Whether tags are required to be compliant.
     #[serde(default, rename = "sslRequired")]
-    pub ssl_required: Option<bool>,
+    pub ssl_required: ::core::option::Option<bool>,
 }
 
 /// A single Floodlight group.
@@ -3240,25 +3375,26 @@ pub struct FloodlightActivity {
 pub struct FloodlightGroup {
     /// The Active View video viewability metric configuration for the Floodlight group.
     #[serde(default, rename = "activeViewConfig")]
-    pub active_view_config: Option<ActiveViewVideoViewabilityMetricConfig>,
+    pub active_view_config:
+        ::core::option::Option<::std::boxed::Box<ActiveViewVideoViewabilityMetricConfig>>,
     /// User-defined custom variables owned by the Floodlight group. Use custom Floodlight variables to create reporting data that is tailored to your unique business needs. Custom Floodlight variables use the keys U1=, U2=, and so on, and can take any values that you choose to pass to them. You can use them to track virtually any type of data that you collect about your customers, such as the genre of movie that a customer purchases, the country to which the item is shipped, and so on. Custom Floodlight variables may not be used to pass any data that could be used or recognized as personally identifiable information (PII). Example: custom_variables { fields { "U1": value { number_value: 123.4 }, "U2": value { string_value: "MyVariable2" }, "U3": value { string_value: "MyVariable3" } } } Acceptable values for keys are "U1" through "U100", inclusive. String values must be less than 64 characters long, and cannot contain the following characters: "&lt;&gt;.
     #[serde(default, rename = "customVariables")]
-    pub custom_variables: Option<serde_json::Value>,
+    pub custom_variables: ::core::option::Option<serde_json::Value>,
     /// Required. The display name of the Floodlight group.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The unique ID of the Floodlight group. Assigned by the system.
     #[serde(default, rename = "floodlightGroupId")]
-    pub floodlight_group_id: Option<String>,
+    pub floodlight_group_id: ::core::option::Option<String>,
     /// Required. The lookback window for the Floodlight group. Both click_days and impression_days are required. Acceptable values for both are 0 to 90, inclusive.
     #[serde(default, rename = "lookbackWindow")]
-    pub lookback_window: Option<LookbackWindow>,
+    pub lookback_window: ::core::option::Option<::std::boxed::Box<LookbackWindow>>,
     /// Output only. The resource name of the Floodlight group.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The web tag type enabled for the Floodlight group. // TODO: enum values: ["WEB_TAG_TYPE_UNSPECIFIED", "WEB_TAG_TYPE_NONE", "WEB_TAG_TYPE_IMAGE", "WEB_TAG_TYPE_DYNAMIC"]
     #[serde(default, rename = "webTagType")]
-    pub web_tag_type: Option<String>,
+    pub web_tag_type: ::core::option::Option<String>,
 }
 
 /// Settings that control the number of times a user may be shown with the same ad during a given time period.
@@ -3266,19 +3402,19 @@ pub struct FloodlightGroup {
 pub struct FrequencyCap {
     /// The maximum number of times a user may be shown the same ad during this period. Must be greater than 0. Required when unlimited is false and max_views is not set.
     #[serde(default, rename = "maxImpressions")]
-    pub max_impressions: Option<i32>,
+    pub max_impressions: ::core::option::Option<i32>,
     /// Optional. The maximum number of times a user may click-through or fully view an ad during this period until it is no longer served to them. Must be greater than 0. Only applicable to YouTube and Partners resources. Required when unlimited is false and max_impressions is not set.
     #[serde(default, rename = "maxViews")]
-    pub max_views: Option<i32>,
+    pub max_views: ::core::option::Option<i32>,
     /// The time unit in which the frequency cap will be applied. Required when unlimited is false. // TODO: enum values: ["TIME_UNIT_UNSPECIFIED", "TIME_UNIT_LIFETIME", "TIME_UNIT_MONTHS", "TIME_UNIT_WEEKS", "TIME_UNIT_DAYS", "TIME_UNIT_HOURS", "TIME_UNIT_MINUTES"]
     #[serde(default, rename = "timeUnit")]
-    pub time_unit: Option<String>,
+    pub time_unit: ::core::option::Option<String>,
     /// The number of time_unit the frequency cap will last. Required when unlimited is false. The following restrictions apply based on the value of time_unit: * TIME_UNIT_MONTHS - must be 1 * TIME_UNIT_WEEKS - must be between 1 and 4 * TIME_UNIT_DAYS - must be between 1 and 6 * TIME_UNIT_HOURS - must be between 1 and 23 * TIME_UNIT_MINUTES - must be between 1 and 59
     #[serde(default, rename = "timeUnitCount")]
-    pub time_unit_count: Option<i32>,
+    pub time_unit_count: ::core::option::Option<i32>,
     /// Whether unlimited frequency capping is applied. When this field is set to true, the remaining frequency cap fields are not applicable.
     #[serde(default)]
-    pub unlimited: Option<bool>,
+    pub unlimited: ::core::option::Option<bool>,
 }
 
 /// Details for assigned gender targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_GENDER.
@@ -3286,7 +3422,7 @@ pub struct FrequencyCap {
 pub struct GenderAssignedTargetingOptionDetails {
     /// Required. The gender of the audience. // TODO: enum values: ["GENDER_UNSPECIFIED", "GENDER_MALE", "GENDER_FEMALE", "GENDER_UNKNOWN"]
     #[serde(default)]
-    pub gender: Option<String>,
+    pub gender: ::core::option::Option<String>,
 }
 
 /// Represents a targetable gender. This will be populated in the gender_details field of a TargetingOption when targeting_type is TARGETING_TYPE_GENDER.
@@ -3294,7 +3430,7 @@ pub struct GenderAssignedTargetingOptionDetails {
 pub struct GenderTargetingOptionDetails {
     /// Output only. The gender of an audience. // TODO: enum values: ["GENDER_UNSPECIFIED", "GENDER_MALE", "GENDER_FEMALE", "GENDER_UNKNOWN"]
     #[serde(default)]
-    pub gender: Option<String>,
+    pub gender: ::core::option::Option<String>,
 }
 
 /// Details for assigned geographic region targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_GEO_REGION.
@@ -3302,16 +3438,16 @@ pub struct GenderTargetingOptionDetails {
 pub struct GeoRegionAssignedTargetingOptionDetails {
     /// Output only. The display name of the geographic region (e.g., "Ontario, Canada").
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The type of geographic region targeting. // TODO: enum values: ["GEO_REGION_TYPE_UNKNOWN", "GEO_REGION_TYPE_OTHER", "GEO_REGION_TYPE_COUNTRY", "GEO_REGION_TYPE_REGION", "GEO_REGION_TYPE_TERRITORY", "GEO_REGION_TYPE_PROVINCE", "GEO_REGION_TYPE_STATE", "GEO_REGION_TYPE_PREFECTURE", "GEO_REGION_TYPE_GOVERNORATE", "GEO_REGION_TYPE_CANTON", "GEO_REGION_TYPE_UNION_TERRITORY", "GEO_REGION_TYPE_AUTONOMOUS_COMMUNITY", "GEO_REGION_TYPE_DMA_REGION", "GEO_REGION_TYPE_METRO", "GEO_REGION_TYPE_CONGRESSIONAL_DISTRICT", "GEO_REGION_TYPE_COUNTY", "GEO_REGION_TYPE_MUNICIPALITY", "GEO_REGION_TYPE_CITY", "GEO_REGION_TYPE_POSTAL_CODE", "GEO_REGION_TYPE_DEPARTMENT", "GEO_REGION_TYPE_AIRPORT", "GEO_REGION_TYPE_TV_REGION", "GEO_REGION_TYPE_OKRUG", "GEO_REGION_TYPE_BOROUGH", "GEO_REGION_TYPE_CITY_REGION", "GEO_REGION_TYPE_ARRONDISSEMENT", "GEO_REGION_TYPE_NEIGHBORHOOD", "GEO_REGION_TYPE_UNIVERSITY", "GEO_REGION_TYPE_DISTRICT", "GEO_REGION_TYPE_NATIONAL_PARK", "GEO_REGION_TYPE_BARRIO", "GEO_REGION_TYPE_SUB_WARD", "GEO_REGION_TYPE_MUNICIPALITY_DISTRICT", "GEO_REGION_TYPE_SUB_DISTRICT", "GEO_REGION_TYPE_QUARTER", "GEO_REGION_TYPE_DIVISION", "GEO_REGION_TYPE_COMMUNE", "GEO_REGION_TYPE_COLLOQUIAL_AREA", "GEO_REGION_TYPE_POST_TOWN"]
     #[serde(default, rename = "geoRegionType")]
-    pub geo_region_type: Option<String>,
+    pub geo_region_type: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_GEO_REGION.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Search terms for geo region targeting options.
@@ -3319,7 +3455,7 @@ pub struct GeoRegionAssignedTargetingOptionDetails {
 pub struct GeoRegionSearchTerms {
     /// The search query for the desired geo region. The query can be a prefix, e.g. "New Yor", "Seattle", "USA", etc.
     #[serde(default, rename = "geoRegionQuery")]
-    pub geo_region_query: Option<String>,
+    pub geo_region_query: ::core::option::Option<String>,
 }
 
 /// Represents a targetable geographic region. This will be populated in the geo_region_details field when targeting_type is TARGETING_TYPE_GEO_REGION.
@@ -3327,10 +3463,10 @@ pub struct GeoRegionSearchTerms {
 pub struct GeoRegionTargetingOptionDetails {
     /// Output only. The display name of the geographic region (e.g., "Ontario, Canada").
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The type of geographic region targeting. // TODO: enum values: ["GEO_REGION_TYPE_UNKNOWN", "GEO_REGION_TYPE_OTHER", "GEO_REGION_TYPE_COUNTRY", "GEO_REGION_TYPE_REGION", "GEO_REGION_TYPE_TERRITORY", "GEO_REGION_TYPE_PROVINCE", "GEO_REGION_TYPE_STATE", "GEO_REGION_TYPE_PREFECTURE", "GEO_REGION_TYPE_GOVERNORATE", "GEO_REGION_TYPE_CANTON", "GEO_REGION_TYPE_UNION_TERRITORY", "GEO_REGION_TYPE_AUTONOMOUS_COMMUNITY", "GEO_REGION_TYPE_DMA_REGION", "GEO_REGION_TYPE_METRO", "GEO_REGION_TYPE_CONGRESSIONAL_DISTRICT", "GEO_REGION_TYPE_COUNTY", "GEO_REGION_TYPE_MUNICIPALITY", "GEO_REGION_TYPE_CITY", "GEO_REGION_TYPE_POSTAL_CODE", "GEO_REGION_TYPE_DEPARTMENT", "GEO_REGION_TYPE_AIRPORT", "GEO_REGION_TYPE_TV_REGION", "GEO_REGION_TYPE_OKRUG", "GEO_REGION_TYPE_BOROUGH", "GEO_REGION_TYPE_CITY_REGION", "GEO_REGION_TYPE_ARRONDISSEMENT", "GEO_REGION_TYPE_NEIGHBORHOOD", "GEO_REGION_TYPE_UNIVERSITY", "GEO_REGION_TYPE_DISTRICT", "GEO_REGION_TYPE_NATIONAL_PARK", "GEO_REGION_TYPE_BARRIO", "GEO_REGION_TYPE_SUB_WARD", "GEO_REGION_TYPE_MUNICIPALITY_DISTRICT", "GEO_REGION_TYPE_SUB_DISTRICT", "GEO_REGION_TYPE_QUARTER", "GEO_REGION_TYPE_DIVISION", "GEO_REGION_TYPE_COMMUNE", "GEO_REGION_TYPE_COLLOQUIAL_AREA", "GEO_REGION_TYPE_POST_TOWN"]
     #[serde(default, rename = "geoRegionType")]
-    pub geo_region_type: Option<String>,
+    pub geo_region_type: ::core::option::Option<String>,
 }
 
 /// Describes a Google audience resource. Includes Google audience lists.
@@ -3338,16 +3474,16 @@ pub struct GeoRegionTargetingOptionDetails {
 pub struct GoogleAudience {
     /// Output only. The display name of the Google audience. .
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The unique ID of the Google audience. Assigned by the system.
     #[serde(default, rename = "googleAudienceId")]
-    pub google_audience_id: Option<String>,
+    pub google_audience_id: ::core::option::Option<String>,
     /// Output only. The type of Google audience. . // TODO: enum values: ["GOOGLE_AUDIENCE_TYPE_UNSPECIFIED", "GOOGLE_AUDIENCE_TYPE_AFFINITY", "GOOGLE_AUDIENCE_TYPE_IN_MARKET", "GOOGLE_AUDIENCE_TYPE_INSTALLED_APPS", "GOOGLE_AUDIENCE_TYPE_NEW_MOBILE_DEVICES", "GOOGLE_AUDIENCE_TYPE_LIFE_EVENT", "GOOGLE_AUDIENCE_TYPE_EXTENDED_DEMOGRAPHIC"]
     #[serde(default, rename = "googleAudienceType")]
-    pub google_audience_type: Option<String>,
+    pub google_audience_type: ::core::option::Option<String>,
     /// Output only. The resource name of the google audience.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Details of Google audience group. All Google audience targeting settings are logically ‘OR’ of each other.
@@ -3355,7 +3491,8 @@ pub struct GoogleAudience {
 pub struct GoogleAudienceGroup {
     /// Required. All Google audience targeting settings in Google audience group. Repeated settings with the same id will be ignored.
     #[serde(default)]
-    pub settings: Option<Vec<GoogleAudienceTargetingSetting>>,
+    pub settings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleAudienceTargetingSetting>>>,
 }
 
 /// Details of Google audience targeting setting.
@@ -3363,7 +3500,7 @@ pub struct GoogleAudienceGroup {
 pub struct GoogleAudienceTargetingSetting {
     /// Required. Google audience id of the Google audience targeting setting. This id is google_audience_id.
     #[serde(default, rename = "googleAudienceId")]
-    pub google_audience_id: Option<String>,
+    pub google_audience_id: ::core::option::Option<String>,
 }
 
 /// Media resource.
@@ -3371,7 +3508,7 @@ pub struct GoogleAudienceTargetingSetting {
 pub struct GoogleBytestreamMedia {
     /// Name of the media resource.
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// A guaranteed order. Guaranteed orders are parent entity of guaranteed inventory sources. When creating a guaranteed inventory source, a guaranteed order ID must be assigned to the inventory source.
@@ -3379,46 +3516,46 @@ pub struct GoogleBytestreamMedia {
 pub struct GuaranteedOrder {
     /// Output only. The ID of default advertiser of the guaranteed order. The default advertiser is either the read_write_advertiser_id or, if that is not set, the first advertiser listed in read_advertiser_ids. Otherwise, there is no default advertiser.
     #[serde(default, rename = "defaultAdvertiserId")]
-    pub default_advertiser_id: Option<String>,
+    pub default_advertiser_id: ::core::option::Option<String>,
     /// The ID of the default campaign that is assigned to the guaranteed order. The default campaign must belong to the default advertiser.
     #[serde(default, rename = "defaultCampaignId")]
-    pub default_campaign_id: Option<String>,
+    pub default_campaign_id: ::core::option::Option<String>,
     /// Required. The display name of the guaranteed order. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Immutable. The exchange where the guaranteed order originated. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
-    pub exchange: Option<String>,
+    pub exchange: ::core::option::Option<String>,
     /// Output only. The unique identifier of the guaranteed order. The guaranteed order IDs have the format {exchange}-{legacy_guaranteed_order_id}.
     #[serde(default, rename = "guaranteedOrderId")]
-    pub guaranteed_order_id: Option<String>,
+    pub guaranteed_order_id: ::core::option::Option<String>,
     /// Output only. The legacy ID of the guaranteed order. Assigned by the original exchange. The legacy ID is unique within one exchange, but is not guaranteed to be unique across all guaranteed orders. This ID is used in SDF and UI.
     #[serde(default, rename = "legacyGuaranteedOrderId")]
-    pub legacy_guaranteed_order_id: Option<String>,
+    pub legacy_guaranteed_order_id: ::core::option::Option<String>,
     /// Output only. The resource name of the guaranteed order.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The publisher name of the guaranteed order. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "publisherName")]
-    pub publisher_name: Option<String>,
+    pub publisher_name: ::core::option::Option<String>,
     /// Whether all advertisers of read_write_partner_id have read access to the guaranteed order. Only applicable if read_write_partner_id is set. If True, overrides read_advertiser_ids.
     #[serde(default, rename = "readAccessInherited")]
-    pub read_access_inherited: Option<bool>,
+    pub read_access_inherited: ::core::option::Option<bool>,
     /// The IDs of advertisers with read access to the guaranteed order. This field must not include the advertiser assigned to read_write_advertiser_id if it is set. All advertisers in this field must belong to read_write_partner_id or the same partner as read_write_advertiser_id.
     #[serde(default, rename = "readAdvertiserIds")]
-    pub read_advertiser_ids: Option<Vec<String>>,
+    pub read_advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The advertiser with read/write access to the guaranteed order. This is also the default advertiser of the guaranteed order.
     #[serde(default, rename = "readWriteAdvertiserId")]
-    pub read_write_advertiser_id: Option<String>,
+    pub read_write_advertiser_id: ::core::option::Option<String>,
     /// The partner with read/write access to the guaranteed order.
     #[serde(default, rename = "readWritePartnerId")]
-    pub read_write_partner_id: Option<String>,
+    pub read_write_partner_id: ::core::option::Option<String>,
     /// The status settings of the guaranteed order.
     #[serde(default)]
-    pub status: Option<GuaranteedOrderStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GuaranteedOrderStatus>>,
     /// Output only. The timestamp when the guaranteed order was last updated. Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The status settings of the guaranteed order.
@@ -3426,13 +3563,13 @@ pub struct GuaranteedOrder {
 pub struct GuaranteedOrderStatus {
     /// Output only. The configuration status of the guaranteed order. Acceptable values are PENDING and COMPLETED. A guaranteed order must be configured (fill in the required fields, choose creatives, and select a default campaign) before it can serve. Currently the configuration action can only be performed via UI. // TODO: enum values: ["GUARANTEED_ORDER_CONFIG_STATUS_UNSPECIFIED", "PENDING", "COMPLETED"]
     #[serde(default, rename = "configStatus")]
-    pub config_status: Option<String>,
+    pub config_status: ::core::option::Option<String>,
     /// The user-provided reason for pausing this guaranteed order. Must be UTF-8 encoded with a maximum length of 100 bytes. Only applicable when entity_status is set to ENTITY_STATUS_PAUSED.
     #[serde(default, rename = "entityPauseReason")]
-    pub entity_pause_reason: Option<String>,
+    pub entity_pause_reason: ::core::option::Option<String>,
     /// Whether or not the guaranteed order is servable. Acceptable values are ENTITY_STATUS_ACTIVE, ENTITY_STATUS_ARCHIVED, and ENTITY_STATUS_PAUSED. Default value is ENTITY_STATUS_ACTIVE. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
 }
 
 /// Details for assigned household income targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_HOUSEHOLD_INCOME.
@@ -3440,7 +3577,7 @@ pub struct GuaranteedOrderStatus {
 pub struct HouseholdIncomeAssignedTargetingOptionDetails {
     /// Required. The household income of the audience. // TODO: enum values: ["HOUSEHOLD_INCOME_UNSPECIFIED", "HOUSEHOLD_INCOME_UNKNOWN", "HOUSEHOLD_INCOME_LOWER_50_PERCENT", "HOUSEHOLD_INCOME_TOP_41_TO_50_PERCENT", "HOUSEHOLD_INCOME_TOP_31_TO_40_PERCENT", "HOUSEHOLD_INCOME_TOP_21_TO_30_PERCENT", "HOUSEHOLD_INCOME_TOP_11_TO_20_PERCENT", "HOUSEHOLD_INCOME_TOP_10_PERCENT"]
     #[serde(default, rename = "householdIncome")]
-    pub household_income: Option<String>,
+    pub household_income: ::core::option::Option<String>,
 }
 
 /// Represents a targetable household income. This will be populated in the household_income_details field of a TargetingOption when targeting_type is TARGETING_TYPE_HOUSEHOLD_INCOME.
@@ -3448,7 +3585,7 @@ pub struct HouseholdIncomeAssignedTargetingOptionDetails {
 pub struct HouseholdIncomeTargetingOptionDetails {
     /// Output only. The household income of an audience. // TODO: enum values: ["HOUSEHOLD_INCOME_UNSPECIFIED", "HOUSEHOLD_INCOME_UNKNOWN", "HOUSEHOLD_INCOME_LOWER_50_PERCENT", "HOUSEHOLD_INCOME_TOP_41_TO_50_PERCENT", "HOUSEHOLD_INCOME_TOP_31_TO_40_PERCENT", "HOUSEHOLD_INCOME_TOP_21_TO_30_PERCENT", "HOUSEHOLD_INCOME_TOP_11_TO_20_PERCENT", "HOUSEHOLD_INCOME_TOP_10_PERCENT"]
     #[serde(default, rename = "householdIncome")]
-    pub household_income: Option<String>,
+    pub household_income: ::core::option::Option<String>,
 }
 
 /// A filtering option that filters entities by their entity IDs.
@@ -3456,28 +3593,28 @@ pub struct HouseholdIncomeTargetingOptionDetails {
 pub struct IdFilter {
     /// YouTube Ads to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "adGroupAdIds")]
-    pub ad_group_ad_ids: Option<Vec<String>>,
+    pub ad_group_ad_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// YouTube Ad Groups to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "adGroupIds")]
-    pub ad_group_ids: Option<Vec<String>>,
+    pub ad_group_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. YouTube Ad Groups, by ID, to download in QA format. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "adGroupQaIds")]
-    pub ad_group_qa_ids: Option<Vec<String>>,
+    pub ad_group_qa_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Campaigns to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "campaignIds")]
-    pub campaign_ids: Option<Vec<String>>,
+    pub campaign_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Insertion Orders to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "insertionOrderIds")]
-    pub insertion_order_ids: Option<Vec<String>>,
+    pub insertion_order_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Line Items to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "lineItemIds")]
-    pub line_item_ids: Option<Vec<String>>,
+    pub line_item_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Line Items, by ID, to download in QA format. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "lineItemQaIds")]
-    pub line_item_qa_ids: Option<Vec<String>>,
+    pub line_item_qa_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Media Products to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "mediaProductIds")]
-    pub media_product_ids: Option<Vec<String>>,
+    pub media_product_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Meta data of an image asset.
@@ -3485,16 +3622,16 @@ pub struct IdFilter {
 pub struct ImageAsset {
     /// Required. The unique ID of the asset.
     #[serde(default, rename = "assetId")]
-    pub asset_id: Option<String>,
+    pub asset_id: ::core::option::Option<String>,
     /// Output only. File size of the image asset in bytes.
     #[serde(default, rename = "fileSize")]
-    pub file_size: Option<String>,
+    pub file_size: ::core::option::Option<String>,
     /// Output only. Metadata for this image at its original size.
     #[serde(default, rename = "fullSize")]
-    pub full_size: Option<Dimensions>,
+    pub full_size: ::core::option::Option<::std::boxed::Box<Dimensions>>,
     /// Output only. MIME type of the image asset.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Details for an in-stream ad.
@@ -3502,10 +3639,11 @@ pub struct ImageAsset {
 pub struct InStreamAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
-    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
+    pub common_in_stream_attribute:
+        ::core::option::Option<::std::boxed::Box<CommonInStreamAttribute>>,
     /// The custom parameters to pass custom values to tracking URL template.
     #[serde(default, rename = "customParameters")]
-    pub custom_parameters: Option<serde_json::Value>,
+    pub custom_parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// A single insertion order.
@@ -3513,55 +3651,55 @@ pub struct InStreamAd {
 pub struct InsertionOrder {
     /// Output only. The unique ID of the advertiser the insertion order belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Optional. The bidding strategy of the insertion order. By default, fixed_bid is set. If the budget field automationType is set to INSERTION_ORDER_AUTOMATION_TYPE_BUDGET or INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET, the insertion order will impose this bidding strategy on its line items. If an imposed bidding strategy is not compatible with a line item''s enableOptimizedTargeting setting, the optimized targeting setting will be updated.
     #[serde(default, rename = "bidStrategy")]
-    pub bid_strategy: Option<BiddingStrategy>,
+    pub bid_strategy: ::core::option::Option<::std::boxed::Box<BiddingStrategy>>,
     /// Required. The budget allocation settings of the insertion order.
     #[serde(default)]
-    pub budget: Option<InsertionOrderBudget>,
+    pub budget: ::core::option::Option<::std::boxed::Box<InsertionOrderBudget>>,
     /// Required. Immutable. The unique ID of the campaign that the insertion order belongs to.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Required. The display name of the insertion order. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Controls whether or not the insertion order can spend its budget and bid on inventory. * For CreateInsertionOrder method, only ENTITY_STATUS_DRAFT is allowed. To activate an insertion order, use UpdateInsertionOrder method and update the status to ENTITY_STATUS_ACTIVE after creation. * An insertion order cannot be changed back to ENTITY_STATUS_DRAFT status from any other status. * An insertion order cannot be set to ENTITY_STATUS_ACTIVE if its parent campaign is not active. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Required. The frequency capping setting of the insertion order.
     #[serde(default, rename = "frequencyCap")]
-    pub frequency_cap: Option<FrequencyCap>,
+    pub frequency_cap: ::core::option::Option<::std::boxed::Box<FrequencyCap>>,
     /// Output only. The unique ID of the insertion order. Assigned by the system.
     #[serde(default, rename = "insertionOrderId")]
-    pub insertion_order_id: Option<String>,
+    pub insertion_order_id: ::core::option::Option<String>,
     /// Optional. The type of insertion order. If this field is unspecified in creation, the value defaults to RTB. // TODO: enum values: ["INSERTION_ORDER_TYPE_UNSPECIFIED", "RTB", "OVER_THE_TOP"]
     #[serde(default, rename = "insertionOrderType")]
-    pub insertion_order_type: Option<String>,
+    pub insertion_order_type: ::core::option::Option<String>,
     /// Optional. Additional integration details of the insertion order.
     #[serde(default, rename = "integrationDetails")]
-    pub integration_details: Option<IntegrationDetails>,
+    pub integration_details: ::core::option::Option<::std::boxed::Box<IntegrationDetails>>,
     /// Required. The key performance indicator (KPI) of the insertion order. This is represented as referred to as the "Goal" in the Display & Video 360 interface.
     #[serde(default)]
-    pub kpi: Option<Kpi>,
+    pub kpi: ::core::option::Option<::std::boxed::Box<Kpi>>,
     /// Output only. The resource name of the insertion order.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Required. The optimization objective of the insertion order. // TODO: enum values: ["OPTIMIZATION_OBJECTIVE_UNSPECIFIED", "CONVERSION", "CLICK", "BRAND_AWARENESS", "CUSTOM", "NO_OBJECTIVE"]
     #[serde(default, rename = "optimizationObjective")]
-    pub optimization_objective: Option<String>,
+    pub optimization_objective: ::core::option::Option<String>,
     /// Required. The budget spending speed setting of the insertion order. pacing_type PACING_TYPE_ASAP is not compatible with pacing_period PACING_PERIOD_FLIGHT.
     #[serde(default)]
-    pub pacing: Option<Pacing>,
+    pub pacing: ::core::option::Option<::std::boxed::Box<Pacing>>,
     /// Optional. The partner costs associated with the insertion order. If absent or empty in CreateInsertionOrder method, the newly created insertion order will inherit partner costs from the partner settings.
     #[serde(default, rename = "partnerCosts")]
-    pub partner_costs: Option<Vec<PartnerCost>>,
+    pub partner_costs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PartnerCost>>>,
     /// Output only. The reservation type of the insertion order. // TODO: enum values: ["RESERVATION_TYPE_UNSPECIFIED", "RESERVATION_TYPE_NOT_GUARANTEED", "RESERVATION_TYPE_PROGRAMMATIC_GUARANTEED", "RESERVATION_TYPE_TAG_GUARANTEED", "RESERVATION_TYPE_PETRA_VIRAL", "RESERVATION_TYPE_INSTANT_RESERVE"]
     #[serde(default, rename = "reservationType")]
-    pub reservation_type: Option<String>,
+    pub reservation_type: ::core::option::Option<String>,
     /// Output only. The timestamp when the insertion order was last updated. Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Settings that control how insertion order budget is allocated.
@@ -3569,13 +3707,14 @@ pub struct InsertionOrder {
 pub struct InsertionOrderBudget {
     /// Optional. The type of automation used to manage bid and budget for the insertion order. If this field is unspecified in creation, the value defaults to INSERTION_ORDER_AUTOMATION_TYPE_NONE. // TODO: enum values: ["INSERTION_ORDER_AUTOMATION_TYPE_UNSPECIFIED", "INSERTION_ORDER_AUTOMATION_TYPE_BUDGET", "INSERTION_ORDER_AUTOMATION_TYPE_NONE", "INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET"]
     #[serde(default, rename = "automationType")]
-    pub automation_type: Option<String>,
+    pub automation_type: ::core::option::Option<String>,
     /// Required. The list of budget segments. Use a budget segment to specify a specific budget for a given period of time an insertion order is running.
     #[serde(default, rename = "budgetSegments")]
-    pub budget_segments: Option<Vec<InsertionOrderBudgetSegment>>,
+    pub budget_segments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InsertionOrderBudgetSegment>>>,
     /// Required. Immutable. The budget unit specifies whether the budget is currency based or impression based. // TODO: enum values: ["BUDGET_UNIT_UNSPECIFIED", "BUDGET_UNIT_CURRENCY", "BUDGET_UNIT_IMPRESSIONS"]
     #[serde(default, rename = "budgetUnit")]
-    pub budget_unit: Option<String>,
+    pub budget_unit: ::core::option::Option<String>,
 }
 
 /// Settings that control the budget of a single budget segment.
@@ -3583,16 +3722,16 @@ pub struct InsertionOrderBudget {
 pub struct InsertionOrderBudgetSegment {
     /// Required. The budget amount the insertion order will spend for the given date_range. The amount is in micros. Must be greater than 0. For example, 500000000 represents 500 standard units of the currency.
     #[serde(default, rename = "budgetAmountMicros")]
-    pub budget_amount_micros: Option<String>,
+    pub budget_amount_micros: ::core::option::Option<String>,
     /// Optional. The budget_id of the campaign budget that this insertion order budget segment is a part of.
     #[serde(default, rename = "campaignBudgetId")]
-    pub campaign_budget_id: Option<String>,
+    pub campaign_budget_id: ::core::option::Option<String>,
     /// Required. The start and end date settings of the budget segment. They are resolved relative to the parent advertiser''s time zone. * When creating a new budget segment, both start_date and end_date must be in the future. * An existing budget segment with a start_date in the past has a mutable end_date but an immutable start_date. * end_date must be the start_date or later, both before the year 2037.
     #[serde(default, rename = "dateRange")]
-    pub date_range: Option<DateRange>,
+    pub date_range: ::core::option::Option<::std::boxed::Box<DateRange>>,
     /// Optional. The budget segment description. It can be used to enter Purchase Order information for each budget segment and have that information printed on the invoices. Must be UTF-8 encoded.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// Details of Integral Ad Science settings.
@@ -3600,49 +3739,49 @@ pub struct InsertionOrderBudgetSegment {
 pub struct IntegralAdScience {
     /// The custom segment ID provided by Integral Ad Science. The ID must be between 1000001 and 1999999 or 3000001 and 3999999, inclusive.
     #[serde(default, rename = "customSegmentId")]
-    pub custom_segment_id: Option<Vec<String>>,
+    pub custom_segment_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// Display Viewability section (applicable to display line items only). // TODO: enum values: ["PERFORMANCE_VIEWABILITY_UNSPECIFIED", "PERFORMANCE_VIEWABILITY_40", "PERFORMANCE_VIEWABILITY_50", "PERFORMANCE_VIEWABILITY_60", "PERFORMANCE_VIEWABILITY_70"]
     #[serde(default, rename = "displayViewability")]
-    pub display_viewability: Option<String>,
+    pub display_viewability: ::core::option::Option<String>,
     /// Brand Safety - **Unrateable**.
     #[serde(default, rename = "excludeUnrateable")]
-    pub exclude_unrateable: Option<bool>,
+    pub exclude_unrateable: ::core::option::Option<bool>,
     /// Ad Fraud settings. // TODO: enum values: ["SUSPICIOUS_ACTIVITY_UNSPECIFIED", "SUSPICIOUS_ACTIVITY_HR", "SUSPICIOUS_ACTIVITY_HMR", "SUSPICIOUS_ACTIVITY_FD"]
     #[serde(default, rename = "excludedAdFraudRisk")]
-    pub excluded_ad_fraud_risk: Option<String>,
+    pub excluded_ad_fraud_risk: ::core::option::Option<String>,
     /// Brand Safety - **Adult content**. // TODO: enum values: ["ADULT_UNSPECIFIED", "ADULT_HR", "ADULT_HMR"]
     #[serde(default, rename = "excludedAdultRisk")]
-    pub excluded_adult_risk: Option<String>,
+    pub excluded_adult_risk: ::core::option::Option<String>,
     /// Brand Safety - **Alcohol**. // TODO: enum values: ["ALCOHOL_UNSPECIFIED", "ALCOHOL_HR", "ALCOHOL_HMR"]
     #[serde(default, rename = "excludedAlcoholRisk")]
-    pub excluded_alcohol_risk: Option<String>,
+    pub excluded_alcohol_risk: ::core::option::Option<String>,
     /// Brand Safety - **Drugs**. // TODO: enum values: ["DRUGS_UNSPECIFIED", "DRUGS_HR", "DRUGS_HMR"]
     #[serde(default, rename = "excludedDrugsRisk")]
-    pub excluded_drugs_risk: Option<String>,
+    pub excluded_drugs_risk: ::core::option::Option<String>,
     /// Brand Safety - **Gambling**. // TODO: enum values: ["GAMBLING_UNSPECIFIED", "GAMBLING_HR", "GAMBLING_HMR"]
     #[serde(default, rename = "excludedGamblingRisk")]
-    pub excluded_gambling_risk: Option<String>,
+    pub excluded_gambling_risk: ::core::option::Option<String>,
     /// Brand Safety - **Hate speech**. // TODO: enum values: ["HATE_SPEECH_UNSPECIFIED", "HATE_SPEECH_HR", "HATE_SPEECH_HMR"]
     #[serde(default, rename = "excludedHateSpeechRisk")]
-    pub excluded_hate_speech_risk: Option<String>,
+    pub excluded_hate_speech_risk: ::core::option::Option<String>,
     /// Brand Safety - **Illegal downloads**. // TODO: enum values: ["ILLEGAL_DOWNLOADS_UNSPECIFIED", "ILLEGAL_DOWNLOADS_HR", "ILLEGAL_DOWNLOADS_HMR"]
     #[serde(default, rename = "excludedIllegalDownloadsRisk")]
-    pub excluded_illegal_downloads_risk: Option<String>,
+    pub excluded_illegal_downloads_risk: ::core::option::Option<String>,
     /// Brand Safety - **Offensive language**. // TODO: enum values: ["OFFENSIVE_LANGUAGE_UNSPECIFIED", "OFFENSIVE_LANGUAGE_HR", "OFFENSIVE_LANGUAGE_HMR"]
     #[serde(default, rename = "excludedOffensiveLanguageRisk")]
-    pub excluded_offensive_language_risk: Option<String>,
+    pub excluded_offensive_language_risk: ::core::option::Option<String>,
     /// Brand Safety - **Violence**. // TODO: enum values: ["VIOLENCE_UNSPECIFIED", "VIOLENCE_HR", "VIOLENCE_HMR"]
     #[serde(default, rename = "excludedViolenceRisk")]
-    pub excluded_violence_risk: Option<String>,
+    pub excluded_violence_risk: ::core::option::Option<String>,
     /// Optional. The quality sync custom segment ID provided by Integral Ad Science. The ID must be between 3000000 and 4999999, inclusive.
     #[serde(default, rename = "qualitySyncCustomSegmentId")]
-    pub quality_sync_custom_segment_id: Option<Vec<String>>,
+    pub quality_sync_custom_segment_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// True advertising quality (applicable to Display line items only). // TODO: enum values: ["TRAQ_UNSPECIFIED", "TRAQ_250", "TRAQ_500", "TRAQ_600", "TRAQ_700", "TRAQ_750", "TRAQ_875", "TRAQ_1000"]
     #[serde(default, rename = "traqScoreOption")]
-    pub traq_score_option: Option<String>,
+    pub traq_score_option: ::core::option::Option<String>,
     /// Video Viewability Section (applicable to video line items only). // TODO: enum values: ["VIDEO_VIEWABILITY_UNSPECIFIED", "VIDEO_VIEWABILITY_40", "VIDEO_VIEWABILITY_50", "VIDEO_VIEWABILITY_60", "VIDEO_VIEWABILITY_70"]
     #[serde(default, rename = "videoViewability")]
-    pub video_viewability: Option<String>,
+    pub video_viewability: ::core::option::Option<String>,
 }
 
 /// Integration details of an entry.
@@ -3650,10 +3789,10 @@ pub struct IntegralAdScience {
 pub struct IntegrationDetails {
     /// Additional details of the entry in string format. Must be UTF-8 encoded with a length of no more than 1000 characters.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// An external identifier to be associated with the entry. The integration code will show up together with the entry in many places in the system, for example, reporting. Must be UTF-8 encoded with a length of no more than 500 characters.
     #[serde(default, rename = "integrationCode")]
-    pub integration_code: Option<String>,
+    pub integration_code: ::core::option::Option<String>,
 }
 
 /// An inventory source. Next ID: 22
@@ -3661,61 +3800,62 @@ pub struct IntegrationDetails {
 pub struct InventorySource {
     /// Whether the inventory source has a guaranteed or non-guaranteed delivery. // TODO: enum values: ["INVENTORY_SOURCE_COMMITMENT_UNSPECIFIED", "INVENTORY_SOURCE_COMMITMENT_GUARANTEED", "INVENTORY_SOURCE_COMMITMENT_NON_GUARANTEED"]
     #[serde(default)]
-    pub commitment: Option<String>,
+    pub commitment: ::core::option::Option<String>,
     /// The creative requirements of the inventory source. Not applicable for auction packages.
     #[serde(default, rename = "creativeConfigs")]
-    pub creative_configs: Option<Vec<CreativeConfig>>,
+    pub creative_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CreativeConfig>>>,
     /// The ID in the exchange space that uniquely identifies the inventory source. Must be unique across buyers within each exchange but not necessarily unique across exchanges.
     #[serde(default, rename = "dealId")]
-    pub deal_id: Option<String>,
+    pub deal_id: ::core::option::Option<String>,
     /// The delivery method of the inventory source. * For non-guaranteed inventory sources, the only acceptable value is INVENTORY_SOURCE_DELIVERY_METHOD_PROGRAMMATIC. * For guaranteed inventory sources, acceptable values are INVENTORY_SOURCE_DELIVERY_METHOD_TAG and INVENTORY_SOURCE_DELIVERY_METHOD_PROGRAMMATIC. // TODO: enum values: ["INVENTORY_SOURCE_DELIVERY_METHOD_UNSPECIFIED", "INVENTORY_SOURCE_DELIVERY_METHOD_PROGRAMMATIC", "INVENTORY_SOURCE_DELIVERY_METHOD_TAG"]
     #[serde(default, rename = "deliveryMethod")]
-    pub delivery_method: Option<String>,
+    pub delivery_method: ::core::option::Option<String>,
     /// The display name of the inventory source. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The exchange to which the inventory source belongs. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
-    pub exchange: Option<String>,
+    pub exchange: ::core::option::Option<String>,
     /// Immutable. The ID of the guaranteed order that this inventory source belongs to. Only applicable when commitment is INVENTORY_SOURCE_COMMITMENT_GUARANTEED.
     #[serde(default, rename = "guaranteedOrderId")]
-    pub guaranteed_order_id: Option<String>,
+    pub guaranteed_order_id: ::core::option::Option<String>,
     /// Output only. The unique ID of the inventory source. Assigned by the system.
     #[serde(default, rename = "inventorySourceId")]
-    pub inventory_source_id: Option<String>,
+    pub inventory_source_id: ::core::option::Option<String>,
     /// Output only. The product type of the inventory source, denoting the way through which it sells inventory. // TODO: enum values: ["INVENTORY_SOURCE_PRODUCT_TYPE_UNSPECIFIED", "PREFERRED_DEAL", "PRIVATE_AUCTION", "PROGRAMMATIC_GUARANTEED", "TAG_GUARANTEED", "YOUTUBE_RESERVE", "INSTANT_RESERVE", "GUARANTEED_PACKAGE", "PROGRAMMATIC_TV", "AUCTION_PACKAGE"]
     #[serde(default, rename = "inventorySourceProductType")]
-    pub inventory_source_product_type: Option<String>,
+    pub inventory_source_product_type: ::core::option::Option<String>,
     /// Denotes the type of the inventory source. // TODO: enum values: ["INVENTORY_SOURCE_TYPE_UNSPECIFIED", "INVENTORY_SOURCE_TYPE_PRIVATE", "INVENTORY_SOURCE_TYPE_AUCTION_PACKAGE"]
     #[serde(default, rename = "inventorySourceType")]
-    pub inventory_source_type: Option<String>,
+    pub inventory_source_type: ::core::option::Option<String>,
     /// Output only. The resource name of the inventory source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The publisher/seller name of the inventory source.
     #[serde(default, rename = "publisherName")]
-    pub publisher_name: Option<String>,
+    pub publisher_name: ::core::option::Option<String>,
     /// Required. The rate details of the inventory source.
     #[serde(default, rename = "rateDetails")]
-    pub rate_details: Option<RateDetails>,
+    pub rate_details: ::core::option::Option<::std::boxed::Box<RateDetails>>,
     /// Output only. The IDs of advertisers with read-only access to the inventory source.
     #[serde(default, rename = "readAdvertiserIds")]
-    pub read_advertiser_ids: Option<Vec<String>>,
+    pub read_advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The IDs of partners with read-only access to the inventory source. All advertisers of partners in this field inherit read-only access to the inventory source.
     #[serde(default, rename = "readPartnerIds")]
-    pub read_partner_ids: Option<Vec<String>>,
+    pub read_partner_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The partner or advertisers that have read/write access to the inventory source. Output only when commitment is INVENTORY_SOURCE_COMMITMENT_GUARANTEED, in which case the read/write accessors are inherited from the parent guaranteed order. Required when commitment is INVENTORY_SOURCE_COMMITMENT_NON_GUARANTEED. If commitment is INVENTORY_SOURCE_COMMITMENT_NON_GUARANTEED and a partner is set in this field, all advertisers under this partner will automatically have read-only access to the inventory source. These advertisers will not be included in read_advertiser_ids.
     #[serde(default, rename = "readWriteAccessors")]
-    pub read_write_accessors: Option<InventorySourceAccessors>,
+    pub read_write_accessors: ::core::option::Option<::std::boxed::Box<InventorySourceAccessors>>,
     /// The status settings of the inventory source.
     #[serde(default)]
-    pub status: Option<InventorySourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<InventorySourceStatus>>,
     /// The time range when this inventory source starts and stops serving.
     #[serde(default, rename = "timeRange")]
-    pub time_range: Option<TimeRange>,
+    pub time_range: ::core::option::Option<::std::boxed::Box<TimeRange>>,
     /// Output only. The timestamp when the inventory source was last updated. Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The partner or advertisers with access to the inventory source.
@@ -3723,10 +3863,11 @@ pub struct InventorySource {
 pub struct InventorySourceAccessors {
     /// The advertisers with access to the inventory source. All advertisers must belong to the same partner.
     #[serde(default)]
-    pub advertisers: Option<InventorySourceAccessorsAdvertiserAccessors>,
+    pub advertisers:
+        ::core::option::Option<::std::boxed::Box<InventorySourceAccessorsAdvertiserAccessors>>,
     /// The partner with access to the inventory source.
     #[serde(default)]
-    pub partner: Option<InventorySourceAccessorsPartnerAccessor>,
+    pub partner: ::core::option::Option<::std::boxed::Box<InventorySourceAccessorsPartnerAccessor>>,
 }
 
 /// The advertisers with access to the inventory source.
@@ -3734,7 +3875,7 @@ pub struct InventorySourceAccessors {
 pub struct InventorySourceAccessorsAdvertiserAccessors {
     /// The IDs of the advertisers.
     #[serde(default, rename = "advertiserIds")]
-    pub advertiser_ids: Option<Vec<String>>,
+    pub advertiser_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The partner with access to the inventory source.
@@ -3742,7 +3883,7 @@ pub struct InventorySourceAccessorsAdvertiserAccessors {
 pub struct InventorySourceAccessorsPartnerAccessor {
     /// The ID of the partner.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
 }
 
 /// Targeting details for inventory source. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_INVENTORY_SOURCE.
@@ -3750,7 +3891,7 @@ pub struct InventorySourceAccessorsPartnerAccessor {
 pub struct InventorySourceAssignedTargetingOptionDetails {
     /// Required. ID of the inventory source. Should refer to the inventory_source_id field of an InventorySource resource.
     #[serde(default, rename = "inventorySourceId")]
-    pub inventory_source_id: Option<String>,
+    pub inventory_source_id: ::core::option::Option<String>,
 }
 
 /// The configuration for display creatives.
@@ -3758,7 +3899,7 @@ pub struct InventorySourceAssignedTargetingOptionDetails {
 pub struct InventorySourceDisplayCreativeConfig {
     /// The size requirements for display creatives that can be assigned to the inventory source.
     #[serde(default, rename = "creativeSize")]
-    pub creative_size: Option<Dimensions>,
+    pub creative_size: ::core::option::Option<::std::boxed::Box<Dimensions>>,
 }
 
 /// A filtering option for filtering on Inventory Source entities.
@@ -3766,7 +3907,7 @@ pub struct InventorySourceDisplayCreativeConfig {
 pub struct InventorySourceFilter {
     /// Inventory Sources to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest. Leave empty to download all Inventory Sources for the selected Advertiser or Partner.
     #[serde(default, rename = "inventorySourceIds")]
-    pub inventory_source_ids: Option<Vec<String>>,
+    pub inventory_source_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A collection of targetable inventory sources.
@@ -3774,13 +3915,13 @@ pub struct InventorySourceFilter {
 pub struct InventorySourceGroup {
     /// Required. The display name of the inventory source group. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The unique ID of the inventory source group. Assigned by the system.
     #[serde(default, rename = "inventorySourceGroupId")]
-    pub inventory_source_group_id: Option<String>,
+    pub inventory_source_group_id: ::core::option::Option<String>,
     /// Output only. The resource name of the inventory source group.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Targeting details for inventory source group. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_INVENTORY_SOURCE_GROUP.
@@ -3788,7 +3929,7 @@ pub struct InventorySourceGroup {
 pub struct InventorySourceGroupAssignedTargetingOptionDetails {
     /// Required. ID of the inventory source group. Should refer to the inventory_source_group_id field of an InventorySourceGroup resource.
     #[serde(default, rename = "inventorySourceGroupId")]
-    pub inventory_source_group_id: Option<String>,
+    pub inventory_source_group_id: ::core::option::Option<String>,
 }
 
 /// The status related settings of the inventory source.
@@ -3796,19 +3937,19 @@ pub struct InventorySourceGroupAssignedTargetingOptionDetails {
 pub struct InventorySourceStatus {
     /// Output only. The configuration status of the inventory source. Only applicable for guaranteed inventory sources. Acceptable values are INVENTORY_SOURCE_CONFIG_STATUS_PENDING and INVENTORY_SOURCE_CONFIG_STATUS_COMPLETED. An inventory source must be configured (fill in the required fields, choose creatives, and select a default campaign) before it can serve. // TODO: enum values: ["INVENTORY_SOURCE_CONFIG_STATUS_UNSPECIFIED", "INVENTORY_SOURCE_CONFIG_STATUS_PENDING", "INVENTORY_SOURCE_CONFIG_STATUS_COMPLETED"]
     #[serde(default, rename = "configStatus")]
-    pub config_status: Option<String>,
+    pub config_status: ::core::option::Option<String>,
     /// The user-provided reason for pausing this inventory source. Must not exceed 100 characters. Only applicable when entity_status is set to ENTITY_STATUS_PAUSED.
     #[serde(default, rename = "entityPauseReason")]
-    pub entity_pause_reason: Option<String>,
+    pub entity_pause_reason: ::core::option::Option<String>,
     /// Whether or not the inventory source is servable. Acceptable values are ENTITY_STATUS_ACTIVE, ENTITY_STATUS_ARCHIVED, and ENTITY_STATUS_PAUSED. Default value is ENTITY_STATUS_ACTIVE. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Output only. The seller-provided reason for pausing this inventory source. Only applicable for inventory sources synced directly from the publishers and when seller_status is set to ENTITY_STATUS_PAUSED.
     #[serde(default, rename = "sellerPauseReason")]
-    pub seller_pause_reason: Option<String>,
+    pub seller_pause_reason: ::core::option::Option<String>,
     /// Output only. The status set by the seller for the inventory source. Only applicable for inventory sources synced directly from the publishers. Acceptable values are ENTITY_STATUS_ACTIVE and ENTITY_STATUS_PAUSED. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "sellerStatus")]
-    pub seller_status: Option<String>,
+    pub seller_status: ::core::option::Option<String>,
 }
 
 /// The configuration for video creatives.
@@ -3816,7 +3957,7 @@ pub struct InventorySourceStatus {
 pub struct InventorySourceVideoCreativeConfig {
     /// The duration requirements for the video creatives that can be assigned to the inventory source.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
 }
 
 /// A single invoice.
@@ -3824,64 +3965,64 @@ pub struct InventorySourceVideoCreativeConfig {
 pub struct Invoice {
     /// The budget grouping ID for this invoice. This field will only be set if the invoice level of the corresponding billing profile was set to "Budget invoice grouping ID".
     #[serde(default, rename = "budgetInvoiceGroupingId")]
-    pub budget_invoice_grouping_id: Option<String>,
+    pub budget_invoice_grouping_id: ::core::option::Option<String>,
     /// The list of summarized information for each budget associated with this invoice. This field will only be set if the invoice detail level of the corresponding billing profile was set to "Budget level PO".
     #[serde(default, rename = "budgetSummaries")]
-    pub budget_summaries: Option<Vec<BudgetSummary>>,
+    pub budget_summaries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BudgetSummary>>>,
     /// The ID of the original invoice being adjusted by this invoice, if applicable. May appear on the invoice PDF as Reference invoice number. If replaced_invoice_ids is set, this field will be empty.
     #[serde(default, rename = "correctedInvoiceId")]
-    pub corrected_invoice_id: Option<String>,
+    pub corrected_invoice_id: ::core::option::Option<String>,
     /// The currency used in the invoice in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// The display name of the invoice.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The date when the invoice is due.
     #[serde(default, rename = "dueDate")]
-    pub due_date: Option<Date>,
+    pub due_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The unique ID of the invoice.
     #[serde(default, rename = "invoiceId")]
-    pub invoice_id: Option<String>,
+    pub invoice_id: ::core::option::Option<String>,
     /// The type of invoice document. // TODO: enum values: ["INVOICE_TYPE_UNSPECIFIED", "INVOICE_TYPE_CREDIT", "INVOICE_TYPE_INVOICE"]
     #[serde(default, rename = "invoiceType")]
-    pub invoice_type: Option<String>,
+    pub invoice_type: ::core::option::Option<String>,
     /// The date when the invoice was issued.
     #[serde(default, rename = "issueDate")]
-    pub issue_date: Option<Date>,
+    pub issue_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The resource name of the invoice.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The total amount of costs or adjustments not tied to a particular budget, in micros of the invoice''s currency. For example, if currency_code is USD, then 1000000 represents one US dollar.
     #[serde(default, rename = "nonBudgetMicros")]
-    pub non_budget_micros: Option<String>,
+    pub non_budget_micros: ::core::option::Option<String>,
     /// The ID of the payments account the invoice belongs to. Appears on the invoice PDF as Billing Account Number.
     #[serde(default, rename = "paymentsAccountId")]
-    pub payments_account_id: Option<String>,
+    pub payments_account_id: ::core::option::Option<String>,
     /// The ID of the payments profile the invoice belongs to. Appears on the invoice PDF as Billing ID.
     #[serde(default, rename = "paymentsProfileId")]
-    pub payments_profile_id: Option<String>,
+    pub payments_profile_id: ::core::option::Option<String>,
     /// The URL to download a PDF copy of the invoice. This URL is user specific and requires a valid OAuth 2.0 access token to access. The access token must be provided in an Authorization: Bearer HTTP header and be authorized for one of the following scopes: * https://www.googleapis.com/auth/display-video-mediaplanning * https://www.googleapis.com/auth/display-video The URL will be valid for 7 days after retrieval of this invoice object or until this invoice is retrieved again.
     #[serde(default, rename = "pdfUrl")]
-    pub pdf_url: Option<String>,
+    pub pdf_url: ::core::option::Option<String>,
     /// Purchase order number associated with the invoice.
     #[serde(default, rename = "purchaseOrderNumber")]
-    pub purchase_order_number: Option<String>,
+    pub purchase_order_number: ::core::option::Option<String>,
     /// The ID(s) of any originally issued invoice that is being cancelled by this invoice, if applicable. Multiple invoices may be listed if those invoices are being consolidated into a single invoice. May appear on invoice PDF as Replaced invoice numbers. If corrected_invoice_id is set, this field will be empty.
     #[serde(default, rename = "replacedInvoiceIds")]
-    pub replaced_invoice_ids: Option<Vec<String>>,
+    pub replaced_invoice_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The service start and end dates which are covered by this invoice.
     #[serde(default, rename = "serviceDateRange")]
-    pub service_date_range: Option<DateRange>,
+    pub service_date_range: ::core::option::Option<::std::boxed::Box<DateRange>>,
     /// The pre-tax subtotal amount, in micros of the invoice''s currency. For example, if currency_code is USD, then 1000000 represents one US dollar.
     #[serde(default, rename = "subtotalAmountMicros")]
-    pub subtotal_amount_micros: Option<String>,
+    pub subtotal_amount_micros: ::core::option::Option<String>,
     /// The invoice total amount, in micros of the invoice''s currency. For example, if currency_code is USD, then 1000000 represents one US dollar.
     #[serde(default, rename = "totalAmountMicros")]
-    pub total_amount_micros: Option<String>,
+    pub total_amount_micros: ::core::option::Option<String>,
     /// The sum of all taxes in invoice, in micros of the invoice''s currency. For example, if currency_code is USD, then 1000000 represents one US dollar.
     #[serde(default, rename = "totalTaxAmountMicros")]
-    pub total_tax_amount_micros: Option<String>,
+    pub total_tax_amount_micros: ::core::option::Option<String>,
 }
 
 /// Details for assigned keyword targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_KEYWORD.
@@ -3889,13 +4030,13 @@ pub struct Invoice {
 pub struct KeywordAssignedTargetingOptionDetails {
     /// Optional. The policy names to exempt the keyword from. This field is only applicable for Demand Gen keywords, which are positively targeted.
     #[serde(default, rename = "exemptedPolicyNames")]
-    pub exempted_policy_names: Option<Vec<String>>,
+    pub exempted_policy_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The keyword, for example car insurance. Positive keyword cannot be offensive word. Must be UTF-8 encoded with a maximum size of 255 bytes. Maximum number of characters is 80. Maximum number of words is 10.
     #[serde(default)]
-    pub keyword: Option<String>,
+    pub keyword: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
 }
 
 /// Settings that control the key performance indicator, or KPI, of an insertion order.
@@ -3903,19 +4044,19 @@ pub struct KeywordAssignedTargetingOptionDetails {
 pub struct Kpi {
     /// Optional. Custom Bidding Algorithm ID associated with KPI_CUSTOM_IMPRESSION_VALUE_OVER_COST. This field is ignored if the proper KPI is not selected.
     #[serde(default, rename = "kpiAlgorithmId")]
-    pub kpi_algorithm_id: Option<String>,
+    pub kpi_algorithm_id: ::core::option::Option<String>,
     /// The goal amount, in micros of the advertiser''s currency. Applicable when kpi_type is one of: * KPI_TYPE_CPM * KPI_TYPE_CPC * KPI_TYPE_CPA * KPI_TYPE_CPIAVC * KPI_TYPE_VCPM For example: 1500000 represents 1.5 standard units of the currency.
     #[serde(default, rename = "kpiAmountMicros")]
-    pub kpi_amount_micros: Option<String>,
+    pub kpi_amount_micros: ::core::option::Option<String>,
     /// The decimal representation of the goal percentage in micros. Applicable when kpi_type is one of: * KPI_TYPE_CTR * KPI_TYPE_VIEWABILITY * KPI_TYPE_CLICK_CVR * KPI_TYPE_IMPRESSION_CVR * KPI_TYPE_VTR * KPI_TYPE_AUDIO_COMPLETION_RATE * KPI_TYPE_VIDEO_COMPLETION_RATE For example: 70000 represents 7% (decimal 0.07).
     #[serde(default, rename = "kpiPercentageMicros")]
-    pub kpi_percentage_micros: Option<String>,
+    pub kpi_percentage_micros: ::core::option::Option<String>,
     /// A KPI string, which can be empty. Must be UTF-8 encoded with a length of no more than 100 characters. Applicable when kpi_type is KPI_TYPE_OTHER.
     #[serde(default, rename = "kpiString")]
-    pub kpi_string: Option<String>,
+    pub kpi_string: ::core::option::Option<String>,
     /// Required. The type of KPI. // TODO: enum values: ["KPI_TYPE_UNSPECIFIED", "KPI_TYPE_CPM", "KPI_TYPE_CPC", "KPI_TYPE_CPA", "KPI_TYPE_CTR", "KPI_TYPE_VIEWABILITY", "KPI_TYPE_CPIAVC", "KPI_TYPE_CPE", "KPI_TYPE_CPV", "KPI_TYPE_CLICK_CVR", "KPI_TYPE_IMPRESSION_CVR", "KPI_TYPE_VCPM", "KPI_TYPE_VTR", "KPI_TYPE_AUDIO_COMPLETION_RATE", "KPI_TYPE_VIDEO_COMPLETION_RATE", "KPI_TYPE_CPCL", "KPI_TYPE_CPCV", "KPI_TYPE_TOS10", "KPI_TYPE_MAXIMIZE_PACING", "KPI_TYPE_CUSTOM_IMPRESSION_VALUE_OVER_COST", "KPI_TYPE_OTHER"]
     #[serde(default, rename = "kpiType")]
-    pub kpi_type: Option<String>,
+    pub kpi_type: ::core::option::Option<String>,
 }
 
 /// Details for assigned language targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_LANGUAGE.
@@ -3923,13 +4064,13 @@ pub struct Kpi {
 pub struct LanguageAssignedTargetingOptionDetails {
     /// Output only. The display name of the language (e.g., "French").
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted. All assigned language targeting options on the same resource must have the same value for this field.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_LANGUAGE.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable language. This will be populated in the language_details field when targeting_type is TARGETING_TYPE_LANGUAGE.
@@ -3937,7 +4078,7 @@ pub struct LanguageAssignedTargetingOptionDetails {
 pub struct LanguageTargetingOptionDetails {
     /// Output only. The display name of the language (e.g., "French").
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// A single line item.
@@ -3945,85 +4086,86 @@ pub struct LanguageTargetingOptionDetails {
 pub struct LineItem {
     /// Output only. The unique ID of the advertiser the line item belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Required. The bidding strategy of the line item.
     #[serde(default, rename = "bidStrategy")]
-    pub bid_strategy: Option<BiddingStrategy>,
+    pub bid_strategy: ::core::option::Option<::std::boxed::Box<BiddingStrategy>>,
     /// Required. The budget allocation setting of the line item.
     #[serde(default)]
-    pub budget: Option<LineItemBudget>,
+    pub budget: ::core::option::Option<::std::boxed::Box<LineItemBudget>>,
     /// Output only. The unique ID of the campaign that the line item belongs to.
     #[serde(default, rename = "campaignId")]
-    pub campaign_id: Option<String>,
+    pub campaign_id: ::core::option::Option<String>,
     /// Whether this line item will serve European Union political ads. If contains_eu_political_ads has been set to DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING in the parent advertiser, then this field will be assigned DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING if not otherwise specified. This field can then be updated using the UI, API, or Structured Data Files. This field must be assigned when creating a new line item. Otherwise, **the advertisers.lineItems.create request will fail**. // TODO: enum values: ["EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN", "CONTAINS_EU_POLITICAL_ADVERTISING", "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING"]
     #[serde(default, rename = "containsEuPoliticalAds")]
-    pub contains_eu_political_ads: Option<String>,
+    pub contains_eu_political_ads: ::core::option::Option<String>,
     /// The conversion tracking setting of the line item.
     #[serde(default, rename = "conversionCounting")]
-    pub conversion_counting: Option<ConversionCountingConfig>,
+    pub conversion_counting: ::core::option::Option<::std::boxed::Box<ConversionCountingConfig>>,
     /// The IDs of the creatives associated with the line item.
     #[serde(default, rename = "creativeIds")]
-    pub creative_ids: Option<Vec<String>>,
+    pub creative_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Settings specific to Demand Gen line items.
     #[serde(default, rename = "demandGenSettings")]
-    pub demand_gen_settings: Option<DemandGenSettings>,
+    pub demand_gen_settings: ::core::option::Option<::std::boxed::Box<DemandGenSettings>>,
     /// Required. The display name of the line item. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Controls whether or not the line item can spend its budget and bid on inventory. * For CreateLineItem method, only ENTITY_STATUS_DRAFT is allowed. To activate a line item, use UpdateLineItem method and update the status to ENTITY_STATUS_ACTIVE after creation. * A line item cannot be changed back to ENTITY_STATUS_DRAFT status from any other status. * If the line item''s parent insertion order is not active, the line item can''t spend its budget even if its own status is ENTITY_STATUS_ACTIVE. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Whether to exclude new exchanges from automatically being targeted by the line item. This field is false by default.
     #[serde(default, rename = "excludeNewExchanges")]
-    pub exclude_new_exchanges: Option<bool>,
+    pub exclude_new_exchanges: ::core::option::Option<bool>,
     /// Required. The start and end time of the line item''s flight.
     #[serde(default)]
-    pub flight: Option<LineItemFlight>,
+    pub flight: ::core::option::Option<::std::boxed::Box<LineItemFlight>>,
     /// Optional. The impression frequency cap settings of the line item. The max_impressions field in this settings object must be used if assigning a limited cap. This field is REQUIRED for all line item types excluding LINE_ITEM_TYPE_DEMAND_GEN.
     #[serde(default, rename = "frequencyCap")]
-    pub frequency_cap: Option<FrequencyCap>,
+    pub frequency_cap: ::core::option::Option<::std::boxed::Box<FrequencyCap>>,
     /// Required. Immutable. The unique ID of the insertion order that the line item belongs to.
     #[serde(default, rename = "insertionOrderId")]
-    pub insertion_order_id: Option<String>,
+    pub insertion_order_id: ::core::option::Option<String>,
     /// Integration details of the line item.
     #[serde(default, rename = "integrationDetails")]
-    pub integration_details: Option<IntegrationDetails>,
+    pub integration_details: ::core::option::Option<::std::boxed::Box<IntegrationDetails>>,
     /// Output only. The unique ID of the line item. Assigned by the system.
     #[serde(default, rename = "lineItemId")]
-    pub line_item_id: Option<String>,
+    pub line_item_id: ::core::option::Option<String>,
     /// Required. Immutable. The type of the line item. // TODO: enum values: ["LINE_ITEM_TYPE_UNSPECIFIED", "LINE_ITEM_TYPE_DISPLAY_DEFAULT", "LINE_ITEM_TYPE_DISPLAY_MOBILE_APP_INSTALL", "LINE_ITEM_TYPE_VIDEO_DEFAULT", "LINE_ITEM_TYPE_VIDEO_MOBILE_APP_INSTALL", "LINE_ITEM_TYPE_DISPLAY_MOBILE_APP_INVENTORY", "LINE_ITEM_TYPE_VIDEO_MOBILE_APP_INVENTORY", "LINE_ITEM_TYPE_AUDIO_DEFAULT", "LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_ACTION", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_NON_SKIPPABLE", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_VIDEO_SEQUENCE", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_AUDIO", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_REACH", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_SIMPLE", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_NON_SKIPPABLE_OVER_THE_TOP", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_REACH_OVER_THE_TOP", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_SIMPLE_OVER_THE_TOP", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_TARGET_FREQUENCY", "LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_VIEW", "LINE_ITEM_TYPE_DISPLAY_OUT_OF_HOME", "LINE_ITEM_TYPE_VIDEO_OUT_OF_HOME", "LINE_ITEM_TYPE_DEMAND_GEN"]
     #[serde(default, rename = "lineItemType")]
-    pub line_item_type: Option<String>,
+    pub line_item_type: ::core::option::Option<String>,
     /// The mobile app promoted by the line item. This is applicable only when line_item_type is either LINE_ITEM_TYPE_DISPLAY_MOBILE_APP_INSTALL or LINE_ITEM_TYPE_VIDEO_MOBILE_APP_INSTALL.
     #[serde(default, rename = "mobileApp")]
-    pub mobile_app: Option<MobileApp>,
+    pub mobile_app: ::core::option::Option<::std::boxed::Box<MobileApp>>,
     /// Output only. The resource name of the line item.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The budget spending speed setting of the line item.
     #[serde(default)]
-    pub pacing: Option<Pacing>,
+    pub pacing: ::core::option::Option<::std::boxed::Box<Pacing>>,
     /// The partner costs associated with the line item. If absent or empty in CreateLineItem method, the newly created line item will inherit partner costs from its parent insertion order.
     #[serde(default, rename = "partnerCosts")]
-    pub partner_costs: Option<Vec<PartnerCost>>,
+    pub partner_costs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PartnerCost>>>,
     /// Required. The partner revenue model setting of the line item.
     #[serde(default, rename = "partnerRevenueModel")]
-    pub partner_revenue_model: Option<PartnerRevenueModel>,
+    pub partner_revenue_model: ::core::option::Option<::std::boxed::Box<PartnerRevenueModel>>,
     /// Output only. The reservation type of the line item. // TODO: enum values: ["RESERVATION_TYPE_UNSPECIFIED", "RESERVATION_TYPE_NOT_GUARANTEED", "RESERVATION_TYPE_PROGRAMMATIC_GUARANTEED", "RESERVATION_TYPE_TAG_GUARANTEED", "RESERVATION_TYPE_PETRA_VIRAL", "RESERVATION_TYPE_INSTANT_RESERVE"]
     #[serde(default, rename = "reservationType")]
-    pub reservation_type: Option<String>,
+    pub reservation_type: ::core::option::Option<String>,
     /// The [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item. This config is only applicable for display, video, or audio line items that use automated bidding and positively target eligible audience lists.
     #[serde(default, rename = "targetingExpansion")]
-    pub targeting_expansion: Option<TargetingExpansionConfig>,
+    pub targeting_expansion: ::core::option::Option<::std::boxed::Box<TargetingExpansionConfig>>,
     /// Output only. The timestamp when the line item was last updated. Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The warning messages generated by the line item. These warnings do not block saving the line item, but some may block the line item from running.
     #[serde(default, rename = "warningMessages")]
-    pub warning_messages: Option<Vec<String>>,
+    pub warning_messages: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Settings specific to YouTube and Partners line items.
     #[serde(default, rename = "youtubeAndPartnersSettings")]
-    pub youtube_and_partners_settings: Option<YoutubeAndPartnersSettings>,
+    pub youtube_and_partners_settings:
+        ::core::option::Option<::std::boxed::Box<YoutubeAndPartnersSettings>>,
 }
 
 /// Wrapper object associating an assigned_targeting_option resource and the line item it is assigned to.
@@ -4031,10 +4173,11 @@ pub struct LineItem {
 pub struct LineItemAssignedTargetingOption {
     /// The assigned targeting option resource.
     #[serde(default, rename = "assignedTargetingOption")]
-    pub assigned_targeting_option: Option<AssignedTargetingOption>,
+    pub assigned_targeting_option:
+        ::core::option::Option<::std::boxed::Box<AssignedTargetingOption>>,
     /// The ID of the line item the assigned targeting option is assigned to.
     #[serde(default, rename = "lineItemId")]
-    pub line_item_id: Option<String>,
+    pub line_item_id: ::core::option::Option<String>,
 }
 
 /// Settings that control how budget is allocated.
@@ -4042,13 +4185,13 @@ pub struct LineItemAssignedTargetingOption {
 pub struct LineItemBudget {
     /// Required. The type of the budget allocation. LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC is only applicable when automatic budget allocation is enabled for the parent insertion order. For demand gen line items, budget allocation type must be LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED. Demand Gen line items do not support other budget allocation types. // TODO: enum values: ["LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNSPECIFIED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNLIMITED"]
     #[serde(default, rename = "budgetAllocationType")]
-    pub budget_allocation_type: Option<String>,
+    pub budget_allocation_type: ::core::option::Option<String>,
     /// Output only. The budget unit specifies whether the budget is currency based or impression based. This value is inherited from the parent insertion order. // TODO: enum values: ["BUDGET_UNIT_UNSPECIFIED", "BUDGET_UNIT_CURRENCY", "BUDGET_UNIT_IMPRESSIONS"]
     #[serde(default, rename = "budgetUnit")]
-    pub budget_unit: Option<String>,
+    pub budget_unit: ::core::option::Option<String>,
     /// The maximum budget amount the line item will spend. Must be greater than 0. When budget_allocation_type is: * LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC, this field is immutable and is set by the system. * LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED, if budget_unit is: - BUDGET_UNIT_CURRENCY, this field represents maximum budget amount to spend, in micros of the advertiser''s currency. For example, 1500000 represents 1.5 standard units of the currency. - BUDGET_UNIT_IMPRESSIONS, this field represents the maximum number of impressions to serve. * LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNLIMITED, this field is not applicable and will be ignored by the system.
     #[serde(default, rename = "maxAmount")]
-    pub max_amount: Option<String>,
+    pub max_amount: ::core::option::Option<String>,
 }
 
 /// Settings that control the active duration of a line item.
@@ -4056,10 +4199,10 @@ pub struct LineItemBudget {
 pub struct LineItemFlight {
     /// The flight start and end dates of the line item. They are resolved relative to the parent advertiser''s time zone. * Required when flight_date_type is LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM. Output only otherwise. * When creating a new flight, both start_date and end_date must be in the future. * An existing flight with a start_date in the past has a mutable end_date but an immutable start_date. * end_date must be the start_date or later, both before the year 2037.
     #[serde(default, rename = "dateRange")]
-    pub date_range: Option<DateRange>,
+    pub date_range: ::core::option::Option<::std::boxed::Box<DateRange>>,
     /// Required. The type of the line item''s flight dates. // TODO: enum values: ["LINE_ITEM_FLIGHT_DATE_TYPE_UNSPECIFIED", "LINE_ITEM_FLIGHT_DATE_TYPE_INHERITED", "LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM"]
     #[serde(default, rename = "flightDateType")]
-    pub flight_date_type: Option<String>,
+    pub flight_date_type: ::core::option::Option<String>,
 }
 
 /// A response message for ListAdAssets.
@@ -4067,10 +4210,10 @@ pub struct LineItemFlight {
 pub struct ListAdAssetsResponse {
     /// The list of ad assets. The list will only contain assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO. This list will be absent if empty.
     #[serde(default, rename = "adAssets")]
-    pub ad_assets: Option<Vec<AdAsset>>,
+    pub ad_assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdAsset>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListAdAssets method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListAdGroupAdsResponse resource type.
@@ -4078,10 +4221,10 @@ pub struct ListAdAssetsResponse {
 pub struct ListAdGroupAdsResponse {
     /// The list of ads. This list will be absent if empty.
     #[serde(default, rename = "adGroupAds")]
-    pub ad_group_ads: Option<Vec<AdGroupAd>>,
+    pub ad_group_ads: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdGroupAd>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListAdGroupAds method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListAdGroupAssignedTargetingOptions.
@@ -4089,10 +4232,11 @@ pub struct ListAdGroupAdsResponse {
 pub struct ListAdGroupAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
-    pub assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
     /// A token identifying the next page of results. This value should be specified as the pageToken in a subsequent ListAdGroupAssignedTargetingOptionsRequest to fetch the next page of results. This token will be absent if there are no more AssignedTargetingOption resources to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListAdGroupsResponse resource type.
@@ -4100,10 +4244,10 @@ pub struct ListAdGroupAssignedTargetingOptionsResponse {
 pub struct ListAdGroupsResponse {
     /// The list of ad groups. This list will be absent if empty.
     #[serde(default, rename = "adGroups")]
-    pub ad_groups: Option<Vec<AdGroup>>,
+    pub ad_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdGroup>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListAdGroups method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListAdvertiserAssignedTargetingOptions.
@@ -4111,10 +4255,11 @@ pub struct ListAdGroupsResponse {
 pub struct ListAdvertiserAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
-    pub assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
     /// A token identifying the next page of results. This value should be specified as the pageToken in a subsequent ListAdvertiserAssignedTargetingOptionsRequest to fetch the next page of results. This token will be absent if there are no more assigned_targeting_options to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListAdvertisersResponse resource type.
@@ -4122,10 +4267,10 @@ pub struct ListAdvertiserAssignedTargetingOptionsResponse {
 pub struct ListAdvertisersResponse {
     /// The list of advertisers. This list will be absent if empty.
     #[serde(default)]
-    pub advertisers: Option<Vec<Advertiser>>,
+    pub advertisers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Advertiser>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListAdvertisers method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for AssignedInventorySourceService.ListAssignedInventorySources.
@@ -4133,10 +4278,11 @@ pub struct ListAdvertisersResponse {
 pub struct ListAssignedInventorySourcesResponse {
     /// The list of assigned inventory sources. This list will be absent if empty.
     #[serde(default, rename = "assignedInventorySources")]
-    pub assigned_inventory_sources: Option<Vec<AssignedInventorySource>>,
+    pub assigned_inventory_sources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedInventorySource>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListAssignedInventorySources method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for AssignedLocationService.ListAssignedLocations.
@@ -4144,10 +4290,11 @@ pub struct ListAssignedInventorySourcesResponse {
 pub struct ListAssignedLocationsResponse {
     /// The list of assigned locations. This list will be absent if empty.
     #[serde(default, rename = "assignedLocations")]
-    pub assigned_locations: Option<Vec<AssignedLocation>>,
+    pub assigned_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedLocation>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListAssignedLocations method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListCampaignsResponse resource type.
@@ -4155,10 +4302,10 @@ pub struct ListAssignedLocationsResponse {
 pub struct ListCampaignsResponse {
     /// The list of campaigns. This list will be absent if empty.
     #[serde(default)]
-    pub campaigns: Option<Vec<Campaign>>,
+    pub campaigns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Campaign>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListCampaigns method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListChannelsResponse resource type.
@@ -4166,10 +4313,10 @@ pub struct ListCampaignsResponse {
 pub struct ListChannelsResponse {
     /// The list of channels. This list will be absent if empty.
     #[serde(default)]
-    pub channels: Option<Vec<Channel>>,
+    pub channels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Channel>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListChannels method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListCombinedAudiencesResponse resource type.
@@ -4177,10 +4324,11 @@ pub struct ListChannelsResponse {
 pub struct ListCombinedAudiencesResponse {
     /// The list of combined audiences. This list will be absent if empty.
     #[serde(default, rename = "combinedAudiences")]
-    pub combined_audiences: Option<Vec<CombinedAudience>>,
+    pub combined_audiences:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CombinedAudience>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListCombinedAudiences method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListCreativesResponse resource type.
@@ -4188,10 +4336,10 @@ pub struct ListCombinedAudiencesResponse {
 pub struct ListCreativesResponse {
     /// The list of creatives. This list will be absent if empty.
     #[serde(default)]
-    pub creatives: Option<Vec<Creative>>,
+    pub creatives: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Creative>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListCreativesRequest method to retrieve the next page of results. If this field is null, it means this is the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListCustomBiddingAlgorithmRulesResponse resource type.
@@ -4199,10 +4347,11 @@ pub struct ListCreativesResponse {
 pub struct ListCustomBiddingAlgorithmRulesResponse {
     /// The list of CustomBiddingAlgorithmRules resources. This list will be absent if empty.
     #[serde(default, rename = "customBiddingRules")]
-    pub custom_bidding_rules: Option<Vec<CustomBiddingAlgorithmRules>>,
+    pub custom_bidding_rules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomBiddingAlgorithmRules>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListCustomBiddingAlgorithmRulesRequest method to retrieve the next page of results. If this field is null, it means this is the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListCustomBiddingAlgorithmsResponse resource type.
@@ -4210,10 +4359,11 @@ pub struct ListCustomBiddingAlgorithmRulesResponse {
 pub struct ListCustomBiddingAlgorithmsResponse {
     /// The list of custom bidding algorithms. This list will be absent if empty.
     #[serde(default, rename = "customBiddingAlgorithms")]
-    pub custom_bidding_algorithms: Option<Vec<CustomBiddingAlgorithm>>,
+    pub custom_bidding_algorithms:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomBiddingAlgorithm>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListCustomBiddingAlgorithmsRequest method to retrieve the next page of results. If this field is null, it means this is the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListCustomBiddingScriptsResponse resource type.
@@ -4221,10 +4371,11 @@ pub struct ListCustomBiddingAlgorithmsResponse {
 pub struct ListCustomBiddingScriptsResponse {
     /// The list of custom bidding scripts. This list will be absent if empty.
     #[serde(default, rename = "customBiddingScripts")]
-    pub custom_bidding_scripts: Option<Vec<CustomBiddingScript>>,
+    pub custom_bidding_scripts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomBiddingScript>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListCustomBiddingScriptsRequest method to retrieve the next page of results. If this field is null, it means this is the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListCustomListsResponse resource type.
@@ -4232,10 +4383,10 @@ pub struct ListCustomBiddingScriptsResponse {
 pub struct ListCustomListsResponse {
     /// The list of custom lists. This list will be absent if empty.
     #[serde(default, rename = "customLists")]
-    pub custom_lists: Option<Vec<CustomList>>,
+    pub custom_lists: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomList>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListCustomLists method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListFirstPartyAndPartnerAudiencesResponse resource type.
@@ -4243,10 +4394,11 @@ pub struct ListCustomListsResponse {
 pub struct ListFirstPartyAndPartnerAudiencesResponse {
     /// The list of first party and partner audiences. Audience size properties will not be included. This list will be absent if empty.
     #[serde(default, rename = "firstPartyAndPartnerAudiences")]
-    pub first_party_and_partner_audiences: Option<Vec<FirstPartyAndPartnerAudience>>,
+    pub first_party_and_partner_audiences:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FirstPartyAndPartnerAudience>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListFirstPartyAndPartnerAudiences method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListFloodlightActivitiesResponse resource type.
@@ -4254,10 +4406,11 @@ pub struct ListFirstPartyAndPartnerAudiencesResponse {
 pub struct ListFloodlightActivitiesResponse {
     /// The list of Floodlight activities. This list will be absent if empty.
     #[serde(default, rename = "floodlightActivities")]
-    pub floodlight_activities: Option<Vec<FloodlightActivity>>,
+    pub floodlight_activities:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FloodlightActivity>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListFloodlightActivities method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListGoogleAudiencesResponse resource type.
@@ -4265,10 +4418,11 @@ pub struct ListFloodlightActivitiesResponse {
 pub struct ListGoogleAudiencesResponse {
     /// The list of Google audiences. This list will be absent if empty.
     #[serde(default, rename = "googleAudiences")]
-    pub google_audiences: Option<Vec<GoogleAudience>>,
+    pub google_audiences:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleAudience>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListGoogleAudiences method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListGuaranteedOrdersResponse resource type.
@@ -4276,10 +4430,11 @@ pub struct ListGoogleAudiencesResponse {
 pub struct ListGuaranteedOrdersResponse {
     /// The list of guaranteed orders. This list will be absent if empty.
     #[serde(default, rename = "guaranteedOrders")]
-    pub guaranteed_orders: Option<Vec<GuaranteedOrder>>,
+    pub guaranteed_orders:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GuaranteedOrder>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListGuaranteedOrders method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListInsertionOrdersResponse resource type.
@@ -4287,10 +4442,11 @@ pub struct ListGuaranteedOrdersResponse {
 pub struct ListInsertionOrdersResponse {
     /// The list of insertion orders. This list will be absent if empty.
     #[serde(default, rename = "insertionOrders")]
-    pub insertion_orders: Option<Vec<InsertionOrder>>,
+    pub insertion_orders:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InsertionOrder>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListInsertionOrders method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for InventorySourceGroupService.ListInventorySourceGroups.
@@ -4298,10 +4454,11 @@ pub struct ListInsertionOrdersResponse {
 pub struct ListInventorySourceGroupsResponse {
     /// The list of inventory source groups. This list will be absent if empty.
     #[serde(default, rename = "inventorySourceGroups")]
-    pub inventory_source_groups: Option<Vec<InventorySourceGroup>>,
+    pub inventory_source_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InventorySourceGroup>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListInventorySourceGroups method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListInventorySourcesResponse resource type.
@@ -4309,10 +4466,11 @@ pub struct ListInventorySourceGroupsResponse {
 pub struct ListInventorySourcesResponse {
     /// The list of inventory sources. This list will be absent if empty.
     #[serde(default, rename = "inventorySources")]
-    pub inventory_sources: Option<Vec<InventorySource>>,
+    pub inventory_sources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InventorySource>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListInventorySources method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListInvoicesResponse resource type.
@@ -4320,10 +4478,10 @@ pub struct ListInventorySourcesResponse {
 pub struct ListInvoicesResponse {
     /// The list of invoices. This list will be absent if empty.
     #[serde(default)]
-    pub invoices: Option<Vec<Invoice>>,
+    pub invoices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Invoice>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListInvoices method to retrieve the next page of results. This token will be absent if there are no more invoices to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListLineItemAssignedTargetingOptions.
@@ -4331,10 +4489,11 @@ pub struct ListInvoicesResponse {
 pub struct ListLineItemAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
-    pub assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
     /// A token identifying the next page of results. This value should be specified as the pageToken in a subsequent ListLineItemAssignedTargetingOptionsRequest to fetch the next page of results. This token will be absent if there are no more assigned_targeting_options to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListLineItemsResponse resource type.
@@ -4342,10 +4501,10 @@ pub struct ListLineItemAssignedTargetingOptionsResponse {
 pub struct ListLineItemsResponse {
     /// The list of line items. This list will be absent if empty.
     #[serde(default, rename = "lineItems")]
-    pub line_items: Option<Vec<LineItem>>,
+    pub line_items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LineItem>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListLineItems method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListLocationListsResponse resource type.
@@ -4353,10 +4512,10 @@ pub struct ListLineItemsResponse {
 pub struct ListLocationListsResponse {
     /// The list of location lists. This list will be absent if empty.
     #[serde(default, rename = "locationLists")]
-    pub location_lists: Option<Vec<LocationList>>,
+    pub location_lists: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LocationList>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListLocationLists method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for NegativeKeywordListService.ListNegativeKeywordLists.
@@ -4364,10 +4523,11 @@ pub struct ListLocationListsResponse {
 pub struct ListNegativeKeywordListsResponse {
     /// The list of negative keyword lists. This list will be absent if empty.
     #[serde(default, rename = "negativeKeywordLists")]
-    pub negative_keyword_lists: Option<Vec<NegativeKeywordList>>,
+    pub negative_keyword_lists:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NegativeKeywordList>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListNegativeKeywordLists method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for NegativeKeywordService.ListNegativeKeywords.
@@ -4375,10 +4535,11 @@ pub struct ListNegativeKeywordListsResponse {
 pub struct ListNegativeKeywordsResponse {
     /// The list of negative keywords. This list will be absent if empty.
     #[serde(default, rename = "negativeKeywords")]
-    pub negative_keywords: Option<Vec<NegativeKeyword>>,
+    pub negative_keywords:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NegativeKeyword>>>,
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListNegativeKeywords method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListPartnerAssignedTargetingOptionsResponse resource type.
@@ -4386,10 +4547,11 @@ pub struct ListNegativeKeywordsResponse {
 pub struct ListPartnerAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
-    pub assigned_targeting_options: Option<Vec<AssignedTargetingOption>>,
+    pub assigned_targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedTargetingOption>>>,
     /// A token identifying the next page of results. This value should be specified as the pageToken in a subsequent ListPartnerAssignedTargetingOptionsRequest to fetch the next page of results. This token will be absent if there are no more assigned_targeting_options to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListPartnersResponse resource type.
@@ -4397,10 +4559,10 @@ pub struct ListPartnerAssignedTargetingOptionsResponse {
 pub struct ListPartnersResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListPartners method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of partners. This list will be absent if empty.
     #[serde(default)]
-    pub partners: Option<Vec<Partner>>,
+    pub partners: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Partner>>>,
 }
 
 /// Response message for SiteService.ListSites.
@@ -4408,10 +4570,10 @@ pub struct ListPartnersResponse {
 pub struct ListSitesResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListSites method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of sites. This list will be absent if empty.
     #[serde(default)]
-    pub sites: Option<Vec<Site>>,
+    pub sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Site>>>,
 }
 
 /// Response message for ListTargetingOptions.
@@ -4419,10 +4581,11 @@ pub struct ListSitesResponse {
 pub struct ListTargetingOptionsResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListTargetingOptions method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of targeting options. This list will be absent if empty.
     #[serde(default, rename = "targetingOptions")]
-    pub targeting_options: Option<Vec<TargetingOption>>,
+    pub targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetingOption>>>,
 }
 
 /// ListUsersResponse resource type.
@@ -4430,10 +4593,10 @@ pub struct ListTargetingOptionsResponse {
 pub struct ListUsersResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListUsers method to retrieve the next page of results. This token will be absent if there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of users. This list will be absent if empty.
     #[serde(default)]
-    pub users: Option<Vec<User>>,
+    pub users: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<User>>>,
 }
 
 /// Response message for YoutubeAssetAssociationService.ListYoutubeAssetAssociations.
@@ -4441,10 +4604,11 @@ pub struct ListUsersResponse {
 pub struct ListYoutubeAssetAssociationsResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListYoutubeAssetAssociations method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of asset associations. This list will be absent if empty.
     #[serde(default, rename = "youtubeAssetAssociations")]
-    pub youtube_asset_associations: Option<Vec<YoutubeAssetAssociation>>,
+    pub youtube_asset_associations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<YoutubeAssetAssociation>>>,
 }
 
 /// A list of locations used for targeting.
@@ -4452,19 +4616,19 @@ pub struct ListYoutubeAssetAssociationsResponse {
 pub struct LocationList {
     /// Required. Immutable. The unique ID of the advertiser the location list belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Required. The display name of the location list. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The unique ID of the location list. Assigned by the system.
     #[serde(default, rename = "locationListId")]
-    pub location_list_id: Option<String>,
+    pub location_list_id: ::core::option::Option<String>,
     /// Required. Immutable. The type of location. All locations in the list will share this type. // TODO: enum values: ["TARGETING_LOCATION_TYPE_UNSPECIFIED", "TARGETING_LOCATION_TYPE_PROXIMITY", "TARGETING_LOCATION_TYPE_REGIONAL"]
     #[serde(default, rename = "locationType")]
-    pub location_type: Option<String>,
+    pub location_type: ::core::option::Option<String>,
     /// Output only. The resource name of the location list.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Specifies how many days into the past to look when determining whether to record a conversion.
@@ -4472,10 +4636,10 @@ pub struct LocationList {
 pub struct LookbackWindow {
     /// Lookback window, in days, from the last time a given user clicked on one of your ads.
     #[serde(default, rename = "clickDays")]
-    pub click_days: Option<i32>,
+    pub click_days: ::core::option::Option<i32>,
     /// Lookback window, in days, from the last time a given user viewed one of your ads.
     #[serde(default, rename = "impressionDays")]
-    pub impression_days: Option<i32>,
+    pub impression_days: ::core::option::Option<i32>,
 }
 
 /// LookupInvoiceCurrencyResponse resource type.
@@ -4483,7 +4647,7 @@ pub struct LookbackWindow {
 pub struct LookupInvoiceCurrencyResponse {
     /// Currency used by the advertiser in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
 }
 
 /// Details for a Masthead Ad.
@@ -4491,37 +4655,38 @@ pub struct LookupInvoiceCurrencyResponse {
 pub struct MastheadAd {
     /// The duration of time the video will autoplay.
     #[serde(default, rename = "autoplayVideoDuration")]
-    pub autoplay_video_duration: Option<String>,
+    pub autoplay_video_duration: ::core::option::Option<String>,
     /// The amount of time in milliseconds after which the video will start to play.
     #[serde(default, rename = "autoplayVideoStartMillisecond")]
-    pub autoplay_video_start_millisecond: Option<String>,
+    pub autoplay_video_start_millisecond: ::core::option::Option<String>,
     /// The text on the call-to-action button.
     #[serde(default, rename = "callToActionButtonLabel")]
-    pub call_to_action_button_label: Option<String>,
+    pub call_to_action_button_label: ::core::option::Option<String>,
     /// The destination URL for the call-to-action button.
     #[serde(default, rename = "callToActionFinalUrl")]
-    pub call_to_action_final_url: Option<String>,
+    pub call_to_action_final_url: ::core::option::Option<String>,
     /// The tracking URL for the call-to-action button.
     #[serde(default, rename = "callToActionTrackingUrl")]
-    pub call_to_action_tracking_url: Option<String>,
+    pub call_to_action_tracking_url: ::core::option::Option<String>,
     /// The videos that appear next to the Masthead Ad on desktop. Can be no more than two.
     #[serde(default, rename = "companionYoutubeVideos")]
-    pub companion_youtube_videos: Option<Vec<YoutubeVideoDetails>>,
+    pub companion_youtube_videos:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<YoutubeVideoDetails>>>,
     /// The description of the ad.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The headline of the ad.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// Whether to show a background or banner that appears at the top of a YouTube page.
     #[serde(default, rename = "showChannelArt")]
-    pub show_channel_art: Option<bool>,
+    pub show_channel_art: ::core::option::Option<bool>,
     /// The YouTube video used by the ad.
     #[serde(default)]
-    pub video: Option<YoutubeVideoDetails>,
+    pub video: ::core::option::Option<::std::boxed::Box<YoutubeVideoDetails>>,
     /// The aspect ratio of the autoplaying YouTube video on the Masthead. // TODO: enum values: ["VIDEO_ASPECT_RATIO_UNSPECIFIED", "VIDEO_ASPECT_RATIO_WIDESCREEN", "VIDEO_ASPECT_RATIO_FIXED_16_9"]
     #[serde(default, rename = "videoAspectRatio")]
-    pub video_aspect_ratio: Option<String>,
+    pub video_aspect_ratio: ::core::option::Option<String>,
 }
 
 /// A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.
@@ -4529,16 +4694,16 @@ pub struct MastheadAd {
 pub struct MaximizeSpendBidStrategy {
     /// The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.
     #[serde(default, rename = "customBiddingAlgorithmId")]
-    pub custom_bidding_algorithm_id: Option<String>,
+    pub custom_bidding_algorithm_id: ::core::option::Option<String>,
     /// The maximum average CPM that may be bid, in micros of the advertiser''s currency. Must be greater than or equal to a billable unit of the given currency. For example, 1500000 represents 1.5 standard units of the currency.
     #[serde(default, rename = "maxAverageCpmBidAmountMicros")]
-    pub max_average_cpm_bid_amount_micros: Option<String>,
+    pub max_average_cpm_bid_amount_micros: ::core::option::Option<String>,
     /// Required. The type of the performance goal that the bidding strategy tries to minimize while spending the full budget. BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM is not supported for this strategy. // TODO: enum values: ["BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_UNSPECIFIED", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH"]
     #[serde(default, rename = "performanceGoalType")]
-    pub performance_goal_type: Option<String>,
+    pub performance_goal_type: ::core::option::Option<String>,
     /// Whether the strategy takes deal floor prices into account.
     #[serde(default, rename = "raiseBidForDeals")]
-    pub raise_bid_for_deals: Option<bool>,
+    pub raise_bid_for_deals: ::core::option::Option<bool>,
 }
 
 /// Measurement settings of a partner.
@@ -4546,10 +4711,10 @@ pub struct MaximizeSpendBidStrategy {
 pub struct MeasurementConfig {
     /// Whether or not to report DV360 cost to CM360.
     #[serde(default, rename = "dv360ToCmCostReportingEnabled")]
-    pub dv360_to_cm_cost_reporting_enabled: Option<bool>,
+    pub dv360_to_cm_cost_reporting_enabled: ::core::option::Option<bool>,
     /// Whether or not to include DV360 data in CM360 data transfer reports.
     #[serde(default, rename = "dv360ToCmDataSharingEnabled")]
-    pub dv360_to_cm_data_sharing_enabled: Option<bool>,
+    pub dv360_to_cm_data_sharing_enabled: ::core::option::Option<bool>,
 }
 
 /// A mobile app promoted by a mobile app install line item.
@@ -4557,16 +4722,16 @@ pub struct MeasurementConfig {
 pub struct MobileApp {
     /// Required. The ID of the app provided by the platform store. Android apps are identified by the bundle ID used by Android''s Play store, such as com.google.android.gm. iOS apps are identified by a nine-digit app ID used by Apple''s App store, such as 422689480.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Output only. The app name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The app platform. // TODO: enum values: ["PLATFORM_UNSPECIFIED", "IOS", "ANDROID"]
     #[serde(default)]
-    pub platform: Option<String>,
+    pub platform: ::core::option::Option<String>,
     /// Output only. The app publisher.
     #[serde(default)]
-    pub publisher: Option<String>,
+    pub publisher: ::core::option::Option<String>,
 }
 
 /// Wrapper message for a list of mobile device IDs defining Customer Match audience members.
@@ -4574,10 +4739,10 @@ pub struct MobileApp {
 pub struct MobileDeviceIdList {
     /// Input only. The consent setting for the users in mobile_device_ids. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to CONSENT_STATUS_DENIED, the request will return an error.
     #[serde(default)]
-    pub consent: Option<Consent>,
+    pub consent: ::core::option::Option<::std::boxed::Box<Consent>>,
     /// A list of mobile device IDs defining Customer Match audience members. The size of mobile_device_ids mustn''t be greater than 500,000.
     #[serde(default, rename = "mobileDeviceIds")]
-    pub mobile_device_ids: Option<Vec<String>>,
+    pub mobile_device_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents an amount of money with its currency type.
@@ -4585,13 +4750,13 @@ pub struct MobileDeviceIdList {
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
-    pub units: Option<String>,
+    pub units: ::core::option::Option<String>,
 }
 
 /// Details for native content position assigned targeting option. This will be populated in the native_content_position_details field when targeting_type is TARGETING_TYPE_NATIVE_CONTENT_POSITION. Explicitly targeting all options is not supported. Remove all native content position targeting options to achieve this effect.
@@ -4599,7 +4764,7 @@ pub struct Money {
 pub struct NativeContentPositionAssignedTargetingOptionDetails {
     /// Required. The content position. // TODO: enum values: ["NATIVE_CONTENT_POSITION_UNSPECIFIED", "NATIVE_CONTENT_POSITION_UNKNOWN", "NATIVE_CONTENT_POSITION_IN_ARTICLE", "NATIVE_CONTENT_POSITION_IN_FEED", "NATIVE_CONTENT_POSITION_PERIPHERAL", "NATIVE_CONTENT_POSITION_RECOMMENDATION"]
     #[serde(default, rename = "contentPosition")]
-    pub content_position: Option<String>,
+    pub content_position: ::core::option::Option<String>,
 }
 
 /// Represents a targetable native content position. This will be populated in the native_content_position_details field when targeting_type is TARGETING_TYPE_NATIVE_CONTENT_POSITION.
@@ -4607,7 +4772,7 @@ pub struct NativeContentPositionAssignedTargetingOptionDetails {
 pub struct NativeContentPositionTargetingOptionDetails {
     /// Output only. The content position. // TODO: enum values: ["NATIVE_CONTENT_POSITION_UNSPECIFIED", "NATIVE_CONTENT_POSITION_UNKNOWN", "NATIVE_CONTENT_POSITION_IN_ARTICLE", "NATIVE_CONTENT_POSITION_IN_FEED", "NATIVE_CONTENT_POSITION_PERIPHERAL", "NATIVE_CONTENT_POSITION_RECOMMENDATION"]
     #[serde(default, rename = "contentPosition")]
-    pub content_position: Option<String>,
+    pub content_position: ::core::option::Option<String>,
 }
 
 /// A negatively targeted keyword that belongs to a negative keyword list.
@@ -4615,10 +4780,10 @@ pub struct NativeContentPositionTargetingOptionDetails {
 pub struct NegativeKeyword {
     /// Required. Immutable. The negatively targeted keyword, for example car insurance. Must be UTF-8 encoded with a maximum size of 255 bytes. Maximum number of characters is 80. Maximum number of words is 10. Valid characters are restricted to ASCII characters only. The only URL-escaping permitted is for representing whitespace between words. Leading or trailing whitespace is ignored.
     #[serde(default, rename = "keywordValue")]
-    pub keyword_value: Option<String>,
+    pub keyword_value: ::core::option::Option<String>,
     /// Output only. The resource name of the negative keyword.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A list of negative keywords used for targeting.
@@ -4626,19 +4791,19 @@ pub struct NegativeKeyword {
 pub struct NegativeKeywordList {
     /// Output only. The unique ID of the advertiser the negative keyword list belongs to.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Required. The display name of the negative keyword list. Must be UTF-8 encoded with a maximum size of 255 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The resource name of the negative keyword list.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The unique ID of the negative keyword list. Assigned by the system.
     #[serde(default, rename = "negativeKeywordListId")]
-    pub negative_keyword_list_id: Option<String>,
+    pub negative_keyword_list_id: ::core::option::Option<String>,
     /// Output only. Number of line items that are directly targeting this negative keyword list.
     #[serde(default, rename = "targetedLineItemCount")]
-    pub targeted_line_item_count: Option<String>,
+    pub targeted_line_item_count: ::core::option::Option<String>,
 }
 
 /// Targeting details for negative keyword list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_NEGATIVE_KEYWORD_LIST.
@@ -4646,7 +4811,7 @@ pub struct NegativeKeywordList {
 pub struct NegativeKeywordListAssignedTargetingOptionDetails {
     /// Required. ID of the negative keyword list. Should refer to the negative_keyword_list_id field of a NegativeKeywordList resource.
     #[serde(default, rename = "negativeKeywordListId")]
-    pub negative_keyword_list_id: Option<String>,
+    pub negative_keyword_list_id: ::core::option::Option<String>,
 }
 
 /// Details for a non-skippable ad.
@@ -4654,10 +4819,11 @@ pub struct NegativeKeywordListAssignedTargetingOptionDetails {
 pub struct NonSkippableAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
-    pub common_in_stream_attribute: Option<CommonInStreamAttribute>,
+    pub common_in_stream_attribute:
+        ::core::option::Option<::std::boxed::Box<CommonInStreamAttribute>>,
     /// The custom parameters to pass custom values to tracking URL template.
     #[serde(default, rename = "customParameters")]
-    pub custom_parameters: Option<serde_json::Value>,
+    pub custom_parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// OBA Icon for a Creative
@@ -4665,28 +4831,28 @@ pub struct NonSkippableAd {
 pub struct ObaIcon {
     /// Required. The click tracking URL of the OBA icon. Only URLs of the following domains are allowed: * https://info.evidon.com * https://l.betrad.com
     #[serde(default, rename = "clickTrackingUrl")]
-    pub click_tracking_url: Option<String>,
+    pub click_tracking_url: ::core::option::Option<String>,
     /// Optional. The dimensions of the OBA icon.
     #[serde(default)]
-    pub dimensions: Option<Dimensions>,
+    pub dimensions: ::core::option::Option<::std::boxed::Box<Dimensions>>,
     /// Required. The landing page URL of the OBA icon. Only URLs of the following domains are allowed: * https://info.evidon.com * https://l.betrad.com
     #[serde(default, rename = "landingPageUrl")]
-    pub landing_page_url: Option<String>,
+    pub landing_page_url: ::core::option::Option<String>,
     /// Optional. The position of the OBA icon on the creative. // TODO: enum values: ["OBA_ICON_POSITION_UNSPECIFIED", "OBA_ICON_POSITION_UPPER_RIGHT", "OBA_ICON_POSITION_UPPER_LEFT", "OBA_ICON_POSITION_LOWER_RIGHT", "OBA_ICON_POSITION_LOWER_LEFT"]
     #[serde(default)]
-    pub position: Option<String>,
+    pub position: ::core::option::Option<String>,
     /// Optional. The program of the OBA icon. For example: “AdChoices”.
     #[serde(default)]
-    pub program: Option<String>,
+    pub program: ::core::option::Option<String>,
     /// Optional. The MIME type of the OBA icon resource.
     #[serde(default, rename = "resourceMimeType")]
-    pub resource_mime_type: Option<String>,
+    pub resource_mime_type: ::core::option::Option<String>,
     /// Optional. The URL of the OBA icon resource.
     #[serde(default, rename = "resourceUrl")]
-    pub resource_url: Option<String>,
+    pub resource_url: ::core::option::Option<String>,
     /// Required. The view tracking URL of the OBA icon. Only URLs of the following domains are allowed: * https://info.evidon.com * https://l.betrad.com
     #[serde(default, rename = "viewTrackingUrl")]
-    pub view_tracking_url: Option<String>,
+    pub view_tracking_url: ::core::option::Option<String>,
 }
 
 /// Represents a targetable Open Measurement enabled inventory type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_OMID.
@@ -4694,7 +4860,7 @@ pub struct ObaIcon {
 pub struct OmidAssignedTargetingOptionDetails {
     /// Required. The type of Open Measurement enabled inventory. // TODO: enum values: ["OMID_UNSPECIFIED", "OMID_FOR_MOBILE_DISPLAY_ADS"]
     #[serde(default)]
-    pub omid: Option<String>,
+    pub omid: ::core::option::Option<String>,
 }
 
 /// Represents a targetable Open Measurement enabled inventory type. This will be populated in the omid_details field when targeting_type is TARGETING_TYPE_OMID.
@@ -4702,7 +4868,7 @@ pub struct OmidAssignedTargetingOptionDetails {
 pub struct OmidTargetingOptionDetails {
     /// Output only. The type of Open Measurement enabled inventory. // TODO: enum values: ["OMID_UNSPECIFIED", "OMID_FOR_MOBILE_DISPLAY_ADS"]
     #[serde(default)]
-    pub omid: Option<String>,
+    pub omid: ::core::option::Option<String>,
 }
 
 /// On screen position targeting option details. This will be populated in the on_screen_position_details field when targeting_type is TARGETING_TYPE_ON_SCREEN_POSITION.
@@ -4710,13 +4876,13 @@ pub struct OmidTargetingOptionDetails {
 pub struct OnScreenPositionAssignedTargetingOptionDetails {
     /// Output only. The ad type to target. Only applicable to insertion order targeting and new line items supporting the specified ad type will inherit this targeting option by default. Possible values are: * AD_TYPE_DISPLAY, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_DISPLAY_DEFAULT. * AD_TYPE_VIDEO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_VIDEO_DEFAULT. // TODO: enum values: ["AD_TYPE_UNSPECIFIED", "AD_TYPE_DISPLAY", "AD_TYPE_VIDEO", "AD_TYPE_AUDIO"]
     #[serde(default, rename = "adType")]
-    pub ad_type: Option<String>,
+    pub ad_type: ::core::option::Option<String>,
     /// Output only. The on screen position. // TODO: enum values: ["ON_SCREEN_POSITION_UNSPECIFIED", "ON_SCREEN_POSITION_UNKNOWN", "ON_SCREEN_POSITION_ABOVE_THE_FOLD", "ON_SCREEN_POSITION_BELOW_THE_FOLD"]
     #[serde(default, rename = "onScreenPosition")]
-    pub on_screen_position: Option<String>,
+    pub on_screen_position: ::core::option::Option<String>,
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_ON_SCREEN_POSITION.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable on screen position, which could be used by display and video ads. This will be populated in the on_screen_position_details field when targeting_type is TARGETING_TYPE_ON_SCREEN_POSITION.
@@ -4724,7 +4890,7 @@ pub struct OnScreenPositionAssignedTargetingOptionDetails {
 pub struct OnScreenPositionTargetingOptionDetails {
     /// Output only. The on screen position. // TODO: enum values: ["ON_SCREEN_POSITION_UNSPECIFIED", "ON_SCREEN_POSITION_UNKNOWN", "ON_SCREEN_POSITION_ABOVE_THE_FOLD", "ON_SCREEN_POSITION_BELOW_THE_FOLD"]
     #[serde(default, rename = "onScreenPosition")]
-    pub on_screen_position: Option<String>,
+    pub on_screen_position: ::core::option::Option<String>,
 }
 
 /// Assigned operating system targeting option details. This will be populated in the operating_system_details field when targeting_type is TARGETING_TYPE_OPERATING_SYSTEM.
@@ -4732,13 +4898,13 @@ pub struct OnScreenPositionTargetingOptionDetails {
 pub struct OperatingSystemAssignedTargetingOptionDetails {
     /// Output only. The display name of the operating system.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The targeting option ID populated in targeting_option_id field when targeting_type is TARGETING_TYPE_OPERATING_SYSTEM.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable operating system. This will be populated in the operating_system_details field of a TargetingOption when targeting_type is TARGETING_TYPE_OPERATING_SYSTEM.
@@ -4746,7 +4912,7 @@ pub struct OperatingSystemAssignedTargetingOptionDetails {
 pub struct OperatingSystemTargetingOptionDetails {
     /// Output only. The display name of the operating system.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -4754,19 +4920,19 @@ pub struct OperatingSystemTargetingOptionDetails {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Settings that control the rate at which a budget is spent.
@@ -4774,16 +4940,16 @@ pub struct Operation {
 pub struct Pacing {
     /// Maximum number of impressions to serve every day. Applicable when the budget is impression based. Must be greater than 0.
     #[serde(default, rename = "dailyMaxImpressions")]
-    pub daily_max_impressions: Option<String>,
+    pub daily_max_impressions: ::core::option::Option<String>,
     /// Maximum currency amount to spend every day in micros of advertiser''s currency. Applicable when the budget is currency based. Must be greater than 0. For example, for 1.5 standard unit of the currency, set this field to 1500000. The value assigned will be rounded to whole billable units for the relevant currency by the following rules: any positive value less than a single billable unit will be rounded up to one billable unit and any value larger than a single billable unit will be rounded down to the nearest billable value. For example, if the currency''s billable unit is 0.01, and this field is set to 10257770, it will round down to 10250000, a value of 10.25. If set to 505, it will round up to 10000, a value of 0.01.
     #[serde(default, rename = "dailyMaxMicros")]
-    pub daily_max_micros: Option<String>,
+    pub daily_max_micros: ::core::option::Option<String>,
     /// Required. The time period in which the pacing budget will be spent. When automatic budget allocation is enabled at the insertion order via automationType, this field is output only and defaults to PACING_PERIOD_FLIGHT. // TODO: enum values: ["PACING_PERIOD_UNSPECIFIED", "PACING_PERIOD_DAILY", "PACING_PERIOD_FLIGHT"]
     #[serde(default, rename = "pacingPeriod")]
-    pub pacing_period: Option<String>,
+    pub pacing_period: ::core::option::Option<String>,
     /// Required. The type of pacing that defines how the budget amount will be spent across the pacing_period. PACING_TYPE_ASAP is not compatible with pacing_period PACING_PERIOD_FLIGHT for insertion orders. // TODO: enum values: ["PACING_TYPE_UNSPECIFIED", "PACING_TYPE_AHEAD", "PACING_TYPE_ASAP", "PACING_TYPE_EVEN"]
     #[serde(default, rename = "pacingType")]
-    pub pacing_type: Option<String>,
+    pub pacing_type: ::core::option::Option<String>,
 }
 
 /// A filtering option that filters on selected file types belonging to a chosen set of filter entities.
@@ -4791,13 +4957,13 @@ pub struct Pacing {
 pub struct ParentEntityFilter {
     /// Required. File types that will be returned.
     #[serde(default, rename = "fileType")]
-    pub file_type: Option<Vec<String>>,
+    pub file_type: ::core::option::Option<::std::vec::Vec<String>>,
     /// The IDs of the specified filter type. This is used to filter entities to fetch. If filter type is not FILTER_TYPE_NONE, at least one ID must be specified.
     #[serde(default, rename = "filterIds")]
-    pub filter_ids: Option<Vec<String>>,
+    pub filter_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Filter type used to filter fetched entities. // TODO: enum values: ["FILTER_TYPE_UNSPECIFIED", "FILTER_TYPE_NONE", "FILTER_TYPE_ADVERTISER_ID", "FILTER_TYPE_CAMPAIGN_ID", "FILTER_TYPE_MEDIA_PRODUCT_ID", "FILTER_TYPE_INSERTION_ORDER_ID", "FILTER_TYPE_LINE_ITEM_ID"]
     #[serde(default, rename = "filterType")]
-    pub filter_type: Option<String>,
+    pub filter_type: ::core::option::Option<String>,
 }
 
 /// Details for assigned parental status targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_PARENTAL_STATUS.
@@ -4805,7 +4971,7 @@ pub struct ParentEntityFilter {
 pub struct ParentalStatusAssignedTargetingOptionDetails {
     /// Required. The parental status of the audience. // TODO: enum values: ["PARENTAL_STATUS_UNSPECIFIED", "PARENTAL_STATUS_PARENT", "PARENTAL_STATUS_NOT_A_PARENT", "PARENTAL_STATUS_UNKNOWN"]
     #[serde(default, rename = "parentalStatus")]
-    pub parental_status: Option<String>,
+    pub parental_status: ::core::option::Option<String>,
 }
 
 /// Represents a targetable parental status. This will be populated in the parental_status_details field of a TargetingOption when targeting_type is TARGETING_TYPE_PARENTAL_STATUS.
@@ -4813,7 +4979,7 @@ pub struct ParentalStatusAssignedTargetingOptionDetails {
 pub struct ParentalStatusTargetingOptionDetails {
     /// Output only. The parental status of an audience. // TODO: enum values: ["PARENTAL_STATUS_UNSPECIFIED", "PARENTAL_STATUS_PARENT", "PARENTAL_STATUS_NOT_A_PARENT", "PARENTAL_STATUS_UNKNOWN"]
     #[serde(default, rename = "parentalStatus")]
-    pub parental_status: Option<String>,
+    pub parental_status: ::core::option::Option<String>,
 }
 
 /// A single partner in Display & Video 360 (DV360).
@@ -4821,34 +4987,34 @@ pub struct ParentalStatusTargetingOptionDetails {
 pub struct Partner {
     /// Ad server related settings of the partner.
     #[serde(default, rename = "adServerConfig")]
-    pub ad_server_config: Option<PartnerAdServerConfig>,
+    pub ad_server_config: ::core::option::Option<::std::boxed::Box<PartnerAdServerConfig>>,
     /// Billing related settings of the partner.
     #[serde(default, rename = "billingConfig")]
-    pub billing_config: Option<PartnerBillingConfig>,
+    pub billing_config: ::core::option::Option<::std::boxed::Box<PartnerBillingConfig>>,
     /// Settings that control how partner data may be accessed.
     #[serde(default, rename = "dataAccessConfig")]
-    pub data_access_config: Option<PartnerDataAccessConfig>,
+    pub data_access_config: ::core::option::Option<::std::boxed::Box<PartnerDataAccessConfig>>,
     /// The display name of the partner. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The status of the partner. // TODO: enum values: ["ENTITY_STATUS_UNSPECIFIED", "ENTITY_STATUS_ACTIVE", "ENTITY_STATUS_ARCHIVED", "ENTITY_STATUS_DRAFT", "ENTITY_STATUS_PAUSED", "ENTITY_STATUS_SCHEDULED_FOR_DELETION"]
     #[serde(default, rename = "entityStatus")]
-    pub entity_status: Option<String>,
+    pub entity_status: ::core::option::Option<String>,
     /// Settings that control which exchanges are enabled for the partner.
     #[serde(default, rename = "exchangeConfig")]
-    pub exchange_config: Option<ExchangeConfig>,
+    pub exchange_config: ::core::option::Option<::std::boxed::Box<ExchangeConfig>>,
     /// General settings of the partner.
     #[serde(default, rename = "generalConfig")]
-    pub general_config: Option<PartnerGeneralConfig>,
+    pub general_config: ::core::option::Option<::std::boxed::Box<PartnerGeneralConfig>>,
     /// Output only. The resource name of the partner.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The unique ID of the partner. Assigned by the system.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
     /// Output only. The timestamp when the partner was last updated. Assigned by the system.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Ad server related settings of a partner.
@@ -4856,7 +5022,7 @@ pub struct Partner {
 pub struct PartnerAdServerConfig {
     /// Measurement settings of a partner.
     #[serde(default, rename = "measurementConfig")]
-    pub measurement_config: Option<MeasurementConfig>,
+    pub measurement_config: ::core::option::Option<::std::boxed::Box<MeasurementConfig>>,
 }
 
 /// Billing related settings of a partner.
@@ -4864,7 +5030,7 @@ pub struct PartnerAdServerConfig {
 pub struct PartnerBillingConfig {
     /// The ID of a partner default billing profile.
     #[serde(default, rename = "billingProfileId")]
-    pub billing_profile_id: Option<String>,
+    pub billing_profile_id: ::core::option::Option<String>,
 }
 
 /// Settings that control a partner cost. A partner cost is any type of expense involved in running a campaign, other than the costs of purchasing impressions (which is called the media cost) and using third-party audience segment data (data fee). Some examples of partner costs include the fees for using DV360, a third-party ad server, or a third-party ad serving verification service.
@@ -4872,19 +5038,19 @@ pub struct PartnerBillingConfig {
 pub struct PartnerCost {
     /// Required. The type of the partner cost. // TODO: enum values: ["PARTNER_COST_TYPE_UNSPECIFIED", "PARTNER_COST_TYPE_ADLOOX", "PARTNER_COST_TYPE_ADLOOX_PREBID", "PARTNER_COST_TYPE_ADSAFE", "PARTNER_COST_TYPE_ADXPOSE", "PARTNER_COST_TYPE_AGGREGATE_KNOWLEDGE", "PARTNER_COST_TYPE_AGENCY_TRADING_DESK", "PARTNER_COST_TYPE_DV360_FEE", "PARTNER_COST_TYPE_COMSCORE_VCE", "PARTNER_COST_TYPE_DATA_MANAGEMENT_PLATFORM", "PARTNER_COST_TYPE_DEFAULT", "PARTNER_COST_TYPE_DOUBLE_VERIFY", "PARTNER_COST_TYPE_DOUBLE_VERIFY_PREBID", "PARTNER_COST_TYPE_EVIDON", "PARTNER_COST_TYPE_INTEGRAL_AD_SCIENCE_VIDEO", "PARTNER_COST_TYPE_INTEGRAL_AD_SCIENCE_PREBID", "PARTNER_COST_TYPE_MEDIA_COST_DATA", "PARTNER_COST_TYPE_MOAT_VIDEO", "PARTNER_COST_TYPE_NIELSEN_DAR", "PARTNER_COST_TYPE_SHOP_LOCAL", "PARTNER_COST_TYPE_TERACENT", "PARTNER_COST_TYPE_THIRD_PARTY_AD_SERVER", "PARTNER_COST_TYPE_TRUST_METRICS", "PARTNER_COST_TYPE_VIZU", "PARTNER_COST_TYPE_CUSTOM_FEE_1", "PARTNER_COST_TYPE_CUSTOM_FEE_2", "PARTNER_COST_TYPE_CUSTOM_FEE_3", "PARTNER_COST_TYPE_CUSTOM_FEE_4", "PARTNER_COST_TYPE_CUSTOM_FEE_5", "PARTNER_COST_TYPE_SCIBIDS_FEE"]
     #[serde(default, rename = "costType")]
-    pub cost_type: Option<String>,
+    pub cost_type: ::core::option::Option<String>,
     /// The CPM fee amount in micros of advertiser''s currency. Applicable when the fee_type is PARTNER_FEE_TYPE_CPM_FEE. Must be greater than or equal to 0. For example, for 1.5 standard unit of the advertiser''s currency, set this field to 1500000.
     #[serde(default, rename = "feeAmount")]
-    pub fee_amount: Option<String>,
+    pub fee_amount: ::core::option::Option<String>,
     /// The media fee percentage in millis (1/1000 of a percent). Applicable when the fee_type is PARTNER_FEE_TYPE_MEDIA_FEE. Must be greater than or equal to 0. For example: 100 represents 0.1%.
     #[serde(default, rename = "feePercentageMillis")]
-    pub fee_percentage_millis: Option<String>,
+    pub fee_percentage_millis: ::core::option::Option<String>,
     /// Required. The fee type for this partner cost. // TODO: enum values: ["PARTNER_COST_FEE_TYPE_UNSPECIFIED", "PARTNER_COST_FEE_TYPE_CPM_FEE", "PARTNER_COST_FEE_TYPE_MEDIA_FEE"]
     #[serde(default, rename = "feeType")]
-    pub fee_type: Option<String>,
+    pub fee_type: ::core::option::Option<String>,
     /// The invoice type for this partner cost. * Required when cost_type is one of: - PARTNER_COST_TYPE_ADLOOX - PARTNER_COST_TYPE_DOUBLE_VERIFY - PARTNER_COST_TYPE_INTEGRAL_AD_SCIENCE. * Output only for other types. // TODO: enum values: ["PARTNER_COST_INVOICE_TYPE_UNSPECIFIED", "PARTNER_COST_INVOICE_TYPE_DV360", "PARTNER_COST_INVOICE_TYPE_PARTNER"]
     #[serde(default, rename = "invoiceType")]
-    pub invoice_type: Option<String>,
+    pub invoice_type: ::core::option::Option<String>,
 }
 
 /// Settings that control how partner related data may be accessed.
@@ -4892,7 +5058,7 @@ pub struct PartnerCost {
 pub struct PartnerDataAccessConfig {
     /// Structured Data Files (SDF) settings for the partner. The SDF configuration for the partner.
     #[serde(default, rename = "sdfConfig")]
-    pub sdf_config: Option<SdfConfig>,
+    pub sdf_config: ::core::option::Option<::std::boxed::Box<SdfConfig>>,
 }
 
 /// General settings of a partner.
@@ -4900,10 +5066,10 @@ pub struct PartnerDataAccessConfig {
 pub struct PartnerGeneralConfig {
     /// Immutable. Partner''s currency in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Immutable. The standard TZ database name of the partner''s time zone. For example, America/New_York. See more at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// Settings that control how partner revenue is calculated.
@@ -4911,10 +5077,10 @@ pub struct PartnerGeneralConfig {
 pub struct PartnerRevenueModel {
     /// Required. The markup amount of the partner revenue model. Must be greater than or equal to 0. * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM, this field represents the CPM markup in micros of advertiser''s currency. For example, 1500000 represents 1.5 standard units of the currency. * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_MEDIA_COST_MARKUP, this field represents the media cost percent markup in millis. For example, 100 represents 0.1% (decimal 0.001). * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP, this field represents the total media cost percent markup in millis. For example, 100 represents 0.1% (decimal 0.001).
     #[serde(default, rename = "markupAmount")]
-    pub markup_amount: Option<String>,
+    pub markup_amount: ::core::option::Option<String>,
     /// Required. The markup type of the partner revenue model. Demand Gen line items only support PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP. // TODO: enum values: ["PARTNER_REVENUE_MODEL_MARKUP_TYPE_UNSPECIFIED", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_MEDIA_COST_MARKUP", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP"]
     #[serde(default, rename = "markupType")]
-    pub markup_type: Option<String>,
+    pub markup_type: ::core::option::Option<String>,
 }
 
 /// Settings that control the performance goal of a campaign.
@@ -4922,16 +5088,16 @@ pub struct PartnerRevenueModel {
 pub struct PerformanceGoal {
     /// The goal amount, in micros of the advertiser''s currency. Applicable when performance_goal_type is one of: * PERFORMANCE_GOAL_TYPE_CPM * PERFORMANCE_GOAL_TYPE_CPC * PERFORMANCE_GOAL_TYPE_CPA * PERFORMANCE_GOAL_TYPE_CPIAVC * PERFORMANCE_GOAL_TYPE_VCPM For example 1500000 represents 1.5 standard units of the currency.
     #[serde(default, rename = "performanceGoalAmountMicros")]
-    pub performance_goal_amount_micros: Option<String>,
+    pub performance_goal_amount_micros: ::core::option::Option<String>,
     /// The decimal representation of the goal percentage in micros. Applicable when performance_goal_type is one of: * PERFORMANCE_GOAL_TYPE_CTR * PERFORMANCE_GOAL_TYPE_VIEWABILITY * PERFORMANCE_GOAL_TYPE_CLICK_CVR * PERFORMANCE_GOAL_TYPE_IMPRESSION_CVR * PERFORMANCE_GOAL_TYPE_VTR * PERFORMANCE_GOAL_TYPE_AUDIO_COMPLETION_RATE * PERFORMANCE_GOAL_TYPE_VIDEO_COMPLETION_RATE For example, 70000 represents 7% (decimal 0.07).
     #[serde(default, rename = "performanceGoalPercentageMicros")]
-    pub performance_goal_percentage_micros: Option<String>,
+    pub performance_goal_percentage_micros: ::core::option::Option<String>,
     /// A key performance indicator (KPI) string, which can be empty. Must be UTF-8 encoded with a length of no more than 100 characters. Applicable when performance_goal_type is set to PERFORMANCE_GOAL_TYPE_OTHER.
     #[serde(default, rename = "performanceGoalString")]
-    pub performance_goal_string: Option<String>,
+    pub performance_goal_string: ::core::option::Option<String>,
     /// Required. The type of the performance goal. // TODO: enum values: ["PERFORMANCE_GOAL_TYPE_UNSPECIFIED", "PERFORMANCE_GOAL_TYPE_CPM", "PERFORMANCE_GOAL_TYPE_CPC", "PERFORMANCE_GOAL_TYPE_CPA", "PERFORMANCE_GOAL_TYPE_CTR", "PERFORMANCE_GOAL_TYPE_VIEWABILITY", "PERFORMANCE_GOAL_TYPE_CPIAVC", "PERFORMANCE_GOAL_TYPE_CPE", "PERFORMANCE_GOAL_TYPE_CPV", "PERFORMANCE_GOAL_TYPE_CLICK_CVR", "PERFORMANCE_GOAL_TYPE_IMPRESSION_CVR", "PERFORMANCE_GOAL_TYPE_VCPM", "PERFORMANCE_GOAL_TYPE_VTR", "PERFORMANCE_GOAL_TYPE_AUDIO_COMPLETION_RATE", "PERFORMANCE_GOAL_TYPE_VIDEO_COMPLETION_RATE", "PERFORMANCE_GOAL_TYPE_OTHER"]
     #[serde(default, rename = "performanceGoalType")]
-    pub performance_goal_type: Option<String>,
+    pub performance_goal_type: ::core::option::Option<String>,
 }
 
 /// A strategy that automatically adjusts the bid to meet or beat a specified performance goal.
@@ -4939,16 +5105,16 @@ pub struct PerformanceGoal {
 pub struct PerformanceGoalBidStrategy {
     /// The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.
     #[serde(default, rename = "customBiddingAlgorithmId")]
-    pub custom_bidding_algorithm_id: Option<String>,
+    pub custom_bidding_algorithm_id: ::core::option::Option<String>,
     /// The maximum average CPM that may be bid, in micros of the advertiser''s currency. Must be greater than or equal to a billable unit of the given currency. Not applicable when performance_goal_type is set to BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM. For example, 1500000 represents 1.5 standard units of the currency.
     #[serde(default, rename = "maxAverageCpmBidAmountMicros")]
-    pub max_average_cpm_bid_amount_micros: Option<String>,
+    pub max_average_cpm_bid_amount_micros: ::core::option::Option<String>,
     /// Required. The performance goal the bidding strategy will attempt to meet or beat, in micros of the advertiser''s currency or in micro of the ROAS (Return On Advertising Spend) value which is also based on advertiser''s currency. Must be greater than or equal to a billable unit of the given currency and smaller or equal to upper bounds. Each performance_goal_type has its upper bound: * when performance_goal_type is BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA, upper bound is 10000.00 USD. * when performance_goal_type is BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC, upper bound is 1000.00 USD. * when performance_goal_type is BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM, upper bound is 1000.00 USD. * when performance_goal_type is BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO, upper bound is 1000.00 and lower bound is 0.01. Example: If set to BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM, the bid price will be based on the probability that each available impression will be viewable. For example, if viewable CPM target is $2 and an impression is 40% likely to be viewable, the bid price will be $0.80 CPM (40% of $2). For example, 1500000 represents 1.5 standard units of the currency or ROAS value.
     #[serde(default, rename = "performanceGoalAmountMicros")]
-    pub performance_goal_amount_micros: Option<String>,
+    pub performance_goal_amount_micros: ::core::option::Option<String>,
     /// Required. The type of the performance goal that the bidding strategy will try to meet or beat. For line item level usage, the value must be one of: * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO. // TODO: enum values: ["BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_UNSPECIFIED", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED", "BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH"]
     #[serde(default, rename = "performanceGoalType")]
-    pub performance_goal_type: Option<String>,
+    pub performance_goal_type: ::core::option::Option<String>,
 }
 
 /// Details for assigned POI targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_POI.
@@ -4956,22 +5122,22 @@ pub struct PerformanceGoalBidStrategy {
 pub struct PoiAssignedTargetingOptionDetails {
     /// Output only. The display name of a POI, e.g. "Times Square", "Space Needle", followed by its full address if available.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Latitude of the POI rounding to 6th decimal place.
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// Output only. Longitude of the POI rounding to 6th decimal place.
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
     /// Required. The radius of the area around the POI that will be targeted. The units of the radius are specified by proximity_radius_unit. Must be 1 to 800 if unit is DISTANCE_UNIT_KILOMETERS and 1 to 500 if unit is DISTANCE_UNIT_MILES.
     #[serde(default, rename = "proximityRadiusAmount")]
-    pub proximity_radius_amount: Option<f64>,
+    pub proximity_radius_amount: ::core::option::Option<f64>,
     /// Required. The unit of distance by which the targeting radius is measured. // TODO: enum values: ["DISTANCE_UNIT_UNSPECIFIED", "DISTANCE_UNIT_MILES", "DISTANCE_UNIT_KILOMETERS"]
     #[serde(default, rename = "proximityRadiusUnit")]
-    pub proximity_radius_unit: Option<String>,
+    pub proximity_radius_unit: ::core::option::Option<String>,
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_POI. Accepted POI targeting option IDs can be retrieved using targetingTypes.targetingOptions.search. If targeting a specific latitude/longitude coordinate removed from an address or POI name, you can generate the necessary targeting option ID by rounding the desired coordinate values to the 6th decimal place, removing the decimals, and concatenating the string values separated by a semicolon. For example, you can target the latitude/longitude pair of 40.7414691, -74.003387 using the targeting option ID "40741469;-74003387". **Upon** **creation, this field value will be updated to append a semicolon and** **alphanumerical hash value if only latitude/longitude coordinates are** **provided.**
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Search terms for POI targeting options.
@@ -4979,7 +5145,7 @@ pub struct PoiAssignedTargetingOptionDetails {
 pub struct PoiSearchTerms {
     /// The search query for the desired POI name, street address, or coordinate of the desired POI. The query can be a prefix, e.g. "Times squar", "40.7505045,-73.99562", "315 W 44th St", etc.
     #[serde(default, rename = "poiQuery")]
-    pub poi_query: Option<String>,
+    pub poi_query: ::core::option::Option<String>,
 }
 
 /// Represents a targetable point of interest(POI). This will be populated in the poi_details field when targeting_type is TARGETING_TYPE_POI.
@@ -4987,13 +5153,13 @@ pub struct PoiSearchTerms {
 pub struct PoiTargetingOptionDetails {
     /// Output only. The display name of a POI(e.g. "Times Square", "Space Needle"), followed by its full address if available.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Latitude of the POI rounding to 6th decimal place.
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// Output only. Longitude of the POI rounding to 6th decimal place.
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
 }
 
 /// Settings specific to the Mediaocean Prisma tool.
@@ -5001,13 +5167,13 @@ pub struct PoiTargetingOptionDetails {
 pub struct PrismaConfig {
     /// Required. Relevant client, product, and estimate codes from the Mediaocean Prisma tool.
     #[serde(default, rename = "prismaCpeCode")]
-    pub prisma_cpe_code: Option<PrismaCpeCode>,
+    pub prisma_cpe_code: ::core::option::Option<::std::boxed::Box<PrismaCpeCode>>,
     /// Required. The Prisma type. // TODO: enum values: ["PRISMA_TYPE_UNSPECIFIED", "PRISMA_TYPE_DISPLAY", "PRISMA_TYPE_SEARCH", "PRISMA_TYPE_VIDEO", "PRISMA_TYPE_AUDIO", "PRISMA_TYPE_SOCIAL", "PRISMA_TYPE_FEE"]
     #[serde(default, rename = "prismaType")]
-    pub prisma_type: Option<String>,
+    pub prisma_type: ::core::option::Option<String>,
     /// Required. The entity allocated this budget (DSP, site, etc.).
     #[serde(default)]
-    pub supplier: Option<String>,
+    pub supplier: ::core::option::Option<String>,
 }
 
 /// Google Payments Center supports searching and filtering on the component fields of this code.
@@ -5015,13 +5181,13 @@ pub struct PrismaConfig {
 pub struct PrismaCpeCode {
     /// The Prisma client code.
     #[serde(default, rename = "prismaClientCode")]
-    pub prisma_client_code: Option<String>,
+    pub prisma_client_code: ::core::option::Option<String>,
     /// The Prisma estimate code.
     #[serde(default, rename = "prismaEstimateCode")]
-    pub prisma_estimate_code: Option<String>,
+    pub prisma_estimate_code: ::core::option::Option<String>,
     /// The Prisma product code.
     #[serde(default, rename = "prismaProductCode")]
-    pub prisma_product_code: Option<String>,
+    pub prisma_product_code: ::core::option::Option<String>,
 }
 
 /// The details of product feed.
@@ -5029,13 +5195,14 @@ pub struct PrismaCpeCode {
 pub struct ProductFeedData {
     /// Whether the product feed has opted-out of showing products.
     #[serde(default, rename = "isFeedDisabled")]
-    pub is_feed_disabled: Option<bool>,
+    pub is_feed_disabled: ::core::option::Option<bool>,
     /// A list of dimensions used to match products.
     #[serde(default, rename = "productMatchDimensions")]
-    pub product_match_dimensions: Option<Vec<ProductMatchDimension>>,
+    pub product_match_dimensions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductMatchDimension>>>,
     /// How products are selected by the product feed. // TODO: enum values: ["PRODUCT_MATCH_TYPE_UNSPECIFIED", "PRODUCT_MATCH_TYPE_ALL_PRODUCTS", "PRODUCT_MATCH_TYPE_SPECIFIC_PRODUCTS", "PRODUCT_MATCH_TYPE_CUSTOM_LABEL"]
     #[serde(default, rename = "productMatchType")]
-    pub product_match_type: Option<String>,
+    pub product_match_type: ::core::option::Option<String>,
 }
 
 /// A dimension used to match products.
@@ -5043,10 +5210,10 @@ pub struct ProductFeedData {
 pub struct ProductMatchDimension {
     /// The custom label to match all the products with the label.
     #[serde(default, rename = "customLabel")]
-    pub custom_label: Option<CustomLabel>,
+    pub custom_label: ::core::option::Option<::std::boxed::Box<CustomLabel>>,
     /// The ID of the product offer to match with a product with the same offer ID.
     #[serde(default, rename = "productOfferId")]
-    pub product_offer_id: Option<String>,
+    pub product_offer_id: ::core::option::Option<String>,
 }
 
 /// Targeting details for proximity location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_PROXIMITY_LOCATION_LIST.
@@ -5054,13 +5221,13 @@ pub struct ProductMatchDimension {
 pub struct ProximityLocationListAssignedTargetingOptionDetails {
     /// Required. ID of the proximity location list. Should refer to the location_list_id field of a LocationList resource whose type is TARGETING_LOCATION_TYPE_PROXIMITY.
     #[serde(default, rename = "proximityLocationListId")]
-    pub proximity_location_list_id: Option<String>,
+    pub proximity_location_list_id: ::core::option::Option<String>,
     /// Required. Radius expressed in the distance units set in proximity_radius_unit. This represents the size of the area around a chosen location that will be targeted. Radius should be between 1 and 500 miles or 800 kilometers.
     #[serde(default, rename = "proximityRadius")]
-    pub proximity_radius: Option<f64>,
+    pub proximity_radius: ::core::option::Option<f64>,
     /// Required. Radius distance units. // TODO: enum values: ["PROXIMITY_RADIUS_UNIT_UNSPECIFIED", "PROXIMITY_RADIUS_UNIT_MILES", "PROXIMITY_RADIUS_UNIT_KILOMETERS"]
     #[serde(default, rename = "proximityRadiusUnit")]
-    pub proximity_radius_unit: Option<String>,
+    pub proximity_radius_unit: ::core::option::Option<String>,
 }
 
 /// The rate related settings of the inventory source.
@@ -5068,16 +5235,16 @@ pub struct ProximityLocationListAssignedTargetingOptionDetails {
 pub struct RateDetails {
     /// The rate type. Acceptable values are INVENTORY_SOURCE_RATE_TYPE_CPM_FIXED, INVENTORY_SOURCE_RATE_TYPE_CPM_FLOOR, and INVENTORY_SOURCE_RATE_TYPE_CPD. // TODO: enum values: ["INVENTORY_SOURCE_RATE_TYPE_UNSPECIFIED", "INVENTORY_SOURCE_RATE_TYPE_CPM_FIXED", "INVENTORY_SOURCE_RATE_TYPE_CPM_FLOOR", "INVENTORY_SOURCE_RATE_TYPE_CPD", "INVENTORY_SOURCE_RATE_TYPE_CPH", "INVENTORY_SOURCE_RATE_TYPE_FLAT"]
     #[serde(default, rename = "inventorySourceRateType")]
-    pub inventory_source_rate_type: Option<String>,
+    pub inventory_source_rate_type: ::core::option::Option<String>,
     /// Output only. The amount that the buyer has committed to spending on the inventory source up front. Only applicable for guaranteed inventory sources.
     #[serde(default, rename = "minimumSpend")]
-    pub minimum_spend: Option<Money>,
+    pub minimum_spend: ::core::option::Option<::std::boxed::Box<Money>>,
     /// The rate for the inventory source.
     #[serde(default)]
-    pub rate: Option<Money>,
+    pub rate: ::core::option::Option<::std::boxed::Box<Money>>,
     /// Required for guaranteed inventory sources. The number of impressions guaranteed by the seller.
     #[serde(default, rename = "unitsPurchased")]
-    pub units_purchased: Option<String>,
+    pub units_purchased: ::core::option::Option<String>,
 }
 
 /// Targeting details for regional location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_REGIONAL_LOCATION_LIST.
@@ -5085,10 +5252,10 @@ pub struct RateDetails {
 pub struct RegionalLocationListAssignedTargetingOptionDetails {
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. ID of the regional location list. Should refer to the location_list_id field of a LocationList resource whose type is TARGETING_LOCATION_TYPE_REGIONAL.
     #[serde(default, rename = "regionalLocationListId")]
-    pub regional_location_list_id: Option<String>,
+    pub regional_location_list_id: ::core::option::Option<String>,
 }
 
 /// Settings that control the whether remarketing is enabled for the given identified advertiser.
@@ -5096,10 +5263,10 @@ pub struct RegionalLocationListAssignedTargetingOptionDetails {
 pub struct RemarketingConfig {
     /// Output only. The ID of the advertiser.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Output only. Whether the Floodlight activity remarketing user list is available to the identified advertiser.
     #[serde(default, rename = "remarketingEnabled")]
-    pub remarketing_enabled: Option<bool>,
+    pub remarketing_enabled: ::core::option::Option<bool>,
 }
 
 /// Request message for NegativeKeywordService.ReplaceNegativeKeywords.
@@ -5107,7 +5274,8 @@ pub struct RemarketingConfig {
 pub struct ReplaceNegativeKeywordsRequest {
     /// The negative keywords that will replace the existing keywords in the negative keyword list, specified as a list of NegativeKeywords.
     #[serde(default, rename = "newNegativeKeywords")]
-    pub new_negative_keywords: Option<Vec<NegativeKeyword>>,
+    pub new_negative_keywords:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NegativeKeyword>>>,
 }
 
 /// Response message for NegativeKeywordService.ReplaceNegativeKeywords.
@@ -5115,7 +5283,8 @@ pub struct ReplaceNegativeKeywordsRequest {
 pub struct ReplaceNegativeKeywordsResponse {
     /// The full list of negative keywords now present in the negative keyword list.
     #[serde(default, rename = "negativeKeywords")]
-    pub negative_keywords: Option<Vec<NegativeKeyword>>,
+    pub negative_keywords:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NegativeKeyword>>>,
 }
 
 /// Request message for SiteService.ReplaceSites.
@@ -5123,13 +5292,13 @@ pub struct ReplaceNegativeKeywordsResponse {
 pub struct ReplaceSitesRequest {
     /// The ID of the advertiser that owns the parent channel.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// The sites that will replace the existing sites assigned to the channel, specified as a list of Sites.
     #[serde(default, rename = "newSites")]
-    pub new_sites: Option<Vec<Site>>,
+    pub new_sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Site>>>,
     /// The ID of the partner that owns the parent channel.
     #[serde(default, rename = "partnerId")]
-    pub partner_id: Option<String>,
+    pub partner_id: ::core::option::Option<String>,
 }
 
 /// Response message for SiteService.ReplaceSites.
@@ -5137,7 +5306,7 @@ pub struct ReplaceSitesRequest {
 pub struct ReplaceSitesResponse {
     /// The list of sites in the channel after replacing.
     #[serde(default)]
-    pub sites: Option<Vec<Site>>,
+    pub sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Site>>>,
 }
 
 /// Review statuses for the creative.
@@ -5145,16 +5314,17 @@ pub struct ReplaceSitesResponse {
 pub struct ReviewStatusInfo {
     /// Represents the basic approval needed for a creative to begin serving. Summary of creative_and_landing_page_review_status and content_and_policy_review_status. // TODO: enum values: ["APPROVAL_STATUS_UNSPECIFIED", "APPROVAL_STATUS_PENDING_NOT_SERVABLE", "APPROVAL_STATUS_PENDING_SERVABLE", "APPROVAL_STATUS_APPROVED_SERVABLE", "APPROVAL_STATUS_REJECTED_NOT_SERVABLE"]
     #[serde(default, rename = "approvalStatus")]
-    pub approval_status: Option<String>,
+    pub approval_status: ::core::option::Option<String>,
     /// Content and policy review status for the creative. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "REVIEW_STATUS_APPROVED", "REVIEW_STATUS_REJECTED", "REVIEW_STATUS_PENDING"]
     #[serde(default, rename = "contentAndPolicyReviewStatus")]
-    pub content_and_policy_review_status: Option<String>,
+    pub content_and_policy_review_status: ::core::option::Option<String>,
     /// Creative and landing page review status for the creative. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "REVIEW_STATUS_APPROVED", "REVIEW_STATUS_REJECTED", "REVIEW_STATUS_PENDING"]
     #[serde(default, rename = "creativeAndLandingPageReviewStatus")]
-    pub creative_and_landing_page_review_status: Option<String>,
+    pub creative_and_landing_page_review_status: ::core::option::Option<String>,
     /// Exchange review statuses for the creative.
     #[serde(default, rename = "exchangeReviewStatuses")]
-    pub exchange_review_statuses: Option<Vec<ExchangeReviewStatus>>,
+    pub exchange_review_statuses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExchangeReviewStatus>>>,
 }
 
 /// An error message for a custom bidding script.
@@ -5162,16 +5332,16 @@ pub struct ReviewStatusInfo {
 pub struct ScriptError {
     /// The column number in the script where the error was thrown.
     #[serde(default)]
-    pub column: Option<String>,
+    pub column: ::core::option::Option<String>,
     /// The type of error. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "SYNTAX_ERROR", "DEPRECATED_SYNTAX", "INTERNAL_ERROR"]
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
     /// The detailed error message.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// The line number in the script where the error was thrown.
     #[serde(default)]
-    pub line: Option<String>,
+    pub line: ::core::option::Option<String>,
 }
 
 /// Structured Data File (SDF) related settings.
@@ -5179,10 +5349,10 @@ pub struct ScriptError {
 pub struct SdfConfig {
     /// An administrator email address to which the SDF processing status reports will be sent.
     #[serde(default, rename = "adminEmail")]
-    pub admin_email: Option<String>,
+    pub admin_email: ::core::option::Option<String>,
     /// Required. The version of SDF being used. // TODO: enum values: ["SDF_VERSION_UNSPECIFIED", "SDF_VERSION_3_1", "SDF_VERSION_4", "SDF_VERSION_4_1", "SDF_VERSION_4_2", "SDF_VERSION_5", "SDF_VERSION_5_1", "SDF_VERSION_5_2", "SDF_VERSION_5_3", "SDF_VERSION_5_4", "SDF_VERSION_5_5", "SDF_VERSION_6", "SDF_VERSION_7", "SDF_VERSION_7_1", "SDF_VERSION_8", "SDF_VERSION_8_1", "SDF_VERSION_9", "SDF_VERSION_9_1", "SDF_VERSION_9_2"]
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Type for the response returned by SdfDownloadTaskService.CreateSdfDownloadTask.
@@ -5190,7 +5360,7 @@ pub struct SdfConfig {
 pub struct SdfDownloadTask {
     /// A resource name to be used in media.download to Download the prepared files. Resource names have the format download/sdfdownloadtasks/media/{media_id}. media_id will be made available by the long running operation service once the task status is done.
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// Type for the metadata returned by SdfDownloadTaskService.CreateSdfDownloadTask.
@@ -5198,13 +5368,13 @@ pub struct SdfDownloadTask {
 pub struct SdfDownloadTaskMetadata {
     /// The time when the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time when execution was completed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The SDF version used to execute this download task. // TODO: enum values: ["SDF_VERSION_UNSPECIFIED", "SDF_VERSION_3_1", "SDF_VERSION_4", "SDF_VERSION_4_1", "SDF_VERSION_4_2", "SDF_VERSION_5", "SDF_VERSION_5_1", "SDF_VERSION_5_2", "SDF_VERSION_5_3", "SDF_VERSION_5_4", "SDF_VERSION_5_5", "SDF_VERSION_6", "SDF_VERSION_7", "SDF_VERSION_7_1", "SDF_VERSION_8", "SDF_VERSION_8_1", "SDF_VERSION_9", "SDF_VERSION_9_1", "SDF_VERSION_9_2"]
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Request message for SearchTargetingOptions.
@@ -5212,22 +5382,23 @@ pub struct SdfDownloadTaskMetadata {
 pub struct SearchTargetingOptionsRequest {
     /// Required. The Advertiser this request is being made in the context of.
     #[serde(default, rename = "advertiserId")]
-    pub advertiser_id: Option<String>,
+    pub advertiser_id: ::core::option::Option<String>,
     /// Search terms for Business Chain targeting options. Can only be used when targeting_type is TARGETING_TYPE_BUSINESS_CHAIN.
     #[serde(default, rename = "businessChainSearchTerms")]
-    pub business_chain_search_terms: Option<BusinessChainSearchTerms>,
+    pub business_chain_search_terms:
+        ::core::option::Option<::std::boxed::Box<BusinessChainSearchTerms>>,
     /// Search terms for geo region targeting options. Can only be used when targeting_type is TARGETING_TYPE_GEO_REGION.
     #[serde(default, rename = "geoRegionSearchTerms")]
-    pub geo_region_search_terms: Option<GeoRegionSearchTerms>,
+    pub geo_region_search_terms: ::core::option::Option<::std::boxed::Box<GeoRegionSearchTerms>>,
     /// Requested page size. Must be between 1 and 200. If unspecified will default to 100. Returns error code INVALID_ARGUMENT if an invalid value is specified.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// A token identifying a page of results the server should return. Typically, this is the value of next_page_token returned from the previous call to SearchTargetingOptions method. If not specified, the first page of results will be returned.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Search terms for POI targeting options. Can only be used when targeting_type is TARGETING_TYPE_POI.
     #[serde(default, rename = "poiSearchTerms")]
-    pub poi_search_terms: Option<PoiSearchTerms>,
+    pub poi_search_terms: ::core::option::Option<::std::boxed::Box<PoiSearchTerms>>,
 }
 
 /// Response message for SearchTargetingOptions.
@@ -5235,10 +5406,11 @@ pub struct SearchTargetingOptionsRequest {
 pub struct SearchTargetingOptionsResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to SearchTargetingOptions method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of targeting options that match the search criteria. This list will be absent if empty.
     #[serde(default, rename = "targetingOptions")]
-    pub targeting_options: Option<Vec<TargetingOption>>,
+    pub targeting_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetingOption>>>,
 }
 
 /// The inventory control of the ad group.
@@ -5246,22 +5418,22 @@ pub struct SearchTargetingOptionsResponse {
 pub struct SelectedInventories {
     /// Whether the ad group is opted-in to Discover inventory.
     #[serde(default, rename = "allowDiscover")]
-    pub allow_discover: Option<bool>,
+    pub allow_discover: ::core::option::Option<bool>,
     /// Whether the ad group is opted-in to Gmail inventory.
     #[serde(default, rename = "allowGmail")]
-    pub allow_gmail: Option<bool>,
+    pub allow_gmail: ::core::option::Option<bool>,
     /// Whether the ad group is opted-in to Google Display Network inventory.
     #[serde(default, rename = "allowGoogleDisplayNetwork")]
-    pub allow_google_display_network: Option<bool>,
+    pub allow_google_display_network: ::core::option::Option<bool>,
     /// Whether the ad group is opted-in to YouTube in-feed inventory.
     #[serde(default, rename = "allowYoutubeFeed")]
-    pub allow_youtube_feed: Option<bool>,
+    pub allow_youtube_feed: ::core::option::Option<bool>,
     /// Whether the ad group is opted-in to YouTube shorts inventory.
     #[serde(default, rename = "allowYoutubeShorts")]
-    pub allow_youtube_shorts: Option<bool>,
+    pub allow_youtube_shorts: ::core::option::Option<bool>,
     /// Whether the ad group is opted-in to YouTube in-stream.
     #[serde(default, rename = "allowYoutubeStream")]
-    pub allow_youtube_stream: Option<bool>,
+    pub allow_youtube_stream: ::core::option::Option<bool>,
 }
 
 /// Targeting details for sensitive category. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION.
@@ -5269,7 +5441,7 @@ pub struct SelectedInventories {
 pub struct SensitiveCategoryAssignedTargetingOptionDetails {
     /// Required. An enum for the DV360 Sensitive category content classified to be EXCLUDED. // TODO: enum values: ["SENSITIVE_CATEGORY_UNSPECIFIED", "SENSITIVE_CATEGORY_ADULT", "SENSITIVE_CATEGORY_DEROGATORY", "SENSITIVE_CATEGORY_DOWNLOADS_SHARING", "SENSITIVE_CATEGORY_WEAPONS", "SENSITIVE_CATEGORY_GAMBLING", "SENSITIVE_CATEGORY_VIOLENCE", "SENSITIVE_CATEGORY_SUGGESTIVE", "SENSITIVE_CATEGORY_PROFANITY", "SENSITIVE_CATEGORY_ALCOHOL", "SENSITIVE_CATEGORY_DRUGS", "SENSITIVE_CATEGORY_TOBACCO", "SENSITIVE_CATEGORY_POLITICS", "SENSITIVE_CATEGORY_RELIGION", "SENSITIVE_CATEGORY_TRAGEDY", "SENSITIVE_CATEGORY_TRANSPORTATION_ACCIDENTS", "SENSITIVE_CATEGORY_SENSITIVE_SOCIAL_ISSUES", "SENSITIVE_CATEGORY_SHOCKING", "SENSITIVE_CATEGORY_EMBEDDED_VIDEO", "SENSITIVE_CATEGORY_LIVE_STREAMING_VIDEO"]
     #[serde(default, rename = "excludedSensitiveCategory")]
-    pub excluded_sensitive_category: Option<String>,
+    pub excluded_sensitive_category: ::core::option::Option<String>,
 }
 
 /// Represents a targetable sensitive category. This will be populated in the sensitive_category_details field of the TargetingOption when targeting_type is TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION.
@@ -5277,7 +5449,7 @@ pub struct SensitiveCategoryAssignedTargetingOptionDetails {
 pub struct SensitiveCategoryTargetingOptionDetails {
     /// Output only. An enum for the DV360 Sensitive category content classifier. // TODO: enum values: ["SENSITIVE_CATEGORY_UNSPECIFIED", "SENSITIVE_CATEGORY_ADULT", "SENSITIVE_CATEGORY_DEROGATORY", "SENSITIVE_CATEGORY_DOWNLOADS_SHARING", "SENSITIVE_CATEGORY_WEAPONS", "SENSITIVE_CATEGORY_GAMBLING", "SENSITIVE_CATEGORY_VIOLENCE", "SENSITIVE_CATEGORY_SUGGESTIVE", "SENSITIVE_CATEGORY_PROFANITY", "SENSITIVE_CATEGORY_ALCOHOL", "SENSITIVE_CATEGORY_DRUGS", "SENSITIVE_CATEGORY_TOBACCO", "SENSITIVE_CATEGORY_POLITICS", "SENSITIVE_CATEGORY_RELIGION", "SENSITIVE_CATEGORY_TRAGEDY", "SENSITIVE_CATEGORY_TRANSPORTATION_ACCIDENTS", "SENSITIVE_CATEGORY_SENSITIVE_SOCIAL_ISSUES", "SENSITIVE_CATEGORY_SHOCKING", "SENSITIVE_CATEGORY_EMBEDDED_VIDEO", "SENSITIVE_CATEGORY_LIVE_STREAMING_VIDEO"]
     #[serde(default, rename = "sensitiveCategory")]
-    pub sensitive_category: Option<String>,
+    pub sensitive_category: ::core::option::Option<String>,
 }
 
 /// Details for session position assigned targeting option. This will be populated in the session_position_details field when targeting_type is TARGETING_TYPE_SESSION_POSITION.
@@ -5285,7 +5457,7 @@ pub struct SensitiveCategoryTargetingOptionDetails {
 pub struct SessionPositionAssignedTargetingOptionDetails {
     /// The position where the ad will show in a session. // TODO: enum values: ["SESSION_POSITION_UNSPECIFIED", "SESSION_POSITION_FIRST_IMPRESSION"]
     #[serde(default, rename = "sessionPosition")]
-    pub session_position: Option<String>,
+    pub session_position: ::core::option::Option<String>,
 }
 
 /// A single site. Sites are apps or websites belonging to a channel.
@@ -5293,10 +5465,10 @@ pub struct SessionPositionAssignedTargetingOptionDetails {
 pub struct Site {
     /// Output only. The resource name of the site.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The app ID or URL of the site. Must be UTF-8 encoded with a maximum length of 240 bytes.
     #[serde(default, rename = "urlOrAppId")]
-    pub url_or_app_id: Option<String>,
+    pub url_or_app_id: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -5304,13 +5476,13 @@ pub struct Site {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Details for assigned sub-exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_SUB_EXCHANGE.
@@ -5318,7 +5490,7 @@ pub struct Status {
 pub struct SubExchangeAssignedTargetingOptionDetails {
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_SUB_EXCHANGE.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
 }
 
 /// Represents a targetable sub-exchange. This will be populated in the sub_exchange_details field of a TargetingOption when targeting_type is TARGETING_TYPE_SUB_EXCHANGE.
@@ -5326,7 +5498,7 @@ pub struct SubExchangeAssignedTargetingOptionDetails {
 pub struct SubExchangeTargetingOptionDetails {
     /// Output only. The display name of the sub-exchange.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Setting that controls the average number of times the ads will show to the same person over a certain period of time.
@@ -5334,13 +5506,13 @@ pub struct SubExchangeTargetingOptionDetails {
 pub struct TargetFrequency {
     /// The target number of times, on average, the ads will be shown to the same person in the timespan dictated by time_unit and time_unit_count.
     #[serde(default, rename = "targetCount")]
-    pub target_count: Option<String>,
+    pub target_count: ::core::option::Option<String>,
     /// The unit of time in which the target frequency will be applied. The following time unit is applicable: * TIME_UNIT_WEEKS // TODO: enum values: ["TIME_UNIT_UNSPECIFIED", "TIME_UNIT_LIFETIME", "TIME_UNIT_MONTHS", "TIME_UNIT_WEEKS", "TIME_UNIT_DAYS", "TIME_UNIT_HOURS", "TIME_UNIT_MINUTES"]
     #[serde(default, rename = "timeUnit")]
-    pub time_unit: Option<String>,
+    pub time_unit: ::core::option::Option<String>,
     /// The number of time_unit the target frequency will last. The following restrictions apply based on the value of time_unit: * TIME_UNIT_WEEKS - must be 1
     #[serde(default, rename = "timeUnitCount")]
-    pub time_unit_count: Option<i32>,
+    pub time_unit_count: ::core::option::Option<i32>,
 }
 
 /// Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.
@@ -5348,16 +5520,16 @@ pub struct TargetFrequency {
 pub struct TargetingExpansionConfig {
     /// Output only. Magnitude of expansion for eligible first-party user lists under this ad group. This field only applies to YouTube and Partners line item and ad group resources. // TODO: enum values: ["UNKNOWN", "NO_REACH", "LEAST_REACH", "MID_REACH", "MOST_REACH"]
     #[serde(default, rename = "audienceExpansionLevel")]
-    pub audience_expansion_level: Option<String>,
+    pub audience_expansion_level: ::core::option::Option<String>,
     /// Output only. Whether to exclude seed list for audience expansion. This field only applies to YouTube and Partners line item and ad group resources.
     #[serde(default, rename = "audienceExpansionSeedListExcluded")]
-    pub audience_expansion_seed_list_excluded: Option<bool>,
+    pub audience_expansion_seed_list_excluded: ::core::option::Option<bool>,
     /// Required. Whether to enable Optimized Targeting for the line item. Optimized targeting is not compatible with all bid strategies. Attempting to set this field to true for a line item using the BiddingStrategy field fixed_bid or one of the following combinations of BiddingStrategy fields and BiddingStrategyPerformanceGoalType will result in an error: maximize_auto_spend_bid: * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED performance_goal_auto_bid: * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM This also applies if the line item inherits one of the above bid strategies from the parent insertion order. Bid strategies set at the insertion order-level will be inherited by their line items if the InsertionOrder budget field automationType is set to INSERTION_ORDER_AUTOMATION_TYPE_BUDGET or INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET.
     #[serde(default, rename = "enableOptimizedTargeting")]
-    pub enable_optimized_targeting: Option<bool>,
+    pub enable_optimized_targeting: ::core::option::Option<bool>,
     /// Optional. Whether to exclude demographic expansion for Optimized Targeting. This field only applies to Demand Gen ad groups.
     #[serde(default, rename = "excludeDemographicExpansion")]
-    pub exclude_demographic_expansion: Option<bool>,
+    pub exclude_demographic_expansion: ::core::option::Option<bool>,
 }
 
 /// Represents a single targeting option, which is a targetable concept in DV360.
@@ -5365,115 +5537,142 @@ pub struct TargetingExpansionConfig {
 pub struct TargetingOption {
     /// Age range details.
     #[serde(default, rename = "ageRangeDetails")]
-    pub age_range_details: Option<AgeRangeTargetingOptionDetails>,
+    pub age_range_details:
+        ::core::option::Option<::std::boxed::Box<AgeRangeTargetingOptionDetails>>,
     /// App category details.
     #[serde(default, rename = "appCategoryDetails")]
-    pub app_category_details: Option<AppCategoryTargetingOptionDetails>,
+    pub app_category_details:
+        ::core::option::Option<::std::boxed::Box<AppCategoryTargetingOptionDetails>>,
     /// Audio content type details.
     #[serde(default, rename = "audioContentTypeDetails")]
-    pub audio_content_type_details: Option<AudioContentTypeTargetingOptionDetails>,
+    pub audio_content_type_details:
+        ::core::option::Option<::std::boxed::Box<AudioContentTypeTargetingOptionDetails>>,
     /// Authorized seller status resource details.
     #[serde(default, rename = "authorizedSellerStatusDetails")]
-    pub authorized_seller_status_details: Option<AuthorizedSellerStatusTargetingOptionDetails>,
+    pub authorized_seller_status_details:
+        ::core::option::Option<::std::boxed::Box<AuthorizedSellerStatusTargetingOptionDetails>>,
     /// Browser details.
     #[serde(default, rename = "browserDetails")]
-    pub browser_details: Option<BrowserTargetingOptionDetails>,
+    pub browser_details: ::core::option::Option<::std::boxed::Box<BrowserTargetingOptionDetails>>,
     /// Business chain resource details.
     #[serde(default, rename = "businessChainDetails")]
-    pub business_chain_details: Option<BusinessChainTargetingOptionDetails>,
+    pub business_chain_details:
+        ::core::option::Option<::std::boxed::Box<BusinessChainTargetingOptionDetails>>,
     /// Carrier and ISP details.
     #[serde(default, rename = "carrierAndIspDetails")]
-    pub carrier_and_isp_details: Option<CarrierAndIspTargetingOptionDetails>,
+    pub carrier_and_isp_details:
+        ::core::option::Option<::std::boxed::Box<CarrierAndIspTargetingOptionDetails>>,
     /// Category resource details.
     #[serde(default, rename = "categoryDetails")]
-    pub category_details: Option<CategoryTargetingOptionDetails>,
+    pub category_details: ::core::option::Option<::std::boxed::Box<CategoryTargetingOptionDetails>>,
     /// Content duration resource details.
     #[serde(default, rename = "contentDurationDetails")]
-    pub content_duration_details: Option<ContentDurationTargetingOptionDetails>,
+    pub content_duration_details:
+        ::core::option::Option<::std::boxed::Box<ContentDurationTargetingOptionDetails>>,
     /// Content genre resource details.
     #[serde(default, rename = "contentGenreDetails")]
-    pub content_genre_details: Option<ContentGenreTargetingOptionDetails>,
+    pub content_genre_details:
+        ::core::option::Option<::std::boxed::Box<ContentGenreTargetingOptionDetails>>,
     /// Content instream position details.
     #[serde(default, rename = "contentInstreamPositionDetails")]
-    pub content_instream_position_details: Option<ContentInstreamPositionTargetingOptionDetails>,
+    pub content_instream_position_details:
+        ::core::option::Option<::std::boxed::Box<ContentInstreamPositionTargetingOptionDetails>>,
     /// Content outstream position details.
     #[serde(default, rename = "contentOutstreamPositionDetails")]
-    pub content_outstream_position_details: Option<ContentOutstreamPositionTargetingOptionDetails>,
+    pub content_outstream_position_details:
+        ::core::option::Option<::std::boxed::Box<ContentOutstreamPositionTargetingOptionDetails>>,
     /// Content stream type resource details.
     #[serde(default, rename = "contentStreamTypeDetails")]
-    pub content_stream_type_details: Option<ContentStreamTypeTargetingOptionDetails>,
+    pub content_stream_type_details:
+        ::core::option::Option<::std::boxed::Box<ContentStreamTypeTargetingOptionDetails>>,
     /// Content theme details.
     #[serde(default, rename = "contentThemeDetails")]
-    pub content_theme_details: Option<ContentThemeTargetingOptionDetails>,
+    pub content_theme_details:
+        ::core::option::Option<::std::boxed::Box<ContentThemeTargetingOptionDetails>>,
     /// Device make and model resource details.
     #[serde(default, rename = "deviceMakeModelDetails")]
-    pub device_make_model_details: Option<DeviceMakeModelTargetingOptionDetails>,
+    pub device_make_model_details:
+        ::core::option::Option<::std::boxed::Box<DeviceMakeModelTargetingOptionDetails>>,
     /// Device type details.
     #[serde(default, rename = "deviceTypeDetails")]
-    pub device_type_details: Option<DeviceTypeTargetingOptionDetails>,
+    pub device_type_details:
+        ::core::option::Option<::std::boxed::Box<DeviceTypeTargetingOptionDetails>>,
     /// Digital content label details.
     #[serde(default, rename = "digitalContentLabelDetails")]
-    pub digital_content_label_details: Option<DigitalContentLabelTargetingOptionDetails>,
+    pub digital_content_label_details:
+        ::core::option::Option<::std::boxed::Box<DigitalContentLabelTargetingOptionDetails>>,
     /// Environment details.
     #[serde(default, rename = "environmentDetails")]
-    pub environment_details: Option<EnvironmentTargetingOptionDetails>,
+    pub environment_details:
+        ::core::option::Option<::std::boxed::Box<EnvironmentTargetingOptionDetails>>,
     /// Exchange details.
     #[serde(default, rename = "exchangeDetails")]
-    pub exchange_details: Option<ExchangeTargetingOptionDetails>,
+    pub exchange_details: ::core::option::Option<::std::boxed::Box<ExchangeTargetingOptionDetails>>,
     /// Gender details.
     #[serde(default, rename = "genderDetails")]
-    pub gender_details: Option<GenderTargetingOptionDetails>,
+    pub gender_details: ::core::option::Option<::std::boxed::Box<GenderTargetingOptionDetails>>,
     /// Geographic region resource details.
     #[serde(default, rename = "geoRegionDetails")]
-    pub geo_region_details: Option<GeoRegionTargetingOptionDetails>,
+    pub geo_region_details:
+        ::core::option::Option<::std::boxed::Box<GeoRegionTargetingOptionDetails>>,
     /// Household income details.
     #[serde(default, rename = "householdIncomeDetails")]
-    pub household_income_details: Option<HouseholdIncomeTargetingOptionDetails>,
+    pub household_income_details:
+        ::core::option::Option<::std::boxed::Box<HouseholdIncomeTargetingOptionDetails>>,
     /// Language resource details.
     #[serde(default, rename = "languageDetails")]
-    pub language_details: Option<LanguageTargetingOptionDetails>,
+    pub language_details: ::core::option::Option<::std::boxed::Box<LanguageTargetingOptionDetails>>,
     /// Output only. The resource name for this targeting option.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Native content position details.
     #[serde(default, rename = "nativeContentPositionDetails")]
-    pub native_content_position_details: Option<NativeContentPositionTargetingOptionDetails>,
+    pub native_content_position_details:
+        ::core::option::Option<::std::boxed::Box<NativeContentPositionTargetingOptionDetails>>,
     /// Open Measurement enabled inventory details.
     #[serde(default, rename = "omidDetails")]
-    pub omid_details: Option<OmidTargetingOptionDetails>,
+    pub omid_details: ::core::option::Option<::std::boxed::Box<OmidTargetingOptionDetails>>,
     /// On screen position details.
     #[serde(default, rename = "onScreenPositionDetails")]
-    pub on_screen_position_details: Option<OnScreenPositionTargetingOptionDetails>,
+    pub on_screen_position_details:
+        ::core::option::Option<::std::boxed::Box<OnScreenPositionTargetingOptionDetails>>,
     /// Operating system resources details.
     #[serde(default, rename = "operatingSystemDetails")]
-    pub operating_system_details: Option<OperatingSystemTargetingOptionDetails>,
+    pub operating_system_details:
+        ::core::option::Option<::std::boxed::Box<OperatingSystemTargetingOptionDetails>>,
     /// Parental status details.
     #[serde(default, rename = "parentalStatusDetails")]
-    pub parental_status_details: Option<ParentalStatusTargetingOptionDetails>,
+    pub parental_status_details:
+        ::core::option::Option<::std::boxed::Box<ParentalStatusTargetingOptionDetails>>,
     /// POI resource details.
     #[serde(default, rename = "poiDetails")]
-    pub poi_details: Option<PoiTargetingOptionDetails>,
+    pub poi_details: ::core::option::Option<::std::boxed::Box<PoiTargetingOptionDetails>>,
     /// Sensitive Category details.
     #[serde(default, rename = "sensitiveCategoryDetails")]
-    pub sensitive_category_details: Option<SensitiveCategoryTargetingOptionDetails>,
+    pub sensitive_category_details:
+        ::core::option::Option<::std::boxed::Box<SensitiveCategoryTargetingOptionDetails>>,
     /// Sub-exchange details.
     #[serde(default, rename = "subExchangeDetails")]
-    pub sub_exchange_details: Option<SubExchangeTargetingOptionDetails>,
+    pub sub_exchange_details:
+        ::core::option::Option<::std::boxed::Box<SubExchangeTargetingOptionDetails>>,
     /// Output only. A unique identifier for this targeting option. The tuple {targeting_type, targeting_option_id} will be unique.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
     /// Output only. The type of this targeting option. // TODO: enum values: ["TARGETING_TYPE_UNSPECIFIED", "TARGETING_TYPE_CHANNEL", "TARGETING_TYPE_APP_CATEGORY", "TARGETING_TYPE_APP", "TARGETING_TYPE_URL", "TARGETING_TYPE_DAY_AND_TIME", "TARGETING_TYPE_AGE_RANGE", "TARGETING_TYPE_REGIONAL_LOCATION_LIST", "TARGETING_TYPE_PROXIMITY_LOCATION_LIST", "TARGETING_TYPE_GENDER", "TARGETING_TYPE_VIDEO_PLAYER_SIZE", "TARGETING_TYPE_USER_REWARDED_CONTENT", "TARGETING_TYPE_PARENTAL_STATUS", "TARGETING_TYPE_CONTENT_INSTREAM_POSITION", "TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION", "TARGETING_TYPE_DEVICE_TYPE", "TARGETING_TYPE_AUDIENCE_GROUP", "TARGETING_TYPE_BROWSER", "TARGETING_TYPE_HOUSEHOLD_INCOME", "TARGETING_TYPE_ON_SCREEN_POSITION", "TARGETING_TYPE_THIRD_PARTY_VERIFIER", "TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION", "TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION", "TARGETING_TYPE_ENVIRONMENT", "TARGETING_TYPE_CARRIER_AND_ISP", "TARGETING_TYPE_OPERATING_SYSTEM", "TARGETING_TYPE_DEVICE_MAKE_MODEL", "TARGETING_TYPE_KEYWORD", "TARGETING_TYPE_NEGATIVE_KEYWORD_LIST", "TARGETING_TYPE_VIEWABILITY", "TARGETING_TYPE_CATEGORY", "TARGETING_TYPE_INVENTORY_SOURCE", "TARGETING_TYPE_LANGUAGE", "TARGETING_TYPE_AUTHORIZED_SELLER_STATUS", "TARGETING_TYPE_GEO_REGION", "TARGETING_TYPE_INVENTORY_SOURCE_GROUP", "TARGETING_TYPE_EXCHANGE", "TARGETING_TYPE_SUB_EXCHANGE", "TARGETING_TYPE_POI", "TARGETING_TYPE_BUSINESS_CHAIN", "TARGETING_TYPE_CONTENT_DURATION", "TARGETING_TYPE_CONTENT_STREAM_TYPE", "TARGETING_TYPE_NATIVE_CONTENT_POSITION", "TARGETING_TYPE_OMID", "TARGETING_TYPE_AUDIO_CONTENT_TYPE", "TARGETING_TYPE_CONTENT_GENRE", "TARGETING_TYPE_YOUTUBE_VIDEO", "TARGETING_TYPE_YOUTUBE_CHANNEL", "TARGETING_TYPE_SESSION_POSITION", "TARGETING_TYPE_CONTENT_THEME_EXCLUSION"]
     #[serde(default, rename = "targetingType")]
-    pub targeting_type: Option<String>,
+    pub targeting_type: ::core::option::Option<String>,
     /// User rewarded content details.
     #[serde(default, rename = "userRewardedContentDetails")]
-    pub user_rewarded_content_details: Option<UserRewardedContentTargetingOptionDetails>,
+    pub user_rewarded_content_details:
+        ::core::option::Option<::std::boxed::Box<UserRewardedContentTargetingOptionDetails>>,
     /// Video player size details.
     #[serde(default, rename = "videoPlayerSizeDetails")]
-    pub video_player_size_details: Option<VideoPlayerSizeTargetingOptionDetails>,
+    pub video_player_size_details:
+        ::core::option::Option<::std::boxed::Box<VideoPlayerSizeTargetingOptionDetails>>,
     /// Viewability resource details.
     #[serde(default, rename = "viewabilityDetails")]
-    pub viewability_details: Option<ViewabilityTargetingOptionDetails>,
+    pub viewability_details:
+        ::core::option::Option<::std::boxed::Box<ViewabilityTargetingOptionDetails>>,
 }
 
 /// Settings that control what third-party vendors are measuring specific line item metrics.
@@ -5481,16 +5680,20 @@ pub struct TargetingOption {
 pub struct ThirdPartyMeasurementConfigs {
     /// Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_DYNATA * THIRD_PARTY_VENDOR_KANTAR * THIRD_PARTY_VENDOR_INTAGE * THIRD_PARTY_VENDOR_NIELSEN * THIRD_PARTY_VENDOR_MACROMILL
     #[serde(default, rename = "brandLiftVendorConfigs")]
-    pub brand_lift_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+    pub brand_lift_vendor_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThirdPartyVendorConfig>>>,
     /// Optional. The third-party vendors measuring brand safety. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_DOUBLE_VERIFY * THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE * THIRD_PARTY_VENDOR_ZEFR
     #[serde(default, rename = "brandSafetyVendorConfigs")]
-    pub brand_safety_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+    pub brand_safety_vendor_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThirdPartyVendorConfig>>>,
     /// Optional. The third-party vendors measuring reach. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_NIELSEN * THIRD_PARTY_VENDOR_COMSCORE * THIRD_PARTY_VENDOR_KANTAR * THIRD_PARTY_VENDOR_VIDEO_RESEARCH * THIRD_PARTY_VENDOR_MEDIA_SCOPE * THIRD_PARTY_VENDOR_AUDIENCE_PROJECT * THIRD_PARTY_VENDOR_VIDEO_AMP * THIRD_PARTY_VENDOR_ISPOT_TV * THIRD_PARTY_VENDOR_GEMIUS
     #[serde(default, rename = "reachVendorConfigs")]
-    pub reach_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+    pub reach_vendor_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThirdPartyVendorConfig>>>,
     /// Optional. The third-party vendors measuring viewability. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_MOAT * THIRD_PARTY_VENDOR_DOUBLE_VERIFY * THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE * THIRD_PARTY_VENDOR_COMSCORE * THIRD_PARTY_VENDOR_TELEMETRY * THIRD_PARTY_VENDOR_MEETRICS
     #[serde(default, rename = "viewabilityVendorConfigs")]
-    pub viewability_vendor_configs: Option<Vec<ThirdPartyVendorConfig>>,
+    pub viewability_vendor_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ThirdPartyVendorConfig>>>,
 }
 
 /// Settings for advertisers that use third-party ad servers only.
@@ -5498,7 +5701,7 @@ pub struct ThirdPartyMeasurementConfigs {
 pub struct ThirdPartyOnlyConfig {
     /// Whether or not order ID reporting for pixels is enabled. This value cannot be changed once set to true.
     #[serde(default, rename = "pixelOrderIdReportingEnabled")]
-    pub pixel_order_id_reporting_enabled: Option<bool>,
+    pub pixel_order_id_reporting_enabled: ::core::option::Option<bool>,
 }
 
 /// Tracking URLs from third parties to track interactions with an audio or a video creative.
@@ -5506,10 +5709,10 @@ pub struct ThirdPartyOnlyConfig {
 pub struct ThirdPartyUrl {
     /// Optional. The type of interaction needs to be tracked by the tracking URL // TODO: enum values: ["THIRD_PARTY_URL_TYPE_UNSPECIFIED", "THIRD_PARTY_URL_TYPE_IMPRESSION", "THIRD_PARTY_URL_TYPE_CLICK_TRACKING", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_START", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_FIRST_QUARTILE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_MIDPOINT", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_THIRD_QUARTILE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_COMPLETE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_MUTE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_PAUSE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_REWIND", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_FULLSCREEN", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_STOP", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_CUSTOM", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_SKIP", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_PROGRESS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Optional. Tracking URL used to track the interaction. Provide a URL with optional path or query string, beginning with https:. For example, https://www.example.com/path
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Settings that control how third-party measurement vendors are configured.
@@ -5517,10 +5720,10 @@ pub struct ThirdPartyUrl {
 pub struct ThirdPartyVendorConfig {
     /// The ID used by the platform of the third-party vendor to identify the line item.
     #[serde(default, rename = "placementId")]
-    pub placement_id: Option<String>,
+    pub placement_id: ::core::option::Option<String>,
     /// The third-party measurement vendor. // TODO: enum values: ["THIRD_PARTY_VENDOR_UNSPECIFIED", "THIRD_PARTY_VENDOR_MOAT", "THIRD_PARTY_VENDOR_DOUBLE_VERIFY", "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE", "THIRD_PARTY_VENDOR_COMSCORE", "THIRD_PARTY_VENDOR_TELEMETRY", "THIRD_PARTY_VENDOR_MEETRICS", "THIRD_PARTY_VENDOR_ZEFR", "THIRD_PARTY_VENDOR_NIELSEN", "THIRD_PARTY_VENDOR_KANTAR", "THIRD_PARTY_VENDOR_DYNATA", "THIRD_PARTY_VENDOR_TRANSUNION", "THIRD_PARTY_VENDOR_ORIGIN", "THIRD_PARTY_VENDOR_GEMIUS", "THIRD_PARTY_VENDOR_MEDIA_SCOPE", "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT", "THIRD_PARTY_VENDOR_VIDEO_AMP", "THIRD_PARTY_VENDOR_ISPOT_TV", "THIRD_PARTY_VENDOR_INTAGE", "THIRD_PARTY_VENDOR_MACROMILL", "THIRD_PARTY_VENDOR_VIDEO_RESEARCH"]
     #[serde(default)]
-    pub vendor: Option<String>,
+    pub vendor: ::core::option::Option<String>,
 }
 
 /// Assigned third party verifier targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_THIRD_PARTY_VERIFIER.
@@ -5528,13 +5731,13 @@ pub struct ThirdPartyVendorConfig {
 pub struct ThirdPartyVerifierAssignedTargetingOptionDetails {
     /// Third party brand verifier -- Scope3 (previously known as Adloox).
     #[serde(default)]
-    pub adloox: Option<Adloox>,
+    pub adloox: ::core::option::Option<::std::boxed::Box<Adloox>>,
     /// Third party brand verifier -- DoubleVerify.
     #[serde(default, rename = "doubleVerify")]
-    pub double_verify: Option<DoubleVerify>,
+    pub double_verify: ::core::option::Option<::std::boxed::Box<DoubleVerify>>,
     /// Third party brand verifier -- Integral Ad Science.
     #[serde(default, rename = "integralAdScience")]
-    pub integral_ad_science: Option<IntegralAdScience>,
+    pub integral_ad_science: ::core::option::Option<::std::boxed::Box<IntegralAdScience>>,
 }
 
 /// A time range.
@@ -5542,10 +5745,10 @@ pub struct ThirdPartyVerifierAssignedTargetingOptionDetails {
 pub struct TimeRange {
     /// Required. The upper bound of a time range, inclusive.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Required. The lower bound of a time range, inclusive.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Timer event of the creative.
@@ -5553,10 +5756,10 @@ pub struct TimeRange {
 pub struct TimerEvent {
     /// Required. The name of the timer event.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The name used to identify this timer event in reports.
     #[serde(default, rename = "reportingName")]
-    pub reporting_name: Option<String>,
+    pub reporting_name: ::core::option::Option<String>,
 }
 
 /// Settings that control the behavior of a single Floodlight activity config.
@@ -5564,13 +5767,13 @@ pub struct TimerEvent {
 pub struct TrackingFloodlightActivityConfig {
     /// Required. The ID of the Floodlight activity.
     #[serde(default, rename = "floodlightActivityId")]
-    pub floodlight_activity_id: Option<String>,
+    pub floodlight_activity_id: ::core::option::Option<String>,
     /// Required. The number of days after an ad has been clicked in which a conversion may be counted. Must be between 0 and 90 inclusive.
     #[serde(default, rename = "postClickLookbackWindowDays")]
-    pub post_click_lookback_window_days: Option<i32>,
+    pub post_click_lookback_window_days: ::core::option::Option<i32>,
     /// Required. The number of days after an ad has been viewed in which a conversion may be counted. Must be between 0 and 90 inclusive.
     #[serde(default, rename = "postViewLookbackWindowDays")]
-    pub post_view_lookback_window_days: Option<i32>,
+    pub post_view_lookback_window_days: ::core::option::Option<i32>,
 }
 
 /// Represents information about the transcoded audio or video file.
@@ -5578,31 +5781,31 @@ pub struct TrackingFloodlightActivityConfig {
 pub struct Transcode {
     /// Optional. The bit rate for the audio stream of the transcoded video, or the bit rate for the transcoded audio, in kilobits per second.
     #[serde(default, rename = "audioBitRateKbps")]
-    pub audio_bit_rate_kbps: Option<String>,
+    pub audio_bit_rate_kbps: ::core::option::Option<String>,
     /// Optional. The sample rate for the audio stream of the transcoded video, or the sample rate for the transcoded audio, in hertz.
     #[serde(default, rename = "audioSampleRateHz")]
-    pub audio_sample_rate_hz: Option<String>,
+    pub audio_sample_rate_hz: ::core::option::Option<String>,
     /// Optional. The transcoding bit rate of the transcoded video, in kilobits per second.
     #[serde(default, rename = "bitRateKbps")]
-    pub bit_rate_kbps: Option<String>,
+    pub bit_rate_kbps: ::core::option::Option<String>,
     /// Optional. The dimensions of the transcoded video.
     #[serde(default)]
-    pub dimensions: Option<Dimensions>,
+    pub dimensions: ::core::option::Option<::std::boxed::Box<Dimensions>>,
     /// Optional. The size of the transcoded file, in bytes.
     #[serde(default, rename = "fileSizeBytes")]
-    pub file_size_bytes: Option<String>,
+    pub file_size_bytes: ::core::option::Option<String>,
     /// Optional. The frame rate of the transcoded video, in frames per second.
     #[serde(default, rename = "frameRate")]
-    pub frame_rate: Option<f32>,
+    pub frame_rate: ::core::option::Option<f32>,
     /// Optional. The MIME type of the transcoded file.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Optional. The name of the transcoded file.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Indicates if the transcoding was successful.
     #[serde(default)]
-    pub transcoded: Option<bool>,
+    pub transcoded: ::core::option::Option<bool>,
 }
 
 /// A creative identifier provided by a registry that is unique across all platforms. This is part of the VAST 4.0 standard.
@@ -5610,10 +5813,10 @@ pub struct Transcode {
 pub struct UniversalAdId {
     /// Optional. The unique creative identifier.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. The registry provides unique creative identifiers. // TODO: enum values: ["UNIVERSAL_AD_REGISTRY_UNSPECIFIED", "UNIVERSAL_AD_REGISTRY_OTHER", "UNIVERSAL_AD_REGISTRY_AD_ID", "UNIVERSAL_AD_REGISTRY_CLEARCAST", "UNIVERSAL_AD_REGISTRY_DV360", "UNIVERSAL_AD_REGISTRY_CM"]
     #[serde(default)]
-    pub registry: Option<String>,
+    pub registry: ::core::option::Option<String>,
 }
 
 /// A request message for UploadAdAsset.
@@ -5621,10 +5824,10 @@ pub struct UniversalAdId {
 pub struct UploadAdAssetRequest {
     /// Required. The type of the ad asset. Only AD_ASSET_TYPE_IMAGE is supported. // TODO: enum values: ["AD_ASSET_TYPE_UNSPECIFIED", "AD_ASSET_TYPE_IMAGE", "AD_ASSET_TYPE_YOUTUBE_VIDEO"]
     #[serde(default, rename = "adAssetType")]
-    pub ad_asset_type: Option<String>,
+    pub ad_asset_type: ::core::option::Option<String>,
     /// Required. The filename of the ad asset, including the file extension. The filename must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default)]
-    pub filename: Option<String>,
+    pub filename: ::core::option::Option<String>,
 }
 
 /// A response message for UploadAdAsset.
@@ -5632,7 +5835,7 @@ pub struct UploadAdAssetRequest {
 pub struct UploadAdAssetResponse {
     /// The created ad asset.
     #[serde(default, rename = "adAsset")]
-    pub ad_asset: Option<AdAsset>,
+    pub ad_asset: ::core::option::Option<::std::boxed::Box<AdAsset>>,
 }
 
 /// Details for assigned URL targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_URL.
@@ -5640,10 +5843,10 @@ pub struct UploadAdAssetResponse {
 pub struct UrlAssignedTargetingOptionDetails {
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// Required. The URL, for example example.com. DV360 supports two levels of subdirectory targeting, for example www.example.com/one-subdirectory-level/second-level, and five levels of subdomain targeting, for example five.four.three.two.one.example.com.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A single user in Display & Video 360.
@@ -5651,22 +5854,23 @@ pub struct UrlAssignedTargetingOptionDetails {
 pub struct User {
     /// The assigned user roles. Required in CreateUser. Output only in UpdateUser. Can only be updated through BulkEditAssignedUserRoles.
     #[serde(default, rename = "assignedUserRoles")]
-    pub assigned_user_roles: Option<Vec<AssignedUserRole>>,
+    pub assigned_user_roles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssignedUserRole>>>,
     /// Required. The display name of the user. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Immutable. The email address used to identify the user.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Output only. The timestamp when the user last logged in DV360 UI.
     #[serde(default, rename = "lastLoginTime")]
-    pub last_login_time: Option<String>,
+    pub last_login_time: ::core::option::Option<String>,
     /// Output only. The resource name of the user.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The unique ID of the user. Assigned by the system.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// User rewarded content targeting option details. This will be populated in the user_rewarded_content_details field when targeting_type is TARGETING_TYPE_USER_REWARDED_CONTENT.
@@ -5674,10 +5878,10 @@ pub struct User {
 pub struct UserRewardedContentAssignedTargetingOptionDetails {
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_USER_REWARDED_CONTENT.
     #[serde(default, rename = "targetingOptionId")]
-    pub targeting_option_id: Option<String>,
+    pub targeting_option_id: ::core::option::Option<String>,
     /// Output only. User rewarded content status for video ads. // TODO: enum values: ["USER_REWARDED_CONTENT_UNSPECIFIED", "USER_REWARDED_CONTENT_USER_REWARDED", "USER_REWARDED_CONTENT_NOT_USER_REWARDED"]
     #[serde(default, rename = "userRewardedContent")]
-    pub user_rewarded_content: Option<String>,
+    pub user_rewarded_content: ::core::option::Option<String>,
 }
 
 /// Represents a targetable user rewarded content status for video ads only. This will be populated in the user_rewarded_content_details field when targeting_type is TARGETING_TYPE_USER_REWARDED_CONTENT.
@@ -5685,7 +5889,7 @@ pub struct UserRewardedContentAssignedTargetingOptionDetails {
 pub struct UserRewardedContentTargetingOptionDetails {
     /// Output only. User rewarded content status for video ads. // TODO: enum values: ["USER_REWARDED_CONTENT_UNSPECIFIED", "USER_REWARDED_CONTENT_USER_REWARDED", "USER_REWARDED_CONTENT_NOT_USER_REWARDED"]
     #[serde(default, rename = "userRewardedContent")]
-    pub user_rewarded_content: Option<String>,
+    pub user_rewarded_content: ::core::option::Option<String>,
 }
 
 /// The video ad inventory control used in certain YouTube line item types.
@@ -5693,13 +5897,13 @@ pub struct UserRewardedContentTargetingOptionDetails {
 pub struct VideoAdInventoryControl {
     /// Optional. Whether ads can serve as in-feed format.
     #[serde(default, rename = "allowInFeed")]
-    pub allow_in_feed: Option<bool>,
+    pub allow_in_feed: ::core::option::Option<bool>,
     /// Optional. Whether ads can serve as in-stream format.
     #[serde(default, rename = "allowInStream")]
-    pub allow_in_stream: Option<bool>,
+    pub allow_in_stream: ::core::option::Option<bool>,
     /// Optional. Whether ads can serve as shorts format.
     #[serde(default, rename = "allowShorts")]
-    pub allow_shorts: Option<bool>,
+    pub allow_shorts: ::core::option::Option<bool>,
 }
 
 /// Settings related to VideoAdSequence.
@@ -5707,10 +5911,10 @@ pub struct VideoAdInventoryControl {
 pub struct VideoAdSequenceSettings {
     /// The minimum time interval before the same user sees this sequence again. // TODO: enum values: ["VIDEO_AD_SEQUENCE_MINIMUM_DURATION_UNSPECIFIED", "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_WEEK", "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_MONTH"]
     #[serde(default, rename = "minimumDuration")]
-    pub minimum_duration: Option<String>,
+    pub minimum_duration: ::core::option::Option<String>,
     /// The steps of which the sequence consists.
     #[serde(default)]
-    pub steps: Option<Vec<VideoAdSequenceStep>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VideoAdSequenceStep>>>,
 }
 
 /// The detail of a single step in a VideoAdSequence.
@@ -5718,16 +5922,16 @@ pub struct VideoAdSequenceSettings {
 pub struct VideoAdSequenceStep {
     /// The ID of the corresponding ad group of the step.
     #[serde(default, rename = "adGroupId")]
-    pub ad_group_id: Option<String>,
+    pub ad_group_id: ::core::option::Option<String>,
     /// The interaction on the previous step that will lead the viewer to this step. The first step does not have interaction_type. // TODO: enum values: ["INTERACTION_TYPE_UNSPECIFIED", "INTERACTION_TYPE_PAID_VIEW", "INTERACTION_TYPE_SKIP", "INTERACTION_TYPE_IMPRESSION", "INTERACTION_TYPE_ENGAGED_IMPRESSION"]
     #[serde(default, rename = "interactionType")]
-    pub interaction_type: Option<String>,
+    pub interaction_type: ::core::option::Option<String>,
     /// The ID of the previous step. The first step does not have previous step.
     #[serde(default, rename = "previousStepId")]
-    pub previous_step_id: Option<String>,
+    pub previous_step_id: ::core::option::Option<String>,
     /// The ID of the step.
     #[serde(default, rename = "stepId")]
-    pub step_id: Option<String>,
+    pub step_id: ::core::option::Option<String>,
 }
 
 /// Details for a video discovery ad.
@@ -5735,19 +5939,19 @@ pub struct VideoAdSequenceStep {
 pub struct VideoDiscoveryAd {
     /// First text line for the ad.
     #[serde(default)]
-    pub description1: Option<String>,
+    pub description1: ::core::option::Option<String>,
     /// Second text line for the ad.
     #[serde(default)]
-    pub description2: Option<String>,
+    pub description2: ::core::option::Option<String>,
     /// The headline of ad.
     #[serde(default)]
-    pub headline: Option<String>,
+    pub headline: ::core::option::Option<String>,
     /// Thumbnail image used in the ad. // TODO: enum values: ["THUMBNAIL_UNSPECIFIED", "THUMBNAIL_DEFAULT", "THUMBNAIL_1", "THUMBNAIL_2", "THUMBNAIL_3"]
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
     /// The YouTube video the ad promotes.
     #[serde(default)]
-    pub video: Option<YoutubeVideoDetails>,
+    pub video: ::core::option::Option<::std::boxed::Box<YoutubeVideoDetails>>,
 }
 
 /// Details for a video performance ad.
@@ -5755,40 +5959,40 @@ pub struct VideoDiscoveryAd {
 pub struct VideoPerformanceAd {
     /// The list of text assets shown on the call-to-action button.
     #[serde(default, rename = "actionButtonLabels")]
-    pub action_button_labels: Option<Vec<String>>,
+    pub action_button_labels: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of companion banners used by this ad.
     #[serde(default, rename = "companionBanners")]
-    pub companion_banners: Option<Vec<ImageAsset>>,
+    pub companion_banners: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageAsset>>>,
     /// The custom parameters to pass custom values to tracking URL template.
     #[serde(default, rename = "customParameters")]
-    pub custom_parameters: Option<serde_json::Value>,
+    pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// The list of descriptions shown on the call-to-action banner.
     #[serde(default)]
-    pub descriptions: Option<Vec<String>>,
+    pub descriptions: ::core::option::Option<::std::vec::Vec<String>>,
     /// The first piece after the domain in the display URL.
     #[serde(default, rename = "displayUrlBreadcrumb1")]
-    pub display_url_breadcrumb1: Option<String>,
+    pub display_url_breadcrumb1: ::core::option::Option<String>,
     /// The second piece after the domain in the display URL.
     #[serde(default, rename = "displayUrlBreadcrumb2")]
-    pub display_url_breadcrumb2: Option<String>,
+    pub display_url_breadcrumb2: ::core::option::Option<String>,
     /// The domain of the display URL.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// The URL address of the webpage that people reach after they click the ad.
     #[serde(default, rename = "finalUrl")]
-    pub final_url: Option<String>,
+    pub final_url: ::core::option::Option<String>,
     /// The list of headlines shown on the call-to-action banner.
     #[serde(default)]
-    pub headlines: Option<Vec<String>>,
+    pub headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of lone headlines shown on the call-to-action banner.
     #[serde(default, rename = "longHeadlines")]
-    pub long_headlines: Option<Vec<String>>,
+    pub long_headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// The URL address loaded in the background for tracking purposes.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// The list of YouTube video assets used by this ad.
     #[serde(default)]
-    pub videos: Option<Vec<YoutubeVideoDetails>>,
+    pub videos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<YoutubeVideoDetails>>>,
 }
 
 /// Video player size targeting option details. This will be populated in the video_player_size_details field when targeting_type is TARGETING_TYPE_VIDEO_PLAYER_SIZE. Explicitly targeting all options is not supported. Remove all video player size targeting options to achieve this effect.
@@ -5796,7 +6000,7 @@ pub struct VideoPerformanceAd {
 pub struct VideoPlayerSizeAssignedTargetingOptionDetails {
     /// Required. The video player size. // TODO: enum values: ["VIDEO_PLAYER_SIZE_UNSPECIFIED", "VIDEO_PLAYER_SIZE_SMALL", "VIDEO_PLAYER_SIZE_LARGE", "VIDEO_PLAYER_SIZE_HD", "VIDEO_PLAYER_SIZE_UNKNOWN"]
     #[serde(default, rename = "videoPlayerSize")]
-    pub video_player_size: Option<String>,
+    pub video_player_size: ::core::option::Option<String>,
 }
 
 /// Represents a targetable video player size. This will be populated in the video_player_size_details field when targeting_type is TARGETING_TYPE_VIDEO_PLAYER_SIZE.
@@ -5804,7 +6008,7 @@ pub struct VideoPlayerSizeAssignedTargetingOptionDetails {
 pub struct VideoPlayerSizeTargetingOptionDetails {
     /// Output only. The video player size. // TODO: enum values: ["VIDEO_PLAYER_SIZE_UNSPECIFIED", "VIDEO_PLAYER_SIZE_SMALL", "VIDEO_PLAYER_SIZE_LARGE", "VIDEO_PLAYER_SIZE_HD", "VIDEO_PLAYER_SIZE_UNKNOWN"]
     #[serde(default, rename = "videoPlayerSize")]
-    pub video_player_size: Option<String>,
+    pub video_player_size: ::core::option::Option<String>,
 }
 
 /// Assigned viewability targeting option details. This will be populated in the viewability_details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_VIEWABILITY.
@@ -5812,7 +6016,7 @@ pub struct VideoPlayerSizeTargetingOptionDetails {
 pub struct ViewabilityAssignedTargetingOptionDetails {
     /// Required. The predicted viewability percentage. // TODO: enum values: ["VIEWABILITY_UNSPECIFIED", "VIEWABILITY_10_PERCENT_OR_MORE", "VIEWABILITY_20_PERCENT_OR_MORE", "VIEWABILITY_30_PERCENT_OR_MORE", "VIEWABILITY_40_PERCENT_OR_MORE", "VIEWABILITY_50_PERCENT_OR_MORE", "VIEWABILITY_60_PERCENT_OR_MORE", "VIEWABILITY_70_PERCENT_OR_MORE", "VIEWABILITY_80_PERCENT_OR_MORE", "VIEWABILITY_90_PERCENT_OR_MORE"]
     #[serde(default)]
-    pub viewability: Option<String>,
+    pub viewability: ::core::option::Option<String>,
 }
 
 /// Represents a targetable viewability. This will be populated in the viewability_details field of a TargetingOption when targeting_type is TARGETING_TYPE_VIEWABILITY.
@@ -5820,7 +6024,7 @@ pub struct ViewabilityAssignedTargetingOptionDetails {
 pub struct ViewabilityTargetingOptionDetails {
     /// Output only. The predicted viewability percentage. // TODO: enum values: ["VIEWABILITY_UNSPECIFIED", "VIEWABILITY_10_PERCENT_OR_MORE", "VIEWABILITY_20_PERCENT_OR_MORE", "VIEWABILITY_30_PERCENT_OR_MORE", "VIEWABILITY_40_PERCENT_OR_MORE", "VIEWABILITY_50_PERCENT_OR_MORE", "VIEWABILITY_60_PERCENT_OR_MORE", "VIEWABILITY_70_PERCENT_OR_MORE", "VIEWABILITY_80_PERCENT_OR_MORE", "VIEWABILITY_90_PERCENT_OR_MORE"]
     #[serde(default)]
-    pub viewability: Option<String>,
+    pub viewability: ::core::option::Option<String>,
 }
 
 /// Settings that control the bid strategy for YouTube and Partners resources.
@@ -5828,16 +6032,16 @@ pub struct ViewabilityTargetingOptionDetails {
 pub struct YoutubeAndPartnersBiddingStrategy {
     /// Output only. Source of the effective target CPA value for ad group. // TODO: enum values: ["BIDDING_SOURCE_UNSPECIFIED", "BIDDING_SOURCE_LINE_ITEM", "BIDDING_SOURCE_AD_GROUP"]
     #[serde(default, rename = "adGroupEffectiveTargetCpaSource")]
-    pub ad_group_effective_target_cpa_source: Option<String>,
+    pub ad_group_effective_target_cpa_source: ::core::option::Option<String>,
     /// Output only. The effective target CPA for ad group, in micros of advertiser''s currency.
     #[serde(default, rename = "adGroupEffectiveTargetCpaValue")]
-    pub ad_group_effective_target_cpa_value: Option<String>,
+    pub ad_group_effective_target_cpa_value: ::core::option::Option<String>,
     /// The type of the bidding strategy. // TODO: enum values: ["YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_UNSPECIFIED", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MAXIMIZE_LIFT", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSIONS", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPV", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS", "YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSION_VALUE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The value used by the bidding strategy. When the bidding strategy is assigned at the line item level, this field is only applicable for the following strategy types: * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_SHARE_OF_VOICE When the bidding strategy is assigned at the ad group level, this field is only applicable for the following strategy types: * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM * YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS If not using an applicable strategy, the value of this field will be 0.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Settings that control what YouTube related inventories the YouTube and Partners line item will target.
@@ -5845,13 +6049,13 @@ pub struct YoutubeAndPartnersBiddingStrategy {
 pub struct YoutubeAndPartnersInventorySourceConfig {
     /// Optional. Whether to target inventory in video apps available with Google TV.
     #[serde(default, rename = "includeGoogleTv")]
-    pub include_google_tv: Option<bool>,
+    pub include_google_tv: ::core::option::Option<bool>,
     /// Optional. Whether to target inventory on YouTube. This includes both search, channels and videos.
     #[serde(default, rename = "includeYoutube")]
-    pub include_youtube: Option<bool>,
+    pub include_youtube: ::core::option::Option<bool>,
     /// Whether to target inventory on a collection of partner sites and apps that follow the same brand safety standards as YouTube.
     #[serde(default, rename = "includeYoutubeVideoPartners")]
-    pub include_youtube_video_partners: Option<bool>,
+    pub include_youtube_video_partners: ::core::option::Option<bool>,
 }
 
 /// Settings for YouTube and Partners line items.
@@ -5859,37 +6063,41 @@ pub struct YoutubeAndPartnersInventorySourceConfig {
 pub struct YoutubeAndPartnersSettings {
     /// Output only. The kind of content on which the YouTube and Partners ads will be shown. *Warning*: This field will be removed in the near future. Use effective_content_category instead. // TODO: enum values: ["YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_UNSPECIFIED", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_STANDARD", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_EXPANDED", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_LIMITED"]
     #[serde(default, rename = "contentCategory")]
-    pub content_category: Option<String>,
+    pub content_category: ::core::option::Option<String>,
     /// Output only. The content category which takes effect when serving the line item. When content category is set in both line item and advertiser, the stricter one will take effect when serving the line item. New line items will only inherit the advertiser level setting. // TODO: enum values: ["YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_UNSPECIFIED", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_STANDARD", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_EXPANDED", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_LIMITED"]
     #[serde(default, rename = "effectiveContentCategory")]
-    pub effective_content_category: Option<String>,
+    pub effective_content_category: ::core::option::Option<String>,
     /// Settings that control what YouTube and Partners inventories the line item will target.
     #[serde(default, rename = "inventorySourceSettings")]
-    pub inventory_source_settings: Option<YoutubeAndPartnersInventorySourceConfig>,
+    pub inventory_source_settings:
+        ::core::option::Option<::std::boxed::Box<YoutubeAndPartnersInventorySourceConfig>>,
     /// Optional. The ID of the form to generate leads.
     #[serde(default, rename = "leadFormId")]
-    pub lead_form_id: Option<String>,
+    pub lead_form_id: ::core::option::Option<String>,
     /// Optional. The ID of the merchant which is linked to the line item for product feed.
     #[serde(default, rename = "linkedMerchantId")]
-    pub linked_merchant_id: Option<String>,
+    pub linked_merchant_id: ::core::option::Option<String>,
     /// Optional. The IDs of the videos appear below the primary video ad when the ad is playing in the YouTube app on mobile devices.
     #[serde(default, rename = "relatedVideoIds")]
-    pub related_video_ids: Option<Vec<String>>,
+    pub related_video_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The average number of times you want ads from this line item to show to the same person over a certain period of time.
     #[serde(default, rename = "targetFrequency")]
-    pub target_frequency: Option<TargetFrequency>,
+    pub target_frequency: ::core::option::Option<::std::boxed::Box<TargetFrequency>>,
     /// Optional. The third-party measurement configs of the line item.
     #[serde(default, rename = "thirdPartyMeasurementConfigs")]
-    pub third_party_measurement_configs: Option<ThirdPartyMeasurementConfigs>,
+    pub third_party_measurement_configs:
+        ::core::option::Option<::std::boxed::Box<ThirdPartyMeasurementConfigs>>,
     /// Optional. The settings to control which inventory is allowed for this line item.
     #[serde(default, rename = "videoAdInventoryControl")]
-    pub video_ad_inventory_control: Option<VideoAdInventoryControl>,
+    pub video_ad_inventory_control:
+        ::core::option::Option<::std::boxed::Box<VideoAdInventoryControl>>,
     /// Optional. The settings related to VideoAdSequence.
     #[serde(default, rename = "videoAdSequenceSettings")]
-    pub video_ad_sequence_settings: Option<VideoAdSequenceSettings>,
+    pub video_ad_sequence_settings:
+        ::core::option::Option<::std::boxed::Box<VideoAdSequenceSettings>>,
     /// The view frequency cap settings of the line item. The max_views field in this settings object must be used if assigning a limited cap.
     #[serde(default, rename = "viewFrequencyCap")]
-    pub view_frequency_cap: Option<FrequencyCap>,
+    pub view_frequency_cap: ::core::option::Option<::std::boxed::Box<FrequencyCap>>,
 }
 
 /// An association between a resource and a YouTube asset.
@@ -5897,13 +6105,14 @@ pub struct YoutubeAndPartnersSettings {
 pub struct YoutubeAssetAssociation {
     /// Required. The YouTube asset associated with the resource.
     #[serde(default, rename = "linkedYoutubeAsset")]
-    pub linked_youtube_asset: Option<YoutubeAssetAssociationLinkedYouTubeAsset>,
+    pub linked_youtube_asset:
+        ::core::option::Option<::std::boxed::Box<YoutubeAssetAssociationLinkedYouTubeAsset>>,
     /// Identifier. The resource name of the association. For line item-level associations: The name pattern is advertisers/{advertiser_id}/lineItems/{line_item_id}/youtubeAssetTypes/{youtube_asset_type}/youtubeAssetAssociations/{youtube_asset_association_id}. For ad group-level associations: The name pattern is advertisers/{advertiser_id}/adGroups/{ad_group_id}/youtubeAssetTypes/{youtube_asset_type}/youtubeAssetAssociations/{youtube_asset_association_id}. For YOUTUBE_ASSET_TYPE_LOCATION and YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION associations: youtube_asset_association_id is the ID of the asset set linked, or 0 if the location_matching_type or affiliate_location_matching_type is DISABLED. For YOUTUBE_ASSET_TYPE_SITELINK associations: youtube_asset_association_id is be the ID of the sitelink asset linked.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The type of YouTube asset associated with the resource. // TODO: enum values: ["YOUTUBE_ASSET_TYPE_UNSPECIFIED", "YOUTUBE_ASSET_TYPE_LOCATION", "YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION", "YOUTUBE_ASSET_TYPE_SITELINK"]
     #[serde(default, rename = "youtubeAssetType")]
-    pub youtube_asset_type: Option<String>,
+    pub youtube_asset_type: ::core::option::Option<String>,
 }
 
 /// An asset filter that matches eligible affiliate location assets for serving.
@@ -5911,15 +6120,17 @@ pub struct YoutubeAssetAssociation {
 pub struct YoutubeAssetAssociationAffiliateLocationAssetFilter {
     /// Optional. The matching function that determines how the affiliate location asset filter matches affiliate location assets. This field is required and can only be set for if affiliate_location_matching_type is SELECTED_CHAINS.
     #[serde(default, rename = "affiliateLocationMatchingFunction")]
-    pub affiliate_location_matching_function: Option<
-        YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationMatchingFunction,
+    pub affiliate_location_matching_function: ::core::option::Option<
+        ::std::boxed::Box<
+            YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationMatchingFunction,
+        >,
     >,
     /// Required. The matching type of this affiliate location asset filter. // TODO: enum values: ["AFFILIATE_LOCATION_MATCHING_TYPE_UNSPECIFIED", "SELECT_ALL", "SELECTED_CHAINS", "DISABLED"]
     #[serde(default, rename = "affiliateLocationMatchingType")]
-    pub affiliate_location_matching_type: Option<String>,
+    pub affiliate_location_matching_type: ::core::option::Option<String>,
     /// Output only. The ID of the asset set that matches the affiliate location assets eligible for serving.
     #[serde(default, rename = "assetSetId")]
-    pub asset_set_id: Option<String>,
+    pub asset_set_id: ::core::option::Option<String>,
 }
 
 /// A chain of affiliate locations.
@@ -5927,7 +6138,7 @@ pub struct YoutubeAssetAssociationAffiliateLocationAssetFilter {
 pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationChain {
     /// Required. ID of the affiliate location chain.
     #[serde(default, rename = "chainId")]
-    pub chain_id: Option<String>,
+    pub chain_id: ::core::option::Option<String>,
 }
 
 /// The matching function for an affiliate location asset filter.
@@ -5935,8 +6146,13 @@ pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationC
 pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationMatchingFunction {
     /// Optional. The selected affiliate location chain IDs. This field is required if affiliate_location_matching_type is SELECTED_CHAINS.
     #[serde(default)]
-    pub chains:
-        Option<Vec<YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationChain>>,
+    pub chains: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationChain,
+            >,
+        >,
+    >,
 }
 
 /// A YouTube asset linked to a resource in a YoutubeAssetAssociation.
@@ -5944,14 +6160,17 @@ pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationM
 pub struct YoutubeAssetAssociationLinkedYouTubeAsset {
     /// An affiliate location asset filter. This can be set only when youtube_asset_type is YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION.
     #[serde(default, rename = "affiliateLocationAssetFilter")]
-    pub affiliate_location_asset_filter:
-        Option<YoutubeAssetAssociationAffiliateLocationAssetFilter>,
+    pub affiliate_location_asset_filter: ::core::option::Option<
+        ::std::boxed::Box<YoutubeAssetAssociationAffiliateLocationAssetFilter>,
+    >,
     /// A location asset filter. This can be set only when youtube_asset_type is YOUTUBE_ASSET_TYPE_LOCATION.
     #[serde(default, rename = "locationAssetFilter")]
-    pub location_asset_filter: Option<YoutubeAssetAssociationLocationAssetFilter>,
+    pub location_asset_filter:
+        ::core::option::Option<::std::boxed::Box<YoutubeAssetAssociationLocationAssetFilter>>,
     /// A sitelink asset. This can be set only when youtube_asset_type is YOUTUBE_ASSET_TYPE_SITELINK.
     #[serde(default, rename = "sitelinkAsset")]
-    pub sitelink_asset: Option<YoutubeAssetAssociationSitelinkAsset>,
+    pub sitelink_asset:
+        ::core::option::Option<::std::boxed::Box<YoutubeAssetAssociationSitelinkAsset>>,
 }
 
 /// An asset filter that matches eligible location assets for serving.
@@ -5959,14 +6178,15 @@ pub struct YoutubeAssetAssociationLinkedYouTubeAsset {
 pub struct YoutubeAssetAssociationLocationAssetFilter {
     /// Output only. The ID of the asset set that matches the location assets eligible for serving.
     #[serde(default, rename = "assetSetId")]
-    pub asset_set_id: Option<String>,
+    pub asset_set_id: ::core::option::Option<String>,
     /// Optional. The matching function that determines how the location asset filter matches location assets. This field is required and can only be set for if location_matching_type is FILTER or SELECTED_ASSETS.
     #[serde(default, rename = "locationMatchingFunction")]
-    pub location_matching_function:
-        Option<YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction>,
+    pub location_matching_function: ::core::option::Option<
+        ::std::boxed::Box<YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction>,
+    >,
     /// Required. The matching type of this location asset filter. // TODO: enum values: ["LOCATION_MATCHING_TYPE_UNSPECIFIED", "SELECT_ALL", "FILTER", "SELECTED_ASSETS", "DISABLED"]
     #[serde(default, rename = "locationMatchingType")]
-    pub location_matching_type: Option<String>,
+    pub location_matching_type: ::core::option::Option<String>,
 }
 
 /// The matching function for a location asset filter.
@@ -5974,13 +6194,13 @@ pub struct YoutubeAssetAssociationLocationAssetFilter {
 pub struct YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction {
     /// Optional. The business name to match with. This field is optional and can only be set if location_matching_type is FILTER.
     #[serde(default)]
-    pub business: Option<String>,
+    pub business: ::core::option::Option<String>,
     /// Optional. The labels to match with. Labels are logically OR''ed together. This field is optional and can only be set if location_matching_type is FILTER.
     #[serde(default)]
-    pub labels: Option<Vec<String>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The selected location asset IDs. This field is required if location_matching_type is SELECTED_ASSETS.
     #[serde(default, rename = "locationAssetIds")]
-    pub location_asset_ids: Option<Vec<String>>,
+    pub location_asset_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A sitelink asset.
@@ -5988,7 +6208,7 @@ pub struct YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction {
 pub struct YoutubeAssetAssociationSitelinkAsset {
     /// Required. ID of the sitelink asset.
     #[serde(default, rename = "assetId")]
-    pub asset_id: Option<String>,
+    pub asset_id: ::core::option::Option<String>,
 }
 
 /// Details for YouTube channel assigned targeting option. This will be populated in the youtube_channel_details field when targeting_type is TARGETING_TYPE_YOUTUBE_CHANNEL.
@@ -5996,10 +6216,10 @@ pub struct YoutubeAssetAssociationSitelinkAsset {
 pub struct YoutubeChannelAssignedTargetingOptionDetails {
     /// The YouTube uploader channel id or the channel code of a YouTube channel.
     #[serde(default, rename = "channelId")]
-    pub channel_id: Option<String>,
+    pub channel_id: ::core::option::Option<String>,
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
 }
 
 /// Data for a YouTube video ad asset.
@@ -6007,7 +6227,7 @@ pub struct YoutubeChannelAssignedTargetingOptionDetails {
 pub struct YoutubeVideoAsset {
     /// Required. The YouTube video id of the asset. This is the 11 char string value used in the YouTube video URL.
     #[serde(default, rename = "youtubeVideoId")]
-    pub youtube_video_id: Option<String>,
+    pub youtube_video_id: ::core::option::Option<String>,
 }
 
 /// Details for YouTube video assigned targeting option. This will be populated in the youtube_video_details field when targeting_type is TARGETING_TYPE_YOUTUBE_VIDEO.
@@ -6015,10 +6235,10 @@ pub struct YoutubeVideoAsset {
 pub struct YoutubeVideoAssignedTargetingOptionDetails {
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
-    pub negative: Option<bool>,
+    pub negative: ::core::option::Option<bool>,
     /// YouTube video id as it appears on the YouTube watch page.
     #[serde(default, rename = "videoId")]
-    pub video_id: Option<String>,
+    pub video_id: ::core::option::Option<String>,
 }
 
 /// Details of a YouTube video.
@@ -6026,11 +6246,11 @@ pub struct YoutubeVideoAssignedTargetingOptionDetails {
 pub struct YoutubeVideoDetails {
     /// Output only. The YouTube video ID which can be searched on YouTube webpage.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The reason why the video data is not available. // TODO: enum values: ["VIDEO_UNAVAILABLE_REASON_UNSPECIFIED", "VIDEO_UNAVAILABLE_REASON_PRIVATE", "VIDEO_UNAVAILABLE_REASON_DELETED"]
     #[serde(default, rename = "unavailableReason")]
-    pub unavailable_reason: Option<String>,
+    pub unavailable_reason: ::core::option::Option<String>,
     /// Required. The YouTube video asset id. This is ad_asset.ad_asset_id.
     #[serde(default, rename = "videoAssetId")]
-    pub video_asset_id: Option<String>,
+    pub video_asset_id: ::core::option::Option<String>,
 }

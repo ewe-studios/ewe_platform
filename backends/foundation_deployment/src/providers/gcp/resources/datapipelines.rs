@@ -10,21 +10,22 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Pipeline job details specific to the Dataflow API. This is encapsulated here to allow for more executors to store their specific details separately.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatapipelinesV1DataflowJobDetails {
     /// Output only. The current number of workers used to run the jobs. Only set to a value if the job is still running.
     #[serde(default, rename = "currentWorkers")]
-    pub current_workers: Option<i32>,
+    pub current_workers: ::core::option::Option<i32>,
     /// Cached version of all the metrics of interest for the job. This value gets stored here when the job is terminated. As long as the job is running, this field is populated from the Dataflow API.
     #[serde(default, rename = "resourceInfo")]
-    pub resource_info: Option<serde_json::Value>,
+    pub resource_info: ::core::option::Option<serde_json::Value>,
     /// Output only. The SDK version used to run the job.
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<GoogleCloudDatapipelinesV1SdkVersion>,
+    pub sdk_version:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatapipelinesV1SdkVersion>>,
 }
 
 /// The environment values to be set at runtime for a Flex Template.
@@ -32,52 +33,52 @@ pub struct GoogleCloudDatapipelinesV1DataflowJobDetails {
 pub struct GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment {
     /// Additional experiment flags for the job.
     #[serde(default, rename = "additionalExperiments")]
-    pub additional_experiments: Option<Vec<String>>,
+    pub additional_experiments: ::core::option::Option<::std::vec::Vec<String>>,
     /// Additional user labels to be specified for the job. Keys and values must follow the restrictions specified in the [labeling restrictions](https://cloud.google.com/compute/docs/labeling-resources#restrictions). An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1kg", "count": "3" }.
     #[serde(default, rename = "additionalUserLabels")]
-    pub additional_user_labels: Option<serde_json::Value>,
+    pub additional_user_labels: ::core::option::Option<serde_json::Value>,
     /// Whether to enable Streaming Engine for the job.
     #[serde(default, rename = "enableStreamingEngine")]
-    pub enable_streaming_engine: Option<bool>,
+    pub enable_streaming_engine: ::core::option::Option<bool>,
     /// Set FlexRS goal for the job. https://cloud.google.com/dataflow/docs/guides/flexrs // TODO: enum values: ["FLEXRS_UNSPECIFIED", "FLEXRS_SPEED_OPTIMIZED", "FLEXRS_COST_OPTIMIZED"]
     #[serde(default, rename = "flexrsGoal")]
-    pub flexrs_goal: Option<String>,
+    pub flexrs_goal: ::core::option::Option<String>,
     /// Configuration for VM IPs. // TODO: enum values: ["WORKER_IP_UNSPECIFIED", "WORKER_IP_PUBLIC", "WORKER_IP_PRIVATE"]
     #[serde(default, rename = "ipConfiguration")]
-    pub ip_configuration: Option<String>,
+    pub ip_configuration: ::core::option::Option<String>,
     /// Name for the Cloud KMS key for the job. Key format is: projects//locations//keyRings//cryptoKeys/
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// The machine type to use for the job. Defaults to the value from the template if not specified.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// The maximum number of Compute Engine instances to be made available to your pipeline during execution, from 1 to 1000.
     #[serde(default, rename = "maxWorkers")]
-    pub max_workers: Option<i32>,
+    pub max_workers: ::core::option::Option<i32>,
     /// Network to which VMs will be assigned. If empty or unspecified, the service will use the network "default".
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// The initial number of Compute Engine instances for the job.
     #[serde(default, rename = "numWorkers")]
-    pub num_workers: Option<i32>,
+    pub num_workers: ::core::option::Option<i32>,
     /// The email address of the service account to run the job as.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// Subnetwork to which VMs will be assigned, if desired. You can specify a subnetwork using either a complete URL or an abbreviated path. Expected to be of the form "https://www.googleapis.com/compute/v1/projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNETWORK" or "regions/REGION/subnetworks/SUBNETWORK". If the subnetwork is located in a Shared VPC network, you must use the complete URL.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
     /// The Cloud Storage path to use for temporary files. Must be a valid Cloud Storage URL, beginning with gs://.
     #[serde(default, rename = "tempLocation")]
-    pub temp_location: Option<String>,
+    pub temp_location: ::core::option::Option<String>,
     /// The Compute Engine region (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1". Mutually exclusive with worker_zone. If neither worker_region nor worker_zone is specified, defaults to the control plane region.
     #[serde(default, rename = "workerRegion")]
-    pub worker_region: Option<String>,
+    pub worker_region: ::core::option::Option<String>,
     /// The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane region is chosen based on available capacity. If both worker_zone and zone are set, worker_zone takes precedence.
     #[serde(default, rename = "workerZone")]
-    pub worker_zone: Option<String>,
+    pub worker_zone: ::core::option::Option<String>,
     /// The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Definition of the job information maintained by the pipeline. Fields in this entity are retrieved from the executor API (e.g. Dataflow API).
@@ -85,25 +86,26 @@ pub struct GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment {
 pub struct GoogleCloudDatapipelinesV1Job {
     /// Output only. The time of job creation.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// All the details that are specific to a Dataflow job.
     #[serde(default, rename = "dataflowJobDetails")]
-    pub dataflow_job_details: Option<GoogleCloudDatapipelinesV1DataflowJobDetails>,
+    pub dataflow_job_details:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatapipelinesV1DataflowJobDetails>>,
     /// Output only. The time of job termination. This is absent if the job is still running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The internal ID for the job.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. The fully qualified resource name for the job.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The current state of the job. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_PENDING", "STATE_RUNNING", "STATE_DONE", "STATE_FAILED", "STATE_CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Status capturing any error code or message related to job creation or execution.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// Launch Flex Template parameter.
@@ -111,25 +113,27 @@ pub struct GoogleCloudDatapipelinesV1Job {
 pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter {
     /// Cloud Storage path to a file with a JSON-serialized ContainerSpec as content.
     #[serde(default, rename = "containerSpecGcsPath")]
-    pub container_spec_gcs_path: Option<String>,
+    pub container_spec_gcs_path: ::core::option::Option<String>,
     /// The runtime environment for the Flex Template job.
     #[serde(default)]
-    pub environment: Option<GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment>,
+    pub environment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment>,
+    >,
     /// Required. The job name to use for the created job. For an update job request, the job name should be the same as the existing running job.
     #[serde(default, rename = "jobName")]
-    pub job_name: Option<String>,
+    pub job_name: ::core::option::Option<String>,
     /// Launch options for this Flex Template job. This is a common set of options across languages and templates. This should not be used to pass job parameters.
     #[serde(default, rename = "launchOptions")]
-    pub launch_options: Option<serde_json::Value>,
+    pub launch_options: ::core::option::Option<serde_json::Value>,
     /// The parameters for the Flex Template. Example: {"num_workers":"5"}
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Use this to pass transform name mappings for streaming update jobs. Example: {"oldTransformName":"newTransformName",...}
     #[serde(default, rename = "transformNameMappings")]
-    pub transform_name_mappings: Option<serde_json::Value>,
+    pub transform_name_mappings: ::core::option::Option<serde_json::Value>,
     /// Set this to true if you are sending a request to update a running streaming job. When set, the job name should be the same as the running job.
     #[serde(default)]
-    pub update: Option<bool>,
+    pub update: ::core::option::Option<bool>,
 }
 
 /// A request to launch a Dataflow job from a Flex Template.
@@ -137,16 +141,18 @@ pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter {
 pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest {
     /// Required. Parameter to launch a job from a Flex Template.
     #[serde(default, rename = "launchParameter")]
-    pub launch_parameter: Option<GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter>,
+    pub launch_parameter: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter>,
+    >,
     /// Required. The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which to direct the request. For example, us-central1, us-west1.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Required. The ID of the Cloud Platform project that the job belongs to.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// If true, the request is validated but not actually executed. Defaults to false.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Parameters to provide to the template being launched.
@@ -154,19 +160,20 @@ pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest {
 pub struct GoogleCloudDatapipelinesV1LaunchTemplateParameters {
     /// The runtime environment for the job.
     #[serde(default)]
-    pub environment: Option<GoogleCloudDatapipelinesV1RuntimeEnvironment>,
+    pub environment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatapipelinesV1RuntimeEnvironment>>,
     /// Required. The job name to use for the created job.
     #[serde(default, rename = "jobName")]
-    pub job_name: Option<String>,
+    pub job_name: ::core::option::Option<String>,
     /// The runtime parameters to pass to the job.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Map of transform name prefixes of the job to be replaced to the corresponding name prefixes of the new job. Only applicable when updating a pipeline.
     #[serde(default, rename = "transformNameMapping")]
-    pub transform_name_mapping: Option<serde_json::Value>,
+    pub transform_name_mapping: ::core::option::Option<serde_json::Value>,
     /// If set, replace the existing pipeline with the name specified by jobName with this pipeline, preserving state.
     #[serde(default)]
-    pub update: Option<bool>,
+    pub update: ::core::option::Option<bool>,
 }
 
 /// A request to launch a template.
@@ -174,19 +181,21 @@ pub struct GoogleCloudDatapipelinesV1LaunchTemplateParameters {
 pub struct GoogleCloudDatapipelinesV1LaunchTemplateRequest {
     /// A Cloud Storage path to the template from which to create the job. Must be a valid Cloud Storage URL, beginning with ''gs://''.
     #[serde(default, rename = "gcsPath")]
-    pub gcs_path: Option<String>,
+    pub gcs_path: ::core::option::Option<String>,
     /// The parameters of the template to launch. This should be part of the body of the POST request.
     #[serde(default, rename = "launchParameters")]
-    pub launch_parameters: Option<GoogleCloudDatapipelinesV1LaunchTemplateParameters>,
+    pub launch_parameters: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatapipelinesV1LaunchTemplateParameters>,
+    >,
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which to direct the request.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Required. The ID of the Cloud Platform project that the job belongs to.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// If true, the request is validated but not actually executed. Defaults to false.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response message for ListJobs
@@ -194,10 +203,11 @@ pub struct GoogleCloudDatapipelinesV1LaunchTemplateRequest {
 pub struct GoogleCloudDatapipelinesV1ListJobsResponse {
     /// Results that were accessible to the caller. Results are always in descending order of job creation date.
     #[serde(default)]
-    pub jobs: Option<Vec<GoogleCloudDatapipelinesV1Job>>,
+    pub jobs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDatapipelinesV1Job>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListPipelines.
@@ -205,10 +215,12 @@ pub struct GoogleCloudDatapipelinesV1ListJobsResponse {
 pub struct GoogleCloudDatapipelinesV1ListPipelinesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Results that matched the filter criteria and were accessible to the caller. Results are always in descending order of pipeline creation date.
     #[serde(default)]
-    pub pipelines: Option<Vec<GoogleCloudDatapipelinesV1Pipeline>>,
+    pub pipelines: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatapipelinesV1Pipeline>>,
+    >,
 }
 
 /// The main pipeline entity and all the necessary metadata for launching and managing linked jobs.
@@ -216,37 +228,38 @@ pub struct GoogleCloudDatapipelinesV1ListPipelinesResponse {
 pub struct GoogleCloudDatapipelinesV1Pipeline {
     /// Output only. Immutable. The timestamp when the pipeline was initially created. Set by the Data Pipelines service.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The display name of the pipeline. It can contain only letters ([A-Za-z]), numbers ([0-9]), hyphens (-), and underscores (_).
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Number of jobs.
     #[serde(default, rename = "jobCount")]
-    pub job_count: Option<i32>,
+    pub job_count: ::core::option::Option<i32>,
     /// Output only. Immutable. The timestamp when the pipeline was last modified. Set by the Data Pipelines service.
     #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: Option<String>,
+    pub last_update_time: ::core::option::Option<String>,
     /// The pipeline name. For example: projects/PROJECT_ID/locations/LOCATION_ID/pipelines/PIPELINE_ID. * PROJECT_ID can contain letters ([A-Za-z]), numbers ([0-9]), hyphens (-), colons (:), and periods (.). For more information, see [Identifying projects](https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects). * LOCATION_ID is the canonical ID for the pipeline''s location. The list of available locations can be obtained by calling google.cloud.location.Locations.ListLocations. Note that the Data Pipelines service is not available in all regions. It depends on Cloud Scheduler, an App Engine application, so it''s only available in [App Engine regions](https://cloud.google.com/about/locations#region). * PIPELINE_ID is the ID of the pipeline. Must be unique for the selected project and location.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The sources of the pipeline (for example, Dataplex). The keys and values are set by the corresponding sources during pipeline creation.
     #[serde(default, rename = "pipelineSources")]
-    pub pipeline_sources: Option<serde_json::Value>,
+    pub pipeline_sources: ::core::option::Option<serde_json::Value>,
     /// Internal scheduling information for a pipeline. If this information is provided, periodic jobs will be created per the schedule. If not, users are responsible for creating jobs externally.
     #[serde(default, rename = "scheduleInfo")]
-    pub schedule_info: Option<GoogleCloudDatapipelinesV1ScheduleSpec>,
+    pub schedule_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatapipelinesV1ScheduleSpec>>,
     /// Optional. A service account email to be used with the Cloud Scheduler job. If not specified, the default compute engine service account will be used.
     #[serde(default, rename = "schedulerServiceAccountEmail")]
-    pub scheduler_service_account_email: Option<String>,
+    pub scheduler_service_account_email: ::core::option::Option<String>,
     /// Required. The state of the pipeline. When the pipeline is created, the state is set to ''PIPELINE_STATE_ACTIVE'' by default. State changes can be requested by setting the state to stopping, paused, or resuming. State cannot be changed through UpdatePipeline requests. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_RESUMING", "STATE_ACTIVE", "STATE_STOPPING", "STATE_ARCHIVED", "STATE_PAUSED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Required. The type of the pipeline. This field affects the scheduling of the pipeline and the type of metrics to show for the pipeline. // TODO: enum values: ["PIPELINE_TYPE_UNSPECIFIED", "PIPELINE_TYPE_BATCH", "PIPELINE_TYPE_STREAMING"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Workload information for creating new jobs.
     #[serde(default)]
-    pub workload: Option<GoogleCloudDatapipelinesV1Workload>,
+    pub workload: ::core::option::Option<::std::boxed::Box<GoogleCloudDatapipelinesV1Workload>>,
 }
 
 /// Response message for RunPipeline
@@ -254,7 +267,7 @@ pub struct GoogleCloudDatapipelinesV1Pipeline {
 pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
     /// Job that was created as part of RunPipeline operation.
     #[serde(default)]
-    pub job: Option<GoogleCloudDatapipelinesV1Job>,
+    pub job: ::core::option::Option<::std::boxed::Box<GoogleCloudDatapipelinesV1Job>>,
 }
 
 /// The environment values to set at runtime.
@@ -262,52 +275,52 @@ pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
 pub struct GoogleCloudDatapipelinesV1RuntimeEnvironment {
     /// Additional experiment flags for the job.
     #[serde(default, rename = "additionalExperiments")]
-    pub additional_experiments: Option<Vec<String>>,
+    pub additional_experiments: ::core::option::Option<::std::vec::Vec<String>>,
     /// Additional user labels to be specified for the job. Keys and values should follow the restrictions specified in the [labeling restrictions](https://cloud.google.com/compute/docs/labeling-resources#restrictions) page. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1kg", "count": "3" }.
     #[serde(default, rename = "additionalUserLabels")]
-    pub additional_user_labels: Option<serde_json::Value>,
+    pub additional_user_labels: ::core::option::Option<serde_json::Value>,
     /// Whether to bypass the safety checks for the job''s temporary directory. Use with caution.
     #[serde(default, rename = "bypassTempDirValidation")]
-    pub bypass_temp_dir_validation: Option<bool>,
+    pub bypass_temp_dir_validation: ::core::option::Option<bool>,
     /// Whether to enable Streaming Engine for the job.
     #[serde(default, rename = "enableStreamingEngine")]
-    pub enable_streaming_engine: Option<bool>,
+    pub enable_streaming_engine: ::core::option::Option<bool>,
     /// Configuration for VM IPs. // TODO: enum values: ["WORKER_IP_UNSPECIFIED", "WORKER_IP_PUBLIC", "WORKER_IP_PRIVATE"]
     #[serde(default, rename = "ipConfiguration")]
-    pub ip_configuration: Option<String>,
+    pub ip_configuration: ::core::option::Option<String>,
     /// Name for the Cloud KMS key for the job. The key format is: projects//locations//keyRings//cryptoKeys/
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// The machine type to use for the job. Defaults to the value from the template if not specified.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// The maximum number of Compute Engine instances to be made available to your pipeline during execution, from 1 to 1000.
     #[serde(default, rename = "maxWorkers")]
-    pub max_workers: Option<i32>,
+    pub max_workers: ::core::option::Option<i32>,
     /// Network to which VMs will be assigned. If empty or unspecified, the service will use the network "default".
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// The initial number of Compute Engine instances for the job.
     #[serde(default, rename = "numWorkers")]
-    pub num_workers: Option<i32>,
+    pub num_workers: ::core::option::Option<i32>,
     /// The email address of the service account to run the job as.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// Subnetwork to which VMs will be assigned, if desired. You can specify a subnetwork using either a complete URL or an abbreviated path. Expected to be of the form "https://www.googleapis.com/compute/v1/projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNETWORK" or "regions/REGION/subnetworks/SUBNETWORK". If the subnetwork is located in a Shared VPC network, you must use the complete URL.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
     /// The Cloud Storage path to use for temporary files. Must be a valid Cloud Storage URL, beginning with gs://.
     #[serde(default, rename = "tempLocation")]
-    pub temp_location: Option<String>,
+    pub temp_location: ::core::option::Option<String>,
     /// The Compute Engine region (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1". Mutually exclusive with worker_zone. If neither worker_region nor worker_zone is specified, default to the control plane''s region.
     #[serde(default, rename = "workerRegion")]
-    pub worker_region: Option<String>,
+    pub worker_region: ::core::option::Option<String>,
     /// The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane''s region is chosen based on available capacity. If both worker_zone and zone are set, worker_zone takes precedence.
     #[serde(default, rename = "workerZone")]
-    pub worker_zone: Option<String>,
+    pub worker_zone: ::core::option::Option<String>,
     /// The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Details of the schedule the pipeline runs on.
@@ -315,13 +328,13 @@ pub struct GoogleCloudDatapipelinesV1RuntimeEnvironment {
 pub struct GoogleCloudDatapipelinesV1ScheduleSpec {
     /// Output only. When the next Scheduler job is going to run.
     #[serde(default, rename = "nextJobTime")]
-    pub next_job_time: Option<String>,
+    pub next_job_time: ::core::option::Option<String>,
     /// Unix-cron format of the schedule. This information is retrieved from the linked Cloud Scheduler.
     #[serde(default)]
-    pub schedule: Option<String>,
+    pub schedule: ::core::option::Option<String>,
     /// Timezone ID. This matches the timezone IDs used by the Cloud Scheduler API. If empty, UTC time is assumed.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// The version of the SDK used to run the job.
@@ -329,13 +342,13 @@ pub struct GoogleCloudDatapipelinesV1ScheduleSpec {
 pub struct GoogleCloudDatapipelinesV1SdkVersion {
     /// The support status for this SDK version. // TODO: enum values: ["UNKNOWN", "SUPPORTED", "STALE", "DEPRECATED", "UNSUPPORTED"]
     #[serde(default, rename = "sdkSupportStatus")]
-    pub sdk_support_status: Option<String>,
+    pub sdk_support_status: ::core::option::Option<String>,
     /// The version of the SDK used to run the job.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// A readable string describing the version of the SDK.
     #[serde(default, rename = "versionDisplayName")]
-    pub version_display_name: Option<String>,
+    pub version_display_name: ::core::option::Option<String>,
 }
 
 /// Workload details for creating the pipeline jobs.
@@ -343,10 +356,13 @@ pub struct GoogleCloudDatapipelinesV1SdkVersion {
 pub struct GoogleCloudDatapipelinesV1Workload {
     /// Template information and additional parameters needed to launch a Dataflow job using the flex launch API.
     #[serde(default, rename = "dataflowFlexTemplateRequest")]
-    pub dataflow_flex_template_request: Option<GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest>,
+    pub dataflow_flex_template_request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest>,
+    >,
     /// Template information and additional parameters needed to launch a Dataflow job using the standard launch API.
     #[serde(default, rename = "dataflowLaunchTemplateRequest")]
-    pub dataflow_launch_template_request: Option<GoogleCloudDatapipelinesV1LaunchTemplateRequest>,
+    pub dataflow_launch_template_request:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatapipelinesV1LaunchTemplateRequest>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -354,11 +370,11 @@ pub struct GoogleCloudDatapipelinesV1Workload {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }

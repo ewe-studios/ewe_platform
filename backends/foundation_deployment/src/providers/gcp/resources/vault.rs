@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The results count for each account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountCount {
     /// Account owner.
     #[serde(default)]
-    pub account: Option<UserInfo>,
+    pub account: ::core::option::Option<::std::boxed::Box<UserInfo>>,
     /// The number of results (messages or files) found for this account.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
 }
 
 /// An error that occurred when querying a specific account
@@ -29,10 +29,10 @@ pub struct AccountCount {
 pub struct AccountCountError {
     /// Account owner.
     #[serde(default)]
-    pub account: Option<UserInfo>,
+    pub account: ::core::option::Option<::std::boxed::Box<UserInfo>>,
     /// Account query error. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "WILDCARD_TOO_BROAD", "TOO_MANY_TERMS", "LOCATION_UNAVAILABLE", "UNKNOWN", "DEADLINE_EXCEEDED"]
     #[serde(default, rename = "errorType")]
-    pub error_type: Option<String>,
+    pub error_type: ::core::option::Option<String>,
 }
 
 /// The accounts to search
@@ -40,7 +40,7 @@ pub struct AccountCountError {
 pub struct AccountInfo {
     /// A set of accounts to search.
     #[serde(default)]
-    pub emails: Option<Vec<String>>,
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The status of each account creation, and the **HeldAccount**, if successful.
@@ -48,10 +48,10 @@ pub struct AccountInfo {
 pub struct AddHeldAccountResult {
     /// Returned when the account was successfully created.
     #[serde(default)]
-    pub account: Option<HeldAccount>,
+    pub account: ::core::option::Option<::std::boxed::Box<HeldAccount>>,
     /// Reports the request status. If it failed, returns an error message.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// Add a list of accounts to a hold.
@@ -59,10 +59,10 @@ pub struct AddHeldAccountResult {
 pub struct AddHeldAccountsRequest {
     /// A comma-separated list of the account IDs of the accounts to add to the hold. Specify either **emails** or **account_ids**, but not both.
     #[serde(default, rename = "accountIds")]
-    pub account_ids: Option<Vec<String>>,
+    pub account_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// A comma-separated list of the emails of the accounts to add to the hold. Specify either **emails** or **account_ids**, but not both.
     #[serde(default)]
-    pub emails: Option<Vec<String>>,
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for batch create held accounts.
@@ -70,7 +70,7 @@ pub struct AddHeldAccountsRequest {
 pub struct AddHeldAccountsResponse {
     /// The list of responses, in the same order as the batch request.
     #[serde(default)]
-    pub responses: Option<Vec<AddHeldAccountResult>>,
+    pub responses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AddHeldAccountResult>>>,
 }
 
 /// Add an account with the permission specified. The role cannot be owner. If an account already has a role in the matter, the existing role is overwritten.
@@ -78,13 +78,13 @@ pub struct AddHeldAccountsResponse {
 pub struct AddMatterPermissionsRequest {
     /// Only relevant if **sendEmails** is **true**. To CC the requestor in the email message, set to **true**. To not CC requestor, set to **false**.
     #[serde(default, rename = "ccMe")]
-    pub cc_me: Option<bool>,
+    pub cc_me: ::core::option::Option<bool>,
     /// The account and its role to add.
     #[serde(default, rename = "matterPermission")]
-    pub matter_permission: Option<MatterPermission>,
+    pub matter_permission: ::core::option::Option<::std::boxed::Box<MatterPermission>>,
     /// To send a notification email to the added account, set to **true**. To not send a notification email, set to **false**.
     #[serde(default, rename = "sendEmails")]
-    pub send_emails: Option<bool>,
+    pub send_emails: ::core::option::Option<bool>,
 }
 
 /// The options for Calendar exports.
@@ -92,7 +92,7 @@ pub struct AddMatterPermissionsRequest {
 pub struct CalendarExportOptions {
     /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
-    pub export_format: Option<String>,
+    pub export_format: ::core::option::Option<String>,
 }
 
 /// Additional options for Calendar search
@@ -100,19 +100,19 @@ pub struct CalendarExportOptions {
 pub struct CalendarOptions {
     /// Matches only those events whose location contains all of the words in the given set. If the string contains quoted phrases, this method only matches those events whose location contain the exact phrase. Entries in the set are considered in "and". Word splitting example: ["New Zealand"] vs ["New","Zealand"] "New Zealand": matched by both "New and better Zealand": only matched by the later
     #[serde(default, rename = "locationQuery")]
-    pub location_query: Option<Vec<String>>,
+    pub location_query: ::core::option::Option<::std::vec::Vec<String>>,
     /// Matches only those events that do not contain any of the words in the given set in title, description, location, or attendees. Entries in the set are considered in "or".
     #[serde(default, rename = "minusWords")]
-    pub minus_words: Option<Vec<String>>,
+    pub minus_words: ::core::option::Option<::std::vec::Vec<String>>,
     /// Matches only those events whose attendees contain all of the words in the given set. Entries in the set are considered in "and".
     #[serde(default, rename = "peopleQuery")]
-    pub people_query: Option<Vec<String>>,
+    pub people_query: ::core::option::Option<::std::vec::Vec<String>>,
     /// Matches only events for which the custodian gave one of these responses. If the set is empty or contains ATTENDEE_RESPONSE_UNSPECIFIED there will be no filtering on responses.
     #[serde(default, rename = "responseStatuses")]
-    pub response_statuses: Option<Vec<String>>,
+    pub response_statuses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Search the current version of the Calendar event, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.
     #[serde(default, rename = "versionDate")]
-    pub version_date: Option<String>,
+    pub version_date: ::core::option::Option<String>,
 }
 
 /// Response to a CloseMatterRequest.
@@ -120,7 +120,7 @@ pub struct CalendarOptions {
 pub struct CloseMatterResponse {
     /// The updated matter, with state **CLOSED**.
     #[serde(default)]
-    pub matter: Option<Matter>,
+    pub matter: ::core::option::Option<::std::boxed::Box<Matter>>,
 }
 
 /// The export file in Cloud Storage
@@ -128,16 +128,16 @@ pub struct CloseMatterResponse {
 pub struct CloudStorageFile {
     /// The name of the Cloud Storage bucket for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api), but not to list the bucket contents. Instead, you can [get individual export files](https://cloud.google.com/storage/docs/json_api/v1/objects/get) by object name.
     #[serde(default, rename = "bucketName")]
-    pub bucket_name: Option<String>,
+    pub bucket_name: ::core::option::Option<String>,
     /// The md5 hash of the file.
     #[serde(default, rename = "md5Hash")]
-    pub md5_hash: Option<String>,
+    pub md5_hash: ::core::option::Option<String>,
     /// The name of the Cloud Storage object for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api).
     #[serde(default, rename = "objectName")]
-    pub object_name: Option<String>,
+    pub object_name: ::core::option::Option<String>,
     /// The export file size.
     #[serde(default)]
-    pub size: Option<String>,
+    pub size: ::core::option::Option<String>,
 }
 
 /// Export sink for Cloud Storage files.
@@ -145,7 +145,7 @@ pub struct CloudStorageFile {
 pub struct CloudStorageSink {
     /// Output only. The exported files in Cloud Storage.
     #[serde(default)]
-    pub files: Option<Vec<CloudStorageFile>>,
+    pub files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloudStorageFile>>>,
 }
 
 /// Service-specific options for holds.
@@ -153,22 +153,22 @@ pub struct CloudStorageSink {
 pub struct CorpusQuery {
     /// Service-specific options for Calendar holds. If set, **CorpusType** must be **CALENDAR**.
     #[serde(default, rename = "calendarQuery")]
-    pub calendar_query: Option<serde_json::Value>,
+    pub calendar_query: ::core::option::Option<serde_json::Value>,
     /// Service-specific options for Drive holds. If set, **CorpusType** must be **DRIVE**.
     #[serde(default, rename = "driveQuery")]
-    pub drive_query: Option<HeldDriveQuery>,
+    pub drive_query: ::core::option::Option<::std::boxed::Box<HeldDriveQuery>>,
     /// Service-specific options for Groups holds. If set, **CorpusType** must be **GROUPS**.
     #[serde(default, rename = "groupsQuery")]
-    pub groups_query: Option<HeldGroupsQuery>,
+    pub groups_query: ::core::option::Option<::std::boxed::Box<HeldGroupsQuery>>,
     /// Service-specific options for Chat holds. If set, **CorpusType** must be **HANGOUTS_CHAT**.
     #[serde(default, rename = "hangoutsChatQuery")]
-    pub hangouts_chat_query: Option<HeldHangoutsChatQuery>,
+    pub hangouts_chat_query: ::core::option::Option<::std::boxed::Box<HeldHangoutsChatQuery>>,
     /// Service-specific options for Gmail holds. If set, **CorpusType** must be **MAIL**.
     #[serde(default, rename = "mailQuery")]
-    pub mail_query: Option<HeldMailQuery>,
+    pub mail_query: ::core::option::Option<::std::boxed::Box<HeldMailQuery>>,
     /// Service-specific options for Voice holds. If set, **CorpusType** must be **VOICE**.
     #[serde(default, rename = "voiceQuery")]
-    pub voice_query: Option<HeldVoiceQuery>,
+    pub voice_query: ::core::option::Option<::std::boxed::Box<HeldVoiceQuery>>,
 }
 
 /// Long running operation metadata for CountArtifacts.
@@ -176,16 +176,16 @@ pub struct CorpusQuery {
 pub struct CountArtifactsMetadata {
     /// End time of count operation. Available when operation is done.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The matter ID of the associated matter.
     #[serde(default, rename = "matterId")]
-    pub matter_id: Option<String>,
+    pub matter_id: ::core::option::Option<String>,
     /// The search query from the request.
     #[serde(default)]
-    pub query: Option<Query>,
+    pub query: ::core::option::Option<::std::boxed::Box<Query>>,
     /// Creation time of count operation.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Count artifacts request.
@@ -193,10 +193,10 @@ pub struct CountArtifactsMetadata {
 pub struct CountArtifactsRequest {
     /// The search query.
     #[serde(default)]
-    pub query: Option<Query>,
+    pub query: ::core::option::Option<::std::boxed::Box<Query>>,
     /// Sets the granularity of the count results. // TODO: enum values: ["COUNT_RESULT_VIEW_UNSPECIFIED", "TOTAL_COUNT", "ALL"]
     #[serde(default)]
-    pub view: Option<String>,
+    pub view: ::core::option::Option<String>,
 }
 
 /// Definition of the response for method CountArtifacts.
@@ -204,13 +204,13 @@ pub struct CountArtifactsRequest {
 pub struct CountArtifactsResponse {
     /// Count metrics for Groups.
     #[serde(default, rename = "groupsCountResult")]
-    pub groups_count_result: Option<GroupsCountResult>,
+    pub groups_count_result: ::core::option::Option<::std::boxed::Box<GroupsCountResult>>,
     /// Count metrics for Gmail and classic Hangouts.
     #[serde(default, rename = "mailCountResult")]
-    pub mail_count_result: Option<MailCountResult>,
+    pub mail_count_result: ::core::option::Option<::std::boxed::Box<MailCountResult>>,
     /// Total count of messages.
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<String>,
+    pub total_count: ::core::option::Option<String>,
 }
 
 /// Specify Drive documents by document ID.
@@ -218,7 +218,7 @@ pub struct CountArtifactsResponse {
 pub struct DriveDocumentIds {
     /// Required. A list of Drive document IDs.
     #[serde(default)]
-    pub ids: Option<Vec<String>>,
+    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Drive documents to search.
@@ -226,7 +226,7 @@ pub struct DriveDocumentIds {
 pub struct DriveDocumentInfo {
     /// Specify Drive documents by document ID.
     #[serde(default, rename = "documentIds")]
-    pub document_ids: Option<DriveDocumentIds>,
+    pub document_ids: ::core::option::Option<::std::boxed::Box<DriveDocumentIds>>,
 }
 
 /// Options for Drive exports.
@@ -234,7 +234,7 @@ pub struct DriveDocumentInfo {
 pub struct DriveExportOptions {
     /// To include access level information for users with [indirect access](https://support.google.com/vault/answer/6099459#metadata) to files, set to **true**.
     #[serde(default, rename = "includeAccessInfo")]
-    pub include_access_info: Option<bool>,
+    pub include_access_info: ::core::option::Option<bool>,
 }
 
 /// Additional options for Drive search.
@@ -242,19 +242,19 @@ pub struct DriveExportOptions {
 pub struct DriveOptions {
     /// Set whether the results include only content encrypted with [Google Workspace Client-side encryption](https://support.google.com/a?p=cse_ov) content, only unencrypted content, or both. Defaults to both. Currently supported for Drive. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
     #[serde(default, rename = "clientSideEncryptedOption")]
-    pub client_side_encrypted_option: Option<String>,
+    pub client_side_encrypted_option: ::core::option::Option<String>,
     /// Set to **true** to include shared drives.
     #[serde(default, rename = "includeSharedDrives")]
-    pub include_shared_drives: Option<bool>,
+    pub include_shared_drives: ::core::option::Option<bool>,
     /// Set to true to include Team Drive.
     #[serde(default, rename = "includeTeamDrives")]
-    pub include_team_drives: Option<bool>,
+    pub include_team_drives: ::core::option::Option<bool>,
     /// Optional. Options to include or exclude documents in shared drives. We recommend using this field over include_shared_drives. This field overrides include_shared_drives and include_team_drives when set. // TODO: enum values: ["SHARED_DRIVES_OPTION_UNSPECIFIED", "NOT_INCLUDED", "INCLUDED_IF_ACCOUNT_IS_NOT_A_MEMBER", "INCLUDED"]
     #[serde(default, rename = "sharedDrivesOption")]
-    pub shared_drives_option: Option<String>,
+    pub shared_drives_option: ::core::option::Option<String>,
     /// Search the current version of the Drive file, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.
     #[serde(default, rename = "versionDate")]
-    pub version_date: Option<String>,
+    pub version_date: ::core::option::Option<String>,
 }
 
 /// An export. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
@@ -262,37 +262,37 @@ pub struct DriveOptions {
 pub struct Export {
     /// Output only. The sink for export files in Cloud Storage.
     #[serde(default, rename = "cloudStorageSink")]
-    pub cloud_storage_sink: Option<CloudStorageSink>,
+    pub cloud_storage_sink: ::core::option::Option<::std::boxed::Box<CloudStorageSink>>,
     /// Output only. The time when the export was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Additional export options.
     #[serde(default, rename = "exportOptions")]
-    pub export_options: Option<ExportOptions>,
+    pub export_options: ::core::option::Option<::std::boxed::Box<ExportOptions>>,
     /// Output only. The generated export ID.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. The matter ID.
     #[serde(default, rename = "matterId")]
-    pub matter_id: Option<String>,
+    pub matter_id: ::core::option::Option<String>,
     /// The export name. Don''t use special characters (~!$''(),;@:/?) in the name, they can prevent you from downloading exports.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Identifies the parent export that spawned this child export. This is only set on child exports.
     #[serde(default, rename = "parentExportId")]
-    pub parent_export_id: Option<String>,
+    pub parent_export_id: ::core::option::Option<String>,
     /// The query parameters used to create the export.
     #[serde(default)]
-    pub query: Option<Query>,
+    pub query: ::core::option::Option<::std::boxed::Box<Query>>,
     /// Output only. The requester of the export.
     #[serde(default)]
-    pub requester: Option<UserInfo>,
+    pub requester: ::core::option::Option<::std::boxed::Box<UserInfo>>,
     /// Output only. Details about the export progress and size.
     #[serde(default)]
-    pub stats: Option<ExportStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<ExportStats>>,
     /// Output only. The status of the export. // TODO: enum values: ["EXPORT_STATUS_UNSPECIFIED", "COMPLETED", "FAILED", "IN_PROGRESS"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Additional options for exports
@@ -300,28 +300,28 @@ pub struct Export {
 pub struct ExportOptions {
     /// Option available for Calendar export.
     #[serde(default, rename = "calendarOptions")]
-    pub calendar_options: Option<CalendarExportOptions>,
+    pub calendar_options: ::core::option::Option<::std::boxed::Box<CalendarExportOptions>>,
     /// Options for Drive exports.
     #[serde(default, rename = "driveOptions")]
-    pub drive_options: Option<DriveExportOptions>,
+    pub drive_options: ::core::option::Option<::std::boxed::Box<DriveExportOptions>>,
     /// Option available for Gemini export.
     #[serde(default, rename = "geminiOptions")]
-    pub gemini_options: Option<GeminiExportOptions>,
+    pub gemini_options: ::core::option::Option<::std::boxed::Box<GeminiExportOptions>>,
     /// Options for Groups exports.
     #[serde(default, rename = "groupsOptions")]
-    pub groups_options: Option<GroupsExportOptions>,
+    pub groups_options: ::core::option::Option<::std::boxed::Box<GroupsExportOptions>>,
     /// Options for Chat exports.
     #[serde(default, rename = "hangoutsChatOptions")]
-    pub hangouts_chat_options: Option<HangoutsChatExportOptions>,
+    pub hangouts_chat_options: ::core::option::Option<::std::boxed::Box<HangoutsChatExportOptions>>,
     /// Options for Gmail exports.
     #[serde(default, rename = "mailOptions")]
-    pub mail_options: Option<MailExportOptions>,
+    pub mail_options: ::core::option::Option<::std::boxed::Box<MailExportOptions>>,
     /// The requested data region for the export. // TODO: enum values: ["EXPORT_REGION_UNSPECIFIED", "ANY", "US", "EUROPE"]
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
     /// Options for Voice exports.
     #[serde(default, rename = "voiceOptions")]
-    pub voice_options: Option<VoiceExportOptions>,
+    pub voice_options: ::core::option::Option<::std::boxed::Box<VoiceExportOptions>>,
 }
 
 /// Progress information for an export.
@@ -329,13 +329,13 @@ pub struct ExportOptions {
 pub struct ExportStats {
     /// The number of messages or files already processed for export.
     #[serde(default, rename = "exportedArtifactCount")]
-    pub exported_artifact_count: Option<String>,
+    pub exported_artifact_count: ::core::option::Option<String>,
     /// The size of export in bytes.
     #[serde(default, rename = "sizeInBytes")]
-    pub size_in_bytes: Option<String>,
+    pub size_in_bytes: ::core::option::Option<String>,
     /// The number of messages or files to be exported.
     #[serde(default, rename = "totalArtifactCount")]
-    pub total_artifact_count: Option<String>,
+    pub total_artifact_count: ::core::option::Option<String>,
 }
 
 /// The options for Gemini exports.
@@ -343,7 +343,7 @@ pub struct ExportStats {
 pub struct GeminiExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
-    pub export_format: Option<String>,
+    pub export_format: ::core::option::Option<String>,
 }
 
 /// Groups specific count metrics.
@@ -351,19 +351,20 @@ pub struct GeminiExportOptions {
 pub struct GroupsCountResult {
     /// Error occurred when querying these accounts.
     #[serde(default, rename = "accountCountErrors")]
-    pub account_count_errors: Option<Vec<AccountCountError>>,
+    pub account_count_errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccountCountError>>>,
     /// Subtotal count per matching account that have more than zero messages.
     #[serde(default, rename = "accountCounts")]
-    pub account_counts: Option<Vec<AccountCount>>,
+    pub account_counts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccountCount>>>,
     /// Total number of accounts that can be queried and have more than zero messages.
     #[serde(default, rename = "matchingAccountsCount")]
-    pub matching_accounts_count: Option<String>,
+    pub matching_accounts_count: ::core::option::Option<String>,
     /// When **DataScope** is **HELD_DATA**, these accounts in the request are not queried because they are not on hold. For other data scope, this field is not set.
     #[serde(default, rename = "nonQueryableAccounts")]
-    pub non_queryable_accounts: Option<Vec<String>>,
+    pub non_queryable_accounts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Total number of accounts involved in this count operation.
     #[serde(default, rename = "queriedAccountsCount")]
-    pub queried_accounts_count: Option<String>,
+    pub queried_accounts_count: ::core::option::Option<String>,
 }
 
 /// Options for Groups exports.
@@ -371,7 +372,7 @@ pub struct GroupsCountResult {
 pub struct GroupsExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
-    pub export_format: Option<String>,
+    pub export_format: ::core::option::Option<String>,
 }
 
 /// Options for Chat exports.
@@ -379,7 +380,7 @@ pub struct GroupsExportOptions {
 pub struct HangoutsChatExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
-    pub export_format: Option<String>,
+    pub export_format: ::core::option::Option<String>,
 }
 
 /// The Chat spaces to search
@@ -387,7 +388,7 @@ pub struct HangoutsChatExportOptions {
 pub struct HangoutsChatInfo {
     /// A list of Chat spaces IDs, as provided by the [Chat API](https://developers.google.com/workspace/chat). There is a limit of exporting from 500 Chat spaces per request.
     #[serde(default, rename = "roomId")]
-    pub room_id: Option<Vec<String>>,
+    pub room_id: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Additional options for Google Chat search
@@ -395,7 +396,7 @@ pub struct HangoutsChatInfo {
 pub struct HangoutsChatOptions {
     /// For searches by account or organizational unit, set to **true** to include rooms.
     #[serde(default, rename = "includeRooms")]
-    pub include_rooms: Option<bool>,
+    pub include_rooms: ::core::option::Option<bool>,
 }
 
 /// An account covered by a hold. This structure is immutable. It can be an individual account or a Google Group, depending on the service. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
@@ -403,19 +404,19 @@ pub struct HangoutsChatOptions {
 pub struct HeldAccount {
     /// The account ID, as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The primary email address of the account. If used as an input, this takes precedence over **accountId**.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Output only. The first name of the account holder.
     #[serde(default, rename = "firstName")]
-    pub first_name: Option<String>,
+    pub first_name: ::core::option::Option<String>,
     /// Output only. When the account was put on hold.
     #[serde(default, rename = "holdTime")]
-    pub hold_time: Option<String>,
+    pub hold_time: ::core::option::Option<String>,
     /// Output only. The last name of the account holder.
     #[serde(default, rename = "lastName")]
-    pub last_name: Option<String>,
+    pub last_name: ::core::option::Option<String>,
 }
 
 /// Options for Drive holds.
@@ -423,10 +424,10 @@ pub struct HeldAccount {
 pub struct HeldDriveQuery {
     /// To include files in shared drives in the hold, set to **true**.
     #[serde(default, rename = "includeSharedDriveFiles")]
-    pub include_shared_drive_files: Option<bool>,
+    pub include_shared_drive_files: ::core::option::Option<bool>,
     /// To include files in Team Drives in the hold, set to **true**.
     #[serde(default, rename = "includeTeamDriveFiles")]
-    pub include_team_drive_files: Option<bool>,
+    pub include_team_drive_files: ::core::option::Option<bool>,
 }
 
 /// Query options for group holds.
@@ -434,13 +435,13 @@ pub struct HeldDriveQuery {
 pub struct HeldGroupsQuery {
     /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The start time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.
     #[serde(default)]
-    pub terms: Option<String>,
+    pub terms: ::core::option::Option<String>,
 }
 
 /// Options for Chat holds.
@@ -448,7 +449,7 @@ pub struct HeldGroupsQuery {
 pub struct HeldHangoutsChatQuery {
     /// To include messages in Chat spaces the user was a member of, set to **true**.
     #[serde(default, rename = "includeRooms")]
-    pub include_rooms: Option<bool>,
+    pub include_rooms: ::core::option::Option<bool>,
 }
 
 /// Query options for Gmail holds.
@@ -456,13 +457,13 @@ pub struct HeldHangoutsChatQuery {
 pub struct HeldMailQuery {
     /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The start time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.
     #[serde(default)]
-    pub terms: Option<String>,
+    pub terms: ::core::option::Option<String>,
 }
 
 /// The organizational unit covered by a hold. This structure is immutable.
@@ -470,10 +471,10 @@ pub struct HeldMailQuery {
 pub struct HeldOrgUnit {
     /// When the organizational unit was put on hold. This property is immutable.
     #[serde(default, rename = "holdTime")]
-    pub hold_time: Option<String>,
+    pub hold_time: ::core::option::Option<String>,
     /// The organizational unit''s immutable ID as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: Option<String>,
+    pub org_unit_id: ::core::option::Option<String>,
 }
 
 /// Options for Voice holds.
@@ -481,7 +482,7 @@ pub struct HeldOrgUnit {
 pub struct HeldVoiceQuery {
     /// A list of data types covered by the hold. Should be non-empty. Order does not matter and duplicates are ignored.
     #[serde(default, rename = "coveredData")]
-    pub covered_data: Option<Vec<String>>,
+    pub covered_data: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A hold. A hold prevents the specified Google Workspace service from purging data for specific accounts or all members of an organizational unit. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
@@ -489,25 +490,25 @@ pub struct HeldVoiceQuery {
 pub struct Hold {
     /// If set, the hold applies to the specified accounts and **orgUnit** must be empty.
     #[serde(default)]
-    pub accounts: Option<Vec<HeldAccount>>,
+    pub accounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HeldAccount>>>,
     /// The service to be searched. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "DRIVE", "MAIL", "GROUPS", "HANGOUTS_CHAT", "VOICE", "CALENDAR", "GEMINI"]
     #[serde(default)]
-    pub corpus: Option<String>,
+    pub corpus: ::core::option::Option<String>,
     /// The unique immutable ID of the hold. Assigned during creation.
     #[serde(default, rename = "holdId")]
-    pub hold_id: Option<String>,
+    pub hold_id: ::core::option::Option<String>,
     /// The name of the hold.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// If set, the hold applies to all members of the organizational unit and **accounts** must be empty. This property is mutable. For Groups holds, set **accounts**.
     #[serde(default, rename = "orgUnit")]
-    pub org_unit: Option<HeldOrgUnit>,
+    pub org_unit: ::core::option::Option<::std::boxed::Box<HeldOrgUnit>>,
     /// Service-specific options. If set, **CorpusQuery** must match **CorpusType**.
     #[serde(default)]
-    pub query: Option<CorpusQuery>,
+    pub query: ::core::option::Option<::std::boxed::Box<CorpusQuery>>,
     /// The last time this hold was modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The exports for a matter.
@@ -515,10 +516,10 @@ pub struct Hold {
 pub struct ListExportsResponse {
     /// The list of exports.
     #[serde(default)]
-    pub exports: Option<Vec<Export>>,
+    pub exports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Export>>>,
     /// Page token to retrieve the next page of results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Returns a list of the accounts covered by a hold.
@@ -526,7 +527,7 @@ pub struct ListExportsResponse {
 pub struct ListHeldAccountsResponse {
     /// The held accounts on a hold.
     #[serde(default)]
-    pub accounts: Option<Vec<HeldAccount>>,
+    pub accounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HeldAccount>>>,
 }
 
 /// The holds for a matter.
@@ -534,10 +535,10 @@ pub struct ListHeldAccountsResponse {
 pub struct ListHoldsResponse {
     /// The list of holds.
     #[serde(default)]
-    pub holds: Option<Vec<Hold>>,
+    pub holds: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hold>>>,
     /// Page token to retrieve the next page of results in the list. If this is empty, then there are no more holds to list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Provides the list of matters.
@@ -545,10 +546,10 @@ pub struct ListHoldsResponse {
 pub struct ListMattersResponse {
     /// List of matters.
     #[serde(default)]
-    pub matters: Option<Vec<Matter>>,
+    pub matters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Matter>>>,
     /// Page token to retrieve the next page of results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -556,13 +557,13 @@ pub struct ListMattersResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Definition of the response for method ListSaveQuery.
@@ -570,10 +571,10 @@ pub struct ListOperationsResponse {
 pub struct ListSavedQueriesResponse {
     /// Page token to retrieve the next page of results in the list. If this is empty, then there are no more saved queries to list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of saved queries.
     #[serde(default, rename = "savedQueries")]
-    pub saved_queries: Option<Vec<SavedQuery>>,
+    pub saved_queries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SavedQuery>>>,
 }
 
 /// Gmail and classic Hangouts-specific count metrics.
@@ -581,19 +582,20 @@ pub struct ListSavedQueriesResponse {
 pub struct MailCountResult {
     /// Errors occurred when querying these accounts.
     #[serde(default, rename = "accountCountErrors")]
-    pub account_count_errors: Option<Vec<AccountCountError>>,
+    pub account_count_errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccountCountError>>>,
     /// Subtotal count per matching account that have more than zero messages.
     #[serde(default, rename = "accountCounts")]
-    pub account_counts: Option<Vec<AccountCount>>,
+    pub account_counts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccountCount>>>,
     /// Total number of accounts that can be queried and have more than zero messages.
     #[serde(default, rename = "matchingAccountsCount")]
-    pub matching_accounts_count: Option<String>,
+    pub matching_accounts_count: ::core::option::Option<String>,
     /// When **DataScope** is **HELD_DATA** and when account emails are passed in explicitly, the list of accounts in the request that are not queried because they are not on hold in the matter. For other data scopes, this field is not set.
     #[serde(default, rename = "nonQueryableAccounts")]
-    pub non_queryable_accounts: Option<Vec<String>>,
+    pub non_queryable_accounts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Total number of accounts involved in this count operation.
     #[serde(default, rename = "queriedAccountsCount")]
-    pub queried_accounts_count: Option<String>,
+    pub queried_accounts_count: ::core::option::Option<String>,
 }
 
 /// Options for Gmail exports.
@@ -601,16 +603,16 @@ pub struct MailCountResult {
 pub struct MailExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
-    pub export_format: Option<String>,
+    pub export_format: ::core::option::Option<String>,
     /// Optional. To enable exporting linked Drive files, set to **true**.
     #[serde(default, rename = "exportLinkedDriveFiles")]
-    pub export_linked_drive_files: Option<bool>,
+    pub export_linked_drive_files: ::core::option::Option<bool>,
     /// To export confidential mode content, set to **true**.
     #[serde(default, rename = "showConfidentialModeContent")]
-    pub show_confidential_mode_content: Option<bool>,
+    pub show_confidential_mode_content: ::core::option::Option<bool>,
     /// To use the new export system, set to **true**.
     #[serde(default, rename = "useNewExport")]
-    pub use_new_export: Option<bool>,
+    pub use_new_export: ::core::option::Option<bool>,
 }
 
 /// Additional options for Gmail search
@@ -618,10 +620,10 @@ pub struct MailExportOptions {
 pub struct MailOptions {
     /// Specifies whether the results should include encrypted content, unencrypted content, or both. Defaults to including both. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
     #[serde(default, rename = "clientSideEncryptedOption")]
-    pub client_side_encrypted_option: Option<String>,
+    pub client_side_encrypted_option: ::core::option::Option<String>,
     /// Set to **true** to exclude drafts.
     #[serde(default, rename = "excludeDrafts")]
-    pub exclude_drafts: Option<bool>,
+    pub exclude_drafts: ::core::option::Option<bool>,
 }
 
 /// Represents a matter. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
@@ -629,22 +631,23 @@ pub struct MailOptions {
 pub struct Matter {
     /// An optional description for the matter.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The matter ID, which is generated by the server. Leave blank when creating a matter.
     #[serde(default, rename = "matterId")]
-    pub matter_id: Option<String>,
+    pub matter_id: ::core::option::Option<String>,
     /// Lists the users and their permission for the matter. Currently there is no programmer defined limit on the number of permissions a matter can have.
     #[serde(default, rename = "matterPermissions")]
-    pub matter_permissions: Option<Vec<MatterPermission>>,
+    pub matter_permissions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MatterPermission>>>,
     /// Optional. The requested data region for the matter. // TODO: enum values: ["MATTER_REGION_UNSPECIFIED", "ANY", "US", "EUROPE"]
     #[serde(default, rename = "matterRegion")]
-    pub matter_region: Option<String>,
+    pub matter_region: ::core::option::Option<String>,
     /// The name of the matter.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The state of the matter. // TODO: enum values: ["STATE_UNSPECIFIED", "OPEN", "CLOSED", "DELETED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Users can be matter owners or collaborators. Each matter has only one owner. All others users who can access the matter are collaborators. When an account is purged, its corresponding MatterPermission resources cease to exist.
@@ -652,10 +655,10 @@ pub struct Matter {
 pub struct MatterPermission {
     /// The account ID, as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The user''s role for the matter. // TODO: enum values: ["ROLE_UNSPECIFIED", "COLLABORATOR", "OWNER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -663,19 +666,19 @@ pub struct MatterPermission {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The organizational unit to search
@@ -683,7 +686,7 @@ pub struct Operation {
 pub struct OrgUnitInfo {
     /// The name of the organizational unit to search, as provided by the [Admin SDK Directory API](https://developers.google.com/admin-sdk/directory/).
     #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: Option<String>,
+    pub org_unit_id: ::core::option::Option<String>,
 }
 
 /// The query definition used for search and export.
@@ -691,67 +694,67 @@ pub struct OrgUnitInfo {
 pub struct Query {
     /// Required when **SearchMethod** is **ACCOUNT**.
     #[serde(default, rename = "accountInfo")]
-    pub account_info: Option<AccountInfo>,
+    pub account_info: ::core::option::Option<::std::boxed::Box<AccountInfo>>,
     /// Set Calendar search-specific options.
     #[serde(default, rename = "calendarOptions")]
-    pub calendar_options: Option<CalendarOptions>,
+    pub calendar_options: ::core::option::Option<::std::boxed::Box<CalendarOptions>>,
     /// The Google Workspace service to search. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "DRIVE", "MAIL", "GROUPS", "HANGOUTS_CHAT", "VOICE", "CALENDAR", "GEMINI"]
     #[serde(default)]
-    pub corpus: Option<String>,
+    pub corpus: ::core::option::Option<String>,
     /// The data source to search. // TODO: enum values: ["DATA_SCOPE_UNSPECIFIED", "ALL_DATA", "HELD_DATA", "UNPROCESSED_DATA"]
     #[serde(default, rename = "dataScope")]
-    pub data_scope: Option<String>,
+    pub data_scope: ::core::option::Option<String>,
     /// Required when **SearchMethod** is **DRIVE_DOCUMENT**.
     #[serde(default, rename = "driveDocumentInfo")]
-    pub drive_document_info: Option<DriveDocumentInfo>,
+    pub drive_document_info: ::core::option::Option<::std::boxed::Box<DriveDocumentInfo>>,
     /// Set Drive search-specific options.
     #[serde(default, rename = "driveOptions")]
-    pub drive_options: Option<DriveOptions>,
+    pub drive_options: ::core::option::Option<::std::boxed::Box<DriveOptions>>,
     /// The end time for the search query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Set Gemini search-specific options.
     #[serde(default, rename = "geminiOptions")]
-    pub gemini_options: Option<serde_json::Value>,
+    pub gemini_options: ::core::option::Option<serde_json::Value>,
     /// Required when **SearchMethod** is **ROOM**. (read-only)
     #[serde(default, rename = "hangoutsChatInfo")]
-    pub hangouts_chat_info: Option<HangoutsChatInfo>,
+    pub hangouts_chat_info: ::core::option::Option<::std::boxed::Box<HangoutsChatInfo>>,
     /// Set Chat search-specific options. (read-only)
     #[serde(default, rename = "hangoutsChatOptions")]
-    pub hangouts_chat_options: Option<HangoutsChatOptions>,
+    pub hangouts_chat_options: ::core::option::Option<::std::boxed::Box<HangoutsChatOptions>>,
     /// Set Gmail search-specific options.
     #[serde(default, rename = "mailOptions")]
-    pub mail_options: Option<MailOptions>,
+    pub mail_options: ::core::option::Option<::std::boxed::Box<MailOptions>>,
     /// The entity to search. This field replaces **searchMethod** to support shared drives. When **searchMethod** is **TEAM_DRIVE**, the response of this field is **SHARED_DRIVE**. // TODO: enum values: ["SEARCH_METHOD_UNSPECIFIED", "ACCOUNT", "ORG_UNIT", "TEAM_DRIVE", "ENTIRE_ORG", "ROOM", "SITES_URL", "SHARED_DRIVE", "DRIVE_DOCUMENT"]
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Required when **SearchMethod** is **ORG_UNIT**.
     #[serde(default, rename = "orgUnitInfo")]
-    pub org_unit_info: Option<OrgUnitInfo>,
+    pub org_unit_info: ::core::option::Option<::std::boxed::Box<OrgUnitInfo>>,
     /// The search method to use. // TODO: enum values: ["SEARCH_METHOD_UNSPECIFIED", "ACCOUNT", "ORG_UNIT", "TEAM_DRIVE", "ENTIRE_ORG", "ROOM", "SITES_URL", "SHARED_DRIVE", "DRIVE_DOCUMENT"]
     #[serde(default, rename = "searchMethod")]
-    pub search_method: Option<String>,
+    pub search_method: ::core::option::Option<String>,
     /// Required when **SearchMethod** is **SHARED_DRIVE**.
     #[serde(default, rename = "sharedDriveInfo")]
-    pub shared_drive_info: Option<SharedDriveInfo>,
+    pub shared_drive_info: ::core::option::Option<::std::boxed::Box<SharedDriveInfo>>,
     /// Required when **SearchMethod** is **SITES_URL**.
     #[serde(default, rename = "sitesUrlInfo")]
-    pub sites_url_info: Option<SitesUrlInfo>,
+    pub sites_url_info: ::core::option::Option<::std::boxed::Box<SitesUrlInfo>>,
     /// The start time for the search query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Required when **SearchMethod** is **TEAM_DRIVE**.
     #[serde(default, rename = "teamDriveInfo")]
-    pub team_drive_info: Option<TeamDriveInfo>,
+    pub team_drive_info: ::core::option::Option<::std::boxed::Box<TeamDriveInfo>>,
     /// Service-specific [search operators](https://support.google.com/vault/answer/2474474) to filter search results.
     #[serde(default)]
-    pub terms: Option<String>,
+    pub terms: ::core::option::Option<String>,
     /// The time zone name. It should be an IANA TZ name, such as "America/Los_Angeles". For a list of time zone names, see [Time Zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). For more information about how Vault uses time zones, see [the Vault help center](https://support.google.com/vault/answer/6092995#time).
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// Set Voice search-specific options.
     #[serde(default, rename = "voiceOptions")]
-    pub voice_options: Option<VoiceOptions>,
+    pub voice_options: ::core::option::Option<::std::boxed::Box<VoiceOptions>>,
 }
 
 /// Remove a list of accounts from a hold.
@@ -759,7 +762,7 @@ pub struct Query {
 pub struct RemoveHeldAccountsRequest {
     /// The account IDs of the accounts to remove from the hold.
     #[serde(default, rename = "accountIds")]
-    pub account_ids: Option<Vec<String>>,
+    pub account_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for batch delete held accounts.
@@ -767,7 +770,7 @@ pub struct RemoveHeldAccountsRequest {
 pub struct RemoveHeldAccountsResponse {
     /// A list of statuses for the deleted accounts. Results have the same order as the request.
     #[serde(default)]
-    pub statuses: Option<Vec<Status>>,
+    pub statuses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
 }
 
 /// Remove an account as a matter collaborator.
@@ -775,7 +778,7 @@ pub struct RemoveHeldAccountsResponse {
 pub struct RemoveMatterPermissionsRequest {
     /// The account ID.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
 }
 
 /// Response to a ReopenMatterRequest.
@@ -783,7 +786,7 @@ pub struct RemoveMatterPermissionsRequest {
 pub struct ReopenMatterResponse {
     /// The updated matter, with state **OPEN**.
     #[serde(default)]
-    pub matter: Option<Matter>,
+    pub matter: ::core::option::Option<::std::boxed::Box<Matter>>,
 }
 
 /// The definition of a saved query. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
@@ -791,19 +794,19 @@ pub struct ReopenMatterResponse {
 pub struct SavedQuery {
     /// Output only. The server-generated timestamp when the saved query was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the saved query.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The matter ID of the matter the saved query is saved in. The server does not use this field during create and always uses matter ID in the URL.
     #[serde(default, rename = "matterId")]
-    pub matter_id: Option<String>,
+    pub matter_id: ::core::option::Option<String>,
     /// The search parameters of the saved query.
     #[serde(default)]
-    pub query: Option<Query>,
+    pub query: ::core::option::Option<::std::boxed::Box<Query>>,
     /// A unique identifier for the saved query.
     #[serde(default, rename = "savedQueryId")]
-    pub saved_query_id: Option<String>,
+    pub saved_query_id: ::core::option::Option<String>,
 }
 
 /// The shared drives to search
@@ -811,7 +814,7 @@ pub struct SavedQuery {
 pub struct SharedDriveInfo {
     /// A list of shared drive IDs, as provided by the [Drive API](https://developers.google.com/drive).
     #[serde(default, rename = "sharedDriveIds")]
-    pub shared_drive_ids: Option<Vec<String>>,
+    pub shared_drive_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The published site URLs of new Google Sites to search
@@ -819,7 +822,7 @@ pub struct SharedDriveInfo {
 pub struct SitesUrlInfo {
     /// A list of published site URLs.
     #[serde(default)]
-    pub urls: Option<Vec<String>>,
+    pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -827,13 +830,13 @@ pub struct SitesUrlInfo {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Team Drives to search
@@ -841,7 +844,7 @@ pub struct Status {
 pub struct TeamDriveInfo {
     /// List of Team Drive IDs, as provided by the [Drive API](https://developers.google.com/drive).
     #[serde(default, rename = "teamDriveIds")]
-    pub team_drive_ids: Option<Vec<String>>,
+    pub team_drive_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// User''s information.
@@ -849,10 +852,10 @@ pub struct TeamDriveInfo {
 pub struct UserInfo {
     /// The displayed name of the user.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The email address of the user.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// The options for Voice exports.
@@ -860,7 +863,7 @@ pub struct UserInfo {
 pub struct VoiceExportOptions {
     /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
-    pub export_format: Option<String>,
+    pub export_format: ::core::option::Option<String>,
 }
 
 /// Additional options for Voice search
@@ -868,5 +871,5 @@ pub struct VoiceExportOptions {
 pub struct VoiceOptions {
     /// Datatypes to search
     #[serde(default, rename = "coveredData")]
-    pub covered_data: Option<Vec<String>>,
+    pub covered_data: ::core::option::Option<::std::vec::Vec<String>>,
 }

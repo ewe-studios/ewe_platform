@@ -10,17 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// CivicinfoApiprotosV2DivisionByAddressResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CivicinfoApiprotosV2DivisionByAddressResponse {
     #[serde(default)]
-    pub divisions: Option<serde_json::Value>,
+    pub divisions: ::core::option::Option<serde_json::Value>,
     /// The normalized version of the requested address.
     #[serde(default, rename = "normalizedInput")]
-    pub normalized_input: Option<CivicinfoSchemaV2SimpleAddressType>,
+    pub normalized_input:
+        ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2SimpleAddressType>>,
 }
 
 /// The result of a division search query.
@@ -28,9 +29,11 @@ pub struct CivicinfoApiprotosV2DivisionByAddressResponse {
 pub struct CivicinfoApiprotosV2DivisionSearchResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "civicinfo#divisionSearchResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     #[serde(default)]
-    pub results: Option<Vec<CivicinfoApiprotosV2DivisionSearchResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CivicinfoApiprotosV2DivisionSearchResult>>,
+    >,
 }
 
 /// Represents a political geographic division that matches the requested query.
@@ -38,13 +41,13 @@ pub struct CivicinfoApiprotosV2DivisionSearchResponse {
 pub struct CivicinfoApiprotosV2DivisionSearchResult {
     /// Other Open Civic Data identifiers that refer to the same division -- for example, those that refer to other political divisions whose boundaries are defined to be coterminous with this one. For example, ocd-division/country:us/state:wy will include an alias of ocd-division/country:us/state:wy/cd:1, since Wyoming has only one Congressional district.
     #[serde(default)]
-    pub aliases: Option<Vec<String>>,
+    pub aliases: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the division.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The unique Open Civic Data identifier for this division
     #[serde(default, rename = "ocdId")]
-    pub ocd_id: Option<String>,
+    pub ocd_id: ::core::option::Option<String>,
 }
 
 /// The list of elections available for this version of the API.
@@ -52,10 +55,11 @@ pub struct CivicinfoApiprotosV2DivisionSearchResult {
 pub struct CivicinfoApiprotosV2ElectionsQueryResponse {
     /// A list of available elections
     #[serde(default)]
-    pub elections: Option<Vec<CivicinfoSchemaV2Election>>,
+    pub elections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Election>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "civicinfo#electionsQueryResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// The result of a voter info lookup query.
@@ -63,39 +67,51 @@ pub struct CivicinfoApiprotosV2ElectionsQueryResponse {
 pub struct CivicinfoApiprotosV2VoterInfoResponse {
     /// Contests that will appear on the voter''s ballot.
     #[serde(default)]
-    pub contests: Option<Vec<CivicinfoSchemaV2Contest>>,
+    pub contests:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Contest>>>,
     /// Locations where a voter is eligible to drop off a completed ballot. The voter must have received and completed a ballot prior to arriving at the location. The location may not have ballots available on the premises. These locations could be open on or before election day as indicated in the pollingHours field.
     #[serde(default, rename = "dropOffLocations")]
-    pub drop_off_locations: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
+    pub drop_off_locations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2PollingLocation>>,
+    >,
     /// Locations where the voter is eligible to vote early, prior to election day.
     #[serde(default, rename = "earlyVoteSites")]
-    pub early_vote_sites: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
+    pub early_vote_sites: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2PollingLocation>>,
+    >,
     /// The election that was queried.
     #[serde(default)]
-    pub election: Option<CivicinfoSchemaV2Election>,
+    pub election: ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2Election>>,
     /// Identifies what kind of resource this is. Value: the fixed string "civicinfo#voterInfoResponse".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Specifies whether voters in the precinct vote only by mailing their ballots (with the possible option of dropping off their ballots as well).
     #[serde(default, rename = "mailOnly")]
-    pub mail_only: Option<bool>,
+    pub mail_only: ::core::option::Option<bool>,
     /// The normalized version of the requested address
     #[serde(default, rename = "normalizedInput")]
-    pub normalized_input: Option<CivicinfoSchemaV2SimpleAddressType>,
+    pub normalized_input:
+        ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2SimpleAddressType>>,
     /// When there are multiple elections for a voter address, the otherElections field is populated in the API response and there are two possibilities: 1. If the earliest election is not the intended election, specify the election ID of the desired election in a second API request using the electionId field. 2. If these elections occur on the same day, the API doesn?t return any polling location, contest, or election official information to ensure that an additional query is made. For user-facing applications, we recommend displaying these elections to the user to disambiguate. A second API request using the electionId field should be made for the election that is relevant to the user.
     #[serde(default, rename = "otherElections")]
-    pub other_elections: Option<Vec<CivicinfoSchemaV2Election>>,
+    pub other_elections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Election>>>,
     /// Locations where the voter is eligible to vote on election day.
     #[serde(default, rename = "pollingLocations")]
-    pub polling_locations: Option<Vec<CivicinfoSchemaV2PollingLocation>>,
+    pub polling_locations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2PollingLocation>>,
+    >,
     #[serde(default, rename = "precinctId")]
-    pub precinct_id: Option<String>,
+    pub precinct_id: ::core::option::Option<String>,
     /// The precincts that match this voter''s address. Will only be returned for project IDs which have been allowlisted as "partner projects".
     #[serde(default)]
-    pub precincts: Option<Vec<CivicinfoSchemaV2Precinct>>,
+    pub precincts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Precinct>>>,
     /// Local Election Information for the state that the voter votes in. For the US, there will only be one element in this array.
     #[serde(default)]
-    pub state: Option<Vec<CivicinfoSchemaV2AdministrationRegion>>,
+    pub state: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2AdministrationRegion>>,
+    >,
 }
 
 /// Describes information about a regional election administrative area.
@@ -103,16 +119,19 @@ pub struct CivicinfoApiprotosV2VoterInfoResponse {
 pub struct CivicinfoSchemaV2AdministrationRegion {
     /// The election administration body for this area.
     #[serde(default, rename = "electionAdministrationBody")]
-    pub election_administration_body: Option<CivicinfoSchemaV2AdministrativeBody>,
+    pub election_administration_body:
+        ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2AdministrativeBody>>,
     /// The city or county that provides election information for this voter. This object can have the same elements as state.
     #[serde(default)]
-    pub local_jurisdiction: Option<CivicinfoSchemaV2AdministrationRegion>,
+    pub local_jurisdiction:
+        ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2AdministrationRegion>>,
     /// The name of the jurisdiction.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A list of sources for this area. If multiple sources are listed the data has been aggregated from those sources.
     #[serde(default)]
-    pub sources: Option<Vec<CivicinfoSchemaV2Source>>,
+    pub sources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Source>>>,
 }
 
 /// Information about an election administrative body (e.g. County Board of Elections).
@@ -120,49 +139,53 @@ pub struct CivicinfoSchemaV2AdministrationRegion {
 pub struct CivicinfoSchemaV2AdministrativeBody {
     /// A URL provided by this administrative body for information on absentee voting.
     #[serde(default, rename = "absenteeVotingInfoUrl")]
-    pub absentee_voting_info_url: Option<String>,
+    pub absentee_voting_info_url: ::core::option::Option<String>,
     /// A URL provided by this administrative body to give contest information to the voter.
     #[serde(default, rename = "ballotInfoUrl")]
-    pub ballot_info_url: Option<String>,
+    pub ballot_info_url: ::core::option::Option<String>,
     /// The mailing address of this administrative body.
     #[serde(default, rename = "correspondenceAddress")]
-    pub correspondence_address: Option<CivicinfoSchemaV2SimpleAddressType>,
+    pub correspondence_address:
+        ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2SimpleAddressType>>,
     /// A URL provided by this administrative body for looking up general election information.
     #[serde(default, rename = "electionInfoUrl")]
-    pub election_info_url: Option<String>,
+    pub election_info_url: ::core::option::Option<String>,
     /// A last minute or emergency notification text provided by this administrative body.
     #[serde(default, rename = "electionNoticeText")]
-    pub election_notice_text: Option<String>,
+    pub election_notice_text: ::core::option::Option<String>,
     /// A URL provided by this administrative body for additional information related to the last minute or emergency notification.
     #[serde(default, rename = "electionNoticeUrl")]
-    pub election_notice_url: Option<String>,
+    pub election_notice_url: ::core::option::Option<String>,
     /// The election officials for this election administrative body.
     #[serde(default, rename = "electionOfficials")]
-    pub election_officials: Option<Vec<CivicinfoSchemaV2ElectionOfficial>>,
+    pub election_officials: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2ElectionOfficial>>,
+    >,
     /// A URL provided by this administrative body for confirming that the voter is registered to vote.
     #[serde(default, rename = "electionRegistrationConfirmationUrl")]
-    pub election_registration_confirmation_url: Option<String>,
+    pub election_registration_confirmation_url: ::core::option::Option<String>,
     /// A URL provided by this administrative body for looking up how to register to vote.
     #[serde(default, rename = "electionRegistrationUrl")]
-    pub election_registration_url: Option<String>,
+    pub election_registration_url: ::core::option::Option<String>,
     /// A URL provided by this administrative body describing election rules to the voter.
     #[serde(default, rename = "electionRulesUrl")]
-    pub election_rules_url: Option<String>,
+    pub election_rules_url: ::core::option::Option<String>,
     /// A description of the hours of operation for this administrative body.
     #[serde(default, rename = "hoursOfOperation")]
-    pub hours_of_operation: Option<String>,
+    pub hours_of_operation: ::core::option::Option<String>,
     /// The name of this election administrative body.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The physical address of this administrative body.
     #[serde(default, rename = "physicalAddress")]
-    pub physical_address: Option<CivicinfoSchemaV2SimpleAddressType>,
+    pub physical_address:
+        ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2SimpleAddressType>>,
     /// A description of the services this administrative body may provide.
     #[serde(default)]
-    pub voter_services: Option<Vec<String>>,
+    pub voter_services: ::core::option::Option<::std::vec::Vec<String>>,
     /// A URL provided by this administrative body for looking up where to vote.
     #[serde(default, rename = "votingLocationFinderUrl")]
-    pub voting_location_finder_url: Option<String>,
+    pub voting_location_finder_url: ::core::option::Option<String>,
 }
 
 /// Information about a candidate running for elected office.
@@ -170,28 +193,29 @@ pub struct CivicinfoSchemaV2AdministrativeBody {
 pub struct CivicinfoSchemaV2Candidate {
     /// The URL for the candidate''s campaign web site.
     #[serde(default, rename = "candidateUrl")]
-    pub candidate_url: Option<String>,
+    pub candidate_url: ::core::option::Option<String>,
     /// A list of known (social) media channels for this candidate.
     #[serde(default)]
-    pub channels: Option<Vec<CivicinfoSchemaV2Channel>>,
+    pub channels:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Channel>>>,
     /// The email address for the candidate''s campaign.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The candidate''s name. If this is a joint ticket it will indicate the name of the candidate at the top of a ticket followed by a / and that name of candidate at the bottom of the ticket. e.g. "Mitt Romney / Paul Ryan"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The order the candidate appears on the ballot for this contest.
     #[serde(default, rename = "orderOnBallot")]
-    pub order_on_ballot: Option<String>,
+    pub order_on_ballot: ::core::option::Option<String>,
     /// The full name of the party the candidate is a member of.
     #[serde(default)]
-    pub party: Option<String>,
+    pub party: ::core::option::Option<String>,
     /// The voice phone number for the candidate''s campaign office.
     #[serde(default)]
-    pub phone: Option<String>,
+    pub phone: ::core::option::Option<String>,
     /// A URL for a photo of the candidate.
     #[serde(default, rename = "photoUrl")]
-    pub photo_url: Option<String>,
+    pub photo_url: ::core::option::Option<String>,
 }
 
 /// A social media or web channel for a candidate.
@@ -199,10 +223,10 @@ pub struct CivicinfoSchemaV2Candidate {
 pub struct CivicinfoSchemaV2Channel {
     /// The unique public identifier for the candidate''s channel.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The type of channel. The following is a list of types of channels, but is not exhaustive. More channel types may be added at a later time. One of: GooglePlus, YouTube, Facebook, Twitter
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about a contest that appears on a voter''s ballot.
@@ -210,76 +234,78 @@ pub struct CivicinfoSchemaV2Channel {
 pub struct CivicinfoSchemaV2Contest {
     /// A number specifying the position of this contest on the voter''s ballot.
     #[serde(default, rename = "ballotPlacement")]
-    pub ballot_placement: Option<String>,
+    pub ballot_placement: ::core::option::Option<String>,
     /// The official title on the ballot for this contest, only where available.
     #[serde(default, rename = "ballotTitle")]
-    pub ballot_title: Option<String>,
+    pub ballot_title: ::core::option::Option<String>,
     /// The candidate choices for this contest.
     #[serde(default)]
-    pub candidates: Option<Vec<CivicinfoSchemaV2Candidate>>,
+    pub candidates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Candidate>>>,
     /// Information about the electoral district that this contest is in.
     #[serde(default)]
-    pub district: Option<CivicinfoSchemaV2ElectoralDistrict>,
+    pub district: ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2ElectoralDistrict>>,
     /// A description of any additional eligibility requirements for voting in this contest.
     #[serde(default, rename = "electorateSpecifications")]
-    pub electorate_specifications: Option<String>,
+    pub electorate_specifications: ::core::option::Option<String>,
     /// The levels of government of the office for this contest. There may be more than one in cases where a jurisdiction effectively acts at two different levels of government; for example, the mayor of the District of Columbia acts at "locality" level, but also effectively at both "administrative-area-2" and "administrative-area-1".
     #[serde(default)]
-    pub level: Option<Vec<String>>,
+    pub level: ::core::option::Option<::std::vec::Vec<String>>,
     /// The number of candidates that will be elected to office in this contest.
     #[serde(default, rename = "numberElected")]
-    pub number_elected: Option<String>,
+    pub number_elected: ::core::option::Option<String>,
     /// The number of candidates that a voter may vote for in this contest.
     #[serde(default, rename = "numberVotingFor")]
-    pub number_voting_for: Option<String>,
+    pub number_voting_for: ::core::option::Option<String>,
     /// The name of the office for this contest.
     #[serde(default)]
-    pub office: Option<String>,
+    pub office: ::core::option::Option<String>,
     /// If this is a partisan election, the name of the party/parties it is for.
     #[serde(default, rename = "primaryParties")]
-    pub primary_parties: Option<Vec<String>>,
+    pub primary_parties: ::core::option::Option<::std::vec::Vec<String>>,
     /// The set of ballot responses for the referendum. A ballot response represents a line on the ballot. Common examples might include "yes" or "no" for referenda. This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumBallotResponses")]
-    pub referendum_ballot_responses: Option<Vec<String>>,
+    pub referendum_ballot_responses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Specifies a short summary of the referendum that is typically on the ballot below the title but above the text. This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumBrief")]
-    pub referendum_brief: Option<String>,
+    pub referendum_brief: ::core::option::Option<String>,
     /// A statement in opposition to the referendum. It does not necessarily appear on the ballot. This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumConStatement")]
-    pub referendum_con_statement: Option<String>,
+    pub referendum_con_statement: ::core::option::Option<String>,
     /// Specifies what effect abstaining (not voting) on the proposition will have (i.e. whether abstaining is considered a vote against it). This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumEffectOfAbstain")]
-    pub referendum_effect_of_abstain: Option<String>,
+    pub referendum_effect_of_abstain: ::core::option::Option<String>,
     /// The threshold of votes that the referendum needs in order to pass, e.g. "two-thirds". This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumPassageThreshold")]
-    pub referendum_passage_threshold: Option<String>,
+    pub referendum_passage_threshold: ::core::option::Option<String>,
     /// A statement in favor of the referendum. It does not necessarily appear on the ballot. This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumProStatement")]
-    pub referendum_pro_statement: Option<String>,
+    pub referendum_pro_statement: ::core::option::Option<String>,
     /// A brief description of the referendum. This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumSubtitle")]
-    pub referendum_subtitle: Option<String>,
+    pub referendum_subtitle: ::core::option::Option<String>,
     /// The full text of the referendum. This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumText")]
-    pub referendum_text: Option<String>,
+    pub referendum_text: ::core::option::Option<String>,
     /// The title of the referendum (e.g. ''Proposition 42''). This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumTitle")]
-    pub referendum_title: Option<String>,
+    pub referendum_title: ::core::option::Option<String>,
     /// A link to the referendum. This field is only populated for contests of type ''Referendum''.
     #[serde(default, rename = "referendumUrl")]
-    pub referendum_url: Option<String>,
+    pub referendum_url: ::core::option::Option<String>,
     /// The roles which this office fulfills.
     #[serde(default)]
-    pub roles: Option<Vec<String>>,
+    pub roles: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of sources for this contest. If multiple sources are listed, the data has been aggregated from those sources.
     #[serde(default)]
-    pub sources: Option<Vec<CivicinfoSchemaV2Source>>,
+    pub sources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Source>>>,
     /// "Yes" or "No" depending on whether this a contest being held outside the normal election cycle.
     #[serde(default)]
-    pub special: Option<String>,
+    pub special: ::core::option::Option<String>,
     /// The type of contest. Usually this will be ''General'', ''Primary'', or ''Run-off'' for contests with candidates. For referenda this will be ''Referendum''. For Retention contests this will typically be ''Retention''.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about the election that was queried.
@@ -287,19 +313,19 @@ pub struct CivicinfoSchemaV2Contest {
 pub struct CivicinfoSchemaV2Election {
     /// Day of the election in YYYY-MM-DD format.
     #[serde(default, rename = "electionDay")]
-    pub election_day: Option<String>,
+    pub election_day: ::core::option::Option<String>,
     /// The unique ID of this election.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// A displayable name for the election.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The political division of the election. Represented as an OCD Division ID. Voters within these political jurisdictions are covered by this election. This is typically a state such as ocd-division/country:us/state:ca or for the midterms or general election the entire US (i.e. ocd-division/country:us).
     #[serde(default, rename = "ocdDivisionId")]
-    pub ocd_division_id: Option<String>,
+    pub ocd_division_id: ::core::option::Option<String>,
     /// TODO: enum values: ["shapeLookupDefault", "shapeLookupDisabled", "shapeLookupEnabled"]
     #[serde(default, rename = "shapeLookupBehavior")]
-    pub shape_lookup_behavior: Option<String>,
+    pub shape_lookup_behavior: ::core::option::Option<String>,
 }
 
 /// Information about individual election officials.
@@ -307,19 +333,19 @@ pub struct CivicinfoSchemaV2Election {
 pub struct CivicinfoSchemaV2ElectionOfficial {
     /// The email address of the election official.
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<String>,
+    pub email_address: ::core::option::Option<String>,
     /// The fax number of the election official.
     #[serde(default, rename = "faxNumber")]
-    pub fax_number: Option<String>,
+    pub fax_number: ::core::option::Option<String>,
     /// The full name of the election official.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The office phone number of the election official.
     #[serde(default, rename = "officePhoneNumber")]
-    pub office_phone_number: Option<String>,
+    pub office_phone_number: ::core::option::Option<String>,
     /// The title of the election official.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Describes the geographic scope of a contest.
@@ -327,13 +353,13 @@ pub struct CivicinfoSchemaV2ElectionOfficial {
 pub struct CivicinfoSchemaV2ElectoralDistrict {
     /// An identifier for this district, relative to its scope. For example, the 34th State Senate district would have id "34" and a scope of stateUpper.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The name of the district.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The geographic scope of this district. If unspecified the district''s geography is not known. One of: national, statewide, congressional, stateUpper, stateLower, countywide, judicial, schoolBoard, cityWide, township, countyCouncil, cityCouncil, ward, special // TODO: enum values: ["statewide", "congressional", "stateUpper", "stateLower", "countywide", "judicial", "schoolBoard", "citywide", "special", "countyCouncil", "township", "ward", "cityCouncil", "national"]
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
 }
 
 /// Describes a political geography.
@@ -341,13 +367,13 @@ pub struct CivicinfoSchemaV2ElectoralDistrict {
 pub struct CivicinfoSchemaV2GeographicDivision {
     /// Any other valid OCD IDs that refer to the same division.\n\nBecause OCD IDs are meant to be human-readable and at least somewhat predictable, there are occasionally several identifiers for a single division. These identifiers are defined to be equivalent to one another, and one is always indicated as the primary identifier. The primary identifier will be returned in ocd_id above, and any other equivalent valid identifiers will be returned in this list.\n\nFor example, if this division''s OCD ID is ocd-division/country:us/district:dc, this will contain ocd-division/country:us/state:dc.
     #[serde(default, rename = "alsoKnownAs")]
-    pub also_known_as: Option<Vec<String>>,
+    pub also_known_as: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the division.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// List of indices in the offices array, one for each office elected from this division. Will only be present if includeOffices was true (or absent) in the request.
     #[serde(default, rename = "officeIndices")]
-    pub office_indices: Option<Vec<i64>>,
+    pub office_indices: ::core::option::Option<::std::vec::Vec<i64>>,
 }
 
 /// A location where a voter can vote. This may be an early vote site, an election day voting location, or a drop off location for a completed ballot.
@@ -355,34 +381,35 @@ pub struct CivicinfoSchemaV2GeographicDivision {
 pub struct CivicinfoSchemaV2PollingLocation {
     /// The address of the location.
     #[serde(default)]
-    pub address: Option<CivicinfoSchemaV2SimpleAddressType>,
+    pub address: ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2SimpleAddressType>>,
     /// The last date that this early vote site or drop off location may be used. This field is not populated for polling locations.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// Latitude of the location, in degrees north of the equator. Note this field may not be available for some locations.
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// Longitude of the location, in degrees east of the Prime Meridian. Note this field may not be available for some locations.
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
     /// The name of the early vote site or drop off location. This field is not populated for polling locations.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Notes about this location (e.g. accessibility ramp or entrance to use).
     #[serde(default)]
-    pub notes: Option<String>,
+    pub notes: ::core::option::Option<String>,
     /// A description of when this location is open.
     #[serde(default, rename = "pollingHours")]
-    pub polling_hours: Option<String>,
+    pub polling_hours: ::core::option::Option<String>,
     /// A list of sources for this location. If multiple sources are listed the data has been aggregated from those sources.
     #[serde(default)]
-    pub sources: Option<Vec<CivicinfoSchemaV2Source>>,
+    pub sources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2Source>>>,
     /// The first date that this early vote site or drop off location may be used. This field is not populated for polling locations.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// The services provided by this early vote site or drop off location. This field is not populated for polling locations.
     #[serde(default, rename = "voterServices")]
-    pub voter_services: Option<String>,
+    pub voter_services: ::core::option::Option<String>,
 }
 
 /// CivicinfoSchemaV2Precinct resource type.
@@ -390,74 +417,74 @@ pub struct CivicinfoSchemaV2PollingLocation {
 pub struct CivicinfoSchemaV2Precinct {
     /// ID of the AdministrationRegion message for this precinct. Corresponds to LocalityId xml tag.
     #[serde(default, rename = "administrationRegionId")]
-    pub administration_region_id: Option<String>,
+    pub administration_region_id: ::core::option::Option<String>,
     /// ID(s) of the Contest message(s) for this precinct.
     #[serde(default, rename = "contestId")]
-    pub contest_id: Option<Vec<String>>,
+    pub contest_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Dataset ID. What datasets our Precincts come from.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     /// ID(s) of the PollingLocation message(s) for this precinct.
     #[serde(default, rename = "earlyVoteSiteId")]
-    pub early_vote_site_id: Option<Vec<String>>,
+    pub early_vote_site_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// ID(s) of the ElectoralDistrict message(s) for this precinct.
     #[serde(default, rename = "electoralDistrictId")]
-    pub electoral_district_id: Option<Vec<String>>,
+    pub electoral_district_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. A unique identifier for this precinct.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Specifies if the precinct runs mail-only elections.
     #[serde(default, rename = "mailOnly")]
-    pub mail_only: Option<bool>,
+    pub mail_only: ::core::option::Option<bool>,
     /// Required. The name of the precinct.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The number of the precinct.
     #[serde(default)]
-    pub number: Option<String>,
+    pub number: ::core::option::Option<String>,
     /// Encouraged. The OCD ID of the precinct
     #[serde(default, rename = "ocdId")]
-    pub ocd_id: Option<Vec<String>>,
+    pub ocd_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// ID(s) of the PollingLocation message(s) for this precinct.
     #[serde(default, rename = "pollingLocationId")]
-    pub polling_location_id: Option<Vec<String>>,
+    pub polling_location_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// ID(s) of the SpatialBoundary message(s) for this precinct. Used to specify a geometrical boundary of the precinct.
     #[serde(default, rename = "spatialBoundaryId")]
-    pub spatial_boundary_id: Option<Vec<String>>,
+    pub spatial_boundary_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// If present, this proto corresponds to one portion of split precinct. Other portions of this precinct are guaranteed to have the same name. If not present, this proto represents a full precicnt.
     #[serde(default, rename = "splitName")]
-    pub split_name: Option<String>,
+    pub split_name: ::core::option::Option<String>,
     /// Specifies the ward the precinct is contained within.
     #[serde(default)]
-    pub ward: Option<String>,
+    pub ward: ::core::option::Option<String>,
 }
 
 /// A simple representation of an address.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CivicinfoSchemaV2SimpleAddressType {
     #[serde(default, rename = "addressLine")]
-    pub address_line: Option<Vec<String>>,
+    pub address_line: ::core::option::Option<::std::vec::Vec<String>>,
     /// The city or town for the address.
     #[serde(default)]
-    pub city: Option<String>,
+    pub city: ::core::option::Option<String>,
     /// The street name and number of this address.
     #[serde(default)]
-    pub line1: Option<String>,
+    pub line1: ::core::option::Option<String>,
     /// The second line the address, if needed.
     #[serde(default)]
-    pub line2: Option<String>,
+    pub line2: ::core::option::Option<String>,
     /// The third line of the address, if needed.
     #[serde(default)]
-    pub line3: Option<String>,
+    pub line3: ::core::option::Option<String>,
     /// The name of the location.
     #[serde(default, rename = "locationName")]
-    pub location_name: Option<String>,
+    pub location_name: ::core::option::Option<String>,
     /// The US two letter state abbreviation of the address.
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The US Postal Zip Code of the address.
     #[serde(default)]
-    pub zip: Option<String>,
+    pub zip: ::core::option::Option<String>,
 }
 
 /// Contains information about the data source for the element containing it.
@@ -465,8 +492,8 @@ pub struct CivicinfoSchemaV2SimpleAddressType {
 pub struct CivicinfoSchemaV2Source {
     /// The name of the data source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Whether this data comes from an official government source.
     #[serde(default)]
-    pub official: Option<bool>,
+    pub official: ::core::option::Option<bool>,
 }

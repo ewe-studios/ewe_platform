@@ -10,27 +10,27 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The URI of an storage archive or a signed URL to use as the build source.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ArchiveSource {
     /// Optional. Deprecated: Not used. The author contained in the metadata of a version control change.
     #[serde(default)]
-    pub author: Option<SourceUserMetadata>,
+    pub author: ::core::option::Option<::std::boxed::Box<SourceUserMetadata>>,
     /// Optional. An optional message that describes the uploaded version of the source code.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Signed URL to an archive in a storage bucket.
     #[serde(default, rename = "externalSignedUri")]
-    pub external_signed_uri: Option<String>,
+    pub external_signed_uri: ::core::option::Option<String>,
     /// Optional. The directory relative to the root of the archive to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the package.json or apphosting.yaml file.
     #[serde(default, rename = "rootDirectory")]
-    pub root_directory: Option<String>,
+    pub root_directory: ::core::option::Option<String>,
     /// URI to an archive in Cloud Storage. The object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to deploy.
     #[serde(default, rename = "userStorageUri")]
-    pub user_storage_uri: Option<String>,
+    pub user_storage_uri: ::core::option::Option<String>,
 }
 
 /// A backend is the primary resource of App Hosting.
@@ -38,61 +38,62 @@ pub struct ArchiveSource {
 pub struct Backend {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Optional. The [ID of a Web App](https://firebase.google.com/docs/reference/firebase-management/rest/v1beta1/projects.webApps#WebApp.FIELDS.app_id) associated with the backend.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// Optional. If specified, the connection to an external source repository to watch for event-driven updates to the backend.
     #[serde(default)]
-    pub codebase: Option<Codebase>,
+    pub codebase: ::core::option::Option<::std::boxed::Box<Codebase>>,
     /// Output only. Time at which the backend was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time at which the backend was deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Optional. Human-readable name. 63 character limit.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. The environment name of the backend, used to load environment variables from environment specific configuration.
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Unstructured key value map that can be used to organize and categorize objects.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. A list of the resources managed by this backend.
     #[serde(default, rename = "managedResources")]
-    pub managed_resources: Option<Vec<ManagedResource>>,
+    pub managed_resources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedResource>>>,
     /// Optional. Deprecated: Use environment instead.
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Identifier. The resource name of the backend. Format: projects/{project}/locations/{locationId}/backends/{backendId}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that, if true, indicates that the system is working to make adjustments to the backend during a LRO.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Optional. A field that, if true, indicates that incoming request logs are disabled for this backend. Incoming request logs are enabled by default.
     #[serde(default, rename = "requestLogsDisabled")]
-    pub request_logs_disabled: Option<bool>,
+    pub request_logs_disabled: ::core::option::Option<bool>,
     /// Required. The name of the service account used for Cloud Build and Cloud Run. Should have the role roles/firebaseapphosting.computeRunner or equivalent permissions.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Required. Immutable. Specifies how App Hosting will serve the content for this backend. It will either be contained to a single region (REGIONAL_STRICT) or allowed to use App Hosting''s global-replicated serving infrastructure (GLOBAL_ACCESS). // TODO: enum values: ["SERVING_LOCALITY_UNSPECIFIED", "REGIONAL_STRICT", "GLOBAL_ACCESS"]
     #[serde(default, rename = "servingLocality")]
-    pub serving_locality: Option<String>,
+    pub serving_locality: ::core::option::Option<String>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Time at which the backend was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The primary URI to communicate with the backend.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// A single build for a backend, at a specific point codebase reference tag and point in time. Encapsulates several resources, including an Artifact Registry container image, a Cloud Build invocation that built the image, and the Cloud Run revision that uses that image.
@@ -100,55 +101,55 @@ pub struct Backend {
 pub struct Build {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. The location of the [Cloud Build logs](https://cloud.google.com/build/docs/view-build-results) for the build process.
     #[serde(default, rename = "buildLogsUri")]
-    pub build_logs_uri: Option<String>,
+    pub build_logs_uri: ::core::option::Option<String>,
     /// Optional. Additional configuration of the service.
     #[serde(default)]
-    pub config: Option<Config>,
+    pub config: ::core::option::Option<::std::boxed::Box<Config>>,
     /// Output only. Time at which the build was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time at which the build was deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Optional. Human-readable name. 63 character limit.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The environment name of the backend when this build was created.
     #[serde(default)]
-    pub environment: Option<String>,
+    pub environment: ::core::option::Option<String>,
     /// Output only. A list of all errors that occurred during an App Hosting build.
     #[serde(default)]
-    pub errors: Option<Vec<Error>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Error>>>,
     /// Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. The Artifact Registry [container image](https://cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.dockerImages) URI, used by the Cloud Run [revision](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services.revisions) for this build.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// Optional. Unstructured key value map that can be used to organize and categorize objects.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the build. Format: projects/{project}/locations/{locationId}/backends/{backendId}/builds/{buildId}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that, if true, indicates that the build has an ongoing LRO.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Required. Immutable. The source for the build.
     #[serde(default)]
-    pub source: Option<BuildSource>,
+    pub source: ::core::option::Option<::std::boxed::Box<BuildSource>>,
     /// Output only. The state of the build. // TODO: enum values: ["STATE_UNSPECIFIED", "BUILDING", "BUILT", "DEPLOYING", "READY", "FAILED", "SKIPPED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Time at which the build was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The source for the build.
@@ -156,13 +157,13 @@ pub struct Build {
 pub struct BuildSource {
     /// An archive source.
     #[serde(default)]
-    pub archive: Option<ArchiveSource>,
+    pub archive: ::core::option::Option<::std::boxed::Box<ArchiveSource>>,
     /// A codebase source.
     #[serde(default)]
-    pub codebase: Option<CodebaseSource>,
+    pub codebase: ::core::option::Option<::std::boxed::Box<CodebaseSource>>,
     /// An Artifact Registry container image source.
     #[serde(default)]
-    pub container: Option<ContainerSource>,
+    pub container: ::core::option::Option<::std::boxed::Box<ContainerSource>>,
 }
 
 /// The connection to an external source repository to watch for event-driven updates to the backend.
@@ -170,10 +171,10 @@ pub struct BuildSource {
 pub struct Codebase {
     /// Required. The resource name for the Developer Connect [gitRepositoryLink](https://cloud.google.com/developer-connect/docs/api/reference/rest/v1/projects.locations.connections.gitRepositoryLinks) connected to this backend, in the format: projects/{project}/locations/{location}/connections/{connection}/gitRepositoryLinks/{repositoryLink} The connection for the gitRepositoryLink must made be using the Firebase App Hosting GitHub App via the Firebase Console.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
     /// Optional. If repository is provided, the directory relative to the root of the repository to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the package.json or apphosting.yaml file.
     #[serde(default, rename = "rootDirectory")]
-    pub root_directory: Option<String>,
+    pub root_directory: ::core::option::Option<String>,
 }
 
 /// A codebase source, representing the state of the codebase that the build will be created at.
@@ -181,31 +182,31 @@ pub struct Codebase {
 pub struct CodebaseSource {
     /// Output only. The author contained in the metadata of a version control change.
     #[serde(default)]
-    pub author: Option<UserMetadata>,
+    pub author: ::core::option::Option<::std::boxed::Box<UserMetadata>>,
     /// The branch in the codebase to build from, using the latest commit.
     #[serde(default)]
-    pub branch: Option<String>,
+    pub branch: ::core::option::Option<String>,
     /// The commit in the codebase to build from.
     #[serde(default)]
-    pub commit: Option<String>,
+    pub commit: ::core::option::Option<String>,
     /// Output only. The message of a codebase change.
     #[serde(default, rename = "commitMessage")]
-    pub commit_message: Option<String>,
+    pub commit_message: ::core::option::Option<String>,
     /// Output only. The time the change was made.
     #[serde(default, rename = "commitTime")]
-    pub commit_time: Option<String>,
+    pub commit_time: ::core::option::Option<String>,
     /// Output only. The human-friendly name to use for this Codebase when displaying a build. We use the first eight characters of the SHA-1 hash for GitHub.com.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The full SHA-1 hash of a Git commit, if available.
     #[serde(default)]
-    pub hash: Option<String>,
+    pub hash: ::core::option::Option<String>,
     /// Output only. The resource name for the Developer Connect [gitRepositoryLink](https://cloud.google.com/developer-connect/docs/api/reference/rest/v1/projects.locations.connections.gitRepositoryLinks) used for this build, in the format: projects/{project}/locations/{location}/connections/{connection}/gitRepositoryLinks/{repositoryLink}
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
     /// Output only. A URI linking to the codebase on an hosting provider''s website. May not be valid if the commit has been rebased or force-pushed out of existence in the linked repository.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Additional configuration of the backend for this build.
@@ -213,13 +214,14 @@ pub struct CodebaseSource {
 pub struct Config {
     /// Output only. [OUTPUT_ONLY] This field represents all environment variables employed during both the build and runtime. This list reflects the result of merging variables from all sources (Backend.override_env, Build.Config.env, YAML, defaults, system). Each variable includes its origin
     #[serde(default, rename = "effectiveEnv")]
-    pub effective_env: Option<Vec<EnvironmentVariable>>,
+    pub effective_env:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnvironmentVariable>>>,
     /// Optional. Supplied environment variables for a specific build. Provided at Build creation time and immutable afterwards. This field is only applicable for Builds using a build image - (e.g., ContainerSource or ArchiveSource with locally_built_source) Attempts to set this for other build types will result in an error
     #[serde(default)]
-    pub env: Option<Vec<EnvironmentVariable>>,
+    pub env: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnvironmentVariable>>>,
     /// Optional. Additional configuration of the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
     #[serde(default, rename = "runConfig")]
-    pub run_config: Option<RunConfig>,
+    pub run_config: ::core::option::Option<::std::boxed::Box<RunConfig>>,
 }
 
 /// The URI of an Artifact Registry [container image](https://cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.dockerImages) to use as the build source.
@@ -227,7 +229,7 @@ pub struct Config {
 pub struct ContainerSource {
     /// Required. A URI representing a container for the backend to use.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
 }
 
 /// Additional metadata for operations on custom domains.
@@ -235,22 +237,23 @@ pub struct ContainerSource {
 pub struct CustomDomainOperationMetadata {
     /// Output only. The custom domain''s CertState, which must be CERT_ACTIVE for the create operations to complete. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
     #[serde(default, rename = "certState")]
-    pub cert_state: Option<String>,
+    pub cert_state: ::core::option::Option<String>,
     /// Output only. The custom domain''s HostState, which must be HOST_ACTIVE for Create operations of the domain name this CustomDomain refers toto complete. // TODO: enum values: ["HOST_STATE_UNSPECIFIED", "HOST_UNHOSTED", "HOST_UNREACHABLE", "HOST_NON_FAH", "HOST_CONFLICT", "HOST_WRONG_SHARD", "HOST_ACTIVE"]
     #[serde(default, rename = "hostState")]
-    pub host_state: Option<String>,
+    pub host_state: ::core::option::Option<String>,
     /// Output only. A list of issues that are currently preventing the operation from completing. These are generally DNS-related issues encountered when querying a domain''s records or attempting to mint an SSL certificate.
     #[serde(default)]
-    pub issues: Option<Vec<Status>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Output only. A list of steps that the user must complete to migrate their domain to App Hosting without downtime.
     #[serde(default, rename = "liveMigrationSteps")]
-    pub live_migration_steps: Option<Vec<LiveMigrationStep>>,
+    pub live_migration_steps:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LiveMigrationStep>>>,
     /// Output only. The custom domain''s OwnershipState, which must be OWNERSHIP_ACTIVE for the create operations to complete. // TODO: enum values: ["OWNERSHIP_STATE_UNSPECIFIED", "OWNERSHIP_MISSING", "OWNERSHIP_UNREACHABLE", "OWNERSHIP_MISMATCH", "OWNERSHIP_CONFLICT", "OWNERSHIP_PENDING", "OWNERSHIP_ACTIVE"]
     #[serde(default, rename = "ownershipState")]
-    pub ownership_state: Option<String>,
+    pub ownership_state: ::core::option::Option<String>,
     /// Output only. A set of DNS record updates to perform, to allow App Hosting to serve secure content on the domain.
     #[serde(default, rename = "quickSetupUpdates")]
-    pub quick_setup_updates: Option<Vec<DnsUpdates>>,
+    pub quick_setup_updates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsUpdates>>>,
 }
 
 /// The status of a custom domain''s linkage to a backend.
@@ -258,19 +261,20 @@ pub struct CustomDomainOperationMetadata {
 pub struct CustomDomainStatus {
     /// Output only. Tracks SSL certificate status for the domain. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
     #[serde(default, rename = "certState")]
-    pub cert_state: Option<String>,
+    pub cert_state: ::core::option::Option<String>,
     /// Output only. Tracks whether a custom domain is detected as appropriately directing traffic to App Hosting. // TODO: enum values: ["HOST_STATE_UNSPECIFIED", "HOST_UNHOSTED", "HOST_UNREACHABLE", "HOST_NON_FAH", "HOST_CONFLICT", "HOST_WRONG_SHARD", "HOST_ACTIVE"]
     #[serde(default, rename = "hostState")]
-    pub host_state: Option<String>,
+    pub host_state: ::core::option::Option<String>,
     /// Output only. A list of issues with domain configuration. Allows users to self-correct problems with DNS records.
     #[serde(default)]
-    pub issues: Option<Vec<Status>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Output only. Tracks whether the backend is permitted to serve content on the domain, based off the domain''s DNS records. // TODO: enum values: ["OWNERSHIP_STATE_UNSPECIFIED", "OWNERSHIP_MISSING", "OWNERSHIP_UNREACHABLE", "OWNERSHIP_MISMATCH", "OWNERSHIP_CONFLICT", "OWNERSHIP_PENDING", "OWNERSHIP_ACTIVE"]
     #[serde(default, rename = "ownershipState")]
-    pub ownership_state: Option<String>,
+    pub ownership_state: ::core::option::Option<String>,
     /// Output only. Lists the records that must added or removed to a custom domain''s DNS in order to finish setup and start serving content. Field is present during onboarding. Also present after onboarding if one or more of the above states is not *_ACTIVE, indicating the domain''s DNS records are in a bad state.
     #[serde(default, rename = "requiredDnsUpdates")]
-    pub required_dns_updates: Option<Vec<DnsUpdates>>,
+    pub required_dns_updates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsUpdates>>>,
 }
 
 /// A representation of a DNS records for a domain. DNS records are resource records that define how systems and services should behave when handling requests for a domain. For example, when you add A records to your domain''s DNS records, you''re informing other systems (such as your users'' web browsers) to contact those IPv4 addresses to retrieve resources relevant to your domain (such as your App Hosting files).
@@ -278,19 +282,19 @@ pub struct CustomDomainStatus {
 pub struct DnsRecord {
     /// Output only. The domain the record pertains to, e.g. foo.bar.com..
     #[serde(default, rename = "domainName")]
-    pub domain_name: Option<String>,
+    pub domain_name: ::core::option::Option<String>,
     /// Output only. The data of the record. The meaning of the value depends on record type: - A and AAAA: IP addresses for the domain. - CNAME: Another domain to check for records. - TXT: Arbitrary text strings associated with the domain. App Hosting uses TXT records to determine which Firebase projects have permission to act on the domain''s behalf. - CAA: The record''s flags, tag, and value, e.g. 0 issue "pki.goog".
     #[serde(default)]
-    pub rdata: Option<String>,
+    pub rdata: ::core::option::Option<String>,
     /// Output only. An enum that indicates which state(s) this DNS record applies to. Populated for all records with an ADD or REMOVE required action.
     #[serde(default, rename = "relevantState")]
-    pub relevant_state: Option<Vec<String>>,
+    pub relevant_state: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. An enum that indicates the a required action for this record. Populated when the record is part of a required change in a DnsUpdates discovered or desired record set. // TODO: enum values: ["NONE", "ADD", "REMOVE"]
     #[serde(default, rename = "requiredAction")]
-    pub required_action: Option<String>,
+    pub required_action: ::core::option::Option<String>,
     /// Output only. The record''s type, which determines what data the record contains. // TODO: enum values: ["TYPE_UNSPECIFIED", "A", "CNAME", "TXT", "AAAA", "CAA"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A set of DNS records relevant to the setup and maintenance of a custom domain in App Hosting.
@@ -298,13 +302,13 @@ pub struct DnsRecord {
 pub struct DnsRecordSet {
     /// Output only. An error App Hosting services encountered when querying your domain''s DNS records. Note: App Hosting ignores NXDOMAIN errors, as those generally just mean that a domain name hasn''t been set up yet.
     #[serde(default, rename = "checkError")]
-    pub check_error: Option<Status>,
+    pub check_error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The domain name the record set pertains to.
     #[serde(default, rename = "domainName")]
-    pub domain_name: Option<String>,
+    pub domain_name: ::core::option::Option<String>,
     /// Output only. Records on the domain.
     #[serde(default)]
-    pub records: Option<Vec<DnsRecord>>,
+    pub records: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsRecord>>>,
 }
 
 /// A set of DNS record updates that you should make to allow App Hosting to serve secure content in response to requests against your domain. These updates present the current state of your domain''s and related subdomains'' DNS records when App Hosting last queried them, and the desired set of records that App Hosting needs to see before your custom domain can be fully active.
@@ -312,16 +316,16 @@ pub struct DnsRecordSet {
 pub struct DnsUpdates {
     /// Output only. The last time App Hosting checked your custom domain''s DNS records.
     #[serde(default, rename = "checkTime")]
-    pub check_time: Option<String>,
+    pub check_time: ::core::option::Option<String>,
     /// Output only. The set of DNS records App Hosting needs in order to be able to serve secure content on the domain.
     #[serde(default)]
-    pub desired: Option<Vec<DnsRecordSet>>,
+    pub desired: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsRecordSet>>>,
     /// Output only. The set of DNS records App Hosting discovered when inspecting a domain.
     #[serde(default)]
-    pub discovered: Option<Vec<DnsRecordSet>>,
+    pub discovered: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsRecordSet>>>,
     /// Output only. The domain name the DNS updates pertain to.
     #[serde(default, rename = "domainName")]
-    pub domain_name: Option<String>,
+    pub domain_name: ::core::option::Option<String>,
 }
 
 /// A domain name that is associated with a backend.
@@ -329,46 +333,46 @@ pub struct DnsUpdates {
 pub struct Domain {
     /// Optional. Annotations as key value pairs.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. Time at which the domain was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Represents the state and configuration of a CUSTOM type domain. It is only present on Domains of that type.
     #[serde(default, rename = "customDomainStatus")]
-    pub custom_domain_status: Option<CustomDomainStatus>,
+    pub custom_domain_status: ::core::option::Option<::std::boxed::Box<CustomDomainStatus>>,
     /// Output only. Time at which the domain was deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Optional. Whether the domain is disabled. Defaults to false.
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// Optional. Mutable human-readable name for the domain. 63 character limit. e.g. prod domain.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the domain, e.g. /projects/p/locations/l/backends/b/domains/foo.com
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that, if true, indicates that the build has an ongoing LRO.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Optional. The serving behavior of the domain. If specified, the domain will serve content other than its backend''s live content.
     #[serde(default)]
-    pub serve: Option<ServingBehavior>,
+    pub serve: ::core::option::Option<::std::boxed::Box<ServingBehavior>>,
     /// Output only. The type of the domain. // TODO: enum values: ["TYPE_UNSPECIFIED", "DEFAULT", "CUSTOM"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Time at which the domain was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of a long-running operation on domains.
@@ -376,28 +380,29 @@ pub struct Domain {
 pub struct DomainOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Additional metadata for operations on custom domains.
     #[serde(default, rename = "customDomainOperationMetadata")]
-    pub custom_domain_operation_metadata: Option<CustomDomainOperationMetadata>,
+    pub custom_domain_operation_metadata:
+        ::core::option::Option<::std::boxed::Box<CustomDomainOperationMetadata>>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Environment variables for this build.
@@ -405,22 +410,22 @@ pub struct DomainOperationMetadata {
 pub struct EnvironmentVariable {
     /// Optional. Where this variable should be made available. If left unspecified, will be available in both BUILD and BACKEND.
     #[serde(default)]
-    pub availability: Option<Vec<String>>,
+    pub availability: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The high-level origin category of the environment variable. // TODO: enum values: ["ORIGIN_UNSPECIFIED", "BACKEND_OVERRIDES", "BUILD_CONFIG", "APPHOSTING_YAML", "FIREBASE_SYSTEM"]
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
     /// Output only. Specific detail about the source. For APPHOSTING_YAML origins, this will contain the exact filename, such as "apphosting.yaml" or "apphosting.staging.yaml".
     #[serde(default, rename = "originFileName")]
-    pub origin_file_name: Option<String>,
+    pub origin_file_name: ::core::option::Option<String>,
     /// A fully qualified secret version. The value of the secret will be accessed once while building the application and once per cold start of the container at runtime. The service account used by Cloud Build and by Cloud Run must each have the secretmanager.versions.access permission on the secret.
     #[serde(default)]
-    pub secret: Option<String>,
+    pub secret: ::core::option::Option<String>,
     /// A plaintext value. This value is encrypted at rest, but all project readers can view the value when reading your backend configuration.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
     /// Required. The name of the environment variable. The environment variables reserved by [Cloud Run](https://docs.cloud.google.com/run/docs/configuring/services/environment-variables#reserved) should not be set. Additionally, variable names cannot start with "X_FIREBASE_".
     #[serde(default)]
-    pub variable: Option<String>,
+    pub variable: ::core::option::Option<String>,
 }
 
 /// The container for the rpc status and source for any errors found during the build process.
@@ -428,13 +433,13 @@ pub struct EnvironmentVariable {
 pub struct Error {
     /// Output only. Resource link
     #[serde(default, rename = "cloudResource")]
-    pub cloud_resource: Option<String>,
+    pub cloud_resource: ::core::option::Option<String>,
     /// Output only. A status and (human readable) error message for the build, if in a FAILED state.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The source of the error for the build, if in a FAILED state. // TODO: enum values: ["ERROR_SOURCE_UNSPECIFIED", "CLOUD_BUILD", "CLOUD_RUN"]
     #[serde(default, rename = "errorSource")]
-    pub error_source: Option<String>,
+    pub error_source: ::core::option::Option<String>,
 }
 
 /// Message for response to list backends
@@ -442,13 +447,13 @@ pub struct Error {
 pub struct ListBackendsResponse {
     /// The list of backends
     #[serde(default)]
-    pub backends: Option<Vec<Backend>>,
+    pub backends: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Backend>>>,
     /// A token identifying the next page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to list builds.
@@ -456,13 +461,13 @@ pub struct ListBackendsResponse {
 pub struct ListBuildsResponse {
     /// The list of builds.
     #[serde(default)]
-    pub builds: Option<Vec<Build>>,
+    pub builds: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Build>>>,
     /// A token identifying the next page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to list domains.
@@ -470,13 +475,13 @@ pub struct ListBuildsResponse {
 pub struct ListDomainsResponse {
     /// Output only. The list of domains.
     #[serde(default)]
-    pub domains: Option<Vec<Domain>>,
+    pub domains: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Domain>>>,
     /// Output only. A token identifying the next page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -484,10 +489,10 @@ pub struct ListDomainsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -495,13 +500,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to list rollouts.
@@ -509,13 +514,13 @@ pub struct ListOperationsResponse {
 pub struct ListRolloutsResponse {
     /// A token identifying the next page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of rollouts.
     #[serde(default)]
-    pub rollouts: Option<Vec<Rollout>>,
+    pub rollouts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Rollout>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A set of updates including ACME challenges and DNS records that allow App Hosting to create an SSL certificate and establish project ownership for your domain name before you direct traffic to App Hosting servers. Use these updates to facilitate zero downtime migrations to App Hosting from other services. After you''ve made the recommended updates, check your custom domain''s ownershipState and certState. To avoid downtime, they should be OWNERSHIP_ACTIVE and CERT_ACTIVE, respectively, before you update your A and AAAA records.
@@ -523,16 +528,16 @@ pub struct ListRolloutsResponse {
 pub struct LiveMigrationStep {
     /// Output only. DNS updates to facilitate your domain''s zero-downtime migration to App Hosting.
     #[serde(default, rename = "dnsUpdates")]
-    pub dns_updates: Option<Vec<DnsUpdates>>,
+    pub dns_updates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsUpdates>>>,
     /// Output only. Issues that prevent the current step from completing.
     #[serde(default)]
-    pub issues: Option<Vec<Status>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Output only. One or more states from the CustomDomainStatus of the migrating domain that this step is attempting to make ACTIVE. For example, if the step is attempting to mint an SSL certificate, this field will include CERT_STATE.
     #[serde(default, rename = "relevantDomainStates")]
-    pub relevant_domain_states: Option<Vec<String>>,
+    pub relevant_domain_states: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The state of the live migration step, indicates whether you should work to complete the step now, in the future, or have already completed it. // TODO: enum values: ["STEP_STATE_UNSPECIFIED", "PREPARING", "PENDING", "INCOMPLETE", "PROCESSING", "COMPLETE"]
     #[serde(default, rename = "stepState")]
-    pub step_state: Option<String>,
+    pub step_state: ::core::option::Option<String>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -540,19 +545,19 @@ pub struct LiveMigrationStep {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An external resource managed by App Hosting on the project.
@@ -560,7 +565,7 @@ pub struct Location {
 pub struct ManagedResource {
     /// A Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), managed by App Hosting.
     #[serde(default, rename = "runService")]
-    pub run_service: Option<RunService>,
+    pub run_service: ::core::option::Option<::std::boxed::Box<RunService>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -568,19 +573,19 @@ pub struct ManagedResource {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of a long-running operation.
@@ -588,25 +593,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// A file path pattern to match against.
@@ -614,10 +619,10 @@ pub struct OperationMetadata {
 pub struct Path {
     /// Optional. The pattern to match against.
     #[serde(default)]
-    pub pattern: Option<String>,
+    pub pattern: ::core::option::Option<String>,
     /// Optional. The type of pattern to match against. // TODO: enum values: ["PATTERN_TYPE_UNSPECIFIED", "RE2", "GLOB", "PREFIX"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Specifies redirect behavior for a domain.
@@ -625,10 +630,10 @@ pub struct Path {
 pub struct Redirect {
     /// Optional. The status code to use in a redirect response. Must be a valid HTTP 3XX status code. Defaults to 302 if not present.
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Required. The URI of the redirect''s intended destination. This URI will be prepended to the original request path. URI without a scheme are assumed to be HTTPS.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// A single rollout of a build for a backend.
@@ -636,43 +641,43 @@ pub struct Redirect {
 pub struct Rollout {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Required. Immutable. The name of a build that already exists. It doesn''t have to be built; a rollout will wait for a build to be ready before updating traffic.
     #[serde(default)]
-    pub build: Option<String>,
+    pub build: ::core::option::Option<String>,
     /// Output only. Time at which the rollout was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Time at which the rollout was deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Optional. Human-readable name. 63 character limit.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. A status and (human readable) error message for the rollout, if in a FAILED state.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Unstructured key value map that can be used to organize and categorize objects.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the rollout. Format: projects/{project}/locations/{locationId}/backends/{backendId}/rollouts/{rolloutId}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that, if true, indicates that the Rollout currently has an LRO.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The state of the rollout. // TODO: enum values: ["STATE_UNSPECIFIED", "QUEUED", "PENDING_BUILD", "PROGRESSING", "PAUSED", "SUCCEEDED", "FAILED", "CANCELLED", "SKIPPED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Time at which the rollout was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The policy for how automatic builds and rollouts are triggered and rolled out.
@@ -680,19 +685,19 @@ pub struct Rollout {
 pub struct RolloutPolicy {
     /// If set, specifies a branch that triggers a new build to be started with this policy. Otherwise, no automatic rollouts will happen.
     #[serde(default, rename = "codebaseBranch")]
-    pub codebase_branch: Option<String>,
+    pub codebase_branch: ::core::option::Option<String>,
     /// Optional. A flag that, if true, prevents automatic rollouts from being created via this RolloutPolicy.
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// Output only. If disabled is set, the time at which the automatic rollouts were disabled.
     #[serde(default, rename = "disabledTime")]
-    pub disabled_time: Option<String>,
+    pub disabled_time: ::core::option::Option<String>,
     /// Optional. A list of file paths patterns to exclude from triggering a rollout. Patterns in this list take precedence over required_paths. **Note**: All paths must be in the ignored_paths in order for the rollout to be skipped. Limited to 100 paths. Example: ignored_paths: { pattern: "foo/bar/excluded/*” type: GLOB }
     #[serde(default, rename = "ignoredPaths")]
-    pub ignored_paths: Option<Vec<Path>>,
+    pub ignored_paths: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Path>>>,
     /// Optional. A list of file paths patterns that trigger a build and rollout if at least one of the changed files in the commit are present in this list. This field is optional; the rollout policy will default to triggering on all paths if not populated. Limited to 100 paths. Example: “required_paths: { pattern: "foo/bar/*” type: GLOB }
     #[serde(default, rename = "requiredPaths")]
-    pub required_paths: Option<Vec<Path>>,
+    pub required_paths: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Path>>>,
 }
 
 /// Configuration applied to the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
@@ -700,19 +705,19 @@ pub struct RolloutPolicy {
 pub struct RunConfig {
     /// Optional. Maximum number of requests that each Cloud Run instance can receive. By default, each instance can receive Cloud Run''s default of up to 80 requests at the same time. Concurrency can be set to any integer value up to 1000.
     #[serde(default)]
-    pub concurrency: Option<i32>,
+    pub concurrency: ::core::option::Option<i32>,
     /// Optional. Number of CPUs used for each serving instance. By default, cpu defaults to the Cloud Run''s default of 1.0. CPU can be set to value 1, 2, 4, 6, or 8 CPUs, and for less than 1 CPU, a value from 0.08 to less than 1.00, in increments of 0.01. If you set a value of less than 1 CPU, you must set concurrency to 1, and CPU will only be allocated during request processing. Increasing CPUs limit may require increase in memory limits: - 4 CPUs: at least 2 GiB - 6 CPUs: at least 4 GiB - 8 CPUs: at least 4 GiB
     #[serde(default)]
-    pub cpu: Option<f32>,
+    pub cpu: ::core::option::Option<f32>,
     /// Optional. Number of Cloud Run instances to maintain at maximum for each revision. By default, each Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service) scales out to Cloud Run''s default of a maximum of 100 instances. The maximum max_instances limit is based on your quota. See https://cloud.google.com/run/docs/configuring/max-instances#limits.
     #[serde(default, rename = "maxInstances")]
-    pub max_instances: Option<i32>,
+    pub max_instances: ::core::option::Option<i32>,
     /// Optional. Amount of memory allocated for each serving instance in MiB. By default, memory defaults to the Cloud Run''s default where each instance is allocated 512 MiB of memory. Memory can be set to any integer value between 128 to 32768. Increasing memory limit may require increase in CPUs limits: - Over 4 GiB: at least 2 CPUs - Over 8 GiB: at least 4 CPUs - Over 16 GiB: at least 6 CPUs - Over 24 GiB: at least 8 CPUs
     #[serde(default, rename = "memoryMib")]
-    pub memory_mib: Option<i32>,
+    pub memory_mib: ::core::option::Option<i32>,
     /// Optional. Number of Cloud Run instances to maintain at minimum for each Cloud Run Service. By default, there are no minimum. Even if the service splits traffic across multiple revisions, the total number of instances for a service will be capped at this value.
     #[serde(default, rename = "minInstances")]
-    pub min_instances: Option<i32>,
+    pub min_instances: ::core::option::Option<i32>,
 }
 
 /// A managed Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
@@ -720,7 +725,7 @@ pub struct RunConfig {
 pub struct RunService {
     /// Optional. The name of the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), in the format: projects/{project}/locations/{location}/services/{serviceId}
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Indicates whether App Hosting will serve content on the domain.
@@ -728,7 +733,7 @@ pub struct RunService {
 pub struct ServingBehavior {
     /// Optional. Redirect behavior for a domain, if provided.
     #[serde(default)]
-    pub redirect: Option<Redirect>,
+    pub redirect: ::core::option::Option<::std::boxed::Box<Redirect>>,
 }
 
 /// Deprecated: Not used. Metadata for the user who started the build.
@@ -736,13 +741,13 @@ pub struct ServingBehavior {
 pub struct SourceUserMetadata {
     /// Output only. Deprecated: Not used. The user-chosen displayname. May be empty.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Deprecated: Not used. The account email linked to the EUC that created the build. May be a service account or other robot account.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Output only. Deprecated: Not used. The URI of a profile photo associated with the user who created the build.
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -750,13 +755,13 @@ pub struct SourceUserMetadata {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Controls traffic configuration for the backend.
@@ -764,37 +769,37 @@ pub struct Status {
 pub struct Traffic {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. Time at which the backend was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Current state of traffic allocation for the backend. When setting target, this field may differ for some time until the desired state is reached.
     #[serde(default)]
-    pub current: Option<TrafficSet>,
+    pub current: ::core::option::Option<::std::boxed::Box<TrafficSet>>,
     /// Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Unstructured key value map that can be used to organize and categorize objects.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the backend''s traffic. Format: projects/{project}/locations/{locationId}/backends/{backendId}/traffic.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A field that, if true, indicates that the system is working to make the backend''s current match the requested target list.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// A rollout policy specifies how new builds and automatic deployments are created.
     #[serde(default, rename = "rolloutPolicy")]
-    pub rollout_policy: Option<RolloutPolicy>,
+    pub rollout_policy: ::core::option::Option<::std::boxed::Box<RolloutPolicy>>,
     /// Set to manually control the desired traffic for the backend. This will cause current to eventually match this value. The percentages must add up to 100%.
     #[serde(default)]
-    pub target: Option<TrafficSet>,
+    pub target: ::core::option::Option<::std::boxed::Box<TrafficSet>>,
     /// Output only. System-assigned, unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. Time at which the backend was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A list of traffic splits that together represent where traffic is being routed.
@@ -802,7 +807,7 @@ pub struct Traffic {
 pub struct TrafficSet {
     /// Required. The list of traffic splits.
     #[serde(default)]
-    pub splits: Option<Vec<TrafficSplit>>,
+    pub splits: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TrafficSplit>>>,
 }
 
 /// The traffic allocation for the backend.
@@ -810,10 +815,10 @@ pub struct TrafficSet {
 pub struct TrafficSplit {
     /// Required. The build that traffic is being routed to.
     #[serde(default)]
-    pub build: Option<String>,
+    pub build: ::core::option::Option<String>,
     /// Required. The percentage of traffic to send to the build. Currently must be 100% or 0%.
     #[serde(default)]
-    pub percent: Option<i32>,
+    pub percent: ::core::option::Option<i32>,
 }
 
 /// Version control metadata for a user associated with a resolved codebase. Currently assumes a Git user.
@@ -821,11 +826,11 @@ pub struct TrafficSplit {
 pub struct UserMetadata {
     /// Output only. The ''name'' field in a Git user''s git.config. Required by Git.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The ''email'' field in a Git user''s git.config, if available.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Output only. The URI of an image file associated with the user''s account in an external source control provider, if available.
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
 }

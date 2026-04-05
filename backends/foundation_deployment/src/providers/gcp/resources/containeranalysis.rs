@@ -10,25 +10,25 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An alias to a repo revision.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AliasContext {
     /// The alias kind. // TODO: enum values: ["KIND_UNSPECIFIED", "FIXED", "MOVABLE", "OTHER"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The alias name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Indicates which analysis completed successfully. Multiple types of analysis can be performed on a single resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisCompleted {
     #[serde(default, rename = "analysisType")]
-    pub analysis_type: Option<Vec<String>>,
+    pub analysis_type: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Artifact describes a build product.
@@ -36,13 +36,13 @@ pub struct AnalysisCompleted {
 pub struct Artifact {
     /// Hash or checksum value of a binary, or Docker Registry 2.0 digest of a container.
     #[serde(default)]
-    pub checksum: Option<String>,
+    pub checksum: ::core::option::Option<String>,
     /// Artifact ID, if any; for container images, this will be a URL by digest like gcr.io/projectID/imagename@sha256:123456.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Related artifact names. This may be the path to a binary or jar file, or in the case of a container build, the name used to push the container image to Google Container Registry, as presented to docker push. Note that a single Artifact ID can have multiple names, for example if two tags are applied to one image.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Assessment provides all information that is related to a single vulnerability for this product.
@@ -50,31 +50,31 @@ pub struct Artifact {
 pub struct Assessment {
     /// Holds the MITRE standard Common Vulnerabilities and Exposures (CVE) tracking number for the vulnerability. Deprecated: Use vulnerability_id instead to denote CVEs.
     #[serde(default)]
-    pub cve: Option<String>,
+    pub cve: ::core::option::Option<String>,
     /// Contains information about the impact of this vulnerability, this will change with time.
     #[serde(default)]
-    pub impacts: Option<Vec<String>>,
+    pub impacts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Justification provides the justification when the state of the assessment if NOT_AFFECTED.
     #[serde(default)]
-    pub justification: Option<Justification>,
+    pub justification: ::core::option::Option<::std::boxed::Box<Justification>>,
     /// A detailed description of this Vex.
     #[serde(default, rename = "longDescription")]
-    pub long_description: Option<String>,
+    pub long_description: ::core::option::Option<String>,
     /// Holds a list of references associated with this vulnerability item and assessment. These uris have additional information about the vulnerability and the assessment itself. E.g. Link to a document which details how this assessment concluded the state of this vulnerability.
     #[serde(default, rename = "relatedUris")]
-    pub related_uris: Option<Vec<RelatedUrl>>,
+    pub related_uris: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RelatedUrl>>>,
     /// Specifies details on how to handle (and presumably, fix) a vulnerability.
     #[serde(default)]
-    pub remediations: Option<Vec<Remediation>>,
+    pub remediations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Remediation>>>,
     /// A one sentence description of this Vex.
     #[serde(default, rename = "shortDescription")]
-    pub short_description: Option<String>,
+    pub short_description: ::core::option::Option<String>,
     /// Provides the state of this Vulnerability assessment. // TODO: enum values: ["STATE_UNSPECIFIED", "AFFECTED", "NOT_AFFECTED", "FIXED", "UNDER_INVESTIGATION"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The vulnerability identifier for this Assessment. Will hold one of common identifiers e.g. CVE, GHSA etc.
     #[serde(default, rename = "vulnerabilityId")]
-    pub vulnerability_id: Option<String>,
+    pub vulnerability_id: ::core::option::Option<String>,
 }
 
 /// Note kind that represents a logical attestation "role" or "authority". For example, an organization might have one Authority for "QA" and one for "build". This note is intended to act strictly as a grouping mechanism for the attached occurrences (Attestations). This grouping mechanism also provides a security boundary, since IAM ACLs gate the ability for a principle to attach an occurrence to a given note. It also provides a single point of lookup to find all attached attestation occurrences, even if they don''t all live in the same project.
@@ -82,7 +82,7 @@ pub struct Assessment {
 pub struct AttestationNote {
     /// Hint hints at the purpose of the attestation authority.
     #[serde(default)]
-    pub hint: Option<Hint>,
+    pub hint: ::core::option::Option<::std::boxed::Box<Hint>>,
 }
 
 /// Occurrence that represents a single "attestation". The authenticity of an attestation can be verified using the attached signature. If the verifier trusts the public key of the signer, then verifying the signature is sufficient to establish trust. In this circumstance, the authority to which this attestation is attached is primarily useful for lookup (how to find this attestation if you already know the authority and artifact to be verified) and intent (for which authority this attestation was intended to sign.
@@ -90,13 +90,13 @@ pub struct AttestationNote {
 pub struct AttestationOccurrence {
     /// One or more JWTs encoding a self-contained attestation. Each JWT encodes the payload that it verifies within the JWT itself. Verifier implementation SHOULD ignore the serialized_payload field when verifying these JWTs. If only JWTs are present on this AttestationOccurrence, then the serialized_payload SHOULD be left empty. Each JWT SHOULD encode a claim specific to the resource_uri of this Occurrence, but this is not validated by Grafeas metadata API implementations. The JWT itself is opaque to Grafeas.
     #[serde(default)]
-    pub jwts: Option<Vec<Jwt>>,
+    pub jwts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Jwt>>>,
     /// Required. The serialized payload that is verified by one or more signatures.
     #[serde(default, rename = "serializedPayload")]
-    pub serialized_payload: Option<String>,
+    pub serialized_payload: ::core::option::Option<String>,
     /// One or more signatures over serialized_payload. Verifier implementations should consider this attestation message verified if at least one signature verifies serialized_payload. See Signature in common.proto for more details on signature structure and verification.
     #[serde(default)]
-    pub signatures: Option<Vec<Signature>>,
+    pub signatures: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Signature>>>,
 }
 
 /// BaseImage describes a base image of a container image.
@@ -104,16 +104,16 @@ pub struct AttestationOccurrence {
 pub struct BaseImage {
     /// The number of layers that the base image is composed of.
     #[serde(default, rename = "layerCount")]
-    pub layer_count: Option<i32>,
+    pub layer_count: ::core::option::Option<i32>,
     /// The name of the base image.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The registry in which the base image is from.
     #[serde(default)]
-    pub registry: Option<String>,
+    pub registry: ::core::option::Option<String>,
     /// The repository name in which the base image is from.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
 }
 
 /// Response for creating notes in batch.
@@ -121,7 +121,7 @@ pub struct BaseImage {
 pub struct BatchCreateNotesResponse {
     /// The notes that were created.
     #[serde(default)]
-    pub notes: Option<Vec<Note>>,
+    pub notes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Note>>>,
 }
 
 /// Request to create occurrences in batch.
@@ -129,7 +129,7 @@ pub struct BatchCreateNotesResponse {
 pub struct BatchCreateOccurrencesRequest {
     /// Required. The occurrences to create. Max allowed length is 1000.
     #[serde(default)]
-    pub occurrences: Option<Vec<Occurrence>>,
+    pub occurrences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Occurrence>>>,
 }
 
 /// Response for creating occurrences in batch.
@@ -137,7 +137,7 @@ pub struct BatchCreateOccurrencesRequest {
 pub struct BatchCreateOccurrencesResponse {
     /// The occurrences that were created.
     #[serde(default)]
-    pub occurrences: Option<Vec<Occurrence>>,
+    pub occurrences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Occurrence>>>,
 }
 
 /// Associates members, or principals, with a role.
@@ -145,37 +145,38 @@ pub struct BatchCreateOccurrencesResponse {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// BuildDefinition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuildDefinition {
     #[serde(default, rename = "buildType")]
-    pub build_type: Option<String>,
+    pub build_type: ::core::option::Option<String>,
     #[serde(default, rename = "externalParameters")]
-    pub external_parameters: Option<serde_json::Value>,
+    pub external_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "internalParameters")]
-    pub internal_parameters: Option<serde_json::Value>,
+    pub internal_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "resolvedDependencies")]
-    pub resolved_dependencies: Option<Vec<ResourceDescriptor>>,
+    pub resolved_dependencies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceDescriptor>>>,
 }
 
 /// BuildMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuildMetadata {
     #[serde(default, rename = "finishedOn")]
-    pub finished_on: Option<String>,
+    pub finished_on: ::core::option::Option<String>,
     #[serde(default, rename = "invocationId")]
-    pub invocation_id: Option<String>,
+    pub invocation_id: ::core::option::Option<String>,
     #[serde(default, rename = "startedOn")]
-    pub started_on: Option<String>,
+    pub started_on: ::core::option::Option<String>,
 }
 
 /// Note holding the version of the provider''s builder and the signature of the provenance message in the build details occurrence.
@@ -183,7 +184,7 @@ pub struct BuildMetadata {
 pub struct BuildNote {
     /// Required. Immutable. Version of the builder which produced this build.
     #[serde(default, rename = "builderVersion")]
-    pub builder_version: Option<String>,
+    pub builder_version: ::core::option::Option<String>,
 }
 
 /// Details of a build occurrence.
@@ -191,19 +192,20 @@ pub struct BuildNote {
 pub struct BuildOccurrence {
     /// In-Toto Slsa Provenance V1 represents a slsa provenance meeting the slsa spec, wrapped in an in-toto statement. This allows for direct jsonification of a to-spec in-toto slsa statement with a to-spec slsa provenance.
     #[serde(default, rename = "inTotoSlsaProvenanceV1")]
-    pub in_toto_slsa_provenance_v1: Option<InTotoSlsaProvenanceV1>,
+    pub in_toto_slsa_provenance_v1:
+        ::core::option::Option<::std::boxed::Box<InTotoSlsaProvenanceV1>>,
     /// Deprecated. See InTotoStatement for the replacement. In-toto Provenance representation as defined in spec.
     #[serde(default, rename = "intotoProvenance")]
-    pub intoto_provenance: Option<InTotoProvenance>,
+    pub intoto_provenance: ::core::option::Option<::std::boxed::Box<InTotoProvenance>>,
     /// In-toto Statement representation as defined in spec. The intoto_statement can contain any type of provenance. The serialized payload of the statement can be stored and signed in the Occurrence''s envelope.
     #[serde(default, rename = "intotoStatement")]
-    pub intoto_statement: Option<InTotoStatement>,
+    pub intoto_statement: ::core::option::Option<::std::boxed::Box<InTotoStatement>>,
     /// The actual provenance for the build.
     #[serde(default)]
-    pub provenance: Option<BuildProvenance>,
+    pub provenance: ::core::option::Option<::std::boxed::Box<BuildProvenance>>,
     /// Serialized JSON representation of the provenance, used in generating the build signature in the corresponding build note. After verifying the signature, provenance_bytes can be unmarshalled and compared to the provenance to confirm that it is unchanged. A base64-encoded string representation of the provenance bytes is used for the signature in order to interoperate with openssl which expects this format for signature verification. The serialized form is captured both to avoid ambiguity in how the provenance is marshalled to json as well to prevent incompatibilities with future changes.
     #[serde(default, rename = "provenanceBytes")]
-    pub provenance_bytes: Option<String>,
+    pub provenance_bytes: ::core::option::Option<String>,
 }
 
 /// Provenance of a build. Contains all information needed to verify the full details about the build from source to completion.
@@ -211,43 +213,43 @@ pub struct BuildOccurrence {
 pub struct BuildProvenance {
     /// Special options applied to this build. This is a catch-all field where build providers can enter any desired additional details.
     #[serde(default, rename = "buildOptions")]
-    pub build_options: Option<serde_json::Value>,
+    pub build_options: ::core::option::Option<serde_json::Value>,
     /// Version string of the builder at the time this build was executed.
     #[serde(default, rename = "builderVersion")]
-    pub builder_version: Option<String>,
+    pub builder_version: ::core::option::Option<String>,
     /// Output of the build.
     #[serde(default, rename = "builtArtifacts")]
-    pub built_artifacts: Option<Vec<Artifact>>,
+    pub built_artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Artifact>>>,
     /// Commands requested by the build.
     #[serde(default)]
-    pub commands: Option<Vec<Command>>,
+    pub commands: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Command>>>,
     /// Time at which the build was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// E-mail address of the user who initiated this build. Note that this was the user''s e-mail address at the time the build was initiated; this address may not represent the same end-user for all time.
     #[serde(default)]
-    pub creator: Option<String>,
+    pub creator: ::core::option::Option<String>,
     /// Time at which execution of the build was finished.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Required. Unique identifier of the build.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// URI where any logs for this provenance were written.
     #[serde(default, rename = "logsUri")]
-    pub logs_uri: Option<String>,
+    pub logs_uri: ::core::option::Option<String>,
     /// ID of the project.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Details of the Source input to the build.
     #[serde(default, rename = "sourceProvenance")]
-    pub source_provenance: Option<Source>,
+    pub source_provenance: ::core::option::Option<::std::boxed::Box<Source>>,
     /// Time at which execution of the build was started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Trigger identifier if the build was triggered automatically; empty if not.
     #[serde(default, rename = "triggerId")]
-    pub trigger_id: Option<String>,
+    pub trigger_id: ::core::option::Option<String>,
 }
 
 /// A step in the build pipeline. Next ID: 23
@@ -255,70 +257,70 @@ pub struct BuildProvenance {
 pub struct BuildStep {
     /// Allow this build step to fail without failing the entire build if and only if the exit code is one of the specified codes. If allow_failure is also specified, this field will take precedence.
     #[serde(default, rename = "allowExitCodes")]
-    pub allow_exit_codes: Option<Vec<i32>>,
+    pub allow_exit_codes: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Allow this build step to fail without failing the entire build. If false, the entire build will fail if this step fails. Otherwise, the build will succeed, but this step will still have a failure status. Error information will be reported in the failure_detail field.
     #[serde(default, rename = "allowFailure")]
-    pub allow_failure: Option<bool>,
+    pub allow_failure: ::core::option::Option<bool>,
     /// A list of arguments that will be presented to the step when it is started. If the image used to run the step''s container has an entrypoint, the args are used as arguments to that entrypoint. If the image does not define an entrypoint, the first element in args is used as the entrypoint, and the remainder will be used as arguments.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Option to include built-in and custom substitutions as env variables for this build step. This option will override the global option in BuildOption.
     #[serde(default, rename = "automapSubstitutions")]
-    pub automap_substitutions: Option<bool>,
+    pub automap_substitutions: ::core::option::Option<bool>,
     /// Working directory to use when running this step''s container. If this value is a relative path, it is relative to the build''s working directory. If this value is absolute, it may be outside the build''s working directory, in which case the contents of the path may not be persisted across build step executions, unless a volume for that path is specified. If the build specifies a RepoSource with dir and a step with a dir, which specifies an absolute path, the RepoSource dir is ignored for the step''s execution.
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// Entrypoint to be used instead of the build step image''s default entrypoint. If unset, the image''s default entrypoint is used.
     #[serde(default)]
-    pub entrypoint: Option<String>,
+    pub entrypoint: ::core::option::Option<String>,
     /// A list of environment variable definitions to be used when running a step. The elements are of the form "KEY=VALUE" for the environment variable "KEY" being given the value "VALUE".
     #[serde(default)]
-    pub env: Option<Vec<String>>,
+    pub env: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Return code from running the step.
     #[serde(default, rename = "exitCode")]
-    pub exit_code: Option<i32>,
+    pub exit_code: ::core::option::Option<i32>,
     /// Unique identifier for this build step, used in wait_for to reference this build step as a dependency.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. The name of the container image that will run this particular build step. If the image is available in the host''s Docker daemon''s cache, it will be run directly. If not, the host will attempt to pull the image first, using the builder service account''s credentials if necessary. The Docker daemon''s cache will already have the latest versions of all of the officially supported build steps ([https://github.com/GoogleCloudPlatform/cloud-builders](https://github.com/GoogleCloudPlatform/cloud-builders)). The Docker daemon will also have cached many of the layers for some popular images, like "ubuntu", "debian", but they will be refreshed at the time you attempt to use them. If you built an image in a previous build step, it will be stored in the host''s Docker daemon''s cache and is available to use as the name for a later build step.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Stores timing information for pulling this build step''s builder image only.
     #[serde(default, rename = "pullTiming")]
-    pub pull_timing: Option<TimeSpan>,
+    pub pull_timing: ::core::option::Option<::std::boxed::Box<TimeSpan>>,
     /// Remote configuration for the build step.
     #[serde(default, rename = "remoteConfig")]
-    pub remote_config: Option<String>,
+    pub remote_config: ::core::option::Option<String>,
     #[serde(default)]
-    pub results: Option<Vec<StepResult>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StepResult>>>,
     /// A shell script to be executed in the step. When script is provided, the user cannot specify the entrypoint or args.
     #[serde(default)]
-    pub script: Option<String>,
+    pub script: ::core::option::Option<String>,
     /// A list of environment variables which are encrypted using a Cloud Key Management Service crypto key. These values must be specified in the build''s Secret.
     #[serde(default, rename = "secretEnv")]
-    pub secret_env: Option<Vec<String>>,
+    pub secret_env: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Status of the build step. At this time, build step status is only updated on build completion; step status is not updated in real-time as the build progresses. // TODO: enum values: ["STATUS_UNKNOWN", "PENDING", "QUEUING", "QUEUED", "WORKING", "SUCCESS", "FAILURE", "INTERNAL_ERROR", "TIMEOUT", "CANCELLED", "EXPIRED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Time limit for executing this build step. If not defined, the step has no time limit and will be allowed to continue to run until either it completes or the build itself times out.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
     /// Output only. Stores timing information for executing this build step.
     #[serde(default)]
-    pub timing: Option<TimeSpan>,
+    pub timing: ::core::option::Option<::std::boxed::Box<TimeSpan>>,
     /// List of volumes to mount into the build step. Each volume is created as an empty volume prior to execution of the build step. Upon completion of the build, volumes and their contents are discarded. Using a named volume in only one step is not valid as it is indicative of a build request with an incorrect configuration.
     #[serde(default)]
-    pub volumes: Option<Vec<Volume>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Volume>>>,
     /// The ID(s) of the step(s) that this build step depends on. This build step will not start until all the build steps in wait_for have completed successfully. If wait_for is empty, this build step will start when all previous build steps in the Build.Steps list have completed successfully.
     #[serde(default, rename = "waitFor")]
-    pub wait_for: Option<Vec<String>>,
+    pub wait_for: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// BuilderConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuilderConfig {
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// CISAKnownExploitedVulnerabilities resource type.
@@ -326,7 +328,7 @@ pub struct BuilderConfig {
 pub struct CISAKnownExploitedVulnerabilities {
     /// Whether the vulnerability is known to have been leveraged as part of a ransomware campaign.
     #[serde(default, rename = "knownRansomwareCampaignUse")]
-    pub known_ransomware_campaign_use: Option<String>,
+    pub known_ransomware_campaign_use: ::core::option::Option<String>,
 }
 
 /// Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.
@@ -334,38 +336,38 @@ pub struct CISAKnownExploitedVulnerabilities {
 pub struct CVSS {
     /// TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH", "ATTACK_COMPLEXITY_MEDIUM"]
     #[serde(default, rename = "attackComplexity")]
-    pub attack_complexity: Option<String>,
+    pub attack_complexity: ::core::option::Option<String>,
     /// Base Metrics Represents the intrinsic characteristics of a vulnerability that are constant over time and across user environments. // TODO: enum values: ["ATTACK_VECTOR_UNSPECIFIED", "ATTACK_VECTOR_NETWORK", "ATTACK_VECTOR_ADJACENT", "ATTACK_VECTOR_LOCAL", "ATTACK_VECTOR_PHYSICAL"]
     #[serde(default, rename = "attackVector")]
-    pub attack_vector: Option<String>,
+    pub attack_vector: ::core::option::Option<String>,
     /// TODO: enum values: ["AUTHENTICATION_UNSPECIFIED", "AUTHENTICATION_MULTIPLE", "AUTHENTICATION_SINGLE", "AUTHENTICATION_NONE"]
     #[serde(default)]
-    pub authentication: Option<String>,
+    pub authentication: ::core::option::Option<String>,
     /// TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE", "IMPACT_PARTIAL", "IMPACT_COMPLETE"]
     #[serde(default, rename = "availabilityImpact")]
-    pub availability_impact: Option<String>,
+    pub availability_impact: ::core::option::Option<String>,
     /// The base score is a function of the base metric scores.
     #[serde(default, rename = "baseScore")]
-    pub base_score: Option<f32>,
+    pub base_score: ::core::option::Option<f32>,
     /// TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE", "IMPACT_PARTIAL", "IMPACT_COMPLETE"]
     #[serde(default, rename = "confidentialityImpact")]
-    pub confidentiality_impact: Option<String>,
+    pub confidentiality_impact: ::core::option::Option<String>,
     #[serde(default, rename = "exploitabilityScore")]
-    pub exploitability_score: Option<f32>,
+    pub exploitability_score: ::core::option::Option<f32>,
     #[serde(default, rename = "impactScore")]
-    pub impact_score: Option<f32>,
+    pub impact_score: ::core::option::Option<f32>,
     /// TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE", "IMPACT_PARTIAL", "IMPACT_COMPLETE"]
     #[serde(default, rename = "integrityImpact")]
-    pub integrity_impact: Option<String>,
+    pub integrity_impact: ::core::option::Option<String>,
     /// TODO: enum values: ["PRIVILEGES_REQUIRED_UNSPECIFIED", "PRIVILEGES_REQUIRED_NONE", "PRIVILEGES_REQUIRED_LOW", "PRIVILEGES_REQUIRED_HIGH"]
     #[serde(default, rename = "privilegesRequired")]
-    pub privileges_required: Option<String>,
+    pub privileges_required: ::core::option::Option<String>,
     /// TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_UNCHANGED", "SCOPE_CHANGED"]
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// TODO: enum values: ["USER_INTERACTION_UNSPECIFIED", "USER_INTERACTION_NONE", "USER_INTERACTION_REQUIRED"]
     #[serde(default, rename = "userInteraction")]
-    pub user_interaction: Option<String>,
+    pub user_interaction: ::core::option::Option<String>,
 }
 
 /// Common Vulnerability Scoring System version 3. For details, see https://www.first.org/cvss/specification-document
@@ -373,35 +375,35 @@ pub struct CVSS {
 pub struct CVSSv3 {
     /// TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH"]
     #[serde(default, rename = "attackComplexity")]
-    pub attack_complexity: Option<String>,
+    pub attack_complexity: ::core::option::Option<String>,
     /// Base Metrics Represents the intrinsic characteristics of a vulnerability that are constant over time and across user environments. // TODO: enum values: ["ATTACK_VECTOR_UNSPECIFIED", "ATTACK_VECTOR_NETWORK", "ATTACK_VECTOR_ADJACENT", "ATTACK_VECTOR_LOCAL", "ATTACK_VECTOR_PHYSICAL"]
     #[serde(default, rename = "attackVector")]
-    pub attack_vector: Option<String>,
+    pub attack_vector: ::core::option::Option<String>,
     /// TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
     #[serde(default, rename = "availabilityImpact")]
-    pub availability_impact: Option<String>,
+    pub availability_impact: ::core::option::Option<String>,
     /// The base score is a function of the base metric scores.
     #[serde(default, rename = "baseScore")]
-    pub base_score: Option<f32>,
+    pub base_score: ::core::option::Option<f32>,
     /// TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
     #[serde(default, rename = "confidentialityImpact")]
-    pub confidentiality_impact: Option<String>,
+    pub confidentiality_impact: ::core::option::Option<String>,
     #[serde(default, rename = "exploitabilityScore")]
-    pub exploitability_score: Option<f32>,
+    pub exploitability_score: ::core::option::Option<f32>,
     #[serde(default, rename = "impactScore")]
-    pub impact_score: Option<f32>,
+    pub impact_score: ::core::option::Option<f32>,
     /// TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
     #[serde(default, rename = "integrityImpact")]
-    pub integrity_impact: Option<String>,
+    pub integrity_impact: ::core::option::Option<String>,
     /// TODO: enum values: ["PRIVILEGES_REQUIRED_UNSPECIFIED", "PRIVILEGES_REQUIRED_NONE", "PRIVILEGES_REQUIRED_LOW", "PRIVILEGES_REQUIRED_HIGH"]
     #[serde(default, rename = "privilegesRequired")]
-    pub privileges_required: Option<String>,
+    pub privileges_required: ::core::option::Option<String>,
     /// TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_UNCHANGED", "SCOPE_CHANGED"]
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// TODO: enum values: ["USER_INTERACTION_UNSPECIFIED", "USER_INTERACTION_NONE", "USER_INTERACTION_REQUIRED"]
     #[serde(default, rename = "userInteraction")]
-    pub user_interaction: Option<String>,
+    pub user_interaction: ::core::option::Option<String>,
 }
 
 /// The category to which the update belongs.
@@ -409,20 +411,20 @@ pub struct CVSSv3 {
 pub struct Category {
     /// The identifier of the category.
     #[serde(default, rename = "categoryId")]
-    pub category_id: Option<String>,
+    pub category_id: ::core::option::Option<String>,
     /// The localized name of the category.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A compliance check that is a CIS benchmark.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CisBenchmark {
     #[serde(default, rename = "profileLevel")]
-    pub profile_level: Option<i32>,
+    pub profile_level: ::core::option::Option<i32>,
     /// TODO: enum values: ["SEVERITY_UNSPECIFIED", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// A CloudRepoSourceContext denotes a particular revision in a Google Cloud Source Repo.
@@ -430,13 +432,13 @@ pub struct CisBenchmark {
 pub struct CloudRepoSourceContext {
     /// An alias, which may be a branch or tag.
     #[serde(default, rename = "aliasContext")]
-    pub alias_context: Option<AliasContext>,
+    pub alias_context: ::core::option::Option<::std::boxed::Box<AliasContext>>,
     /// The ID of the repo.
     #[serde(default, rename = "repoId")]
-    pub repo_id: Option<RepoId>,
+    pub repo_id: ::core::option::Option<::std::boxed::Box<RepoId>>,
     /// A revision ID.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
 }
 
 /// Command describes a step performed as part of the build pipeline.
@@ -444,22 +446,22 @@ pub struct CloudRepoSourceContext {
 pub struct Command {
     /// Command-line arguments used when executing this command.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Working directory (relative to project source root) used when running this command.
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// Environment variables set before running this command.
     #[serde(default)]
-    pub env: Option<Vec<String>>,
+    pub env: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional unique identifier for this command, used in wait_for to reference this command as a dependency.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. Name of the command, as presented on the command line, or if the command is packaged as a Docker container, as presented to docker pull.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The ID(s) of the command(s) that this command depends on.
     #[serde(default, rename = "waitFor")]
-    pub wait_for: Option<Vec<String>>,
+    pub wait_for: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Indicates that the builder claims certain fields in this message to be complete.
@@ -467,52 +469,53 @@ pub struct Command {
 pub struct Completeness {
     /// If true, the builder claims that recipe.arguments is complete, meaning that all external inputs are properly captured in the recipe.
     #[serde(default)]
-    pub arguments: Option<bool>,
+    pub arguments: ::core::option::Option<bool>,
     /// If true, the builder claims that recipe.environment is claimed to be complete.
     #[serde(default)]
-    pub environment: Option<bool>,
+    pub environment: ::core::option::Option<bool>,
     /// If true, the builder claims that materials are complete, usually through some controls to prevent network access. Sometimes called "hermetic".
     #[serde(default)]
-    pub materials: Option<bool>,
+    pub materials: ::core::option::Option<bool>,
 }
 
 /// ComplianceNote resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComplianceNote {
     #[serde(default, rename = "cisBenchmark")]
-    pub cis_benchmark: Option<CisBenchmark>,
+    pub cis_benchmark: ::core::option::Option<::std::boxed::Box<CisBenchmark>>,
     /// A description about this compliance check.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub impact: Option<String>,
+    pub impact: ::core::option::Option<String>,
     /// A rationale for the existence of this compliance check.
     #[serde(default)]
-    pub rationale: Option<String>,
+    pub rationale: ::core::option::Option<String>,
     /// A description of remediation steps if the compliance check fails.
     #[serde(default)]
-    pub remediation: Option<String>,
+    pub remediation: ::core::option::Option<String>,
     /// Serialized scan instructions with a predefined format.
     #[serde(default, rename = "scanInstructions")]
-    pub scan_instructions: Option<String>,
+    pub scan_instructions: ::core::option::Option<String>,
     /// The title that identifies this compliance check.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The OS and config versions the benchmark applies to.
     #[serde(default)]
-    pub version: Option<Vec<ComplianceVersion>>,
+    pub version: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComplianceVersion>>>,
 }
 
 /// An indication that the compliance checks in the associated ComplianceNote were not satisfied for particular resources or a specified reason.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComplianceOccurrence {
     #[serde(default, rename = "nonComplianceReason")]
-    pub non_compliance_reason: Option<String>,
+    pub non_compliance_reason: ::core::option::Option<String>,
     #[serde(default, rename = "nonCompliantFiles")]
-    pub non_compliant_files: Option<Vec<NonCompliantFile>>,
+    pub non_compliant_files:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NonCompliantFile>>>,
     /// The OS and config version the benchmark was run on.
     #[serde(default)]
-    pub version: Option<ComplianceVersion>,
+    pub version: ::core::option::Option<::std::boxed::Box<ComplianceVersion>>,
 }
 
 /// Describes the CIS benchmark version that is applicable to a given OS and os version.
@@ -520,13 +523,13 @@ pub struct ComplianceOccurrence {
 pub struct ComplianceVersion {
     /// The name of the document that defines this benchmark, e.g. "CIS Container-Optimized OS".
     #[serde(default, rename = "benchmarkDocument")]
-    pub benchmark_document: Option<String>,
+    pub benchmark_document: ::core::option::Option<String>,
     /// The CPE URI (https://cpe.mitre.org/specification/) this benchmark is applicable to.
     #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: Option<String>,
+    pub cpe_uri: ::core::option::Option<String>,
     /// The version of the benchmark. This is set to the version of the OS-specific CIS document the benchmark is defined in.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// ApprovalConfig describes configuration for manual approval of a build.
@@ -534,7 +537,7 @@ pub struct ComplianceVersion {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalConfig {
     /// Whether or not approval is needed. If this is set on a build, it will become pending when created, and will need to be explicitly approved to start.
     #[serde(default, rename = "approvalRequired")]
-    pub approval_required: Option<bool>,
+    pub approval_required: ::core::option::Option<bool>,
 }
 
 /// ApprovalResult describes the decision and associated metadata of a manual approval of a build.
@@ -542,19 +545,19 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalConfig {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalResult {
     /// Output only. The time when the approval decision was made.
     #[serde(default, rename = "approvalTime")]
-    pub approval_time: Option<String>,
+    pub approval_time: ::core::option::Option<String>,
     /// Output only. Email of the user that called the ApproveBuild API to approve or reject a build at the time that the API was called.
     #[serde(default, rename = "approverAccount")]
-    pub approver_account: Option<String>,
+    pub approver_account: ::core::option::Option<String>,
     /// Optional. An optional comment for this manual approval result.
     #[serde(default)]
-    pub comment: Option<String>,
+    pub comment: ::core::option::Option<String>,
     /// Required. The decision of this manual approval. // TODO: enum values: ["DECISION_UNSPECIFIED", "APPROVED", "REJECTED"]
     #[serde(default)]
-    pub decision: Option<String>,
+    pub decision: ::core::option::Option<String>,
     /// Optional. An optional URL tied to this manual approval result. This field is essentially the same as comment, except that it will be rendered by the UI differently. An example use case is a link to an external job that approved this Build.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Artifacts produced by a build that should be uploaded upon successful completion of all build steps.
@@ -562,27 +565,45 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalResult {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Artifacts {
     /// Optional. A list of Go modules to be uploaded to Artifact Registry upon successful completion of all build steps. If any objects fail to be pushed, the build is marked FAILURE.
     #[serde(default, rename = "goModules")]
-    pub go_modules: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGoModule>>,
+    pub go_modules: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGoModule>,
+        >,
+    >,
     /// A list of images to be pushed upon the successful completion of all build steps. The images will be pushed using the builder service account''s credentials. The digests of the pushed images will be stored in the Build resource''s results field. If any of the images fail to be pushed, the build is marked FAILURE.
     #[serde(default)]
-    pub images: Option<Vec<String>>,
+    pub images: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of Maven artifacts to be uploaded to Artifact Registry upon successful completion of all build steps. Artifacts in the workspace matching specified paths globs will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any artifacts fail to be pushed, the build is marked FAILURE.
     #[serde(default, rename = "mavenArtifacts")]
-    pub maven_artifacts:
-        Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsMavenArtifact>>,
+    pub maven_artifacts: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsMavenArtifact>,
+        >,
+    >,
     /// A list of npm packages to be uploaded to Artifact Registry upon successful completion of all build steps. Npm packages in the specified paths will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any packages fail to be pushed, the build is marked FAILURE.
     #[serde(default, rename = "npmPackages")]
-    pub npm_packages: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsNpmPackage>>,
+    pub npm_packages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsNpmPackage>,
+        >,
+    >,
     /// A list of objects to be uploaded to Cloud Storage upon successful completion of all build steps. Files in the workspace matching specified paths globs will be uploaded to the specified Cloud Storage location using the builder service account''s credentials. The location and generation of the uploaded objects will be stored in the Build resource''s results field. If any objects fail to be pushed, the build is marked FAILURE.
     #[serde(default)]
-    pub objects: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsArtifactObjects>,
+    pub objects: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsArtifactObjects>,
+    >,
     /// Optional. A list of OCI images to be uploaded to Artifact Registry upon successful completion of all build steps. OCI images in the specified paths will be uploaded to the specified Artifact Registry repository using the builder service account''s credentials. If any images fail to be pushed, the build is marked FAILURE.
     #[serde(default)]
-    pub oci: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsOci>>,
+    pub oci: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsOci>>,
+    >,
     /// A list of Python packages to be uploaded to Artifact Registry upon successful completion of all build steps. The build service account credentials will be used to perform the upload. If any objects fail to be pushed, the build is marked FAILURE.
     #[serde(default, rename = "pythonPackages")]
-    pub python_packages:
-        Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsPythonPackage>>,
+    pub python_packages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsPythonPackage>,
+        >,
+    >,
 }
 
 /// Files in the workspace to upload to Cloud Storage upon successful completion of all build steps.
@@ -590,13 +611,15 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Artifacts {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsArtifactObjects {
     /// Cloud Storage bucket and optional object path, in the form "gs://bucket/path/to/somewhere/". (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)). Files in the workspace matching any path pattern will be uploaded to Cloud Storage with this location as a prefix.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Path globs used to match files in the build''s workspace.
     #[serde(default)]
-    pub paths: Option<Vec<String>>,
+    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Stores timing information for pushing all artifact objects.
     #[serde(default)]
-    pub timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
 }
 
 /// Go module to upload to Artifact Registry upon successful completion of all build steps. A module refers to all dependencies in a go.mod file.
@@ -604,22 +627,22 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsArtifactObjects {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGoModule {
     /// Optional. The Go module''s "module path". e.g. example.com/foo/v2
     #[serde(default, rename = "modulePath")]
-    pub module_path: Option<String>,
+    pub module_path: ::core::option::Option<String>,
     /// Optional. The Go module''s semantic version in the form vX.Y.Z. e.g. v0.1.1 Pre-release identifiers can also be added by appending a dash and dot separated ASCII alphanumeric characters and hyphens. e.g. v0.2.3-alpha.x.12m.5
     #[serde(default, rename = "moduleVersion")]
-    pub module_version: Option<String>,
+    pub module_version: ::core::option::Option<String>,
     /// Optional. Location of the Artifact Registry repository. i.e. us-east1 Defaults to the build’s location.
     #[serde(default, rename = "repositoryLocation")]
-    pub repository_location: Option<String>,
+    pub repository_location: ::core::option::Option<String>,
     /// Optional. Artifact Registry repository name. Specified Go modules will be zipped and uploaded to Artifact Registry with this location as a prefix. e.g. my-go-repo
     #[serde(default, rename = "repositoryName")]
-    pub repository_name: Option<String>,
+    pub repository_name: ::core::option::Option<String>,
     /// Optional. Project ID of the Artifact Registry repository. Defaults to the build project.
     #[serde(default, rename = "repositoryProjectId")]
-    pub repository_project_id: Option<String>,
+    pub repository_project_id: ::core::option::Option<String>,
     /// Optional. Source path of the go.mod file in the build''s workspace. If not specified, this will default to the current directory. e.g. ~/code/go/mypackage
     #[serde(default, rename = "sourcePath")]
-    pub source_path: Option<String>,
+    pub source_path: ::core::option::Option<String>,
 }
 
 /// A Maven artifact to upload to Artifact Registry upon successful completion of all build steps.
@@ -627,22 +650,22 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGoModule {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsMavenArtifact {
     /// Maven artifactId value used when uploading the artifact to Artifact Registry.
     #[serde(default, rename = "artifactId")]
-    pub artifact_id: Option<String>,
+    pub artifact_id: ::core::option::Option<String>,
     /// Optional. Path to a folder containing the files to upload to Artifact Registry. This can be either an absolute path, e.g. /workspace/my-app/target/, or a relative path from /workspace, e.g. my-app/target/. This field is mutually exclusive with the path field.
     #[serde(default, rename = "deployFolder")]
-    pub deploy_folder: Option<String>,
+    pub deploy_folder: ::core::option::Option<String>,
     /// Maven groupId value used when uploading the artifact to Artifact Registry.
     #[serde(default, rename = "groupId")]
-    pub group_id: Option<String>,
+    pub group_id: ::core::option::Option<String>,
     /// Optional. Path to an artifact in the build''s workspace to be uploaded to Artifact Registry. This can be either an absolute path, e.g. /workspace/my-app/target/my-app-1.0.SNAPSHOT.jar or a relative path from /workspace, e.g. my-app/target/my-app-1.0.SNAPSHOT.jar.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Artifact Registry repository, in the form "https://$REGION-maven.pkg.dev/$PROJECT/$REPOSITORY" Artifact in the workspace specified by path will be uploaded to Artifact Registry with this location as a prefix.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
     /// Maven version value used when uploading the artifact to Artifact Registry.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Npm package to upload to Artifact Registry upon successful completion of all build steps.
@@ -650,10 +673,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsMavenArtifact {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsNpmPackage {
     /// Optional. Path to the package.json. e.g. workspace/path/to/package Only one of archive or package_path can be specified.
     #[serde(default, rename = "packagePath")]
-    pub package_path: Option<String>,
+    pub package_path: ::core::option::Option<String>,
     /// Artifact Registry repository, in the form "https://$REGION-npm.pkg.dev/$PROJECT/$REPOSITORY" Npm package in the workspace specified by path will be zipped and uploaded to Artifact Registry with this location as a prefix.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
 }
 
 /// OCI image to upload to Artifact Registry upon successful completion of all build steps.
@@ -661,13 +684,13 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsNpmPackage {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsOci {
     /// Required. Path on the local file system where to find the container to upload. e.g. /workspace/my-image.tar
     #[serde(default)]
-    pub file: Option<String>,
+    pub file: ::core::option::Option<String>,
     /// Required. Registry path to upload the container to. e.g. us-east1-docker.pkg.dev/my-project/my-repo/my-image
     #[serde(default, rename = "registryPath")]
-    pub registry_path: Option<String>,
+    pub registry_path: ::core::option::Option<String>,
     /// Optional. Tags to apply to the uploaded image. e.g. latest, 1.0.0
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Python package to upload to Artifact Registry upon successful completion of all build steps. A package can encapsulate multiple objects to be uploaded to a single repository.
@@ -675,10 +698,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsOci {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsPythonPackage {
     /// Path globs used to match files in the build''s workspace. For Python/ Twine, this is usually dist/*, and sometimes additionally an .asc file.
     #[serde(default)]
-    pub paths: Option<Vec<String>>,
+    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
     /// Artifact Registry repository, in the form "https://$REGION-python.pkg.dev/$PROJECT/$REPOSITORY" Files in the workspace matching any path pattern will be uploaded to Artifact Registry with this location as a prefix.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
 }
 
 /// A build resource in the Cloud Build API. At a high level, a Build describes where to find source code, how to build it (for example, the builder image to run on the source), and where to store the built artifacts. Fields can include the following variables, which will be expanded when the build is created: - $PROJECT_ID: the project ID of the build. - $PROJECT_NUMBER: the project number of the build. - $LOCATION: the location/region of the build. - $BUILD_ID: the autogenerated ID of the build. - $REPO_NAME: the source repository name specified by RepoSource. - $BRANCH_NAME: the branch name specified by RepoSource. - $TAG_NAME: the tag name specified by RepoSource. - $REVISION_ID or $COMMIT_SHA: the commit SHA specified by RepoSource or resolved from the specified branch or tag. - $SHORT_SHA: first 7 characters of $REVISION_ID or $COMMIT_SHA.
@@ -686,97 +709,123 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsPythonPackage {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Build {
     /// Output only. Describes this build''s approval configuration, status, and result.
     #[serde(default)]
-    pub approval: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildApproval>,
+    pub approval: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildApproval>,
+    >,
     /// Artifacts produced by the build that should be uploaded upon successful completion of all build steps.
     #[serde(default)]
-    pub artifacts: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1Artifacts>,
+    pub artifacts: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Artifacts>,
+    >,
     /// Secrets and secret environment variables.
     #[serde(default, rename = "availableSecrets")]
-    pub available_secrets: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1Secrets>,
+    pub available_secrets: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Secrets>,
+    >,
     /// Output only. The ID of the BuildTrigger that triggered this build, if it was triggered automatically.
     #[serde(default, rename = "buildTriggerId")]
-    pub build_trigger_id: Option<String>,
+    pub build_trigger_id: ::core::option::Option<String>,
     /// Output only. Time at which the request to create the build was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Dependencies that the Cloud Build worker will fetch before executing user steps.
     #[serde(default)]
-    pub dependencies: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1Dependency>>,
+    pub dependencies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Dependency>>,
+    >,
     /// Output only. Contains information about the build when status=FAILURE.
     #[serde(default, rename = "failureInfo")]
-    pub failure_info: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildFailureInfo>,
+    pub failure_info: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildFailureInfo>,
+    >,
     /// Output only. Time at which execution of the build was finished. The difference between finish_time and start_time is the duration of the build''s execution.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// Optional. Configuration for git operations.
     #[serde(default, rename = "gitConfig")]
-    pub git_config: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfig>,
+    pub git_config: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfig>,
+    >,
     /// Output only. Unique identifier of the build.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// A list of images to be pushed upon the successful completion of all build steps. The images are pushed using the builder service account''s credentials. The digests of the pushed images will be stored in the Build resource''s results field. If any of the images fail to be pushed, the build status is marked FAILURE.
     #[serde(default)]
-    pub images: Option<Vec<String>>,
+    pub images: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. URL to logs for this build in Google Cloud Console.
     #[serde(default, rename = "logUrl")]
-    pub log_url: Option<String>,
+    pub log_url: ::core::option::Option<String>,
     /// Cloud Storage bucket where logs should be written (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)). Logs file names will be of the format ${logs_bucket}/log-${build_id}.txt.
     #[serde(default, rename = "logsBucket")]
-    pub logs_bucket: Option<String>,
+    pub logs_bucket: ::core::option::Option<String>,
     /// Output only. The ''Build'' name with format: projects/{project}/locations/{location}/builds/{build}, where {build} is a unique identifier generated by the service.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Special options for this build.
     #[serde(default)]
-    pub options: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptions>,
+    pub options: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptions>,
+    >,
     /// Output only. ID of the project.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// TTL in queue for this build. If provided and the build is enqueued longer than this value, the build will expire and the build status will be EXPIRED. The TTL starts ticking from create_time.
     #[serde(default, rename = "queueTtl")]
-    pub queue_ttl: Option<String>,
+    pub queue_ttl: ::core::option::Option<String>,
     /// Output only. Results of the build.
     #[serde(default)]
-    pub results: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1Results>,
+    pub results: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Results>,
+    >,
     /// Secrets to decrypt using Cloud Key Management Service. Note: Secret Manager is the recommended technique for managing sensitive data with Cloud Build. Use available_secrets to configure builds to access secrets from Secret Manager. For instructions, see: https://cloud.google.com/cloud-build/docs/securing-builds/use-secrets
     #[serde(default)]
-    pub secrets: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1Secret>>,
+    pub secrets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Secret>>,
+    >,
     /// IAM service account whose credentials will be used at build runtime. Must be of the format projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT}. ACCOUNT can be email address or uniqueId of the service account.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Optional. The location of the source files to build.
     #[serde(default)]
-    pub source: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1Source>,
+    pub source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Source>,
+    >,
     /// Output only. A permanent fixed identifier for source.
     #[serde(default, rename = "sourceProvenance")]
-    pub source_provenance: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1SourceProvenance>,
+    pub source_provenance: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1SourceProvenance>,
+    >,
     /// Output only. Time at which execution of the build was started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. Status of the build. // TODO: enum values: ["STATUS_UNKNOWN", "PENDING", "QUEUED", "WORKING", "SUCCESS", "FAILURE", "INTERNAL_ERROR", "TIMEOUT", "CANCELLED", "EXPIRED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Output only. Customer-readable message about the current status.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Required. The operations to be performed on the workspace.
     #[serde(default)]
-    pub steps: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildStep>>,
+    pub steps: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildStep>>,
+    >,
     /// Substitutions data for Build resource.
     #[serde(default)]
-    pub substitutions: Option<serde_json::Value>,
+    pub substitutions: ::core::option::Option<serde_json::Value>,
     /// Tags for annotation of a Build. These are not docker tags.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Amount of time that this build should be allowed to run, to second granularity. If this amount of time elapses, work on the build will cease and the build status will be TIMEOUT. timeout starts ticking from startTime. Default time is 60 minutes.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
     /// Output only. Stores timing information for phases of the build. Valid keys are: * BUILD: time to execute all build steps. * PUSH: time to push all artifacts including docker images and non docker artifacts. * FETCHSOURCE: time to fetch source. * SETUPBUILD: time to set up build. If the build does not specify source or images, these keys will not be included.
     #[serde(default)]
-    pub timing: Option<serde_json::Value>,
+    pub timing: ::core::option::Option<serde_json::Value>,
     /// Output only. Non-fatal problems encountered during the execution of the build.
     #[serde(default)]
-    pub warnings: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildWarning>>,
+    pub warnings: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildWarning>>,
+    >,
 }
 
 /// BuildApproval describes a build''s approval configuration, state, and result.
@@ -784,13 +833,17 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Build {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildApproval {
     /// Output only. Configuration for manual approval of this build.
     #[serde(default)]
-    pub config: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalConfig>,
+    pub config: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalConfig>,
+    >,
     /// Output only. Result of manual approval for this Build.
     #[serde(default)]
-    pub result: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalResult>,
+    pub result: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ApprovalResult>,
+    >,
     /// Output only. The state of this build''s approval. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "APPROVED", "REJECTED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// A fatal problem encountered during the execution of the build.
@@ -798,10 +851,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildApproval {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildFailureInfo {
     /// Explains the failure issue in more detail using hard-coded text.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// The name of the failure. // TODO: enum values: ["FAILURE_TYPE_UNSPECIFIED", "PUSH_FAILED", "PUSH_IMAGE_NOT_FOUND", "PUSH_NOT_AUTHORIZED", "LOGGING_FAILURE", "USER_BUILD_STEP", "FETCH_SOURCE_FAILED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Optional arguments to enable specific features of builds.
@@ -809,55 +862,59 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildFailureInfo {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptions {
     /// Option to include built-in and custom substitutions as env variables for all build steps.
     #[serde(default, rename = "automapSubstitutions")]
-    pub automap_substitutions: Option<bool>,
+    pub automap_substitutions: ::core::option::Option<bool>,
     /// Optional. Option to specify how default logs buckets are setup. // TODO: enum values: ["DEFAULT_LOGS_BUCKET_BEHAVIOR_UNSPECIFIED", "REGIONAL_USER_OWNED_BUCKET", "LEGACY_BUCKET"]
     #[serde(default, rename = "defaultLogsBucketBehavior")]
-    pub default_logs_bucket_behavior: Option<String>,
+    pub default_logs_bucket_behavior: ::core::option::Option<String>,
     /// Requested disk size for the VM that runs the build. Note that this is *NOT* "disk free"; some of the space will be used by the operating system and build utilities. Also note that this is the minimum disk size that will be allocated for the build -- the build may run with a larger disk than requested. At present, the maximum disk size is 4000GB; builds that request more than the maximum are rejected with an error.
     #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: Option<String>,
+    pub disk_size_gb: ::core::option::Option<String>,
     /// Option to specify whether or not to apply bash style string operations to the substitutions. NOTE: this is always enabled for triggered builds and cannot be overridden in the build configuration file.
     #[serde(default, rename = "dynamicSubstitutions")]
-    pub dynamic_substitutions: Option<bool>,
+    pub dynamic_substitutions: ::core::option::Option<bool>,
     /// Optional. Option to specify whether structured logging is enabled. If true, JSON-formatted logs are parsed as structured logs.
     #[serde(default, rename = "enableStructuredLogging")]
-    pub enable_structured_logging: Option<bool>,
+    pub enable_structured_logging: ::core::option::Option<bool>,
     /// A list of global environment variable definitions that will exist for all build steps in this build. If a variable is defined in both globally and in a build step, the variable will use the build step value. The elements are of the form "KEY=VALUE" for the environment variable "KEY" being given the value "VALUE".
     #[serde(default)]
-    pub env: Option<Vec<String>>,
+    pub env: ::core::option::Option<::std::vec::Vec<String>>,
     /// Option to define build log streaming behavior to Cloud Storage. // TODO: enum values: ["STREAM_DEFAULT", "STREAM_ON", "STREAM_OFF"]
     #[serde(default, rename = "logStreamingOption")]
-    pub log_streaming_option: Option<String>,
+    pub log_streaming_option: ::core::option::Option<String>,
     /// Option to specify the logging mode, which determines if and where build logs are stored. // TODO: enum values: ["LOGGING_UNSPECIFIED", "LEGACY", "GCS_ONLY", "STACKDRIVER_ONLY", "CLOUD_LOGGING_ONLY", "NONE"]
     #[serde(default)]
-    pub logging: Option<String>,
+    pub logging: ::core::option::Option<String>,
     /// Compute Engine machine type on which to run the build. // TODO: enum values: ["UNSPECIFIED", "N1_HIGHCPU_8", "N1_HIGHCPU_32", "E2_HIGHCPU_8", "E2_HIGHCPU_32", "E2_MEDIUM"]
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Optional. Specification for execution on a WorkerPool. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.
     #[serde(default)]
-    pub pool: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptionsPoolOption>,
+    pub pool: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptionsPoolOption>,
+    >,
     /// Optional. Option to specify the Pub/Sub topic to receive build status updates.
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
     /// Requested verifiability options. // TODO: enum values: ["NOT_VERIFIED", "VERIFIED"]
     #[serde(default, rename = "requestedVerifyOption")]
-    pub requested_verify_option: Option<String>,
+    pub requested_verify_option: ::core::option::Option<String>,
     /// A list of global environment variables, which are encrypted using a Cloud Key Management Service crypto key. These values must be specified in the build''s Secret. These variables will be available to all build steps in this build.
     #[serde(default, rename = "secretEnv")]
-    pub secret_env: Option<Vec<String>>,
+    pub secret_env: ::core::option::Option<::std::vec::Vec<String>>,
     /// Requested hash for SourceProvenance.
     #[serde(default, rename = "sourceProvenanceHash")]
-    pub source_provenance_hash: Option<Vec<String>>,
+    pub source_provenance_hash: ::core::option::Option<::std::vec::Vec<String>>,
     /// Option to specify behavior when there is an error in the substitution checks. NOTE: this is always set to ALLOW_LOOSE for triggered builds and cannot be overridden in the build configuration file. // TODO: enum values: ["MUST_MATCH", "ALLOW_LOOSE"]
     #[serde(default, rename = "substitutionOption")]
-    pub substitution_option: Option<String>,
+    pub substitution_option: ::core::option::Option<String>,
     /// Global list of volumes to mount for ALL build steps Each volume is created as an empty volume prior to starting the build process. Upon completion of the build, volumes and their contents are discarded. Global volume names and paths cannot conflict with the volumes defined a build step. Using a global volume in a build with only one step is not valid as it is indicative of a build request with an incorrect configuration.
     #[serde(default)]
-    pub volumes: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1Volume>>,
+    pub volumes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Volume>>,
+    >,
     /// This field deprecated; please use pool.name instead.
     #[serde(default, rename = "workerPool")]
-    pub worker_pool: Option<String>,
+    pub worker_pool: ::core::option::Option<String>,
 }
 
 /// Details about how a build should be executed on a WorkerPool. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.
@@ -865,7 +922,7 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptions {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptionsPoolOption {
     /// The WorkerPool resource to execute the build on. You must have cloudbuild.workerpools.use on the project hosting the WorkerPool. Format projects/{project}/locations/{location}/workerPools/{workerPoolId}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A step in the build pipeline.
@@ -873,58 +930,64 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildOptionsPoolOption {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildStep {
     /// Allow this build step to fail without failing the entire build if and only if the exit code is one of the specified codes. If allow_failure is also specified, this field will take precedence.
     #[serde(default, rename = "allowExitCodes")]
-    pub allow_exit_codes: Option<Vec<i32>>,
+    pub allow_exit_codes: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Allow this build step to fail without failing the entire build. If false, the entire build will fail if this step fails. Otherwise, the build will succeed, but this step will still have a failure status. Error information will be reported in the failure_detail field.
     #[serde(default, rename = "allowFailure")]
-    pub allow_failure: Option<bool>,
+    pub allow_failure: ::core::option::Option<bool>,
     /// A list of arguments that will be presented to the step when it is started. If the image used to run the step''s container has an entrypoint, the args are used as arguments to that entrypoint. If the image does not define an entrypoint, the first element in args is used as the entrypoint, and the remainder will be used as arguments.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Option to include built-in and custom substitutions as env variables for this build step. This option will override the global option in BuildOption.
     #[serde(default, rename = "automapSubstitutions")]
-    pub automap_substitutions: Option<bool>,
+    pub automap_substitutions: ::core::option::Option<bool>,
     /// Working directory to use when running this step''s container. If this value is a relative path, it is relative to the build''s working directory. If this value is absolute, it may be outside the build''s working directory, in which case the contents of the path may not be persisted across build step executions, unless a volume for that path is specified. If the build specifies a RepoSource with dir and a step with a dir, which specifies an absolute path, the RepoSource dir is ignored for the step''s execution.
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// Entrypoint to be used instead of the build step image''s default entrypoint. If unset, the image''s default entrypoint is used.
     #[serde(default)]
-    pub entrypoint: Option<String>,
+    pub entrypoint: ::core::option::Option<String>,
     /// A list of environment variable definitions to be used when running a step. The elements are of the form "KEY=VALUE" for the environment variable "KEY" being given the value "VALUE".
     #[serde(default)]
-    pub env: Option<Vec<String>>,
+    pub env: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Return code from running the step.
     #[serde(default, rename = "exitCode")]
-    pub exit_code: Option<i32>,
+    pub exit_code: ::core::option::Option<i32>,
     /// Unique identifier for this build step, used in wait_for to reference this build step as a dependency.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. The name of the container image that will run this particular build step. If the image is available in the host''s Docker daemon''s cache, it will be run directly. If not, the host will attempt to pull the image first, using the builder service account''s credentials if necessary. The Docker daemon''s cache will already have the latest versions of all of the officially supported build steps ([https://github.com/GoogleCloudPlatform/cloud-builders](https://github.com/GoogleCloudPlatform/cloud-builders)). The Docker daemon will also have cached many of the layers for some popular images, like "ubuntu", "debian", but they will be refreshed at the time you attempt to use them. If you built an image in a previous build step, it will be stored in the host''s Docker daemon''s cache and is available to use as the name for a later build step.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Stores timing information for pulling this build step''s builder image only.
     #[serde(default, rename = "pullTiming")]
-    pub pull_timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub pull_timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
     /// A shell script to be executed in the step. When script is provided, the user cannot specify the entrypoint or args.
     #[serde(default)]
-    pub script: Option<String>,
+    pub script: ::core::option::Option<String>,
     /// A list of environment variables which are encrypted using a Cloud Key Management Service crypto key. These values must be specified in the build''s Secret.
     #[serde(default, rename = "secretEnv")]
-    pub secret_env: Option<Vec<String>>,
+    pub secret_env: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Status of the build step. At this time, build step status is only updated on build completion; step status is not updated in real-time as the build progresses. // TODO: enum values: ["STATUS_UNKNOWN", "PENDING", "QUEUED", "WORKING", "SUCCESS", "FAILURE", "INTERNAL_ERROR", "TIMEOUT", "CANCELLED", "EXPIRED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Time limit for executing this build step. If not defined, the step has no time limit and will be allowed to continue to run until either it completes or the build itself times out.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
     /// Output only. Stores timing information for executing this build step.
     #[serde(default)]
-    pub timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
     /// List of volumes to mount into the build step. Each volume is created as an empty volume prior to execution of the build step. Upon completion of the build, volumes and their contents are discarded. Using a named volume in only one step is not valid as it is indicative of a build request with an incorrect configuration.
     #[serde(default)]
-    pub volumes: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1Volume>>,
+    pub volumes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Volume>>,
+    >,
     /// The ID(s) of the step(s) that this build step depends on. This build step will not start until all the build steps in wait_for have completed successfully. If wait_for is empty, this build step will start when all previous build steps in the Build.Steps list have completed successfully.
     #[serde(default, rename = "waitFor")]
-    pub wait_for: Option<Vec<String>>,
+    pub wait_for: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A non-fatal problem encountered during the execution of the build.
@@ -932,10 +995,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildStep {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildWarning {
     /// The priority for this warning. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "INFO", "WARNING", "ALERT"]
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
     /// Explanation of the warning generated.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// An image built by the pipeline.
@@ -943,19 +1006,21 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuildWarning {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
-    pub artifact_registry_package: Option<String>,
+    pub artifact_registry_package: ::core::option::Option<String>,
     /// Docker Registry 2.0 digest.
     #[serde(default)]
-    pub digest: Option<String>,
+    pub digest: ::core::option::Option<String>,
     /// Name used to push the container image to Google Container Registry, as presented to docker push.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The OCI media type of the artifact. Non-OCI images, such as Docker images, will have an unspecified value. // TODO: enum values: ["OCI_MEDIA_TYPE_UNSPECIFIED", "IMAGE_MANIFEST", "IMAGE_INDEX"]
     #[serde(default, rename = "ociMediaType")]
-    pub oci_media_type: Option<String>,
+    pub oci_media_type: ::core::option::Option<String>,
     /// Output only. Stores timing information for pushing the specified image.
     #[serde(default, rename = "pushTiming")]
-    pub push_timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub push_timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
 }
 
 /// Location of the source in a 2nd-gen Google Cloud Build repository resource.
@@ -963,13 +1028,13 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ConnectedRepository {
     /// Optional. Directory, relative to the source root, in which to run the build.
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// Required. Name of the Google Cloud Build repository, formatted as projects/*/locations/*/connections/*/repositories/*.
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
     /// Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
 }
 
 /// A dependency that the Cloud Build worker will fetch before executing user steps.
@@ -977,11 +1042,12 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1ConnectedRepository {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Dependency {
     /// If set to true disable all dependency fetching (ignoring the default source as well).
     #[serde(default)]
-    pub empty: Option<bool>,
+    pub empty: ::core::option::Option<bool>,
     /// Represents a git repository as a build dependency.
     #[serde(default, rename = "gitSource")]
-    pub git_source:
-        Option<ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceDependency>,
+    pub git_source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceDependency>,
+    >,
 }
 
 /// Represents a git repository as a build dependency.
@@ -989,20 +1055,21 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Dependency {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceDependency {
     /// Optional. How much history should be fetched for the build (default 1, -1 for all history).
     #[serde(default)]
-    pub depth: Option<String>,
+    pub depth: ::core::option::Option<String>,
     /// Required. Where should the files be placed on the worker.
     #[serde(default, rename = "destPath")]
-    pub dest_path: Option<String>,
+    pub dest_path: ::core::option::Option<String>,
     /// Optional. True if submodules should be fetched too (default false).
     #[serde(default, rename = "recurseSubmodules")]
-    pub recurse_submodules: Option<bool>,
+    pub recurse_submodules: ::core::option::Option<bool>,
     /// Required. The kind of repo (url or dev connect).
     #[serde(default)]
-    pub repository:
-        Option<ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceRepository>,
+    pub repository: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceRepository>,
+    >,
     /// Required. The revision that we will fetch the repo at.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
 }
 
 /// A repository for a git source.
@@ -1010,10 +1077,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceDepende
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceRepository {
     /// The Developer Connect Git repository link formatted as projects/*/locations/*/connections/*/gitRepositoryLink/*
     #[serde(default, rename = "developerConnect")]
-    pub developer_connect: Option<String>,
+    pub developer_connect: ::core::option::Option<String>,
     /// Location of the Git repository.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// This config defines the location of a source through Developer Connect.
@@ -1021,13 +1088,13 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceReposit
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1DeveloperConnectConfig {
     /// Required. Directory, relative to the source root, in which to run the build.
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// Required. The Developer Connect Git repository link, formatted as projects/*/locations/*/connections/*/gitRepositoryLink/*.
     #[serde(default, rename = "gitRepositoryLink")]
-    pub git_repository_link: Option<String>,
+    pub git_repository_link: ::core::option::Option<String>,
     /// Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
 }
 
 /// Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.
@@ -1035,7 +1102,9 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1DeveloperConnectConfig {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes {
     /// Collection of file hashes.
     #[serde(default, rename = "fileHash")]
-    pub file_hash: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1Hash>>,
+    pub file_hash: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1Hash>>,
+    >,
 }
 
 /// GitConfig is a configuration for git operations.
@@ -1043,7 +1112,9 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfig {
     /// Configuration for HTTP related git operations.
     #[serde(default)]
-    pub http: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfigHttpConfig>,
+    pub http: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfigHttpConfig>,
+    >,
 }
 
 /// HttpConfig is a configuration for HTTP related git operations.
@@ -1051,7 +1122,7 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfig {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfigHttpConfig {
     /// SecretVersion resource of the HTTP proxy URL. The Service Account used in the build (either the default Service Account or user-specified Service Account) should have secretmanager.versions.access permissions on this secret. The proxy URL should be in format protocol://@]proxyhost[:port].
     #[serde(default, rename = "proxySecretVersionName")]
-    pub proxy_secret_version_name: Option<String>,
+    pub proxy_secret_version_name: ::core::option::Option<String>,
 }
 
 /// Location of the source in any accessible Git repository.
@@ -1059,13 +1130,13 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1GitConfigHttpConfig {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1GitSource {
     /// Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution.
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// Optional. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref. Cloud Build uses git fetch to fetch the revision from the Git repository; therefore make sure that the string you provide for revision is parsable by the command. For information on string values accepted by git fetch, see https://git-scm.com/docs/gitrevisions#_specifying_revisions. For information on git fetch, see https://git-scm.com/docs/git-fetch.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
     /// Required. Location of the Git repo to build. This will be used as a git remote, see https://git-scm.com/docs/git-remote.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Container message for hash values.
@@ -1073,10 +1144,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1GitSource {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Hash {
     /// The type of hash that was performed. // TODO: enum values: ["NONE", "SHA256", "MD5", "GO_MODULE_H1", "SHA512", "DIRSUM_SHA256"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The hash value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Pairs a set of secret environment variables mapped to encrypted values with the Cloud KMS key to use to decrypt the value.
@@ -1084,10 +1155,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Hash {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1InlineSecret {
     /// Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build''s secrets.
     #[serde(default, rename = "envMap")]
-    pub env_map: Option<serde_json::Value>,
+    pub env_map: ::core::option::Option<serde_json::Value>,
     /// Resource name of Cloud KMS crypto key to decrypt the encrypted value. In format: projects/*/locations/*/keyRings/*/cryptoKeys/*
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// Location of the source in a Google Cloud Source Repository.
@@ -1095,28 +1166,28 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1InlineSecret {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1RepoSource {
     /// Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
     #[serde(default, rename = "branchName")]
-    pub branch_name: Option<String>,
+    pub branch_name: ::core::option::Option<String>,
     /// Explicit commit SHA to build.
     #[serde(default, rename = "commitSha")]
-    pub commit_sha: Option<String>,
+    pub commit_sha: ::core::option::Option<String>,
     /// Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution.
     #[serde(default)]
-    pub dir: Option<String>,
+    pub dir: ::core::option::Option<String>,
     /// Optional. Only trigger a build if the revision regex does NOT match the revision regex.
     #[serde(default, rename = "invertRegex")]
-    pub invert_regex: Option<bool>,
+    pub invert_regex: ::core::option::Option<bool>,
     /// Optional. ID of the project that owns the Cloud Source Repository. If omitted, the project ID requesting the build is assumed.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Required. Name of the Cloud Source Repository.
     #[serde(default, rename = "repoName")]
-    pub repo_name: Option<String>,
+    pub repo_name: ::core::option::Option<String>,
     /// Optional. Substitutions to use in a triggered build. Should only be used with RunBuildTrigger
     #[serde(default)]
-    pub substitutions: Option<serde_json::Value>,
+    pub substitutions: ::core::option::Option<serde_json::Value>,
     /// Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
     #[serde(default, rename = "tagName")]
-    pub tag_name: Option<String>,
+    pub tag_name: ::core::option::Option<String>,
 }
 
 /// Artifacts created by the build pipeline.
@@ -1124,36 +1195,54 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1RepoSource {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Results {
     /// Path to the artifact manifest for non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.
     #[serde(default, rename = "artifactManifest")]
-    pub artifact_manifest: Option<String>,
+    pub artifact_manifest: ::core::option::Option<String>,
     /// Time to push all non-container artifacts to Cloud Storage.
     #[serde(default, rename = "artifactTiming")]
-    pub artifact_timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub artifact_timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
     /// List of build step digests, in the order corresponding to build step indices.
     #[serde(default, rename = "buildStepImages")]
-    pub build_step_images: Option<Vec<String>>,
+    pub build_step_images: ::core::option::Option<::std::vec::Vec<String>>,
     /// List of build step outputs, produced by builder images, in the order corresponding to build step indices. [Cloud Builders](https://cloud.google.com/cloud-build/docs/cloud-builders) can produce this output by writing to $BUILDER_OUTPUT/output. Only the first 50KB of data is stored. Note that the $BUILDER_OUTPUT variable is read-only and can''t be substituted.
     #[serde(default, rename = "buildStepOutputs")]
-    pub build_step_outputs: Option<Vec<String>>,
+    pub build_step_outputs: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Go module artifacts uploaded to Artifact Registry at the end of the build.
     #[serde(default, rename = "goModules")]
-    pub go_modules: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedGoModule>>,
+    pub go_modules: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedGoModule>,
+        >,
+    >,
     /// Container images that were built as a part of the build.
     #[serde(default)]
-    pub images: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage>>,
+    pub images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage>>,
+    >,
     /// Maven artifacts uploaded to Artifact Registry at the end of the build.
     #[serde(default, rename = "mavenArtifacts")]
-    pub maven_artifacts:
-        Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedMavenArtifact>>,
+    pub maven_artifacts: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedMavenArtifact>,
+        >,
+    >,
     /// Npm packages uploaded to Artifact Registry at the end of the build.
     #[serde(default, rename = "npmPackages")]
-    pub npm_packages: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedNpmPackage>>,
+    pub npm_packages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedNpmPackage>,
+        >,
+    >,
     /// Number of non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.
     #[serde(default, rename = "numArtifacts")]
-    pub num_artifacts: Option<String>,
+    pub num_artifacts: ::core::option::Option<String>,
     /// Python artifacts uploaded to Artifact Registry at the end of the build.
     #[serde(default, rename = "pythonPackages")]
-    pub python_packages:
-        Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedPythonPackage>>,
+    pub python_packages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedPythonPackage>,
+        >,
+    >,
 }
 
 /// Pairs a set of secret environment variables containing encrypted values with the Cloud KMS key to use to decrypt the value. Note: Use kmsKeyName with available_secrets instead of using kmsKeyName with secret. For instructions see: https://cloud.google.com/cloud-build/docs/securing-builds/use-encrypted-credentials.
@@ -1161,10 +1250,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Results {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Secret {
     /// Cloud KMS key name to use to decrypt these envs.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build''s secrets.
     #[serde(default, rename = "secretEnv")]
-    pub secret_env: Option<serde_json::Value>,
+    pub secret_env: ::core::option::Option<serde_json::Value>,
 }
 
 /// Pairs a secret environment variable with a SecretVersion in Secret Manager.
@@ -1172,10 +1261,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Secret {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1SecretManagerSecret {
     /// Environment variable name to associate with the secret. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step.
     #[serde(default)]
-    pub env: Option<String>,
+    pub env: ::core::option::Option<String>,
     /// Resource name of the SecretVersion. In format: projects/*/secrets/*/versions/*
     #[serde(default, rename = "versionName")]
-    pub version_name: Option<String>,
+    pub version_name: ::core::option::Option<String>,
 }
 
 /// Secrets and secret environment variables.
@@ -1183,10 +1272,16 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1SecretManagerSecret {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Secrets {
     /// Secrets encrypted with KMS key and the associated secret environment variable.
     #[serde(default)]
-    pub inline: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1InlineSecret>>,
+    pub inline: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1InlineSecret>>,
+    >,
     /// Secrets in Secret Manager and associated secret environment variable.
     #[serde(default, rename = "secretManager")]
-    pub secret_manager: Option<Vec<ContaineranalysisGoogleDevtoolsCloudbuildV1SecretManagerSecret>>,
+    pub secret_manager: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1SecretManagerSecret>,
+        >,
+    >,
 }
 
 /// Location of the source in a supported storage service.
@@ -1194,25 +1289,34 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Secrets {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Source {
     /// Optional. If provided, get the source from this 2nd-gen Google Cloud Build repository resource.
     #[serde(default, rename = "connectedRepository")]
-    pub connected_repository:
-        Option<ContaineranalysisGoogleDevtoolsCloudbuildV1ConnectedRepository>,
+    pub connected_repository: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ConnectedRepository>,
+    >,
     /// If provided, get the source from this Developer Connect config.
     #[serde(default, rename = "developerConnectConfig")]
-    pub developer_connect_config:
-        Option<ContaineranalysisGoogleDevtoolsCloudbuildV1DeveloperConnectConfig>,
+    pub developer_connect_config: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1DeveloperConnectConfig>,
+    >,
     /// If provided, get the source from this Git repository.
     #[serde(default, rename = "gitSource")]
-    pub git_source: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1GitSource>,
+    pub git_source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1GitSource>,
+    >,
     /// If provided, get the source from this location in a Cloud Source Repository.
     #[serde(default, rename = "repoSource")]
-    pub repo_source: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1RepoSource>,
+    pub repo_source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1RepoSource>,
+    >,
     /// If provided, get the source from this location in Cloud Storage.
     #[serde(default, rename = "storageSource")]
-    pub storage_source: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSource>,
+    pub storage_source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSource>,
+    >,
     /// If provided, get the source from this manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).
     #[serde(default, rename = "storageSourceManifest")]
-    pub storage_source_manifest:
-        Option<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSourceManifest>,
+    pub storage_source_manifest: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSourceManifest>,
+    >,
 }
 
 /// Provenance of the source. Ways to find the original source, or verify that some source was used for this build.
@@ -1220,24 +1324,32 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Source {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1SourceProvenance {
     /// Output only. Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. Note that FileHashes will only be populated if BuildOptions has requested a SourceProvenanceHash. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (.tar.gz), the FileHash will be for the single path to that file.
     #[serde(default, rename = "fileHashes")]
-    pub file_hashes: Option<serde_json::Value>,
+    pub file_hashes: ::core::option::Option<serde_json::Value>,
     /// Output only. A copy of the build''s source.connected_repository, if exists, with any revisions resolved.
     #[serde(default, rename = "resolvedConnectedRepository")]
-    pub resolved_connected_repository:
-        Option<ContaineranalysisGoogleDevtoolsCloudbuildV1ConnectedRepository>,
+    pub resolved_connected_repository: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1ConnectedRepository>,
+    >,
     /// Output only. A copy of the build''s source.git_source, if exists, with any revisions resolved.
     #[serde(default, rename = "resolvedGitSource")]
-    pub resolved_git_source: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1GitSource>,
+    pub resolved_git_source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1GitSource>,
+    >,
     /// A copy of the build''s source.repo_source, if exists, with any revisions resolved.
     #[serde(default, rename = "resolvedRepoSource")]
-    pub resolved_repo_source: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1RepoSource>,
+    pub resolved_repo_source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1RepoSource>,
+    >,
     /// A copy of the build''s source.storage_source, if exists, with any generations resolved.
     #[serde(default, rename = "resolvedStorageSource")]
-    pub resolved_storage_source: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSource>,
+    pub resolved_storage_source: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSource>,
+    >,
     /// A copy of the build''s source.storage_source_manifest, if exists, with any revisions resolved. This feature is in Preview.
     #[serde(default, rename = "resolvedStorageSourceManifest")]
-    pub resolved_storage_source_manifest:
-        Option<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSourceManifest>,
+    pub resolved_storage_source_manifest: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSourceManifest>,
+    >,
 }
 
 /// Location of the source in an archive file in Cloud Storage.
@@ -1245,16 +1357,16 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1SourceProvenance {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSource {
     /// Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Optional. Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
     #[serde(default)]
-    pub generation: Option<String>,
+    pub generation: ::core::option::Option<String>,
     /// Required. Cloud Storage object containing the source. This object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to build.
     #[serde(default)]
-    pub object: Option<String>,
+    pub object: ::core::option::Option<String>,
     /// Optional. Option to specify the tool to fetch the source file for the build. // TODO: enum values: ["SOURCE_FETCHER_UNSPECIFIED", "GSUTIL", "GCS_FETCHER"]
     #[serde(default, rename = "sourceFetcher")]
-    pub source_fetcher: Option<String>,
+    pub source_fetcher: ::core::option::Option<String>,
 }
 
 /// Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).
@@ -1262,13 +1374,13 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSource {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSourceManifest {
     /// Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.
     #[serde(default)]
-    pub generation: Option<String>,
+    pub generation: ::core::option::Option<String>,
     /// Required. Cloud Storage object containing the source manifest. This object must be a JSON file.
     #[serde(default)]
-    pub object: Option<String>,
+    pub object: ::core::option::Option<String>,
 }
 
 /// Start and end times for a build execution phase.
@@ -1276,10 +1388,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1StorageSourceManifest {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan {
     /// End of time span.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Start of time span.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// A Go module artifact uploaded to Artifact Registry using the GoModule directive.
@@ -1287,16 +1399,20 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedGoModule {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
-    pub artifact_registry_package: Option<String>,
+    pub artifact_registry_package: ::core::option::Option<String>,
     /// Hash types and values of the Go Module Artifact.
     #[serde(default, rename = "fileHashes")]
-    pub file_hashes: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    pub file_hashes: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    >,
     /// Output only. Stores timing information for pushing the specified artifact.
     #[serde(default, rename = "pushTiming")]
-    pub push_timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub push_timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
     /// URI of the uploaded artifact.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// A Maven artifact uploaded using the MavenArtifact directive.
@@ -1304,16 +1420,20 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedGoModule {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedMavenArtifact {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
-    pub artifact_registry_package: Option<String>,
+    pub artifact_registry_package: ::core::option::Option<String>,
     /// Hash types and values of the Maven Artifact.
     #[serde(default, rename = "fileHashes")]
-    pub file_hashes: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    pub file_hashes: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    >,
     /// Output only. Stores timing information for pushing the specified artifact.
     #[serde(default, rename = "pushTiming")]
-    pub push_timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub push_timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
     /// URI of the uploaded artifact.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// An npm package uploaded to Artifact Registry using the NpmPackage directive.
@@ -1321,16 +1441,20 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedMavenArtifact {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedNpmPackage {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
-    pub artifact_registry_package: Option<String>,
+    pub artifact_registry_package: ::core::option::Option<String>,
     /// Hash types and values of the npm package.
     #[serde(default, rename = "fileHashes")]
-    pub file_hashes: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    pub file_hashes: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    >,
     /// Output only. Stores timing information for pushing the specified artifact.
     #[serde(default, rename = "pushTiming")]
-    pub push_timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub push_timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
     /// URI of the uploaded npm package.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Artifact uploaded using the PythonPackage directive.
@@ -1338,16 +1462,20 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedNpmPackage {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedPythonPackage {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
-    pub artifact_registry_package: Option<String>,
+    pub artifact_registry_package: ::core::option::Option<String>,
     /// Hash types and values of the Python Artifact.
     #[serde(default, rename = "fileHashes")]
-    pub file_hashes: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    pub file_hashes: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes>,
+    >,
     /// Output only. Stores timing information for pushing the specified artifact.
     #[serde(default, rename = "pushTiming")]
-    pub push_timing: Option<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    pub push_timing: ::core::option::Option<
+        ::std::boxed::Box<ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan>,
+    >,
     /// URI of the uploaded artifact.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Volume describes a Docker container volume which is mounted into build steps in order to persist files across build step execution.
@@ -1355,10 +1483,10 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedPythonPackage {
 pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Volume {
     /// Name of the volume to mount. Volume names must be unique per build step and must be valid names for Docker volumes. Each named volume must be used by at least two build steps.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Path at which to mount the volume. Paths must be absolute and cannot conflict with other volume paths on the same build step or with certain reserved volume paths.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// DSSEAttestationNote resource type.
@@ -1366,7 +1494,7 @@ pub struct ContaineranalysisGoogleDevtoolsCloudbuildV1Volume {
 pub struct DSSEAttestationNote {
     /// DSSEHint hints at the purpose of the attestation authority.
     #[serde(default)]
-    pub hint: Option<DSSEHint>,
+    pub hint: ::core::option::Option<::std::boxed::Box<DSSEHint>>,
 }
 
 /// Deprecated. Prefer to use a regular Occurrence, and populate the Envelope at the top level of the Occurrence.
@@ -1374,9 +1502,9 @@ pub struct DSSEAttestationNote {
 pub struct DSSEAttestationOccurrence {
     /// If doing something security critical, make sure to verify the signatures in this metadata.
     #[serde(default)]
-    pub envelope: Option<Envelope>,
+    pub envelope: ::core::option::Option<::std::boxed::Box<Envelope>>,
     #[serde(default)]
-    pub statement: Option<InTotoStatement>,
+    pub statement: ::core::option::Option<::std::boxed::Box<InTotoStatement>>,
 }
 
 /// This submessage provides human-readable hints about the purpose of the authority. Because the name of a note acts as its resource reference, it is important to disambiguate the canonical name of the Note (which might be a UUID for security purposes) from "readable" names more suitable for debug output. Note that these hints should not be used to look up authorities in security sensitive contexts, such as when looking up attestations to verify.
@@ -1384,7 +1512,7 @@ pub struct DSSEAttestationOccurrence {
 pub struct DSSEHint {
     /// Required. The human readable name of this attestation authority, for example "cloudbuild-prod".
     #[serde(default, rename = "humanReadableName")]
-    pub human_readable_name: Option<String>,
+    pub human_readable_name: ::core::option::Option<String>,
 }
 
 /// An artifact that can be deployed in some runtime.
@@ -1392,7 +1520,7 @@ pub struct DSSEHint {
 pub struct DeploymentNote {
     /// Required. Resource URI for the artifact being deployed.
     #[serde(default, rename = "resourceUri")]
-    pub resource_uri: Option<Vec<String>>,
+    pub resource_uri: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The period during which some deployable was active in a runtime.
@@ -1400,25 +1528,25 @@ pub struct DeploymentNote {
 pub struct DeploymentOccurrence {
     /// Address of the runtime element hosting this deployment.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Configuration used to create this deployment.
     #[serde(default)]
-    pub config: Option<String>,
+    pub config: ::core::option::Option<String>,
     /// Required. Beginning of the lifetime of this deployment.
     #[serde(default, rename = "deployTime")]
-    pub deploy_time: Option<String>,
+    pub deploy_time: ::core::option::Option<String>,
     /// Platform hosting this deployment. // TODO: enum values: ["PLATFORM_UNSPECIFIED", "GKE", "FLEX", "CUSTOM"]
     #[serde(default)]
-    pub platform: Option<String>,
+    pub platform: ::core::option::Option<String>,
     /// Output only. Resource URI for the artifact being deployed taken from the deployable field with the same name.
     #[serde(default, rename = "resourceUri")]
-    pub resource_uri: Option<Vec<String>>,
+    pub resource_uri: ::core::option::Option<::std::vec::Vec<String>>,
     /// End of the lifetime of this deployment.
     #[serde(default, rename = "undeployTime")]
-    pub undeploy_time: Option<String>,
+    pub undeploy_time: ::core::option::Option<String>,
     /// Identity of the user that triggered this deployment.
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
 }
 
 /// A detail for a distro and package affected by this vulnerability and its associated fix (if one is available).
@@ -1426,46 +1554,46 @@ pub struct DeploymentOccurrence {
 pub struct Detail {
     /// Required. The [CPE URI](https://cpe.mitre.org/specification/) this vulnerability affects.
     #[serde(default, rename = "affectedCpeUri")]
-    pub affected_cpe_uri: Option<String>,
+    pub affected_cpe_uri: ::core::option::Option<String>,
     /// Required. The package this vulnerability affects.
     #[serde(default, rename = "affectedPackage")]
-    pub affected_package: Option<String>,
+    pub affected_package: ::core::option::Option<String>,
     /// The version number at the end of an interval in which this vulnerability exists. A vulnerability can affect a package between version numbers that are disjoint sets of intervals (example: [1.0.0-1.1.0], [2.4.6-2.4.8] and [4.5.6-4.6.8]) each of which will be represented in its own Detail. If a specific affected version is provided by a vulnerability database, affected_version_start and affected_version_end will be the same in that Detail.
     #[serde(default, rename = "affectedVersionEnd")]
-    pub affected_version_end: Option<Version>,
+    pub affected_version_end: ::core::option::Option<::std::boxed::Box<Version>>,
     /// The version number at the start of an interval in which this vulnerability exists. A vulnerability can affect a package between version numbers that are disjoint sets of intervals (example: [1.0.0-1.1.0], [2.4.6-2.4.8] and [4.5.6-4.6.8]) each of which will be represented in its own Detail. If a specific affected version is provided by a vulnerability database, affected_version_start and affected_version_end will be the same in that Detail.
     #[serde(default, rename = "affectedVersionStart")]
-    pub affected_version_start: Option<Version>,
+    pub affected_version_start: ::core::option::Option<::std::boxed::Box<Version>>,
     /// A vendor-specific description of this vulnerability.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The distro recommended [CPE URI](https://cpe.mitre.org/specification/) to update to that contains a fix for this vulnerability. It is possible for this to be different from the affected_cpe_uri.
     #[serde(default, rename = "fixedCpeUri")]
-    pub fixed_cpe_uri: Option<String>,
+    pub fixed_cpe_uri: ::core::option::Option<String>,
     /// The distro recommended package to update to that contains a fix for this vulnerability. It is possible for this to be different from the affected_package.
     #[serde(default, rename = "fixedPackage")]
-    pub fixed_package: Option<String>,
+    pub fixed_package: ::core::option::Option<String>,
     /// The distro recommended version to update to that contains a fix for this vulnerability. Setting this to VersionKind.MAXIMUM means no such version is yet available.
     #[serde(default, rename = "fixedVersion")]
-    pub fixed_version: Option<Version>,
+    pub fixed_version: ::core::option::Option<::std::boxed::Box<Version>>,
     /// Whether this detail is obsolete. Occurrences are expected not to point to obsolete details.
     #[serde(default, rename = "isObsolete")]
-    pub is_obsolete: Option<bool>,
+    pub is_obsolete: ::core::option::Option<bool>,
     /// The type of package; whether native or non native (e.g., ruby gems, node.js packages, etc.).
     #[serde(default, rename = "packageType")]
-    pub package_type: Option<String>,
+    pub package_type: ::core::option::Option<String>,
     /// The distro assigned severity of this vulnerability.
     #[serde(default, rename = "severityName")]
-    pub severity_name: Option<String>,
+    pub severity_name: ::core::option::Option<String>,
     /// The source from which the information in this Detail was obtained.
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// The time this information was last changed at the source. This is an upstream timestamp from the underlying information source - e.g. Ubuntu security tracker.
     #[serde(default, rename = "sourceUpdateTime")]
-    pub source_update_time: Option<String>,
+    pub source_update_time: ::core::option::Option<String>,
     /// The name of the vendor of the product.
     #[serde(default)]
-    pub vendor: Option<String>,
+    pub vendor: ::core::option::Option<String>,
 }
 
 /// Digest information.
@@ -1473,10 +1601,10 @@ pub struct Detail {
 pub struct Digest {
     /// SHA1, SHA512 etc.
     #[serde(default)]
-    pub algo: Option<String>,
+    pub algo: ::core::option::Option<String>,
     /// Value of the digest.
     #[serde(default, rename = "digestBytes")]
-    pub digest_bytes: Option<String>,
+    pub digest_bytes: ::core::option::Option<String>,
 }
 
 /// A note that indicates a type of analysis a provider would perform. This note exists in a provider''s project. A Discovery occurrence is created in a consumer''s project at the start of analysis.
@@ -1484,44 +1612,44 @@ pub struct Digest {
 pub struct DiscoveryNote {
     /// Required. Immutable. The kind of analysis that is handled by this discovery. // TODO: enum values: ["NOTE_KIND_UNSPECIFIED", "VULNERABILITY", "BUILD", "IMAGE", "PACKAGE", "DEPLOYMENT", "DISCOVERY", "ATTESTATION", "UPGRADE", "COMPLIANCE", "DSSE_ATTESTATION", "VULNERABILITY_ASSESSMENT", "SBOM_REFERENCE", "SECRET"]
     #[serde(default, rename = "analysisKind")]
-    pub analysis_kind: Option<String>,
+    pub analysis_kind: ::core::option::Option<String>,
 }
 
 /// Provides information about the analysis status of a discovered resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiscoveryOccurrence {
     #[serde(default, rename = "analysisCompleted")]
-    pub analysis_completed: Option<AnalysisCompleted>,
+    pub analysis_completed: ::core::option::Option<::std::boxed::Box<AnalysisCompleted>>,
     /// Indicates any errors encountered during analysis of a resource. There could be 0 or more of these errors.
     #[serde(default, rename = "analysisError")]
-    pub analysis_error: Option<Vec<Status>>,
+    pub analysis_error: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// The status of discovery for the resource. // TODO: enum values: ["ANALYSIS_STATUS_UNSPECIFIED", "PENDING", "SCANNING", "FINISHED_SUCCESS", "COMPLETE", "FINISHED_FAILED", "FINISHED_UNSUPPORTED"]
     #[serde(default, rename = "analysisStatus")]
-    pub analysis_status: Option<String>,
+    pub analysis_status: ::core::option::Option<String>,
     /// When an error is encountered this will contain a LocalizedMessage under details to show to the user. The LocalizedMessage is output only and populated by the API.
     #[serde(default, rename = "analysisStatusError")]
-    pub analysis_status_error: Option<Status>,
+    pub analysis_status_error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The time occurrences related to this discovery occurrence were archived.
     #[serde(default, rename = "archiveTime")]
-    pub archive_time: Option<String>,
+    pub archive_time: ::core::option::Option<String>,
     /// Whether the resource is continuously analyzed. // TODO: enum values: ["CONTINUOUS_ANALYSIS_UNSPECIFIED", "ACTIVE", "INACTIVE"]
     #[serde(default, rename = "continuousAnalysis")]
-    pub continuous_analysis: Option<String>,
+    pub continuous_analysis: ::core::option::Option<String>,
     /// The CPE of the resource being scanned.
     #[serde(default)]
-    pub cpe: Option<String>,
+    pub cpe: ::core::option::Option<String>,
     /// Files that make up the resource described by the occurrence.
     #[serde(default)]
-    pub files: Option<Vec<File>>,
+    pub files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<File>>>,
     /// The last time this resource was scanned.
     #[serde(default, rename = "lastScanTime")]
-    pub last_scan_time: Option<String>,
+    pub last_scan_time: ::core::option::Option<String>,
     /// The last time vulnerability scan results changed.
     #[serde(default, rename = "lastVulnerabilityUpdateTime")]
-    pub last_vulnerability_update_time: Option<String>,
+    pub last_vulnerability_update_time: ::core::option::Option<String>,
     /// The status of an SBOM generation.
     #[serde(default, rename = "sbomStatus")]
-    pub sbom_status: Option<SBOMStatus>,
+    pub sbom_status: ::core::option::Option<::std::boxed::Box<SBOMStatus>>,
 }
 
 /// This represents a particular channel of distribution for a given package. E.g., Debian''s jessie-backports dpkg mirror.
@@ -1529,42 +1657,42 @@ pub struct DiscoveryOccurrence {
 pub struct Distribution {
     /// The CPU architecture for which packages in this distribution channel were built. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86", "X64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Required. The cpe_uri in [CPE format](https://cpe.mitre.org/specification/) denoting the package manager version distributing a package.
     #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: Option<String>,
+    pub cpe_uri: ::core::option::Option<String>,
     /// The distribution channel-specific description of this package.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The latest available version of this package in this distribution channel.
     #[serde(default, rename = "latestVersion")]
-    pub latest_version: Option<Version>,
+    pub latest_version: ::core::option::Option<::std::boxed::Box<Version>>,
     /// A freeform string denoting the maintainer of this package.
     #[serde(default)]
-    pub maintainer: Option<String>,
+    pub maintainer: ::core::option::Option<String>,
     /// The distribution channel-specific homepage for this package.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// MUST match https://github.com/secure-systems-lab/dsse/blob/master/envelope.proto. An authenticated message of arbitrary type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Envelope {
     #[serde(default)]
-    pub payload: Option<String>,
+    pub payload: ::core::option::Option<String>,
     #[serde(default, rename = "payloadType")]
-    pub payload_type: Option<String>,
+    pub payload_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub signatures: Option<Vec<EnvelopeSignature>>,
+    pub signatures: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnvelopeSignature>>>,
 }
 
 /// EnvelopeSignature resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnvelopeSignature {
     #[serde(default)]
-    pub keyid: Option<String>,
+    pub keyid: ::core::option::Option<String>,
     #[serde(default)]
-    pub sig: Option<String>,
+    pub sig: ::core::option::Option<String>,
 }
 
 /// ExploitPredictionScoringSystem resource type.
@@ -1572,10 +1700,10 @@ pub struct EnvelopeSignature {
 pub struct ExploitPredictionScoringSystem {
     /// The percentile of the current score, the proportion of all scored vulnerabilities with the same or a lower EPSS score
     #[serde(default)]
-    pub percentile: Option<f64>,
+    pub percentile: ::core::option::Option<f64>,
     /// The EPSS score representing the probability [0-1] of exploitation in the wild in the next 30 days
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
 }
 
 /// The response from a call to ExportSBOM.
@@ -1583,7 +1711,7 @@ pub struct ExploitPredictionScoringSystem {
 pub struct ExportSBOMResponse {
     /// The name of the discovery occurrence in the form "projects/{project_id}/occurrences/{OCCURRENCE_ID} It can be used to track the progress of the SBOM export.
     #[serde(default, rename = "discoveryOccurrence")]
-    pub discovery_occurrence: Option<String>,
+    pub discovery_occurrence: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -1591,25 +1719,25 @@ pub struct ExportSBOMResponse {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// File resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct File {
     #[serde(default)]
-    pub digest: Option<serde_json::Value>,
+    pub digest: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Container message for hashes of byte content of files, used in source messages to verify integrity of source input to the build.
@@ -1617,7 +1745,7 @@ pub struct File {
 pub struct FileHashes {
     /// Required. Collection of file hashes.
     #[serde(default, rename = "fileHash")]
-    pub file_hash: Option<Vec<Hash>>,
+    pub file_hash: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Hash>>>,
 }
 
 /// A set of properties that uniquely identify a given Docker image.
@@ -1625,13 +1753,13 @@ pub struct FileHashes {
 pub struct Fingerprint {
     /// Required. The layer ID of the final layer in the Docker image''s v1 representation.
     #[serde(default, rename = "v1Name")]
-    pub v1_name: Option<String>,
+    pub v1_name: ::core::option::Option<String>,
     /// Required. The ordered list of v2 blobs that represent a given image.
     #[serde(default, rename = "v2Blob")]
-    pub v2_blob: Option<Vec<String>>,
+    pub v2_blob: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The name of the image''s v2 blobs computed via: [bottom] := v2_blobbottom := sha256(v2_blob[N] + " " + v2_name[N+1]) Only the name of the final blob is kept.
     #[serde(default, rename = "v2Name")]
-    pub v2_name: Option<String>,
+    pub v2_name: ::core::option::Option<String>,
 }
 
 /// Per resource and severity counts of fixable and total vulnerabilities.
@@ -1639,16 +1767,16 @@ pub struct Fingerprint {
 pub struct FixableTotalByDigest {
     /// The number of fixable vulnerabilities associated with this resource.
     #[serde(default, rename = "fixableCount")]
-    pub fixable_count: Option<String>,
+    pub fixable_count: ::core::option::Option<String>,
     /// The affected resource.
     #[serde(default, rename = "resourceUri")]
-    pub resource_uri: Option<String>,
+    pub resource_uri: ::core::option::Option<String>,
     /// The severity for this count. SEVERITY_UNSPECIFIED indicates total across all severities. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// The total number of vulnerabilities associated with this resource.
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<String>,
+    pub total_count: ::core::option::Option<String>,
 }
 
 /// A SourceContext referring to a Gerrit project.
@@ -1656,16 +1784,16 @@ pub struct FixableTotalByDigest {
 pub struct GerritSourceContext {
     /// An alias, which may be a branch or tag.
     #[serde(default, rename = "aliasContext")]
-    pub alias_context: Option<AliasContext>,
+    pub alias_context: ::core::option::Option<::std::boxed::Box<AliasContext>>,
     /// The full project name within the host. Projects may be nested, so "project/subproject" is a valid project name. The "repo name" is the hostURI/project.
     #[serde(default, rename = "gerritProject")]
-    pub gerrit_project: Option<String>,
+    pub gerrit_project: ::core::option::Option<String>,
     /// The URI of a running Gerrit instance.
     #[serde(default, rename = "hostUri")]
-    pub host_uri: Option<String>,
+    pub host_uri: ::core::option::Option<String>,
     /// A revision (commit) ID.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
 }
 
 /// Request message for GetIamPolicy method.
@@ -1673,7 +1801,7 @@ pub struct GerritSourceContext {
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
-    pub options: Option<GetPolicyOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<GetPolicyOptions>>,
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
@@ -1681,7 +1809,7 @@ pub struct GetIamPolicyRequest {
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: Option<i32>,
+    pub requested_policy_version: ::core::option::Option<i32>,
 }
 
 /// A GitSourceContext denotes a particular revision in a third party Git repository (e.g., GitHub).
@@ -1689,10 +1817,10 @@ pub struct GetPolicyOptions {
 pub struct GitSourceContext {
     /// Git commit hash.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Git repository URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Metadata for all operations used and required for all operations that created by Container Analysis Providers
@@ -1700,10 +1828,10 @@ pub struct GitSourceContext {
 pub struct GoogleDevtoolsContaineranalysisV1alpha1OperationMetadata {
     /// Output only. The time this operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time that this operation was marked completed or failed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
 }
 
 /// Indicates the location at which a package was found.
@@ -1711,77 +1839,79 @@ pub struct GoogleDevtoolsContaineranalysisV1alpha1OperationMetadata {
 pub struct GrafeasV1FileLocation {
     /// For jars that are contained inside .war files, this filepath can indicate the path to war file combined with the path to jar file.
     #[serde(default, rename = "filePath")]
-    pub file_path: Option<String>,
+    pub file_path: ::core::option::Option<String>,
     /// Each package found in a file should have its own layer metadata (that is, information from the origin layer of the package).
     #[serde(default, rename = "layerDetails")]
-    pub layer_details: Option<LayerDetails>,
+    pub layer_details: ::core::option::Option<::std::boxed::Box<LayerDetails>>,
     /// Line number in the file where the package was found. Optional field that only applies to source repository scanning.
     #[serde(default, rename = "lineNumber")]
-    pub line_number: Option<i32>,
+    pub line_number: ::core::option::Option<i32>,
 }
 
 /// Identifies the entity that executed the recipe, which is trusted to have correctly performed the operation and populated this provenance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder {
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Indicates that the builder claims certain fields in this message to be complete.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness {
     #[serde(default)]
-    pub environment: Option<bool>,
+    pub environment: ::core::option::Option<bool>,
     #[serde(default)]
-    pub materials: Option<bool>,
+    pub materials: ::core::option::Option<bool>,
     #[serde(default)]
-    pub parameters: Option<bool>,
+    pub parameters: ::core::option::Option<bool>,
 }
 
 /// Describes where the config file that kicked off the build came from. This is effectively a pointer to the source where buildConfig came from.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource {
     #[serde(default)]
-    pub digest: Option<serde_json::Value>,
+    pub digest: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "entryPoint")]
-    pub entry_point: Option<String>,
+    pub entry_point: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Identifies the event that kicked off the build.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation {
     #[serde(default, rename = "configSource")]
-    pub config_source: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource>,
+    pub config_source:
+        ::core::option::Option<::std::boxed::Box<GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource>>,
     #[serde(default)]
-    pub environment: Option<serde_json::Value>,
+    pub environment: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial {
     #[serde(default)]
-    pub digest: Option<serde_json::Value>,
+    pub digest: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Other properties of the build.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata {
     #[serde(default, rename = "buildFinishedOn")]
-    pub build_finished_on: Option<String>,
+    pub build_finished_on: ::core::option::Option<String>,
     #[serde(default, rename = "buildInvocationId")]
-    pub build_invocation_id: Option<String>,
+    pub build_invocation_id: ::core::option::Option<String>,
     #[serde(default, rename = "buildStartedOn")]
-    pub build_started_on: Option<String>,
+    pub build_started_on: ::core::option::Option<String>,
     #[serde(default)]
-    pub completeness: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness>,
+    pub completeness:
+        ::core::option::Option<::std::boxed::Box<GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness>>,
     #[serde(default)]
-    pub reproducible: Option<bool>,
+    pub reproducible: ::core::option::Option<bool>,
 }
 
 /// Container message for hash values.
@@ -1789,10 +1919,10 @@ pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata {
 pub struct Hash {
     /// Required. The type of hash that was performed, e.g. "SHA-256".
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Required. The hash value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// This submessage provides human-readable hints about the purpose of the authority. Because the name of a note acts as its resource reference, it is important to disambiguate the canonical name of the Note (which might be a UUID for security purposes) from "readable" names more suitable for debug output. Note that these hints should not be used to look up authorities in security sensitive contexts, such as when looking up attestations to verify.
@@ -1800,7 +1930,7 @@ pub struct Hash {
 pub struct Hint {
     /// Required. The human readable name of this attestation authority, for example "qa".
     #[serde(default, rename = "humanReadableName")]
-    pub human_readable_name: Option<String>,
+    pub human_readable_name: ::core::option::Option<String>,
 }
 
 /// The unique identifier of the update.
@@ -1808,10 +1938,10 @@ pub struct Hint {
 pub struct Identity {
     /// The revision number of the update.
     #[serde(default)]
-    pub revision: Option<i32>,
+    pub revision: ::core::option::Option<i32>,
     /// The revision independent identifier of the update.
     #[serde(default, rename = "updateId")]
-    pub update_id: Option<String>,
+    pub update_id: ::core::option::Option<String>,
 }
 
 /// Basis describes the base image portion (Note) of the DockerImage relationship. Linked occurrences are derived from this or an equivalent image via: FROM Or an equivalent reference, e.g., a tag of the resource_url.
@@ -1819,10 +1949,10 @@ pub struct Identity {
 pub struct ImageNote {
     /// Required. Immutable. The fingerprint of the base image.
     #[serde(default)]
-    pub fingerprint: Option<Fingerprint>,
+    pub fingerprint: ::core::option::Option<::std::boxed::Box<Fingerprint>>,
     /// Required. Immutable. The resource_url for the resource representing the basis of associated occurrence images.
     #[serde(default, rename = "resourceUrl")]
-    pub resource_url: Option<String>,
+    pub resource_url: ::core::option::Option<String>,
 }
 
 /// Details of the derived image portion of the DockerImage relationship. This image would be produced from a Dockerfile with FROM .
@@ -1830,16 +1960,16 @@ pub struct ImageNote {
 pub struct ImageOccurrence {
     /// Output only. This contains the base image URL for the derived image occurrence.
     #[serde(default, rename = "baseResourceUrl")]
-    pub base_resource_url: Option<String>,
+    pub base_resource_url: ::core::option::Option<String>,
     /// Output only. The number of layers by which this image differs from the associated image basis.
     #[serde(default)]
-    pub distance: Option<i32>,
+    pub distance: ::core::option::Option<i32>,
     /// Required. The fingerprint of the derived image.
     #[serde(default)]
-    pub fingerprint: Option<Fingerprint>,
+    pub fingerprint: ::core::option::Option<::std::boxed::Box<Fingerprint>>,
     /// This contains layer-specific metadata, if populated it has length "distance" and is ordered with [distance] being the layer immediately following the base image and [1] being the final layer.
     #[serde(default, rename = "layerInfo")]
-    pub layer_info: Option<Vec<Layer>>,
+    pub layer_info: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Layer>>>,
 }
 
 /// InTotoProvenance resource type.
@@ -1847,15 +1977,15 @@ pub struct ImageOccurrence {
 pub struct InTotoProvenance {
     /// required
     #[serde(default, rename = "builderConfig")]
-    pub builder_config: Option<BuilderConfig>,
+    pub builder_config: ::core::option::Option<::std::boxed::Box<BuilderConfig>>,
     /// The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.
     #[serde(default)]
-    pub materials: Option<Vec<String>>,
+    pub materials: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub metadata: Option<Metadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<Metadata>>,
     /// Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required
     #[serde(default)]
-    pub recipe: Option<Recipe>,
+    pub recipe: ::core::option::Option<::std::boxed::Box<Recipe>>,
 }
 
 /// InTotoSlsaProvenanceV1 resource type.
@@ -1863,13 +1993,13 @@ pub struct InTotoProvenance {
 pub struct InTotoSlsaProvenanceV1 {
     /// InToto spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement
     #[serde(default, rename = "_type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     #[serde(default)]
-    pub predicate: Option<SlsaProvenanceV1>,
+    pub predicate: ::core::option::Option<::std::boxed::Box<SlsaProvenanceV1>>,
     #[serde(default, rename = "predicateType")]
-    pub predicate_type: Option<String>,
+    pub predicate_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub subject: Option<Vec<Subject>>,
+    pub subject: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Subject>>>,
 }
 
 /// Spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement The serialized InTotoStatement will be stored as Envelope.payload. Envelope.payloadType is always "application/vnd.in-toto+json".
@@ -1877,18 +2007,18 @@ pub struct InTotoSlsaProvenanceV1 {
 pub struct InTotoStatement {
     /// Always https://in-toto.io/Statement/v0.1.
     #[serde(default, rename = "_type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// https://slsa.dev/provenance/v0.1 for SlsaProvenance.
     #[serde(default, rename = "predicateType")]
-    pub predicate_type: Option<String>,
+    pub predicate_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub provenance: Option<InTotoProvenance>,
+    pub provenance: ::core::option::Option<::std::boxed::Box<InTotoProvenance>>,
     #[serde(default, rename = "slsaProvenance")]
-    pub slsa_provenance: Option<SlsaProvenance>,
+    pub slsa_provenance: ::core::option::Option<::std::boxed::Box<SlsaProvenance>>,
     #[serde(default, rename = "slsaProvenanceZeroTwo")]
-    pub slsa_provenance_zero_two: Option<SlsaProvenanceZeroTwo>,
+    pub slsa_provenance_zero_two: ::core::option::Option<::std::boxed::Box<SlsaProvenanceZeroTwo>>,
     #[serde(default)]
-    pub subject: Option<Vec<Subject>>,
+    pub subject: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Subject>>>,
 }
 
 /// Justification provides the justification when the state of the assessment if NOT_AFFECTED.
@@ -1896,10 +2026,10 @@ pub struct InTotoStatement {
 pub struct Justification {
     /// Additional details on why this justification was chosen.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// The justification type for this vulnerability. // TODO: enum values: ["JUSTIFICATION_TYPE_UNSPECIFIED", "COMPONENT_NOT_PRESENT", "VULNERABLE_CODE_NOT_PRESENT", "VULNERABLE_CODE_NOT_IN_EXECUTE_PATH", "VULNERABLE_CODE_CANNOT_BE_CONTROLLED_BY_ADVERSARY", "INLINE_MITIGATIONS_ALREADY_EXIST"]
     #[serde(default, rename = "justificationType")]
-    pub justification_type: Option<String>,
+    pub justification_type: ::core::option::Option<String>,
 }
 
 /// Jwt resource type.
@@ -1907,7 +2037,7 @@ pub struct Justification {
 pub struct Jwt {
     /// The compact encoding of a JWS, which is always three base64 encoded strings joined by periods. For details, see: https://tools.ietf.org/html/rfc7515.html#section-3.1
     #[serde(default, rename = "compactJwt")]
-    pub compact_jwt: Option<String>,
+    pub compact_jwt: ::core::option::Option<String>,
 }
 
 /// KnowledgeBase resource type.
@@ -1915,10 +2045,10 @@ pub struct Jwt {
 pub struct KnowledgeBase {
     /// The KB name (generally of the form KB[0-9]+ (e.g., KB123456)).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A link to the KB in the [Windows update catalog] (https://www.catalog.update.microsoft.com/).
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Layer holds metadata specific to a layer of a Docker image.
@@ -1926,10 +2056,10 @@ pub struct KnowledgeBase {
 pub struct Layer {
     /// The recovered arguments to the Dockerfile directive.
     #[serde(default)]
-    pub arguments: Option<String>,
+    pub arguments: ::core::option::Option<String>,
     /// Required. The recovered Dockerfile directive used to construct this layer. See https://docs.docker.com/engine/reference/builder/ for more information.
     #[serde(default)]
-    pub directive: Option<String>,
+    pub directive: ::core::option::Option<String>,
 }
 
 /// Details about the layer a package was found in.
@@ -1937,19 +2067,19 @@ pub struct Layer {
 pub struct LayerDetails {
     /// The base images the layer is found within.
     #[serde(default, rename = "baseImages")]
-    pub base_images: Option<Vec<BaseImage>>,
+    pub base_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BaseImage>>>,
     /// The layer chain ID (sha256 hash) of the layer in the container image. https://github.com/opencontainers/image-spec/blob/main/config.md#layer-chainid
     #[serde(default, rename = "chainId")]
-    pub chain_id: Option<String>,
+    pub chain_id: ::core::option::Option<String>,
     /// The layer build command that was used to build the layer. This may not be found in all layers depending on how the container image is built.
     #[serde(default)]
-    pub command: Option<String>,
+    pub command: ::core::option::Option<String>,
     /// The diff ID (typically a sha256 hash) of the layer in the container image.
     #[serde(default, rename = "diffId")]
-    pub diff_id: Option<String>,
+    pub diff_id: ::core::option::Option<String>,
     /// The index of the layer in the container image.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
 }
 
 /// License information.
@@ -1957,10 +2087,10 @@ pub struct LayerDetails {
 pub struct License {
     /// Comments
     #[serde(default)]
-    pub comments: Option<String>,
+    pub comments: ::core::option::Option<String>,
     /// Often a single license can be used to represent the licensing terms. Sometimes it is necessary to include a choice of one or more licenses or some combination of license identifiers. Examples: "LGPL-2.1-only OR MIT", "LGPL-2.1-only AND MIT", "GPL-2.0-or-later WITH Bison-exception-2.2".
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
 }
 
 /// Response for listing occurrences for a note.
@@ -1968,10 +2098,10 @@ pub struct License {
 pub struct ListNoteOccurrencesResponse {
     /// Token to provide to skip to a particular spot in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The occurrences attached to the specified note.
     #[serde(default)]
-    pub occurrences: Option<Vec<Occurrence>>,
+    pub occurrences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Occurrence>>>,
 }
 
 /// Response for listing notes.
@@ -1979,13 +2109,13 @@ pub struct ListNoteOccurrencesResponse {
 pub struct ListNotesResponse {
     /// The next pagination token in the list response. It should be used as page_token for the following request. An empty value means no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The notes requested.
     #[serde(default)]
-    pub notes: Option<Vec<Note>>,
+    pub notes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Note>>>,
     /// Unordered list. Unreachable regions. Populated for requests from the global region when return_partial_success is set. Format: projects/[PROJECT_ID]/locations/[LOCATION]
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for listing occurrences.
@@ -1993,13 +2123,13 @@ pub struct ListNotesResponse {
 pub struct ListOccurrencesResponse {
     /// The next pagination token in the list response. It should be used as page_token for the following request. An empty value means no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The occurrences requested.
     #[serde(default)]
-    pub occurrences: Option<Vec<Occurrence>>,
+    pub occurrences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Occurrence>>>,
     /// Unordered list. Unreachable regions. Populated for requests from the global region when return_partial_success is set. Format: projects/[PROJECT_ID]/locations/[LOCATION]
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// An occurrence of a particular package installation found within a system''s filesystem. E.g., glibc was found in /var/lib/dpkg/status.
@@ -2007,22 +2137,22 @@ pub struct ListOccurrencesResponse {
 pub struct Location {
     /// Deprecated. The CPE URI in [CPE format](https://cpe.mitre.org/specification/)
     #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: Option<String>,
+    pub cpe_uri: ::core::option::Option<String>,
     /// The path from which we gathered that this package/version is installed.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Deprecated. The version installed at this location.
     #[serde(default)]
-    pub version: Option<Version>,
+    pub version: ::core::option::Option<::std::boxed::Box<Version>>,
 }
 
 /// Material resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Material {
     #[serde(default)]
-    pub digest: Option<serde_json::Value>,
+    pub digest: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Other properties of the build.
@@ -2030,19 +2160,19 @@ pub struct Material {
 pub struct Metadata {
     /// The timestamp of when the build completed.
     #[serde(default, rename = "buildFinishedOn")]
-    pub build_finished_on: Option<String>,
+    pub build_finished_on: ::core::option::Option<String>,
     /// Identifies the particular build invocation, which can be useful for finding associated logs or other ad-hoc analysis. The value SHOULD be globally unique, per in-toto Provenance spec.
     #[serde(default, rename = "buildInvocationId")]
-    pub build_invocation_id: Option<String>,
+    pub build_invocation_id: ::core::option::Option<String>,
     /// The timestamp of when the build started.
     #[serde(default, rename = "buildStartedOn")]
-    pub build_started_on: Option<String>,
+    pub build_started_on: ::core::option::Option<String>,
     /// Indicates that the builder claims certain fields in this message to be complete.
     #[serde(default)]
-    pub completeness: Option<Completeness>,
+    pub completeness: ::core::option::Option<::std::boxed::Box<Completeness>>,
     /// If true, the builder claims that running the recipe on materials will produce bit-for-bit identical output.
     #[serde(default)]
-    pub reproducible: Option<bool>,
+    pub reproducible: ::core::option::Option<bool>,
 }
 
 /// Details about files that caused a compliance check to fail. display_command is a single command that can be used to display a list of non compliant files. When there is no such command, we can also iterate a list of non compliant file using ''path''.
@@ -2050,13 +2180,13 @@ pub struct Metadata {
 pub struct NonCompliantFile {
     /// Command to display the non-compliant files.
     #[serde(default, rename = "displayCommand")]
-    pub display_command: Option<String>,
+    pub display_command: ::core::option::Option<String>,
     /// Empty if display_command is set.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Explains why a file is non compliant for a CIS check.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// A type of analysis that can be done for a resource.
@@ -2064,70 +2194,71 @@ pub struct NonCompliantFile {
 pub struct Note {
     /// A note describing an attestation role.
     #[serde(default)]
-    pub attestation: Option<AttestationNote>,
+    pub attestation: ::core::option::Option<::std::boxed::Box<AttestationNote>>,
     /// A note describing build provenance for a verifiable build.
     #[serde(default)]
-    pub build: Option<BuildNote>,
+    pub build: ::core::option::Option<::std::boxed::Box<BuildNote>>,
     /// A note describing a compliance check.
     #[serde(default)]
-    pub compliance: Option<ComplianceNote>,
+    pub compliance: ::core::option::Option<::std::boxed::Box<ComplianceNote>>,
     /// Output only. The time this note was created. This field can be used as a filter in list requests.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// A note describing something that can be deployed.
     #[serde(default)]
-    pub deployment: Option<DeploymentNote>,
+    pub deployment: ::core::option::Option<::std::boxed::Box<DeploymentNote>>,
     /// A note describing the initial analysis of a resource.
     #[serde(default)]
-    pub discovery: Option<DiscoveryNote>,
+    pub discovery: ::core::option::Option<::std::boxed::Box<DiscoveryNote>>,
     /// A note describing a dsse attestation note.
     #[serde(default, rename = "dsseAttestation")]
-    pub dsse_attestation: Option<DSSEAttestationNote>,
+    pub dsse_attestation: ::core::option::Option<::std::boxed::Box<DSSEAttestationNote>>,
     /// Time of expiration for this note. Empty if note does not expire.
     #[serde(default, rename = "expirationTime")]
-    pub expiration_time: Option<String>,
+    pub expiration_time: ::core::option::Option<String>,
     /// A note describing a base image.
     #[serde(default)]
-    pub image: Option<ImageNote>,
+    pub image: ::core::option::Option<::std::boxed::Box<ImageNote>>,
     /// Output only. The type of analysis. This field can be used as a filter in list requests. // TODO: enum values: ["NOTE_KIND_UNSPECIFIED", "VULNERABILITY", "BUILD", "IMAGE", "PACKAGE", "DEPLOYMENT", "DISCOVERY", "ATTESTATION", "UPGRADE", "COMPLIANCE", "DSSE_ATTESTATION", "VULNERABILITY_ASSESSMENT", "SBOM_REFERENCE", "SECRET"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// A detailed description of this note.
     #[serde(default, rename = "longDescription")]
-    pub long_description: Option<String>,
+    pub long_description: ::core::option::Option<String>,
     /// Output only. The name of the note in the form of projects/[PROVIDER_ID]/notes/[NOTE_ID].
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A note describing a package hosted by various package managers.
     #[serde(default)]
-    pub package: Option<PackageNote>,
+    pub package: ::core::option::Option<::std::boxed::Box<PackageNote>>,
     /// Other notes related to this note.
     #[serde(default, rename = "relatedNoteNames")]
-    pub related_note_names: Option<Vec<String>>,
+    pub related_note_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// URLs associated with this note.
     #[serde(default, rename = "relatedUrl")]
-    pub related_url: Option<Vec<RelatedUrl>>,
+    pub related_url: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RelatedUrl>>>,
     /// A note describing an SBOM reference.
     #[serde(default, rename = "sbomReference")]
-    pub sbom_reference: Option<SBOMReferenceNote>,
+    pub sbom_reference: ::core::option::Option<::std::boxed::Box<SBOMReferenceNote>>,
     /// A note describing a secret.
     #[serde(default)]
-    pub secret: Option<serde_json::Value>,
+    pub secret: ::core::option::Option<serde_json::Value>,
     /// A one sentence description of this note.
     #[serde(default, rename = "shortDescription")]
-    pub short_description: Option<String>,
+    pub short_description: ::core::option::Option<String>,
     /// Output only. The time this note was last updated. This field can be used as a filter in list requests.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// A note describing available package upgrades.
     #[serde(default)]
-    pub upgrade: Option<UpgradeNote>,
+    pub upgrade: ::core::option::Option<::std::boxed::Box<UpgradeNote>>,
     /// A note describing a package vulnerability.
     #[serde(default)]
-    pub vulnerability: Option<VulnerabilityNote>,
+    pub vulnerability: ::core::option::Option<::std::boxed::Box<VulnerabilityNote>>,
     /// A note describing a vulnerability assessment.
     #[serde(default, rename = "vulnerabilityAssessment")]
-    pub vulnerability_assessment: Option<VulnerabilityAssessmentNote>,
+    pub vulnerability_assessment:
+        ::core::option::Option<::std::boxed::Box<VulnerabilityAssessmentNote>>,
 }
 
 /// An instance of an analysis type that has been found on a resource.
@@ -2135,67 +2266,67 @@ pub struct Note {
 pub struct Occurrence {
     /// The time this advisory was published by the source.
     #[serde(default, rename = "advisoryPublishTime")]
-    pub advisory_publish_time: Option<String>,
+    pub advisory_publish_time: ::core::option::Option<String>,
     /// Describes an attestation of an artifact.
     #[serde(default)]
-    pub attestation: Option<AttestationOccurrence>,
+    pub attestation: ::core::option::Option<::std::boxed::Box<AttestationOccurrence>>,
     /// Describes a verifiable build.
     #[serde(default)]
-    pub build: Option<BuildOccurrence>,
+    pub build: ::core::option::Option<::std::boxed::Box<BuildOccurrence>>,
     /// Describes a compliance violation on a linked resource.
     #[serde(default)]
-    pub compliance: Option<ComplianceOccurrence>,
+    pub compliance: ::core::option::Option<::std::boxed::Box<ComplianceOccurrence>>,
     /// Output only. The time this occurrence was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Describes the deployment of an artifact on a runtime.
     #[serde(default)]
-    pub deployment: Option<DeploymentOccurrence>,
+    pub deployment: ::core::option::Option<::std::boxed::Box<DeploymentOccurrence>>,
     /// Describes when a resource was discovered.
     #[serde(default)]
-    pub discovery: Option<DiscoveryOccurrence>,
+    pub discovery: ::core::option::Option<::std::boxed::Box<DiscoveryOccurrence>>,
     /// Describes an attestation of an artifact using dsse.
     #[serde(default, rename = "dsseAttestation")]
-    pub dsse_attestation: Option<DSSEAttestationOccurrence>,
+    pub dsse_attestation: ::core::option::Option<::std::boxed::Box<DSSEAttestationOccurrence>>,
     /// https://github.com/secure-systems-lab/dsse
     #[serde(default)]
-    pub envelope: Option<Envelope>,
+    pub envelope: ::core::option::Option<::std::boxed::Box<Envelope>>,
     /// Describes how this resource derives from the basis in the associated note.
     #[serde(default)]
-    pub image: Option<ImageOccurrence>,
+    pub image: ::core::option::Option<::std::boxed::Box<ImageOccurrence>>,
     /// Output only. This explicitly denotes which of the occurrence details are specified. This field can be used as a filter in list requests. // TODO: enum values: ["NOTE_KIND_UNSPECIFIED", "VULNERABILITY", "BUILD", "IMAGE", "PACKAGE", "DEPLOYMENT", "DISCOVERY", "ATTESTATION", "UPGRADE", "COMPLIANCE", "DSSE_ATTESTATION", "VULNERABILITY_ASSESSMENT", "SBOM_REFERENCE", "SECRET"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. The name of the occurrence in the form of projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID].
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Immutable. The analysis note associated with this occurrence, in the form of projects/[PROVIDER_ID]/notes/[NOTE_ID]. This field can be used as a filter in list requests.
     #[serde(default, rename = "noteName")]
-    pub note_name: Option<String>,
+    pub note_name: ::core::option::Option<String>,
     /// Describes the installation of a package on the linked resource.
     #[serde(default)]
-    pub package: Option<PackageOccurrence>,
+    pub package: ::core::option::Option<::std::boxed::Box<PackageOccurrence>>,
     /// A description of actions that can be taken to remedy the note.
     #[serde(default)]
-    pub remediation: Option<String>,
+    pub remediation: ::core::option::Option<String>,
     /// Required. Immutable. A URI that represents the resource for which the occurrence applies. For example, https://gcr.io/project/image@sha256:123abc for a Docker image.
     #[serde(default, rename = "resourceUri")]
-    pub resource_uri: Option<String>,
+    pub resource_uri: ::core::option::Option<String>,
     /// Describes a specific SBOM reference occurrences.
     #[serde(default, rename = "sbomReference")]
-    pub sbom_reference: Option<SBOMReferenceOccurrence>,
+    pub sbom_reference: ::core::option::Option<::std::boxed::Box<SBOMReferenceOccurrence>>,
     /// Describes a secret.
     #[serde(default)]
-    pub secret: Option<SecretOccurrence>,
+    pub secret: ::core::option::Option<::std::boxed::Box<SecretOccurrence>>,
     /// Output only. The time this occurrence was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Describes an available package upgrade on the linked resource.
     #[serde(default)]
-    pub upgrade: Option<UpgradeOccurrence>,
+    pub upgrade: ::core::option::Option<::std::boxed::Box<UpgradeOccurrence>>,
     /// Describes a security vulnerability.
     #[serde(default)]
-    pub vulnerability: Option<VulnerabilityOccurrence>,
+    pub vulnerability: ::core::option::Option<::std::boxed::Box<VulnerabilityOccurrence>>,
 }
 
 /// A detail for a distro and package this vulnerability occurrence was found in and its associated fix (if one is available).
@@ -2203,34 +2334,35 @@ pub struct Occurrence {
 pub struct PackageIssue {
     /// Required. The [CPE URI](https://cpe.mitre.org/specification/) this vulnerability was found in.
     #[serde(default, rename = "affectedCpeUri")]
-    pub affected_cpe_uri: Option<String>,
+    pub affected_cpe_uri: ::core::option::Option<String>,
     /// Required. The package this vulnerability was found in.
     #[serde(default, rename = "affectedPackage")]
-    pub affected_package: Option<String>,
+    pub affected_package: ::core::option::Option<String>,
     /// Required. The version of the package that is installed on the resource affected by this vulnerability.
     #[serde(default, rename = "affectedVersion")]
-    pub affected_version: Option<Version>,
+    pub affected_version: ::core::option::Option<::std::boxed::Box<Version>>,
     /// Output only. The distro or language system assigned severity for this vulnerability when that is available and note provider assigned severity when it is not available. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default, rename = "effectiveSeverity")]
-    pub effective_severity: Option<String>,
+    pub effective_severity: ::core::option::Option<String>,
     /// The location at which this package was found.
     #[serde(default, rename = "fileLocation")]
-    pub file_location: Option<Vec<GrafeasV1FileLocation>>,
+    pub file_location:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GrafeasV1FileLocation>>>,
     /// Output only. Whether a fix is available for this package.
     #[serde(default, rename = "fixAvailable")]
-    pub fix_available: Option<bool>,
+    pub fix_available: ::core::option::Option<bool>,
     /// The [CPE URI](https://cpe.mitre.org/specification/) this vulnerability was fixed in. It is possible for this to be different from the affected_cpe_uri.
     #[serde(default, rename = "fixedCpeUri")]
-    pub fixed_cpe_uri: Option<String>,
+    pub fixed_cpe_uri: ::core::option::Option<String>,
     /// The package this vulnerability was fixed in. It is possible for this to be different from the affected_package.
     #[serde(default, rename = "fixedPackage")]
-    pub fixed_package: Option<String>,
+    pub fixed_package: ::core::option::Option<String>,
     /// Required. The version of the package this vulnerability was fixed in. Setting this to VersionKind.MAXIMUM means no fix is yet available.
     #[serde(default, rename = "fixedVersion")]
-    pub fixed_version: Option<Version>,
+    pub fixed_version: ::core::option::Option<::std::boxed::Box<Version>>,
     /// The type of package (e.g. OS, MAVEN, GO).
     #[serde(default, rename = "packageType")]
-    pub package_type: Option<String>,
+    pub package_type: ::core::option::Option<String>,
 }
 
 /// PackageNote represents a particular package version.
@@ -2238,37 +2370,37 @@ pub struct PackageIssue {
 pub struct PackageNote {
     /// The CPU architecture for which packages in this distribution channel were built. Architecture will be blank for language packages. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86", "X64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// The cpe_uri in [CPE format](https://cpe.mitre.org/specification/) denoting the package manager version distributing a package. The cpe_uri will be blank for language packages.
     #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: Option<String>,
+    pub cpe_uri: ::core::option::Option<String>,
     /// The description of this package.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Hash value, typically a file digest, that allows unique identification a specific package.
     #[serde(default)]
-    pub digest: Option<Vec<Digest>>,
+    pub digest: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Digest>>>,
     /// Deprecated. The various channels by which a package is distributed.
     #[serde(default)]
-    pub distribution: Option<Vec<Distribution>>,
+    pub distribution: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Distribution>>>,
     /// Licenses that have been declared by the authors of the package.
     #[serde(default)]
-    pub license: Option<License>,
+    pub license: ::core::option::Option<::std::boxed::Box<License>>,
     /// A freeform text denoting the maintainer of this package.
     #[serde(default)]
-    pub maintainer: Option<String>,
+    pub maintainer: ::core::option::Option<String>,
     /// Required. Immutable. The name of the package.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The type of package; whether native or non native (e.g., ruby gems, node.js packages, etc.).
     #[serde(default, rename = "packageType")]
-    pub package_type: Option<String>,
+    pub package_type: ::core::option::Option<String>,
     /// The homepage for this package.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// The version of the package.
     #[serde(default)]
-    pub version: Option<Version>,
+    pub version: ::core::option::Option<::std::boxed::Box<Version>>,
 }
 
 /// Details on how a particular software package was installed on a system.
@@ -2276,25 +2408,25 @@ pub struct PackageNote {
 pub struct PackageOccurrence {
     /// Output only. The CPU architecture for which packages in this distribution channel were built. Architecture will be blank for language packages. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86", "X64"]
     #[serde(default)]
-    pub architecture: Option<String>,
+    pub architecture: ::core::option::Option<String>,
     /// Output only. The cpe_uri in [CPE format](https://cpe.mitre.org/specification/) denoting the package manager version distributing a package. The cpe_uri will be blank for language packages.
     #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: Option<String>,
+    pub cpe_uri: ::core::option::Option<String>,
     /// Licenses that have been declared by the authors of the package.
     #[serde(default)]
-    pub license: Option<License>,
+    pub license: ::core::option::Option<::std::boxed::Box<License>>,
     /// All of the places within the filesystem versions of this package have been found.
     #[serde(default)]
-    pub location: Option<Vec<Location>>,
+    pub location: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// Required. Output only. The name of the installed package.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The type of package; whether native or non native (e.g., ruby gems, node.js packages, etc.).
     #[serde(default, rename = "packageType")]
-    pub package_type: Option<String>,
+    pub package_type: ::core::option::Option<String>,
     /// Output only. The version of the package.
     #[serde(default)]
-    pub version: Option<Version>,
+    pub version: ::core::option::Option<::std::boxed::Box<Version>>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -2302,13 +2434,13 @@ pub struct PackageOccurrence {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Product contains information about a product and how to uniquely identify it.
@@ -2316,13 +2448,13 @@ pub struct Policy {
 pub struct Product {
     /// Contains a URI which is vendor-specific. Example: The artifact repository URL of an image.
     #[serde(default, rename = "genericUri")]
-    pub generic_uri: Option<String>,
+    pub generic_uri: ::core::option::Option<String>,
     /// Token that identifies a product so that it can be referred to from other parts in the document. There is no predefined format as long as it uniquely identifies a group in the context of the current document.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of the product.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Selects a repo using a Google Cloud Platform project ID (e.g., winged-cargo-31) and a repo name within that project.
@@ -2330,21 +2462,22 @@ pub struct Product {
 pub struct ProjectRepoId {
     /// The ID of the project.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// The name of the repo. Leave empty for the default repo.
     #[serde(default, rename = "repoName")]
-    pub repo_name: Option<String>,
+    pub repo_name: ::core::option::Option<String>,
 }
 
 /// ProvenanceBuilder resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProvenanceBuilder {
     #[serde(default, rename = "builderDependencies")]
-    pub builder_dependencies: Option<Vec<ResourceDescriptor>>,
+    pub builder_dependencies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceDescriptor>>>,
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     #[serde(default)]
-    pub version: Option<serde_json::Value>,
+    pub version: ::core::option::Option<serde_json::Value>,
 }
 
 /// Publisher contains information about the publisher of this Note.
@@ -2352,13 +2485,13 @@ pub struct ProvenanceBuilder {
 pub struct Publisher {
     /// Provides information about the authority of the issuing party to release the document, in particular, the party''s constituency and responsibilities or other obligations.
     #[serde(default, rename = "issuingAuthority")]
-    pub issuing_authority: Option<String>,
+    pub issuing_authority: ::core::option::Option<String>,
     /// Name of the publisher. Examples: ''Google'', ''Google Cloud Platform''.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The context or namespace. Contains a URL which is under control of the issuing party and can be used as a globally unique identifier for that issuing party. Example: https://csaf.io
     #[serde(default, rename = "publisherNamespace")]
-    pub publisher_namespace: Option<String>,
+    pub publisher_namespace: ::core::option::Option<String>,
 }
 
 /// Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.
@@ -2366,19 +2499,19 @@ pub struct Publisher {
 pub struct Recipe {
     /// Collection of all external inputs that influenced the build on top of recipe.definedInMaterial and recipe.entryPoint. For example, if the recipe type were "make", then this might be the flags passed to make aside from the target, which is captured in recipe.entryPoint. Since the arguments field can greatly vary in structure, depending on the builder and recipe type, this is of form "Any".
     #[serde(default)]
-    pub arguments: Option<Vec<serde_json::Value>>,
+    pub arguments: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// Index in materials containing the recipe steps that are not implied by recipe.type. For example, if the recipe type were "make", then this would point to the source containing the Makefile, not the make program itself. Set to -1 if the recipe doesn''t come from a material, as zero is default unset value for int64.
     #[serde(default, rename = "definedInMaterial")]
-    pub defined_in_material: Option<String>,
+    pub defined_in_material: ::core::option::Option<String>,
     /// String identifying the entry point into the build. This is often a path to a configuration file and/or a target label within that file. The syntax and meaning are defined by recipe.type. For example, if the recipe type were "make", then this would reference the directory in which to run make as well as which target to use.
     #[serde(default, rename = "entryPoint")]
-    pub entry_point: Option<String>,
+    pub entry_point: ::core::option::Option<String>,
     /// Any other builder-controlled inputs necessary for correctly evaluating the recipe. Usually only needed for reproducing the build but not evaluated as part of policy. Since the environment field can greatly vary in structure, depending on the builder and recipe type, this is of form "Any".
     #[serde(default)]
-    pub environment: Option<Vec<serde_json::Value>>,
+    pub environment: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Metadata for any related URL information.
@@ -2386,10 +2519,10 @@ pub struct Recipe {
 pub struct RelatedUrl {
     /// Label to describe usage of the URL.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Specific URL associated with the resource.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Specifies details on how to handle (and presumably, fix) a vulnerability.
@@ -2397,13 +2530,13 @@ pub struct RelatedUrl {
 pub struct Remediation {
     /// Contains a comprehensive human-readable discussion of the remediation.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// The type of remediation that can be applied. // TODO: enum values: ["REMEDIATION_TYPE_UNSPECIFIED", "MITIGATION", "NO_FIX_PLANNED", "NONE_AVAILABLE", "VENDOR_FIX", "WORKAROUND"]
     #[serde(default, rename = "remediationType")]
-    pub remediation_type: Option<String>,
+    pub remediation_type: ::core::option::Option<String>,
     /// Contains the URL where to obtain the remediation.
     #[serde(default, rename = "remediationUri")]
-    pub remediation_uri: Option<RelatedUrl>,
+    pub remediation_uri: ::core::option::Option<::std::boxed::Box<RelatedUrl>>,
 }
 
 /// A unique identifier for a Cloud Repo.
@@ -2411,29 +2544,29 @@ pub struct Remediation {
 pub struct RepoId {
     /// A combination of a project ID and a repo name.
     #[serde(default, rename = "projectRepoId")]
-    pub project_repo_id: Option<ProjectRepoId>,
+    pub project_repo_id: ::core::option::Option<::std::boxed::Box<ProjectRepoId>>,
     /// A server-assigned, globally unique identifier.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// ResourceDescriptor resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceDescriptor {
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     #[serde(default)]
-    pub digest: Option<serde_json::Value>,
+    pub digest: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "downloadLocation")]
-    pub download_location: Option<String>,
+    pub download_location: ::core::option::Option<String>,
     #[serde(default, rename = "mediaType")]
-    pub media_type: Option<String>,
+    pub media_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Risk resource type.
@@ -2441,21 +2574,21 @@ pub struct ResourceDescriptor {
 pub struct Risk {
     /// CISA maintains the authoritative source of vulnerabilities that have been exploited in the wild.
     #[serde(default, rename = "cisaKev")]
-    pub cisa_kev: Option<CISAKnownExploitedVulnerabilities>,
+    pub cisa_kev: ::core::option::Option<::std::boxed::Box<CISAKnownExploitedVulnerabilities>>,
     /// The Exploit Prediction Scoring System (EPSS) estimates the likelihood (probability) that a software vulnerability will be exploited in the wild.
     #[serde(default)]
-    pub epss: Option<ExploitPredictionScoringSystem>,
+    pub epss: ::core::option::Option<::std::boxed::Box<ExploitPredictionScoringSystem>>,
 }
 
 /// RunDetails resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunDetails {
     #[serde(default)]
-    pub builder: Option<ProvenanceBuilder>,
+    pub builder: ::core::option::Option<::std::boxed::Box<ProvenanceBuilder>>,
     #[serde(default)]
-    pub byproducts: Option<Vec<ResourceDescriptor>>,
+    pub byproducts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceDescriptor>>>,
     #[serde(default)]
-    pub metadata: Option<BuildMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<BuildMetadata>>,
 }
 
 /// The note representing an SBOM reference.
@@ -2463,10 +2596,10 @@ pub struct RunDetails {
 pub struct SBOMReferenceNote {
     /// The format that SBOM takes. E.g. may be spdx, cyclonedx, etc...
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// The version of the format that the SBOM takes. E.g. if the format is spdx, the version may be 2.3.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The occurrence representing an SBOM reference as applied to a specific resource. The occurrence follows the DSSE specification. See https://github.com/secure-systems-lab/dsse/blob/master/envelope.md for more details.
@@ -2474,13 +2607,13 @@ pub struct SBOMReferenceNote {
 pub struct SBOMReferenceOccurrence {
     /// The actual payload that contains the SBOM reference data.
     #[serde(default)]
-    pub payload: Option<SbomReferenceIntotoPayload>,
+    pub payload: ::core::option::Option<::std::boxed::Box<SbomReferenceIntotoPayload>>,
     /// The kind of payload that SbomReferenceIntotoPayload takes. Since it''s in the intoto format, this value is expected to be ''application/vnd.in-toto+json''.
     #[serde(default, rename = "payloadType")]
-    pub payload_type: Option<String>,
+    pub payload_type: ::core::option::Option<String>,
     /// The signatures over the payload.
     #[serde(default)]
-    pub signatures: Option<Vec<EnvelopeSignature>>,
+    pub signatures: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnvelopeSignature>>>,
 }
 
 /// The status of an SBOM generation.
@@ -2488,10 +2621,10 @@ pub struct SBOMReferenceOccurrence {
 pub struct SBOMStatus {
     /// If there was an error generating an SBOM, this will indicate what that error was.
     #[serde(default)]
-    pub error: Option<String>,
+    pub error: ::core::option::Option<String>,
     /// The progress of the SBOM generation. // TODO: enum values: ["SBOM_STATE_UNSPECIFIED", "PENDING", "COMPLETE"]
     #[serde(default, rename = "sbomState")]
-    pub sbom_state: Option<String>,
+    pub sbom_state: ::core::option::Option<String>,
 }
 
 /// The actual payload that contains the SBOM Reference data. The payload follows the intoto statement specification. See https://github.com/in-toto/attestation/blob/main/spec/v1.0/statement.md for more details.
@@ -2499,16 +2632,16 @@ pub struct SBOMStatus {
 pub struct SbomReferenceIntotoPayload {
     /// Identifier for the schema of the Statement.
     #[serde(default, rename = "_type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Additional parameters of the Predicate. Includes the actual data about the SBOM.
     #[serde(default)]
-    pub predicate: Option<SbomReferenceIntotoPredicate>,
+    pub predicate: ::core::option::Option<::std::boxed::Box<SbomReferenceIntotoPredicate>>,
     /// URI identifying the type of the Predicate.
     #[serde(default, rename = "predicateType")]
-    pub predicate_type: Option<String>,
+    pub predicate_type: ::core::option::Option<String>,
     /// Set of software artifacts that the attestation applies to. Each element represents a single software artifact.
     #[serde(default)]
-    pub subject: Option<Vec<Subject>>,
+    pub subject: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Subject>>>,
 }
 
 /// A predicate which describes the SBOM being referenced.
@@ -2516,16 +2649,16 @@ pub struct SbomReferenceIntotoPayload {
 pub struct SbomReferenceIntotoPredicate {
     /// A map of algorithm to digest of the contents of the SBOM.
     #[serde(default)]
-    pub digest: Option<serde_json::Value>,
+    pub digest: ::core::option::Option<serde_json::Value>,
     /// The location of the SBOM.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The mime type of the SBOM.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// The person or system referring this predicate to the consumer.
     #[serde(default, rename = "referrerId")]
-    pub referrer_id: Option<String>,
+    pub referrer_id: ::core::option::Option<String>,
 }
 
 /// The location of the secret.
@@ -2533,7 +2666,7 @@ pub struct SbomReferenceIntotoPredicate {
 pub struct SecretLocation {
     /// The secret is found from a file.
     #[serde(default, rename = "fileLocation")]
-    pub file_location: Option<GrafeasV1FileLocation>,
+    pub file_location: ::core::option::Option<::std::boxed::Box<GrafeasV1FileLocation>>,
 }
 
 /// The occurrence provides details of a secret.
@@ -2541,13 +2674,13 @@ pub struct SecretLocation {
 pub struct SecretOccurrence {
     /// Required. Type of secret. // TODO: enum values: ["SECRET_KIND_UNSPECIFIED", "SECRET_KIND_UNKNOWN", "SECRET_KIND_GCP_SERVICE_ACCOUNT_KEY", "SECRET_KIND_GCP_API_KEY", "SECRET_KIND_GCP_OAUTH2_CLIENT_CREDENTIALS", "SECRET_KIND_GCP_OAUTH2_ACCESS_TOKEN", "SECRET_KIND_ANTHROPIC_ADMIN_API_KEY", "SECRET_KIND_ANTHROPIC_API_KEY", "SECRET_KIND_AZURE_ACCESS_TOKEN", "SECRET_KIND_AZURE_IDENTITY_TOKEN", "SECRET_KIND_DOCKER_HUB_PERSONAL_ACCESS_TOKEN", "SECRET_KIND_GITHUB_APP_REFRESH_TOKEN", "SECRET_KIND_GITHUB_APP_SERVER_TO_SERVER_TOKEN", "SECRET_KIND_GITHUB_APP_USER_TO_SERVER_TOKEN", "SECRET_KIND_GITHUB_CLASSIC_PERSONAL_ACCESS_TOKEN", "SECRET_KIND_GITHUB_FINE_GRAINED_PERSONAL_ACCESS_TOKEN", "SECRET_KIND_GITHUB_OAUTH_TOKEN", "SECRET_KIND_HUGGINGFACE_API_KEY", "SECRET_KIND_OPENAI_API_KEY", "SECRET_KIND_PERPLEXITY_API_KEY", "SECRET_KIND_STRIPE_SECRET_KEY", "SECRET_KIND_STRIPE_RESTRICTED_KEY", "SECRET_KIND_STRIPE_WEBHOOK_SECRET"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. Locations where the secret is detected.
     #[serde(default)]
-    pub locations: Option<Vec<SecretLocation>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SecretLocation>>>,
     /// Optional. Status of the secret.
     #[serde(default)]
-    pub statuses: Option<Vec<SecretStatus>>,
+    pub statuses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SecretStatus>>>,
 }
 
 /// The status of the secret with a timestamp.
@@ -2555,13 +2688,13 @@ pub struct SecretOccurrence {
 pub struct SecretStatus {
     /// Optional. Optional message about the status code.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Optional. The status of the secret. // TODO: enum values: ["STATUS_UNSPECIFIED", "UNKNOWN", "VALID", "INVALID"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Optional. The time the secret status was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -2569,7 +2702,7 @@ pub struct SecretStatus {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// Verifiers (e.g. Kritis implementations) MUST verify signatures with respect to the trust anchors defined in policy (e.g. a Kritis policy). Typically this means that the verifier has been configured with a map from public_key_id to public key material (and any required parameters, e.g. signing algorithm). In particular, verification implementations MUST NOT treat the signature public_key_id as anything more than a key lookup hint. The public_key_id DOES NOT validate or authenticate a public key; it only provides a mechanism for quickly selecting a public key ALREADY CONFIGURED on the verifier through a trusted channel. Verification implementations MUST reject signatures in any of the following circumstances: * The public_key_id is not recognized by the verifier. * The public key that public_key_id refers to does not verify the signature with respect to the payload. The signature contents SHOULD NOT be "attached" (where the payload is included with the serialized signature bytes). Verifiers MUST ignore any "attached" payload and only verify signatures with respect to explicitly provided payload (e.g. a payload field on the proto message that holds this Signature, or the canonical serialization of the proto message that holds this signature).
@@ -2577,17 +2710,17 @@ pub struct SetIamPolicyRequest {
 pub struct Signature {
     /// The identifier for the public key that verifies this signature. * The public_key_id is required. * The public_key_id SHOULD be an RFC3986 conformant URI. * When possible, the public_key_id SHOULD be an immutable reference, such as a cryptographic digest. Examples of valid public_key_ids: OpenPGP V4 public key fingerprint: * "openpgp4fpr:74FAF3B861BDA0870C7B6DEF607E48D2A663AEEA" See https://www.iana.org/assignments/uri-schemes/prov/openpgp4fpr for more details on this scheme. RFC6920 digest-named SubjectPublicKeyInfo (digest of the DER serialization): * "ni:///sha-256;cD9o9Cq6LG3jD0iKXqEi_vdjJGecm_iXkbqVoScViaU" * "nih:///sha-256;703f68f42aba2c6de30f488a5ea122fef76324679c9bf89791ba95a1271589a5"
     #[serde(default, rename = "publicKeyId")]
-    pub public_key_id: Option<String>,
+    pub public_key_id: ::core::option::Option<String>,
     /// The content of the signature, an opaque bytestring. The payload that this signature verifies MUST be unambiguously provided with the Signature during verification. A wrapper message might provide the payload explicitly. Alternatively, a message might have a canonical serialization that can always be unambiguously computed to derive the payload.
     #[serde(default)]
-    pub signature: Option<String>,
+    pub signature: ::core::option::Option<String>,
 }
 
 /// SlsaBuilder resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlsaBuilder {
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Indicates that the builder claims certain fields in this message to be complete.
@@ -2595,13 +2728,13 @@ pub struct SlsaBuilder {
 pub struct SlsaCompleteness {
     /// If true, the builder claims that recipe.arguments is complete, meaning that all external inputs are properly captured in the recipe.
     #[serde(default)]
-    pub arguments: Option<bool>,
+    pub arguments: ::core::option::Option<bool>,
     /// If true, the builder claims that recipe.environment is claimed to be complete.
     #[serde(default)]
-    pub environment: Option<bool>,
+    pub environment: ::core::option::Option<bool>,
     /// If true, the builder claims that materials are complete, usually through some controls to prevent network access. Sometimes called "hermetic".
     #[serde(default)]
-    pub materials: Option<bool>,
+    pub materials: ::core::option::Option<bool>,
 }
 
 /// Other properties of the build.
@@ -2609,19 +2742,19 @@ pub struct SlsaCompleteness {
 pub struct SlsaMetadata {
     /// The timestamp of when the build completed.
     #[serde(default, rename = "buildFinishedOn")]
-    pub build_finished_on: Option<String>,
+    pub build_finished_on: ::core::option::Option<String>,
     /// Identifies the particular build invocation, which can be useful for finding associated logs or other ad-hoc analysis. The value SHOULD be globally unique, per in-toto Provenance spec.
     #[serde(default, rename = "buildInvocationId")]
-    pub build_invocation_id: Option<String>,
+    pub build_invocation_id: ::core::option::Option<String>,
     /// The timestamp of when the build started.
     #[serde(default, rename = "buildStartedOn")]
-    pub build_started_on: Option<String>,
+    pub build_started_on: ::core::option::Option<String>,
     /// Indicates that the builder claims certain fields in this message to be complete.
     #[serde(default)]
-    pub completeness: Option<SlsaCompleteness>,
+    pub completeness: ::core::option::Option<::std::boxed::Box<SlsaCompleteness>>,
     /// If true, the builder claims that running the recipe on materials will produce bit-for-bit identical output.
     #[serde(default)]
-    pub reproducible: Option<bool>,
+    pub reproducible: ::core::option::Option<bool>,
 }
 
 /// SlsaProvenance resource type.
@@ -2629,41 +2762,46 @@ pub struct SlsaMetadata {
 pub struct SlsaProvenance {
     /// required
     #[serde(default)]
-    pub builder: Option<SlsaBuilder>,
+    pub builder: ::core::option::Option<::std::boxed::Box<SlsaBuilder>>,
     /// The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.
     #[serde(default)]
-    pub materials: Option<Vec<Material>>,
+    pub materials: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Material>>>,
     #[serde(default)]
-    pub metadata: Option<SlsaMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<SlsaMetadata>>,
     /// Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required
     #[serde(default)]
-    pub recipe: Option<SlsaRecipe>,
+    pub recipe: ::core::option::Option<::std::boxed::Box<SlsaRecipe>>,
 }
 
 /// Keep in sync with schema at https://github.com/slsa-framework/slsa/blob/main/docs/provenance/schema/v1/provenance.proto Builder renamed to ProvenanceBuilder because of Java conflicts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlsaProvenanceV1 {
     #[serde(default, rename = "buildDefinition")]
-    pub build_definition: Option<BuildDefinition>,
+    pub build_definition: ::core::option::Option<::std::boxed::Box<BuildDefinition>>,
     #[serde(default, rename = "runDetails")]
-    pub run_details: Option<RunDetails>,
+    pub run_details: ::core::option::Option<::std::boxed::Box<RunDetails>>,
 }
 
 /// See full explanation of fields at slsa.dev/provenance/v0.2.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlsaProvenanceZeroTwo {
     #[serde(default, rename = "buildConfig")]
-    pub build_config: Option<serde_json::Value>,
+    pub build_config: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "buildType")]
-    pub build_type: Option<String>,
+    pub build_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub builder: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder>,
+    pub builder:
+        ::core::option::Option<::std::boxed::Box<GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder>>,
     #[serde(default)]
-    pub invocation: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation>,
+    pub invocation:
+        ::core::option::Option<::std::boxed::Box<GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation>>,
     #[serde(default)]
-    pub materials: Option<Vec<GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial>>,
+    pub materials: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial>>,
+    >,
     #[serde(default)]
-    pub metadata: Option<GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata>,
+    pub metadata:
+        ::core::option::Option<::std::boxed::Box<GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata>>,
 }
 
 /// Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.
@@ -2671,19 +2809,19 @@ pub struct SlsaProvenanceZeroTwo {
 pub struct SlsaRecipe {
     /// Collection of all external inputs that influenced the build on top of recipe.definedInMaterial and recipe.entryPoint. For example, if the recipe type were "make", then this might be the flags passed to make aside from the target, which is captured in recipe.entryPoint. Depending on the recipe Type, the structure may be different.
     #[serde(default)]
-    pub arguments: Option<serde_json::Value>,
+    pub arguments: ::core::option::Option<serde_json::Value>,
     /// Index in materials containing the recipe steps that are not implied by recipe.type. For example, if the recipe type were "make", then this would point to the source containing the Makefile, not the make program itself. Set to -1 if the recipe doesn''t come from a material, as zero is default unset value for int64.
     #[serde(default, rename = "definedInMaterial")]
-    pub defined_in_material: Option<String>,
+    pub defined_in_material: ::core::option::Option<String>,
     /// String identifying the entry point into the build. This is often a path to a configuration file and/or a target label within that file. The syntax and meaning are defined by recipe.type. For example, if the recipe type were "make", then this would reference the directory in which to run make as well as which target to use.
     #[serde(default, rename = "entryPoint")]
-    pub entry_point: Option<String>,
+    pub entry_point: ::core::option::Option<String>,
     /// Any other builder-controlled inputs necessary for correctly evaluating the recipe. Usually only needed for reproducing the build but not evaluated as part of policy. Depending on the recipe Type, the structure may be different.
     #[serde(default)]
-    pub environment: Option<serde_json::Value>,
+    pub environment: ::core::option::Option<serde_json::Value>,
     /// URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Source describes the location of the source used for the build.
@@ -2691,16 +2829,17 @@ pub struct SlsaRecipe {
 pub struct Source {
     /// If provided, some of the source code used for the build may be found in these locations, in the case where the source repository had multiple remotes or submodules. This list will not include the context specified in the context field.
     #[serde(default, rename = "additionalContexts")]
-    pub additional_contexts: Option<Vec<SourceContext>>,
+    pub additional_contexts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SourceContext>>>,
     /// If provided, the input binary artifacts for the build came from this location.
     #[serde(default, rename = "artifactStorageSourceUri")]
-    pub artifact_storage_source_uri: Option<String>,
+    pub artifact_storage_source_uri: ::core::option::Option<String>,
     /// If provided, the source code used for the build came from this location.
     #[serde(default)]
-    pub context: Option<SourceContext>,
+    pub context: ::core::option::Option<::std::boxed::Box<SourceContext>>,
     /// Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (.tar.gz), the FileHash will be for the single path to that file.
     #[serde(default, rename = "fileHashes")]
-    pub file_hashes: Option<serde_json::Value>,
+    pub file_hashes: ::core::option::Option<serde_json::Value>,
 }
 
 /// A SourceContext is a reference to a tree of files. A SourceContext together with a path point to a unique revision of a single file or directory.
@@ -2708,16 +2847,16 @@ pub struct Source {
 pub struct SourceContext {
     /// A SourceContext referring to a revision in a Google Cloud Source Repo.
     #[serde(default, rename = "cloudRepo")]
-    pub cloud_repo: Option<CloudRepoSourceContext>,
+    pub cloud_repo: ::core::option::Option<::std::boxed::Box<CloudRepoSourceContext>>,
     /// A SourceContext referring to a Gerrit project.
     #[serde(default)]
-    pub gerrit: Option<GerritSourceContext>,
+    pub gerrit: ::core::option::Option<::std::boxed::Box<GerritSourceContext>>,
     /// A SourceContext referring to any third party Git repo (e.g., GitHub).
     #[serde(default)]
-    pub git: Option<GitSourceContext>,
+    pub git: ::core::option::Option<::std::boxed::Box<GitSourceContext>>,
     /// Labels with user defined metadata.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2725,24 +2864,24 @@ pub struct SourceContext {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// StepResult is the declaration of a result for a build step.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StepResult {
     #[serde(default, rename = "attestationContentName")]
-    pub attestation_content_name: Option<String>,
+    pub attestation_content_name: ::core::option::Option<String>,
     #[serde(default, rename = "attestationType")]
-    pub attestation_type: Option<String>,
+    pub attestation_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Subject resource type.
@@ -2750,9 +2889,9 @@ pub struct StepResult {
 pub struct Subject {
     /// "": "" Algorithms can be e.g. sha256, sha512 See https://github.com/in-toto/attestation/blob/main/spec/field_types.md#DigestSet
     #[serde(default)]
-    pub digest: Option<serde_json::Value>,
+    pub digest: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -2760,7 +2899,7 @@ pub struct Subject {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -2768,7 +2907,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Start and end times for a build execution phase. Next ID: 3
@@ -2776,10 +2915,10 @@ pub struct TestIamPermissionsResponse {
 pub struct TimeSpan {
     /// End of time span.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Start of time span.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The Upgrade Distribution represents metadata about the Upgrade for each operating system (CPE). Some distributions have additional metadata around updates, classifying them into various categories and severities.
@@ -2787,16 +2926,16 @@ pub struct TimeSpan {
 pub struct UpgradeDistribution {
     /// The operating system classification of this Upgrade, as specified by the upstream operating system upgrade feed. For Windows the classification is one of the category_ids listed at https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ff357803(v=vs.85)
     #[serde(default)]
-    pub classification: Option<String>,
+    pub classification: ::core::option::Option<String>,
     /// Required - The specific operating system this metadata applies to. See https://cpe.mitre.org/specification/.
     #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: Option<String>,
+    pub cpe_uri: ::core::option::Option<String>,
     /// The cve tied to this Upgrade.
     #[serde(default)]
-    pub cve: Option<Vec<String>>,
+    pub cve: ::core::option::Option<::std::vec::Vec<String>>,
     /// The severity as specified by the upstream operating system.
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// An Upgrade Note represents a potential upgrade of a package to a given version. For each package version combination (i.e. bash 4.0, bash 4.1, bash 4.1.2), there will be an Upgrade Note. For Windows, windows_update field represents the information related to the update.
@@ -2804,16 +2943,17 @@ pub struct UpgradeDistribution {
 pub struct UpgradeNote {
     /// Metadata about the upgrade for each specific operating system.
     #[serde(default)]
-    pub distributions: Option<Vec<UpgradeDistribution>>,
+    pub distributions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpgradeDistribution>>>,
     /// Required for non-Windows OS. The package this Upgrade is for.
     #[serde(default)]
-    pub package: Option<String>,
+    pub package: ::core::option::Option<String>,
     /// Required for non-Windows OS. The version of the package in machine + human readable form.
     #[serde(default)]
-    pub version: Option<Version>,
+    pub version: ::core::option::Option<::std::boxed::Box<Version>>,
     /// Required for Windows OS. Represents the metadata about the Windows update.
     #[serde(default, rename = "windowsUpdate")]
-    pub windows_update: Option<WindowsUpdate>,
+    pub windows_update: ::core::option::Option<::std::boxed::Box<WindowsUpdate>>,
 }
 
 /// An Upgrade Occurrence represents that a specific resource_url could install a specific upgrade. This presence is supplied via local sources (i.e. it is present in the mirror and the running system has noticed its availability). For Windows, both distribution and windows_update contain information for the Windows update.
@@ -2821,16 +2961,16 @@ pub struct UpgradeNote {
 pub struct UpgradeOccurrence {
     /// Metadata about the upgrade for available for the specific operating system for the resource_url. This allows efficient filtering, as well as making it easier to use the occurrence.
     #[serde(default)]
-    pub distribution: Option<UpgradeDistribution>,
+    pub distribution: ::core::option::Option<::std::boxed::Box<UpgradeDistribution>>,
     /// Required for non-Windows OS. The package this Upgrade is for.
     #[serde(default)]
-    pub package: Option<String>,
+    pub package: ::core::option::Option<String>,
     /// Required for non-Windows OS. The version of the package in a machine + human readable form.
     #[serde(default, rename = "parsedVersion")]
-    pub parsed_version: Option<Version>,
+    pub parsed_version: ::core::option::Option<::std::boxed::Box<Version>>,
     /// Required for Windows OS. Represents the metadata about the Windows update.
     #[serde(default, rename = "windowsUpdate")]
-    pub windows_update: Option<WindowsUpdate>,
+    pub windows_update: ::core::option::Option<::std::boxed::Box<WindowsUpdate>>,
 }
 
 /// Version contains structured information about the version of a package.
@@ -2838,22 +2978,22 @@ pub struct UpgradeOccurrence {
 pub struct Version {
     /// Used to correct mistakes in the version numbering scheme.
     #[serde(default)]
-    pub epoch: Option<i32>,
+    pub epoch: ::core::option::Option<i32>,
     /// Human readable version string. This string is of the form :- and is only set when kind is NORMAL.
     #[serde(default, rename = "fullName")]
-    pub full_name: Option<String>,
+    pub full_name: ::core::option::Option<String>,
     /// Whether this version is specifying part of an inclusive range. Grafeas does not have the capability to specify version ranges; instead we have fields that specify start version and end versions. At times this is insufficient - we also need to specify whether the version is included in the range or is excluded from the range. This boolean is expected to be set to true when the version is included in a range.
     #[serde(default)]
-    pub inclusive: Option<bool>,
+    pub inclusive: ::core::option::Option<bool>,
     /// Required. Distinguishes between sentinel MIN/MAX versions and normal versions. // TODO: enum values: ["VERSION_KIND_UNSPECIFIED", "NORMAL", "MINIMUM", "MAXIMUM"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Required only when version kind is NORMAL. The main part of the version name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The iteration of the package build from the above version.
     #[serde(default)]
-    pub revision: Option<String>,
+    pub revision: ::core::option::Option<String>,
 }
 
 /// VexAssessment provides all publisher provided Vex information that is related to this vulnerability.
@@ -2861,28 +3001,28 @@ pub struct Version {
 pub struct VexAssessment {
     /// Holds the MITRE standard Common Vulnerabilities and Exposures (CVE) tracking number for the vulnerability. Deprecated: Use vulnerability_id instead to denote CVEs.
     #[serde(default)]
-    pub cve: Option<String>,
+    pub cve: ::core::option::Option<String>,
     /// Contains information about the impact of this vulnerability, this will change with time.
     #[serde(default)]
-    pub impacts: Option<Vec<String>>,
+    pub impacts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Justification provides the justification when the state of the assessment if NOT_AFFECTED.
     #[serde(default)]
-    pub justification: Option<Justification>,
+    pub justification: ::core::option::Option<::std::boxed::Box<Justification>>,
     /// The VulnerabilityAssessment note from which this VexAssessment was generated. This will be of the form: projects/[PROJECT_ID]/notes/[NOTE_ID].
     #[serde(default, rename = "noteName")]
-    pub note_name: Option<String>,
+    pub note_name: ::core::option::Option<String>,
     /// Holds a list of references associated with this vulnerability item and assessment.
     #[serde(default, rename = "relatedUris")]
-    pub related_uris: Option<Vec<RelatedUrl>>,
+    pub related_uris: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RelatedUrl>>>,
     /// Specifies details on how to handle (and presumably, fix) a vulnerability.
     #[serde(default)]
-    pub remediations: Option<Vec<Remediation>>,
+    pub remediations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Remediation>>>,
     /// Provides the state of this Vulnerability assessment. // TODO: enum values: ["STATE_UNSPECIFIED", "AFFECTED", "NOT_AFFECTED", "FIXED", "UNDER_INVESTIGATION"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The vulnerability identifier for this Assessment. Will hold one of common identifiers e.g. CVE, GHSA etc.
     #[serde(default, rename = "vulnerabilityId")]
-    pub vulnerability_id: Option<String>,
+    pub vulnerability_id: ::core::option::Option<String>,
 }
 
 /// Volume describes a Docker container volume which is mounted into build steps in order to persist files across build step execution. Next ID: 3
@@ -2890,10 +3030,10 @@ pub struct VexAssessment {
 pub struct Volume {
     /// Name of the volume to mount. Volume names must be unique per build step and must be valid names for Docker volumes. Each named volume must be used by at least two build steps.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Path at which to mount the volume. Paths must be absolute and cannot conflict with other volume paths on the same build step or with certain reserved volume paths.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// A single VulnerabilityAssessmentNote represents one particular product''s vulnerability assessment for one CVE.
@@ -2901,25 +3041,25 @@ pub struct Volume {
 pub struct VulnerabilityAssessmentNote {
     /// Represents a vulnerability assessment for the product.
     #[serde(default)]
-    pub assessment: Option<Assessment>,
+    pub assessment: ::core::option::Option<::std::boxed::Box<Assessment>>,
     /// Identifies the language used by this document, corresponding to IETF BCP 47 / RFC 5646.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// A detailed description of this Vex.
     #[serde(default, rename = "longDescription")]
-    pub long_description: Option<String>,
+    pub long_description: ::core::option::Option<String>,
     /// The product affected by this vex.
     #[serde(default)]
-    pub product: Option<Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<Product>>,
     /// Publisher details of this Note.
     #[serde(default)]
-    pub publisher: Option<Publisher>,
+    pub publisher: ::core::option::Option<::std::boxed::Box<Publisher>>,
     /// A one sentence description of this Vex.
     #[serde(default, rename = "shortDescription")]
-    pub short_description: Option<String>,
+    pub short_description: ::core::option::Option<String>,
     /// The title of the note. E.g. Vex-Debian-11.4
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A security vulnerability that can be found in resources.
@@ -2927,31 +3067,31 @@ pub struct VulnerabilityAssessmentNote {
 pub struct VulnerabilityNote {
     /// The time this advisory was published by the source.
     #[serde(default, rename = "advisoryPublishTime")]
-    pub advisory_publish_time: Option<String>,
+    pub advisory_publish_time: ::core::option::Option<String>,
     /// The CVSS score of this vulnerability. CVSS score is on a scale of 0 - 10 where 0 indicates low severity and 10 indicates high severity.
     #[serde(default, rename = "cvssScore")]
-    pub cvss_score: Option<f32>,
+    pub cvss_score: ::core::option::Option<f32>,
     /// The full description of the v2 CVSS for this vulnerability.
     #[serde(default, rename = "cvssV2")]
-    pub cvss_v2: Option<CVSS>,
+    pub cvss_v2: ::core::option::Option<::std::boxed::Box<CVSS>>,
     /// The full description of the CVSSv3 for this vulnerability.
     #[serde(default, rename = "cvssV3")]
-    pub cvss_v3: Option<CVSSv3>,
+    pub cvss_v3: ::core::option::Option<::std::boxed::Box<CVSSv3>>,
     /// CVSS version used to populate cvss_score and severity. // TODO: enum values: ["CVSS_VERSION_UNSPECIFIED", "CVSS_VERSION_2", "CVSS_VERSION_3"]
     #[serde(default, rename = "cvssVersion")]
-    pub cvss_version: Option<String>,
+    pub cvss_version: ::core::option::Option<String>,
     /// Details of all known distros and packages affected by this vulnerability.
     #[serde(default)]
-    pub details: Option<Vec<Detail>>,
+    pub details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Detail>>>,
     /// The note provider assigned severity of this vulnerability. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// The time this information was last changed at the source. This is an upstream timestamp from the underlying information source - e.g. Ubuntu security tracker.
     #[serde(default, rename = "sourceUpdateTime")]
-    pub source_update_time: Option<String>,
+    pub source_update_time: ::core::option::Option<String>,
     /// Windows details get their own format because the information format and model don''t match a normal detail. Specifically Windows updates are done as patches, thus Windows vulnerabilities really are a missing package, rather than a package being at an incorrect version.
     #[serde(default, rename = "windowsDetails")]
-    pub windows_details: Option<Vec<WindowsDetail>>,
+    pub windows_details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WindowsDetail>>>,
 }
 
 /// An occurrence of a severity vulnerability on a resource.
@@ -2959,48 +3099,48 @@ pub struct VulnerabilityNote {
 pub struct VulnerabilityOccurrence {
     /// Output only. The CVSS score of this vulnerability. CVSS score is on a scale of 0 - 10 where 0 indicates low severity and 10 indicates high severity.
     #[serde(default, rename = "cvssScore")]
-    pub cvss_score: Option<f32>,
+    pub cvss_score: ::core::option::Option<f32>,
     /// The cvss v2 score for the vulnerability.
     #[serde(default, rename = "cvssV2")]
-    pub cvss_v2: Option<CVSS>,
+    pub cvss_v2: ::core::option::Option<::std::boxed::Box<CVSS>>,
     /// Output only. CVSS version used to populate cvss_score and severity. // TODO: enum values: ["CVSS_VERSION_UNSPECIFIED", "CVSS_VERSION_2", "CVSS_VERSION_3"]
     #[serde(default, rename = "cvssVersion")]
-    pub cvss_version: Option<String>,
+    pub cvss_version: ::core::option::Option<String>,
     /// The cvss v3 score for the vulnerability.
     #[serde(default)]
-    pub cvssv3: Option<CVSS>,
+    pub cvssv3: ::core::option::Option<::std::boxed::Box<CVSS>>,
     /// The distro assigned severity for this vulnerability when it is available, otherwise this is the note provider assigned severity. When there are multiple PackageIssues for this vulnerability, they can have different effective severities because some might be provided by the distro while others are provided by the language ecosystem for a language pack. For this reason, it is advised to use the effective severity on the PackageIssue level. In the case where multiple PackageIssues have differing effective severities, this field should be the highest severity for any of the PackageIssues. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default, rename = "effectiveSeverity")]
-    pub effective_severity: Option<String>,
+    pub effective_severity: ::core::option::Option<String>,
     /// Occurrence-specific extra details about the vulnerability.
     #[serde(default, rename = "extraDetails")]
-    pub extra_details: Option<String>,
+    pub extra_details: ::core::option::Option<String>,
     /// Output only. Whether at least one of the affected packages has a fix available.
     #[serde(default, rename = "fixAvailable")]
-    pub fix_available: Option<bool>,
+    pub fix_available: ::core::option::Option<bool>,
     /// Output only. A detailed description of this vulnerability.
     #[serde(default, rename = "longDescription")]
-    pub long_description: Option<String>,
+    pub long_description: ::core::option::Option<String>,
     /// Required. The set of affected locations and their fixes (if available) within the associated resource.
     #[serde(default, rename = "packageIssue")]
-    pub package_issue: Option<Vec<PackageIssue>>,
+    pub package_issue: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PackageIssue>>>,
     /// Output only. URLs related to this vulnerability.
     #[serde(default, rename = "relatedUrls")]
-    pub related_urls: Option<Vec<RelatedUrl>>,
+    pub related_urls: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RelatedUrl>>>,
     /// Risk information about the vulnerability, such as CISA, EPSS, etc.
     #[serde(default)]
-    pub risk: Option<Risk>,
+    pub risk: ::core::option::Option<::std::boxed::Box<Risk>>,
     /// Output only. The note provider assigned severity of this vulnerability. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "MINIMAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// Output only. A one sentence description of this vulnerability.
     #[serde(default, rename = "shortDescription")]
-    pub short_description: Option<String>,
+    pub short_description: ::core::option::Option<String>,
     /// The type of package; whether native or non native (e.g., ruby gems, node.js packages, etc.).
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     #[serde(default, rename = "vexAssessment")]
-    pub vex_assessment: Option<VexAssessment>,
+    pub vex_assessment: ::core::option::Option<::std::boxed::Box<VexAssessment>>,
 }
 
 /// A summary of how many vulnerability occurrences there are per resource and severity type.
@@ -3008,10 +3148,10 @@ pub struct VulnerabilityOccurrence {
 pub struct VulnerabilityOccurrencesSummary {
     /// A listing by resource of the number of fixable and total vulnerabilities.
     #[serde(default)]
-    pub counts: Option<Vec<FixableTotalByDigest>>,
+    pub counts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FixableTotalByDigest>>>,
     /// Unordered list. Unreachable regions. Populated for requests from the global region when return_partial_success is set. Format: projects/[PROJECT_ID]/locations/[LOCATION]
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// WindowsDetail resource type.
@@ -3019,16 +3159,16 @@ pub struct VulnerabilityOccurrencesSummary {
 pub struct WindowsDetail {
     /// Required. The [CPE URI](https://cpe.mitre.org/specification/) this vulnerability affects.
     #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: Option<String>,
+    pub cpe_uri: ::core::option::Option<String>,
     /// The description of this vulnerability.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The names of the KBs which have hotfixes to mitigate this vulnerability. Note that there may be multiple hotfixes (and thus multiple KBs) that mitigate a given vulnerability. Currently any listed KBs presence is considered a fix.
     #[serde(default, rename = "fixingKbs")]
-    pub fixing_kbs: Option<Vec<KnowledgeBase>>,
+    pub fixing_kbs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<KnowledgeBase>>>,
     /// Required. The name of this vulnerability.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Windows Update represents the metadata about the update for the Windows operating system. The fields in this message come from the Windows Update API documented at https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdate.
@@ -3036,23 +3176,23 @@ pub struct WindowsDetail {
 pub struct WindowsUpdate {
     /// The list of categories to which the update belongs.
     #[serde(default)]
-    pub categories: Option<Vec<Category>>,
+    pub categories: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Category>>>,
     /// The localized description of the update.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required - The unique identifier for the update.
     #[serde(default)]
-    pub identity: Option<Identity>,
+    pub identity: ::core::option::Option<::std::boxed::Box<Identity>>,
     /// The Microsoft Knowledge Base article IDs that are associated with the update.
     #[serde(default, rename = "kbArticleIds")]
-    pub kb_article_ids: Option<Vec<String>>,
+    pub kb_article_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The last published timestamp of the update.
     #[serde(default, rename = "lastPublishedTimestamp")]
-    pub last_published_timestamp: Option<String>,
+    pub last_published_timestamp: ::core::option::Option<String>,
     /// The hyperlink to the support information for the update.
     #[serde(default, rename = "supportUrl")]
-    pub support_url: Option<String>,
+    pub support_url: ::core::option::Option<String>,
     /// The localized title of the update.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }

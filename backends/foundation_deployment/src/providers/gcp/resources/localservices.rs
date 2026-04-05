@@ -10,63 +10,65 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An Account Report of a GLS account identified by their account id containing aggregate data gathered from a particular date range. Next ID: 18
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsHomeservicesLocalservicesV1AccountReport {
     /// Unique identifier of the GLS account.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Aggregator specific information related to the account.
     #[serde(default, rename = "aggregatorInfo")]
-    pub aggregator_info: Option<GoogleAdsHomeservicesLocalservicesV1AggregatorInfo>,
+    pub aggregator_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleAdsHomeservicesLocalservicesV1AggregatorInfo>,
+    >,
     /// Average review rating score from 1-5 stars.
     #[serde(default, rename = "averageFiveStarRating")]
-    pub average_five_star_rating: Option<f64>,
+    pub average_five_star_rating: ::core::option::Option<f64>,
     /// Average weekly budget in the currency code of the account.
     #[serde(default, rename = "averageWeeklyBudget")]
-    pub average_weekly_budget: Option<f64>,
+    pub average_weekly_budget: ::core::option::Option<f64>,
     /// Business name of the account.
     #[serde(default, rename = "businessName")]
-    pub business_name: Option<String>,
+    pub business_name: ::core::option::Option<String>,
     /// Currency code of the account.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Number of charged leads the account received in current specified period.
     #[serde(default, rename = "currentPeriodChargedLeads")]
-    pub current_period_charged_leads: Option<String>,
+    pub current_period_charged_leads: ::core::option::Option<String>,
     /// Number of connected phone calls (duration over 30s) in current specified period.
     #[serde(default, rename = "currentPeriodConnectedPhoneCalls")]
-    pub current_period_connected_phone_calls: Option<String>,
+    pub current_period_connected_phone_calls: ::core::option::Option<String>,
     /// Number of phone calls in current specified period, including both connected and unconnected calls.
     #[serde(default, rename = "currentPeriodPhoneCalls")]
-    pub current_period_phone_calls: Option<String>,
+    pub current_period_phone_calls: ::core::option::Option<String>,
     /// Total cost of the account in current specified period in the account''s specified currency.
     #[serde(default, rename = "currentPeriodTotalCost")]
-    pub current_period_total_cost: Option<f64>,
+    pub current_period_total_cost: ::core::option::Option<f64>,
     /// Number of impressions that customers have had in the past 2 days.
     #[serde(default, rename = "impressionsLastTwoDays")]
-    pub impressions_last_two_days: Option<String>,
+    pub impressions_last_two_days: ::core::option::Option<String>,
     /// Phone lead responsiveness of the account for the past 90 days from current date. This is computed by taking the total number of connected calls from charged phone leads and dividing by the total number of calls received.
     #[serde(default, rename = "phoneLeadResponsiveness")]
-    pub phone_lead_responsiveness: Option<f64>,
+    pub phone_lead_responsiveness: ::core::option::Option<f64>,
     /// Number of charged leads the account received in previous specified period.
     #[serde(default, rename = "previousPeriodChargedLeads")]
-    pub previous_period_charged_leads: Option<String>,
+    pub previous_period_charged_leads: ::core::option::Option<String>,
     /// Number of connected phone calls (duration over 30s) in previous specified period.
     #[serde(default, rename = "previousPeriodConnectedPhoneCalls")]
-    pub previous_period_connected_phone_calls: Option<String>,
+    pub previous_period_connected_phone_calls: ::core::option::Option<String>,
     /// Number of phone calls in previous specified period, including both connected and unconnected calls.
     #[serde(default, rename = "previousPeriodPhoneCalls")]
-    pub previous_period_phone_calls: Option<String>,
+    pub previous_period_phone_calls: ::core::option::Option<String>,
     /// Total cost of the account in previous specified period in the account''s specified currency.
     #[serde(default, rename = "previousPeriodTotalCost")]
-    pub previous_period_total_cost: Option<f64>,
+    pub previous_period_total_cost: ::core::option::Option<f64>,
     /// Total number of reviews the account has up to current date.
     #[serde(default, rename = "totalReview")]
-    pub total_review: Option<i32>,
+    pub total_review: ::core::option::Option<i32>,
 }
 
 /// Conatiner for aggregator specific information if lead is for an aggregator GLS account.
@@ -74,7 +76,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1AccountReport {
 pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
     /// Provider id (listed in aggregator system) which maps to a account id in GLS system.
     #[serde(default, rename = "aggregatorProviderId")]
-    pub aggregator_provider_id: Option<String>,
+    pub aggregator_provider_id: ::core::option::Option<String>,
 }
 
 /// Container for booking lead specific information.
@@ -82,19 +84,19 @@ pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
 pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
     /// Timestamp of when service is provided by advertiser.
     #[serde(default, rename = "bookingAppointmentTimestamp")]
-    pub booking_appointment_timestamp: Option<String>,
+    pub booking_appointment_timestamp: ::core::option::Option<String>,
     /// Consumer email associated with the booking lead.
     #[serde(default, rename = "consumerEmail")]
-    pub consumer_email: Option<String>,
+    pub consumer_email: ::core::option::Option<String>,
     /// Consumer phone number associated with the booking lead.
     #[serde(default, rename = "consumerPhoneNumber")]
-    pub consumer_phone_number: Option<String>,
+    pub consumer_phone_number: ::core::option::Option<String>,
     /// Name of the customer who created the lead.
     #[serde(default, rename = "customerName")]
-    pub customer_name: Option<String>,
+    pub customer_name: ::core::option::Option<String>,
     /// The job type of the specified lead.
     #[serde(default, rename = "jobType")]
-    pub job_type: Option<String>,
+    pub job_type: ::core::option::Option<String>,
 }
 
 /// A Detailed Lead Report of a lead identified by their lead id and contains consumer, account, monetization, and lead data.
@@ -102,55 +104,60 @@ pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
 pub struct GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport {
     /// Identifies account that received the lead.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// Aggregator specific information related to the lead.
     #[serde(default, rename = "aggregatorInfo")]
-    pub aggregator_info: Option<GoogleAdsHomeservicesLocalservicesV1AggregatorInfo>,
+    pub aggregator_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleAdsHomeservicesLocalservicesV1AggregatorInfo>,
+    >,
     /// More information associated to only booking leads.
     #[serde(default, rename = "bookingLead")]
-    pub booking_lead: Option<GoogleAdsHomeservicesLocalservicesV1BookingLead>,
+    pub booking_lead:
+        ::core::option::Option<::std::boxed::Box<GoogleAdsHomeservicesLocalservicesV1BookingLead>>,
     /// Business name associated to the account.
     #[serde(default, rename = "businessName")]
-    pub business_name: Option<String>,
+    pub business_name: ::core::option::Option<String>,
     /// Whether the lead has been charged. // TODO: enum values: ["CHARGE_STATUS_UNSPECIFIED", "CHARGED", "NOT_CHARGED"]
     #[serde(default, rename = "chargeStatus")]
-    pub charge_status: Option<String>,
+    pub charge_status: ::core::option::Option<String>,
     /// Currency code.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Dispute status related to the lead.
     #[serde(default, rename = "disputeStatus")]
-    pub dispute_status: Option<String>,
+    pub dispute_status: ::core::option::Option<String>,
     /// Location of the associated account''s home city.
     #[serde(default)]
-    pub geo: Option<String>,
+    pub geo: ::core::option::Option<String>,
     /// Unique identifier of a Detailed Lead Report.
     #[serde(default, rename = "googleAdsLeadId")]
-    pub google_ads_lead_id: Option<String>,
+    pub google_ads_lead_id: ::core::option::Option<String>,
     /// Lead category (e.g. hvac, plumber)
     #[serde(default, rename = "leadCategory")]
-    pub lead_category: Option<String>,
+    pub lead_category: ::core::option::Option<String>,
     /// Timestamp of when the lead was created.
     #[serde(default, rename = "leadCreationTimestamp")]
-    pub lead_creation_timestamp: Option<String>,
+    pub lead_creation_timestamp: ::core::option::Option<String>,
     /// Deprecated in favor of google_ads_lead_id. Unique identifier of a Detailed Lead Report.
     #[serde(default, rename = "leadId")]
-    pub lead_id: Option<String>,
+    pub lead_id: ::core::option::Option<String>,
     /// Price of the lead (available only after it has been charged).
     #[serde(default, rename = "leadPrice")]
-    pub lead_price: Option<f64>,
+    pub lead_price: ::core::option::Option<f64>,
     /// Lead type. // TODO: enum values: ["LEAD_TYPE_UNSPECIFIED", "MESSAGE", "PHONE_CALL", "BOOKING"]
     #[serde(default, rename = "leadType")]
-    pub lead_type: Option<String>,
+    pub lead_type: ::core::option::Option<String>,
     /// More information associated to only message leads.
     #[serde(default, rename = "messageLead")]
-    pub message_lead: Option<GoogleAdsHomeservicesLocalservicesV1MessageLead>,
+    pub message_lead:
+        ::core::option::Option<::std::boxed::Box<GoogleAdsHomeservicesLocalservicesV1MessageLead>>,
     /// More information associated to only phone leads.
     #[serde(default, rename = "phoneLead")]
-    pub phone_lead: Option<GoogleAdsHomeservicesLocalservicesV1PhoneLead>,
+    pub phone_lead:
+        ::core::option::Option<::std::boxed::Box<GoogleAdsHomeservicesLocalservicesV1PhoneLead>>,
     /// Timezone of the particular provider associated to a lead.
     #[serde(default)]
-    pub timezone: Option<GoogleTypeTimeZone>,
+    pub timezone: ::core::option::Option<::std::boxed::Box<GoogleTypeTimeZone>>,
 }
 
 /// Container for message lead specific information.
@@ -158,16 +165,16 @@ pub struct GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport {
 pub struct GoogleAdsHomeservicesLocalservicesV1MessageLead {
     /// Consumer phone number associated with the message lead.
     #[serde(default, rename = "consumerPhoneNumber")]
-    pub consumer_phone_number: Option<String>,
+    pub consumer_phone_number: ::core::option::Option<String>,
     /// Name of the customer who created the lead.
     #[serde(default, rename = "customerName")]
-    pub customer_name: Option<String>,
+    pub customer_name: ::core::option::Option<String>,
     /// The job type of the specified lead.
     #[serde(default, rename = "jobType")]
-    pub job_type: Option<String>,
+    pub job_type: ::core::option::Option<String>,
     /// The postal code of the customer who created the lead.
     #[serde(default, rename = "postalCode")]
-    pub postal_code: Option<String>,
+    pub postal_code: ::core::option::Option<String>,
 }
 
 /// Container for phone lead specific information.
@@ -175,13 +182,13 @@ pub struct GoogleAdsHomeservicesLocalservicesV1MessageLead {
 pub struct GoogleAdsHomeservicesLocalservicesV1PhoneLead {
     /// Timestamp of the phone call which resulted in a charged phone lead.
     #[serde(default, rename = "chargedCallTimestamp")]
-    pub charged_call_timestamp: Option<String>,
+    pub charged_call_timestamp: ::core::option::Option<String>,
     /// Duration of the charged phone call in seconds.
     #[serde(default, rename = "chargedConnectedCallDurationSeconds")]
-    pub charged_connected_call_duration_seconds: Option<String>,
+    pub charged_connected_call_duration_seconds: ::core::option::Option<String>,
     /// Consumer phone number associated with the phone lead.
     #[serde(default, rename = "consumerPhoneNumber")]
-    pub consumer_phone_number: Option<String>,
+    pub consumer_phone_number: ::core::option::Option<String>,
 }
 
 /// A page of the response received from the SearchAccountReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
@@ -189,10 +196,12 @@ pub struct GoogleAdsHomeservicesLocalservicesV1PhoneLead {
 pub struct GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse {
     /// List of account reports which maps 1:1 to a particular linked GLS account.
     #[serde(default, rename = "accountReports")]
-    pub account_reports: Option<Vec<GoogleAdsHomeservicesLocalservicesV1AccountReport>>,
+    pub account_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleAdsHomeservicesLocalservicesV1AccountReport>>,
+    >,
     /// Pagination token to retrieve the next page of results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A page of the response received from the SearchDetailedLeadReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
@@ -200,10 +209,12 @@ pub struct GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse {
 pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse {
     /// List of detailed lead reports uniquely identified by external lead id.
     #[serde(default, rename = "detailedLeadReports")]
-    pub detailed_lead_reports: Option<Vec<GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport>>,
+    pub detailed_lead_reports: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport>>,
+    >,
     /// Pagination token to retrieve the next page of results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
@@ -211,8 +222,8 @@ pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. IANA Time Zone Database version number. For example "2019a".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }

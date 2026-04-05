@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Request message for AddPublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddPublicKeyRequest {
     /// Key that should be added to the environment. Supported formats are ssh-dss (see RFC4253), ssh-rsa (see RFC4253), ecdsa-sha2-nistp256 (see RFC5656), ecdsa-sha2-nistp384 (see RFC5656) and ecdsa-sha2-nistp521 (see RFC5656). It should be structured as &lt;format&gt; &lt;content&gt;, where &lt;content&gt; part is encoded with Base64.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// Response message for AddPublicKey.
@@ -26,7 +26,7 @@ pub struct AddPublicKeyRequest {
 pub struct AddPublicKeyResponse {
     /// Key that was added to the environment.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// Request message for AuthorizeEnvironment.
@@ -34,13 +34,13 @@ pub struct AddPublicKeyResponse {
 pub struct AuthorizeEnvironmentRequest {
     /// The OAuth access token that should be sent to the environment.
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
     /// The time when the credentials expire. If not set, defaults to one hour from when the server received the request.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The OAuth ID token that should be sent to the environment.
     #[serde(default, rename = "idToken")]
-    pub id_token: Option<String>,
+    pub id_token: ::core::option::Option<String>,
 }
 
 /// A Cloud Shell environment, which is defined as the combination of a Docker image specifying what is installed on the environment and a home directory containing the user''s data that will remain across sessions. Each user has at least an environment with the ID "default".
@@ -48,31 +48,31 @@ pub struct AuthorizeEnvironmentRequest {
 pub struct Environment {
     /// Required. Immutable. Full path to the Docker image used to run this environment, e.g. "gcr.io/dev-con/cloud-devshell:latest".
     #[serde(default, rename = "dockerImage")]
-    pub docker_image: Option<String>,
+    pub docker_image: ::core::option::Option<String>,
     /// Output only. The environment''s identifier, unique among the user''s environments.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Immutable. Full name of this resource, in the format users/{owner_email}/environments/{environment_id}. {owner_email} is the email address of the user to whom this environment belongs, and {environment_id} is the identifier of this environment. For example, users/someone@example.com/environments/default.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Public keys associated with the environment. Clients can connect to this environment via SSH only if they possess a private key corresponding to at least one of these public keys. Keys can be added to or removed from the environment using the AddPublicKey and RemovePublicKey methods.
     #[serde(default, rename = "publicKeys")]
-    pub public_keys: Option<Vec<String>>,
+    pub public_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Host to which clients can connect to initiate SSH sessions with the environment.
     #[serde(default, rename = "sshHost")]
-    pub ssh_host: Option<String>,
+    pub ssh_host: ::core::option::Option<String>,
     /// Output only. Port to which clients can connect to initiate SSH sessions with the environment.
     #[serde(default, rename = "sshPort")]
-    pub ssh_port: Option<i32>,
+    pub ssh_port: ::core::option::Option<i32>,
     /// Output only. Username that clients should use when initiating SSH sessions with the environment.
     #[serde(default, rename = "sshUsername")]
-    pub ssh_username: Option<String>,
+    pub ssh_username: ::core::option::Option<String>,
     /// Output only. Current execution state of this environment. // TODO: enum values: ["STATE_UNSPECIFIED", "SUSPENDED", "PENDING", "RUNNING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Host to which clients can connect to initiate HTTPS or WSS connections with the environment.
     #[serde(default, rename = "webHost")]
-    pub web_host: Option<String>,
+    pub web_host: ::core::option::Option<String>,
 }
 
 /// Response message for GenerateAccessToken.
@@ -80,7 +80,7 @@ pub struct Environment {
 pub struct GenerateAccessTokenResponse {
     /// The access token.
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -88,13 +88,13 @@ pub struct GenerateAccessTokenResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -102,19 +102,19 @@ pub struct ListOperationsResponse {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Request message for RemovePublicKey.
@@ -122,7 +122,7 @@ pub struct Operation {
 pub struct RemovePublicKeyRequest {
     /// Key that should be removed from the environment.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// Message included in the metadata field of operations returned from StartEnvironment.
@@ -130,7 +130,7 @@ pub struct RemovePublicKeyRequest {
 pub struct StartEnvironmentMetadata {
     /// Current state of the environment being started. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTING", "UNARCHIVING_DISK", "AWAITING_COMPUTE_RESOURCES", "FINISHED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Request message for StartEnvironment.
@@ -138,10 +138,10 @@ pub struct StartEnvironmentMetadata {
 pub struct StartEnvironmentRequest {
     /// The initial access token passed to the environment. If this is present and valid, the environment will be pre-authenticated with gcloud so that the user can run gcloud commands in Cloud Shell without having to log in. This code can be updated later by calling AuthorizeEnvironment.
     #[serde(default, rename = "accessToken")]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
     /// Public keys that should be added to the environment before it is started.
     #[serde(default, rename = "publicKeys")]
-    pub public_keys: Option<Vec<String>>,
+    pub public_keys: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message included in the response field of operations returned from StartEnvironment once the operation is complete.
@@ -149,7 +149,7 @@ pub struct StartEnvironmentRequest {
 pub struct StartEnvironmentResponse {
     /// Environment that was started.
     #[serde(default)]
-    pub environment: Option<Environment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<Environment>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -157,11 +157,11 @@ pub struct StartEnvironmentResponse {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }

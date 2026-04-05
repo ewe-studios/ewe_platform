@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The response message for Locations.ListLocations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Message for response to listing ParameterVersions
@@ -29,13 +29,14 @@ pub struct ListLocationsResponse {
 pub struct ListParameterVersionsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of ParameterVersions
     #[serde(default, rename = "parameterVersions")]
-    pub parameter_versions: Option<Vec<ParameterVersion>>,
+    pub parameter_versions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ParameterVersion>>>,
     /// Unordered list. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message for response to listing Parameters
@@ -43,13 +44,13 @@ pub struct ListParameterVersionsResponse {
 pub struct ListParametersResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Parameters
     #[serde(default)]
-    pub parameters: Option<Vec<Parameter>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
     /// Unordered list. Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -57,19 +58,19 @@ pub struct ListParametersResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Message describing Parameter resource
@@ -77,25 +78,25 @@ pub struct Location {
 pub struct Parameter {
     /// Output only. [Output only] Create time stamp
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Specifies the format of a Parameter. // TODO: enum values: ["PARAMETER_FORMAT_UNSPECIFIED", "UNFORMATTED", "YAML", "JSON"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Optional. Customer managed encryption key (CMEK) to use for encrypting the Parameter Versions. If not set, the default Google-managed encryption key will be used. Cloud KMS CryptoKeys must reside in the same location as the Parameter. The expected format is projects/*/locations/*/keyRings/*/cryptoKeys/*.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. [Output only] The resource name of the Parameter in the format projects/*/locations/*/parameters/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. [Output-only] policy member strings of a Google Cloud resource.
     #[serde(default, rename = "policyMember")]
-    pub policy_member: Option<ResourcePolicyMember>,
+    pub policy_member: ::core::option::Option<::std::boxed::Box<ResourcePolicyMember>>,
     /// Output only. [Output only] Update time stamp
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Message describing ParameterVersion resource
@@ -103,22 +104,22 @@ pub struct Parameter {
 pub struct ParameterVersion {
     /// Output only. [Output only] Create time stamp
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Disabled boolean to determine if a ParameterVersion acts as a metadata only resource (payload is never returned if disabled is true). If true any calls will always default to BASIC view even if the user explicitly passes FULL view as part of the request. A render call on a disabled resource fails with an error. Default value is False.
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// Optional. Output only. [Output only] The resource name of the KMS key version used to encrypt the ParameterVersion payload. This field is populated only if the Parameter resource has customer managed encryption key (CMEK) configured.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
     /// Identifier. [Output only] The resource name of the ParameterVersion in the format projects/*/locations/*/parameters/*/versions/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Immutable. Payload content of a ParameterVersion resource. This is only returned when the request provides the View value of FULL (default for GET request).
     #[serde(default)]
-    pub payload: Option<ParameterVersionPayload>,
+    pub payload: ::core::option::Option<::std::boxed::Box<ParameterVersionPayload>>,
     /// Output only. [Output only] Update time stamp
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Message for storing a ParameterVersion resource''s payload data
@@ -126,7 +127,7 @@ pub struct ParameterVersion {
 pub struct ParameterVersionPayload {
     /// Required. bytes data for storing payload.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
 }
 
 /// Message describing RenderParameterVersionResponse resource
@@ -134,13 +135,13 @@ pub struct ParameterVersionPayload {
 pub struct RenderParameterVersionResponse {
     /// Output only. Resource identifier of a ParameterVersion in the format projects/*/locations/*/parameters/*/versions/*.
     #[serde(default, rename = "parameterVersion")]
-    pub parameter_version: Option<String>,
+    pub parameter_version: ::core::option::Option<String>,
     /// Payload content of a ParameterVersion resource.
     #[serde(default)]
-    pub payload: Option<ParameterVersionPayload>,
+    pub payload: ::core::option::Option<::std::boxed::Box<ParameterVersionPayload>>,
     /// Output only. Server generated rendered version of the user provided payload data (ParameterVersionPayload) which has substitutions of all (if any) references to a SecretManager SecretVersion resources. This substitution only works for a Parameter which is in JSON or YAML format.
     #[serde(default, rename = "renderedPayload")]
-    pub rendered_payload: Option<String>,
+    pub rendered_payload: ::core::option::Option<String>,
 }
 
 /// Output-only policy member strings of a Google Cloud resource''s built-in identity.
@@ -148,8 +149,8 @@ pub struct RenderParameterVersionResponse {
 pub struct ResourcePolicyMember {
     /// Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter
     #[serde(default, rename = "iamPolicyNamePrincipal")]
-    pub iam_policy_name_principal: Option<String>,
+    pub iam_policy_name_principal: ::core::option::Option<String>,
     /// Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resource Example: principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5
     #[serde(default, rename = "iamPolicyUidPrincipal")]
-    pub iam_policy_uid_principal: Option<String>,
+    pub iam_policy_uid_principal: ::core::option::Option<String>,
 }

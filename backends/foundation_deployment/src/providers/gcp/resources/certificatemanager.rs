@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Defines an allowlisted certificate.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AllowlistedCertificate {
     /// Required. PEM certificate that is allowlisted. The certificate can be up to 5k bytes, and must be a parseable X.509 certificate.
     #[serde(default, rename = "pemCertificate")]
-    pub pem_certificate: Option<String>,
+    pub pem_certificate: ::core::option::Option<String>,
 }
 
 /// State of the latest attempt to authorize a domain for certificate issuance.
@@ -26,22 +26,22 @@ pub struct AllowlistedCertificate {
 pub struct AuthorizationAttemptInfo {
     /// Output only. The timestamp, when the authorization attempt was made.
     #[serde(default, rename = "attemptTime")]
-    pub attempt_time: Option<String>,
+    pub attempt_time: ::core::option::Option<String>,
     /// Output only. Human readable explanation for reaching the state. Provided to help address the configuration issues. Not guaranteed to be stable. For programmatic access use FailureReason enum.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Output only. Domain name of the authorization attempt.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Output only. Reason for failure of the authorization attempt for the domain. // TODO: enum values: ["FAILURE_REASON_UNSPECIFIED", "CONFIG", "CAA", "RATE_LIMITED"]
     #[serde(default, rename = "failureReason")]
-    pub failure_reason: Option<String>,
+    pub failure_reason: ::core::option::Option<String>,
     /// Output only. State of the domain for managed certificate issuance. // TODO: enum values: ["STATE_UNSPECIFIED", "AUTHORIZING", "AUTHORIZED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Troubleshooting information for the authorization attempt. This field is only populated if the authorization attempt failed.
     #[serde(default)]
-    pub troubleshooting: Option<Troubleshooting>,
+    pub troubleshooting: ::core::option::Option<::std::boxed::Box<Troubleshooting>>,
 }
 
 /// CNAME troubleshooting information.
@@ -49,13 +49,13 @@ pub struct AuthorizationAttemptInfo {
 pub struct CNAME {
     /// Output only. The expected value of the CNAME record for the domain, equals to dns_resource_record.data in the corresponding DnsAuthorization.
     #[serde(default, rename = "expectedData")]
-    pub expected_data: Option<String>,
+    pub expected_data: ::core::option::Option<String>,
     /// Output only. The name of the CNAME record for the domain, equals to dns_resource_record.name in the corresponding DnsAuthorization.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The resolved CNAME chain. Empty list if the CNAME record for CNAME.name is not found. Otherwise the first item is the value of the CNAME record for CNAME.name. If the CNAME chain is longer, the second item is the value of the CNAME record for the first item, and so on.
     #[serde(default, rename = "resolvedData")]
-    pub resolved_data: Option<Vec<String>>,
+    pub resolved_data: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Defines TLS certificate.
@@ -63,43 +63,43 @@ pub struct CNAME {
 pub struct Certificate {
     /// Output only. The creation timestamp of a Certificate.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. One or more paragraphs of text description of a certificate.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The expiry timestamp of a Certificate.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Optional. Set of labels associated with a Certificate.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// If set, contains configuration and state of a managed certificate.
     #[serde(default)]
-    pub managed: Option<ManagedCertificate>,
+    pub managed: ::core::option::Option<::std::boxed::Box<ManagedCertificate>>,
     /// If set, contains configuration and state of a managed identity certificate.
     #[serde(default, rename = "managedIdentity")]
-    pub managed_identity: Option<ManagedIdentityCertificate>,
+    pub managed_identity: ::core::option::Option<::std::boxed::Box<ManagedIdentityCertificate>>,
     /// Identifier. A user-defined name of the certificate. Certificate names must be unique globally and match pattern projects/*/locations/*/certificates/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The PEM-encoded certificate chain.
     #[serde(default, rename = "pemCertificate")]
-    pub pem_certificate: Option<String>,
+    pub pem_certificate: ::core::option::Option<String>,
     /// Output only. The list of Subject Alternative Names of dnsName type defined in the certificate (see RFC 5280 4.2.1.6). Managed certificates that haven''t been provisioned yet have this field populated with a value of the managed.domains field.
     #[serde(default, rename = "sanDnsnames")]
-    pub san_dnsnames: Option<Vec<String>>,
+    pub san_dnsnames: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Immutable. The scope of the certificate. // TODO: enum values: ["DEFAULT", "EDGE_CACHE", "ALL_REGIONS", "CLIENT_AUTH"]
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// If set, defines data of a self-managed certificate.
     #[serde(default, rename = "selfManaged")]
-    pub self_managed: Option<SelfManagedCertificate>,
+    pub self_managed: ::core::option::Option<::std::boxed::Box<SelfManagedCertificate>>,
     /// Output only. The last update timestamp of a Certificate.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The list of resources that use this Certificate.
     #[serde(default, rename = "usedBy")]
-    pub used_by: Option<Vec<UsedBy>>,
+    pub used_by: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UsedBy>>>,
 }
 
 /// The CA that issues the workload certificate. It includes CA address, type, authentication to CA service, etc.
@@ -107,7 +107,8 @@ pub struct Certificate {
 pub struct CertificateAuthorityConfig {
     /// Defines a CertificateAuthorityServiceConfig.
     #[serde(default, rename = "certificateAuthorityServiceConfig")]
-    pub certificate_authority_service_config: Option<CertificateAuthorityServiceConfig>,
+    pub certificate_authority_service_config:
+        ::core::option::Option<::std::boxed::Box<CertificateAuthorityServiceConfig>>,
 }
 
 /// Contains information required to contact CA service.
@@ -115,7 +116,7 @@ pub struct CertificateAuthorityConfig {
 pub struct CertificateAuthorityServiceConfig {
     /// Required. A CA pool resource used to issue a certificate. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".
     #[serde(default, rename = "caPool")]
-    pub ca_pool: Option<String>,
+    pub ca_pool: ::core::option::Option<String>,
 }
 
 /// CertificateIssuanceConfig specifies how to issue and manage a certificate.
@@ -123,31 +124,32 @@ pub struct CertificateAuthorityServiceConfig {
 pub struct CertificateIssuanceConfig {
     /// Required. The CA that issues the workload certificate. It includes the CA address, type, authentication to CA service, etc.
     #[serde(default, rename = "certificateAuthorityConfig")]
-    pub certificate_authority_config: Option<CertificateAuthorityConfig>,
+    pub certificate_authority_config:
+        ::core::option::Option<::std::boxed::Box<CertificateAuthorityConfig>>,
     /// Output only. The creation timestamp of a CertificateIssuanceConfig.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. One or more paragraphs of text description of a CertificateIssuanceConfig.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The key algorithm to use when generating the private key. // TODO: enum values: ["KEY_ALGORITHM_UNSPECIFIED", "RSA_2048", "ECDSA_P256"]
     #[serde(default, rename = "keyAlgorithm")]
-    pub key_algorithm: Option<String>,
+    pub key_algorithm: ::core::option::Option<String>,
     /// Optional. Set of labels associated with a CertificateIssuanceConfig.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Workload certificate lifetime requested.
     #[serde(default)]
-    pub lifetime: Option<String>,
+    pub lifetime: ::core::option::Option<String>,
     /// Identifier. A user-defined name of the certificate issuance config. CertificateIssuanceConfig names must be unique globally and match pattern projects/*/locations/*/certificateIssuanceConfigs/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Specifies the percentage of elapsed time of the certificate lifetime to wait before renewing the certificate. Must be a number between 1-99, inclusive.
     #[serde(default, rename = "rotationWindowPercentage")]
-    pub rotation_window_percentage: Option<i32>,
+    pub rotation_window_percentage: ::core::option::Option<i32>,
     /// Output only. The last update timestamp of a CertificateIssuanceConfig.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Defines a collection of certificate configurations.
@@ -155,22 +157,22 @@ pub struct CertificateIssuanceConfig {
 pub struct CertificateMap {
     /// Output only. The creation timestamp of a Certificate Map.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. One or more paragraphs of text description of a certificate map.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. A list of GCLB targets that use this Certificate Map. A Target Proxy is only present on this list if it''s attached to a Forwarding Rule.
     #[serde(default, rename = "gclbTargets")]
-    pub gclb_targets: Option<Vec<GclbTarget>>,
+    pub gclb_targets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GclbTarget>>>,
     /// Optional. Set of labels associated with a Certificate Map.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. A user-defined name of the Certificate Map. Certificate Map names must be unique globally and match pattern projects/*/locations/*/certificateMaps/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The update timestamp of a Certificate Map.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Defines a certificate map entry.
@@ -178,31 +180,31 @@ pub struct CertificateMap {
 pub struct CertificateMapEntry {
     /// Optional. A set of Certificates defines for the given hostname. There can be defined up to four certificates in each Certificate Map Entry. Each certificate must match pattern projects/*/locations/*/certificates/*.
     #[serde(default)]
-    pub certificates: Option<Vec<String>>,
+    pub certificates: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The creation timestamp of a Certificate Map Entry.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. One or more paragraphs of text description of a certificate map entry.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A Hostname (FQDN, e.g. example.com) or a wildcard hostname expression (*.example.com) for a set of hostnames with common suffix. Used as Server Name Indication (SNI) for selecting a proper certificate.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Optional. Set of labels associated with a Certificate Map Entry.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// A predefined matcher for particular cases, other than SNI selection. // TODO: enum values: ["MATCHER_UNSPECIFIED", "PRIMARY"]
     #[serde(default)]
-    pub matcher: Option<String>,
+    pub matcher: ::core::option::Option<String>,
     /// Identifier. A user-defined name of the Certificate Map Entry. Certificate Map Entry names must be unique globally and match pattern projects/*/locations/*/certificateMaps/*/certificateMapEntries/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. A serving state of this Certificate Map Entry. // TODO: enum values: ["SERVING_STATE_UNSPECIFIED", "ACTIVE", "PENDING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The update timestamp of a Certificate Map Entry.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A DnsAuthorization resource describes a way to perform domain authorization for certificate issuance.
@@ -210,28 +212,28 @@ pub struct CertificateMapEntry {
 pub struct DnsAuthorization {
     /// Output only. The creation timestamp of a DnsAuthorization.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. One or more paragraphs of text description of a DnsAuthorization.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. DNS Resource Record that needs to be added to DNS configuration.
     #[serde(default, rename = "dnsResourceRecord")]
-    pub dns_resource_record: Option<DnsResourceRecord>,
+    pub dns_resource_record: ::core::option::Option<::std::boxed::Box<DnsResourceRecord>>,
     /// Required. Immutable. A domain that is being authorized. A DnsAuthorization resource covers a single domain and its wildcard, e.g. authorization for example.com can be used to issue certificates for example.com and *.example.com.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Optional. Set of labels associated with a DnsAuthorization.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. A user-defined name of the dns authorization. DnsAuthorization names must be unique globally and match pattern projects/*/locations/*/dnsAuthorizations/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Immutable. Type of DnsAuthorization. If unset during resource creation the following default will be used: - in location global: FIXED_RECORD, - in other locations: PER_PROJECT_RECORD. // TODO: enum values: ["TYPE_UNSPECIFIED", "FIXED_RECORD", "PER_PROJECT_RECORD"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The last update timestamp of a DnsAuthorization.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The structure describing the DNS Resource Record that needs to be added to DNS configuration for the authorization to be usable by certificate.
@@ -239,13 +241,13 @@ pub struct DnsAuthorization {
 pub struct DnsResourceRecord {
     /// Output only. Data of the DNS Resource Record.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// Output only. Fully qualified name of the DNS Resource Record. e.g. _acme-challenge.example.com
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Type of the DNS Resource Record. Currently always set to "CNAME".
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Describes a Target Proxy that uses this Certificate Map.
@@ -253,13 +255,13 @@ pub struct DnsResourceRecord {
 pub struct GclbTarget {
     /// Output only. IP configurations for this Target Proxy where the Certificate Map is serving.
     #[serde(default, rename = "ipConfigs")]
-    pub ip_configs: Option<Vec<IpConfig>>,
+    pub ip_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IpConfig>>>,
     /// Output only. This field returns the resource name in the following format: //compute.googleapis.com/projects/*/global/targetHttpsProxies/*.
     #[serde(default, rename = "targetHttpsProxy")]
-    pub target_https_proxy: Option<String>,
+    pub target_https_proxy: ::core::option::Option<String>,
     /// Output only. This field returns the resource name in the following format: //compute.googleapis.com/projects/*/global/targetSslProxies/*.
     #[serde(default, rename = "targetSslProxy")]
-    pub target_ssl_proxy: Option<String>,
+    pub target_ssl_proxy: ::core::option::Option<String>,
 }
 
 /// IPs troubleshooting information.
@@ -267,13 +269,13 @@ pub struct GclbTarget {
 pub struct IPs {
     /// Output only. The list of IP addresses resolved from the domain''s A/AAAA records. Can contain both ipv4 and ipv6 addresses.
     #[serde(default)]
-    pub resolved: Option<Vec<String>>,
+    pub resolved: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The list of IP addresses, where the certificate is attached and port 443 is open.
     #[serde(default)]
-    pub serving: Option<Vec<String>>,
+    pub serving: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The list of IP addresses, where the certificate is attached, but port 443 is not open.
     #[serde(default, rename = "servingOnAltPorts")]
-    pub serving_on_alt_ports: Option<Vec<String>>,
+    pub serving_on_alt_ports: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Defines an intermediate CA.
@@ -281,7 +283,7 @@ pub struct IPs {
 pub struct IntermediateCA {
     /// PEM intermediate certificate used for building up paths for validation. Each certificate provided in PEM format may occupy up to 5kB.
     #[serde(default, rename = "pemCertificate")]
-    pub pem_certificate: Option<String>,
+    pub pem_certificate: ::core::option::Option<String>,
 }
 
 /// Defines IP configuration where this Certificate Map is serving.
@@ -289,10 +291,10 @@ pub struct IntermediateCA {
 pub struct IpConfig {
     /// Output only. An external IP address.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// Output only. Ports.
     #[serde(default)]
-    pub ports: Option<Vec<i64>>,
+    pub ports: ::core::option::Option<::std::vec::Vec<i64>>,
 }
 
 /// Response for the ListCertificateIssuanceConfigs method.
@@ -300,13 +302,14 @@ pub struct IpConfig {
 pub struct ListCertificateIssuanceConfigsResponse {
     /// A list of certificate configs for the parent resource.
     #[serde(default, rename = "certificateIssuanceConfigs")]
-    pub certificate_issuance_configs: Option<Vec<CertificateIssuanceConfig>>,
+    pub certificate_issuance_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CertificateIssuanceConfig>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for the ListCertificateMapEntries method.
@@ -314,13 +317,14 @@ pub struct ListCertificateIssuanceConfigsResponse {
 pub struct ListCertificateMapEntriesResponse {
     /// A list of certificate map entries for the parent resource.
     #[serde(default, rename = "certificateMapEntries")]
-    pub certificate_map_entries: Option<Vec<CertificateMapEntry>>,
+    pub certificate_map_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CertificateMapEntry>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for the ListCertificateMaps method.
@@ -328,13 +332,14 @@ pub struct ListCertificateMapEntriesResponse {
 pub struct ListCertificateMapsResponse {
     /// A list of certificate maps for the parent resource.
     #[serde(default, rename = "certificateMaps")]
-    pub certificate_maps: Option<Vec<CertificateMap>>,
+    pub certificate_maps:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CertificateMap>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for the ListCertificates method.
@@ -342,13 +347,13 @@ pub struct ListCertificateMapsResponse {
 pub struct ListCertificatesResponse {
     /// A list of certificates for the parent resource.
     #[serde(default)]
-    pub certificates: Option<Vec<Certificate>>,
+    pub certificates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Certificate>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for the ListDnsAuthorizations method.
@@ -356,13 +361,14 @@ pub struct ListCertificatesResponse {
 pub struct ListDnsAuthorizationsResponse {
     /// A list of dns authorizations for the parent resource.
     #[serde(default, rename = "dnsAuthorizations")]
-    pub dns_authorizations: Option<Vec<DnsAuthorization>>,
+    pub dns_authorizations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsAuthorization>>>,
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -370,10 +376,10 @@ pub struct ListDnsAuthorizationsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -381,13 +387,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for the ListTrustConfigs method.
@@ -395,13 +401,13 @@ pub struct ListOperationsResponse {
 pub struct ListTrustConfigsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of TrustConfigs for the parent resource.
     #[serde(default, rename = "trustConfigs")]
-    pub trust_configs: Option<Vec<TrustConfig>>,
+    pub trust_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TrustConfig>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -409,19 +415,19 @@ pub struct ListTrustConfigsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Configuration and state of a Managed Certificate. Certificate Manager provisions and renews Managed Certificates automatically, for as long as it''s authorized to do so.
@@ -429,22 +435,23 @@ pub struct Location {
 pub struct ManagedCertificate {
     /// Output only. Detailed state of the latest authorization attempt for each domain specified for managed certificate resource.
     #[serde(default, rename = "authorizationAttemptInfo")]
-    pub authorization_attempt_info: Option<Vec<AuthorizationAttemptInfo>>,
+    pub authorization_attempt_info:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthorizationAttemptInfo>>>,
     /// Optional. Immutable. Authorizations that will be used for performing domain authorization.
     #[serde(default, rename = "dnsAuthorizations")]
-    pub dns_authorizations: Option<Vec<String>>,
+    pub dns_authorizations: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Immutable. The domains for which a managed SSL certificate will be generated. Wildcard domains are only supported with DNS challenge resolution.
     #[serde(default)]
-    pub domains: Option<Vec<String>>,
+    pub domains: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Immutable. The resource name for a CertificateIssuanceConfig used to configure private PKI certificates in the format projects/*/locations/*/certificateIssuanceConfigs/*. If this field is not set, the certificates will instead be publicly signed as documented at https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs#caa.
     #[serde(default, rename = "issuanceConfig")]
-    pub issuance_config: Option<String>,
+    pub issuance_config: ::core::option::Option<String>,
     /// Output only. Information about issues with provisioning a Managed Certificate.
     #[serde(default, rename = "provisioningIssue")]
-    pub provisioning_issue: Option<ProvisioningIssue>,
+    pub provisioning_issue: ::core::option::Option<::std::boxed::Box<ProvisioningIssue>>,
     /// Output only. State of the managed certificate resource. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "FAILED", "ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Configuration and state of a Managed Identity Certificate. Certificate Manager provisions and renews Managed Identity Certificates automatically, for as long as it''s authorized to do so.
@@ -452,13 +459,13 @@ pub struct ManagedCertificate {
 pub struct ManagedIdentityCertificate {
     /// Required. Immutable. SPIFFE ID of the Managed Identity used for this certificate.
     #[serde(default)]
-    pub identity: Option<String>,
+    pub identity: ::core::option::Option<String>,
     /// Output only. Information about issues with provisioning a managed certificate.
     #[serde(default, rename = "provisioningIssue")]
-    pub provisioning_issue: Option<ProvisioningIssue>,
+    pub provisioning_issue: ::core::option::Option<::std::boxed::Box<ProvisioningIssue>>,
     /// Output only. State of the managed certificate resource. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "FAILED", "ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -466,19 +473,19 @@ pub struct ManagedIdentityCertificate {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation. Output only.
@@ -486,25 +493,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Information about issues with provisioning a Managed Certificate.
@@ -512,10 +519,10 @@ pub struct OperationMetadata {
 pub struct ProvisioningIssue {
     /// Output only. Human readable explanation about the issue. Provided to help address the configuration issues. Not guaranteed to be stable. For programmatic access use Reason enum.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Output only. Reason for provisioning failures. // TODO: enum values: ["REASON_UNSPECIFIED", "AUTHORIZATION_ISSUE", "RATE_LIMITED"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Certificate data for a SelfManaged Certificate. SelfManaged Certificates are uploaded by the user. Updating such certificates before they expire remains the user''s responsibility.
@@ -523,10 +530,10 @@ pub struct ProvisioningIssue {
 pub struct SelfManagedCertificate {
     /// Optional. Input only. The PEM-encoded certificate chain. Leaf certificate comes first, followed by intermediate ones if any.
     #[serde(default, rename = "pemCertificate")]
-    pub pem_certificate: Option<String>,
+    pub pem_certificate: ::core::option::Option<String>,
     /// Optional. Input only. The PEM-encoded private key of the leaf certificate.
     #[serde(default, rename = "pemPrivateKey")]
-    pub pem_private_key: Option<String>,
+    pub pem_private_key: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -534,13 +541,13 @@ pub struct SelfManagedCertificate {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Troubleshooting information for the authorization attempt.
@@ -548,13 +555,13 @@ pub struct Status {
 pub struct Troubleshooting {
     /// Output only. CNAME troubleshooting information.
     #[serde(default)]
-    pub cname: Option<CNAME>,
+    pub cname: ::core::option::Option<::std::boxed::Box<CNAME>>,
     /// Output only. IPs troubleshooting information.
     #[serde(default)]
-    pub ips: Option<IPs>,
+    pub ips: ::core::option::Option<::std::boxed::Box<IPs>>,
     /// Output only. The list of issues discovered during the authorization attempt.
     #[serde(default)]
-    pub issues: Option<Vec<String>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Defines a trust anchor.
@@ -562,7 +569,7 @@ pub struct Troubleshooting {
 pub struct TrustAnchor {
     /// PEM root certificate of the PKI used for validation. Each certificate provided in PEM format may occupy up to 5kB.
     #[serde(default, rename = "pemCertificate")]
-    pub pem_certificate: Option<String>,
+    pub pem_certificate: ::core::option::Option<String>,
 }
 
 /// Defines a trust config.
@@ -570,31 +577,32 @@ pub struct TrustAnchor {
 pub struct TrustConfig {
     /// Optional. A certificate matching an allowlisted certificate is always considered valid as long as the certificate is parseable, proof of private key possession is established, and constraints on the certificate''s SAN field are met.
     #[serde(default, rename = "allowlistedCertificates")]
-    pub allowlisted_certificates: Option<Vec<AllowlistedCertificate>>,
+    pub allowlisted_certificates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AllowlistedCertificate>>>,
     /// Output only. The creation timestamp of a TrustConfig.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. One or more paragraphs of text description of a TrustConfig.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Set of labels associated with a TrustConfig.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. A user-defined name of the trust config. TrustConfig names must be unique globally and match pattern projects/*/locations/*/trustConfigs/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Defines a mapping from a trust domain to a TrustStore. This is used for SPIFFE certificate validation.
     #[serde(default, rename = "spiffeTrustStores")]
-    pub spiffe_trust_stores: Option<serde_json::Value>,
+    pub spiffe_trust_stores: ::core::option::Option<serde_json::Value>,
     /// Optional. Set of trust stores to perform validation against. This field is supported when TrustConfig is configured with Load Balancers, currently not supported for SPIFFE certificate validation. Only one TrustStore specified is currently allowed.
     #[serde(default, rename = "trustStores")]
-    pub trust_stores: Option<Vec<TrustStore>>,
+    pub trust_stores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TrustStore>>>,
     /// Output only. The last update timestamp of a TrustConfig.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Defines a trust store.
@@ -602,10 +610,11 @@ pub struct TrustConfig {
 pub struct TrustStore {
     /// Optional. Set of intermediate CA certificates used for the path building phase of chain validation. The field is currently not supported if TrustConfig is used for the workload certificate feature.
     #[serde(default, rename = "intermediateCas")]
-    pub intermediate_cas: Option<Vec<IntermediateCA>>,
+    pub intermediate_cas:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IntermediateCA>>>,
     /// Optional. List of Trust Anchors to be used while performing validation against a given TrustStore.
     #[serde(default, rename = "trustAnchors")]
-    pub trust_anchors: Option<Vec<TrustAnchor>>,
+    pub trust_anchors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TrustAnchor>>>,
 }
 
 /// Defines a resource that uses the certificate.
@@ -613,5 +622,5 @@ pub struct TrustStore {
 pub struct UsedBy {
     /// Output only. Full name of the resource https://google.aip.dev/122#full-resource-names, e.g. //certificatemanager.googleapis.com/projects/*/locations/*/certificateMaps/*/certificateMapEntries/* or //compute.googleapis.com/projects/*/locations/*/targetHttpsProxies/*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }

@@ -10,18 +10,19 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Response message for PlaceActions.ListPlaceActionLinks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListPlaceActionLinksResponse {
     /// If there are more place action links than the requested page size, then this field is populated with a token to fetch the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The returned list of place action links.
     #[serde(default, rename = "placeActionLinks")]
-    pub place_action_links: Option<Vec<PlaceActionLink>>,
+    pub place_action_links:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlaceActionLink>>>,
 }
 
 /// Response message for PlaceActions.ListPlaceActionTypeMetadata.
@@ -29,10 +30,11 @@ pub struct ListPlaceActionLinksResponse {
 pub struct ListPlaceActionTypeMetadataResponse {
     /// If the number of action types exceeded the requested page size, this field will be populated with a token to fetch the next page on a subsequent call to placeActionTypeMetadata.list. If there are no more results, this field will not be present in the response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A collection of metadata for the available place action types.
     #[serde(default, rename = "placeActionTypeMetadata")]
-    pub place_action_type_metadata: Option<Vec<PlaceActionTypeMetadata>>,
+    pub place_action_type_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlaceActionTypeMetadata>>>,
 }
 
 /// Represents a place action link and its attributes.
@@ -40,28 +42,28 @@ pub struct ListPlaceActionTypeMetadataResponse {
 pub struct PlaceActionLink {
     /// Output only. The time when the place action link was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Indicates whether this link can be edited by the client.
     #[serde(default, rename = "isEditable")]
-    pub is_editable: Option<bool>,
+    pub is_editable: ::core::option::Option<bool>,
     /// Optional. Whether this link is preferred by the merchant. Only one link can be marked as preferred per place action type at a location. If a future request marks a different link as preferred for the same place action type, then the current preferred link (if any exists) will lose its preference.
     #[serde(default, rename = "isPreferred")]
-    pub is_preferred: Option<bool>,
+    pub is_preferred: ::core::option::Option<bool>,
     /// Optional. The resource name, in the format locations/{location_id}/placeActionLinks/{place_action_link_id}. The name field will only be considered in UpdatePlaceActionLink and DeletePlaceActionLink requests for updating and deleting links respectively. However, it will be ignored in CreatePlaceActionLink request, where place_action_link_id will be assigned by the server on successful creation of a new link and returned as part of the response.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The type of place action that can be performed using this link. // TODO: enum values: ["PLACE_ACTION_TYPE_UNSPECIFIED", "APPOINTMENT", "ONLINE_APPOINTMENT", "DINING_RESERVATION", "FOOD_ORDERING", "FOOD_DELIVERY", "FOOD_TAKEOUT", "SHOP_ONLINE", "SOLOPRENEUR_APPOINTMENT"]
     #[serde(default, rename = "placeActionType")]
-    pub place_action_type: Option<String>,
+    pub place_action_type: ::core::option::Option<String>,
     /// Output only. Specifies the provider type. // TODO: enum values: ["PROVIDER_TYPE_UNSPECIFIED", "MERCHANT", "AGGREGATOR_3P"]
     #[serde(default, rename = "providerType")]
-    pub provider_type: Option<String>,
+    pub provider_type: ::core::option::Option<String>,
     /// Output only. The time when the place action link was last modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Required. The link uri. The same uri can be reused for different action types across different locations. However, only one place action link is allowed for each unique combination of (uri, place action type, location).
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Metadata for supported place action types.
@@ -69,8 +71,8 @@ pub struct PlaceActionLink {
 pub struct PlaceActionTypeMetadata {
     /// The localized display name for the attribute, if available; otherwise, the English display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The place action type. // TODO: enum values: ["PLACE_ACTION_TYPE_UNSPECIFIED", "APPOINTMENT", "ONLINE_APPOINTMENT", "DINING_RESERVATION", "FOOD_ORDERING", "FOOD_DELIVERY", "FOOD_TAKEOUT", "SHOP_ONLINE", "SOLOPRENEUR_APPOINTMENT"]
     #[serde(default, rename = "placeActionType")]
-    pub place_action_type: Option<String>,
+    pub place_action_type: ::core::option::Option<String>,
 }

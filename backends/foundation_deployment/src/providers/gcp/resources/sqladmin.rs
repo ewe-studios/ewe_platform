@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An entry for an Access Control list.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AclEntry {
     /// The time when this access control entry expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "expirationTime")]
-    pub expiration_time: Option<String>,
+    pub expiration_time: ::core::option::Option<String>,
     /// This is always sql#aclEntry.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. A label to identify this entry.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The allowlisted value for the access control list.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Acquire SSRS lease context.
@@ -35,16 +35,16 @@ pub struct AclEntry {
 pub struct AcquireSsrsLeaseContext {
     /// Lease duration needed for SSRS setup.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// The report database to be used for SSRS setup.
     #[serde(default, rename = "reportDatabase")]
-    pub report_database: Option<String>,
+    pub report_database: ::core::option::Option<String>,
     /// The username to be used as the service login to connect to the report database for SSRS setup.
     #[serde(default, rename = "serviceLogin")]
-    pub service_login: Option<String>,
+    pub service_login: ::core::option::Option<String>,
     /// The username to be used as the setup login to connect to the database server for SSRS setup.
     #[serde(default, rename = "setupLogin")]
-    pub setup_login: Option<String>,
+    pub setup_login: ::core::option::Option<String>,
 }
 
 /// Specifies options for controlling advanced machine features.
@@ -52,7 +52,7 @@ pub struct AcquireSsrsLeaseContext {
 pub struct AdvancedMachineFeatures {
     /// The number of threads per physical core.
     #[serde(default, rename = "threadsPerCore")]
-    pub threads_per_core: Option<i32>,
+    pub threads_per_core: ::core::option::Option<i32>,
 }
 
 /// An Admin API warning message.
@@ -60,13 +60,13 @@ pub struct AdvancedMachineFeatures {
 pub struct ApiWarning {
     /// Code to uniquely identify the warning type. // TODO: enum values: ["SQL_API_WARNING_CODE_UNSPECIFIED", "REGION_UNREACHABLE", "MAX_RESULTS_EXCEEDS_LIMIT", "COMPROMISED_CREDENTIALS", "INTERNAL_STATE_FAILURE"]
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// The warning message.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The region name for REGION_UNREACHABLE warning.
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
 }
 
 /// An available database version. It can be a major or a minor version.
@@ -74,13 +74,13 @@ pub struct ApiWarning {
 pub struct AvailableDatabaseVersion {
     /// The database version''s display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The version''s major version name.
     #[serde(default, rename = "majorVersion")]
-    pub major_version: Option<String>,
+    pub major_version: ::core::option::Option<String>,
     /// The database version name. For MySQL 8.0, this string provides the database major and minor version.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A backup resource.
@@ -88,73 +88,73 @@ pub struct AvailableDatabaseVersion {
 pub struct Backup {
     /// Output only. This output contains the following values: start_time: All database writes up to this time are available. end_time: Any database writes after this time aren''t available.
     #[serde(default, rename = "backupInterval")]
-    pub backup_interval: Option<Interval>,
+    pub backup_interval: ::core::option::Option<::std::boxed::Box<Interval>>,
     /// Output only. Specifies the kind of backup, PHYSICAL or DEFAULT_SNAPSHOT. // TODO: enum values: ["SQL_BACKUP_KIND_UNSPECIFIED", "SNAPSHOT", "PHYSICAL"]
     #[serde(default, rename = "backupKind")]
-    pub backup_kind: Option<String>,
+    pub backup_kind: ::core::option::Option<String>,
     /// Output only. The mapping to backup run resource used for IAM validations.
     #[serde(default, rename = "backupRun")]
-    pub backup_run: Option<String>,
+    pub backup_run: ::core::option::Option<String>,
     /// Output only. The database version of the instance of at the time this backup was made. // TODO: enum values: ["SQL_DATABASE_VERSION_UNSPECIFIED", "MYSQL_5_1", "MYSQL_5_5", "MYSQL_5_6", "MYSQL_5_7", "MYSQL_8_0", "MYSQL_8_0_18", "MYSQL_8_0_26", "MYSQL_8_0_27", "MYSQL_8_0_28", "MYSQL_8_0_29", "MYSQL_8_0_30", "MYSQL_8_0_31", "MYSQL_8_0_32", "MYSQL_8_0_33", "MYSQL_8_0_34", "MYSQL_8_0_35", "MYSQL_8_0_36", "MYSQL_8_0_37", "MYSQL_8_0_39", "MYSQL_8_0_40", "MYSQL_8_0_41", "MYSQL_8_0_42", "MYSQL_8_0_43", "MYSQL_8_0_44", "MYSQL_8_0_45", "MYSQL_8_0_46", "MYSQL_8_4", "MYSQL_9_7", "SQLSERVER_2017_STANDARD", "SQLSERVER_2017_ENTERPRISE", "SQLSERVER_2017_EXPRESS", "SQLSERVER_2017_WEB", "POSTGRES_9_6", "POSTGRES_10", "POSTGRES_11", "POSTGRES_12", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18", "SQLSERVER_2019_STANDARD", "SQLSERVER_2019_ENTERPRISE", "SQLSERVER_2019_EXPRESS", "SQLSERVER_2019_WEB", "SQLSERVER_2022_STANDARD", "SQLSERVER_2022_ENTERPRISE", "SQLSERVER_2022_EXPRESS", "SQLSERVER_2022_WEB", "SQLSERVER_2025_STANDARD", "SQLSERVER_2025_ENTERPRISE", "SQLSERVER_2025_EXPRESS"]
     #[serde(default, rename = "databaseVersion")]
-    pub database_version: Option<String>,
+    pub database_version: ::core::option::Option<String>,
     /// The description of this backup.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Information about why the backup operation fails (for example, when the backup state fails).
     #[serde(default)]
-    pub error: Option<OperationError>,
+    pub error: ::core::option::Option<::std::boxed::Box<OperationError>>,
     /// Backup expiration time. A UTC timestamp of when this backup expired.
     #[serde(default, rename = "expiryTime")]
-    pub expiry_time: Option<String>,
+    pub expiry_time: ::core::option::Option<String>,
     /// The name of the source database instance.
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
     /// Optional. Output only. Timestamp in UTC of when the instance associated with this backup is deleted.
     #[serde(default, rename = "instanceDeletionTime")]
-    pub instance_deletion_time: Option<String>,
+    pub instance_deletion_time: ::core::option::Option<String>,
     /// Optional. Output only. The instance setting of the source instance that''s associated with this backup.
     #[serde(default, rename = "instanceSettings")]
-    pub instance_settings: Option<DatabaseInstance>,
+    pub instance_settings: ::core::option::Option<::std::boxed::Box<DatabaseInstance>>,
     /// Output only. This is always sql#backup.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. This output contains the encryption configuration for a backup and the resource name of the KMS key for disk encryption.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Output only. This output contains the encryption status for a backup and the version of the KMS key that''s used to encrypt the Cloud SQL instance.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
     /// The storage location of the backups. The location can be multi-regional.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The maximum chargeable bytes for the backup.
     #[serde(default, rename = "maxChargeableBytes")]
-    pub max_chargeable_bytes: Option<String>,
+    pub max_chargeable_bytes: ::core::option::Option<String>,
     /// Output only. The resource name of the backup. Format: projects/{project}/backups/{backup}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. This status indicates whether the backup satisfies PZI. The status is reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. This status indicates whether the backup satisfies PZS. The status is reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. The URI of this resource.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// Output only. The status of this backup. // TODO: enum values: ["SQL_BACKUP_STATE_UNSPECIFIED", "ENQUEUED", "RUNNING", "FAILED", "SUCCESSFUL", "DELETING", "DELETION_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. This output contains a backup time zone. If a Cloud SQL for SQL Server instance has a different time zone from the backup''s time zone, then the restore to the instance doesn''t happen.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// Input only. The time-to-live (TTL) interval for this resource (in days). For example: ttlDays:7, means 7 days from the current time. The expiration time can''t exceed 365 days from the time that the backup is created.
     #[serde(default, rename = "ttlDays")]
-    pub ttl_days: Option<String>,
+    pub ttl_days: ::core::option::Option<String>,
     /// Output only. The type of this backup. The type can be "AUTOMATED", "ON_DEMAND" or “FINAL”. // TODO: enum values: ["SQL_BACKUP_TYPE_UNSPECIFIED", "AUTOMATED", "ON_DEMAND", "FINAL"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Database instance backup configuration.
@@ -162,37 +162,38 @@ pub struct Backup {
 pub struct BackupConfiguration {
     /// Backup retention settings.
     #[serde(default, rename = "backupRetentionSettings")]
-    pub backup_retention_settings: Option<BackupRetentionSettings>,
+    pub backup_retention_settings:
+        ::core::option::Option<::std::boxed::Box<BackupRetentionSettings>>,
     /// Output only. Backup tier that manages the backups for the instance. // TODO: enum values: ["BACKUP_TIER_UNSPECIFIED", "STANDARD", "ADVANCED", "ENHANCED"]
     #[serde(default, rename = "backupTier")]
-    pub backup_tier: Option<String>,
+    pub backup_tier: ::core::option::Option<String>,
     /// (MySQL only) Whether binary log is enabled. If backup configuration is disabled, binarylog must be disabled as well.
     #[serde(default, rename = "binaryLogEnabled")]
-    pub binary_log_enabled: Option<bool>,
+    pub binary_log_enabled: ::core::option::Option<bool>,
     /// Whether this configuration is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// This is always sql#backupConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Location of the backup
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Whether point in time recovery is enabled.
     #[serde(default, rename = "pointInTimeRecoveryEnabled")]
-    pub point_in_time_recovery_enabled: Option<bool>,
+    pub point_in_time_recovery_enabled: ::core::option::Option<bool>,
     /// Reserved for future use.
     #[serde(default, rename = "replicationLogArchivingEnabled")]
-    pub replication_log_archiving_enabled: Option<bool>,
+    pub replication_log_archiving_enabled: ::core::option::Option<bool>,
     /// Start time for the daily backup configuration in UTC timezone in the 24 hour format - HH:MM.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The number of days of transaction logs we retain for point in time restore, from 1-7.
     #[serde(default, rename = "transactionLogRetentionDays")]
-    pub transaction_log_retention_days: Option<i32>,
+    pub transaction_log_retention_days: ::core::option::Option<i32>,
     /// Output only. This value contains the storage location of transactional logs used to perform point-in-time recovery (PITR) for the database. // TODO: enum values: ["TRANSACTIONAL_LOG_STORAGE_STATE_UNSPECIFIED", "DISK", "SWITCHING_TO_CLOUD_STORAGE", "SWITCHED_TO_CLOUD_STORAGE", "CLOUD_STORAGE"]
     #[serde(default, rename = "transactionalLogStorageState")]
-    pub transactional_log_storage_state: Option<String>,
+    pub transactional_log_storage_state: ::core::option::Option<String>,
 }
 
 /// Backup context.
@@ -200,13 +201,13 @@ pub struct BackupConfiguration {
 pub struct BackupContext {
     /// The identifier of the backup.
     #[serde(default, rename = "backupId")]
-    pub backup_id: Option<String>,
+    pub backup_id: ::core::option::Option<String>,
     /// This is always sql#backupContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the backup. Format: projects/{project}/backups/{backup}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Backup Reencryption Config
@@ -214,10 +215,10 @@ pub struct BackupContext {
 pub struct BackupReencryptionConfig {
     /// Backup re-encryption limit
     #[serde(default, rename = "backupLimit")]
-    pub backup_limit: Option<i32>,
+    pub backup_limit: ::core::option::Option<i32>,
     /// Type of backups users want to re-encrypt. // TODO: enum values: ["BACKUP_TYPE_UNSPECIFIED", "AUTOMATED", "ON_DEMAND"]
     #[serde(default, rename = "backupType")]
-    pub backup_type: Option<String>,
+    pub backup_type: ::core::option::Option<String>,
 }
 
 /// We currently only support backup retention by specifying the number of backups we will retain.
@@ -225,10 +226,10 @@ pub struct BackupReencryptionConfig {
 pub struct BackupRetentionSettings {
     /// Depending on the value of retention_unit, this is used to determine if a backup needs to be deleted. If retention_unit is ''COUNT'', we will retain this many backups.
     #[serde(default, rename = "retainedBackups")]
-    pub retained_backups: Option<i32>,
+    pub retained_backups: ::core::option::Option<i32>,
     /// The unit that ''retained_backups'' represents. // TODO: enum values: ["RETENTION_UNIT_UNSPECIFIED", "COUNT"]
     #[serde(default, rename = "retentionUnit")]
-    pub retention_unit: Option<String>,
+    pub retention_unit: ::core::option::Option<String>,
 }
 
 /// A BackupRun resource.
@@ -236,61 +237,62 @@ pub struct BackupRetentionSettings {
 pub struct BackupRun {
     /// Specifies the kind of backup, PHYSICAL or DEFAULT_SNAPSHOT. // TODO: enum values: ["SQL_BACKUP_KIND_UNSPECIFIED", "SNAPSHOT", "PHYSICAL"]
     #[serde(default, rename = "backupKind")]
-    pub backup_kind: Option<String>,
+    pub backup_kind: ::core::option::Option<String>,
     /// Output only. The instance database version at the time this backup was made. // TODO: enum values: ["SQL_DATABASE_VERSION_UNSPECIFIED", "MYSQL_5_1", "MYSQL_5_5", "MYSQL_5_6", "MYSQL_5_7", "MYSQL_8_0", "MYSQL_8_0_18", "MYSQL_8_0_26", "MYSQL_8_0_27", "MYSQL_8_0_28", "MYSQL_8_0_29", "MYSQL_8_0_30", "MYSQL_8_0_31", "MYSQL_8_0_32", "MYSQL_8_0_33", "MYSQL_8_0_34", "MYSQL_8_0_35", "MYSQL_8_0_36", "MYSQL_8_0_37", "MYSQL_8_0_39", "MYSQL_8_0_40", "MYSQL_8_0_41", "MYSQL_8_0_42", "MYSQL_8_0_43", "MYSQL_8_0_44", "MYSQL_8_0_45", "MYSQL_8_0_46", "MYSQL_8_4", "MYSQL_9_7", "SQLSERVER_2017_STANDARD", "SQLSERVER_2017_ENTERPRISE", "SQLSERVER_2017_EXPRESS", "SQLSERVER_2017_WEB", "POSTGRES_9_6", "POSTGRES_10", "POSTGRES_11", "POSTGRES_12", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18", "SQLSERVER_2019_STANDARD", "SQLSERVER_2019_ENTERPRISE", "SQLSERVER_2019_EXPRESS", "SQLSERVER_2019_WEB", "SQLSERVER_2022_STANDARD", "SQLSERVER_2022_ENTERPRISE", "SQLSERVER_2022_EXPRESS", "SQLSERVER_2022_WEB", "SQLSERVER_2025_STANDARD", "SQLSERVER_2025_ENTERPRISE", "SQLSERVER_2025_EXPRESS"]
     #[serde(default, rename = "databaseVersion")]
-    pub database_version: Option<String>,
+    pub database_version: ::core::option::Option<String>,
     /// The description of this run, only applicable to on-demand backups.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Encryption configuration specific to a backup.
     #[serde(default, rename = "diskEncryptionConfiguration")]
-    pub disk_encryption_configuration: Option<DiskEncryptionConfiguration>,
+    pub disk_encryption_configuration:
+        ::core::option::Option<::std::boxed::Box<DiskEncryptionConfiguration>>,
     /// Encryption status specific to a backup.
     #[serde(default, rename = "diskEncryptionStatus")]
-    pub disk_encryption_status: Option<DiskEncryptionStatus>,
+    pub disk_encryption_status: ::core::option::Option<::std::boxed::Box<DiskEncryptionStatus>>,
     /// The time the backup operation completed in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The time the run was enqueued in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "enqueuedTime")]
-    pub enqueued_time: Option<String>,
+    pub enqueued_time: ::core::option::Option<String>,
     /// Information about why the backup operation failed. This is only present if the run has the FAILED status.
     #[serde(default)]
-    pub error: Option<OperationError>,
+    pub error: ::core::option::Option<::std::boxed::Box<OperationError>>,
     /// The identifier for this backup run. Unique only for a specific Cloud SQL instance.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of the database instance.
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
     /// This is always sql#backupRun.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Location of the backups.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Output only. The maximum chargeable bytes for the backup.
     #[serde(default, rename = "maxChargeableBytes")]
-    pub max_chargeable_bytes: Option<String>,
+    pub max_chargeable_bytes: ::core::option::Option<String>,
     /// The URI of this resource.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// The time the backup operation actually started in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The status of this run. // TODO: enum values: ["SQL_BACKUP_RUN_STATUS_UNSPECIFIED", "ENQUEUED", "OVERDUE", "RUNNING", "FAILED", "SUCCESSFUL", "SKIPPED", "DELETION_PENDING", "DELETION_FAILED", "DELETED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Backup time zone to prevent restores to an instance with a different time zone. Now relevant only for SQL Server.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// The type of this run; can be either "AUTOMATED" or "ON_DEMAND" or "FINAL". This field defaults to "ON_DEMAND" and is ignored, when specified for insert requests. // TODO: enum values: ["SQL_BACKUP_RUN_TYPE_UNSPECIFIED", "AUTOMATED", "ON_DEMAND"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The start time of the backup window during which this the backup was attempted in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "windowStartTime")]
-    pub window_start_time: Option<String>,
+    pub window_start_time: ::core::option::Option<String>,
 }
 
 /// Backup run list results.
@@ -298,13 +300,13 @@ pub struct BackupRun {
 pub struct BackupRunsListResponse {
     /// A list of backup runs in reverse chronological order of the enqueued time.
     #[serde(default)]
-    pub items: Option<Vec<BackupRun>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackupRun>>>,
     /// This is always sql#backupRunsList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The continuation token, used to page through large result sets. Provide this value in a subsequent request to return the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Binary log coordinates.
@@ -312,13 +314,13 @@ pub struct BackupRunsListResponse {
 pub struct BinLogCoordinates {
     /// Name of the binary log file for a Cloud SQL instance.
     #[serde(default, rename = "binLogFileName")]
-    pub bin_log_file_name: Option<String>,
+    pub bin_log_file_name: ::core::option::Option<String>,
     /// Position (offset) within the binary log file.
     #[serde(default, rename = "binLogPosition")]
-    pub bin_log_position: Option<String>,
+    pub bin_log_position: ::core::option::Option<String>,
     /// This is always sql#binLogCoordinates.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Database instance clone context.
@@ -326,40 +328,40 @@ pub struct BinLogCoordinates {
 pub struct CloneContext {
     /// The name of the allocated ip range for the private ip Cloud SQL instance. For example: "google-managed-services-default". If set, the cloned instance ip will be created in the allocated range. The range name must comply with [RFC 1035](https://tools.ietf.org/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?. Reserved for future use.
     #[serde(default, rename = "allocatedIpRange")]
-    pub allocated_ip_range: Option<String>,
+    pub allocated_ip_range: ::core::option::Option<String>,
     /// Binary log coordinates, if specified, identify the position up to which the source instance is cloned. If not specified, the source instance is cloned up to the most recent binary log coordinates.
     #[serde(default, rename = "binLogCoordinates")]
-    pub bin_log_coordinates: Option<BinLogCoordinates>,
+    pub bin_log_coordinates: ::core::option::Option<::std::boxed::Box<BinLogCoordinates>>,
     /// (SQL Server only) Clone only the specified databases from the source instance. Clone all databases if empty.
     #[serde(default, rename = "databaseNames")]
-    pub database_names: Option<Vec<String>>,
+    pub database_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Name of the Cloud SQL instance to be created as a clone.
     #[serde(default, rename = "destinationInstanceName")]
-    pub destination_instance_name: Option<String>,
+    pub destination_instance_name: ::core::option::Option<String>,
     /// Optional. The fully qualified URI of the VPC network to which the cloned instance will be connected via Private Services Access for private IP. For example:projects/my-network-project/global/networks/my-network. This field is only required for cross-project cloning.
     #[serde(default, rename = "destinationNetwork")]
-    pub destination_network: Option<String>,
+    pub destination_network: ::core::option::Option<String>,
     /// Optional. The project ID of the destination project where the cloned instance will be created. To perform a cross-project clone, this field is required. If not specified, the clone is created in the same project as the source instance.
     #[serde(default, rename = "destinationProject")]
-    pub destination_project: Option<String>,
+    pub destination_project: ::core::option::Option<String>,
     /// This is always sql#cloneContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Reserved for future use.
     #[serde(default, rename = "pitrTimestampMs")]
-    pub pitr_timestamp_ms: Option<String>,
+    pub pitr_timestamp_ms: ::core::option::Option<String>,
     /// Timestamp, if specified, identifies the time to which the source instance is cloned.
     #[serde(default, rename = "pointInTime")]
-    pub point_in_time: Option<String>,
+    pub point_in_time: ::core::option::Option<String>,
     /// Optional. Copy clone and point-in-time recovery clone of a regional instance in the specified zones. If not specified, clone to the same secondary zone as the source instance. This value cannot be the same as the preferred_zone field. This field applies to all DB types.
     #[serde(default, rename = "preferredSecondaryZone")]
-    pub preferred_secondary_zone: Option<String>,
+    pub preferred_secondary_zone: ::core::option::Option<String>,
     /// Optional. Copy clone and point-in-time recovery clone of an instance to the specified zone. If no zone is specified, clone to the same primary zone as the source instance. This field applies to all DB types.
     #[serde(default, rename = "preferredZone")]
-    pub preferred_zone: Option<String>,
+    pub preferred_zone: ::core::option::Option<String>,
     /// The timestamp used to identify the time when the source instance is deleted. If this instance is deleted, then you must set the timestamp.
     #[serde(default, rename = "sourceInstanceDeletionTime")]
-    pub source_instance_deletion_time: Option<String>,
+    pub source_instance_deletion_time: ::core::option::Option<String>,
 }
 
 /// Contains the name and datatype of a column.
@@ -367,10 +369,10 @@ pub struct CloneContext {
 pub struct Column {
     /// Name of the column.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Datatype of the column.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Details of a single read pool node of a read pool.
@@ -378,16 +380,16 @@ pub struct Column {
 pub struct ConnectPoolNodeConfig {
     /// Output only. The DNS name of the read pool node.
     #[serde(default, rename = "dnsName")]
-    pub dns_name: Option<String>,
+    pub dns_name: ::core::option::Option<String>,
     /// Output only. The list of DNS names used by this read pool node.
     #[serde(default, rename = "dnsNames")]
-    pub dns_names: Option<Vec<DnsNameMapping>>,
+    pub dns_names: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsNameMapping>>>,
     /// Output only. Mappings containing IP addresses that can be used to connect to the read pool node.
     #[serde(default, rename = "ipAddresses")]
-    pub ip_addresses: Option<Vec<IpMapping>>,
+    pub ip_addresses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IpMapping>>>,
     /// Output only. The name of the read pool node. Doesn''t include the project ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Connect settings retrieval response.
@@ -395,46 +397,46 @@ pub struct ConnectPoolNodeConfig {
 pub struct ConnectSettings {
     /// SECOND_GEN: Cloud SQL database instance. EXTERNAL: A database server that is not managed by Google. This property is read-only; use the tier property in the settings object to determine the database type. // TODO: enum values: ["SQL_BACKEND_TYPE_UNSPECIFIED", "FIRST_GEN", "SECOND_GEN", "EXTERNAL"]
     #[serde(default, rename = "backendType")]
-    pub backend_type: Option<String>,
+    pub backend_type: ::core::option::Option<String>,
     /// Custom subject alternative names for the server certificate.
     #[serde(default, rename = "customSubjectAlternativeNames")]
-    pub custom_subject_alternative_names: Option<Vec<String>>,
+    pub custom_subject_alternative_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The database engine type and version. The databaseVersion field cannot be changed after instance creation. MySQL instances: MYSQL_8_0, MYSQL_5_7 (default), or MYSQL_5_6. PostgreSQL instances: POSTGRES_9_6, POSTGRES_10, POSTGRES_11, POSTGRES_12 (default), POSTGRES_13, or POSTGRES_14. SQL Server instances: SQLSERVER_2017_STANDARD (default), SQLSERVER_2017_ENTERPRISE, SQLSERVER_2017_EXPRESS, SQLSERVER_2017_WEB, SQLSERVER_2019_STANDARD, SQLSERVER_2019_ENTERPRISE, SQLSERVER_2019_EXPRESS, or SQLSERVER_2019_WEB. // TODO: enum values: ["SQL_DATABASE_VERSION_UNSPECIFIED", "MYSQL_5_1", "MYSQL_5_5", "MYSQL_5_6", "MYSQL_5_7", "MYSQL_8_0", "MYSQL_8_0_18", "MYSQL_8_0_26", "MYSQL_8_0_27", "MYSQL_8_0_28", "MYSQL_8_0_29", "MYSQL_8_0_30", "MYSQL_8_0_31", "MYSQL_8_0_32", "MYSQL_8_0_33", "MYSQL_8_0_34", "MYSQL_8_0_35", "MYSQL_8_0_36", "MYSQL_8_0_37", "MYSQL_8_0_39", "MYSQL_8_0_40", "MYSQL_8_0_41", "MYSQL_8_0_42", "MYSQL_8_0_43", "MYSQL_8_0_44", "MYSQL_8_0_45", "MYSQL_8_0_46", "MYSQL_8_4", "MYSQL_9_7", "SQLSERVER_2017_STANDARD", "SQLSERVER_2017_ENTERPRISE", "SQLSERVER_2017_EXPRESS", "SQLSERVER_2017_WEB", "POSTGRES_9_6", "POSTGRES_10", "POSTGRES_11", "POSTGRES_12", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18", "SQLSERVER_2019_STANDARD", "SQLSERVER_2019_ENTERPRISE", "SQLSERVER_2019_EXPRESS", "SQLSERVER_2019_WEB", "SQLSERVER_2022_STANDARD", "SQLSERVER_2022_ENTERPRISE", "SQLSERVER_2022_EXPRESS", "SQLSERVER_2022_WEB", "SQLSERVER_2025_STANDARD", "SQLSERVER_2025_ENTERPRISE", "SQLSERVER_2025_EXPRESS"]
     #[serde(default, rename = "databaseVersion")]
-    pub database_version: Option<String>,
+    pub database_version: ::core::option::Option<String>,
     /// The dns name of the instance.
     #[serde(default, rename = "dnsName")]
-    pub dns_name: Option<String>,
+    pub dns_name: ::core::option::Option<String>,
     /// Output only. The list of DNS names used by this instance.
     #[serde(default, rename = "dnsNames")]
-    pub dns_names: Option<Vec<DnsNameMapping>>,
+    pub dns_names: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsNameMapping>>>,
     /// The assigned IP addresses for the instance.
     #[serde(default, rename = "ipAddresses")]
-    pub ip_addresses: Option<Vec<IpMapping>>,
+    pub ip_addresses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IpMapping>>>,
     /// This is always sql#connectSettings.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. Output only. mdx_protocol_support controls how the client uses metadata exchange when connecting to the instance. The values in the list representing parts of the MDX protocol that are supported by this instance. When the list is empty, the instance does not support MDX, so the client must not send an MDX request. The default is empty.
     #[serde(default, rename = "mdxProtocolSupport")]
-    pub mdx_protocol_support: Option<Vec<String>>,
+    pub mdx_protocol_support: ::core::option::Option<::std::vec::Vec<String>>,
     /// The number of read pool nodes in a read pool.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// Output only. Entries containing information about each read pool node of the read pool.
     #[serde(default)]
-    pub nodes: Option<Vec<ConnectPoolNodeConfig>>,
+    pub nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConnectPoolNodeConfig>>>,
     /// Whether PSC connectivity is enabled for this instance.
     #[serde(default, rename = "pscEnabled")]
-    pub psc_enabled: Option<bool>,
+    pub psc_enabled: ::core::option::Option<bool>,
     /// The cloud region for the instance. For example, us-central1, europe-west1. The region cannot be changed after instance creation.
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
     /// SSL configuration.
     #[serde(default, rename = "serverCaCert")]
-    pub server_ca_cert: Option<SslCert>,
+    pub server_ca_cert: ::core::option::Option<::std::boxed::Box<SslCert>>,
     /// Specify what type of CA is used for the server certificate. // TODO: enum values: ["CA_MODE_UNSPECIFIED", "GOOGLE_MANAGED_INTERNAL_CA", "GOOGLE_MANAGED_CAS_CA", "CUSTOMER_MANAGED_CAS_CA"]
     #[serde(default, rename = "serverCaMode")]
-    pub server_ca_mode: Option<String>,
+    pub server_ca_mode: ::core::option::Option<String>,
 }
 
 /// The managed connection pooling configuration.
@@ -442,13 +444,13 @@ pub struct ConnectSettings {
 pub struct ConnectionPoolConfig {
     /// Whether managed connection pooling is enabled.
     #[serde(default, rename = "connectionPoolingEnabled")]
-    pub connection_pooling_enabled: Option<bool>,
+    pub connection_pooling_enabled: ::core::option::Option<bool>,
     /// Optional. List of connection pool configuration flags.
     #[serde(default)]
-    pub flags: Option<Vec<ConnectionPoolFlags>>,
+    pub flags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConnectionPoolFlags>>>,
     /// Output only. Number of connection poolers.
     #[serde(default, rename = "poolerCount")]
-    pub pooler_count: Option<i32>,
+    pub pooler_count: ::core::option::Option<i32>,
 }
 
 /// Connection pool flags for Cloud SQL instances managed connection pool configuration.
@@ -456,10 +458,10 @@ pub struct ConnectionPoolConfig {
 pub struct ConnectionPoolFlags {
     /// Required. The name of the flag.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The value of the flag. Boolean flags are set to on for true and off for false. This field must be omitted if the flag doesn''t take a value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Data cache configurations.
@@ -467,7 +469,7 @@ pub struct ConnectionPoolFlags {
 pub struct DataCacheConfig {
     /// Whether data cache is enabled for the instance.
     #[serde(default, rename = "dataCacheEnabled")]
-    pub data_cache_enabled: Option<bool>,
+    pub data_cache_enabled: ::core::option::Option<bool>,
 }
 
 /// Represents a SQL database on the Cloud SQL instance.
@@ -475,30 +477,31 @@ pub struct DataCacheConfig {
 pub struct Database {
     /// The Cloud SQL charset value.
     #[serde(default)]
-    pub charset: Option<String>,
+    pub charset: ::core::option::Option<String>,
     /// The Cloud SQL collation value.
     #[serde(default)]
-    pub collation: Option<String>,
+    pub collation: ::core::option::Option<String>,
     /// This field is deprecated and will be removed from a future version of the API.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The name of the Cloud SQL instance. This does not include the project ID.
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
     /// This is always sql#database.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the database in the Cloud SQL instance. This does not include the project ID or instance name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
     /// The URI of this resource.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     #[serde(default, rename = "sqlserverDatabaseDetails")]
-    pub sqlserver_database_details: Option<SqlServerDatabaseDetails>,
+    pub sqlserver_database_details:
+        ::core::option::Option<::std::boxed::Box<SqlServerDatabaseDetails>>,
 }
 
 /// Database flags for Cloud SQL instances.
@@ -506,10 +509,10 @@ pub struct Database {
 pub struct DatabaseFlags {
     /// The name of the flag. These flags are passed at instance startup, so include both server options and system variables. Flags are specified with underscores, not hyphens. For more information, see [Configuring Database Flags](https://cloud.google.com/sql/docs/mysql/flags) in the Cloud SQL documentation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The value of the flag. Boolean flags are set to on for true and off for false. This field must be omitted if the flag doesn''t take a value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A Cloud SQL instance resource.
@@ -517,157 +520,160 @@ pub struct DatabaseFlags {
 pub struct DatabaseInstance {
     /// Output only. List all maintenance versions applicable on the instance
     #[serde(default, rename = "availableMaintenanceVersions")]
-    pub available_maintenance_versions: Option<Vec<String>>,
+    pub available_maintenance_versions: ::core::option::Option<::std::vec::Vec<String>>,
     /// The backend type. SECOND_GEN: Cloud SQL database instance. EXTERNAL: A database server that is not managed by Google. This property is read-only; use the tier property in the settings object to determine the database type. // TODO: enum values: ["SQL_BACKEND_TYPE_UNSPECIFIED", "FIRST_GEN", "SECOND_GEN", "EXTERNAL"]
     #[serde(default, rename = "backendType")]
-    pub backend_type: Option<String>,
+    pub backend_type: ::core::option::Option<String>,
     /// Connection name of the Cloud SQL instance used in connection strings.
     #[serde(default, rename = "connectionName")]
-    pub connection_name: Option<String>,
+    pub connection_name: ::core::option::Option<String>,
     /// Output only. The time when the instance was created in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The current disk usage of the instance in bytes. This property has been deprecated. Use the "cloudsql.googleapis.com/database/disk/bytes_used" metric in Cloud Monitoring API instead. Please see [this announcement](https://groups.google.com/d/msg/google-cloud-sql-announce/I_7-F9EBhT0/BtvFtdFeAgAJ) for details.
     #[serde(default, rename = "currentDiskSize")]
-    pub current_disk_size: Option<String>,
+    pub current_disk_size: ::core::option::Option<String>,
     /// Output only. Stores the current database version running on the instance including minor version such as MYSQL_8_0_18.
     #[serde(default, rename = "databaseInstalledVersion")]
-    pub database_installed_version: Option<String>,
+    pub database_installed_version: ::core::option::Option<String>,
     /// The database engine type and version. The databaseVersion field cannot be changed after instance creation. // TODO: enum values: ["SQL_DATABASE_VERSION_UNSPECIFIED", "MYSQL_5_1", "MYSQL_5_5", "MYSQL_5_6", "MYSQL_5_7", "MYSQL_8_0", "MYSQL_8_0_18", "MYSQL_8_0_26", "MYSQL_8_0_27", "MYSQL_8_0_28", "MYSQL_8_0_29", "MYSQL_8_0_30", "MYSQL_8_0_31", "MYSQL_8_0_32", "MYSQL_8_0_33", "MYSQL_8_0_34", "MYSQL_8_0_35", "MYSQL_8_0_36", "MYSQL_8_0_37", "MYSQL_8_0_39", "MYSQL_8_0_40", "MYSQL_8_0_41", "MYSQL_8_0_42", "MYSQL_8_0_43", "MYSQL_8_0_44", "MYSQL_8_0_45", "MYSQL_8_0_46", "MYSQL_8_4", "MYSQL_9_7", "SQLSERVER_2017_STANDARD", "SQLSERVER_2017_ENTERPRISE", "SQLSERVER_2017_EXPRESS", "SQLSERVER_2017_WEB", "POSTGRES_9_6", "POSTGRES_10", "POSTGRES_11", "POSTGRES_12", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18", "SQLSERVER_2019_STANDARD", "SQLSERVER_2019_ENTERPRISE", "SQLSERVER_2019_EXPRESS", "SQLSERVER_2019_WEB", "SQLSERVER_2022_STANDARD", "SQLSERVER_2022_ENTERPRISE", "SQLSERVER_2022_EXPRESS", "SQLSERVER_2022_WEB", "SQLSERVER_2025_STANDARD", "SQLSERVER_2025_ENTERPRISE", "SQLSERVER_2025_EXPRESS"]
     #[serde(default, rename = "databaseVersion")]
-    pub database_version: Option<String>,
+    pub database_version: ::core::option::Option<String>,
     /// Disk encryption configuration specific to an instance.
     #[serde(default, rename = "diskEncryptionConfiguration")]
-    pub disk_encryption_configuration: Option<DiskEncryptionConfiguration>,
+    pub disk_encryption_configuration:
+        ::core::option::Option<::std::boxed::Box<DiskEncryptionConfiguration>>,
     /// Disk encryption status specific to an instance.
     #[serde(default, rename = "diskEncryptionStatus")]
-    pub disk_encryption_status: Option<DiskEncryptionStatus>,
+    pub disk_encryption_status: ::core::option::Option<::std::boxed::Box<DiskEncryptionStatus>>,
     /// Output only. The dns name of the instance.
     #[serde(default, rename = "dnsName")]
-    pub dns_name: Option<String>,
+    pub dns_name: ::core::option::Option<String>,
     /// Output only. The list of DNS names used by this instance.
     #[serde(default, rename = "dnsNames")]
-    pub dns_names: Option<Vec<DnsNameMapping>>,
+    pub dns_names: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsNameMapping>>>,
     /// This field is deprecated and will be removed from a future version of the API. Use the settings.settingsVersion field instead.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The name and status of the failover replica.
     #[serde(default, rename = "failoverReplica")]
-    pub failover_replica: Option<serde_json::Value>,
+    pub failover_replica: ::core::option::Option<serde_json::Value>,
     /// The Compute Engine zone that the instance is currently serving from. This value could be different from the zone that was specified when the instance was created if the instance has failed over to its secondary zone. WARNING: Changing this might restart the instance.
     #[serde(default, rename = "gceZone")]
-    pub gce_zone: Option<String>,
+    pub gce_zone: ::core::option::Option<String>,
     /// Gemini instance configuration.
     #[serde(default, rename = "geminiConfig")]
-    pub gemini_config: Option<GeminiInstanceConfig>,
+    pub gemini_config: ::core::option::Option<::std::boxed::Box<GeminiInstanceConfig>>,
     /// Input only. Determines whether an in-place major version upgrade of replicas happens when an in-place major version upgrade of a primary instance is initiated.
     #[serde(default, rename = "includeReplicasForMajorVersionUpgrade")]
-    pub include_replicas_for_major_version_upgrade: Option<bool>,
+    pub include_replicas_for_major_version_upgrade: ::core::option::Option<bool>,
     /// The instance type. // TODO: enum values: ["SQL_INSTANCE_TYPE_UNSPECIFIED", "CLOUD_SQL_INSTANCE", "ON_PREMISES_INSTANCE", "READ_REPLICA_INSTANCE", "READ_POOL_INSTANCE"]
     #[serde(default, rename = "instanceType")]
-    pub instance_type: Option<String>,
+    pub instance_type: ::core::option::Option<String>,
     /// The assigned IP addresses for the instance.
     #[serde(default, rename = "ipAddresses")]
-    pub ip_addresses: Option<Vec<IpMapping>>,
+    pub ip_addresses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IpMapping>>>,
     /// The IPv6 address assigned to the instance. (Deprecated) This property was applicable only to First Generation instances.
     #[serde(default, rename = "ipv6Address")]
-    pub ipv6_address: Option<String>,
+    pub ipv6_address: ::core::option::Option<String>,
     /// This is always sql#instance.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The current software version on the instance.
     #[serde(default, rename = "maintenanceVersion")]
-    pub maintenance_version: Option<String>,
+    pub maintenance_version: ::core::option::Option<String>,
     /// The name of the instance which will act as primary in the replication setup.
     #[serde(default, rename = "masterInstanceName")]
-    pub master_instance_name: Option<String>,
+    pub master_instance_name: ::core::option::Option<String>,
     /// The maximum disk size of the instance in bytes.
     #[serde(default, rename = "maxDiskSize")]
-    pub max_disk_size: Option<String>,
+    pub max_disk_size: ::core::option::Option<String>,
     /// Name of the Cloud SQL instance. This does not include the project ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The number of read pool nodes in a read pool.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// Output only. Entries containing information about each read pool node of the read pool.
     #[serde(default)]
-    pub nodes: Option<Vec<PoolNodeConfig>>,
+    pub nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PoolNodeConfig>>>,
     /// Configuration specific to on-premises instances.
     #[serde(default, rename = "onPremisesConfiguration")]
-    pub on_premises_configuration: Option<OnPremisesConfiguration>,
+    pub on_premises_configuration:
+        ::core::option::Option<::std::boxed::Box<OnPremisesConfiguration>>,
     /// This field represents the report generated by the proactive database wellness job for OutOfDisk issues. * Writers: * the proactive database wellness job for OOD. * Readers: * the proactive database wellness job
     #[serde(default, rename = "outOfDiskReport")]
-    pub out_of_disk_report: Option<SqlOutOfDiskReport>,
+    pub out_of_disk_report: ::core::option::Option<::std::boxed::Box<SqlOutOfDiskReport>>,
     /// Output only. DEPRECATED: please use write_endpoint instead.
     #[serde(default, rename = "primaryDnsName")]
-    pub primary_dns_name: Option<String>,
+    pub primary_dns_name: ::core::option::Option<String>,
     /// The project ID of the project containing the Cloud SQL instance. The Google apps domain is prefixed if applicable.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
     /// Output only. The link to service attachment of PSC instance.
     #[serde(default, rename = "pscServiceAttachmentLink")]
-    pub psc_service_attachment_link: Option<String>,
+    pub psc_service_attachment_link: ::core::option::Option<String>,
     /// The geographical region of the Cloud SQL instance. It can be one of the [regions](https://cloud.google.com/sql/docs/mysql/locations#location-r) where Cloud SQL operates: For example, asia-east1, europe-west1, and us-central1. The default value is us-central1.
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
     /// Configuration specific to failover replicas and read replicas.
     #[serde(default, rename = "replicaConfiguration")]
-    pub replica_configuration: Option<ReplicaConfiguration>,
+    pub replica_configuration: ::core::option::Option<::std::boxed::Box<ReplicaConfiguration>>,
     /// The replicas of the instance.
     #[serde(default, rename = "replicaNames")]
-    pub replica_names: Option<Vec<String>>,
+    pub replica_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A primary instance and disaster recovery (DR) replica pair. A DR replica is a cross-region replica that you designate for failover in the event that the primary instance experiences regional failure. Applicable to MySQL and PostgreSQL.
     #[serde(default, rename = "replicationCluster")]
-    pub replication_cluster: Option<ReplicationCluster>,
+    pub replication_cluster: ::core::option::Option<::std::boxed::Box<ReplicationCluster>>,
     /// Initial root password. Use only on creation. You must set root passwords before you can connect to PostgreSQL instances.
     #[serde(default, rename = "rootPassword")]
-    pub root_password: Option<String>,
+    pub root_password: ::core::option::Option<String>,
     /// Output only. This status indicates whether the instance satisfies PZI. The status is reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// This status indicates whether the instance satisfies PZS. The status is reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// The start time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "scheduledMaintenance")]
-    pub scheduled_maintenance: Option<SqlScheduledMaintenance>,
+    pub scheduled_maintenance: ::core::option::Option<::std::boxed::Box<SqlScheduledMaintenance>>,
     /// The Compute Engine zone that the failover instance is currently serving from for a regional instance. This value could be different from the zone that was specified when the instance was created if the instance has failed over to its secondary/failover zone.
     #[serde(default, rename = "secondaryGceZone")]
-    pub secondary_gce_zone: Option<String>,
+    pub secondary_gce_zone: ::core::option::Option<String>,
     /// The URI of this resource.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// SSL configuration.
     #[serde(default, rename = "serverCaCert")]
-    pub server_ca_cert: Option<SslCert>,
+    pub server_ca_cert: ::core::option::Option<::std::boxed::Box<SslCert>>,
     /// The service account email address assigned to the instance.\This property is read-only.
     #[serde(default, rename = "serviceAccountEmailAddress")]
-    pub service_account_email_address: Option<String>,
+    pub service_account_email_address: ::core::option::Option<String>,
     /// The user settings.
     #[serde(default)]
-    pub settings: Option<Settings>,
+    pub settings: ::core::option::Option<::std::boxed::Box<Settings>>,
     /// TODO: enum values: ["SQL_NETWORK_ARCHITECTURE_UNSPECIFIED", "NEW_NETWORK_ARCHITECTURE", "OLD_NETWORK_ARCHITECTURE"]
     #[serde(default, rename = "sqlNetworkArchitecture")]
-    pub sql_network_architecture: Option<String>,
+    pub sql_network_architecture: ::core::option::Option<String>,
     /// The current serving state of the Cloud SQL instance. // TODO: enum values: ["SQL_INSTANCE_STATE_UNSPECIFIED", "RUNNABLE", "SUSPENDED", "PENDING_DELETE", "PENDING_CREATE", "MAINTENANCE", "FAILED", "ONLINE_MAINTENANCE", "REPAIRING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// If the instance state is SUSPENDED, the reason for the suspension.
     #[serde(default, rename = "suspensionReason")]
-    pub suspension_reason: Option<Vec<String>>,
+    pub suspension_reason: ::core::option::Option<::std::vec::Vec<String>>,
     /// Input only. Whether Cloud SQL is enabled to switch storing point-in-time recovery log files from a data disk to Cloud Storage.
     #[serde(default, rename = "switchTransactionLogsToCloudStorageEnabled")]
-    pub switch_transaction_logs_to_cloud_storage_enabled: Option<bool>,
+    pub switch_transaction_logs_to_cloud_storage_enabled: ::core::option::Option<bool>,
     /// Optional. Input only. Immutable. Tag keys and tag values that are bound to this instance. You must represent each item in the map as: "" : "". For example, a single resource can have the following tags:  "123/environment": "production", "123/costCenter": "marketing",  For more information on tag creation and management, see https://cloud.google.com/resource-manager/docs/tags/tags-overview.
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
     /// Output only. All database versions that are available for upgrade.
     #[serde(default, rename = "upgradableDatabaseVersions")]
-    pub upgradable_database_versions: Option<Vec<AvailableDatabaseVersion>>,
+    pub upgradable_database_versions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AvailableDatabaseVersion>>>,
     /// Output only. The dns name of the primary instance in a replication group.
     #[serde(default, rename = "writeEndpoint")]
-    pub write_endpoint: Option<String>,
+    pub write_endpoint: ::core::option::Option<String>,
 }
 
 /// Database list response.
@@ -675,10 +681,10 @@ pub struct DatabaseInstance {
 pub struct DatabasesListResponse {
     /// List of database resources in the instance.
     #[serde(default)]
-    pub items: Option<Vec<Database>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Database>>>,
     /// This is always sql#databasesList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// This context is used to demote an existing standalone instance to be a Cloud SQL read replica for an external database server.
@@ -686,10 +692,10 @@ pub struct DatabasesListResponse {
 pub struct DemoteContext {
     /// This is always sql#demoteContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Required. The name of the instance which acts as the on-premises primary instance in the replication setup.
     #[serde(default, rename = "sourceRepresentativeInstanceName")]
-    pub source_representative_instance_name: Option<String>,
+    pub source_representative_instance_name: ::core::option::Option<String>,
 }
 
 /// Read-replica configuration for connecting to the on-premises primary instance.
@@ -697,10 +703,11 @@ pub struct DemoteContext {
 pub struct DemoteMasterConfiguration {
     /// This is always sql#demoteMasterConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// MySQL specific configuration when replicating from a MySQL on-premises primary instance. Replication configuration information such as the username, password, certificates, and keys are not stored in the instance metadata. The configuration information is used only to set up the replication connection and is stored by MySQL in a file named master.info in the data directory.
     #[serde(default, rename = "mysqlReplicaConfiguration")]
-    pub mysql_replica_configuration: Option<DemoteMasterMySqlReplicaConfiguration>,
+    pub mysql_replica_configuration:
+        ::core::option::Option<::std::boxed::Box<DemoteMasterMySqlReplicaConfiguration>>,
 }
 
 /// Database instance demote primary instance context.
@@ -708,19 +715,19 @@ pub struct DemoteMasterConfiguration {
 pub struct DemoteMasterContext {
     /// This is always sql#demoteMasterContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the instance which will act as on-premises primary instance in the replication setup.
     #[serde(default, rename = "masterInstanceName")]
-    pub master_instance_name: Option<String>,
+    pub master_instance_name: ::core::option::Option<String>,
     /// Configuration specific to read-replicas replicating from the on-premises primary instance.
     #[serde(default, rename = "replicaConfiguration")]
-    pub replica_configuration: Option<DemoteMasterConfiguration>,
+    pub replica_configuration: ::core::option::Option<::std::boxed::Box<DemoteMasterConfiguration>>,
     /// Flag to skip replication setup on the instance.
     #[serde(default, rename = "skipReplicationSetup")]
-    pub skip_replication_setup: Option<bool>,
+    pub skip_replication_setup: ::core::option::Option<bool>,
     /// Verify the GTID consistency for demote operation. Default value: True. Setting this flag to false enables you to bypass the GTID consistency check between on-premises primary instance and Cloud SQL instance during the demotion operation but also exposes you to the risk of future replication failures. Change the value only if you know the reason for the GTID divergence and are confident that doing so will not cause any replication issues.
     #[serde(default, rename = "verifyGtidConsistency")]
-    pub verify_gtid_consistency: Option<bool>,
+    pub verify_gtid_consistency: ::core::option::Option<bool>,
 }
 
 /// Read-replica configuration specific to MySQL databases.
@@ -728,22 +735,22 @@ pub struct DemoteMasterContext {
 pub struct DemoteMasterMySqlReplicaConfiguration {
     /// PEM representation of the trusted CA''s x509 certificate.
     #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: Option<String>,
+    pub ca_certificate: ::core::option::Option<String>,
     /// PEM representation of the replica''s x509 certificate.
     #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: Option<String>,
+    pub client_certificate: ::core::option::Option<String>,
     /// PEM representation of the replica''s private key. The corresponding public key is encoded in the client''s certificate. The format of the replica''s private key can be either PKCS #1 or PKCS #8.
     #[serde(default, rename = "clientKey")]
-    pub client_key: Option<String>,
+    pub client_key: ::core::option::Option<String>,
     /// This is always sql#demoteMasterMysqlReplicaConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The password for the replication connection.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// The username for the replication connection.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// Deny maintenance Periods. This specifies a date range during when all CSA rollout will be denied.
@@ -751,13 +758,13 @@ pub struct DemoteMasterMySqlReplicaConfiguration {
 pub struct DenyMaintenancePeriod {
     /// "deny maintenance period" end date. If the year of the end date is empty, the year of the start date also must be empty. In this case, it means the no maintenance interval recurs every year. The date is in format yyyy-mm-dd i.e., 2020-11-01, or mm-dd, i.e., 11-01
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// "deny maintenance period" start date. If the year of the start date is empty, the year of the end date also must be empty. In this case, it means the deny maintenance period recurs every year. The date is in format yyyy-mm-dd i.e., 2020-11-01, or mm-dd, i.e., 11-01
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// Time in UTC when the "deny maintenance period" starts on start_date and ends on end_date. The time is in format: HH:mm:SS, i.e., 00:00:00
     #[serde(default)]
-    pub time: Option<String>,
+    pub time: ::core::option::Option<String>,
 }
 
 /// Disk encryption configuration for an instance.
@@ -765,10 +772,10 @@ pub struct DenyMaintenancePeriod {
 pub struct DiskEncryptionConfiguration {
     /// This is always sql#diskEncryptionConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Resource name of KMS key for disk encryption
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// Disk encryption status for an instance.
@@ -776,10 +783,10 @@ pub struct DiskEncryptionConfiguration {
 pub struct DiskEncryptionStatus {
     /// This is always sql#diskEncryptionStatus.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// KMS key version used to encrypt the Cloud SQL instance resource
     #[serde(default, rename = "kmsKeyVersionName")]
-    pub kms_key_version_name: Option<String>,
+    pub kms_key_version_name: ::core::option::Option<String>,
 }
 
 /// DNS metadata.
@@ -787,16 +794,16 @@ pub struct DiskEncryptionStatus {
 pub struct DnsNameMapping {
     /// Output only. The connection type of the DNS name. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "PUBLIC", "PRIVATE_SERVICES_ACCESS", "PRIVATE_SERVICE_CONNECT"]
     #[serde(default, rename = "connectionType")]
-    pub connection_type: Option<String>,
+    pub connection_type: ::core::option::Option<String>,
     /// Output only. The scope that the DNS name applies to. // TODO: enum values: ["DNS_SCOPE_UNSPECIFIED", "INSTANCE", "CLUSTER"]
     #[serde(default, rename = "dnsScope")]
-    pub dns_scope: Option<String>,
+    pub dns_scope: ::core::option::Option<String>,
     /// Output only. The DNS name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The manager for this DNS record. // TODO: enum values: ["RECORD_MANAGER_UNSPECIFIED", "CUSTOMER", "CLOUD_SQL_AUTOMATION"]
     #[serde(default, rename = "recordManager")]
-    pub record_manager: Option<String>,
+    pub record_manager: ::core::option::Option<String>,
 }
 
 /// The request payload used to execute SQL statements.
@@ -804,25 +811,25 @@ pub struct DnsNameMapping {
 pub struct ExecuteSqlPayload {
     /// Optional. Specifies the name of the application that is making the request. This field is used for telemetry. Only alphanumeric characters, dashes, and underscores are allowed. The maximum length is 32 characters.
     #[serde(default)]
-    pub application: Option<String>,
+    pub application: ::core::option::Option<String>,
     /// Optional. When set to true, the API caller identity associated with the request is used for database authentication. The API caller must be an IAM user in the database.
     #[serde(default, rename = "autoIamAuthn")]
-    pub auto_iam_authn: Option<bool>,
+    pub auto_iam_authn: ::core::option::Option<bool>,
     /// Optional. Name of the database on which the statement will be executed.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Optional. Controls how the API should respond when the SQL execution result is incomplete due to the size limit or another error. The default mode is to throw an error. // TODO: enum values: ["PARTIAL_RESULT_MODE_UNSPECIFIED", "FAIL_PARTIAL_RESULT", "ALLOW_PARTIAL_RESULT"]
     #[serde(default, rename = "partialResultMode")]
-    pub partial_result_mode: Option<String>,
+    pub partial_result_mode: ::core::option::Option<String>,
     /// Optional. The maximum number of rows returned per SQL statement.
     #[serde(default, rename = "rowLimit")]
-    pub row_limit: Option<String>,
+    pub row_limit: ::core::option::Option<String>,
     /// Required. SQL statements to run on the database. It can be a single statement or a sequence of statements separated by semicolons.
     #[serde(default, rename = "sqlStatement")]
-    pub sql_statement: Option<String>,
+    pub sql_statement: ::core::option::Option<String>,
     /// Optional. The name of an existing database user to connect to the database. When auto_iam_authn is set to true, this field is ignored and the API caller''s IAM user is used.
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
 }
 
 /// Database instance export context.
@@ -830,31 +837,31 @@ pub struct ExecuteSqlPayload {
 pub struct ExportContext {
     /// Options for exporting BAK files (SQL Server-only)
     #[serde(default, rename = "bakExportOptions")]
-    pub bak_export_options: Option<serde_json::Value>,
+    pub bak_export_options: ::core::option::Option<serde_json::Value>,
     /// Options for exporting data as CSV. MySQL and PostgreSQL instances only.
     #[serde(default, rename = "csvExportOptions")]
-    pub csv_export_options: Option<serde_json::Value>,
+    pub csv_export_options: ::core::option::Option<serde_json::Value>,
     /// Databases to be exported. MySQL instances: If fileType is SQL and no database is specified, all databases are exported, except for the mysql system database. If fileType is CSV, you can specify one database, either by using this property or by using the csvExportOptions.selectQuery property, which takes precedence over this property. PostgreSQL instances: If you don''t specify a database by name, all user databases in the instance are exported. This excludes system databases and Cloud SQL databases used to manage internal operations. Exporting all user databases is only available for directory-formatted parallel export. If fileType is CSV, this database must match the one specified in the csvExportOptions.selectQuery property. SQL Server instances: You must specify one database to be exported, and the fileType must be BAK.
     #[serde(default)]
-    pub databases: Option<Vec<String>>,
+    pub databases: ::core::option::Option<::std::vec::Vec<String>>,
     /// The file type for the specified uri. // TODO: enum values: ["SQL_FILE_TYPE_UNSPECIFIED", "SQL", "CSV", "BAK", "TDE"]
     #[serde(default, rename = "fileType")]
-    pub file_type: Option<String>,
+    pub file_type: ::core::option::Option<String>,
     /// This is always sql#exportContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Whether to perform a serverless export.
     #[serde(default)]
-    pub offload: Option<bool>,
+    pub offload: ::core::option::Option<bool>,
     /// Options for exporting data as SQL statements.
     #[serde(default, rename = "sqlExportOptions")]
-    pub sql_export_options: Option<serde_json::Value>,
+    pub sql_export_options: ::core::option::Option<serde_json::Value>,
     /// Optional. Export parameters specific to SQL Server TDE certificates
     #[serde(default, rename = "tdeExportOptions")]
-    pub tde_export_options: Option<serde_json::Value>,
+    pub tde_export_options: ::core::option::Option<serde_json::Value>,
     /// The path to the file in Google Cloud Storage where the export will be stored. The URI is in the form gs://bucketName/fileName. If the file already exists, the request succeeds, but the operation fails. If fileType is SQL and the filename ends with .gz, the contents are compressed.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The selected object that Cloud SQL migrates.
@@ -862,7 +869,7 @@ pub struct ExportContext {
 pub struct ExternalSyncSelectedObject {
     /// The name of the database that Cloud SQL migrates.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
 }
 
 /// Database instance failover context.
@@ -870,10 +877,10 @@ pub struct ExternalSyncSelectedObject {
 pub struct FailoverContext {
     /// This is always sql#failoverContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The current settings version of this instance. Request will be rejected if this version doesn''t match the current settings version.
     #[serde(default, rename = "settingsVersion")]
-    pub settings_version: Option<String>,
+    pub settings_version: ::core::option::Option<String>,
 }
 
 /// Config used to determine the final backup settings for the instance.
@@ -881,10 +888,10 @@ pub struct FailoverContext {
 pub struct FinalBackupConfig {
     /// Whether the final backup is enabled for the instance.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// The number of days to retain the final backup after the instance deletion. The final backup will be purged at (time_of_instance_deletion + retention_days).
     #[serde(default, rename = "retentionDays")]
-    pub retention_days: Option<i32>,
+    pub retention_days: ::core::option::Option<i32>,
 }
 
 /// A flag resource.
@@ -892,43 +899,43 @@ pub struct FinalBackupConfig {
 pub struct Flag {
     /// Use this field if only certain integers are accepted. Can be combined with min_value and max_value to add additional values.
     #[serde(default, rename = "allowedIntValues")]
-    pub allowed_int_values: Option<Vec<String>>,
+    pub allowed_int_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// For STRING flags, a list of strings that the value can be set to.
     #[serde(default, rename = "allowedStringValues")]
-    pub allowed_string_values: Option<Vec<String>>,
+    pub allowed_string_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// The database version this flag applies to. Can be MySQL instances: MYSQL_8_0, MYSQL_8_0_18, MYSQL_8_0_26, MYSQL_5_7, or MYSQL_5_6. PostgreSQL instances: POSTGRES_9_6, POSTGRES_10, POSTGRES_11 or POSTGRES_12. SQL Server instances: SQLSERVER_2017_STANDARD, SQLSERVER_2017_ENTERPRISE, SQLSERVER_2017_EXPRESS, SQLSERVER_2017_WEB, SQLSERVER_2019_STANDARD, SQLSERVER_2019_ENTERPRISE, SQLSERVER_2019_EXPRESS, or SQLSERVER_2019_WEB. See [the complete list](/sql/docs/mysql/admin-api/rest/v1/SqlDatabaseVersion).
     #[serde(default, rename = "appliesTo")]
-    pub applies_to: Option<Vec<String>>,
+    pub applies_to: ::core::option::Option<::std::vec::Vec<String>>,
     /// Scope of flag. // TODO: enum values: ["SQL_FLAG_SCOPE_UNSPECIFIED", "SQL_FLAG_SCOPE_DATABASE", "SQL_FLAG_SCOPE_CONNECTION_POOL"]
     #[serde(default, rename = "flagScope")]
-    pub flag_scope: Option<String>,
+    pub flag_scope: ::core::option::Option<String>,
     /// Whether or not the flag is considered in beta.
     #[serde(default, rename = "inBeta")]
-    pub in_beta: Option<bool>,
+    pub in_beta: ::core::option::Option<bool>,
     /// This is always sql#flag.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// For INTEGER flags, the maximum allowed value.
     #[serde(default, rename = "maxValue")]
-    pub max_value: Option<String>,
+    pub max_value: ::core::option::Option<String>,
     /// For INTEGER flags, the minimum allowed value.
     #[serde(default, rename = "minValue")]
-    pub min_value: Option<String>,
+    pub min_value: ::core::option::Option<String>,
     /// This is the name of the flag. Flag names always use underscores, not hyphens, for example: max_allowed_packet
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Recommended int value in integer format for UI display.
     #[serde(default, rename = "recommendedIntValue")]
-    pub recommended_int_value: Option<String>,
+    pub recommended_int_value: ::core::option::Option<String>,
     /// Recommended string value in string format for UI display.
     #[serde(default, rename = "recommendedStringValue")]
-    pub recommended_string_value: Option<String>,
+    pub recommended_string_value: ::core::option::Option<String>,
     /// Indicates whether changing this flag will trigger a database restart. Only applicable to Second Generation instances.
     #[serde(default, rename = "requiresRestart")]
-    pub requires_restart: Option<bool>,
+    pub requires_restart: ::core::option::Option<bool>,
     /// The type of the flag. Flags are typed to being BOOLEAN, STRING, INTEGER or NONE. NONE is used for flags that do not take a value, such as skip_grant_tables. // TODO: enum values: ["SQL_FLAG_TYPE_UNSPECIFIED", "BOOLEAN", "STRING", "INTEGER", "NONE", "MYSQL_TIMEZONE_OFFSET", "FLOAT", "REPEATED_STRING"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Flags list response.
@@ -936,10 +943,10 @@ pub struct Flag {
 pub struct FlagsListResponse {
     /// List of flags.
     #[serde(default)]
-    pub items: Option<Vec<Flag>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Flag>>>,
     /// This is always sql#flagsList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Gemini instance configuration.
@@ -947,22 +954,22 @@ pub struct FlagsListResponse {
 pub struct GeminiInstanceConfig {
     /// Output only. Whether the active query is enabled.
     #[serde(default, rename = "activeQueryEnabled")]
-    pub active_query_enabled: Option<bool>,
+    pub active_query_enabled: ::core::option::Option<bool>,
     /// Output only. Whether Gemini is enabled.
     #[serde(default)]
-    pub entitled: Option<bool>,
+    pub entitled: ::core::option::Option<bool>,
     /// Output only. Whether the flag recommender is enabled.
     #[serde(default, rename = "flagRecommenderEnabled")]
-    pub flag_recommender_enabled: Option<bool>,
+    pub flag_recommender_enabled: ::core::option::Option<bool>,
     /// Output only. Whether the vacuum management is enabled.
     #[serde(default, rename = "googleVacuumMgmtEnabled")]
-    pub google_vacuum_mgmt_enabled: Option<bool>,
+    pub google_vacuum_mgmt_enabled: ::core::option::Option<bool>,
     /// Output only. Whether the index advisor is enabled.
     #[serde(default, rename = "indexAdvisorEnabled")]
-    pub index_advisor_enabled: Option<bool>,
+    pub index_advisor_enabled: ::core::option::Option<bool>,
     /// Output only. Whether canceling the out-of-memory (OOM) session is enabled.
     #[serde(default, rename = "oomSessionCancelEnabled")]
-    pub oom_session_cancel_enabled: Option<bool>,
+    pub oom_session_cancel_enabled: ::core::option::Option<bool>,
 }
 
 /// Ephemeral certificate creation request.
@@ -970,16 +977,16 @@ pub struct GeminiInstanceConfig {
 pub struct GenerateEphemeralCertRequest {
     /// Optional. Access token to include in the signed certificate.
     #[serde(default)]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
     /// PEM encoded public key to include in the signed certificate.
     #[serde(default)]
-    pub public_key: Option<String>,
+    pub public_key: ::core::option::Option<String>,
     /// Optional. Optional snapshot read timestamp to trade freshness for performance.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// Optional. If set, it will contain the cert valid duration.
     #[serde(default, rename = "validDuration")]
-    pub valid_duration: Option<String>,
+    pub valid_duration: ::core::option::Option<String>,
 }
 
 /// Ephemeral certificate creation request.
@@ -987,7 +994,7 @@ pub struct GenerateEphemeralCertRequest {
 pub struct GenerateEphemeralCertResponse {
     /// Generated cert
     #[serde(default, rename = "ephemeralCert")]
-    pub ephemeral_cert: Option<SslCert>,
+    pub ephemeral_cert: ::core::option::Option<::std::boxed::Box<SslCert>>,
 }
 
 /// Database instance import context.
@@ -995,31 +1002,31 @@ pub struct GenerateEphemeralCertResponse {
 pub struct ImportContext {
     /// Import parameters specific to SQL Server .BAK files
     #[serde(default, rename = "bakImportOptions")]
-    pub bak_import_options: Option<serde_json::Value>,
+    pub bak_import_options: ::core::option::Option<serde_json::Value>,
     /// Options for importing data as CSV.
     #[serde(default, rename = "csvImportOptions")]
-    pub csv_import_options: Option<serde_json::Value>,
+    pub csv_import_options: ::core::option::Option<serde_json::Value>,
     /// The target database for the import. If fileType is SQL, this field is required only if the import file does not specify a database, and is overridden by any database specification in the import file. For entire instance parallel import operations, the database is overridden by the database name stored in subdirectory name. If fileType is CSV, one database must be specified.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// The file type for the specified uri.\SQL: The file contains SQL statements. \CSV: The file contains CSV data. // TODO: enum values: ["SQL_FILE_TYPE_UNSPECIFIED", "SQL", "CSV", "BAK", "TDE"]
     #[serde(default, rename = "fileType")]
-    pub file_type: Option<String>,
+    pub file_type: ::core::option::Option<String>,
     /// The PostgreSQL user for this import operation. PostgreSQL instances only.
     #[serde(default, rename = "importUser")]
-    pub import_user: Option<String>,
+    pub import_user: ::core::option::Option<String>,
     /// This is always sql#importContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. Options for importing data from SQL statements.
     #[serde(default, rename = "sqlImportOptions")]
-    pub sql_import_options: Option<serde_json::Value>,
+    pub sql_import_options: ::core::option::Option<serde_json::Value>,
     /// Optional. Import parameters specific to SQL Server TDE certificates
     #[serde(default, rename = "tdeImportOptions")]
-    pub tde_import_options: Option<serde_json::Value>,
+    pub tde_import_options: ::core::option::Option<serde_json::Value>,
     /// Path to the import file in Cloud Storage, in the form gs://bucketName/fileName. Compressed gzip files (.gz) are supported when fileType is SQL. The instance must have write permissions to the bucket and read access to the file.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Insights configuration. This specifies when Cloud SQL Insights feature is enabled and optional configuration.
@@ -1027,22 +1034,22 @@ pub struct ImportContext {
 pub struct InsightsConfig {
     /// Optional. Whether enhanced query insights feature is enabled.
     #[serde(default, rename = "enhancedQueryInsightsEnabled")]
-    pub enhanced_query_insights_enabled: Option<bool>,
+    pub enhanced_query_insights_enabled: ::core::option::Option<bool>,
     /// Whether Query Insights feature is enabled.
     #[serde(default, rename = "queryInsightsEnabled")]
-    pub query_insights_enabled: Option<bool>,
+    pub query_insights_enabled: ::core::option::Option<bool>,
     /// Number of query execution plans captured by Insights per minute for all queries combined. Default is 5.
     #[serde(default, rename = "queryPlansPerMinute")]
-    pub query_plans_per_minute: Option<i32>,
+    pub query_plans_per_minute: ::core::option::Option<i32>,
     /// Maximum query length stored in bytes. Default value: 1024 bytes. Range: 256-4500 bytes. Query lengths greater than this field value will be truncated to this value. When unset, query length will be the default value. Changing query length will restart the database.
     #[serde(default, rename = "queryStringLength")]
-    pub query_string_length: Option<i32>,
+    pub query_string_length: ::core::option::Option<i32>,
     /// Whether Query Insights will record application tags from query when enabled.
     #[serde(default, rename = "recordApplicationTags")]
-    pub record_application_tags: Option<bool>,
+    pub record_application_tags: ::core::option::Option<bool>,
     /// Whether Query Insights will record client address when enabled.
     #[serde(default, rename = "recordClientAddress")]
-    pub record_client_address: Option<bool>,
+    pub record_client_address: ::core::option::Option<bool>,
 }
 
 /// Reference to another Cloud SQL instance.
@@ -1050,13 +1057,13 @@ pub struct InsightsConfig {
 pub struct InstanceReference {
     /// The name of the Cloud SQL instance being referenced. This does not include the project ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The project ID of the Cloud SQL instance being referenced. The default is the same project ID as the instance references it.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
     /// The region of the Cloud SQL instance being referenced.
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
 }
 
 /// Request to acquire a lease for SSRS.
@@ -1064,7 +1071,8 @@ pub struct InstanceReference {
 pub struct InstancesAcquireSsrsLeaseRequest {
     /// Contains details about the acquire SSRS lease operation.
     #[serde(default, rename = "acquireSsrsLeaseContext")]
-    pub acquire_ssrs_lease_context: Option<AcquireSsrsLeaseContext>,
+    pub acquire_ssrs_lease_context:
+        ::core::option::Option<::std::boxed::Box<AcquireSsrsLeaseContext>>,
 }
 
 /// Database instance clone request.
@@ -1072,7 +1080,7 @@ pub struct InstancesAcquireSsrsLeaseRequest {
 pub struct InstancesCloneRequest {
     /// Required. Contains details about the clone operation.
     #[serde(default, rename = "cloneContext")]
-    pub clone_context: Option<CloneContext>,
+    pub clone_context: ::core::option::Option<::std::boxed::Box<CloneContext>>,
 }
 
 /// Database demote primary instance request.
@@ -1080,7 +1088,7 @@ pub struct InstancesCloneRequest {
 pub struct InstancesDemoteMasterRequest {
     /// Contains details about the demoteMaster operation.
     #[serde(default, rename = "demoteMasterContext")]
-    pub demote_master_context: Option<DemoteMasterContext>,
+    pub demote_master_context: ::core::option::Option<::std::boxed::Box<DemoteMasterContext>>,
 }
 
 /// This request is used to demote an existing standalone instance to be a Cloud SQL read replica for an external database server.
@@ -1088,7 +1096,7 @@ pub struct InstancesDemoteMasterRequest {
 pub struct InstancesDemoteRequest {
     /// Required. Contains details about the demote operation.
     #[serde(default, rename = "demoteContext")]
-    pub demote_context: Option<DemoteContext>,
+    pub demote_context: ::core::option::Option<::std::boxed::Box<DemoteContext>>,
 }
 
 /// Database instance export request.
@@ -1096,7 +1104,7 @@ pub struct InstancesDemoteRequest {
 pub struct InstancesExportRequest {
     /// Contains details about the export operation.
     #[serde(default, rename = "exportContext")]
-    pub export_context: Option<ExportContext>,
+    pub export_context: ::core::option::Option<::std::boxed::Box<ExportContext>>,
 }
 
 /// Instance failover request.
@@ -1104,7 +1112,7 @@ pub struct InstancesExportRequest {
 pub struct InstancesFailoverRequest {
     /// Failover Context.
     #[serde(default, rename = "failoverContext")]
-    pub failover_context: Option<FailoverContext>,
+    pub failover_context: ::core::option::Option<::std::boxed::Box<FailoverContext>>,
 }
 
 /// Database instance import request.
@@ -1112,7 +1120,7 @@ pub struct InstancesFailoverRequest {
 pub struct InstancesImportRequest {
     /// Contains details about the import operation.
     #[serde(default, rename = "importContext")]
-    pub import_context: Option<ImportContext>,
+    pub import_context: ::core::option::Option<::std::boxed::Box<ImportContext>>,
 }
 
 /// Instances ListEntraIdCertificates response.
@@ -1120,13 +1128,13 @@ pub struct InstancesImportRequest {
 pub struct InstancesListEntraIdCertificatesResponse {
     /// The sha1_fingerprint of the active certificate from certs.
     #[serde(default, rename = "activeVersion")]
-    pub active_version: Option<String>,
+    pub active_version: ::core::option::Option<String>,
     /// List of Entra ID certificates for the instance.
     #[serde(default)]
-    pub certs: Option<Vec<SslCert>>,
+    pub certs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SslCert>>>,
     /// This is always sql#instancesListEntraIdCertificates.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Database instances list response.
@@ -1134,29 +1142,29 @@ pub struct InstancesListEntraIdCertificatesResponse {
 pub struct InstancesListResponse {
     /// List of database instance resources.
     #[serde(default)]
-    pub items: Option<Vec<DatabaseInstance>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseInstance>>>,
     /// This is always sql#instancesList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The continuation token, used to page through large result sets. Provide this value in a subsequent request to return the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of warnings that occurred while handling the request.
     #[serde(default)]
-    pub warnings: Option<Vec<ApiWarning>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiWarning>>>,
 }
 
 /// Instances ListServerCas response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstancesListServerCasResponse {
     #[serde(default, rename = "activeVersion")]
-    pub active_version: Option<String>,
+    pub active_version: ::core::option::Option<String>,
     /// List of server CA certificates for the instance.
     #[serde(default)]
-    pub certs: Option<Vec<SslCert>>,
+    pub certs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SslCert>>>,
     /// This is always sql#instancesListServerCas.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Instances ListServerCertificates response.
@@ -1164,16 +1172,16 @@ pub struct InstancesListServerCasResponse {
 pub struct InstancesListServerCertificatesResponse {
     /// The sha1_fingerprint of the active certificate from server_certs.
     #[serde(default, rename = "activeVersion")]
-    pub active_version: Option<String>,
+    pub active_version: ::core::option::Option<String>,
     /// List of server CA certificates for the instance.
     #[serde(default, rename = "caCerts")]
-    pub ca_certs: Option<Vec<SslCert>>,
+    pub ca_certs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SslCert>>>,
     /// This is always sql#instancesListServerCertificates.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// List of server certificates for the instance, signed by the corresponding CA from the ca_certs list.
     #[serde(default, rename = "serverCerts")]
-    pub server_certs: Option<Vec<SslCert>>,
+    pub server_certs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SslCert>>>,
 }
 
 /// Request for Pre-checks for MVU
@@ -1181,7 +1189,8 @@ pub struct InstancesListServerCertificatesResponse {
 pub struct InstancesPreCheckMajorVersionUpgradeRequest {
     /// Required. Contains details about the pre-check major version upgrade operation.
     #[serde(default, rename = "preCheckMajorVersionUpgradeContext")]
-    pub pre_check_major_version_upgrade_context: Option<PreCheckMajorVersionUpgradeContext>,
+    pub pre_check_major_version_upgrade_context:
+        ::core::option::Option<::std::boxed::Box<PreCheckMajorVersionUpgradeContext>>,
 }
 
 /// Database Instance reencrypt request.
@@ -1189,7 +1198,8 @@ pub struct InstancesPreCheckMajorVersionUpgradeRequest {
 pub struct InstancesReencryptRequest {
     /// Configuration specific to backup re-encryption
     #[serde(default, rename = "backupReencryptionConfig")]
-    pub backup_reencryption_config: Option<BackupReencryptionConfig>,
+    pub backup_reencryption_config:
+        ::core::option::Option<::std::boxed::Box<BackupReencryptionConfig>>,
 }
 
 /// Database instance restore backup request.
@@ -1197,19 +1207,20 @@ pub struct InstancesReencryptRequest {
 pub struct InstancesRestoreBackupRequest {
     /// The name of the backup that''s used to restore a Cloud SQL instance: Format: projects/{project-id}/backups/{backup-uid}. Only one of restore_backup_context, backup, backupdr_backup can be passed to the input.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
     /// The name of the backup that''s used to restore a Cloud SQL instance: Format: "projects/{project-id}/locations/{location}/backupVaults/{backupvault}/dataSources/{datasource}/backups/{backup-uid}". Only one of restore_backup_context, backup, backupdr_backup can be passed to the input.
     #[serde(default, rename = "backupdrBackup")]
-    pub backupdr_backup: Option<String>,
+    pub backupdr_backup: ::core::option::Option<String>,
     /// Parameters required to perform the restore backup operation.
     #[serde(default, rename = "restoreBackupContext")]
-    pub restore_backup_context: Option<RestoreBackupContext>,
+    pub restore_backup_context: ::core::option::Option<::std::boxed::Box<RestoreBackupContext>>,
     /// Optional. This field has the same purpose as restore_instance_settings, changes any instance settings stored in the backup you are restoring from. With the difference that these fields are cleared in the settings.
     #[serde(default, rename = "restoreInstanceClearOverridesFieldNames")]
-    pub restore_instance_clear_overrides_field_names: Option<Vec<String>>,
+    pub restore_instance_clear_overrides_field_names:
+        ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. By using this parameter, Cloud SQL overrides any instance settings stored in the backup you are restoring from. You can''t change the instance''s major database version and you can only increase the disk size. You can use this field to restore new instances only. This field is not applicable for restore to existing instances.
     #[serde(default, rename = "restoreInstanceSettings")]
-    pub restore_instance_settings: Option<DatabaseInstance>,
+    pub restore_instance_settings: ::core::option::Option<::std::boxed::Box<DatabaseInstance>>,
 }
 
 /// Rotate Entra ID certificate request.
@@ -1217,7 +1228,8 @@ pub struct InstancesRestoreBackupRequest {
 pub struct InstancesRotateEntraIdCertificateRequest {
     /// Optional. Contains details about the rotate server certificate operation.
     #[serde(default, rename = "rotateEntraIdCertificateContext")]
-    pub rotate_entra_id_certificate_context: Option<RotateEntraIdCertificateContext>,
+    pub rotate_entra_id_certificate_context:
+        ::core::option::Option<::std::boxed::Box<RotateEntraIdCertificateContext>>,
 }
 
 /// Rotate server CA request.
@@ -1225,7 +1237,7 @@ pub struct InstancesRotateEntraIdCertificateRequest {
 pub struct InstancesRotateServerCaRequest {
     /// Contains details about the rotate server CA operation.
     #[serde(default, rename = "rotateServerCaContext")]
-    pub rotate_server_ca_context: Option<RotateServerCaContext>,
+    pub rotate_server_ca_context: ::core::option::Option<::std::boxed::Box<RotateServerCaContext>>,
 }
 
 /// Rotate server certificate request.
@@ -1233,7 +1245,8 @@ pub struct InstancesRotateServerCaRequest {
 pub struct InstancesRotateServerCertificateRequest {
     /// Optional. Contains details about the rotate server certificate operation.
     #[serde(default, rename = "rotateServerCertificateContext")]
-    pub rotate_server_certificate_context: Option<RotateServerCertificateContext>,
+    pub rotate_server_certificate_context:
+        ::core::option::Option<::std::boxed::Box<RotateServerCertificateContext>>,
 }
 
 /// Instance truncate log request.
@@ -1241,7 +1254,7 @@ pub struct InstancesRotateServerCertificateRequest {
 pub struct InstancesTruncateLogRequest {
     /// Contains details about the truncate log operation.
     #[serde(default, rename = "truncateLogContext")]
-    pub truncate_log_context: Option<TruncateLogContext>,
+    pub truncate_log_context: ::core::option::Option<::std::boxed::Box<TruncateLogContext>>,
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
@@ -1249,10 +1262,10 @@ pub struct InstancesTruncateLogRequest {
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// IP Management configuration.
@@ -1260,40 +1273,40 @@ pub struct Interval {
 pub struct IpConfiguration {
     /// The name of the allocated ip range for the private ip Cloud SQL instance. For example: "google-managed-services-default". If set, the instance ip will be created in the allocated range. The range name must comply with [RFC 1035](https://tools.ietf.org/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?.
     #[serde(default, rename = "allocatedIpRange")]
-    pub allocated_ip_range: Option<String>,
+    pub allocated_ip_range: ::core::option::Option<String>,
     /// The list of external networks that are allowed to connect to the instance using the IP. In ''CIDR'' notation, also known as ''slash'' notation (for example: 157.197.200.0/24).
     #[serde(default, rename = "authorizedNetworks")]
-    pub authorized_networks: Option<Vec<AclEntry>>,
+    pub authorized_networks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AclEntry>>>,
     /// Optional. Custom Subject Alternative Name(SAN)s for a Cloud SQL instance.
     #[serde(default, rename = "customSubjectAlternativeNames")]
-    pub custom_subject_alternative_names: Option<Vec<String>>,
+    pub custom_subject_alternative_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Controls connectivity to private IP instances from Google services, such as BigQuery.
     #[serde(default, rename = "enablePrivatePathForGoogleCloudServices")]
-    pub enable_private_path_for_google_cloud_services: Option<bool>,
+    pub enable_private_path_for_google_cloud_services: ::core::option::Option<bool>,
     /// Whether the instance is assigned a public IP address or not.
     #[serde(default, rename = "ipv4Enabled")]
-    pub ipv4_enabled: Option<bool>,
+    pub ipv4_enabled: ::core::option::Option<bool>,
     /// The resource link for the VPC network from which the Cloud SQL instance is accessible for private IP. For example, /projects/myProject/global/networks/default. This setting can be updated, but it cannot be removed after it is set.
     #[serde(default, rename = "privateNetwork")]
-    pub private_network: Option<String>,
+    pub private_network: ::core::option::Option<String>,
     /// PSC settings for this instance.
     #[serde(default, rename = "pscConfig")]
-    pub psc_config: Option<PscConfig>,
+    pub psc_config: ::core::option::Option<::std::boxed::Box<PscConfig>>,
     /// Use ssl_mode instead. Whether SSL/TLS connections over IP are enforced. If set to false, then allow both non-SSL/non-TLS and SSL/TLS connections. For SSL/TLS connections, the client certificate won''t be verified. If set to true, then only allow connections encrypted with SSL/TLS and with valid client certificates. If you want to enforce SSL/TLS without enforcing the requirement for valid client certificates, then use the ssl_mode flag instead of the require_ssl flag.
     #[serde(default, rename = "requireSsl")]
-    pub require_ssl: Option<bool>,
+    pub require_ssl: ::core::option::Option<bool>,
     /// Specify what type of CA is used for the server certificate. // TODO: enum values: ["CA_MODE_UNSPECIFIED", "GOOGLE_MANAGED_INTERNAL_CA", "GOOGLE_MANAGED_CAS_CA", "CUSTOMER_MANAGED_CAS_CA"]
     #[serde(default, rename = "serverCaMode")]
-    pub server_ca_mode: Option<String>,
+    pub server_ca_mode: ::core::option::Option<String>,
     /// Optional. The resource name of the server CA pool for an instance with CUSTOMER_MANAGED_CAS_CA as the server_ca_mode. Format: projects/{PROJECT}/locations/{REGION}/caPools/{CA_POOL_ID}
     #[serde(default, rename = "serverCaPool")]
-    pub server_ca_pool: Option<String>,
+    pub server_ca_pool: ::core::option::Option<String>,
     /// Optional. Controls the automatic server certificate rotation feature. This feature is disabled by default. When enabled, the server certificate will be automatically rotated during Cloud SQL scheduled maintenance or self-service maintenance updates up to six months before it expires. This setting can only be set if server_ca_mode is either GOOGLE_MANAGED_CAS_CA or CUSTOMER_MANAGED_CAS_CA. // TODO: enum values: ["SERVER_CERTIFICATE_ROTATION_MODE_UNSPECIFIED", "NO_AUTOMATIC_ROTATION", "AUTOMATIC_ROTATION_DURING_MAINTENANCE"]
     #[serde(default, rename = "serverCertificateRotationMode")]
-    pub server_certificate_rotation_mode: Option<String>,
+    pub server_certificate_rotation_mode: ::core::option::Option<String>,
     /// Specify how SSL/TLS is enforced in database connections. If you must use the require_ssl flag for backward compatibility, then only the following value pairs are valid: For PostgreSQL and MySQL: * ssl_mode=ALLOW_UNENCRYPTED_AND_ENCRYPTED and require_ssl=false * ssl_mode=ENCRYPTED_ONLY and require_ssl=false * ssl_mode=TRUSTED_CLIENT_CERTIFICATE_REQUIRED and require_ssl=true For SQL Server: * ssl_mode=ALLOW_UNENCRYPTED_AND_ENCRYPTED and require_ssl=false * ssl_mode=ENCRYPTED_ONLY and require_ssl=true The value of ssl_mode has priority over the value of require_ssl. For example, for the pair ssl_mode=ENCRYPTED_ONLY and require_ssl=false, ssl_mode=ENCRYPTED_ONLY means accept only SSL connections, while require_ssl=false means accept both non-SSL and SSL connections. In this case, MySQL and PostgreSQL databases respect ssl_mode and accepts only SSL connections. // TODO: enum values: ["SSL_MODE_UNSPECIFIED", "ALLOW_UNENCRYPTED_AND_ENCRYPTED", "ENCRYPTED_ONLY", "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"]
     #[serde(default, rename = "sslMode")]
-    pub ssl_mode: Option<String>,
+    pub ssl_mode: ::core::option::Option<String>,
 }
 
 /// Database instance IP mapping
@@ -1301,13 +1314,13 @@ pub struct IpConfiguration {
 pub struct IpMapping {
     /// The IP address assigned.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// The due time for this IP to be retired in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z. This field is only available when the IP is scheduled to be retired.
     #[serde(default, rename = "timeToRetire")]
-    pub time_to_retire: Option<String>,
+    pub time_to_retire: ::core::option::Option<String>,
     /// The type of this IP address. A PRIMARY address is a public address that can accept incoming connections. A PRIVATE address is a private address that can accept incoming connections. An OUTGOING address is the source address of connections originating from the instance, if supported. // TODO: enum values: ["SQL_IP_ADDRESS_TYPE_UNSPECIFIED", "PRIMARY", "OUTGOING", "PRIVATE", "MIGRATED_1ST_GEN"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The response payload containing a list of the backups.
@@ -1315,13 +1328,13 @@ pub struct IpMapping {
 pub struct ListBackupsResponse {
     /// A list of backups.
     #[serde(default)]
-    pub backups: Option<Vec<Backup>>,
+    pub backups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Backup>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, then there aren''t subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// If a region isn''t unavailable or if an unknown error occurs, then a warning message is returned.
     #[serde(default)]
-    pub warnings: Option<Vec<ApiWarning>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiWarning>>>,
 }
 
 /// Preferred location. This specifies where a Cloud SQL instance is located. Note that if the preferred location is not available, the instance will be located as close as possible within the region. Only one location may be specified.
@@ -1329,16 +1342,16 @@ pub struct ListBackupsResponse {
 pub struct LocationPreference {
     /// The App Engine application to follow, it must be in the same region as the Cloud SQL instance. WARNING: Changing this might restart the instance.
     #[serde(default, rename = "followGaeApplication")]
-    pub follow_gae_application: Option<String>,
+    pub follow_gae_application: ::core::option::Option<String>,
     /// This is always sql#locationPreference.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The preferred Compute Engine zone for the secondary/failover (for example: us-central1-a, us-central1-b, etc.). To disable this field, set it to ''no_secondary_zone''.
     #[serde(default, rename = "secondaryZone")]
-    pub secondary_zone: Option<String>,
+    pub secondary_zone: ::core::option::Option<String>,
     /// The preferred Compute Engine zone (for example: us-central1-a, us-central1-b, etc.). WARNING: Changing this might restart the instance.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Maintenance window. This specifies when a Cloud SQL instance is restarted for system maintenance purposes.
@@ -1346,16 +1359,16 @@ pub struct LocationPreference {
 pub struct MaintenanceWindow {
     /// Day of week - MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, or SUNDAY. Specify in the UTC time zone. Returned in output as an integer, 1 to 7, where 1 equals Monday.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Hour of day - 0 to 23. Specify in the UTC time zone.
     #[serde(default)]
-    pub hour: Option<i32>,
+    pub hour: ::core::option::Option<i32>,
     /// This is always sql#maintenanceWindow.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Maintenance timing settings: canary, stable, or week5. For more information, see [About maintenance on Cloud SQL instances](https://cloud.google.com/sql/docs/mysql/maintenance). // TODO: enum values: ["SQL_UPDATE_TRACK_UNSPECIFIED", "canary", "stable", "week5"]
     #[serde(default, rename = "updateTrack")]
-    pub update_track: Option<String>,
+    pub update_track: ::core::option::Option<String>,
 }
 
 /// Represents a notice or warning message from the database.
@@ -1363,10 +1376,10 @@ pub struct MaintenanceWindow {
 pub struct Message {
     /// The full message string. For PostgreSQL, this is a formatted string that may include severity, code, and the notice/warning message. For MySQL, this contains the warning message.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The severity of the message (e.g., "NOTICE" for PostgreSQL, "WARNING" for MySQL).
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// The additional metadata information regarding the execution of the SQL statements.
@@ -1374,7 +1387,7 @@ pub struct Message {
 pub struct Metadata {
     /// The time taken to execute the SQL statements.
     #[serde(default, rename = "sqlStatementExecutionTime")]
-    pub sql_statement_execution_time: Option<String>,
+    pub sql_statement_execution_time: ::core::option::Option<String>,
 }
 
 /// Read-replica configuration specific to MySQL databases.
@@ -1382,37 +1395,37 @@ pub struct Metadata {
 pub struct MySqlReplicaConfiguration {
     /// PEM representation of the trusted CA''s x509 certificate.
     #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: Option<String>,
+    pub ca_certificate: ::core::option::Option<String>,
     /// PEM representation of the replica''s x509 certificate.
     #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: Option<String>,
+    pub client_certificate: ::core::option::Option<String>,
     /// PEM representation of the replica''s private key. The corresponding public key is encoded in the client''s certificate.
     #[serde(default, rename = "clientKey")]
-    pub client_key: Option<String>,
+    pub client_key: ::core::option::Option<String>,
     /// Seconds to wait between connect retries. MySQL''s default is 60 seconds.
     #[serde(default, rename = "connectRetryInterval")]
-    pub connect_retry_interval: Option<i32>,
+    pub connect_retry_interval: ::core::option::Option<i32>,
     /// Path to a SQL dump file in Google Cloud Storage from which the replica instance is to be created. The URI is in the form gs://bucketName/fileName. Compressed gzip files (.gz) are also supported. Dumps have the binlog co-ordinates from which replication begins. This can be accomplished by setting --master-data to 1 when using mysqldump.
     #[serde(default, rename = "dumpFilePath")]
-    pub dump_file_path: Option<String>,
+    pub dump_file_path: ::core::option::Option<String>,
     /// This is always sql#mysqlReplicaConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Interval in milliseconds between replication heartbeats.
     #[serde(default, rename = "masterHeartbeatPeriod")]
-    pub master_heartbeat_period: Option<String>,
+    pub master_heartbeat_period: ::core::option::Option<String>,
     /// The password for the replication connection.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// A list of permissible ciphers to use for SSL encryption.
     #[serde(default, rename = "sslCipher")]
-    pub ssl_cipher: Option<String>,
+    pub ssl_cipher: ::core::option::Option<String>,
     /// The username for the replication connection.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
     /// Whether or not to check the primary instance''s Common Name value in the certificate that it sends during the SSL handshake.
     #[serde(default, rename = "verifyServerCertificate")]
-    pub verify_server_certificate: Option<bool>,
+    pub verify_server_certificate: ::core::option::Option<bool>,
 }
 
 /// MySQL-specific external server sync settings.
@@ -1420,7 +1433,7 @@ pub struct MySqlReplicaConfiguration {
 pub struct MySqlSyncConfig {
     /// Flags to use for the initial dump.
     #[serde(default, rename = "initialSyncFlags")]
-    pub initial_sync_flags: Option<Vec<SyncFlags>>,
+    pub initial_sync_flags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SyncFlags>>>,
 }
 
 /// On-premises instance configuration.
@@ -1428,37 +1441,38 @@ pub struct MySqlSyncConfig {
 pub struct OnPremisesConfiguration {
     /// PEM representation of the trusted CA''s x509 certificate.
     #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: Option<String>,
+    pub ca_certificate: ::core::option::Option<String>,
     /// PEM representation of the replica''s x509 certificate.
     #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: Option<String>,
+    pub client_certificate: ::core::option::Option<String>,
     /// PEM representation of the replica''s private key. The corresponding public key is encoded in the client''s certificate.
     #[serde(default, rename = "clientKey")]
-    pub client_key: Option<String>,
+    pub client_key: ::core::option::Option<String>,
     /// The dump file to create the Cloud SQL replica.
     #[serde(default, rename = "dumpFilePath")]
-    pub dump_file_path: Option<String>,
+    pub dump_file_path: ::core::option::Option<String>,
     /// The host and port of the on-premises instance in host:port format
     #[serde(default, rename = "hostPort")]
-    pub host_port: Option<String>,
+    pub host_port: ::core::option::Option<String>,
     /// This is always sql#onPremisesConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The password for connecting to on-premises instance.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// Optional. A list of objects that the user selects for replication from an external source instance.
     #[serde(default, rename = "selectedObjects")]
-    pub selected_objects: Option<Vec<SelectedObjects>>,
+    pub selected_objects:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SelectedObjects>>>,
     /// The reference to Cloud SQL instance if the source is Cloud SQL.
     #[serde(default, rename = "sourceInstance")]
-    pub source_instance: Option<InstanceReference>,
+    pub source_instance: ::core::option::Option<::std::boxed::Box<InstanceReference>>,
     /// Optional. SSL option for replica connection to the on-premises source. // TODO: enum values: ["SSL_OPTION_UNSPECIFIED", "DISABLE", "REQUIRE", "VERIFY_CA"]
     #[serde(default, rename = "sslOption")]
-    pub ssl_option: Option<String>,
+    pub ssl_option: ::core::option::Option<String>,
     /// The username for connecting to on-premises instance.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// An Operation resource. For successful operations that return an Operation resource, only the fields relevant to the operation are populated in the resource.
@@ -1466,63 +1480,65 @@ pub struct OnPremisesConfiguration {
 pub struct Operation {
     /// The context for acquire SSRS lease operation, if applicable.
     #[serde(default, rename = "acquireSsrsLeaseContext")]
-    pub acquire_ssrs_lease_context: Option<AcquireSsrsLeaseContext>,
+    pub acquire_ssrs_lease_context:
+        ::core::option::Option<::std::boxed::Box<AcquireSsrsLeaseContext>>,
     /// An Admin API warning message.
     #[serde(default, rename = "apiWarning")]
-    pub api_warning: Option<ApiWarning>,
+    pub api_warning: ::core::option::Option<::std::boxed::Box<ApiWarning>>,
     /// The context for backup operation, if applicable.
     #[serde(default, rename = "backupContext")]
-    pub backup_context: Option<BackupContext>,
+    pub backup_context: ::core::option::Option<::std::boxed::Box<BackupContext>>,
     /// The time this operation finished in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// If errors occurred during processing of this operation, this field will be populated.
     #[serde(default)]
-    pub error: Option<OperationErrors>,
+    pub error: ::core::option::Option<::std::boxed::Box<OperationErrors>>,
     /// The context for export operation, if applicable.
     #[serde(default, rename = "exportContext")]
-    pub export_context: Option<ExportContext>,
+    pub export_context: ::core::option::Option<::std::boxed::Box<ExportContext>>,
     /// The context for import operation, if applicable.
     #[serde(default, rename = "importContext")]
-    pub import_context: Option<ImportContext>,
+    pub import_context: ::core::option::Option<::std::boxed::Box<ImportContext>>,
     /// The time this operation was enqueued in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "insertTime")]
-    pub insert_time: Option<String>,
+    pub insert_time: ::core::option::Option<String>,
     /// This is always sql#operation.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// An identifier that uniquely identifies the operation. You can use this identifier to retrieve the Operations resource that has information about the operation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The type of the operation. Valid values are: * CREATE * DELETE * UPDATE * RESTART * IMPORT * EXPORT * BACKUP_VOLUME * RESTORE_VOLUME * CREATE_USER * DELETE_USER * CREATE_DATABASE * DELETE_DATABASE // TODO: enum values: ["SQL_OPERATION_TYPE_UNSPECIFIED", "IMPORT", "EXPORT", "CREATE", "UPDATE", "DELETE", "RESTART", "BACKUP", "SNAPSHOT", "BACKUP_VOLUME", "DELETE_VOLUME", "RESTORE_VOLUME", "INJECT_USER", "CLONE", "STOP_REPLICA", "START_REPLICA", "PROMOTE_REPLICA", "CREATE_REPLICA", "CREATE_USER", "DELETE_USER", "UPDATE_USER", "CREATE_DATABASE", "DELETE_DATABASE", "UPDATE_DATABASE", "FAILOVER", "DELETE_BACKUP", "RECREATE_REPLICA", "TRUNCATE_LOG", "DEMOTE_MASTER", "MAINTENANCE", "ENABLE_PRIVATE_IP", "DEFER_MAINTENANCE", "CREATE_CLONE", "RESCHEDULE_MAINTENANCE", "START_EXTERNAL_SYNC", "LOG_CLEANUP", "AUTO_RESTART", "REENCRYPT", "SWITCHOVER", "UPDATE_BACKUP", "ACQUIRE_SSRS_LEASE", "RELEASE_SSRS_LEASE", "RECONFIGURE_OLD_PRIMARY", "CLUSTER_MAINTENANCE", "SELF_SERVICE_MAINTENANCE", "SWITCHOVER_TO_REPLICA", "MAJOR_VERSION_UPGRADE", "ADVANCED_BACKUP", "MANAGE_BACKUP", "ENHANCED_BACKUP", "REPAIR_READ_POOL", "CREATE_READ_POOL", "PRE_CHECK_MAJOR_VERSION_UPGRADE"]
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// This field is only populated when the operation_type is PRE_CHECK_MAJOR_VERSION_UPGRADE. The PreCheckMajorVersionUpgradeContext message itself contains the details for that pre-check, such as the target database version for the upgrade and the results of the check (including any warnings or errors found).
     #[serde(default, rename = "preCheckMajorVersionUpgradeContext")]
-    pub pre_check_major_version_upgrade_context: Option<PreCheckMajorVersionUpgradeContext>,
+    pub pre_check_major_version_upgrade_context:
+        ::core::option::Option<::std::boxed::Box<PreCheckMajorVersionUpgradeContext>>,
     /// The URI of this resource.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// The time this operation actually started in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The status of an operation. // TODO: enum values: ["SQL_OPERATION_STATUS_UNSPECIFIED", "PENDING", "RUNNING", "DONE"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// Optional. The sub operation based on the operation type.
     #[serde(default, rename = "subOperationType")]
-    pub sub_operation_type: Option<SqlSubOperationType>,
+    pub sub_operation_type: ::core::option::Option<::std::boxed::Box<SqlSubOperationType>>,
     /// Name of the resource on which this operation runs.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<String>,
+    pub target_id: ::core::option::Option<String>,
     #[serde(default, rename = "targetLink")]
-    pub target_link: Option<String>,
+    pub target_link: ::core::option::Option<String>,
     /// The project ID of the target instance related to this operation.
     #[serde(default, rename = "targetProject")]
-    pub target_project: Option<String>,
+    pub target_project: ::core::option::Option<String>,
     /// The email address of the user who initiated this operation.
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
 }
 
 /// Database instance operation error.
@@ -1530,13 +1546,13 @@ pub struct Operation {
 pub struct OperationError {
     /// Identifies the specific error that occurred.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// This is always sql#operationError.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Additional information about the error encountered.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Database instance operation errors list wrapper.
@@ -1544,10 +1560,10 @@ pub struct OperationError {
 pub struct OperationErrors {
     /// The list of errors encountered while processing this operation.
     #[serde(default)]
-    pub errors: Option<Vec<OperationError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperationError>>>,
     /// This is always sql#operationErrors.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1555,25 +1571,25 @@ pub struct OperationErrors {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Operations list response.
@@ -1581,13 +1597,13 @@ pub struct OperationMetadata {
 pub struct OperationsListResponse {
     /// List of operation resources.
     #[serde(default)]
-    pub items: Option<Vec<Operation>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// This is always sql#operationsList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The continuation token, used to page through large result sets. Provide this value in a subsequent request to return the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Read-only password status.
@@ -1595,10 +1611,10 @@ pub struct OperationsListResponse {
 pub struct PasswordStatus {
     /// If true, user does not have login privileges.
     #[serde(default)]
-    pub locked: Option<bool>,
+    pub locked: ::core::option::Option<bool>,
     /// The expiration time of the current password.
     #[serde(default, rename = "passwordExpirationTime")]
-    pub password_expiration_time: Option<String>,
+    pub password_expiration_time: ::core::option::Option<String>,
 }
 
 /// Database instance local user password validation policy. This message defines the password policy for local database users. When enabled, it enforces constraints on password complexity, length, and reuse. Keep this policy enabled to help prevent unauthorized access.
@@ -1606,25 +1622,25 @@ pub struct PasswordStatus {
 pub struct PasswordValidationPolicy {
     /// The complexity of the password. // TODO: enum values: ["COMPLEXITY_UNSPECIFIED", "COMPLEXITY_DEFAULT"]
     #[serde(default)]
-    pub complexity: Option<String>,
+    pub complexity: ::core::option::Option<String>,
     /// This field is deprecated and will be removed in a future version of the API.
     #[serde(default, rename = "disallowCompromisedCredentials")]
-    pub disallow_compromised_credentials: Option<bool>,
+    pub disallow_compromised_credentials: ::core::option::Option<bool>,
     /// Disallow username as a part of the password.
     #[serde(default, rename = "disallowUsernameSubstring")]
-    pub disallow_username_substring: Option<bool>,
+    pub disallow_username_substring: ::core::option::Option<bool>,
     /// Whether to enable the password policy or not. When enabled, passwords must meet complexity requirements. Keep this policy enabled to help prevent unauthorized access. Disabling this policy allows weak passwords.
     #[serde(default, rename = "enablePasswordPolicy")]
-    pub enable_password_policy: Option<bool>,
+    pub enable_password_policy: ::core::option::Option<bool>,
     /// Minimum number of characters allowed.
     #[serde(default, rename = "minLength")]
-    pub min_length: Option<i32>,
+    pub min_length: ::core::option::Option<i32>,
     /// Minimum interval after which the password can be changed. This flag is only supported for PostgreSQL.
     #[serde(default, rename = "passwordChangeInterval")]
-    pub password_change_interval: Option<String>,
+    pub password_change_interval: ::core::option::Option<String>,
     /// Number of previous passwords that cannot be reused.
     #[serde(default, rename = "reuseInterval")]
-    pub reuse_interval: Option<i32>,
+    pub reuse_interval: ::core::option::Option<i32>,
 }
 
 /// Perform disk shrink context.
@@ -1632,7 +1648,7 @@ pub struct PasswordValidationPolicy {
 pub struct PerformDiskShrinkContext {
     /// The target disk shrink size in GigaBytes.
     #[serde(default, rename = "targetSizeGb")]
-    pub target_size_gb: Option<String>,
+    pub target_size_gb: ::core::option::Option<String>,
 }
 
 /// Performance Capture configuration.
@@ -1640,22 +1656,22 @@ pub struct PerformDiskShrinkContext {
 pub struct PerformanceCaptureConfig {
     /// Optional. Enable or disable the Performance Capture feature.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Optional. The minimum number of consecutive readings above threshold that triggers instance state capture.
     #[serde(default, rename = "probeThreshold")]
-    pub probe_threshold: Option<i32>,
+    pub probe_threshold: ::core::option::Option<i32>,
     /// Optional. The time interval in seconds between any two probes.
     #[serde(default, rename = "probingIntervalSeconds")]
-    pub probing_interval_seconds: Option<i32>,
+    pub probing_interval_seconds: ::core::option::Option<i32>,
     /// Optional. The minimum number of server threads running to trigger the capture on primary.
     #[serde(default, rename = "runningThreadsThreshold")]
-    pub running_threads_threshold: Option<i32>,
+    pub running_threads_threshold: ::core::option::Option<i32>,
     /// Optional. The minimum number of seconds replica must be lagging behind primary to trigger capture on replica.
     #[serde(default, rename = "secondsBehindSourceThreshold")]
-    pub seconds_behind_source_threshold: Option<i32>,
+    pub seconds_behind_source_threshold: ::core::option::Option<i32>,
     /// Optional. The amount of time in seconds that a transaction needs to have been open before the watcher starts recording it.
     #[serde(default, rename = "transactionDurationThreshold")]
-    pub transaction_duration_threshold: Option<i32>,
+    pub transaction_duration_threshold: ::core::option::Option<i32>,
 }
 
 /// The context to perform a point-in-time recovery of an instance managed by Backup and Disaster Recovery (DR) Service.
@@ -1663,34 +1679,34 @@ pub struct PerformanceCaptureConfig {
 pub struct PointInTimeRestoreContext {
     /// Optional. The name of the allocated IP range for the internal IP Cloud SQL instance. For example: "google-managed-services-default". If you set this, then Cloud SQL creates the IP address for the cloned instance in the allocated range. This range must comply with [RFC 1035](https://tools.ietf.org/html/rfc1035) standards. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?. Reserved for future use.
     #[serde(default, rename = "allocatedIpRange")]
-    pub allocated_ip_range: Option<String>,
+    pub allocated_ip_range: ::core::option::Option<String>,
     /// The Backup and Disaster Recovery (DR) Service Datasource URI. Format: projects/{project}/locations/{region}/backupVaults/{backupvault}/dataSources/{datasource}.
     #[serde(default)]
-    pub datasource: Option<String>,
+    pub datasource: ::core::option::Option<String>,
     /// Required. The date and time to which you want to restore the instance.
     #[serde(default, rename = "pointInTime")]
-    pub point_in_time: Option<String>,
+    pub point_in_time: ::core::option::Option<String>,
     /// Optional. Point-in-time recovery of a regional instance in the specified zones. If not specified, clone to the same secondary zone as the source instance. This value cannot be the same as the preferred_zone field.
     #[serde(default, rename = "preferredSecondaryZone")]
-    pub preferred_secondary_zone: Option<String>,
+    pub preferred_secondary_zone: ::core::option::Option<String>,
     /// Optional. Point-in-time recovery of an instance to the specified zone. If no zone is specified, then clone to the same primary zone as the source instance.
     #[serde(default, rename = "preferredZone")]
-    pub preferred_zone: Option<String>,
+    pub preferred_zone: ::core::option::Option<String>,
     /// Optional. The resource link for the VPC network from which the Cloud SQL instance is accessible for private IP. For example, /projects/myProject/global/networks/default.
     #[serde(default, rename = "privateNetwork")]
-    pub private_network: Option<String>,
+    pub private_network: ::core::option::Option<String>,
     /// Optional. The region of the target instance where the datasource will be restored. For example: "us-central1".
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
     /// Target instance name.
     #[serde(default, rename = "targetInstance")]
-    pub target_instance: Option<String>,
+    pub target_instance: ::core::option::Option<String>,
     /// Optional. Specifies the instance settings that will be cleared from the source instance. This field is only applicable for cross project PITRs.
     #[serde(default, rename = "targetInstanceClearSettingsFieldNames")]
-    pub target_instance_clear_settings_field_names: Option<Vec<String>>,
+    pub target_instance_clear_settings_field_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Specifies the instance settings that will be overridden from the source instance. This field is only applicable for cross project PITRs.
     #[serde(default, rename = "targetInstanceSettings")]
-    pub target_instance_settings: Option<DatabaseInstance>,
+    pub target_instance_settings: ::core::option::Option<::std::boxed::Box<DatabaseInstance>>,
 }
 
 /// Details of a single read pool node of a read pool.
@@ -1698,28 +1714,29 @@ pub struct PointInTimeRestoreContext {
 pub struct PoolNodeConfig {
     /// Output only. The DNS name of the read pool node.
     #[serde(default, rename = "dnsName")]
-    pub dns_name: Option<String>,
+    pub dns_name: ::core::option::Option<String>,
     /// Output only. The list of DNS names used by this read pool node.
     #[serde(default, rename = "dnsNames")]
-    pub dns_names: Option<Vec<DnsNameMapping>>,
+    pub dns_names: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DnsNameMapping>>>,
     /// Output only. The zone of the read pool node.
     #[serde(default, rename = "gceZone")]
-    pub gce_zone: Option<String>,
+    pub gce_zone: ::core::option::Option<String>,
     /// Output only. Mappings containing IP addresses that can be used to connect to the read pool node.
     #[serde(default, rename = "ipAddresses")]
-    pub ip_addresses: Option<Vec<IpMapping>>,
+    pub ip_addresses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IpMapping>>>,
     /// Output only. The name of the read pool node, to be used for retrieving metrics and logs.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The list of settings for requested automatically-setup Private Service Connect (PSC) consumer endpoints that can be used to connect to this read pool node.
     #[serde(default, rename = "pscAutoConnections")]
-    pub psc_auto_connections: Option<Vec<PscAutoConnectionConfig>>,
+    pub psc_auto_connections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PscAutoConnectionConfig>>>,
     /// Output only. The Private Service Connect (PSC) service attachment of the read pool node.
     #[serde(default, rename = "pscServiceAttachmentLink")]
-    pub psc_service_attachment_link: Option<String>,
+    pub psc_service_attachment_link: ::core::option::Option<String>,
     /// Output only. The current state of the read pool node. // TODO: enum values: ["SQL_INSTANCE_STATE_UNSPECIFIED", "RUNNABLE", "SUSPENDED", "PENDING_DELETE", "PENDING_CREATE", "MAINTENANCE", "FAILED", "ONLINE_MAINTENANCE", "REPAIRING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Pre-check major version upgrade context.
@@ -1727,13 +1744,14 @@ pub struct PoolNodeConfig {
 pub struct PreCheckMajorVersionUpgradeContext {
     /// Optional. This is always sql#preCheckMajorVersionUpgradeContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. The responses from the precheck operation.
     #[serde(default, rename = "preCheckResponse")]
-    pub pre_check_response: Option<Vec<PreCheckResponse>>,
+    pub pre_check_response:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PreCheckResponse>>>,
     /// Required. The target database version to upgrade to. // TODO: enum values: ["SQL_DATABASE_VERSION_UNSPECIFIED", "MYSQL_5_1", "MYSQL_5_5", "MYSQL_5_6", "MYSQL_5_7", "MYSQL_8_0", "MYSQL_8_0_18", "MYSQL_8_0_26", "MYSQL_8_0_27", "MYSQL_8_0_28", "MYSQL_8_0_29", "MYSQL_8_0_30", "MYSQL_8_0_31", "MYSQL_8_0_32", "MYSQL_8_0_33", "MYSQL_8_0_34", "MYSQL_8_0_35", "MYSQL_8_0_36", "MYSQL_8_0_37", "MYSQL_8_0_39", "MYSQL_8_0_40", "MYSQL_8_0_41", "MYSQL_8_0_42", "MYSQL_8_0_43", "MYSQL_8_0_44", "MYSQL_8_0_45", "MYSQL_8_0_46", "MYSQL_8_4", "MYSQL_9_7", "SQLSERVER_2017_STANDARD", "SQLSERVER_2017_ENTERPRISE", "SQLSERVER_2017_EXPRESS", "SQLSERVER_2017_WEB", "POSTGRES_9_6", "POSTGRES_10", "POSTGRES_11", "POSTGRES_12", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18", "SQLSERVER_2019_STANDARD", "SQLSERVER_2019_ENTERPRISE", "SQLSERVER_2019_EXPRESS", "SQLSERVER_2019_WEB", "SQLSERVER_2022_STANDARD", "SQLSERVER_2022_ENTERPRISE", "SQLSERVER_2022_EXPRESS", "SQLSERVER_2022_WEB", "SQLSERVER_2025_STANDARD", "SQLSERVER_2025_ENTERPRISE", "SQLSERVER_2025_EXPRESS"]
     #[serde(default, rename = "targetDatabaseVersion")]
-    pub target_database_version: Option<String>,
+    pub target_database_version: ::core::option::Option<String>,
 }
 
 /// Structured PreCheckResponse containing message, type, and required actions.
@@ -1741,13 +1759,13 @@ pub struct PreCheckMajorVersionUpgradeContext {
 pub struct PreCheckResponse {
     /// The actions that the user needs to take. Use repeated for multiple actions.
     #[serde(default, rename = "actionsRequired")]
-    pub actions_required: Option<Vec<String>>,
+    pub actions_required: ::core::option::Option<::std::vec::Vec<String>>,
     /// The message to be displayed to the user.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The type of message whether it is an info, warning, or error. // TODO: enum values: ["MESSAGE_TYPE_UNSPECIFIED", "INFO", "WARNING", "ERROR"]
     #[serde(default, rename = "messageType")]
-    pub message_type: Option<String>,
+    pub message_type: ::core::option::Option<String>,
 }
 
 /// Settings for an automatically-setup Private Service Connect consumer endpoint that is used to connect to a Cloud SQL instance.
@@ -1755,19 +1773,19 @@ pub struct PreCheckResponse {
 pub struct PscAutoConnectionConfig {
     /// Optional. The consumer network of this consumer endpoint. This must be a resource path that includes both the host project and the network name. For example, projects/project1/global/networks/network1. The consumer host project of this network might be different from the consumer service project.
     #[serde(default, rename = "consumerNetwork")]
-    pub consumer_network: Option<String>,
+    pub consumer_network: ::core::option::Option<String>,
     /// The connection policy status of the consumer network.
     #[serde(default, rename = "consumerNetworkStatus")]
-    pub consumer_network_status: Option<String>,
+    pub consumer_network_status: ::core::option::Option<String>,
     /// Optional. This is the project ID of consumer service project of this consumer endpoint. This is only applicable if consumer_network is a shared VPC network.
     #[serde(default, rename = "consumerProject")]
-    pub consumer_project: Option<String>,
+    pub consumer_project: ::core::option::Option<String>,
     /// The IP address of the consumer endpoint.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// The connection status of the consumer endpoint.
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// PSC settings for a Cloud SQL instance.
@@ -1775,22 +1793,23 @@ pub struct PscAutoConnectionConfig {
 pub struct PscConfig {
     /// Optional. The list of consumer projects that are allow-listed for PSC connections to this instance. This instance can be connected to with PSC from any network in these projects. Each consumer project in this list may be represented by a project number (numeric) or by a project id (alphanumeric).
     #[serde(default, rename = "allowedConsumerProjects")]
-    pub allowed_consumer_projects: Option<Vec<String>>,
+    pub allowed_consumer_projects: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The network attachment of the consumer network that the Private Service Connect enabled Cloud SQL instance is authorized to connect via PSC interface. format: projects/PROJECT/regions/REGION/networkAttachments/ID
     #[serde(default, rename = "networkAttachmentUri")]
-    pub network_attachment_uri: Option<String>,
+    pub network_attachment_uri: ::core::option::Option<String>,
     /// Optional. The list of settings for requested Private Service Connect consumer endpoints that can be used to connect to this Cloud SQL instance.
     #[serde(default, rename = "pscAutoConnections")]
-    pub psc_auto_connections: Option<Vec<PscAutoConnectionConfig>>,
+    pub psc_auto_connections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PscAutoConnectionConfig>>>,
     /// Optional. Indicates whether PSC DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal DNS record across all networks configured with Private Service Connect (PSC) auto-connections. This will default to true for new instances when Private Service Connect is enabled.
     #[serde(default, rename = "pscAutoDnsEnabled")]
-    pub psc_auto_dns_enabled: Option<bool>,
+    pub psc_auto_dns_enabled: ::core::option::Option<bool>,
     /// Whether PSC connectivity is enabled for this instance.
     #[serde(default, rename = "pscEnabled")]
-    pub psc_enabled: Option<bool>,
+    pub psc_enabled: ::core::option::Option<bool>,
     /// Optional. Indicates whether PSC write endpoint DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal global DNS record across all networks configured with Private Service Connect (PSC) auto-connections that always points to the cluster primary instance. This feature is only supported for Enterprise Plus edition. This will default to true for new Enterprise Plus instances when psc_auto_dns_enabled is enabled.
     #[serde(default, rename = "pscWriteEndpointDnsEnabled")]
-    pub psc_write_endpoint_dns_enabled: Option<bool>,
+    pub psc_write_endpoint_dns_enabled: ::core::option::Option<bool>,
 }
 
 /// QueryResult contains the result of executing a single SQL statement.
@@ -1798,19 +1817,19 @@ pub struct PscConfig {
 pub struct QueryResult {
     /// List of columns included in the result. This also includes the data type of the column.
     #[serde(default)]
-    pub columns: Option<Vec<Column>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Column>>>,
     /// Message related to the SQL execution result.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Set to true if the SQL execution''s result is truncated due to size limits or an error retrieving results.
     #[serde(default, rename = "partialResult")]
-    pub partial_result: Option<bool>,
+    pub partial_result: ::core::option::Option<bool>,
     /// Rows returned by the SQL statement.
     #[serde(default)]
-    pub rows: Option<Vec<Row>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Row>>>,
     /// If results were truncated due to an error, details of that error.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// The read pool auto-scale configuration.
@@ -1818,25 +1837,25 @@ pub struct QueryResult {
 pub struct ReadPoolAutoScaleConfig {
     /// Indicates whether read pool auto scaling supports scale in operations (removing nodes).
     #[serde(default, rename = "disableScaleIn")]
-    pub disable_scale_in: Option<bool>,
+    pub disable_scale_in: ::core::option::Option<bool>,
     /// Indicates whether read pool auto scaling is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Maximum number of read pool nodes to be maintained.
     #[serde(default, rename = "maxNodeCount")]
-    pub max_node_count: Option<i32>,
+    pub max_node_count: ::core::option::Option<i32>,
     /// Minimum number of read pool nodes to be maintained.
     #[serde(default, rename = "minNodeCount")]
-    pub min_node_count: Option<i32>,
+    pub min_node_count: ::core::option::Option<i32>,
     /// The cooldown period for scale-in operations.
     #[serde(default, rename = "scaleInCooldownSeconds")]
-    pub scale_in_cooldown_seconds: Option<i32>,
+    pub scale_in_cooldown_seconds: ::core::option::Option<i32>,
     /// The cooldown period for scale-out operations.
     #[serde(default, rename = "scaleOutCooldownSeconds")]
-    pub scale_out_cooldown_seconds: Option<i32>,
+    pub scale_out_cooldown_seconds: ::core::option::Option<i32>,
     /// Optional. Target metrics for read pool auto scaling.
     #[serde(default, rename = "targetMetrics")]
-    pub target_metrics: Option<Vec<TargetMetric>>,
+    pub target_metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetMetric>>>,
 }
 
 /// Read-replica configuration for connecting to the primary instance.
@@ -1844,16 +1863,17 @@ pub struct ReadPoolAutoScaleConfig {
 pub struct ReplicaConfiguration {
     /// Optional. Specifies if a SQL Server replica is a cascadable replica. A cascadable replica is a SQL Server cross region replica that supports replica(s) under it.
     #[serde(default, rename = "cascadableReplica")]
-    pub cascadable_replica: Option<bool>,
+    pub cascadable_replica: ::core::option::Option<bool>,
     /// Specifies if the replica is the failover target. If the field is set to true, the replica will be designated as a failover replica. In case the primary instance fails, the replica instance will be promoted as the new primary instance. Only one replica can be specified as failover target, and the replica has to be in different zone with the primary instance.
     #[serde(default, rename = "failoverTarget")]
-    pub failover_target: Option<bool>,
+    pub failover_target: ::core::option::Option<bool>,
     /// This is always sql#replicaConfiguration.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// MySQL specific configuration when replicating from a MySQL on-premises primary instance. Replication configuration information such as the username, password, certificates, and keys are not stored in the instance metadata. The configuration information is used only to set up the replication connection and is stored by MySQL in a file named master.info in the data directory.
     #[serde(default, rename = "mysqlReplicaConfiguration")]
-    pub mysql_replica_configuration: Option<MySqlReplicaConfiguration>,
+    pub mysql_replica_configuration:
+        ::core::option::Option<::std::boxed::Box<MySqlReplicaConfiguration>>,
 }
 
 /// A primary instance and disaster recovery (DR) replica pair. A DR replica is a cross-region replica that you designate for failover in the event that the primary instance experiences regional failure. Applicable to MySQL and PostgreSQL.
@@ -1861,13 +1881,13 @@ pub struct ReplicaConfiguration {
 pub struct ReplicationCluster {
     /// Output only. Read-only field that indicates whether the replica is a DR replica. This field is not set if the instance is a primary instance.
     #[serde(default, rename = "drReplica")]
-    pub dr_replica: Option<bool>,
+    pub dr_replica: ::core::option::Option<bool>,
     /// Optional. If the instance is a primary instance, then this field identifies the disaster recovery (DR) replica. A DR replica is an optional configuration for Enterprise Plus edition instances. If the instance is a read replica, then the field is not set. Set this field to a replica name to designate a DR replica for a primary instance. Remove the replica name to remove the DR replica designation.
     #[serde(default, rename = "failoverDrReplicaName")]
-    pub failover_dr_replica_name: Option<String>,
+    pub failover_dr_replica_name: ::core::option::Option<String>,
     /// Output only. If set, this field indicates this instance has a private service access (PSA) DNS endpoint that is pointing to the primary instance of the cluster. If this instance is the primary, then the DNS endpoint points to this instance. After a switchover or replica failover operation, this DNS endpoint points to the promoted instance. This is a read-only field, returned to the user as information. This field can exist even if a standalone instance doesn''t have a DR replica yet or the DR replica is deleted.
     #[serde(default, rename = "psaWriteEndpoint")]
-    pub psa_write_endpoint: Option<String>,
+    pub psa_write_endpoint: ::core::option::Option<String>,
 }
 
 /// Reschedule resource type.
@@ -1875,10 +1895,10 @@ pub struct ReplicationCluster {
 pub struct Reschedule {
     /// Required. The type of the reschedule. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
     #[serde(default, rename = "rescheduleType")]
-    pub reschedule_type: Option<String>,
+    pub reschedule_type: ::core::option::Option<String>,
     /// Optional. Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: Option<String>,
+    pub schedule_time: ::core::option::Option<String>,
 }
 
 /// Database instance restore from backup context. Backup context contains source instance id and project id.
@@ -1886,16 +1906,16 @@ pub struct Reschedule {
 pub struct RestoreBackupContext {
     /// The ID of the backup run to restore from.
     #[serde(default, rename = "backupRunId")]
-    pub backup_run_id: Option<String>,
+    pub backup_run_id: ::core::option::Option<String>,
     /// The ID of the instance that the backup was taken from.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// This is always sql#restoreBackupContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The full project ID of the source instance.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
 }
 
 /// Instance rotate Entra ID certificate context.
@@ -1903,10 +1923,10 @@ pub struct RestoreBackupContext {
 pub struct RotateEntraIdCertificateContext {
     /// Optional. This is always sql#rotateEntraIdCertificateContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. The fingerprint of the next version to be rotated to. If left unspecified, will be rotated to the most recently added server certificate version.
     #[serde(default, rename = "nextVersion")]
-    pub next_version: Option<String>,
+    pub next_version: ::core::option::Option<String>,
 }
 
 /// Instance rotate server CA context.
@@ -1914,10 +1934,10 @@ pub struct RotateEntraIdCertificateContext {
 pub struct RotateServerCaContext {
     /// This is always sql#rotateServerCaContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The fingerprint of the next version to be rotated to. If left unspecified, will be rotated to the most recently added server CA version.
     #[serde(default, rename = "nextVersion")]
-    pub next_version: Option<String>,
+    pub next_version: ::core::option::Option<String>,
 }
 
 /// Instance rotate server certificate context.
@@ -1925,10 +1945,10 @@ pub struct RotateServerCaContext {
 pub struct RotateServerCertificateContext {
     /// Optional. This is always sql#rotateServerCertificateContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The fingerprint of the next version to be rotated to. If left unspecified, will be rotated to the most recently added server certificate version.
     #[serde(default, rename = "nextVersion")]
-    pub next_version: Option<String>,
+    pub next_version: ::core::option::Option<String>,
 }
 
 /// Contains the values for a row.
@@ -1936,7 +1956,7 @@ pub struct RotateServerCertificateContext {
 pub struct Row {
     /// The values for the row.
     #[serde(default)]
-    pub values: Option<Vec<Value>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiValue>>>,
 }
 
 /// A list of objects that the user selects for replication from an external source instance.
@@ -1944,7 +1964,7 @@ pub struct Row {
 pub struct SelectedObjects {
     /// Required. The name of the database to migrate.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
 }
 
 /// Database instance settings.
@@ -1952,142 +1972,148 @@ pub struct SelectedObjects {
 pub struct Settings {
     /// Optional. Whether the replica is in accelerated mode. This feature is in private preview and requires allowlisting to take effect.
     #[serde(default, rename = "acceleratedReplicaMode")]
-    pub accelerated_replica_mode: Option<bool>,
+    pub accelerated_replica_mode: ::core::option::Option<bool>,
     /// The activation policy specifies when the instance is activated; it is applicable only when the instance state is RUNNABLE. Valid values: * ALWAYS: The instance is on, and remains so even in the absence of connection requests. * NEVER: The instance is off; it is not activated, even if a connection request arrives. // TODO: enum values: ["SQL_ACTIVATION_POLICY_UNSPECIFIED", "ALWAYS", "NEVER", "ON_DEMAND"]
     #[serde(default, rename = "activationPolicy")]
-    pub activation_policy: Option<String>,
+    pub activation_policy: ::core::option::Option<String>,
     /// Active Directory configuration, relevant only for Cloud SQL for SQL Server.
     #[serde(default, rename = "activeDirectoryConfig")]
-    pub active_directory_config: Option<SqlActiveDirectoryConfig>,
+    pub active_directory_config:
+        ::core::option::Option<::std::boxed::Box<SqlActiveDirectoryConfig>>,
     /// Specifies advanced machine configuration for the instances relevant only for SQL Server.
     #[serde(default, rename = "advancedMachineFeatures")]
-    pub advanced_machine_features: Option<AdvancedMachineFeatures>,
+    pub advanced_machine_features:
+        ::core::option::Option<::std::boxed::Box<AdvancedMachineFeatures>>,
     /// The App Engine app IDs that can access this instance. (Deprecated) Applied to First Generation instances only.
     #[serde(default, rename = "authorizedGaeApplications")]
-    pub authorized_gae_applications: Option<Vec<String>>,
+    pub authorized_gae_applications: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Cloud SQL for MySQL auto-upgrade configuration. When this parameter is set to true, auto-upgrade is enabled for MySQL 8.0 minor versions. The MySQL version must be 8.0.35 or higher.
     #[serde(default, rename = "autoUpgradeEnabled")]
-    pub auto_upgrade_enabled: Option<bool>,
+    pub auto_upgrade_enabled: ::core::option::Option<bool>,
     /// Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data accessibility. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available)./ For more information, see [Overview of the High Availability Configuration](https://cloud.google.com/sql/docs/mysql/high-availability). // TODO: enum values: ["SQL_AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL"]
     #[serde(default, rename = "availabilityType")]
-    pub availability_type: Option<String>,
+    pub availability_type: ::core::option::Option<String>,
     /// The daily backup configuration for the instance.
     #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration: Option<BackupConfiguration>,
+    pub backup_configuration: ::core::option::Option<::std::boxed::Box<BackupConfiguration>>,
     /// The name of server Instance collation.
     #[serde(default)]
-    pub collation: Option<String>,
+    pub collation: ::core::option::Option<String>,
     /// Optional. The managed connection pooling configuration for the instance.
     #[serde(default, rename = "connectionPoolConfig")]
-    pub connection_pool_config: Option<ConnectionPoolConfig>,
+    pub connection_pool_config: ::core::option::Option<::std::boxed::Box<ConnectionPoolConfig>>,
     /// Specifies if connections must use Cloud SQL connectors. Option values include the following: NOT_REQUIRED (Cloud SQL instances can be connected without Cloud SQL Connectors) and REQUIRED (Only allow connections that use Cloud SQL Connectors). Note that using REQUIRED disables all existing authorized networks. If this field is not specified when creating a new instance, NOT_REQUIRED is used. If this field is not specified when patching or updating an existing instance, it is left unchanged in the instance. // TODO: enum values: ["CONNECTOR_ENFORCEMENT_UNSPECIFIED", "NOT_REQUIRED", "REQUIRED"]
     #[serde(default, rename = "connectorEnforcement")]
-    pub connector_enforcement: Option<String>,
+    pub connector_enforcement: ::core::option::Option<String>,
     /// Configuration specific to read replica instances. Indicates whether database flags for crash-safe replication are enabled. This property was only applicable to First Generation instances.
     #[serde(default, rename = "crashSafeReplicationEnabled")]
-    pub crash_safe_replication_enabled: Option<bool>,
+    pub crash_safe_replication_enabled: ::core::option::Option<bool>,
     /// This parameter controls whether to allow using ExecuteSql API to connect to the instance. Not allowed by default. // TODO: enum values: ["DATA_API_ACCESS_UNSPECIFIED", "DISALLOW_DATA_API", "ALLOW_DATA_API"]
     #[serde(default, rename = "dataApiAccess")]
-    pub data_api_access: Option<String>,
+    pub data_api_access: ::core::option::Option<String>,
     /// Configuration for data cache.
     #[serde(default, rename = "dataCacheConfig")]
-    pub data_cache_config: Option<DataCacheConfig>,
+    pub data_cache_config: ::core::option::Option<::std::boxed::Box<DataCacheConfig>>,
     /// Optional. Provisioned number of I/O operations per second for the data disk. This field is only used for hyperdisk-balanced disk types.
     #[serde(default, rename = "dataDiskProvisionedIops")]
-    pub data_disk_provisioned_iops: Option<String>,
+    pub data_disk_provisioned_iops: ::core::option::Option<String>,
     /// Optional. Provisioned throughput measured in MiB per second for the data disk. This field is only used for hyperdisk-balanced disk types.
     #[serde(default, rename = "dataDiskProvisionedThroughput")]
-    pub data_disk_provisioned_throughput: Option<String>,
+    pub data_disk_provisioned_throughput: ::core::option::Option<String>,
     /// The size of data disk, in GB. The data disk size minimum is 10GB.
     #[serde(default, rename = "dataDiskSizeGb")]
-    pub data_disk_size_gb: Option<String>,
+    pub data_disk_size_gb: ::core::option::Option<String>,
     /// The type of data disk: PD_SSD (default) or PD_HDD. Not used for First Generation instances. // TODO: enum values: ["SQL_DATA_DISK_TYPE_UNSPECIFIED", "PD_SSD", "PD_HDD", "OBSOLETE_LOCAL_SSD", "HYPERDISK_BALANCED"]
     #[serde(default, rename = "dataDiskType")]
-    pub data_disk_type: Option<String>,
+    pub data_disk_type: ::core::option::Option<String>,
     /// The database flags passed to the instance at startup.
     #[serde(default, rename = "databaseFlags")]
-    pub database_flags: Option<Vec<DatabaseFlags>>,
+    pub database_flags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseFlags>>>,
     /// Configuration specific to read replica instances. Indicates whether replication is enabled or not. WARNING: Changing this restarts the instance.
     #[serde(default, rename = "databaseReplicationEnabled")]
-    pub database_replication_enabled: Option<bool>,
+    pub database_replication_enabled: ::core::option::Option<bool>,
     /// Configuration to protect against accidental instance deletion.
     #[serde(default, rename = "deletionProtectionEnabled")]
-    pub deletion_protection_enabled: Option<bool>,
+    pub deletion_protection_enabled: ::core::option::Option<bool>,
     /// Deny maintenance periods
     #[serde(default, rename = "denyMaintenancePeriods")]
-    pub deny_maintenance_periods: Option<Vec<DenyMaintenancePeriod>>,
+    pub deny_maintenance_periods:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DenyMaintenancePeriod>>>,
     /// Optional. The edition of the instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"]
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// Optional. By default, Cloud SQL instances have schema extraction disabled for Dataplex. When this parameter is set to true, schema extraction for Dataplex on Cloud SQL instances is activated.
     #[serde(default, rename = "enableDataplexIntegration")]
-    pub enable_dataplex_integration: Option<bool>,
+    pub enable_dataplex_integration: ::core::option::Option<bool>,
     /// Optional. When this parameter is set to true, Cloud SQL instances can connect to Vertex AI to pass requests for real-time predictions and insights to the AI. The default value is false. This applies only to Cloud SQL for MySQL and Cloud SQL for PostgreSQL instances.
     #[serde(default, rename = "enableGoogleMlIntegration")]
-    pub enable_google_ml_integration: Option<bool>,
+    pub enable_google_ml_integration: ::core::option::Option<bool>,
     /// Optional. The Microsoft Entra ID configuration for the SQL Server instance.
     #[serde(default, rename = "entraidConfig")]
-    pub entraid_config: Option<SqlServerEntraIdConfig>,
+    pub entraid_config: ::core::option::Option<::std::boxed::Box<SqlServerEntraIdConfig>>,
     /// Optional. The final backup configuration for the instance.
     #[serde(default, rename = "finalBackupConfig")]
-    pub final_backup_config: Option<FinalBackupConfig>,
+    pub final_backup_config: ::core::option::Option<::std::boxed::Box<FinalBackupConfig>>,
     /// Insights configuration, for now relevant only for Postgres.
     #[serde(default, rename = "insightsConfig")]
-    pub insights_config: Option<InsightsConfig>,
+    pub insights_config: ::core::option::Option<::std::boxed::Box<InsightsConfig>>,
     /// The settings for IP Management. This allows to enable or disable the instance IP and manage which external networks can connect to the instance. The IPv4 address cannot be disabled for Second Generation instances.
     #[serde(default, rename = "ipConfiguration")]
-    pub ip_configuration: Option<IpConfiguration>,
+    pub ip_configuration: ::core::option::Option<::std::boxed::Box<IpConfiguration>>,
     /// This is always sql#settings.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The location preference settings. This allows the instance to be located as near as possible to either an App Engine app or Compute Engine zone for better performance. App Engine co-location was only applicable to First Generation instances.
     #[serde(default, rename = "locationPreference")]
-    pub location_preference: Option<LocationPreference>,
+    pub location_preference: ::core::option::Option<::std::boxed::Box<LocationPreference>>,
     /// The maintenance window for this instance. This specifies when the instance can be restarted for maintenance purposes.
     #[serde(default, rename = "maintenanceWindow")]
-    pub maintenance_window: Option<MaintenanceWindow>,
+    pub maintenance_window: ::core::option::Option<::std::boxed::Box<MaintenanceWindow>>,
     /// The local user password validation policy of the instance.
     #[serde(default, rename = "passwordValidationPolicy")]
-    pub password_validation_policy: Option<PasswordValidationPolicy>,
+    pub password_validation_policy:
+        ::core::option::Option<::std::boxed::Box<PasswordValidationPolicy>>,
     /// Optional. Configuration for Performance Capture, provides diagnostic metrics during high load situations.
     #[serde(default, rename = "performanceCaptureConfig")]
-    pub performance_capture_config: Option<PerformanceCaptureConfig>,
+    pub performance_capture_config:
+        ::core::option::Option<::std::boxed::Box<PerformanceCaptureConfig>>,
     /// The pricing plan for this instance. This can be either PER_USE or PACKAGE. Only PER_USE is supported for Second Generation instances. // TODO: enum values: ["SQL_PRICING_PLAN_UNSPECIFIED", "PACKAGE", "PER_USE"]
     #[serde(default, rename = "pricingPlan")]
-    pub pricing_plan: Option<String>,
+    pub pricing_plan: ::core::option::Option<String>,
     /// Optional. The read pool auto-scale configuration for the instance.
     #[serde(default, rename = "readPoolAutoScaleConfig")]
-    pub read_pool_auto_scale_config: Option<ReadPoolAutoScaleConfig>,
+    pub read_pool_auto_scale_config:
+        ::core::option::Option<::std::boxed::Box<ReadPoolAutoScaleConfig>>,
     /// Optional. Configuration value for recreation of replica after certain replication lag
     #[serde(default, rename = "replicationLagMaxSeconds")]
-    pub replication_lag_max_seconds: Option<i32>,
+    pub replication_lag_max_seconds: ::core::option::Option<i32>,
     /// The type of replication this instance uses. This can be either ASYNCHRONOUS or SYNCHRONOUS. (Deprecated) This property was only applicable to First Generation instances. // TODO: enum values: ["SQL_REPLICATION_TYPE_UNSPECIFIED", "SYNCHRONOUS", "ASYNCHRONOUS"]
     #[serde(default, rename = "replicationType")]
-    pub replication_type: Option<String>,
+    pub replication_type: ::core::option::Option<String>,
     /// Optional. When this parameter is set to true, Cloud SQL retains backups of the instance even after the instance is deleted. The ON_DEMAND backup will be retained until customer deletes the backup or the project. The AUTOMATED backup will be retained based on the backups retention setting.
     #[serde(default, rename = "retainBackupsOnDelete")]
-    pub retain_backups_on_delete: Option<bool>,
+    pub retain_backups_on_delete: ::core::option::Option<bool>,
     /// The version of instance settings. This is a required field for update method to make sure concurrent updates are handled properly. During update, use the most recent settingsVersion value for this instance and do not try to update this value.
     #[serde(default, rename = "settingsVersion")]
-    pub settings_version: Option<String>,
+    pub settings_version: ::core::option::Option<String>,
     /// SQL Server specific audit configuration.
     #[serde(default, rename = "sqlServerAuditConfig")]
-    pub sql_server_audit_config: Option<SqlServerAuditConfig>,
+    pub sql_server_audit_config: ::core::option::Option<::std::boxed::Box<SqlServerAuditConfig>>,
     /// Configuration to increase storage size automatically. The default value is true.
     #[serde(default, rename = "storageAutoResize")]
-    pub storage_auto_resize: Option<bool>,
+    pub storage_auto_resize: ::core::option::Option<bool>,
     /// The maximum size to which storage capacity can be automatically increased. The default value is 0, which specifies that there is no limit.
     #[serde(default, rename = "storageAutoResizeLimit")]
-    pub storage_auto_resize_limit: Option<String>,
+    pub storage_auto_resize_limit: ::core::option::Option<String>,
     /// The tier (or machine type) for this instance, for example db-custom-1-3840. WARNING: Changing this restarts the instance.
     #[serde(default)]
-    pub tier: Option<String>,
+    pub tier: ::core::option::Option<String>,
     /// Server timezone, relevant only for Cloud SQL for SQL Server.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// User-provided labels, represented as a dictionary where each label is a single key value pair.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Active Directory configuration, relevant only for Cloud SQL for SQL Server.
@@ -2095,22 +2121,22 @@ pub struct Settings {
 pub struct SqlActiveDirectoryConfig {
     /// Optional. The secret manager key storing the administrator credential. (e.g., projects/{project}/secrets/{secret}).
     #[serde(default, rename = "adminCredentialSecretName")]
-    pub admin_credential_secret_name: Option<String>,
+    pub admin_credential_secret_name: ::core::option::Option<String>,
     /// Optional. Domain controller IPv4 addresses used to bootstrap Active Directory.
     #[serde(default, rename = "dnsServers")]
-    pub dns_servers: Option<Vec<String>>,
+    pub dns_servers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the domain (e.g., mydomain.com).
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// This is always sql#activeDirectoryConfig.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. The mode of the Active Directory configuration. // TODO: enum values: ["ACTIVE_DIRECTORY_MODE_UNSPECIFIED", "MANAGED_ACTIVE_DIRECTORY", "SELF_MANAGED_ACTIVE_DIRECTORY", "CUSTOMER_MANAGED_ACTIVE_DIRECTORY"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Optional. The organizational unit distinguished name. This is the full hierarchical path to the organizational unit.
     #[serde(default, rename = "organizationalUnit")]
-    pub organizational_unit: Option<String>,
+    pub organizational_unit: ::core::option::Option<String>,
 }
 
 /// External primary instance migration setting error/warning.
@@ -2118,13 +2144,13 @@ pub struct SqlActiveDirectoryConfig {
 pub struct SqlExternalSyncSettingError {
     /// Additional information about the error encountered.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// Can be sql#externalSyncSettingError or sql#externalSyncSettingWarning.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Identifies the specific error that occurred. // TODO: enum values: ["SQL_EXTERNAL_SYNC_SETTING_ERROR_TYPE_UNSPECIFIED", "CONNECTION_FAILURE", "BINLOG_NOT_ENABLED", "INCOMPATIBLE_DATABASE_VERSION", "REPLICA_ALREADY_SETUP", "INSUFFICIENT_PRIVILEGE", "UNSUPPORTED_MIGRATION_TYPE", "NO_PGLOGICAL_INSTALLED", "PGLOGICAL_NODE_ALREADY_EXISTS", "INVALID_WAL_LEVEL", "INVALID_SHARED_PRELOAD_LIBRARY", "INSUFFICIENT_MAX_REPLICATION_SLOTS", "INSUFFICIENT_MAX_WAL_SENDERS", "INSUFFICIENT_MAX_WORKER_PROCESSES", "UNSUPPORTED_EXTENSIONS", "INVALID_RDS_LOGICAL_REPLICATION", "INVALID_LOGGING_SETUP", "INVALID_DB_PARAM", "UNSUPPORTED_GTID_MODE", "SQLSERVER_AGENT_NOT_RUNNING", "UNSUPPORTED_TABLE_DEFINITION", "UNSUPPORTED_DEFINER", "SQLSERVER_SERVERNAME_MISMATCH", "PRIMARY_ALREADY_SETUP", "UNSUPPORTED_BINLOG_FORMAT", "BINLOG_RETENTION_SETTING", "UNSUPPORTED_STORAGE_ENGINE", "LIMITED_SUPPORT_TABLES", "EXISTING_DATA_IN_REPLICA", "MISSING_OPTIONAL_PRIVILEGES", "RISKY_BACKUP_ADMIN_PRIVILEGE", "INSUFFICIENT_GCS_PERMISSIONS", "INVALID_FILE_INFO", "UNSUPPORTED_DATABASE_SETTINGS", "MYSQL_PARALLEL_IMPORT_INSUFFICIENT_PRIVILEGE", "LOCAL_INFILE_OFF", "TURN_ON_PITR_AFTER_PROMOTE", "INCOMPATIBLE_DATABASE_MINOR_VERSION", "SOURCE_MAX_SUBSCRIPTIONS", "UNABLE_TO_VERIFY_DEFINERS", "SUBSCRIPTION_CALCULATION_STATUS", "PG_SUBSCRIPTION_COUNT", "PG_SYNC_PARALLEL_LEVEL", "INSUFFICIENT_DISK_SIZE", "INSUFFICIENT_MACHINE_TIER", "UNSUPPORTED_EXTENSIONS_NOT_MIGRATED", "EXTENSIONS_NOT_MIGRATED", "PG_CRON_FLAG_ENABLED_IN_REPLICA", "EXTENSIONS_NOT_ENABLED_IN_REPLICA", "UNSUPPORTED_COLUMNS", "USERS_NOT_CREATED_IN_REPLICA", "UNSUPPORTED_SYSTEM_OBJECTS", "UNSUPPORTED_TABLES_WITH_REPLICA_IDENTITY", "SELECTED_OBJECTS_NOT_EXIST_ON_SOURCE", "PSC_ONLY_INSTANCE_WITH_NO_NETWORK_ATTACHMENT_URI", "SELECTED_OBJECTS_REFERENCE_UNSELECTED_OBJECTS", "PROMPT_DELETE_EXISTING", "WILL_DELETE_EXISTING", "PG_DDL_REPLICATION_INSUFFICIENT_PRIVILEGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Response for the acquire SSRS lease request.
@@ -2132,7 +2158,7 @@ pub struct SqlExternalSyncSettingError {
 pub struct SqlInstancesAcquireSsrsLeaseResponse {
     /// The unique identifier for this operation.
     #[serde(default, rename = "operationId")]
-    pub operation_id: Option<String>,
+    pub operation_id: ::core::option::Option<String>,
 }
 
 /// Execute SQL statements response.
@@ -2140,16 +2166,16 @@ pub struct SqlInstancesAcquireSsrsLeaseResponse {
 pub struct SqlInstancesExecuteSqlResponse {
     /// A list of notices and warnings generated during query execution. For PostgreSQL, this includes all notices and warnings. For MySQL, this includes warnings generated by the last executed statement. To retrieve all warnings for a multi-statement query, SHOW WARNINGS must be executed after each statement.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// The additional metadata information regarding the execution of the SQL statements.
     #[serde(default)]
-    pub metadata: Option<Metadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<Metadata>>,
     /// The list of results after executing all the SQL statements.
     #[serde(default)]
-    pub results: Option<Vec<QueryResult>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QueryResult>>>,
     /// Contains the error from the database if the SQL execution failed.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// Instance get disk shrink config response.
@@ -2157,13 +2183,13 @@ pub struct SqlInstancesExecuteSqlResponse {
 pub struct SqlInstancesGetDiskShrinkConfigResponse {
     /// This is always sql#getDiskShrinkConfig.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Additional message to customers.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The minimum size to which a disk can be shrunk in GigaBytes.
     #[serde(default, rename = "minimalTargetSizeGb")]
-    pub minimal_target_size_gb: Option<String>,
+    pub minimal_target_size_gb: ::core::option::Option<String>,
 }
 
 /// Instance get latest recovery time response.
@@ -2171,13 +2197,13 @@ pub struct SqlInstancesGetDiskShrinkConfigResponse {
 pub struct SqlInstancesGetLatestRecoveryTimeResponse {
     /// Timestamp, identifies the earliest recovery time of the source instance.
     #[serde(default, rename = "earliestRecoveryTime")]
-    pub earliest_recovery_time: Option<String>,
+    pub earliest_recovery_time: ::core::option::Option<String>,
     /// This is always sql#getLatestRecoveryTime.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Timestamp, identifies the latest recovery time of the source instance.
     #[serde(default, rename = "latestRecoveryTime")]
-    pub latest_recovery_time: Option<String>,
+    pub latest_recovery_time: ::core::option::Option<String>,
 }
 
 /// Response for the release SSRS lease request.
@@ -2185,7 +2211,7 @@ pub struct SqlInstancesGetLatestRecoveryTimeResponse {
 pub struct SqlInstancesReleaseSsrsLeaseResponse {
     /// The unique identifier for this operation.
     #[serde(default, rename = "operationId")]
-    pub operation_id: Option<String>,
+    pub operation_id: ::core::option::Option<String>,
 }
 
 /// Reschedule options for maintenance windows.
@@ -2193,7 +2219,7 @@ pub struct SqlInstancesReleaseSsrsLeaseResponse {
 pub struct SqlInstancesRescheduleMaintenanceRequestBody {
     /// Required. The type of the reschedule the user wants.
     #[serde(default)]
-    pub reschedule: Option<Reschedule>,
+    pub reschedule: ::core::option::Option<::std::boxed::Box<Reschedule>>,
 }
 
 /// Instance start external sync request.
@@ -2201,22 +2227,22 @@ pub struct SqlInstancesRescheduleMaintenanceRequestBody {
 pub struct SqlInstancesStartExternalSyncRequest {
     /// Optional. MigrationType configures the migration to use physical files or logical dump files. If not set, then the logical dump file configuration is used. Valid values are LOGICAL or PHYSICAL. Only applicable to MySQL. // TODO: enum values: ["MIGRATION_TYPE_UNSPECIFIED", "LOGICAL", "PHYSICAL"]
     #[serde(default, rename = "migrationType")]
-    pub migration_type: Option<String>,
+    pub migration_type: ::core::option::Option<String>,
     /// MySQL-specific settings for start external sync.
     #[serde(default, rename = "mysqlSyncConfig")]
-    pub mysql_sync_config: Option<MySqlSyncConfig>,
+    pub mysql_sync_config: ::core::option::Option<::std::boxed::Box<MySqlSyncConfig>>,
     /// Optional. MySQL only. True if end-user has confirmed that this SES call will wipe replica databases overlapping with the proposed selected_objects. If this field is not set and there are both overlapping and additional databases proposed, an error will be returned.
     #[serde(default, rename = "replicaOverwriteEnabled")]
-    pub replica_overwrite_enabled: Option<bool>,
+    pub replica_overwrite_enabled: ::core::option::Option<bool>,
     /// Whether to skip the verification step (VESS).
     #[serde(default, rename = "skipVerification")]
-    pub skip_verification: Option<bool>,
+    pub skip_verification: ::core::option::Option<bool>,
     /// External sync mode. // TODO: enum values: ["EXTERNAL_SYNC_MODE_UNSPECIFIED", "ONLINE", "OFFLINE"]
     #[serde(default, rename = "syncMode")]
-    pub sync_mode: Option<String>,
+    pub sync_mode: ::core::option::Option<String>,
     /// Optional. Parallel level for initial data sync. Currently only applicable for MySQL. // TODO: enum values: ["EXTERNAL_SYNC_PARALLEL_LEVEL_UNSPECIFIED", "MIN", "OPTIMAL", "MAX"]
     #[serde(default, rename = "syncParallelLevel")]
-    pub sync_parallel_level: Option<String>,
+    pub sync_parallel_level: ::core::option::Option<String>,
 }
 
 /// Instance verify external sync settings request.
@@ -2224,25 +2250,26 @@ pub struct SqlInstancesStartExternalSyncRequest {
 pub struct SqlInstancesVerifyExternalSyncSettingsRequest {
     /// Optional. MigrationType configures the migration to use physical files or logical dump files. If not set, then the logical dump file configuration is used. Valid values are LOGICAL or PHYSICAL. Only applicable to MySQL. // TODO: enum values: ["MIGRATION_TYPE_UNSPECIFIED", "LOGICAL", "PHYSICAL"]
     #[serde(default, rename = "migrationType")]
-    pub migration_type: Option<String>,
+    pub migration_type: ::core::option::Option<String>,
     /// Optional. MySQL-specific settings for start external sync.
     #[serde(default, rename = "mysqlSyncConfig")]
-    pub mysql_sync_config: Option<MySqlSyncConfig>,
+    pub mysql_sync_config: ::core::option::Option<::std::boxed::Box<MySqlSyncConfig>>,
     /// Optional. Migrate only the specified objects from the source instance. If this field is empty, then migrate all objects.
     #[serde(default, rename = "selectedObjects")]
-    pub selected_objects: Option<Vec<ExternalSyncSelectedObject>>,
+    pub selected_objects:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExternalSyncSelectedObject>>>,
     /// External sync mode // TODO: enum values: ["EXTERNAL_SYNC_MODE_UNSPECIFIED", "ONLINE", "OFFLINE"]
     #[serde(default, rename = "syncMode")]
-    pub sync_mode: Option<String>,
+    pub sync_mode: ::core::option::Option<String>,
     /// Optional. Parallel level for initial data sync. Only applicable for PostgreSQL. // TODO: enum values: ["EXTERNAL_SYNC_PARALLEL_LEVEL_UNSPECIFIED", "MIN", "OPTIMAL", "MAX"]
     #[serde(default, rename = "syncParallelLevel")]
-    pub sync_parallel_level: Option<String>,
+    pub sync_parallel_level: ::core::option::Option<String>,
     /// Flag to enable verifying connection only
     #[serde(default, rename = "verifyConnectionOnly")]
-    pub verify_connection_only: Option<bool>,
+    pub verify_connection_only: ::core::option::Option<bool>,
     /// Optional. Flag to verify settings required by replication setup only
     #[serde(default, rename = "verifyReplicationOnly")]
-    pub verify_replication_only: Option<bool>,
+    pub verify_replication_only: ::core::option::Option<bool>,
 }
 
 /// Instance verify external sync settings response.
@@ -2250,13 +2277,15 @@ pub struct SqlInstancesVerifyExternalSyncSettingsRequest {
 pub struct SqlInstancesVerifyExternalSyncSettingsResponse {
     /// List of migration violations.
     #[serde(default)]
-    pub errors: Option<Vec<SqlExternalSyncSettingError>>,
+    pub errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlExternalSyncSettingError>>>,
     /// This is always sql#migrationSettingErrorList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// List of migration warnings.
     #[serde(default)]
-    pub warnings: Option<Vec<SqlExternalSyncSettingError>>,
+    pub warnings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlExternalSyncSettingError>>>,
 }
 
 /// This message wraps up the information written by out-of-disk detection job.
@@ -2264,26 +2293,26 @@ pub struct SqlInstancesVerifyExternalSyncSettingsResponse {
 pub struct SqlOutOfDiskReport {
     /// The minimum recommended increase size in GigaBytes This field is consumed by the frontend * Writers: * the proactive database wellness job for OOD. * Readers:
     #[serde(default, rename = "sqlMinRecommendedIncreaseSizeGb")]
-    pub sql_min_recommended_increase_size_gb: Option<i32>,
+    pub sql_min_recommended_increase_size_gb: ::core::option::Option<i32>,
     /// This field represents the state generated by the proactive database wellness job for OutOfDisk issues. * Writers: * the proactive database wellness job for OOD. * Readers: * the proactive database wellness job // TODO: enum values: ["SQL_OUT_OF_DISK_STATE_UNSPECIFIED", "NORMAL", "SOFT_SHUTDOWN"]
     #[serde(default, rename = "sqlOutOfDiskState")]
-    pub sql_out_of_disk_state: Option<String>,
+    pub sql_out_of_disk_state: ::core::option::Option<String>,
 }
 
 /// Any scheduled maintenance for this instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SqlScheduledMaintenance {
     #[serde(default, rename = "canDefer")]
-    pub can_defer: Option<bool>,
+    pub can_defer: ::core::option::Option<bool>,
     /// If the scheduled maintenance can be rescheduled.
     #[serde(default, rename = "canReschedule")]
-    pub can_reschedule: Option<bool>,
+    pub can_reschedule: ::core::option::Option<bool>,
     /// Maintenance cannot be rescheduled to start beyond this deadline.
     #[serde(default, rename = "scheduleDeadlineTime")]
-    pub schedule_deadline_time: Option<String>,
+    pub schedule_deadline_time: ::core::option::Option<String>,
     /// The start time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// SQL Server specific audit configuration.
@@ -2291,16 +2320,16 @@ pub struct SqlScheduledMaintenance {
 pub struct SqlServerAuditConfig {
     /// The name of the destination bucket (e.g., gs://mybucket).
     #[serde(default)]
-    pub bucket: Option<String>,
+    pub bucket: ::core::option::Option<String>,
     /// This is always sql#sqlServerAuditConfig
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// How long to keep generated audit files.
     #[serde(default, rename = "retentionInterval")]
-    pub retention_interval: Option<String>,
+    pub retention_interval: ::core::option::Option<String>,
     /// How often to upload generated audit files.
     #[serde(default, rename = "uploadInterval")]
-    pub upload_interval: Option<String>,
+    pub upload_interval: ::core::option::Option<String>,
 }
 
 /// Represents a Sql Server database on the Cloud SQL instance.
@@ -2308,10 +2337,10 @@ pub struct SqlServerAuditConfig {
 pub struct SqlServerDatabaseDetails {
     /// The version of SQL Server with which the database is to be made compatible
     #[serde(default, rename = "compatibilityLevel")]
-    pub compatibility_level: Option<i32>,
+    pub compatibility_level: ::core::option::Option<i32>,
     /// The recovery model of a SQL Server database
     #[serde(default, rename = "recoveryModel")]
-    pub recovery_model: Option<String>,
+    pub recovery_model: ::core::option::Option<String>,
 }
 
 /// SQL Server Entra ID configuration.
@@ -2319,13 +2348,13 @@ pub struct SqlServerDatabaseDetails {
 pub struct SqlServerEntraIdConfig {
     /// Optional. The application ID for the Entra ID configuration.
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// Output only. This is always sql#sqlServerEntraIdConfig
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Optional. The tenant ID for the Entra ID configuration.
     #[serde(default, rename = "tenantId")]
-    pub tenant_id: Option<String>,
+    pub tenant_id: ::core::option::Option<String>,
 }
 
 /// Represents a Sql Server user on the Cloud SQL instance.
@@ -2333,10 +2362,10 @@ pub struct SqlServerEntraIdConfig {
 pub struct SqlServerUserDetails {
     /// If the user has been disabled
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// The server roles for this user
     #[serde(default, rename = "serverRoles")]
-    pub server_roles: Option<Vec<String>>,
+    pub server_roles: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The sub operation type based on the operation type.
@@ -2344,7 +2373,7 @@ pub struct SqlServerUserDetails {
 pub struct SqlSubOperationType {
     /// The type of maintenance to be performed on the instance. // TODO: enum values: ["SQL_MAINTENANCE_TYPE_UNSPECIFIED", "INSTANCE_MAINTENANCE", "REPLICA_INCLUDED_MAINTENANCE", "INSTANCE_SELF_SERVICE_MAINTENANCE", "REPLICA_INCLUDED_SELF_SERVICE_MAINTENANCE"]
     #[serde(default, rename = "maintenanceType")]
-    pub maintenance_type: Option<String>,
+    pub maintenance_type: ::core::option::Option<String>,
 }
 
 /// SslCerts Resource
@@ -2352,31 +2381,31 @@ pub struct SqlSubOperationType {
 pub struct SslCert {
     /// PEM representation.
     #[serde(default)]
-    pub cert: Option<String>,
+    pub cert: ::core::option::Option<String>,
     /// Serial number, as extracted from the certificate.
     #[serde(default, rename = "certSerialNumber")]
-    pub cert_serial_number: Option<String>,
+    pub cert_serial_number: ::core::option::Option<String>,
     /// User supplied name. Constrained to [a-zA-Z.-_ ]+.
     #[serde(default, rename = "commonName")]
-    pub common_name: Option<String>,
+    pub common_name: ::core::option::Option<String>,
     /// The time when the certificate was created in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time when the certificate expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "expirationTime")]
-    pub expiration_time: Option<String>,
+    pub expiration_time: ::core::option::Option<String>,
     /// Name of the database instance.
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
     /// This is always sql#sslCert.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The URI of this resource.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// Sha1 Fingerprint.
     #[serde(default, rename = "sha1Fingerprint")]
-    pub sha1_fingerprint: Option<String>,
+    pub sha1_fingerprint: ::core::option::Option<String>,
 }
 
 /// SslCertDetail.
@@ -2384,10 +2413,10 @@ pub struct SslCert {
 pub struct SslCertDetail {
     /// The public information about the cert.
     #[serde(default, rename = "certInfo")]
-    pub cert_info: Option<SslCert>,
+    pub cert_info: ::core::option::Option<::std::boxed::Box<SslCert>>,
     /// The private key for the client cert, in pem format. Keep private in order to protect your security.
     #[serde(default, rename = "certPrivateKey")]
-    pub cert_private_key: Option<String>,
+    pub cert_private_key: ::core::option::Option<String>,
 }
 
 /// SslCerts create ephemeral certificate request.
@@ -2395,10 +2424,10 @@ pub struct SslCertDetail {
 pub struct SslCertsCreateEphemeralRequest {
     /// Access token to include in the signed certificate.
     #[serde(default)]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
     /// PEM encoded public key to include in the signed certificate.
     #[serde(default)]
-    pub public_key: Option<String>,
+    pub public_key: ::core::option::Option<String>,
 }
 
 /// SslCerts insert request.
@@ -2406,7 +2435,7 @@ pub struct SslCertsCreateEphemeralRequest {
 pub struct SslCertsInsertRequest {
     /// User supplied name. Must be a distinct name from the other certificates for this instance.
     #[serde(default, rename = "commonName")]
-    pub common_name: Option<String>,
+    pub common_name: ::core::option::Option<String>,
 }
 
 /// SslCert insert response.
@@ -2414,16 +2443,16 @@ pub struct SslCertsInsertRequest {
 pub struct SslCertsInsertResponse {
     /// The new client certificate and private key.
     #[serde(default, rename = "clientCert")]
-    pub client_cert: Option<SslCertDetail>,
+    pub client_cert: ::core::option::Option<::std::boxed::Box<SslCertDetail>>,
     /// This is always sql#sslCertsInsert.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The operation to track the ssl certs insert request.
     #[serde(default)]
-    pub operation: Option<Operation>,
+    pub operation: ::core::option::Option<::std::boxed::Box<Operation>>,
     /// The server Certificate Authority''s certificate. If this is missing you can force a new one to be generated by calling resetSslConfig method on instances resource.
     #[serde(default, rename = "serverCaCert")]
-    pub server_ca_cert: Option<SslCert>,
+    pub server_ca_cert: ::core::option::Option<::std::boxed::Box<SslCert>>,
 }
 
 /// SslCerts list response.
@@ -2431,10 +2460,10 @@ pub struct SslCertsInsertResponse {
 pub struct SslCertsListResponse {
     /// List of client certificates for the instance.
     #[serde(default)]
-    pub items: Option<Vec<SslCert>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SslCert>>>,
     /// This is always sql#sslCertsList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2442,13 +2471,13 @@ pub struct SslCertsListResponse {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Initial sync flags for certain Cloud SQL APIs. Currently used for the MySQL external server initial dump.
@@ -2456,10 +2485,10 @@ pub struct Status {
 pub struct SyncFlags {
     /// The name of the flag.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The value of the flag. This field must be omitted if the flag doesn''t take a value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Target metric for read pool auto scaling.
@@ -2467,10 +2496,10 @@ pub struct SyncFlags {
 pub struct TargetMetric {
     /// The metric name to be used for auto scaling.
     #[serde(default)]
-    pub metric: Option<String>,
+    pub metric: ::core::option::Option<String>,
     /// The target value for the metric.
     #[serde(default, rename = "targetValue")]
-    pub target_value: Option<f32>,
+    pub target_value: ::core::option::Option<f32>,
 }
 
 /// A Google Cloud SQL service tier resource.
@@ -2478,19 +2507,19 @@ pub struct TargetMetric {
 pub struct Tier {
     /// The maximum disk size of this tier in bytes.
     #[serde(default, rename = "DiskQuota")]
-    pub disk_quota: Option<String>,
+    pub disk_quota: ::core::option::Option<String>,
     /// The maximum RAM usage of this tier in bytes.
     #[serde(default, rename = "RAM")]
-    pub r_a_m: Option<String>,
+    pub r_a_m: ::core::option::Option<String>,
     /// This is always sql#tier.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The applicable regions for this tier.
     #[serde(default)]
-    pub region: Option<Vec<String>>,
+    pub region: ::core::option::Option<::std::vec::Vec<String>>,
     /// An identifier for the machine type, for example, db-custom-1-3840. For related information, see [Pricing](/sql/pricing).
     #[serde(default)]
-    pub tier: Option<String>,
+    pub tier: ::core::option::Option<String>,
 }
 
 /// Tiers list response.
@@ -2498,10 +2527,10 @@ pub struct Tier {
 pub struct TiersListResponse {
     /// List of tiers.
     #[serde(default)]
-    pub items: Option<Vec<Tier>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Tier>>>,
     /// This is always sql#tiersList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Database Instance truncate log context.
@@ -2509,10 +2538,10 @@ pub struct TiersListResponse {
 pub struct TruncateLogContext {
     /// This is always sql#truncateLogContext.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The type of log to truncate. Valid values are MYSQL_GENERAL_TABLE and MYSQL_SLOW_TABLE.
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// A Cloud SQL user resource.
@@ -2520,45 +2549,45 @@ pub struct TruncateLogContext {
 pub struct User {
     /// Optional. Role memberships of the user
     #[serde(default, rename = "databaseRoles")]
-    pub database_roles: Option<Vec<String>>,
+    pub database_roles: ::core::option::Option<::std::vec::Vec<String>>,
     /// Dual password status for the user. // TODO: enum values: ["DUAL_PASSWORD_TYPE_UNSPECIFIED", "NO_MODIFY_DUAL_PASSWORD", "NO_DUAL_PASSWORD", "DUAL_PASSWORD"]
     #[serde(default, rename = "dualPasswordType")]
-    pub dual_password_type: Option<String>,
+    pub dual_password_type: ::core::option::Option<String>,
     /// This field is deprecated and will be removed from a future version of the API.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. The host from which the user can connect. For insert operations, host defaults to an empty string. For update operations, host is specified as part of the request URL. The host name cannot be updated after insertion. For a MySQL instance, it''s required; for a PostgreSQL or SQL Server instance, it''s optional.
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// Optional. The full email for an IAM user. For normal database users, this will not be filled. Only applicable to MySQL database users.
     #[serde(default, rename = "iamEmail")]
-    pub iam_email: Option<String>,
+    pub iam_email: ::core::option::Option<String>,
     /// Indicates if a group is active or inactive for IAM database authentication. // TODO: enum values: ["IAM_STATUS_UNSPECIFIED", "INACTIVE", "ACTIVE"]
     #[serde(default, rename = "iamStatus")]
-    pub iam_status: Option<String>,
+    pub iam_status: ::core::option::Option<String>,
     /// The name of the Cloud SQL instance. This does not include the project ID. Can be omitted for update because it is already specified on the URL.
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
     /// This is always sql#user.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the user in the Cloud SQL instance. Can be omitted for update because it is already specified in the URL.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The password for the user.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// User level password validation policy.
     #[serde(default, rename = "passwordPolicy")]
-    pub password_policy: Option<UserPasswordValidationPolicy>,
+    pub password_policy: ::core::option::Option<::std::boxed::Box<UserPasswordValidationPolicy>>,
     /// The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable. Can be omitted for update because it is already specified on the URL.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
     #[serde(default, rename = "sqlserverUserDetails")]
-    pub sqlserver_user_details: Option<SqlServerUserDetails>,
+    pub sqlserver_user_details: ::core::option::Option<::std::boxed::Box<SqlServerUserDetails>>,
     /// The user type. It determines the method to authenticate the user during login. The default is the database''s built-in user type. // TODO: enum values: ["BUILT_IN", "CLOUD_IAM_USER", "CLOUD_IAM_SERVICE_ACCOUNT", "CLOUD_IAM_GROUP", "CLOUD_IAM_GROUP_USER", "CLOUD_IAM_GROUP_SERVICE_ACCOUNT", "ENTRAID_USER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// User level password validation policy.
@@ -2566,19 +2595,19 @@ pub struct User {
 pub struct UserPasswordValidationPolicy {
     /// Number of failed login attempts allowed before user get locked.
     #[serde(default, rename = "allowedFailedAttempts")]
-    pub allowed_failed_attempts: Option<i32>,
+    pub allowed_failed_attempts: ::core::option::Option<i32>,
     /// If true, failed login attempts check will be enabled.
     #[serde(default, rename = "enableFailedAttemptsCheck")]
-    pub enable_failed_attempts_check: Option<bool>,
+    pub enable_failed_attempts_check: ::core::option::Option<bool>,
     /// If true, the user must specify the current password before changing the password. This flag is supported only for MySQL.
     #[serde(default, rename = "enablePasswordVerification")]
-    pub enable_password_verification: Option<bool>,
+    pub enable_password_verification: ::core::option::Option<bool>,
     /// Expiration duration after password is updated.
     #[serde(default, rename = "passwordExpirationDuration")]
-    pub password_expiration_duration: Option<String>,
+    pub password_expiration_duration: ::core::option::Option<String>,
     /// Output only. Read-only password status.
     #[serde(default)]
-    pub status: Option<PasswordStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<PasswordStatus>>,
 }
 
 /// User list response.
@@ -2586,22 +2615,22 @@ pub struct UserPasswordValidationPolicy {
 pub struct UsersListResponse {
     /// List of user resources in the instance.
     #[serde(default)]
-    pub items: Option<Vec<User>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<User>>>,
     /// This is always sql#usersList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Unused.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The cell value of the table.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Value {
+pub struct ApiValue {
     /// If cell value is null, then this flag will be set to true.
     #[serde(default, rename = "nullValue")]
-    pub null_value: Option<bool>,
+    pub null_value: ::core::option::Option<bool>,
     /// The cell value in string format.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }

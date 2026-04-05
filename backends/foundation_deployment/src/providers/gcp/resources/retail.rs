@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleApiHttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
-    pub content_type: Option<String>,
+    pub content_type: ::core::option::Option<String>,
     /// The HTTP request/response body as raw binary.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// Application specific response metadata. Must be set in the first response for streaming APIs.
     #[serde(default)]
-    pub extensions: Option<Vec<serde_json::Value>>,
+    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// A description of the context in which an error occurred.
@@ -32,10 +32,12 @@ pub struct GoogleApiHttpBody {
 pub struct GoogleCloudRetailLoggingErrorContext {
     /// The HTTP request which was processed when the error was triggered.
     #[serde(default, rename = "httpRequest")]
-    pub http_request: Option<GoogleCloudRetailLoggingHttpRequestContext>,
+    pub http_request:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailLoggingHttpRequestContext>>,
     /// The location in the source code where the decision was made to report the error, usually the place where it was logged.
     #[serde(default, rename = "reportLocation")]
-    pub report_location: Option<GoogleCloudRetailLoggingSourceLocation>,
+    pub report_location:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailLoggingSourceLocation>>,
 }
 
 /// An error log which is reported to the Error Reporting system. This proto a superset of google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent.
@@ -43,25 +45,27 @@ pub struct GoogleCloudRetailLoggingErrorContext {
 pub struct GoogleCloudRetailLoggingErrorLog {
     /// A description of the context in which the error occurred.
     #[serde(default)]
-    pub context: Option<GoogleCloudRetailLoggingErrorContext>,
+    pub context: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailLoggingErrorContext>>,
     /// The error payload that is populated on LRO import APIs.
     #[serde(default, rename = "importPayload")]
-    pub import_payload: Option<GoogleCloudRetailLoggingImportErrorContext>,
+    pub import_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailLoggingImportErrorContext>>,
     /// A message describing the error.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// The API request payload, represented as a protocol buffer. Most API request types are supported. For example: "type.googleapis.com/google.cloud.retail.v2.ProductService.CreateProductRequest" "type.googleapis.com/google.cloud.retail.v2.UserEventService.WriteUserEventRequest"
     #[serde(default, rename = "requestPayload")]
-    pub request_payload: Option<serde_json::Value>,
+    pub request_payload: ::core::option::Option<serde_json::Value>,
     /// The API response payload, represented as a protocol buffer. This is used to log some "soft errors", where the response is valid but we consider there are some quality issues like unjoined events. The following API responses are supported and no PII is included: "google.cloud.retail.v2.PredictionService.Predict" "google.cloud.retail.v2.UserEventService.WriteUserEvent" "google.cloud.retail.v2.UserEventService.CollectUserEvent"
     #[serde(default, rename = "responsePayload")]
-    pub response_payload: Option<serde_json::Value>,
+    pub response_payload: ::core::option::Option<serde_json::Value>,
     /// The service context in which this error has occurred.
     #[serde(default, rename = "serviceContext")]
-    pub service_context: Option<GoogleCloudRetailLoggingServiceContext>,
+    pub service_context:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailLoggingServiceContext>>,
     /// The RPC status associated with the error log.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// HTTP request data that is related to a reported error.
@@ -69,7 +73,7 @@ pub struct GoogleCloudRetailLoggingErrorLog {
 pub struct GoogleCloudRetailLoggingHttpRequestContext {
     /// The HTTP response status code for the request.
     #[serde(default, rename = "responseStatusCode")]
-    pub response_status_code: Option<i32>,
+    pub response_status_code: ::core::option::Option<i32>,
 }
 
 /// The error payload that is populated on LRO import APIs, including "google.cloud.retail.v2.ProductService.ImportProducts" and "google.cloud.retail.v2.EventService.ImportUserEvents".
@@ -77,22 +81,22 @@ pub struct GoogleCloudRetailLoggingHttpRequestContext {
 pub struct GoogleCloudRetailLoggingImportErrorContext {
     /// The detailed content which caused the error on importing a catalog item.
     #[serde(default, rename = "catalogItem")]
-    pub catalog_item: Option<String>,
+    pub catalog_item: ::core::option::Option<String>,
     /// Cloud Storage file path of the import source. Can be set for batch operation error.
     #[serde(default, rename = "gcsPath")]
-    pub gcs_path: Option<String>,
+    pub gcs_path: ::core::option::Option<String>,
     /// Line number of the content in file. Should be empty for permission or batch operation error.
     #[serde(default, rename = "lineNumber")]
-    pub line_number: Option<String>,
+    pub line_number: ::core::option::Option<String>,
     /// The operation resource name of the LRO.
     #[serde(default, rename = "operationName")]
-    pub operation_name: Option<String>,
+    pub operation_name: ::core::option::Option<String>,
     /// The detailed content which caused the error on importing a product.
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
     /// The detailed content which caused the error on importing a user event.
     #[serde(default, rename = "userEvent")]
-    pub user_event: Option<String>,
+    pub user_event: ::core::option::Option<String>,
 }
 
 /// Describes a running service that sends errors.
@@ -100,7 +104,7 @@ pub struct GoogleCloudRetailLoggingImportErrorContext {
 pub struct GoogleCloudRetailLoggingServiceContext {
     /// An identifier of the service. For example, "retail.googleapis.com".
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Indicates a location in the source code of the service for which errors are reported.
@@ -108,7 +112,7 @@ pub struct GoogleCloudRetailLoggingServiceContext {
 pub struct GoogleCloudRetailLoggingSourceLocation {
     /// Human-readable name of a function or method. For example, "google.cloud.retail.v2.UserEventService.ImportUserEvents".
     #[serde(default, rename = "functionName")]
-    pub function_name: Option<String>,
+    pub function_name: ::core::option::Option<String>,
 }
 
 /// Request for CatalogService.AddCatalogAttribute method.
@@ -116,7 +120,8 @@ pub struct GoogleCloudRetailLoggingSourceLocation {
 pub struct GoogleCloudRetailV2AddCatalogAttributeRequest {
     /// Required. The CatalogAttribute to add.
     #[serde(default, rename = "catalogAttribute")]
-    pub catalog_attribute: Option<GoogleCloudRetailV2CatalogAttribute>,
+    pub catalog_attribute:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CatalogAttribute>>,
 }
 
 /// Request for AddControl method.
@@ -124,7 +129,7 @@ pub struct GoogleCloudRetailV2AddCatalogAttributeRequest {
 pub struct GoogleCloudRetailV2AddControlRequest {
     /// Required. The id of the control to apply. Assumed to be in the same catalog as the serving config - if id is not found a NOT_FOUND error is returned.
     #[serde(default, rename = "controlId")]
-    pub control_id: Option<String>,
+    pub control_id: ::core::option::Option<String>,
 }
 
 /// Request message for ProductService.AddFulfillmentPlaces method.
@@ -132,16 +137,16 @@ pub struct GoogleCloudRetailV2AddControlRequest {
 pub struct GoogleCloudRetailV2AddFulfillmentPlacesRequest {
     /// The time when the fulfillment updates are issued, used to prevent out-of-order updates on fulfillment information. If not provided, the internal system time will be used.
     #[serde(default, rename = "addTime")]
-    pub add_time: Option<String>,
+    pub add_time: ::core::option::Option<String>,
     /// If set to true, and the Product is not found, the fulfillment information will still be processed and retained for at most 1 day and processed once the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
-    pub allow_missing: Option<bool>,
+    pub allow_missing: ::core::option::Option<bool>,
     /// Required. The IDs for this type, such as the store IDs for "pickup-in-store" or the region IDs for "same-day-delivery" to be added for this type. Duplicate IDs will be automatically ignored. At least 1 value is required, and a maximum of 2000 values are allowed. Each value must be a string with a length limit of 10 characters, matching the pattern [a-zA-Z0-9_-]+, such as "store1" or "REGION-2". Otherwise, an INVALID_ARGUMENT error is returned. If the total number of place IDs exceeds 2000 for this type after adding, then the update will be rejected.
     #[serde(default, rename = "placeIds")]
-    pub place_ids: Option<Vec<String>>,
+    pub place_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The fulfillment type, including commonly used types (such as pickup in store and same day delivery), and custom types. Supported values: * "pickup-in-store" * "ship-to-store" * "same-day-delivery" * "next-day-delivery" * "custom-type-1" * "custom-type-2" * "custom-type-3" * "custom-type-4" * "custom-type-5" If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. This field directly corresponds to Product.fulfillment_info.type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Request message for ProductService.AddLocalInventories method.
@@ -149,16 +154,18 @@ pub struct GoogleCloudRetailV2AddFulfillmentPlacesRequest {
 pub struct GoogleCloudRetailV2AddLocalInventoriesRequest {
     /// Indicates which inventory fields in the provided list of LocalInventory to update. The field is updated to the provided value. If a field is set while the place does not have a previous local inventory, the local inventory at that store is created. If a field is set while the value of that field is not provided, the original field value, if it exists, is deleted. If the mask is not set or set with empty paths, all inventory fields will be updated. If an unsupported or unknown field is provided, an INVALID_ARGUMENT error is returned and the entire update will be ignored.
     #[serde(default, rename = "addMask")]
-    pub add_mask: Option<String>,
+    pub add_mask: ::core::option::Option<String>,
     /// The time when the inventory updates are issued. Used to prevent out-of-order updates on local inventory fields. If not provided, the internal system time will be used.
     #[serde(default, rename = "addTime")]
-    pub add_time: Option<String>,
+    pub add_time: ::core::option::Option<String>,
     /// If set to true, and the Product is not found, the local inventory will still be processed and retained for at most 1 day and processed once the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
-    pub allow_missing: Option<bool>,
+    pub allow_missing: ::core::option::Option<bool>,
     /// Required. A list of inventory information at difference places. Each place is identified by its place ID. At most 3000 inventories are allowed per request.
     #[serde(default, rename = "localInventories")]
-    pub local_inventories: Option<Vec<GoogleCloudRetailV2LocalInventory>>,
+    pub local_inventories: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2LocalInventory>>,
+    >,
 }
 
 /// Catalog level attribute config.
@@ -166,13 +173,13 @@ pub struct GoogleCloudRetailV2AddLocalInventoriesRequest {
 pub struct GoogleCloudRetailV2AttributesConfig {
     /// Output only. The AttributeConfigLevel used for this catalog. // TODO: enum values: ["ATTRIBUTE_CONFIG_LEVEL_UNSPECIFIED", "PRODUCT_LEVEL_ATTRIBUTE_CONFIG", "CATALOG_LEVEL_ATTRIBUTE_CONFIG"]
     #[serde(default, rename = "attributeConfigLevel")]
-    pub attribute_config_level: Option<String>,
+    pub attribute_config_level: ::core::option::Option<String>,
     /// Enable attribute(s) config at catalog level. For example, indexable, dynamic_facetable, or searchable for each attribute. The key is catalog attribute''s name. For example: color, brands, attributes.custom_attribute, such as attributes.xyz. The maximum number of catalog attributes allowed in a request is 1000.
     #[serde(default, rename = "catalogAttributes")]
-    pub catalog_attributes: Option<serde_json::Value>,
+    pub catalog_attributes: ::core::option::Option<serde_json::Value>,
     /// Required. Immutable. The fully qualified resource name of the attribute config. Format: projects/*/locations/*/catalogs/*/attributesConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An intended audience of the Product for whom it''s sold.
@@ -180,10 +187,10 @@ pub struct GoogleCloudRetailV2AttributesConfig {
 pub struct GoogleCloudRetailV2Audience {
     /// The age groups of the audience. Strongly encouraged to use the standard values: "newborn" (up to 3 months old), "infant" (3–12 months old), "toddler" (1–5 years old), "kids" (5–13 years old), "adult" (typically teens or older). At most 5 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [age_group](https://support.google.com/merchants/answer/6324463). Schema.org property [Product.audience.suggestedMinAge](https://schema.org/suggestedMinAge) and [Product.audience.suggestedMaxAge](https://schema.org/suggestedMaxAge).
     #[serde(default, rename = "ageGroups")]
-    pub age_groups: Option<Vec<String>>,
+    pub age_groups: ::core::option::Option<::std::vec::Vec<String>>,
     /// The genders of the audience. Strongly encouraged to use the standard values: "male", "female", "unisex". At most 5 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [gender](https://support.google.com/merchants/answer/6324479). Schema.org property [Product.audience.suggestedGender](https://schema.org/suggestedGender).
     #[serde(default)]
-    pub genders: Option<Vec<String>>,
+    pub genders: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for BatchUpdateGenerativeQuestionConfig method.
@@ -191,7 +198,11 @@ pub struct GoogleCloudRetailV2Audience {
 pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsRequest {
     /// Required. The updates question configs.
     #[serde(default)]
-    pub requests: Option<Vec<GoogleCloudRetailV2UpdateGenerativeQuestionConfigRequest>>,
+    pub requests: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2UpdateGenerativeQuestionConfigRequest>,
+        >,
+    >,
 }
 
 /// Aggregated response for UpdateGenerativeQuestionConfig method.
@@ -199,7 +210,9 @@ pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsRequest {
 pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse {
     /// Optional. The updates question configs.
     #[serde(default, rename = "generativeQuestionConfigs")]
-    pub generative_question_configs: Option<Vec<GoogleCloudRetailV2GenerativeQuestionConfig>>,
+    pub generative_question_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2GenerativeQuestionConfig>>,
+    >,
 }
 
 /// A BigQuery output result.
@@ -207,10 +220,10 @@ pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse {
 pub struct GoogleCloudRetailV2BigQueryOutputResult {
     /// The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     /// The ID of a BigQuery Table.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// BigQuery source import data from.
@@ -218,22 +231,22 @@ pub struct GoogleCloudRetailV2BigQueryOutputResult {
 pub struct GoogleCloudRetailV2BigQuerySource {
     /// The schema to use when parsing the data from the source. Supported values for product imports: * product (default): One JSON Product per line. Each product must have a valid Product.id. * product_merchant_center: See [Importing catalog data from Merchant Center](https://cloud.google.com/retail/recommendations-ai/docs/upload-catalog#mc). Supported values for user events imports: * user_event (default): One JSON UserEvent per line. * user_event_ga360: The schema is available here: https://support.google.com/analytics/answer/3437719. * user_event_ga4: The schema is available here: https://support.google.com/analytics/answer/7029846. Supported values for autocomplete imports: * suggestions (default): One JSON completion suggestion per line. * denylist: One JSON deny suggestion per line. * allowlist: One JSON allow suggestion per line.
     #[serde(default, rename = "dataSchema")]
-    pub data_schema: Option<String>,
+    pub data_schema: ::core::option::Option<String>,
     /// Required. The BigQuery data set to copy the data from with a length limit of 1,024 characters.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     /// Intermediate Cloud Storage directory used for the import with a length limit of 2,000 characters. Can be specified if one wants to have the BigQuery export to a specific Cloud Storage directory.
     #[serde(default, rename = "gcsStagingDir")]
-    pub gcs_staging_dir: Option<String>,
+    pub gcs_staging_dir: ::core::option::Option<String>,
     /// BigQuery time partitioned table''s _PARTITIONDATE in YYYY-MM-DD format.
     #[serde(default, rename = "partitionDate")]
-    pub partition_date: Option<GoogleTypeDate>,
+    pub partition_date: ::core::option::Option<::std::boxed::Box<GoogleTypeDate>>,
     /// The project ID (can be project # or ID) that the BigQuery source is in with a length limit of 128 characters. If not specified, inherits the project ID from the parent request.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Required. The BigQuery table to copy the data from with a length limit of 1,024 characters.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// The catalog configuration.
@@ -241,13 +254,14 @@ pub struct GoogleCloudRetailV2BigQuerySource {
 pub struct GoogleCloudRetailV2Catalog {
     /// Required. Immutable. The catalog display name. This field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Immutable. The fully qualified resource name of the catalog.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The product level configuration.
     #[serde(default, rename = "productLevelConfig")]
-    pub product_level_config: Option<GoogleCloudRetailV2ProductLevelConfig>,
+    pub product_level_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductLevelConfig>>,
 }
 
 /// Catalog level attribute config for an attribute. For example, if customers want to enable/disable facet for a specific attribute.
@@ -255,31 +269,32 @@ pub struct GoogleCloudRetailV2Catalog {
 pub struct GoogleCloudRetailV2CatalogAttribute {
     /// If DYNAMIC_FACETABLE_ENABLED, attribute values are available for dynamic facet. Could only be DYNAMIC_FACETABLE_DISABLED if CatalogAttribute.indexable_option is INDEXABLE_DISABLED. Otherwise, an INVALID_ARGUMENT error is returned. Must be specified, otherwise throws INVALID_FORMAT error. // TODO: enum values: ["DYNAMIC_FACETABLE_OPTION_UNSPECIFIED", "DYNAMIC_FACETABLE_ENABLED", "DYNAMIC_FACETABLE_DISABLED"]
     #[serde(default, rename = "dynamicFacetableOption")]
-    pub dynamic_facetable_option: Option<String>,
+    pub dynamic_facetable_option: ::core::option::Option<String>,
     /// If EXACT_SEARCHABLE_ENABLED, attribute values will be exact searchable. This property only applies to textual custom attributes and requires indexable set to enabled to enable exact-searchable. If unset, the server behavior defaults to EXACT_SEARCHABLE_DISABLED. // TODO: enum values: ["EXACT_SEARCHABLE_OPTION_UNSPECIFIED", "EXACT_SEARCHABLE_ENABLED", "EXACT_SEARCHABLE_DISABLED"]
     #[serde(default, rename = "exactSearchableOption")]
-    pub exact_searchable_option: Option<String>,
+    pub exact_searchable_option: ::core::option::Option<String>,
     /// Contains facet options.
     #[serde(default, rename = "facetConfig")]
-    pub facet_config: Option<GoogleCloudRetailV2CatalogAttributeFacetConfig>,
+    pub facet_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CatalogAttributeFacetConfig>>,
     /// Output only. Indicates whether this attribute has been used by any products. True if at least one Product is using this attribute in Product.attributes. Otherwise, this field is False. CatalogAttribute can be pre-loaded by using CatalogService.AddCatalogAttribute or CatalogService.UpdateAttributesConfig APIs. This field is False for pre-loaded CatalogAttributes. Only pre-loaded catalog attributes that are neither in use by products nor predefined can be deleted. Catalog attributes that are either in use by products or are predefined attributes cannot be deleted; however, their configuration properties will reset to default values upon removal request. After catalog changes, it takes about 10 minutes for this field to update.
     #[serde(default, rename = "inUse")]
-    pub in_use: Option<bool>,
+    pub in_use: ::core::option::Option<bool>,
     /// When AttributesConfig.attribute_config_level is CATALOG_LEVEL_ATTRIBUTE_CONFIG, if INDEXABLE_ENABLED attribute values are indexed so that it can be filtered, faceted, or boosted in SearchService.Search. Must be specified when AttributesConfig.attribute_config_level is CATALOG_LEVEL_ATTRIBUTE_CONFIG, otherwise throws INVALID_FORMAT error. // TODO: enum values: ["INDEXABLE_OPTION_UNSPECIFIED", "INDEXABLE_ENABLED", "INDEXABLE_DISABLED"]
     #[serde(default, rename = "indexableOption")]
-    pub indexable_option: Option<String>,
+    pub indexable_option: ::core::option::Option<String>,
     /// Required. Attribute name. For example: color, brands, attributes.custom_attribute, such as attributes.xyz. To be indexable, the attribute name can contain only alpha-numeric characters and underscores. For example, an attribute named attributes.abc_xyz can be indexed, but an attribute named attributes.abc-xyz cannot be indexed. If the attribute key starts with attributes., then the attribute is a custom attribute. Attributes such as brands, patterns, and title are built-in and called system attributes.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// If RETRIEVABLE_ENABLED, attribute values are retrievable in the search results. If unset, the server behavior defaults to RETRIEVABLE_DISABLED. // TODO: enum values: ["RETRIEVABLE_OPTION_UNSPECIFIED", "RETRIEVABLE_ENABLED", "RETRIEVABLE_DISABLED"]
     #[serde(default, rename = "retrievableOption")]
-    pub retrievable_option: Option<String>,
+    pub retrievable_option: ::core::option::Option<String>,
     /// When AttributesConfig.attribute_config_level is CATALOG_LEVEL_ATTRIBUTE_CONFIG, if SEARCHABLE_ENABLED, attribute values are searchable by text queries in SearchService.Search. If SEARCHABLE_ENABLED but attribute type is numerical, attribute values will not be searchable by text queries in SearchService.Search, as there are no text values associated to numerical attributes. Must be specified, when AttributesConfig.attribute_config_level is CATALOG_LEVEL_ATTRIBUTE_CONFIG, otherwise throws INVALID_FORMAT error. // TODO: enum values: ["SEARCHABLE_OPTION_UNSPECIFIED", "SEARCHABLE_ENABLED", "SEARCHABLE_DISABLED"]
     #[serde(default, rename = "searchableOption")]
-    pub searchable_option: Option<String>,
+    pub searchable_option: ::core::option::Option<String>,
     /// Output only. The type of this attribute. This is derived from the attribute in Product.attributes. // TODO: enum values: ["UNKNOWN", "TEXTUAL", "NUMERICAL"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Possible options for the facet that corresponds to the current attribute config.
@@ -287,21 +302,32 @@ pub struct GoogleCloudRetailV2CatalogAttribute {
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfig {
     /// If you don''t set the facet SearchRequest.FacetSpec.FacetKey.intervals in the request to a numerical attribute, then we use the computed intervals with rounded bounds obtained from all its product numerical attribute values. The computed intervals might not be ideal for some attributes. Therefore, we give you the option to overwrite them with the facet_intervals field. The maximum of facet intervals per CatalogAttribute is 40. Each interval must have a lower bound or an upper bound. If both bounds are provided, then the lower bound must be smaller or equal than the upper bound.
     #[serde(default, rename = "facetIntervals")]
-    pub facet_intervals: Option<Vec<GoogleCloudRetailV2Interval>>,
+    pub facet_intervals:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Interval>>>,
     /// Each instance represents a list of attribute values to ignore as facet values for a specific time range. The maximum number of instances per CatalogAttribute is 25.
     #[serde(default, rename = "ignoredFacetValues")]
-    pub ignored_facet_values:
-        Option<Vec<GoogleCloudRetailV2CatalogAttributeFacetConfigIgnoredFacetValues>>,
+    pub ignored_facet_values: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2CatalogAttributeFacetConfigIgnoredFacetValues>,
+        >,
+    >,
     /// Use this field only if you want to merge a facet key into another facet key.
     #[serde(default, rename = "mergedFacet")]
-    pub merged_facet: Option<GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacet>,
+    pub merged_facet: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacet>,
+    >,
     /// Each instance replaces a list of facet values by a merged facet value. If a facet value is not in any list, then it will stay the same. To avoid conflicts, only paths of length 1 are accepted. In other words, if "dark_blue" merged into "BLUE", then the latter can''t merge into "blues" because this would create a path of length 2. The maximum number of instances of MergedFacetValue per CatalogAttribute is 100. This feature is available only for textual custom attributes.
     #[serde(default, rename = "mergedFacetValues")]
-    pub merged_facet_values:
-        Option<Vec<GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacetValue>>,
+    pub merged_facet_values: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacetValue>,
+        >,
+    >,
     /// Set this field only if you want to rerank based on facet values engaged by the user for the current key. This option is only possible for custom facetable textual keys.
     #[serde(default, rename = "rerankConfig")]
-    pub rerank_config: Option<GoogleCloudRetailV2CatalogAttributeFacetConfigRerankConfig>,
+    pub rerank_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2CatalogAttributeFacetConfigRerankConfig>,
+    >,
 }
 
 /// Facet values to ignore on facets during the specified time range for the given SearchResponse.Facet.key attribute.
@@ -309,13 +335,13 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfig {
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigIgnoredFacetValues {
     /// If start time is empty and end time is not empty, then ignore these facet values before end time.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Time range for the current list of facet values to ignore. If multiple time ranges are specified for an facet value for the current attribute, consider all of them. If both are empty, ignore always. If start time and end time are set, then start time must be before end time. If start time is not empty and end time is empty, then will ignore these facet values after the start time.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// List of facet values to ignore for the following time range. The facet values are the same as the attribute values. There is a limit of 10 values per instance of IgnoredFacetValues. Each value can have at most 128 characters.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The current facet key (i.e. attribute config) maps into the merged_facet_key. A facet key can have at most one child. The current facet key and the merged facet key need both to be textual custom attributes or both numerical custom attributes (same type).
@@ -323,7 +349,7 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigIgnoredFacetValues {
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacet {
     /// The merged facet key should be a valid facet key that is different than the facet key of the current catalog attribute. We refer this is merged facet key as the child of the current catalog attribute. This merged facet key can''t be a parent of another facet key (i.e. no directed path of length 2). This merged facet key needs to be either a textual custom attribute or a numerical custom attribute.
     #[serde(default, rename = "mergedFacetKey")]
-    pub merged_facet_key: Option<String>,
+    pub merged_facet_key: ::core::option::Option<String>,
 }
 
 /// Replaces a set of textual facet values by the same (possibly different) merged facet value. Each facet value should appear at most once as a value per CatalogAttribute. This feature is available only for textual custom attributes.
@@ -331,10 +357,10 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacet {
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacetValue {
     /// All the previous values are replaced by this merged facet value. This merged_value must be non-empty and can have up to 128 characters.
     #[serde(default, rename = "mergedValue")]
-    pub merged_value: Option<String>,
+    pub merged_value: ::core::option::Option<String>,
     /// All the facet values that are replaces by the same merged_value that follows. The maximum number of values per MergedFacetValue is 25. Each value can have up to 128 characters.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Options to rerank based on facet values engaged by the user for the current key. That key needs to be a custom textual key and facetable. To use this control, you also need to pass all the facet keys engaged by the user in the request using the field [SearchRequest.FacetSpec]. In particular, if you don''t pass the facet keys engaged that you want to rerank on, this control won''t be effective. Moreover, to obtain better results, the facet values that you want to rerank on should be close to English (ideally made of words, underscores, and spaces).
@@ -342,10 +368,10 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacetValue {
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigRerankConfig {
     /// If empty, rerank on all facet values for the current key. Otherwise, will rerank on the facet values from this list only.
     #[serde(default, rename = "facetValues")]
-    pub facet_values: Option<Vec<String>>,
+    pub facet_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// If set to true, then we also rerank the dynamic facets based on the facet values engaged by the user for the current attribute key during serving.
     #[serde(default, rename = "rerankFacet")]
-    pub rerank_facet: Option<bool>,
+    pub rerank_facet: ::core::option::Option<bool>,
 }
 
 /// Request message for CollectUserEvent method.
@@ -353,19 +379,19 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigRerankConfig {
 pub struct GoogleCloudRetailV2CollectUserEventRequest {
     /// The event timestamp in milliseconds. This prevents browser caching of otherwise identical get requests. The name is abbreviated to reduce the payload bytes.
     #[serde(default)]
-    pub ets: Option<String>,
+    pub ets: ::core::option::Option<String>,
     /// The prebuilt rule name that can convert a specific type of raw_json. For example: "ga4_bq" rule for the GA4 user event schema.
     #[serde(default, rename = "prebuiltRule")]
-    pub prebuilt_rule: Option<String>,
+    pub prebuilt_rule: ::core::option::Option<String>,
     /// An arbitrary serialized JSON string that contains necessary information that can comprise a user event. When this field is specified, the user_event field will be ignored. Note: line-delimited JSON is not supported, a single JSON only.
     #[serde(default, rename = "rawJson")]
-    pub raw_json: Option<String>,
+    pub raw_json: ::core::option::Option<String>,
     /// The URL including cgi-parameters but excluding the hash fragment with a length limit of 5,000 characters. This is often more useful than the referer URL, because many browsers only send the domain for 3rd party requests.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// Required. URL encoded UserEvent proto with a length limit of 2,000,000 characters.
     #[serde(default, rename = "userEvent")]
-    pub user_event: Option<String>,
+    pub user_event: ::core::option::Option<String>,
 }
 
 /// The color information of a Product.
@@ -373,10 +399,10 @@ pub struct GoogleCloudRetailV2CollectUserEventRequest {
 pub struct GoogleCloudRetailV2ColorInfo {
     /// The standard color families. Strongly recommended to use the following standard color groups: "Red", "Pink", "Orange", "Yellow", "Purple", "Green", "Cyan", "Blue", "Brown", "White", "Gray", "Black" and "Mixed". Normally it is expected to have only 1 color family. May consider using single "Mixed" instead of multiple values. A maximum of 5 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color). The colorFamilies field as a system attribute is not a required field but strongly recommended to be specified. Google Search models treat this field as more important than a custom product attribute when specified.
     #[serde(default, rename = "colorFamilies")]
-    pub color_families: Option<Vec<String>>,
+    pub color_families: ::core::option::Option<::std::vec::Vec<String>>,
     /// The color display names, which may be different from standard color family names, such as the color aliases used in the website frontend. Normally it is expected to have only 1 color. May consider using single "Mixed" instead of multiple values. A maximum of 75 colors are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color).
     #[serde(default)]
-    pub colors: Option<Vec<String>>,
+    pub colors: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response of the autocomplete query.
@@ -384,17 +410,24 @@ pub struct GoogleCloudRetailV2ColorInfo {
 pub struct GoogleCloudRetailV2CompleteQueryResponse {
     /// A map of matched attribute suggestions. This field is only available for cloud-retail dataset. Current supported keys: * brands * categories
     #[serde(default, rename = "attributeResults")]
-    pub attribute_results: Option<serde_json::Value>,
+    pub attribute_results: ::core::option::Option<serde_json::Value>,
     /// A unique complete token. This should be included in the UserEvent.completion_detail for search events resulting from this completion, which enables accurate attribution of complete model performance.
     #[serde(default, rename = "attributionToken")]
-    pub attribution_token: Option<String>,
+    pub attribution_token: ::core::option::Option<String>,
     /// Results of the matching suggestions. The result list is ordered and the first result is top suggestion.
     #[serde(default, rename = "completionResults")]
-    pub completion_results: Option<Vec<GoogleCloudRetailV2CompleteQueryResponseCompletionResult>>,
+    pub completion_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2CompleteQueryResponseCompletionResult>,
+        >,
+    >,
     /// Deprecated. Matched recent searches of this user. The maximum number of recent searches is 10. This field is a restricted feature. If you want to enable it, contact Retail Search support. This feature is only available when CompleteQueryRequest.visitor_id field is set and UserEvent is imported. The recent searches satisfy the follow rules: * They are ordered from latest to oldest. * They are matched with CompleteQueryRequest.query case insensitively. * They are transformed to lower case. * They are UTF-8 safe. Recent searches are deduplicated. More recent searches will be reserved when duplication happens.
     #[serde(default, rename = "recentSearchResults")]
-    pub recent_search_results:
-        Option<Vec<GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult>>,
+    pub recent_search_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult>,
+        >,
+    >,
 }
 
 /// Resource that represents attribute results.
@@ -402,7 +435,7 @@ pub struct GoogleCloudRetailV2CompleteQueryResponse {
 pub struct GoogleCloudRetailV2CompleteQueryResponseAttributeResult {
     /// The list of suggestions for the attribute.
     #[serde(default)]
-    pub suggestions: Option<Vec<String>>,
+    pub suggestions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Resource that represents completion results.
@@ -410,10 +443,10 @@ pub struct GoogleCloudRetailV2CompleteQueryResponseAttributeResult {
 pub struct GoogleCloudRetailV2CompleteQueryResponseCompletionResult {
     /// Custom attributes for the suggestion term. * For user-data, the attributes are additional custom attributes ingested through BigQuery. * For cloud-retail, the attributes are product attributes generated by Cloud Retail. It requires UserEvent.product_details is imported properly.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// The suggestion for the query.
     #[serde(default)]
-    pub suggestion: Option<String>,
+    pub suggestion: ::core::option::Option<String>,
 }
 
 /// Deprecated: Recent search of this user.
@@ -421,7 +454,7 @@ pub struct GoogleCloudRetailV2CompleteQueryResponseCompletionResult {
 pub struct GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult {
     /// The recent search query.
     #[serde(default, rename = "recentSearch")]
-    pub recent_search: Option<String>,
+    pub recent_search: ::core::option::Option<String>,
 }
 
 /// Catalog level autocomplete config for customers to customize autocomplete feature''s settings.
@@ -429,37 +462,40 @@ pub struct GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult {
 pub struct GoogleCloudRetailV2CompletionConfig {
     /// Output only. The source data for the latest import of the autocomplete allowlist phrases.
     #[serde(default, rename = "allowlistInputConfig")]
-    pub allowlist_input_config: Option<GoogleCloudRetailV2CompletionDataInputConfig>,
+    pub allowlist_input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CompletionDataInputConfig>>,
     /// If set to true, the auto learning function is enabled. Auto learning uses user data to generate suggestions using ML techniques. Default value is false. Only after enabling auto learning can users use cloud-retail data in CompleteQueryRequest.
     #[serde(default, rename = "autoLearning")]
-    pub auto_learning: Option<bool>,
+    pub auto_learning: ::core::option::Option<bool>,
     /// Output only. The source data for the latest import of the autocomplete denylist phrases.
     #[serde(default, rename = "denylistInputConfig")]
-    pub denylist_input_config: Option<GoogleCloudRetailV2CompletionDataInputConfig>,
+    pub denylist_input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CompletionDataInputConfig>>,
     /// Output only. Name of the LRO corresponding to the latest allowlist import. Can use GetOperation API to retrieve the latest state of the Long Running Operation.
     #[serde(default, rename = "lastAllowlistImportOperation")]
-    pub last_allowlist_import_operation: Option<String>,
+    pub last_allowlist_import_operation: ::core::option::Option<String>,
     /// Output only. Name of the LRO corresponding to the latest denylist import. Can use GetOperation API to retrieve the latest state of the Long Running Operation.
     #[serde(default, rename = "lastDenylistImportOperation")]
-    pub last_denylist_import_operation: Option<String>,
+    pub last_denylist_import_operation: ::core::option::Option<String>,
     /// Output only. Name of the LRO corresponding to the latest suggestion terms list import. Can use GetOperation API method to retrieve the latest state of the Long Running Operation.
     #[serde(default, rename = "lastSuggestionsImportOperation")]
-    pub last_suggestions_import_operation: Option<String>,
+    pub last_suggestions_import_operation: ::core::option::Option<String>,
     /// Specifies the matching order for autocomplete suggestions, e.g., a query consisting of ''sh'' with ''out-of-order'' specified would suggest "women''s shoes", whereas a query of ''red s'' with ''exact-prefix'' specified would suggest "red shoes". Currently supported values: * ''out-of-order'' * ''exact-prefix'' Default value: ''exact-prefix''.
     #[serde(default, rename = "matchingOrder")]
-    pub matching_order: Option<String>,
+    pub matching_order: ::core::option::Option<String>,
     /// The maximum number of autocomplete suggestions returned per term. Default value is 20. If left unset or set to 0, then will fallback to default value. Value range is 1 to 20.
     #[serde(default, rename = "maxSuggestions")]
-    pub max_suggestions: Option<i32>,
+    pub max_suggestions: ::core::option::Option<i32>,
     /// The minimum number of characters needed to be typed in order to get suggestions. Default value is 2. If left unset or set to 0, then will fallback to default value. Value range is 1 to 20.
     #[serde(default, rename = "minPrefixLength")]
-    pub min_prefix_length: Option<i32>,
+    pub min_prefix_length: ::core::option::Option<i32>,
     /// Required. Immutable. Fully qualified name projects/*/locations/*/catalogs/*/completionConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The source data for the latest import of the autocomplete suggestion phrases.
     #[serde(default, rename = "suggestionsInputConfig")]
-    pub suggestions_input_config: Option<GoogleCloudRetailV2CompletionDataInputConfig>,
+    pub suggestions_input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CompletionDataInputConfig>>,
 }
 
 /// The input config source for completion data.
@@ -467,7 +503,8 @@ pub struct GoogleCloudRetailV2CompletionConfig {
 pub struct GoogleCloudRetailV2CompletionDataInputConfig {
     /// Required. BigQuery input source. Add the IAM permission "BigQuery Data Viewer" for cloud-retail-customer-data-access@system.gserviceaccount.com before using this feature otherwise an error is thrown.
     #[serde(default, rename = "bigQuerySource")]
-    pub big_query_source: Option<GoogleCloudRetailV2BigQuerySource>,
+    pub big_query_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2BigQuerySource>>,
 }
 
 /// Detailed completion information including completion attribution token and clicked completion info.
@@ -475,13 +512,13 @@ pub struct GoogleCloudRetailV2CompletionDataInputConfig {
 pub struct GoogleCloudRetailV2CompletionDetail {
     /// Completion attribution token in CompleteQueryResponse.attribution_token.
     #[serde(default, rename = "completionAttributionToken")]
-    pub completion_attribution_token: Option<String>,
+    pub completion_attribution_token: ::core::option::Option<String>,
     /// End user selected CompleteQueryResponse.CompletionResult.suggestion position, starting from 0.
     #[serde(default, rename = "selectedPosition")]
-    pub selected_position: Option<i32>,
+    pub selected_position: ::core::option::Option<i32>,
     /// End user selected CompleteQueryResponse.CompletionResult.suggestion.
     #[serde(default, rename = "selectedSuggestion")]
-    pub selected_suggestion: Option<String>,
+    pub selected_suggestion: ::core::option::Option<String>,
 }
 
 /// Metadata that is used to define a condition that triggers an action. A valid condition must specify at least one of ''query_terms'' or ''products_filter''. If multiple fields are specified, the condition is met if all the fields are satisfied e.g. if a set of query terms and product_filter are set, then only items matching the product_filter for requests with a query matching the query terms wil get boosted.
@@ -489,13 +526,17 @@ pub struct GoogleCloudRetailV2CompletionDetail {
 pub struct GoogleCloudRetailV2Condition {
     /// Range of time(s) specifying when Condition is active. Condition true if any time range matches.
     #[serde(default, rename = "activeTimeRange")]
-    pub active_time_range: Option<Vec<GoogleCloudRetailV2ConditionTimeRange>>,
+    pub active_time_range: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ConditionTimeRange>>,
+    >,
     /// Used to support browse uses cases. A list (up to 10 entries) of categories or departments. The format should be the same as UserEvent.page_categories;
     #[serde(default, rename = "pageCategories")]
-    pub page_categories: Option<Vec<String>>,
+    pub page_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list (up to 10 entries) of terms to match the query on. If not specified, match all queries. If many query terms are specified, the condition is matched if any of the terms is a match (i.e. using the OR operator).
     #[serde(default, rename = "queryTerms")]
-    pub query_terms: Option<Vec<GoogleCloudRetailV2ConditionQueryTerm>>,
+    pub query_terms: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ConditionQueryTerm>>,
+    >,
 }
 
 /// Query terms that we want to match on.
@@ -503,10 +544,10 @@ pub struct GoogleCloudRetailV2Condition {
 pub struct GoogleCloudRetailV2ConditionQueryTerm {
     /// Whether this is supposed to be a full or partial match.
     #[serde(default, rename = "fullMatch")]
-    pub full_match: Option<bool>,
+    pub full_match: ::core::option::Option<bool>,
     /// The value of the term to match on. Value cannot be empty. Value can have at most 3 terms if specified as a partial match. Each space separated string is considered as one term. For example, "a b c" is 3 terms and allowed, but " a b c d" is 4 terms and not allowed for a partial match.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Used for time-dependent conditions. Example: Want to have rule applied for week long sale.
@@ -514,10 +555,10 @@ pub struct GoogleCloudRetailV2ConditionQueryTerm {
 pub struct GoogleCloudRetailV2ConditionTimeRange {
     /// End of time range. Range is inclusive.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Start of time range. Range is inclusive.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Configures dynamic metadata that can be linked to a ServingConfig and affect search or recommendation results at serving time.
@@ -525,22 +566,22 @@ pub struct GoogleCloudRetailV2ConditionTimeRange {
 pub struct GoogleCloudRetailV2Control {
     /// Output only. List of serving config ids that are associated with this control in the same Catalog. Note the association is managed via the ServingConfig, this is an output only denormalized view.
     #[serde(default, rename = "associatedServingConfigIds")]
-    pub associated_serving_config_ids: Option<Vec<String>>,
+    pub associated_serving_config_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The human readable control display name. Used in Retail UI. This field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is thrown.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. Fully qualified name projects/*/locations/global/catalogs/*/controls/*
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A rule control - a condition-action pair. Enacts a set action when the condition is triggered. For example: Boost "gShoe" when query full matches "Running Shoes".
     #[serde(default)]
-    pub rule: Option<GoogleCloudRetailV2Rule>,
+    pub rule: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Rule>>,
     /// Specifies the use case for the control. Affects what condition fields can be set. Only settable by search controls. Will default to SEARCH_SOLUTION_USE_CASE_SEARCH if not specified. Currently only allow one search_solution_use_case per control.
     #[serde(default, rename = "searchSolutionUseCase")]
-    pub search_solution_use_case: Option<Vec<String>>,
+    pub search_solution_use_case: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Immutable. The solution types that the control is used for. Currently we support setting only one type of solution at creation time. Only SOLUTION_TYPE_SEARCH value is supported at the moment. If no solution type is provided at creation time, will default to SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "solutionTypes")]
-    pub solution_types: Option<Vec<String>>,
+    pub solution_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The public proto to represent the conversational search customization config. It will be converted to the internal proto in the backend.
@@ -548,13 +589,14 @@ pub struct GoogleCloudRetailV2Control {
 pub struct GoogleCloudRetailV2ConversationalSearchCustomizationConfig {
     /// Required. Resource name of the catalog. Format: projects/{project}/locations/{location}/catalogs/{catalog}
     #[serde(default)]
-    pub catalog: Option<String>,
+    pub catalog: ::core::option::Option<String>,
     /// Optional. The configs for intent classification.
     #[serde(default, rename = "intentClassificationConfig")]
-    pub intent_classification_config: Option<GoogleCloudRetailV2IntentClassificationConfig>,
+    pub intent_classification_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2IntentClassificationConfig>>,
     /// Optional. The retailer''s display name that could be used in our LLM answers. Example - "Google"
     #[serde(default, rename = "retailerDisplayName")]
-    pub retailer_display_name: Option<String>,
+    pub retailer_display_name: ::core::option::Option<String>,
 }
 
 /// Request message for ConversationalSearchService.ConversationalSearch method.
@@ -562,35 +604,42 @@ pub struct GoogleCloudRetailV2ConversationalSearchCustomizationConfig {
 pub struct GoogleCloudRetailV2ConversationalSearchRequest {
     /// Required. The branch resource name, such as projects/*/locations/global/catalogs/default_catalog/branches/0. Use "default_branch" as the branch ID or leave this field empty, to search products under the default branch.
     #[serde(default)]
-    pub branch: Option<String>,
+    pub branch: ::core::option::Option<String>,
     /// Optional. This field specifies the conversation id, which maintains the state of the conversation between client side and server side. Use the value from the previous ConversationalSearchResponse.conversation_id. For the initial request, this should be empty.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// Optional. This field specifies all conversational filtering related parameters.
     #[serde(default, rename = "conversationalFilteringSpec")]
-    pub conversational_filtering_spec:
-        Option<GoogleCloudRetailV2ConversationalSearchRequestConversationalFilteringSpec>,
+    pub conversational_filtering_spec: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRetailV2ConversationalSearchRequestConversationalFilteringSpec,
+        >,
+    >,
     /// Optional. The categories associated with a category page. Must be set for category navigation queries to achieve good search quality. The format should be the same as UserEvent.page_categories; To represent the full path of category, use the ''&gt;'' sign, with one space on each side, to separate different hierarchies. If ''&gt;'' is part of the category name, replace it with other character(s). Category pages include special pages such as sales or promotions. For instance, a special sale page may have the category hierarchy: "pageCategories" : ["Sales &gt; 2017 Black Friday Deals"].
     #[serde(default, rename = "pageCategories")]
-    pub page_categories: Option<Vec<String>>,
+    pub page_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Raw search query to be searched for. If this field is empty, the request is considered a category browsing request.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Optional. The safety settings to be applied to the generated content.
     #[serde(default, rename = "safetySettings")]
-    pub safety_settings: Option<Vec<GoogleCloudRetailV2SafetySetting>>,
+    pub safety_settings: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2SafetySetting>>,
+    >,
     /// Optional. Search parameters.
     #[serde(default, rename = "searchParams")]
-    pub search_params: Option<GoogleCloudRetailV2ConversationalSearchRequestSearchParams>,
+    pub search_params: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2ConversationalSearchRequestSearchParams>,
+    >,
     /// Optional. User information.
     #[serde(default, rename = "userInfo")]
-    pub user_info: Option<GoogleCloudRetailV2UserInfo>,
+    pub user_info: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2UserInfo>>,
     /// Optional. The user labels applied to a resource must meet the following requirements: * Each resource can have multiple labels, up to a maximum of 64. * Each label must be a key-value pair. * Keys have a minimum length of 1 character and a maximum length of 63 characters and cannot be empty. Values can be empty and have a maximum length of 63 characters. * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. All characters must use UTF-8 encoding, and international characters are allowed. * The key portion of a label must be unique. However, you can use the same key with multiple resources. * Keys must start with a lowercase letter or international character. See [Google Cloud Document](https://cloud.google.com/resource-manager/docs/creating-managing-labels#requirements) for more details.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
     /// Required. A unique identifier for tracking visitors. For example, this could be implemented with an HTTP cookie, which should be able to uniquely identify a visitor on a single device. This unique identifier should not change if the visitor logs in or out of the website. This should be the same identifier as UserEvent.visitor_id. The field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "visitorId")]
-    pub visitor_id: Option<String>,
+    pub visitor_id: ::core::option::Option<String>,
 }
 
 /// This field specifies all conversational filtering related parameters addition to conversational retail search.
@@ -598,13 +647,15 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequest {
 pub struct GoogleCloudRetailV2ConversationalSearchRequestConversationalFilteringSpec {
     /// Optional. Mode to control Conversational Filtering. Defaults to Mode.DISABLED if it''s unset. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "ENABLED", "CONVERSATIONAL_FILTER_ONLY"]
     #[serde(default, rename = "conversationalFilteringMode")]
-    pub conversational_filtering_mode: Option<String>,
+    pub conversational_filtering_mode: ::core::option::Option<String>,
     /// Optional. This field is deprecated. Please use ConversationalFilteringSpec.conversational_filtering_mode instead.
     #[serde(default, rename = "enableConversationalFiltering")]
-    pub enable_conversational_filtering: Option<bool>,
+    pub enable_conversational_filtering: ::core::option::Option<bool>,
     /// Optional. This field specifies the current user answer during the conversational filtering search. It can be either user selected from suggested answers or user input plain text.
     #[serde(default, rename = "userAnswer")]
-    pub user_answer: Option<GoogleCloudRetailV2ConversationalSearchRequestUserAnswer>,
+    pub user_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2ConversationalSearchRequestUserAnswer>,
+    >,
 }
 
 /// Search parameters.
@@ -612,16 +663,17 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestConversationalFiltering
 pub struct GoogleCloudRetailV2ConversationalSearchRequestSearchParams {
     /// Optional. The boost spec to specify the boosting of search results. The syntax of the boost spec is the same as SearchRequest.boost_spec.
     #[serde(default, rename = "boostSpec")]
-    pub boost_spec: Option<GoogleCloudRetailV2SearchRequestBoostSpec>,
+    pub boost_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2SearchRequestBoostSpec>>,
     /// Optional. The canonical filter string to restrict search results. The syntax of the canonical filter string is the same as SearchRequest.canonical_filter.
     #[serde(default, rename = "canonicalFilter")]
-    pub canonical_filter: Option<String>,
+    pub canonical_filter: ::core::option::Option<String>,
     /// Optional. The filter string to restrict search results. The syntax of the filter string is the same as SearchRequest.filter.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Optional. The sort string to specify the sorting of search results. The syntax of the sort string is the same as SearchRequest.order_by.
     #[serde(default, rename = "sortBy")]
-    pub sort_by: Option<String>,
+    pub sort_by: ::core::option::Option<String>,
 }
 
 /// This field specifies the current user answer during the conversational filtering search. This can be either user selected from suggested answers or user input plain text.
@@ -629,11 +681,12 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestSearchParams {
 pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswer {
     /// Optional. This field specifies the selected answer during the conversational search. This should be a subset of ConversationalSearchResponse.FollowupQuestion.SuggestedAnswer.
     #[serde(default, rename = "selectedAnswer")]
-    pub selected_answer:
-        Option<GoogleCloudRetailV2ConversationalSearchRequestUserAnswerSelectedAnswer>,
+    pub selected_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2ConversationalSearchRequestUserAnswerSelectedAnswer>,
+    >,
     /// This field specifies the incremental input text from the user during the conversational search.
     #[serde(default, rename = "textAnswer")]
-    pub text_answer: Option<String>,
+    pub text_answer: ::core::option::Option<String>,
 }
 
 /// This field specifies the selected answers during the conversational search.
@@ -641,7 +694,8 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswer {
 pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswerSelectedAnswer {
     /// Optional. This field specifies the selected answer which is a attribute key-value.
     #[serde(default, rename = "productAttributeValue")]
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    pub product_attribute_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
 }
 
 /// Response message for ConversationalSearchService.ConversationalSearch method.
@@ -649,26 +703,35 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswerSelectedAnswe
 pub struct GoogleCloudRetailV2ConversationalSearchResponse {
     /// Conversation UUID. This field will be stored in client side storage to maintain the conversation session with server and will be used for next search request''s ConversationalSearchRequest.conversation_id to restore conversation state in server.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// This field specifies all related information that is needed on client side for UI rendering of conversational filtering search.
     #[serde(default, rename = "conversationalFilteringResult")]
-    pub conversational_filtering_result:
-        Option<GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult>,
+    pub conversational_filtering_result: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult,
+        >,
+    >,
     /// The conversational answer-based text response generated by the Server.
     #[serde(default, rename = "conversationalTextResponse")]
-    pub conversational_text_response: Option<String>,
+    pub conversational_text_response: ::core::option::Option<String>,
     /// The conversational followup question generated for Intent refinement.
     #[serde(default, rename = "followupQuestion")]
-    pub followup_question: Option<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion>,
+    pub followup_question: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion>,
+    >,
     /// The proposed refined search queries. They can be used to fetch the relevant search results. When using CONVERSATIONAL_FILTER_ONLY mode, the refined_query from search response will be populated here.
     #[serde(default, rename = "refinedSearch")]
-    pub refined_search: Option<Vec<GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch>>,
+    pub refined_search: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch>,
+        >,
+    >,
     /// Output only. The state of the response generation. // TODO: enum values: ["STATE_UNSPECIFIED", "STREAMING", "SUCCEEDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The types Retail classifies the search query as. Supported values are: - "ORDER_SUPPORT" - "SIMPLE_PRODUCT_SEARCH" - "INTENT_REFINEMENT" - "PRODUCT_DETAILS" - "PRODUCT_COMPARISON" - "DEALS_AND_COUPONS" - "STORE_RELEVANT" - "BLOCKLISTED" - "BEST_PRODUCT" - "RETAIL_SUPPORT" - "DISABLED"
     #[serde(default, rename = "userQueryTypes")]
-    pub user_query_types: Option<Vec<String>>,
+    pub user_query_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This field specifies all related information that is needed on client side for UI rendering of conversational filtering search.
@@ -676,10 +739,10 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponse {
 pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult {
     /// This is the incremental additional filters implied from the current user answer. User should add the suggested addition filters to the previous ConversationalSearchRequest.SearchParams.filter and SearchRequest.filter, and use the merged filter in the follow up requests.
     #[serde(default, rename = "additionalFilter")]
-    pub additional_filter: Option<GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter>,
+    pub additional_filter: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter>>,
     /// The conversational filtering question.
     #[serde(default, rename = "followupQuestion")]
-    pub followup_question: Option<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion>,
+    pub followup_question: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion>>,
 }
 
 /// Additional filter that client side need to apply.
@@ -688,7 +751,8 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilterin
 {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
     #[serde(default, rename = "productAttributeValue")]
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    pub product_attribute_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
 }
 
 /// The conversational followup question generated for Intent refinement.
@@ -696,11 +760,16 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilterin
 pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion {
     /// The conversational followup question generated for Intent refinement.
     #[serde(default, rename = "followupQuestion")]
-    pub followup_question: Option<String>,
+    pub followup_question: ::core::option::Option<String>,
     /// The answer options provided to client for the follow-up question.
     #[serde(default, rename = "suggestedAnswers")]
-    pub suggested_answers:
-        Option<Vec<GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer>>,
+    pub suggested_answers: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer,
+            >,
+        >,
+    >,
 }
 
 /// Suggested answers to the follow-up question. If it''s numerical attribute, only ProductAttributeInterval will be set. If it''s textual attribute, only productAttributeValue will be set.
@@ -708,7 +777,8 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion {
 pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
     #[serde(default, rename = "productAttributeValue")]
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    pub product_attribute_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
 }
 
 /// The proposed refined search for intent-refinement/bundled shopping conversation. When using CONVERSATIONAL_FILTER_ONLY mode, the refined_query from search response will be populated here.
@@ -716,7 +786,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSugges
 pub struct GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch {
     /// The query to be used for search.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// Metadata associated with a create operation.
@@ -724,7 +794,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch {
 pub struct GoogleCloudRetailV2CreateModelMetadata {
     /// The resource name of the model that this create applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// A custom attribute that is not explicitly modeled in Product.
@@ -732,16 +802,16 @@ pub struct GoogleCloudRetailV2CreateModelMetadata {
 pub struct GoogleCloudRetailV2CustomAttribute {
     /// This field is normally ignored unless AttributesConfig.attribute_config_level of the Catalog is set to the deprecated ''PRODUCT_LEVEL_ATTRIBUTE_CONFIG'' mode. For information about product-level attribute configuration, see [Configuration modes](https://cloud.google.com/retail/docs/attribute-config#config-modes). If true, custom attribute values are indexed, so that they can be filtered, faceted or boosted in SearchService.Search. This field is ignored in a UserEvent. See SearchRequest.filter, SearchRequest.facet_specs and SearchRequest.boost_spec for more details.
     #[serde(default)]
-    pub indexable: Option<bool>,
+    pub indexable: ::core::option::Option<bool>,
     /// The numerical values of this custom attribute. For example, [2.3, 15.4] when the key is "lengths_cm". Exactly one of text or numbers should be set. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub numbers: Option<Vec<f64>>,
+    pub numbers: ::core::option::Option<::std::vec::Vec<f64>>,
     /// This field is normally ignored unless AttributesConfig.attribute_config_level of the Catalog is set to the deprecated ''PRODUCT_LEVEL_ATTRIBUTE_CONFIG'' mode. For information about product-level attribute configuration, see [Configuration modes](https://cloud.google.com/retail/docs/attribute-config#config-modes). If true, custom attribute values are searchable by text queries in SearchService.Search. This field is ignored in a UserEvent. Only set if type text is set. Otherwise, a INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub searchable: Option<bool>,
+    pub searchable: ::core::option::Option<bool>,
     /// The textual values of this custom attribute. For example, ["yellow", "green"] when the key is "color". Empty string is not allowed. Otherwise, an INVALID_ARGUMENT error is returned. Exactly one of text or numbers should be set. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A message with a list of double values.
@@ -749,7 +819,7 @@ pub struct GoogleCloudRetailV2CustomAttribute {
 pub struct GoogleCloudRetailV2DoubleList {
     /// The list of double values.
     #[serde(default)]
-    pub values: Option<Vec<f64>>,
+    pub values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Metadata for active A/B testing experiment.
@@ -757,10 +827,12 @@ pub struct GoogleCloudRetailV2DoubleList {
 pub struct GoogleCloudRetailV2ExperimentInfo {
     /// The fully qualified resource name of the experiment that provides the serving config under test, should an active experiment exist. For example: projects/*/locations/global/catalogs/default_catalog/experiments/experiment_id
     #[serde(default)]
-    pub experiment: Option<String>,
+    pub experiment: ::core::option::Option<String>,
     /// A/B test between existing Cloud Retail Search ServingConfigs.
     #[serde(default, rename = "servingConfigExperiment")]
-    pub serving_config_experiment: Option<GoogleCloudRetailV2ExperimentInfoServingConfigExperiment>,
+    pub serving_config_experiment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2ExperimentInfoServingConfigExperiment>,
+    >,
 }
 
 /// Metadata for active serving config A/B tests.
@@ -768,10 +840,10 @@ pub struct GoogleCloudRetailV2ExperimentInfo {
 pub struct GoogleCloudRetailV2ExperimentInfoServingConfigExperiment {
     /// The fully qualified resource name of the serving config Experiment.VariantArm.serving_config_id responsible for generating the search response. For example: projects/*/locations/*/catalogs/*/servingConfigs/*.
     #[serde(default, rename = "experimentServingConfig")]
-    pub experiment_serving_config: Option<String>,
+    pub experiment_serving_config: ::core::option::Option<String>,
     /// The fully qualified resource name of the original SearchRequest.placement in the search request prior to reassignment by experiment API. For example: projects/*/locations/*/catalogs/*/servingConfigs/*.
     #[serde(default, rename = "originalServingConfig")]
-    pub original_serving_config: Option<String>,
+    pub original_serving_config: ::core::option::Option<String>,
 }
 
 /// Request message for the ExportAnalyticsMetrics method.
@@ -779,10 +851,10 @@ pub struct GoogleCloudRetailV2ExperimentInfoServingConfigExperiment {
 pub struct GoogleCloudRetailV2ExportAnalyticsMetricsRequest {
     /// A filtering expression to specify restrictions on returned metrics. The expression is a sequence of terms. Each term applies a restriction to the returned metrics. Use this expression to restrict results to a specific time range. Currently we expect only one types of fields: * timestamp: This can be specified twice, once with a less than operator and once with a greater than operator. The timestamp restriction should result in one, contiguous, valid, timestamp range. Some examples of valid filters expressions: * Example 1: timestamp &gt; "2012-04-23T18:25:43.511Z" timestamp &lt; "2012-04-23T18:30:43.511Z" * Example 2: timestamp &gt; "2012-04-23T18:25:43.511Z"
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The output location of the data. Only bigquery_destination is supported, and bigquery_destination.table_type must be set to view.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudRetailV2OutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2OutputConfig>>,
 }
 
 /// Response of the ExportAnalyticsMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -790,13 +862,14 @@ pub struct GoogleCloudRetailV2ExportAnalyticsMetricsRequest {
 pub struct GoogleCloudRetailV2ExportAnalyticsMetricsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// This field is never set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2ExportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ExportErrorsConfig>>,
     /// Output result indicating where the data were exported to.
     #[serde(default, rename = "outputResult")]
-    pub output_result: Option<GoogleCloudRetailV2OutputResult>,
+    pub output_result: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2OutputResult>>,
 }
 
 /// Configuration of destination for Export related errors.
@@ -804,7 +877,7 @@ pub struct GoogleCloudRetailV2ExportAnalyticsMetricsResponse {
 pub struct GoogleCloudRetailV2ExportErrorsConfig {
     /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Export errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: Option<String>,
+    pub gcs_prefix: ::core::option::Option<String>,
 }
 
 /// Metadata related to the progress of the Export operation. This is returned by the google.longrunning.Operation.metadata field.
@@ -812,10 +885,10 @@ pub struct GoogleCloudRetailV2ExportErrorsConfig {
 pub struct GoogleCloudRetailV2ExportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Fulfillment information, such as the store IDs for in-store pickup or region IDs for different shipping methods.
@@ -823,10 +896,10 @@ pub struct GoogleCloudRetailV2ExportMetadata {
 pub struct GoogleCloudRetailV2FulfillmentInfo {
     /// The IDs for this type, such as the store IDs for FulfillmentInfo.type.pickup-in-store or the region IDs for FulfillmentInfo.type.same-day-delivery. A maximum of 3000 values are allowed. Each value must be a string with a length limit of 30 characters, matching the pattern [a-zA-Z0-9_-]+, such as "store1" or "REGION-2". Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "placeIds")]
-    pub place_ids: Option<Vec<String>>,
+    pub place_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The fulfillment type, including commonly used types (such as pickup in store and same day delivery), and custom types. Customers have to map custom types to their display names before rendering UI. Supported values: * "pickup-in-store" * "ship-to-store" * "same-day-delivery" * "next-day-delivery" * "custom-type-1" * "custom-type-2" * "custom-type-3" * "custom-type-4" * "custom-type-5" If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A Gcs output result.
@@ -834,7 +907,7 @@ pub struct GoogleCloudRetailV2FulfillmentInfo {
 pub struct GoogleCloudRetailV2GcsOutputResult {
     /// The uri of Gcs output
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Google Cloud Storage location for input content.
@@ -842,10 +915,10 @@ pub struct GoogleCloudRetailV2GcsOutputResult {
 pub struct GoogleCloudRetailV2GcsSource {
     /// The schema to use when parsing the data from the source. Supported values for product imports: * product (default): One JSON Product per line. Each product must have a valid Product.id. * product_merchant_center: See [Importing catalog data from Merchant Center](https://cloud.google.com/retail/recommendations-ai/docs/upload-catalog#mc). Supported values for user events imports: * user_event (default): One JSON UserEvent per line. * user_event_ga360: Using https://support.google.com/analytics/answer/3437719. Supported values for control imports: * control (default): One JSON Control per line. Supported values for catalog attribute imports: * catalog_attribute (default): One CSV CatalogAttribute per line.
     #[serde(default, rename = "dataSchema")]
-    pub data_schema: Option<String>,
+    pub data_schema: ::core::option::Option<String>,
     /// Required. Google Cloud Storage URIs to input files. URI can be up to 2000 characters long. URIs can match the full object path (for example, gs://bucket/directory/object.json) or a pattern matching one or more files, such as gs://bucket/directory/*.json. A request can contain at most 100 files, and each file can be up to 2 GB. See [Importing product information](https://cloud.google.com/retail/recommendations-ai/docs/upload-catalog) for the expected file format and setup instructions.
     #[serde(default, rename = "inputUris")]
-    pub input_uris: Option<Vec<String>>,
+    pub input_uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration for a single generated question.
@@ -853,25 +926,25 @@ pub struct GoogleCloudRetailV2GcsSource {
 pub struct GoogleCloudRetailV2GenerativeQuestionConfig {
     /// Optional. Whether the question is asked at serving time.
     #[serde(default, rename = "allowedInConversation")]
-    pub allowed_in_conversation: Option<bool>,
+    pub allowed_in_conversation: ::core::option::Option<bool>,
     /// Required. Resource name of the catalog. Format: projects/{project}/locations/{location}/catalogs/{catalog}
     #[serde(default)]
-    pub catalog: Option<String>,
+    pub catalog: ::core::option::Option<String>,
     /// Output only. Values that can be used to answer the question.
     #[serde(default, rename = "exampleValues")]
-    pub example_values: Option<Vec<String>>,
+    pub example_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The facet to which the question is associated.
     #[serde(default)]
-    pub facet: Option<String>,
+    pub facet: ::core::option::Option<String>,
     /// Optional. The question that will be used at serving time. Question can have a max length of 300 bytes. When not populated, generated_question should be used.
     #[serde(default, rename = "finalQuestion")]
-    pub final_question: Option<String>,
+    pub final_question: ::core::option::Option<String>,
     /// Output only. The ratio of how often a question was asked.
     #[serde(default)]
-    pub frequency: Option<f32>,
+    pub frequency: ::core::option::Option<f32>,
     /// Output only. The LLM generated question.
     #[serde(default, rename = "generatedQuestion")]
-    pub generated_question: Option<String>,
+    pub generated_question: ::core::option::Option<String>,
 }
 
 /// Configuration for overall generative question feature state.
@@ -879,13 +952,13 @@ pub struct GoogleCloudRetailV2GenerativeQuestionConfig {
 pub struct GoogleCloudRetailV2GenerativeQuestionsFeatureConfig {
     /// Required. Resource name of the affected catalog. Format: projects/{project}/locations/{location}/catalogs/{catalog}
     #[serde(default)]
-    pub catalog: Option<String>,
+    pub catalog: ::core::option::Option<String>,
     /// Optional. Determines whether questions will be used at serving time. Note: This feature cannot be enabled until initial data requirements are satisfied.
     #[serde(default, rename = "featureEnabled")]
-    pub feature_enabled: Option<bool>,
+    pub feature_enabled: ::core::option::Option<bool>,
     /// Optional. Minimum number of products in the response to trigger follow-up questions. Value must be 0 or positive.
     #[serde(default, rename = "minimumProducts")]
-    pub minimum_products: Option<i32>,
+    pub minimum_products: ::core::option::Option<i32>,
 }
 
 /// Response message of CatalogService.GetDefaultBranch.
@@ -893,13 +966,13 @@ pub struct GoogleCloudRetailV2GenerativeQuestionsFeatureConfig {
 pub struct GoogleCloudRetailV2GetDefaultBranchResponse {
     /// Full resource name of the branch id currently set as default branch.
     #[serde(default)]
-    pub branch: Option<String>,
+    pub branch: ::core::option::Option<String>,
     /// This corresponds to SetDefaultBranchRequest.note field, when this branch was set as default.
     #[serde(default)]
-    pub note: Option<String>,
+    pub note: ::core::option::Option<String>,
     /// The time when this branch is set to default.
     #[serde(default, rename = "setTime")]
-    pub set_time: Option<String>,
+    pub set_time: ::core::option::Option<String>,
 }
 
 /// Product image. Recommendations AI and Retail Search use product images to improve prediction and search results. Product images can be returned in results, and are shown in prediction or search previews in the console. Please try to provide correct product images and avoid using images with size too small.
@@ -907,13 +980,13 @@ pub struct GoogleCloudRetailV2GetDefaultBranchResponse {
 pub struct GoogleCloudRetailV2Image {
     /// Height of the image in number of pixels. This field must be nonnegative. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Required. URI of the image. This field must be a valid UTF-8 encoded URI with a length limit of 5,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [image_link](https://support.google.com/merchants/answer/6324350). Schema.org property [Product.image](https://schema.org/image).
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// Width of the image in number of pixels. This field must be nonnegative. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Request message for ImportCompletionData methods.
@@ -921,10 +994,11 @@ pub struct GoogleCloudRetailV2Image {
 pub struct GoogleCloudRetailV2ImportCompletionDataRequest {
     /// Required. The desired input location of the data.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudRetailV2CompletionDataInputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CompletionDataInputConfig>>,
     /// Pub/Sub topic for receiving notification. If this field is set, when the import is finished, a notification is sent to specified Pub/Sub topic. The message data is JSON string of a Operation. Format of the Pub/Sub topic is projects/{project}/topics/{topic}.
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
 }
 
 /// Response of the ImportCompletionDataRequest. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
@@ -932,7 +1006,7 @@ pub struct GoogleCloudRetailV2ImportCompletionDataRequest {
 pub struct GoogleCloudRetailV2ImportCompletionDataResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Configuration of destination for Import related errors.
@@ -940,7 +1014,7 @@ pub struct GoogleCloudRetailV2ImportCompletionDataResponse {
 pub struct GoogleCloudRetailV2ImportErrorsConfig {
     /// Google Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: Option<String>,
+    pub gcs_prefix: ::core::option::Option<String>,
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
@@ -948,22 +1022,22 @@ pub struct GoogleCloudRetailV2ImportErrorsConfig {
 pub struct GoogleCloudRetailV2ImportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Count of entries that encountered errors while processing.
     #[serde(default, rename = "failureCount")]
-    pub failure_count: Option<String>,
+    pub failure_count: ::core::option::Option<String>,
     /// Pub/Sub topic for receiving notification. If this field is set, when the import is finished, a notification is sent to specified Pub/Sub topic. The message data is JSON string of a Operation. Format of the Pub/Sub topic is projects/{project}/topics/{topic}.
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
     /// Deprecated. This field is never set.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Count of entries that were processed successfully.
     #[serde(default, rename = "successCount")]
-    pub success_count: Option<String>,
+    pub success_count: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request message for Import methods.
@@ -971,22 +1045,24 @@ pub struct GoogleCloudRetailV2ImportMetadata {
 pub struct GoogleCloudRetailV2ImportProductsRequest {
     /// The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2ImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ImportErrorsConfig>>,
     /// Required. The desired input location of the data.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudRetailV2ProductInputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductInputConfig>>,
     /// Full Pub/Sub topic name for receiving notification. If this field is set, when the import is finished, a notification is sent to specified Pub/Sub topic. The message data is JSON string of a Operation. Format of the Pub/Sub topic is projects/{project}/topics/{topic}. It has to be within the same project as ImportProductsRequest.parent. Make sure that both cloud-retail-customer-data-access@system.gserviceaccount.com and service-@gcp-sa-retail.iam.gserviceaccount.com have the pubsub.topics.publish IAM permission on the topic. Only supported when ImportProductsRequest.reconciliation_mode is set to FULL.
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
     /// The mode of reconciliation between existing products and the products to be imported. Defaults to ReconciliationMode.INCREMENTAL. // TODO: enum values: ["RECONCILIATION_MODE_UNSPECIFIED", "INCREMENTAL", "FULL"]
     #[serde(default, rename = "reconciliationMode")]
-    pub reconciliation_mode: Option<String>,
+    pub reconciliation_mode: ::core::option::Option<String>,
     /// Deprecated. This field has no effect.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Indicates which fields in the provided imported products to update. If not set, all fields are updated. If provided, only the existing product fields are updated. Missing products will not be created.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Response of the ImportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -994,10 +1070,11 @@ pub struct GoogleCloudRetailV2ImportProductsRequest {
 pub struct GoogleCloudRetailV2ImportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2ImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ImportErrorsConfig>>,
 }
 
 /// Request message for the ImportUserEvents request.
@@ -1005,10 +1082,12 @@ pub struct GoogleCloudRetailV2ImportProductsResponse {
 pub struct GoogleCloudRetailV2ImportUserEventsRequest {
     /// The desired location of errors incurred during the Import. Cannot be set for inline user event imports.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2ImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ImportErrorsConfig>>,
     /// Required. The desired input location of the data.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudRetailV2UserEventInputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2UserEventInputConfig>>,
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -1016,13 +1095,15 @@ pub struct GoogleCloudRetailV2ImportUserEventsRequest {
 pub struct GoogleCloudRetailV2ImportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Echoes the destination for the complete errors if this field was set in the request.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2ImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ImportErrorsConfig>>,
     /// Aggregated statistics of user event import status.
     #[serde(default, rename = "importSummary")]
-    pub import_summary: Option<GoogleCloudRetailV2UserEventImportSummary>,
+    pub import_summary:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2UserEventImportSummary>>,
 }
 
 /// The public proto to represent the intent classification config. It will be converted to the internal proto in the backend.
@@ -1030,19 +1111,23 @@ pub struct GoogleCloudRetailV2ImportUserEventsResponse {
 pub struct GoogleCloudRetailV2IntentClassificationConfig {
     /// Optional. A list of keywords that will be used to classify the query to the "BLOCKLISTED" intent type. The keywords are case insensitive.
     #[serde(default, rename = "blocklistKeywords")]
-    pub blocklist_keywords: Option<Vec<String>>,
+    pub blocklist_keywords: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A list of intent types that will be disabled for this customer. The intent types must match one of the predefined intent types defined at https://cloud.google.com/retail/docs/reference/rpc/google.cloud.retail.v2alpha#querytype
     #[serde(default, rename = "disabledIntentTypes")]
-    pub disabled_intent_types: Option<Vec<String>>,
+    pub disabled_intent_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A list of examples for intent classification.
     #[serde(default)]
-    pub example: Option<Vec<GoogleCloudRetailV2IntentClassificationConfigExample>>,
+    pub example: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2IntentClassificationConfigExample>>,
+    >,
     /// Optional. Inline source for intent classifications.
     #[serde(default, rename = "inlineSource")]
-    pub inline_source: Option<GoogleCloudRetailV2IntentClassificationConfigInlineSource>,
+    pub inline_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2IntentClassificationConfigInlineSource>,
+    >,
     /// Optional. Customers can use the preamble to specify any requirements for blocklisting intent classification. This preamble will be added to the blocklisting intent classification model prompt.
     #[serde(default, rename = "modelPreamble")]
-    pub model_preamble: Option<String>,
+    pub model_preamble: ::core::option::Option<String>,
 }
 
 /// An example for intent classification.
@@ -1050,16 +1135,16 @@ pub struct GoogleCloudRetailV2IntentClassificationConfig {
 pub struct GoogleCloudRetailV2IntentClassificationConfigExample {
     /// Required. Whether the example is classified positively.
     #[serde(default, rename = "classifiedPositive")]
-    pub classified_positive: Option<bool>,
+    pub classified_positive: ::core::option::Option<bool>,
     /// Optional. The intent_type must match one of the predefined intent types defined at https://cloud.google.com/retail/docs/reference/rpc/google.cloud.retail.v2alpha#querytype
     #[serde(default, rename = "intentType")]
-    pub intent_type: Option<String>,
+    pub intent_type: ::core::option::Option<String>,
     /// Required. Example query.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Optional. The reason for the intent classification. This is used to explain the intent classification decision.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// An inline force intent classification configuration.
@@ -1067,13 +1152,13 @@ pub struct GoogleCloudRetailV2IntentClassificationConfigExample {
 pub struct GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent {
     /// Optional. The intent_type must match one of the predefined intent types defined at https://cloud.google.com/retail/docs/reference/rpc/google.cloud.retail.v2alpha#querytype
     #[serde(default, rename = "intentType")]
-    pub intent_type: Option<String>,
+    pub intent_type: ::core::option::Option<String>,
     /// Optional. The operation to perform for the query. // TODO: enum values: ["OPERATION_UNSPECIFIED", "EXACT_MATCH", "CONTAINS"]
     #[serde(default)]
-    pub operation: Option<String>,
+    pub operation: ::core::option::Option<String>,
     /// Optional. A example query.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// Inline source for intent classifications.
@@ -1081,8 +1166,11 @@ pub struct GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent {
 pub struct GoogleCloudRetailV2IntentClassificationConfigInlineSource {
     /// Optional. A list of inline force intent classifications.
     #[serde(default, rename = "inlineForceIntents")]
-    pub inline_force_intents:
-        Option<Vec<GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent>>,
+    pub inline_force_intents: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent>,
+        >,
+    >,
 }
 
 /// A floating point interval.
@@ -1090,16 +1178,16 @@ pub struct GoogleCloudRetailV2IntentClassificationConfigInlineSource {
 pub struct GoogleCloudRetailV2Interval {
     /// Exclusive upper bound.
     #[serde(default, rename = "exclusiveMaximum")]
-    pub exclusive_maximum: Option<f64>,
+    pub exclusive_maximum: ::core::option::Option<f64>,
     /// Exclusive lower bound.
     #[serde(default, rename = "exclusiveMinimum")]
-    pub exclusive_minimum: Option<f64>,
+    pub exclusive_minimum: ::core::option::Option<f64>,
     /// Inclusive upper bound.
     #[serde(default)]
-    pub maximum: Option<f64>,
+    pub maximum: ::core::option::Option<f64>,
     /// Inclusive lower bound.
     #[serde(default)]
-    pub minimum: Option<f64>,
+    pub minimum: ::core::option::Option<f64>,
 }
 
 /// Response for CatalogService.ListCatalogs method.
@@ -1107,10 +1195,11 @@ pub struct GoogleCloudRetailV2Interval {
 pub struct GoogleCloudRetailV2ListCatalogsResponse {
     /// All the customer''s Catalogs.
     #[serde(default)]
-    pub catalogs: Option<Vec<GoogleCloudRetailV2Catalog>>,
+    pub catalogs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Catalog>>>,
     /// A token that can be sent as ListCatalogsRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for ListControls method.
@@ -1118,10 +1207,11 @@ pub struct GoogleCloudRetailV2ListCatalogsResponse {
 pub struct GoogleCloudRetailV2ListControlsResponse {
     /// All the Controls for a given catalog.
     #[serde(default)]
-    pub controls: Option<Vec<GoogleCloudRetailV2Control>>,
+    pub controls:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Control>>>,
     /// Pagination token, if not returned indicates the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for ListQuestions method.
@@ -1129,7 +1219,9 @@ pub struct GoogleCloudRetailV2ListControlsResponse {
 pub struct GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse {
     /// All the questions for a given catalog.
     #[serde(default, rename = "generativeQuestionConfigs")]
-    pub generative_question_configs: Option<Vec<GoogleCloudRetailV2GenerativeQuestionConfig>>,
+    pub generative_question_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2GenerativeQuestionConfig>>,
+    >,
 }
 
 /// Response to a ListModelRequest.
@@ -1137,10 +1229,11 @@ pub struct GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse {
 pub struct GoogleCloudRetailV2ListModelsResponse {
     /// List of Models.
     #[serde(default)]
-    pub models: Option<Vec<GoogleCloudRetailV2Model>>,
+    pub models:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Model>>>,
     /// Pagination token, if not returned indicates the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ProductService.ListProducts method.
@@ -1148,10 +1241,11 @@ pub struct GoogleCloudRetailV2ListModelsResponse {
 pub struct GoogleCloudRetailV2ListProductsResponse {
     /// A token that can be sent as ListProductsRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The Products.
     #[serde(default)]
-    pub products: Option<Vec<GoogleCloudRetailV2Product>>,
+    pub products:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Product>>>,
 }
 
 /// Response for ListServingConfigs method.
@@ -1159,10 +1253,12 @@ pub struct GoogleCloudRetailV2ListProductsResponse {
 pub struct GoogleCloudRetailV2ListServingConfigsResponse {
     /// Pagination token, if not returned indicates the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// All the ServingConfigs for a given catalog.
     #[serde(default, rename = "servingConfigs")]
-    pub serving_configs: Option<Vec<GoogleCloudRetailV2ServingConfig>>,
+    pub serving_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ServingConfig>>,
+    >,
 }
 
 /// The inventory information at a place (e.g. a store) identified by a place ID.
@@ -1170,16 +1266,16 @@ pub struct GoogleCloudRetailV2ListServingConfigsResponse {
 pub struct GoogleCloudRetailV2LocalInventory {
     /// Optional. Additional local inventory attributes, for example, store name, promotion tags, etc. This field needs to pass all below criteria, otherwise an INVALID_ARGUMENT error is returned: * At most 30 attributes are allowed. * The key must be a UTF-8 encoded string with a length limit of 32 characters. * The key must match the pattern: a-zA-Z0-9*. For example, key0LikeThis or KEY_1_LIKE_THIS. * The attribute values must be of the same type (text or number). * Only 1 value is allowed for each attribute. * For text values, the length limit is 256 UTF-8 characters. * The attribute does not support search. The searchable field should be unset or set to false. * The max summed total bytes of custom attribute keys and values per product is 5MiB.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. Supported fulfillment types. Valid fulfillment type values include commonly used types (such as pickup in store and same day delivery), and custom types. Customers have to map custom types to their display names before rendering UI. Supported values: * "pickup-in-store" * "ship-to-store" * "same-day-delivery" * "next-day-delivery" * "custom-type-1" * "custom-type-2" * "custom-type-3" * "custom-type-4" * "custom-type-5" If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. All the elements must be distinct. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "fulfillmentTypes")]
-    pub fulfillment_types: Option<Vec<String>>,
+    pub fulfillment_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The place ID for the current set of inventory information.
     #[serde(default, rename = "placeId")]
-    pub place_id: Option<String>,
+    pub place_id: ::core::option::Option<String>,
     /// Optional. Product price and cost information. Google Merchant Center property [price](https://support.google.com/merchants/answer/6324371).
     #[serde(default, rename = "priceInfo")]
-    pub price_info: Option<GoogleCloudRetailV2PriceInfo>,
+    pub price_info: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2PriceInfo>>,
 }
 
 /// Metadata that describes the training and serving parameters of a Model. A Model can be associated with a ServingConfig and then queried through the Predict API.
@@ -1187,49 +1283,52 @@ pub struct GoogleCloudRetailV2LocalInventory {
 pub struct GoogleCloudRetailV2Model {
     /// Output only. Timestamp the Recommendation Model was created at.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The state of data requirements for this model: DATA_OK and DATA_ERROR. Recommendation model cannot be trained if the data is in DATA_ERROR state. Recommendation model can have DATA_ERROR state even if serving state is ACTIVE: models were trained successfully before, but cannot be refreshed because model no longer has sufficient data for training. // TODO: enum values: ["DATA_STATE_UNSPECIFIED", "DATA_OK", "DATA_ERROR"]
     #[serde(default, rename = "dataState")]
-    pub data_state: Option<String>,
+    pub data_state: ::core::option::Option<String>,
     /// Required. The display name of the model. Should be human readable, used to display Recommendation Models in the Retail Cloud Console Dashboard. UTF-8 encoded string with limit of 1024 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. If RECOMMENDATIONS_FILTERING_ENABLED, recommendation filtering by attributes is enabled for the model. // TODO: enum values: ["RECOMMENDATIONS_FILTERING_OPTION_UNSPECIFIED", "RECOMMENDATIONS_FILTERING_DISABLED", "RECOMMENDATIONS_FILTERING_ENABLED"]
     #[serde(default, rename = "filteringOption")]
-    pub filtering_option: Option<String>,
+    pub filtering_option: ::core::option::Option<String>,
     /// Output only. The timestamp when the latest successful tune finished.
     #[serde(default, rename = "lastTuneTime")]
-    pub last_tune_time: Option<String>,
+    pub last_tune_time: ::core::option::Option<String>,
     /// Optional. Additional model features config.
     #[serde(default, rename = "modelFeaturesConfig")]
-    pub model_features_config: Option<GoogleCloudRetailV2ModelModelFeaturesConfig>,
+    pub model_features_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ModelModelFeaturesConfig>>,
     /// Required. The fully qualified resource name of the model. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id} catalog_id has char limit of 50. recommendation_model_id has char limit of 40.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The optimization objective e.g. cvr. Currently supported values: ctr, cvr, revenue-per-order. If not specified, we choose default based on model type. Default depends on type of recommendation: recommended-for-you =&gt; ctr others-you-may-like =&gt; ctr frequently-bought-together =&gt; revenue_per_order This field together with optimization_objective describe model metadata to use to control model training and serving. See https://cloud.google.com/retail/docs/models for more details on what the model metadata control and which combination of parameters are valid. For invalid combinations of parameters (e.g. type = frequently-bought-together and optimization_objective = ctr), you receive an error 400 if you try to create/update a recommendation with this set of knobs.
     #[serde(default, rename = "optimizationObjective")]
-    pub optimization_objective: Option<String>,
+    pub optimization_objective: ::core::option::Option<String>,
     /// Optional. The state of periodic tuning. The period we use is 3 months - to do a one-off tune earlier use the TuneModel method. Default value is PERIODIC_TUNING_ENABLED. // TODO: enum values: ["PERIODIC_TUNING_STATE_UNSPECIFIED", "PERIODIC_TUNING_DISABLED", "ALL_TUNING_DISABLED", "PERIODIC_TUNING_ENABLED"]
     #[serde(default, rename = "periodicTuningState")]
-    pub periodic_tuning_state: Option<String>,
+    pub periodic_tuning_state: ::core::option::Option<String>,
     /// Output only. The list of valid serving configs associated with the PageOptimizationConfig.
     #[serde(default, rename = "servingConfigLists")]
-    pub serving_config_lists: Option<Vec<GoogleCloudRetailV2ModelServingConfigList>>,
+    pub serving_config_lists: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ModelServingConfigList>>,
+    >,
     /// Output only. The serving state of the model: ACTIVE, NOT_ACTIVE. // TODO: enum values: ["SERVING_STATE_UNSPECIFIED", "INACTIVE", "ACTIVE", "TUNED"]
     #[serde(default, rename = "servingState")]
-    pub serving_state: Option<String>,
+    pub serving_state: ::core::option::Option<String>,
     /// Optional. The training state that the model is in (e.g. TRAINING or PAUSED). Since part of the cost of running the service is frequency of training - this can be used to determine when to train model in order to control cost. If not specified: the default value for CreateModel method is TRAINING. The default value for UpdateModel method is to keep the state the same as before. // TODO: enum values: ["TRAINING_STATE_UNSPECIFIED", "PAUSED", "TRAINING"]
     #[serde(default, rename = "trainingState")]
-    pub training_state: Option<String>,
+    pub training_state: ::core::option::Option<String>,
     /// Output only. The tune operation associated with the model. Can be used to determine if there is an ongoing tune for this recommendation. Empty field implies no tune is goig on.
     #[serde(default, rename = "tuningOperation")]
-    pub tuning_operation: Option<String>,
+    pub tuning_operation: ::core::option::Option<String>,
     /// Required. The type of model e.g. home-page. Currently supported values: recommended-for-you, others-you-may-like, frequently-bought-together, page-optimization, similar-items, buy-it-again, on-sale-items, and recently-viewed(readonly value). This field together with optimization_objective describe model metadata to use to control model training and serving. See https://cloud.google.com/retail/docs/models for more details on what the model metadata control and which combination of parameters are valid. For invalid combinations of parameters (e.g. type = frequently-bought-together and optimization_objective = ctr), you receive an error 400 if you try to create/update a recommendation with this set of knobs.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Timestamp the Recommendation Model was last updated. E.g. if a Recommendation Model was paused - this would be the time the pause was initiated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Additional configs for the frequently-bought-together model type.
@@ -1237,7 +1336,7 @@ pub struct GoogleCloudRetailV2Model {
 pub struct GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig {
     /// Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the frequently-bought-together type. If it isn''t specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS. // TODO: enum values: ["CONTEXT_PRODUCTS_TYPE_UNSPECIFIED", "SINGLE_CONTEXT_PRODUCT", "MULTIPLE_CONTEXT_PRODUCTS"]
     #[serde(default, rename = "contextProductsType")]
-    pub context_products_type: Option<String>,
+    pub context_products_type: ::core::option::Option<String>,
 }
 
 /// Additional model features config.
@@ -1245,8 +1344,9 @@ pub struct GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig {
 pub struct GoogleCloudRetailV2ModelModelFeaturesConfig {
     /// Additional configs for frequently-bought-together models.
     #[serde(default, rename = "frequentlyBoughtTogetherConfig")]
-    pub frequently_bought_together_config:
-        Option<GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig>,
+    pub frequently_bought_together_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig>,
+    >,
 }
 
 /// Represents an ordered combination of valid serving configs, which can be used for PAGE_OPTIMIZATION recommendations.
@@ -1254,7 +1354,7 @@ pub struct GoogleCloudRetailV2ModelModelFeaturesConfig {
 pub struct GoogleCloudRetailV2ModelServingConfigList {
     /// Optional. A set of valid serving configs that may be used for PAGE_OPTIMIZATION.
     #[serde(default, rename = "servingConfigIds")]
-    pub serving_config_ids: Option<Vec<String>>,
+    pub serving_config_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The output configuration setting.
@@ -1262,10 +1362,13 @@ pub struct GoogleCloudRetailV2ModelServingConfigList {
 pub struct GoogleCloudRetailV2OutputConfig {
     /// The BigQuery location where the output is to be written to.
     #[serde(default, rename = "bigqueryDestination")]
-    pub bigquery_destination: Option<GoogleCloudRetailV2OutputConfigBigQueryDestination>,
+    pub bigquery_destination: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2OutputConfigBigQueryDestination>,
+    >,
     /// The Google Cloud Storage location where the output is to be written to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudRetailV2OutputConfigGcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2OutputConfigGcsDestination>>,
 }
 
 /// The BigQuery output destination configuration.
@@ -1273,13 +1376,13 @@ pub struct GoogleCloudRetailV2OutputConfig {
 pub struct GoogleCloudRetailV2OutputConfigBigQueryDestination {
     /// Required. The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     /// Required. The prefix of exported BigQuery tables.
     #[serde(default, rename = "tableIdPrefix")]
-    pub table_id_prefix: Option<String>,
+    pub table_id_prefix: ::core::option::Option<String>,
     /// Required. Describes the table type. The following values are supported: * table: A BigQuery native table. * view: A virtual table defined by a SQL query.
     #[serde(default, rename = "tableType")]
-    pub table_type: Option<String>,
+    pub table_type: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage output destination configuration.
@@ -1287,7 +1390,7 @@ pub struct GoogleCloudRetailV2OutputConfigBigQueryDestination {
 pub struct GoogleCloudRetailV2OutputConfigGcsDestination {
     /// Required. The output uri prefix for saving output data to json files. Some mapping examples are as follows: output_uri_prefix sample output(assuming the object is foo.json) ======================== ============================================= gs://bucket/ gs://bucket/foo.json gs://bucket/folder/ gs://bucket/folder/foo.json gs://bucket/folder/item_ gs://bucket/folder/item_foo.json
     #[serde(default, rename = "outputUriPrefix")]
-    pub output_uri_prefix: Option<String>,
+    pub output_uri_prefix: ::core::option::Option<String>,
 }
 
 /// Output result that stores the information about where the exported data is stored.
@@ -1295,10 +1398,14 @@ pub struct GoogleCloudRetailV2OutputConfigGcsDestination {
 pub struct GoogleCloudRetailV2OutputResult {
     /// The BigQuery location where the result is stored.
     #[serde(default, rename = "bigqueryResult")]
-    pub bigquery_result: Option<Vec<GoogleCloudRetailV2BigQueryOutputResult>>,
+    pub bigquery_result: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2BigQueryOutputResult>>,
+    >,
     /// The Google Cloud Storage location where the result is stored.
     #[serde(default, rename = "gcsResult")]
-    pub gcs_result: Option<Vec<GoogleCloudRetailV2GcsOutputResult>>,
+    pub gcs_result: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2GcsOutputResult>>,
+    >,
 }
 
 /// Detailed panel information associated with a user event.
@@ -1306,22 +1413,24 @@ pub struct GoogleCloudRetailV2OutputResult {
 pub struct GoogleCloudRetailV2PanelInfo {
     /// Optional. The attribution token of the panel.
     #[serde(default, rename = "attributionToken")]
-    pub attribution_token: Option<String>,
+    pub attribution_token: ::core::option::Option<String>,
     /// Optional. The display name of the panel.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The panel ID.
     #[serde(default, rename = "panelId")]
-    pub panel_id: Option<String>,
+    pub panel_id: ::core::option::Option<String>,
     /// Optional. The ordered position of the panel, if shown to the user with other panels. If set, then total_panels must also be set.
     #[serde(default, rename = "panelPosition")]
-    pub panel_position: Option<i32>,
+    pub panel_position: ::core::option::Option<i32>,
     /// Optional. The product details associated with the panel.
     #[serde(default, rename = "productDetails")]
-    pub product_details: Option<Vec<GoogleCloudRetailV2ProductDetail>>,
+    pub product_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ProductDetail>>,
+    >,
     /// Optional. The total number of panels, including this one, shown to the user. Must be set if panel_position is set.
     #[serde(default, rename = "totalPanels")]
-    pub total_panels: Option<i32>,
+    pub total_panels: ::core::option::Option<i32>,
 }
 
 /// Metadata for pinning to be returned in the response. This is used for distinguishing between applied vs dropped pins.
@@ -1329,10 +1438,10 @@ pub struct GoogleCloudRetailV2PanelInfo {
 pub struct GoogleCloudRetailV2PinControlMetadata {
     /// Map of all matched pins, keyed by pin position.
     #[serde(default, rename = "allMatchedPins")]
-    pub all_matched_pins: Option<serde_json::Value>,
+    pub all_matched_pins: ::core::option::Option<serde_json::Value>,
     /// Map of pins that were dropped due to overlap with other matching pins, keyed by pin position.
     #[serde(default, rename = "droppedPins")]
-    pub dropped_pins: Option<serde_json::Value>,
+    pub dropped_pins: ::core::option::Option<serde_json::Value>,
 }
 
 /// List of product ids which have associated pins.
@@ -1340,7 +1449,7 @@ pub struct GoogleCloudRetailV2PinControlMetadata {
 pub struct GoogleCloudRetailV2PinControlMetadataProductPins {
     /// List of product ids which have associated pins.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<Vec<String>>,
+    pub product_id: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for Predict method.
@@ -1348,25 +1457,25 @@ pub struct GoogleCloudRetailV2PinControlMetadataProductPins {
 pub struct GoogleCloudRetailV2PredictRequest {
     /// Filter for restricting prediction results with a length limit of 5,000 characters. Accepts values for tags and the filterOutOfStockItems flag. * Tag expressions. Restricts predictions to products that match all of the specified tags. Boolean operators OR and NOT are supported if the expression is enclosed in parentheses, and must be separated from the tag values by a space. -"tagA" is also supported and is equivalent to NOT "tagA". Tag values must be double quoted UTF-8 encoded strings with a size limit of 1,000 characters. Note: "Recently viewed" models don''t support tag filtering at the moment. * filterOutOfStockItems. Restricts predictions to products that do not have a stockState value of OUT_OF_STOCK. Examples: * tag=("Red" OR "Blue") tag="New-Arrival" tag=(NOT "promotional") * filterOutOfStockItems tag=(-"promotional") * filterOutOfStockItems If your filter blocks all prediction results, the API will return *no* results. If instead you want empty result sets to return generic (unfiltered) popular products, set strictFiltering to False in PredictRequest.params. Note that the API will never return items with storageStatus of "EXPIRED" or "DELETED" regardless of filter choices. If filterSyntaxV2 is set to true under the params field, then attribute-based expressions are expected instead of the above described tag-based syntax. Examples: * (colors: ANY("Red", "Blue")) AND NOT (categories: ANY("Phones")) * (availability: ANY("IN_STOCK")) AND (colors: ANY("Red") OR categories: ANY("Phones")) For more information, see [Filter recommendations](https://cloud.google.com/retail/docs/filter-recs).
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The labels applied to a resource must meet the following requirements: * Each resource can have multiple labels, up to a maximum of 64. * Each label must be a key-value pair. * Keys have a minimum length of 1 character and a maximum length of 63 characters and cannot be empty. Values can be empty and have a maximum length of 63 characters. * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. All characters must use UTF-8 encoding, and international characters are allowed. * The key portion of a label must be unique. However, you can use the same key with multiple resources. * Keys must start with a lowercase letter or international character. See [Google Cloud Document](https://cloud.google.com/resource-manager/docs/creating-managing-labels#requirements) for more details.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Maximum number of results to return. Set this property to the number of prediction results needed. If zero, the service will choose a reasonable default. The maximum allowed value is 100. Values above 100 will be coerced to 100.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// This field is not used; leave it unset.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Additional domain specific parameters for the predictions. Allowed values: * returnProduct: Boolean. If set to true, the associated product object will be returned in the results.metadata field in the prediction response. * returnScore: Boolean. If set to true, the prediction ''score'' corresponding to each returned product will be set in the results.metadata field in the prediction response. The given ''score'' indicates the probability of a product being clicked/purchased given the user''s context and history. * strictFiltering: Boolean. True by default. If set to false, the service will return generic (unfiltered) popular products instead of empty if your filter blocks all prediction results. * priceRerankLevel: String. Default empty. If set to be non-empty, then it needs to be one of {''no-price-reranking'', ''low-price-reranking'', ''medium-price-reranking'', ''high-price-reranking''}. This gives request-level control and adjusts prediction results based on product price. * diversityLevel: String. Default empty. If set to be non-empty, then it needs to be one of {''no-diversity'', ''low-diversity'', ''medium-diversity'', ''high-diversity'', ''auto-diversity''}. This gives request-level control and adjusts prediction results based on product category. * filterSyntaxV2: Boolean. False by default. If set to true, the filter field is interpreteted according to the new, attribute-based syntax.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// Required. Context about the user, what they are looking at and what action they took to trigger the predict request. Note that this user event detail won''t be ingested to userEvent logs. Thus, a separate userEvent write request is required for event logging. Don''t set UserEvent.visitor_id or UserInfo.user_id to the same fixed ID for different users. If you are trying to receive non-personalized recommendations (not recommended; this can negatively impact model performance), instead set UserEvent.visitor_id to a random unique ID and leave UserInfo.user_id unset.
     #[serde(default, rename = "userEvent")]
-    pub user_event: Option<GoogleCloudRetailV2UserEvent>,
+    pub user_event: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2UserEvent>>,
     /// Use validate only mode for this prediction query. If set to true, a dummy model will be used that returns arbitrary products. Note that the validate only mode should only be used for testing the API, or if the model is not ready.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response message for predict method.
@@ -1374,16 +1483,18 @@ pub struct GoogleCloudRetailV2PredictRequest {
 pub struct GoogleCloudRetailV2PredictResponse {
     /// A unique attribution token. This should be included in the UserEvent logs resulting from this recommendation, which enables accurate attribution of recommendation model performance.
     #[serde(default, rename = "attributionToken")]
-    pub attribution_token: Option<String>,
+    pub attribution_token: ::core::option::Option<String>,
     /// IDs of products in the request that were missing from the inventory.
     #[serde(default, rename = "missingIds")]
-    pub missing_ids: Option<Vec<String>>,
+    pub missing_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of recommended products. The order represents the ranking (from the most relevant product to the least).
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudRetailV2PredictResponsePredictionResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2PredictResponsePredictionResult>>,
+    >,
     /// True if the validateOnly property was set in the request.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// PredictionResult represents the recommendation prediction results.
@@ -1391,10 +1502,10 @@ pub struct GoogleCloudRetailV2PredictResponse {
 pub struct GoogleCloudRetailV2PredictResponsePredictionResult {
     /// ID of the recommended product
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Additional product metadata / annotations. Possible values: * product: JSON representation of the product. Is set if returnProduct is set to true in PredictRequest.params. * score: Prediction score in double value. Is set if returnScore is set to true in PredictRequest.params.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
 /// The price information of a Product.
@@ -1402,25 +1513,26 @@ pub struct GoogleCloudRetailV2PredictResponsePredictionResult {
 pub struct GoogleCloudRetailV2PriceInfo {
     /// The costs associated with the sale of a particular product. Used for gross profit reporting. * Profit = price - cost Google Merchant Center property [cost_of_goods_sold](https://support.google.com/merchants/answer/9017895).
     #[serde(default)]
-    pub cost: Option<f32>,
+    pub cost: ::core::option::Option<f32>,
     /// The 3-letter currency code defined in [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html). If this field is an unrecognizable currency code, an INVALID_ARGUMENT error is returned. The Product.Type.VARIANT Products with the same Product.primary_product_id must share the same currency_code. Otherwise, a FAILED_PRECONDITION error is returned.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Price of the product without any discount. If zero, by default set to be the price. If set, original_price should be greater than or equal to price, otherwise an INVALID_ARGUMENT error is thrown.
     #[serde(default, rename = "originalPrice")]
-    pub original_price: Option<f32>,
+    pub original_price: ::core::option::Option<f32>,
     /// Price of the product. Google Merchant Center property [price](https://support.google.com/merchants/answer/6324371). Schema.org property [Offer.price](https://schema.org/price).
     #[serde(default)]
-    pub price: Option<f32>,
+    pub price: ::core::option::Option<f32>,
     /// The timestamp when the price starts to be effective. This can be set as a future timestamp, and the price is only used for search after price_effective_time. If so, the original_price must be set and original_price is used before price_effective_time. Do not set if price is always effective because it will cause additional latency during search.
     #[serde(default, rename = "priceEffectiveTime")]
-    pub price_effective_time: Option<String>,
+    pub price_effective_time: ::core::option::Option<String>,
     /// The timestamp when the price stops to be effective. The price is used for search before price_expire_time. If this field is set, the original_price must be set and original_price is used after price_expire_time. Do not set if price is always effective because it will cause additional latency during search.
     #[serde(default, rename = "priceExpireTime")]
-    pub price_expire_time: Option<String>,
+    pub price_expire_time: ::core::option::Option<String>,
     /// Output only. The price range of all the child Product.Type.VARIANT Products grouped together on the Product.Type.PRIMARY Product. Only populated for Product.Type.PRIMARY Products. Note: This field is OUTPUT_ONLY for ProductService.GetProduct. Do not set this field in API requests.
     #[serde(default, rename = "priceRange")]
-    pub price_range: Option<GoogleCloudRetailV2PriceInfoPriceRange>,
+    pub price_range:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2PriceInfoPriceRange>>,
 }
 
 /// The price range of all variant Product having the same Product.primary_product_id.
@@ -1428,10 +1540,10 @@ pub struct GoogleCloudRetailV2PriceInfo {
 pub struct GoogleCloudRetailV2PriceInfoPriceRange {
     /// The inclusive Product.pricing_info.original_price internal of all variant Product having the same Product.primary_product_id.
     #[serde(default, rename = "originalPrice")]
-    pub original_price: Option<GoogleCloudRetailV2Interval>,
+    pub original_price: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Interval>>,
     /// The inclusive Product.pricing_info.price interval of all variant Product having the same Product.primary_product_id.
     #[serde(default)]
-    pub price: Option<GoogleCloudRetailV2Interval>,
+    pub price: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Interval>>,
 }
 
 /// Product captures all metadata information of items to be recommended or searched.
@@ -1439,106 +1551,113 @@ pub struct GoogleCloudRetailV2PriceInfoPriceRange {
 pub struct GoogleCloudRetailV2Product {
     /// Highly encouraged. Extra product attributes to be included. For example, for products, this could include the store name, vendor, style, color, etc. These are very strong signals for recommendation model, thus we highly recommend providing the attributes here. Features that can take on one of a limited number of possible values. Two types of features can be set are: Textual features. some examples would be the brand/maker of a product, or country of a customer. Numerical features. Some examples would be the height/weight of a product, or age of a customer. For example: { "vendor": {"text": ["vendor123", "vendor456"]}, "lengths_cm": {"numbers":[2.3, 15.4]}, "heights_cm": {"numbers":[8.1, 6.4]} }. This field needs to pass all below criteria, otherwise an INVALID_ARGUMENT error is returned: * Max entries count: 200. * The key must be a UTF-8 encoded string with a length limit of 128 characters. * For indexable attribute, the key must match the pattern: a-zA-Z0-9*. For example, key0LikeThis or KEY_1_LIKE_THIS. * For text attributes, at most 400 values are allowed. Empty values are not allowed. Each value must be a non-empty UTF-8 encoded string with a length limit of 256 characters. * For number attributes, at most 400 values are allowed.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// The target group associated with a given audience (e.g. male, veterans, car owners, musicians, etc.) of the product.
     #[serde(default)]
-    pub audience: Option<GoogleCloudRetailV2Audience>,
+    pub audience: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Audience>>,
     /// The online availability of the Product. Default to Availability.IN_STOCK. For primary products with variants set the availability of the primary as Availability.OUT_OF_STOCK and set the true availability at the variant level. This way the primary product will be considered "in stock" as long as it has at least one variant in stock. For primary products with no variants set the true availability at the primary level. Corresponding properties: Google Merchant Center property [availability](https://support.google.com/merchants/answer/6324448). Schema.org property [Offer.availability](https://schema.org/availability). // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "IN_STOCK", "OUT_OF_STOCK", "PREORDER", "BACKORDER"]
     #[serde(default)]
-    pub availability: Option<String>,
+    pub availability: ::core::option::Option<String>,
     /// The available quantity of the item.
     #[serde(default, rename = "availableQuantity")]
-    pub available_quantity: Option<i32>,
+    pub available_quantity: ::core::option::Option<i32>,
     /// The timestamp when this Product becomes available for SearchService.Search. Note that this is only applicable to Type.PRIMARY and Type.COLLECTION, and ignored for Type.VARIANT.
     #[serde(default, rename = "availableTime")]
-    pub available_time: Option<String>,
+    pub available_time: ::core::option::Option<String>,
     /// The brands of the product. A maximum of 30 brands are allowed unless overridden through the Google Cloud console. Each brand must be a UTF-8 encoded string with a length limit of 1,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [brand](https://support.google.com/merchants/answer/6324351). Schema.org property [Product.brand](https://schema.org/brand).
     #[serde(default)]
-    pub brands: Option<Vec<String>>,
+    pub brands: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Product categories. This field is repeated for supporting one product belonging to several parallel categories. Strongly recommended using the full path for better search / recommendation quality. To represent the full path of category, use the ''&gt;'' sign, with one space on each side, to separate different hierarchies. If ''&gt;'' is part of the category name, replace it with other character(s). For example, if a shoes product belongs to both ["Shoes & Accessories" -&gt; "Shoes"] and ["Sports & Fitness" -&gt; "Athletic Clothing" -&gt; "Shoes"], it could be represented as: "categories": [ "Shoes & Accessories &gt; Shoes", "Sports & Fitness &gt; Athletic Clothing &gt; Shoes" ] Must be set for Type.PRIMARY Product otherwise an INVALID_ARGUMENT error is returned. At most 250 values are allowed per Product unless overridden through the Google Cloud console. Empty values are not allowed. Each value must be a UTF-8 encoded string with a length limit of 5,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property google_product_category. Schema.org property [Product.category] (https://schema.org/category). [mc_google_product_category]: https://support.google.com/merchants/answer/6324436
     #[serde(default)]
-    pub categories: Option<Vec<String>>,
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// The id of the collection members when type is Type.COLLECTION. Non-existent product ids are allowed. The type of the members must be either Type.PRIMARY or Type.VARIANT otherwise an INVALID_ARGUMENT error is thrown. Should not set it for other types. A maximum of 1000 values are allowed. Otherwise, an INVALID_ARGUMENT error is return.
     #[serde(default, rename = "collectionMemberIds")]
-    pub collection_member_ids: Option<Vec<String>>,
+    pub collection_member_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The color of the product. Corresponding properties: Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color).
     #[serde(default, rename = "colorInfo")]
-    pub color_info: Option<GoogleCloudRetailV2ColorInfo>,
+    pub color_info: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ColorInfo>>,
     /// The condition of the product. Strongly encouraged to use the standard values: "new", "refurbished", "used". A maximum of 1 value is allowed per Product. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [condition](https://support.google.com/merchants/answer/6324469). Schema.org property [Offer.itemCondition](https://schema.org/itemCondition).
     #[serde(default)]
-    pub conditions: Option<Vec<String>>,
+    pub conditions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Product description. This field must be a UTF-8 encoded string with a length limit of 5,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [description](https://support.google.com/merchants/answer/6324468). Schema.org property [Product.description](https://schema.org/description).
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Note that this field is applied in the following ways: * If the Product is already expired when it is uploaded, this product is not indexed for search. * If the Product is not expired when it is uploaded, only the Type.PRIMARY''s and Type.COLLECTION''s expireTime is respected, and Type.VARIANT''s expireTime is not used. In general, we suggest the users to delete the stale products explicitly, instead of using this field to determine staleness. expire_time must be later than available_time and publish_time, otherwise an INVALID_ARGUMENT error is thrown. Corresponding properties: Google Merchant Center property [expiration_date](https://support.google.com/merchants/answer/6324499).
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Fulfillment information, such as the store IDs for in-store pickup or region IDs for different shipping methods. All the elements must have distinct FulfillmentInfo.type. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "fulfillmentInfo")]
-    pub fulfillment_info: Option<Vec<GoogleCloudRetailV2FulfillmentInfo>>,
+    pub fulfillment_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2FulfillmentInfo>>,
+    >,
     /// The Global Trade Item Number (GTIN) of the product. This field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. This field must be a Unigram. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [gtin](https://support.google.com/merchants/answer/6324461). Schema.org property [Product.isbn](https://schema.org/isbn), [Product.gtin8](https://schema.org/gtin8), [Product.gtin12](https://schema.org/gtin12), [Product.gtin13](https://schema.org/gtin13), or [Product.gtin14](https://schema.org/gtin14). If the value is not a valid GTIN, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub gtin: Option<String>,
+    pub gtin: ::core::option::Option<String>,
     /// Immutable. Product identifier, which is the final component of name. For example, this field is "id_1", if name is projects/*/locations/global/catalogs/default_catalog/branches/default_branch/products/id_1. This field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [id](https://support.google.com/merchants/answer/6324405). Schema.org property [Product.sku](https://schema.org/sku).
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Product images for the product. We highly recommend putting the main image first. A maximum of 300 images are allowed. Corresponding properties: Google Merchant Center property [image_link](https://support.google.com/merchants/answer/6324350). Schema.org property [Product.image](https://schema.org/image).
     #[serde(default)]
-    pub images: Option<Vec<GoogleCloudRetailV2Image>>,
+    pub images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Image>>>,
     /// Language of the title/description and other string attributes. Use language tags defined by [BCP 47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). For product prediction, this field is ignored and the model automatically detects the text language. The Product can include text in different languages, but duplicating Products to provide text in multiple languages can result in degraded model performance. For product search this field is in use. It defaults to "en-US" if unset.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Output only. A list of local inventories specific to different places. This field can be managed by ProductService.AddLocalInventories and ProductService.RemoveLocalInventories APIs if fine-grained, high-volume updates are necessary.
     #[serde(default, rename = "localInventories")]
-    pub local_inventories: Option<Vec<GoogleCloudRetailV2LocalInventory>>,
+    pub local_inventories: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2LocalInventory>>,
+    >,
     /// The material of the product. For example, "leather", "wooden". A maximum of 20 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 200 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [material](https://support.google.com/merchants/answer/6324410). Schema.org property [Product.material](https://schema.org/material).
     #[serde(default)]
-    pub materials: Option<Vec<String>>,
+    pub materials: ::core::option::Option<::std::vec::Vec<String>>,
     /// Immutable. Full resource name of the product, such as projects/*/locations/global/catalogs/default_catalog/branches/default_branch/products/product_id.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The pattern or graphic print of the product. For example, "striped", "polka dot", "paisley". A maximum of 20 values are allowed per Product. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [pattern](https://support.google.com/merchants/answer/6324483). Schema.org property [Product.pattern](https://schema.org/pattern).
     #[serde(default)]
-    pub patterns: Option<Vec<String>>,
+    pub patterns: ::core::option::Option<::std::vec::Vec<String>>,
     /// Product price and cost information. Corresponding properties: Google Merchant Center property [price](https://support.google.com/merchants/answer/6324371).
     #[serde(default, rename = "priceInfo")]
-    pub price_info: Option<GoogleCloudRetailV2PriceInfo>,
+    pub price_info: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2PriceInfo>>,
     /// Variant group identifier. Must be an id, with the same parent branch with this product. Otherwise, an error is thrown. For Type.PRIMARY Products, this field can only be empty or set to the same value as id. For VARIANT Products, this field cannot be empty. A maximum of 2,000 products are allowed to share the same Type.PRIMARY Product. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [item_group_id](https://support.google.com/merchants/answer/6324507). Schema.org property [Product.inProductGroupWithID](https://schema.org/inProductGroupWithID).
     #[serde(default, rename = "primaryProductId")]
-    pub primary_product_id: Option<String>,
+    pub primary_product_id: ::core::option::Option<String>,
     /// The promotions applied to the product. A maximum of 10 values are allowed per Product. Only Promotion.promotion_id will be used, other fields will be ignored if set.
     #[serde(default)]
-    pub promotions: Option<Vec<GoogleCloudRetailV2Promotion>>,
+    pub promotions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Promotion>>>,
     /// The timestamp when the product is published by the retailer for the first time, which indicates the freshness of the products. Note that this field is different from available_time, given it purely describes product freshness regardless of when it is available on search and recommendation.
     #[serde(default, rename = "publishTime")]
-    pub publish_time: Option<String>,
+    pub publish_time: ::core::option::Option<String>,
     /// The rating of this product.
     #[serde(default)]
-    pub rating: Option<GoogleCloudRetailV2Rating>,
+    pub rating: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Rating>>,
     /// Indicates which fields in the Products are returned in SearchResponse. Supported fields for all types: * audience * availability * brands * color_info * conditions * gtin * materials * name * patterns * price_info * rating * sizes * title * uri Supported fields only for Type.PRIMARY and Type.COLLECTION: * categories * description * images Supported fields only for Type.VARIANT: * Only the first image in images To mark attributes as retrievable, include paths of the form "attributes.key" where "key" is the key of a custom attribute, as specified in attributes. For Type.PRIMARY and Type.COLLECTION, the following fields are always returned in SearchResponse by default: * name For Type.VARIANT, the following fields are always returned in by default: * name * color_info Note: Returning more fields in SearchResponse can increase response payload size and serving latency. This field is deprecated. Use the retrievable site-wide control instead.
     #[serde(default, rename = "retrievableFields")]
-    pub retrievable_fields: Option<String>,
+    pub retrievable_fields: ::core::option::Option<String>,
     /// The size of the product. To represent different size systems or size types, consider using this format: [[[size_system:]size_type:]size_value]. For example, in "US:MENS:M", "US" represents size system; "MENS" represents size type; "M" represents size value. In "GIRLS:27", size system is empty; "GIRLS" represents size type; "27" represents size value. In "32 inches", both size system and size type are empty, while size value is "32 inches". A maximum of 20 values are allowed per Product. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [size](https://support.google.com/merchants/answer/6324492), [size_type](https://support.google.com/merchants/answer/6324497), and [size_system](https://support.google.com/merchants/answer/6324502). Schema.org property [Product.size](https://schema.org/size).
     #[serde(default)]
-    pub sizes: Option<Vec<String>>,
+    pub sizes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Custom tags associated with the product. At most 250 values are allowed per Product. This value must be a UTF-8 encoded string with a length limit of 1,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. This tag can be used for filtering recommendation results by passing the tag as part of the PredictRequest.filter. Corresponding properties: Google Merchant Center property [custom_label_0–4](https://support.google.com/merchants/answer/6324473).
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Product title. This field must be a UTF-8 encoded string with a length limit of 1,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [title](https://support.google.com/merchants/answer/6324415). Schema.org property [Product.name](https://schema.org/name).
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Input only. The TTL (time to live) of the product. Note that this is only applicable to Type.PRIMARY and Type.COLLECTION, and ignored for Type.VARIANT. In general, we suggest the users to delete the stale products explicitly, instead of using this field to determine staleness. If it is set, it must be a non-negative value, and expire_time is set as current timestamp plus ttl. The derived expire_time is returned in the output and ttl is left blank when retrieving the Product. If it is set, the product is not available for SearchService.Search after current timestamp plus ttl. However, the product can still be retrieved by ProductService.GetProduct and ProductService.ListProducts.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Immutable. The type of the product. Default to Catalog.product_level_config.ingestion_product_type if unset. // TODO: enum values: ["TYPE_UNSPECIFIED", "PRIMARY", "VARIANT", "COLLECTION"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Canonical URL directly linking to the product detail page. It is strongly recommended to provide a valid uri for the product, otherwise the service performance could be significantly degraded. This field must be a UTF-8 encoded string with a length limit of 5,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [link](https://support.google.com/merchants/answer/6324416). Schema.org property [Offer.url](https://schema.org/url).
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// Output only. Product variants grouped together on primary product which share similar product attributes. It''s automatically grouped by primary_product_id for all the product variants. Only populated for Type.PRIMARY Products. Note: This field is OUTPUT_ONLY for ProductService.GetProduct. Do not set this field in API requests.
     #[serde(default)]
-    pub variants: Option<Vec<GoogleCloudRetailV2Product>>,
+    pub variants:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Product>>>,
 }
 
 /// Product attribute name and numeric interval.
@@ -1546,10 +1665,10 @@ pub struct GoogleCloudRetailV2Product {
 pub struct GoogleCloudRetailV2ProductAttributeInterval {
     /// The numeric interval (e.g. [10, 20))
     #[serde(default)]
-    pub interval: Option<GoogleCloudRetailV2Interval>,
+    pub interval: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Interval>>,
     /// The attribute name (e.g. "length")
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Product attribute which structured by an attribute name and value. This structure is used in conversational search filters and answers. For example, if we have name=color and value=red, this means that the color is red.
@@ -1557,10 +1676,10 @@ pub struct GoogleCloudRetailV2ProductAttributeInterval {
 pub struct GoogleCloudRetailV2ProductAttributeValue {
     /// The attribute name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The attribute value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Detailed product information associated with a user event.
@@ -1568,10 +1687,10 @@ pub struct GoogleCloudRetailV2ProductAttributeValue {
 pub struct GoogleCloudRetailV2ProductDetail {
     /// Required. Product information. Required field(s): * Product.id Optional override field(s): * Product.price_info If any supported optional fields are provided, we will treat them as a full override when looking up product information from the catalog. Thus, it is important to ensure that the overriding fields are accurate and complete. All other product fields are ignored and instead populated via catalog lookup after event ingestion.
     #[serde(default)]
-    pub product: Option<GoogleCloudRetailV2Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Product>>,
     /// Quantity of the product associated with the user event. For example, this field will be 2 if two products are added to the shopping cart for purchase-complete event. Required for add-to-cart and purchase-complete event types.
     #[serde(default)]
-    pub quantity: Option<i32>,
+    pub quantity: ::core::option::Option<i32>,
 }
 
 /// The inline source for the input config for ImportProducts method.
@@ -1579,7 +1698,8 @@ pub struct GoogleCloudRetailV2ProductDetail {
 pub struct GoogleCloudRetailV2ProductInlineSource {
     /// Required. A list of products to update/create. Each product must have a valid Product.id. Recommended max of 100 items.
     #[serde(default)]
-    pub products: Option<Vec<GoogleCloudRetailV2Product>>,
+    pub products:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Product>>>,
 }
 
 /// The input config source for products.
@@ -1587,13 +1707,15 @@ pub struct GoogleCloudRetailV2ProductInlineSource {
 pub struct GoogleCloudRetailV2ProductInputConfig {
     /// BigQuery input source.
     #[serde(default, rename = "bigQuerySource")]
-    pub big_query_source: Option<GoogleCloudRetailV2BigQuerySource>,
+    pub big_query_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2BigQuerySource>>,
     /// Google Cloud Storage location for the input content.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudRetailV2GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2GcsSource>>,
     /// The Inline source for the input content for products.
     #[serde(default, rename = "productInlineSource")]
-    pub product_inline_source: Option<GoogleCloudRetailV2ProductInlineSource>,
+    pub product_inline_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductInlineSource>>,
 }
 
 /// Configures what level the product should be uploaded with regards to how users will be send events and how predictions will be made.
@@ -1601,10 +1723,10 @@ pub struct GoogleCloudRetailV2ProductInputConfig {
 pub struct GoogleCloudRetailV2ProductLevelConfig {
     /// The type of Products allowed to be ingested into the catalog. Acceptable values are: * primary (default): You can ingest Products of all types. When ingesting a Product, its type will default to Product.Type.PRIMARY if unset. * variant (incompatible with Retail Search): You can only ingest Product.Type.VARIANT Products. This means Product.primary_product_id cannot be empty. If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. If this field is variant and merchant_center_product_id_field is itemGroupId, an INVALID_ARGUMENT error is returned. See [Product levels](https://cloud.google.com/retail/docs/catalog#product-levels) for more details.
     #[serde(default, rename = "ingestionProductType")]
-    pub ingestion_product_type: Option<String>,
+    pub ingestion_product_type: ::core::option::Option<String>,
     /// Which field of [Merchant Center Product](/bigquery-transfer/docs/merchant-center-products-schema) should be imported as Product.id. Acceptable values are: * offerId (default): Import offerId as the product ID. * itemGroupId: Import itemGroupId as the product ID. Notice that Retail API will choose one item from the ones with the same itemGroupId, and use it to represent the item group. If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. If this field is itemGroupId and ingestion_product_type is variant, an INVALID_ARGUMENT error is returned. See [Product levels](https://cloud.google.com/retail/docs/catalog#product-levels) for more details.
     #[serde(default, rename = "merchantCenterProductIdField")]
-    pub merchant_center_product_id_field: Option<String>,
+    pub merchant_center_product_id_field: ::core::option::Option<String>,
 }
 
 /// Promotion specification.
@@ -1612,7 +1734,7 @@ pub struct GoogleCloudRetailV2ProductLevelConfig {
 pub struct GoogleCloudRetailV2Promotion {
     /// Promotion identifier, which is the final component of name. For example, this field is "free_gift", if name is projects/*/locations/global/catalogs/default_catalog/promotions/free_gift. The value must be a UTF-8 encoded string with a length limit of 128 characters, and match the pattern: a-zA-Z*. For example, id0LikeThis or ID_1_LIKE_THIS. Otherwise, an INVALID_ARGUMENT error is returned. Corresponds to Google Merchant Center property [promotion_id](https://support.google.com/merchants/answer/7050148).
     #[serde(default, rename = "promotionId")]
-    pub promotion_id: Option<String>,
+    pub promotion_id: ::core::option::Option<String>,
 }
 
 /// A transaction represents the entire purchase transaction.
@@ -1620,19 +1742,19 @@ pub struct GoogleCloudRetailV2Promotion {
 pub struct GoogleCloudRetailV2PurchaseTransaction {
     /// All the costs associated with the products. These can be manufacturing costs, shipping expenses not borne by the end user, or any other costs, such that: * Profit = revenue - tax - cost
     #[serde(default)]
-    pub cost: Option<f32>,
+    pub cost: ::core::option::Option<f32>,
     /// Required. Currency code. Use three-character ISO-4217 code.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// The transaction ID with a length limit of 128 characters.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. Total non-zero revenue or grand total associated with the transaction. This value include shipping, tax, or other adjustments to total revenue that you want to include as part of your revenue calculations.
     #[serde(default)]
-    pub revenue: Option<f32>,
+    pub revenue: ::core::option::Option<f32>,
     /// All the taxes associated with the transaction.
     #[serde(default)]
-    pub tax: Option<f32>,
+    pub tax: ::core::option::Option<f32>,
 }
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
@@ -1640,16 +1762,16 @@ pub struct GoogleCloudRetailV2PurchaseTransaction {
 pub struct GoogleCloudRetailV2PurgeProductsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Count of entries that encountered errors while processing.
     #[serde(default, rename = "failureCount")]
-    pub failure_count: Option<String>,
+    pub failure_count: ::core::option::Option<String>,
     /// Count of entries that were deleted successfully.
     #[serde(default, rename = "successCount")]
-    pub success_count: Option<String>,
+    pub success_count: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request message for PurgeProducts method.
@@ -1657,10 +1779,10 @@ pub struct GoogleCloudRetailV2PurgeProductsMetadata {
 pub struct GoogleCloudRetailV2PurgeProductsRequest {
     /// Required. The filter string to specify the products to be deleted with a length limit of 5,000 characters. Empty string filter is not allowed. "*" implies delete all items in a branch. The eligible fields for filtering are: * availability: Double quoted Product.availability string. * create_time : in ISO 8601 "zulu" format. Supported syntax: * Comparators ("&gt;", "&lt;", "&gt;=", "&lt;=", "="). Examples: * create_time &lt;= "2015-02-13T17:05:46Z" * availability = "IN_STOCK" * Conjunctions ("AND") Examples: * create_time &lt;= "2015-02-13T17:05:46Z" AND availability = "PREORDER" * Disjunctions ("OR") Examples: * create_time &lt;= "2015-02-13T17:05:46Z" OR availability = "IN_STOCK" * Can support nested queries. Examples: * (create_time &lt;= "2015-02-13T17:05:46Z" AND availability = "PREORDER") OR (create_time &gt;= "2015-02-14T13:03:32Z" AND availability = "IN_STOCK") * Filter Limits: * Filter should not contain more than 6 conditions. * Max nesting depth should not exceed 2 levels. Examples queries: * Delete back order products created before a timestamp. create_time &lt;= "2015-02-13T17:05:46Z" OR availability = "BACKORDER"
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Actually perform the purge. If force is set to false, the method will return the expected purge count without deleting any products.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
 }
 
 /// Response of the PurgeProductsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
@@ -1668,10 +1790,10 @@ pub struct GoogleCloudRetailV2PurgeProductsRequest {
 pub struct GoogleCloudRetailV2PurgeProductsResponse {
     /// The total count of products purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
-    pub purge_count: Option<String>,
+    pub purge_count: ::core::option::Option<String>,
     /// A sample of the product names that will be deleted. Only populated if force is set to false. A max of 100 names will be returned and the names are chosen at random.
     #[serde(default, rename = "purgeSample")]
-    pub purge_sample: Option<Vec<String>>,
+    pub purge_sample: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for PurgeUserEvents method.
@@ -1679,10 +1801,10 @@ pub struct GoogleCloudRetailV2PurgeProductsResponse {
 pub struct GoogleCloudRetailV2PurgeUserEventsRequest {
     /// Required. The filter string to specify the events to be deleted with a length limit of 5,000 characters. Empty string filter is not allowed. The eligible fields for filtering are: * eventType: Double quoted UserEvent.event_type string. * eventTime: in ISO 8601 "zulu" format. * visitorId: Double quoted string. Specifying this will delete all events associated with a visitor. * userId: Double quoted string. Specifying this will delete all events associated with a user. Examples: * Deleting all events in a time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventTime &lt; "2012-04-23T18:30:43.511Z" * Deleting specific eventType in time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventType = "detail-page-view" * Deleting all events for a specific visitor: visitorId = "visitor1024" The filtering fields are assumed to have an implicit AND.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Actually perform the purge. If force is set to false, the method will return the expected purge count without deleting any user events.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
@@ -1690,7 +1812,7 @@ pub struct GoogleCloudRetailV2PurgeUserEventsRequest {
 pub struct GoogleCloudRetailV2PurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgedEventsCount")]
-    pub purged_events_count: Option<String>,
+    pub purged_events_count: ::core::option::Option<String>,
 }
 
 /// The rating of a Product.
@@ -1698,13 +1820,13 @@ pub struct GoogleCloudRetailV2PurgeUserEventsResponse {
 pub struct GoogleCloudRetailV2Rating {
     /// The average rating of the Product. The rating is scaled at 1-5. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "averageRating")]
-    pub average_rating: Option<f32>,
+    pub average_rating: ::core::option::Option<f32>,
     /// The total number of ratings. This value is independent of the value of rating_histogram. This value must be nonnegative. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "ratingCount")]
-    pub rating_count: Option<i32>,
+    pub rating_count: ::core::option::Option<i32>,
     /// List of rating counts per rating value (index = rating - 1). The list is empty if there is no rating. If the list is non-empty, its size is always 5. Otherwise, an INVALID_ARGUMENT error is returned. For example, [41, 14, 13, 47, 303]. It means that the Product got 41 ratings with 1 star, 14 ratings with 2 star, and so on.
     #[serde(default, rename = "ratingHistogram")]
-    pub rating_histogram: Option<Vec<i32>>,
+    pub rating_histogram: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// Request message for RejoinUserEvents method.
@@ -1712,7 +1834,7 @@ pub struct GoogleCloudRetailV2Rating {
 pub struct GoogleCloudRetailV2RejoinUserEventsRequest {
     /// The type of the user event rejoin to define the scope and range of the user events to be rejoined with the latest product catalog. Defaults to USER_EVENT_REJOIN_SCOPE_UNSPECIFIED if this field is not set, or set to an invalid integer value. // TODO: enum values: ["USER_EVENT_REJOIN_SCOPE_UNSPECIFIED", "JOINED_EVENTS", "UNJOINED_EVENTS"]
     #[serde(default, rename = "userEventRejoinScope")]
-    pub user_event_rejoin_scope: Option<String>,
+    pub user_event_rejoin_scope: ::core::option::Option<String>,
 }
 
 /// Response message for RejoinUserEvents method.
@@ -1720,7 +1842,7 @@ pub struct GoogleCloudRetailV2RejoinUserEventsRequest {
 pub struct GoogleCloudRetailV2RejoinUserEventsResponse {
     /// Number of user events that were joined with latest product catalog.
     #[serde(default, rename = "rejoinedUserEventsCount")]
-    pub rejoined_user_events_count: Option<String>,
+    pub rejoined_user_events_count: ::core::option::Option<String>,
 }
 
 /// Request for CatalogService.RemoveCatalogAttribute method.
@@ -1728,7 +1850,7 @@ pub struct GoogleCloudRetailV2RejoinUserEventsResponse {
 pub struct GoogleCloudRetailV2RemoveCatalogAttributeRequest {
     /// Required. The attribute name key of the CatalogAttribute to remove.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// Request for RemoveControl method.
@@ -1736,7 +1858,7 @@ pub struct GoogleCloudRetailV2RemoveCatalogAttributeRequest {
 pub struct GoogleCloudRetailV2RemoveControlRequest {
     /// Required. The id of the control to apply. Assumed to be in the same catalog as the serving config.
     #[serde(default, rename = "controlId")]
-    pub control_id: Option<String>,
+    pub control_id: ::core::option::Option<String>,
 }
 
 /// Request message for ProductService.RemoveFulfillmentPlaces method.
@@ -1744,16 +1866,16 @@ pub struct GoogleCloudRetailV2RemoveControlRequest {
 pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesRequest {
     /// If set to true, and the Product is not found, the fulfillment information will still be processed and retained for at most 1 day and processed once the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
-    pub allow_missing: Option<bool>,
+    pub allow_missing: ::core::option::Option<bool>,
     /// Required. The IDs for this type, such as the store IDs for "pickup-in-store" or the region IDs for "same-day-delivery", to be removed for this type. At least 1 value is required, and a maximum of 2000 values are allowed. Each value must be a string with a length limit of 10 characters, matching the pattern [a-zA-Z0-9_-]+, such as "store1" or "REGION-2". Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "placeIds")]
-    pub place_ids: Option<Vec<String>>,
+    pub place_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The time when the fulfillment updates are issued, used to prevent out-of-order updates on fulfillment information. If not provided, the internal system time will be used.
     #[serde(default, rename = "removeTime")]
-    pub remove_time: Option<String>,
+    pub remove_time: ::core::option::Option<String>,
     /// Required. The fulfillment type, including commonly used types (such as pickup in store and same day delivery), and custom types. Supported values: * "pickup-in-store" * "ship-to-store" * "same-day-delivery" * "next-day-delivery" * "custom-type-1" * "custom-type-2" * "custom-type-3" * "custom-type-4" * "custom-type-5" If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. This field directly corresponds to Product.fulfillment_info.type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Request message for ProductService.RemoveLocalInventories method.
@@ -1761,13 +1883,13 @@ pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesRequest {
 pub struct GoogleCloudRetailV2RemoveLocalInventoriesRequest {
     /// If set to true, and the Product is not found, the local inventory removal request will still be processed and retained for at most 1 day and processed once the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
-    pub allow_missing: Option<bool>,
+    pub allow_missing: ::core::option::Option<bool>,
     /// Required. A list of place IDs to have their inventory deleted. At most 3000 place IDs are allowed per request.
     #[serde(default, rename = "placeIds")]
-    pub place_ids: Option<Vec<String>>,
+    pub place_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The time when the inventory deletions are issued. Used to prevent out-of-order updates and deletions on local inventory fields. If not provided, the internal system time will be used.
     #[serde(default, rename = "removeTime")]
-    pub remove_time: Option<String>,
+    pub remove_time: ::core::option::Option<String>,
 }
 
 /// Request for CatalogService.ReplaceCatalogAttribute method.
@@ -1775,10 +1897,11 @@ pub struct GoogleCloudRetailV2RemoveLocalInventoriesRequest {
 pub struct GoogleCloudRetailV2ReplaceCatalogAttributeRequest {
     /// Required. The updated CatalogAttribute.
     #[serde(default, rename = "catalogAttribute")]
-    pub catalog_attribute: Option<GoogleCloudRetailV2CatalogAttribute>,
+    pub catalog_attribute:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CatalogAttribute>>,
     /// Indicates which fields in the provided CatalogAttribute to update. The following are NOT supported: * CatalogAttribute.key If not set, all supported fields are updated.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// A rule is a condition-action pair * A condition defines when a rule is to be triggered. * An action specifies what occurs on that trigger. Currently rules only work for controls with SOLUTION_TYPE_SEARCH.
@@ -1786,40 +1909,49 @@ pub struct GoogleCloudRetailV2ReplaceCatalogAttributeRequest {
 pub struct GoogleCloudRetailV2Rule {
     /// A boost action.
     #[serde(default, rename = "boostAction")]
-    pub boost_action: Option<GoogleCloudRetailV2RuleBoostAction>,
+    pub boost_action: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleBoostAction>>,
     /// Required. The condition that triggers the rule. If the condition is empty, the rule will always apply.
     #[serde(default)]
-    pub condition: Option<GoogleCloudRetailV2Condition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Condition>>,
     /// Prevents term from being associated with other terms.
     #[serde(default, rename = "doNotAssociateAction")]
-    pub do_not_associate_action: Option<GoogleCloudRetailV2RuleDoNotAssociateAction>,
+    pub do_not_associate_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleDoNotAssociateAction>>,
     /// Filters results.
     #[serde(default, rename = "filterAction")]
-    pub filter_action: Option<GoogleCloudRetailV2RuleFilterAction>,
+    pub filter_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleFilterAction>>,
     /// Force returns an attribute as a facet in the request.
     #[serde(default, rename = "forceReturnFacetAction")]
-    pub force_return_facet_action: Option<GoogleCloudRetailV2RuleForceReturnFacetAction>,
+    pub force_return_facet_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleForceReturnFacetAction>>,
     /// Ignores specific terms from query during search.
     #[serde(default, rename = "ignoreAction")]
-    pub ignore_action: Option<GoogleCloudRetailV2RuleIgnoreAction>,
+    pub ignore_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleIgnoreAction>>,
     /// Treats specific term as a synonym with a group of terms. Group of terms will not be treated as synonyms with the specific term.
     #[serde(default, rename = "onewaySynonymsAction")]
-    pub oneway_synonyms_action: Option<GoogleCloudRetailV2RuleOnewaySynonymsAction>,
+    pub oneway_synonyms_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleOnewaySynonymsAction>>,
     /// Pins one or more specified products to a specific position in the results.
     #[serde(default, rename = "pinAction")]
-    pub pin_action: Option<GoogleCloudRetailV2RulePinAction>,
+    pub pin_action: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RulePinAction>>,
     /// Redirects a shopper to a specific page.
     #[serde(default, rename = "redirectAction")]
-    pub redirect_action: Option<GoogleCloudRetailV2RuleRedirectAction>,
+    pub redirect_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleRedirectAction>>,
     /// Remove an attribute as a facet in the request (if present).
     #[serde(default, rename = "removeFacetAction")]
-    pub remove_facet_action: Option<GoogleCloudRetailV2RuleRemoveFacetAction>,
+    pub remove_facet_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleRemoveFacetAction>>,
     /// Replaces specific terms in the query.
     #[serde(default, rename = "replacementAction")]
-    pub replacement_action: Option<GoogleCloudRetailV2RuleReplacementAction>,
+    pub replacement_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleReplacementAction>>,
     /// Treats a set of terms as synonyms of one another.
     #[serde(default, rename = "twowaySynonymsAction")]
-    pub twoway_synonyms_action: Option<GoogleCloudRetailV2RuleTwowaySynonymsAction>,
+    pub twoway_synonyms_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2RuleTwowaySynonymsAction>>,
 }
 
 /// A boost action to apply to results matching condition specified above.
@@ -1827,10 +1959,10 @@ pub struct GoogleCloudRetailV2Rule {
 pub struct GoogleCloudRetailV2RuleBoostAction {
     /// Strength of the condition boost, which must be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the item a big promotion. However, it does not necessarily mean that the boosted item will be the top result at all times, nor that other items will be excluded. Results could still be shown even when none of them matches the condition. And results that are significantly more relevant to the search query can still trump your heavily favored but irrelevant items. Setting to -1.0 gives the item a big demotion. However, results that are deeply relevant might still be shown. The item will have an upstream battle to get a fairly high ranking, but it is not blocked out completely. Setting to 0.0 means no boost applied. The boosting condition is ignored.
     #[serde(default)]
-    pub boost: Option<f32>,
+    pub boost: ::core::option::Option<f32>,
     /// The filter can have a max size of 5000 characters. An expression which specifies which products to apply an action to. The syntax and supported fields are the same as a filter expression. See SearchRequest.filter for detail syntax and limitations. Examples: * To boost products with product ID "product_1" or "product_2", and color "Red" or "Blue": *(id: ANY("product_1", "product_2")) * *AND * *(colorFamilies: ANY("Red", "Blue")) *
     #[serde(default, rename = "productsFilter")]
-    pub products_filter: Option<String>,
+    pub products_filter: ::core::option::Option<String>,
 }
 
 /// Prevents query_term from being associated with specified terms during search. Example: Don''t associate "gShoe" and "cheap".
@@ -1838,13 +1970,13 @@ pub struct GoogleCloudRetailV2RuleBoostAction {
 pub struct GoogleCloudRetailV2RuleDoNotAssociateAction {
     /// Cannot contain duplicates or the query term. Can specify up to 100 terms.
     #[serde(default, rename = "doNotAssociateTerms")]
-    pub do_not_associate_terms: Option<Vec<String>>,
+    pub do_not_associate_terms: ::core::option::Option<::std::vec::Vec<String>>,
     /// Terms from the search query. Will not consider do_not_associate_terms for search if in search query. Can specify up to 100 terms.
     #[serde(default, rename = "queryTerms")]
-    pub query_terms: Option<Vec<String>>,
+    pub query_terms: ::core::option::Option<::std::vec::Vec<String>>,
     /// Will be [deprecated = true] post migration;
     #[serde(default)]
-    pub terms: Option<Vec<String>>,
+    pub terms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// * Rule Condition: - No Condition.query_terms provided is a global match. - 1 or more Condition.query_terms provided are combined with OR operator. * Action Input: The request query and filter that are applied to the retrieved products, in addition to any filters already provided with the SearchRequest. The AND operator is used to combine the query''s existing filters with the filter rule(s). NOTE: May result in 0 results when filters conflict. * Action Result: Filters the returned objects to be ONLY those that passed the filter.
@@ -1852,7 +1984,7 @@ pub struct GoogleCloudRetailV2RuleDoNotAssociateAction {
 pub struct GoogleCloudRetailV2RuleFilterAction {
     /// A filter to apply on the matching condition results. Supported features: * filter must be set. * Filter syntax is identical to SearchRequest.filter. For more information, see [Filter](/retail/docs/filter-and-order#filter). * To filter products with product ID "product_1" or "product_2", and color "Red" or "Blue": *(id: ANY("product_1", "product_2")) * *AND * *(colorFamilies: ANY("Red", "Blue")) *
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
 }
 
 /// Force returns an attribute/facet in the request around a certain position or above. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can''t specify both. * Action Inputs: attribute name, position * Action Result: Will force return a facet key around a certain position or above if the condition is satisfied. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes", the ForceReturnFacetAction.FacetPositionAdjustment.attribute_name is "size" and the ForceReturnFacetAction.FacetPositionAdjustment.position is 8. Two cases: a) The facet key "size" is not already in the top 8 slots, then the facet "size" will appear at a position close to 8. b) The facet key "size" in among the top 8 positions in the request, then it will stay at its current rank.
@@ -1860,8 +1992,11 @@ pub struct GoogleCloudRetailV2RuleFilterAction {
 pub struct GoogleCloudRetailV2RuleForceReturnFacetAction {
     /// Each instance corresponds to a force return attribute for the given condition. There can''t be more 15 instances here.
     #[serde(default, rename = "facetPositionAdjustments")]
-    pub facet_position_adjustments:
-        Option<Vec<GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment>>,
+    pub facet_position_adjustments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment>,
+        >,
+    >,
 }
 
 /// Each facet position adjustment consists of a single attribute name (i.e. facet key) along with a specified position.
@@ -1869,10 +2004,10 @@ pub struct GoogleCloudRetailV2RuleForceReturnFacetAction {
 pub struct GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment {
     /// The attribute name to force return as a facet. Each attribute name should be a valid attribute name, be non-empty and contain at most 80 characters long.
     #[serde(default, rename = "attributeName")]
-    pub attribute_name: Option<String>,
+    pub attribute_name: ::core::option::Option<String>,
     /// This is the position in the request as explained above. It should be strictly positive be at most 100.
     #[serde(default)]
-    pub position: Option<i32>,
+    pub position: ::core::option::Option<i32>,
 }
 
 /// Prevents a term in the query from being used in search. Example: Don''t search for "shoddy".
@@ -1880,7 +2015,7 @@ pub struct GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment 
 pub struct GoogleCloudRetailV2RuleIgnoreAction {
     /// Terms to ignore in the search query.
     #[serde(default, rename = "ignoreTerms")]
-    pub ignore_terms: Option<Vec<String>>,
+    pub ignore_terms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Maps a set of terms to a set of synonyms. Set of synonyms will be treated as synonyms of each query term only. query_terms will not be treated as synonyms of each other. Example: "sneakers" will use a synonym of "shoes". "shoes" will not use a synonym of "sneakers".
@@ -1888,13 +2023,13 @@ pub struct GoogleCloudRetailV2RuleIgnoreAction {
 pub struct GoogleCloudRetailV2RuleOnewaySynonymsAction {
     /// Will be [deprecated = true] post migration;
     #[serde(default, rename = "onewayTerms")]
-    pub oneway_terms: Option<Vec<String>>,
+    pub oneway_terms: ::core::option::Option<::std::vec::Vec<String>>,
     /// Terms from the search query. Will treat synonyms as their synonyms. Not themselves synonyms of the synonyms. Can specify up to 100 terms.
     #[serde(default, rename = "queryTerms")]
-    pub query_terms: Option<Vec<String>>,
+    pub query_terms: ::core::option::Option<::std::vec::Vec<String>>,
     /// Defines a set of synonyms. Cannot contain duplicates. Can specify up to 100 synonyms.
     #[serde(default)]
-    pub synonyms: Option<Vec<String>>,
+    pub synonyms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Redirects a shopper to a specific page. * Rule Condition: Must specify Condition.query_terms. * Action Input: Request Query * Action Result: Redirects shopper to provided uri.
@@ -1902,7 +2037,7 @@ pub struct GoogleCloudRetailV2RuleOnewaySynonymsAction {
 pub struct GoogleCloudRetailV2RuleRedirectAction {
     /// URL must have length equal or less than 2000 characters.
     #[serde(default, rename = "redirectUri")]
-    pub redirect_uri: Option<String>,
+    pub redirect_uri: ::core::option::Option<String>,
 }
 
 /// Removes an attribute/facet in the request if is present. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can''t specify both. * Action Input: attribute name * Action Result: Will remove the attribute (as a facet) from the request if it is present. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes" and the attribute name "size", then facet key "size" will be removed from the request (if it is present).
@@ -1910,7 +2045,7 @@ pub struct GoogleCloudRetailV2RuleRedirectAction {
 pub struct GoogleCloudRetailV2RuleRemoveFacetAction {
     /// The attribute names (i.e. facet keys) to remove from the dynamic facets (if present in the request). There can''t be more 3 attribute names. Each attribute name should be a valid attribute name, be non-empty and contain at most 80 characters.
     #[serde(default, rename = "attributeNames")]
-    pub attribute_names: Option<Vec<String>>,
+    pub attribute_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Replaces a term in the query. Multiple replacement candidates can be specified. All query_terms will be replaced with the replacement term. Example: Replace "gShoe" with "google shoe".
@@ -1918,13 +2053,13 @@ pub struct GoogleCloudRetailV2RuleRemoveFacetAction {
 pub struct GoogleCloudRetailV2RuleReplacementAction {
     /// Terms from the search query. Will be replaced by replacement term. Can specify up to 100 terms.
     #[serde(default, rename = "queryTerms")]
-    pub query_terms: Option<Vec<String>>,
+    pub query_terms: ::core::option::Option<::std::vec::Vec<String>>,
     /// Term that will be used for replacement.
     #[serde(default, rename = "replacementTerm")]
-    pub replacement_term: Option<String>,
+    pub replacement_term: ::core::option::Option<String>,
     /// Will be [deprecated = true] post migration;
     #[serde(default)]
-    pub term: Option<String>,
+    pub term: ::core::option::Option<String>,
 }
 
 /// Creates a set of terms that will be treated as synonyms of each other. Example: synonyms of "sneakers" and "shoes": * "sneakers" will use a synonym of "shoes". * "shoes" will use a synonym of "sneakers".
@@ -1932,7 +2067,7 @@ pub struct GoogleCloudRetailV2RuleReplacementAction {
 pub struct GoogleCloudRetailV2RuleTwowaySynonymsAction {
     /// Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms.
     #[serde(default)]
-    pub synonyms: Option<Vec<String>>,
+    pub synonyms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Safety settings.
@@ -1940,13 +2075,13 @@ pub struct GoogleCloudRetailV2RuleTwowaySynonymsAction {
 pub struct GoogleCloudRetailV2SafetySetting {
     /// Harm category. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_CIVIC_INTEGRITY"]
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// Optional. Specify if the threshold is used for probability or severity score. If not specified, the threshold is used for probability score. // TODO: enum values: ["HARM_BLOCK_METHOD_UNSPECIFIED", "SEVERITY", "PROBABILITY"]
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// The harm block threshold. // TODO: enum values: ["HARM_BLOCK_THRESHOLD_UNSPECIFIED", "BLOCK_LOW_AND_ABOVE", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_ONLY_HIGH", "BLOCK_NONE", "OFF"]
     #[serde(default)]
-    pub threshold: Option<String>,
+    pub threshold: ::core::option::Option<String>,
 }
 
 /// Request message for SearchService.Search method.
@@ -1954,86 +2089,99 @@ pub struct GoogleCloudRetailV2SafetySetting {
 pub struct GoogleCloudRetailV2SearchRequest {
     /// Boost specification to boost certain products. For more information, see [Boost results](https://cloud.google.com/retail/docs/boosting). Notice that if both ServingConfig.boost_control_ids and SearchRequest.boost_spec are set, the boost conditions from both places are evaluated. If a search request matches multiple boost conditions, the final boost score is equal to the sum of the boost scores from all matched boost conditions.
     #[serde(default, rename = "boostSpec")]
-    pub boost_spec: Option<GoogleCloudRetailV2SearchRequestBoostSpec>,
+    pub boost_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2SearchRequestBoostSpec>>,
     /// The branch resource name, such as projects/*/locations/global/catalogs/default_catalog/branches/0. Use "default_branch" as the branch ID or leave this field empty, to search products under the default branch.
     #[serde(default)]
-    pub branch: Option<String>,
+    pub branch: ::core::option::Option<String>,
     /// The default filter that is applied when a user performs a search without checking any filters on the search page. The filter applied to every search request when quality improvement such as query expansion is needed. In the case a query does not have a sufficient amount of results this filter will be used to determine whether or not to enable the query expansion flow. The original filter will still be used for the query expanded search. This field is strongly recommended to achieve high search quality. For more information about filter syntax, see SearchRequest.filter.
     #[serde(default, rename = "canonicalFilter")]
-    pub canonical_filter: Option<String>,
+    pub canonical_filter: ::core::option::Option<String>,
     /// Optional. This field specifies all conversational related parameters addition to traditional retail search.
     #[serde(default, rename = "conversationalSearchSpec")]
-    pub conversational_search_spec:
-        Option<GoogleCloudRetailV2SearchRequestConversationalSearchSpec>,
+    pub conversational_search_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestConversationalSearchSpec>,
+    >,
     /// Deprecated. Refer to https://cloud.google.com/retail/docs/configs#dynamic to enable dynamic facets. Do not set this field. The specification for dynamically generated facets. Notice that only textual facets can be dynamically generated.
     #[serde(default, rename = "dynamicFacetSpec")]
-    pub dynamic_facet_spec: Option<GoogleCloudRetailV2SearchRequestDynamicFacetSpec>,
+    pub dynamic_facet_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2SearchRequestDynamicFacetSpec>>,
     /// The entity for customers that may run multiple different entities, domains, sites or regions, for example, Google US, Google Ads, Waymo, google.com, youtube.com, etc. If this is set, it should be exactly matched with UserEvent.entity to get search results boosted by entity.
     #[serde(default)]
-    pub entity: Option<String>,
+    pub entity: ::core::option::Option<String>,
     /// Facet specifications for faceted search. If empty, no facets are returned. A maximum of 200 values are allowed. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "facetSpecs")]
-    pub facet_specs: Option<Vec<GoogleCloudRetailV2SearchRequestFacetSpec>>,
+    pub facet_specs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2SearchRequestFacetSpec>>,
+    >,
     /// The filter syntax consists of an expression language for constructing a predicate from one or more fields of the products being filtered. Filter expression is case-sensitive. For more information, see [Filter](https://cloud.google.com/retail/docs/filter-and-order#filter). If this field is unrecognizable, an INVALID_ARGUMENT is returned.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The labels applied to a resource must meet the following requirements: * Each resource can have multiple labels, up to a maximum of 64. * Each label must be a key-value pair. * Keys have a minimum length of 1 character and a maximum length of 63 characters and cannot be empty. Values can be empty and have a maximum length of 63 characters. * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. All characters must use UTF-8 encoding, and international characters are allowed. * The key portion of a label must be unique. However, you can use the same key with multiple resources. * Keys must start with a lowercase letter or international character. For more information, see [Requirements for labels](https://cloud.google.com/resource-manager/docs/creating-managing-labels#requirements) in the Resource Manager documentation.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The BCP-47 language code, such as "en-US" or "sr-Latn" [list](https://www.unicode.org/cldr/charts/46/summary/root.html). For more information, see [Standardized codes](https://google.aip.dev/143). This field helps to better interpret the query. If a value isn''t specified, the query language code is automatically detected, which may not be accurate.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// A 0-indexed integer that specifies the current offset (that is, starting result location, amongst the Products deemed by the API as relevant) in search results. This field is only considered if page_token is unset. If this field is negative, an INVALID_ARGUMENT is returned.
     #[serde(default)]
-    pub offset: Option<i32>,
+    pub offset: ::core::option::Option<i32>,
     /// The order in which products are returned. Products can be ordered by a field in an Product object. Leave it unset if ordered by relevance. OrderBy expression is case-sensitive. For more information, see [Order](https://cloud.google.com/retail/docs/filter-and-order#order). If this field is unrecognizable, an INVALID_ARGUMENT is returned.
     #[serde(default, rename = "orderBy")]
-    pub order_by: Option<String>,
+    pub order_by: ::core::option::Option<String>,
     /// Optional. The categories associated with a category page. Must be set for category navigation queries to achieve good search quality. The format should be the same as UserEvent.page_categories; To represent the full path of category, use ''&gt;'' sign, with one space on each side, to separate different hierarchies. If ''&gt;'' is part of the category name, replace it with other character(s). Category pages include special pages such as sales or promotions. For instance, a special sale page may have the category hierarchy: "pageCategories" : ["Sales &gt; 2017 Black Friday Deals"].
     #[serde(default, rename = "pageCategories")]
-    pub page_categories: Option<Vec<String>>,
+    pub page_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Maximum number of Products to return. If unspecified, defaults to a reasonable value. The maximum allowed value is 120. Values above 120 will be coerced to 120. If this field is negative, an INVALID_ARGUMENT is returned.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// A page token SearchResponse.next_page_token, received from a previous SearchService.Search call. Provide this to retrieve the subsequent page. When paginating, all other parameters provided to SearchService.Search must match the call that provided the page token. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// The specification for personalization. Notice that if both ServingConfig.personalization_spec and SearchRequest.personalization_spec are set. SearchRequest.personalization_spec will override ServingConfig.personalization_spec.
     #[serde(default, rename = "personalizationSpec")]
-    pub personalization_spec: Option<GoogleCloudRetailV2SearchRequestPersonalizationSpec>,
+    pub personalization_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestPersonalizationSpec>,
+    >,
     /// Optional. An id corresponding to a place, such as a store id or region id. When specified, we use the price from the local inventory with the matching product''s LocalInventory.place_id for revenue optimization. Note, the currency of the local inventory''s price must match the currency of the product''s price.
     #[serde(default, rename = "placeId")]
-    pub place_id: Option<String>,
+    pub place_id: ::core::option::Option<String>,
     /// Raw search query. If this field is empty, the request is considered a category browsing request and returned results are based on filter and page_categories.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// The query expansion specification that specifies the conditions under which query expansion occurs. For more information, see [Query expansion](https://cloud.google.com/retail/docs/result-size#query_expansion).
     #[serde(default, rename = "queryExpansionSpec")]
-    pub query_expansion_spec: Option<GoogleCloudRetailV2SearchRequestQueryExpansionSpec>,
+    pub query_expansion_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestQueryExpansionSpec>,
+    >,
     /// Optional. The Unicode country/region code (CLDR) of a location, such as "US" and "419" [list](https://www.unicode.org/cldr/charts/46/supplemental/territory_information.html). For more information, see [Standardized codes](https://google.aip.dev/143). If set, then results will be boosted based on the region_code provided.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
     /// The search mode of the search request. If not specified, a single search request triggers both product search and faceted search. // TODO: enum values: ["SEARCH_MODE_UNSPECIFIED", "PRODUCT_SEARCH_ONLY", "FACETED_SEARCH_ONLY"]
     #[serde(default, rename = "searchMode")]
-    pub search_mode: Option<String>,
+    pub search_mode: ::core::option::Option<String>,
     /// The spell correction specification that specifies the mode under which spell correction will take effect.
     #[serde(default, rename = "spellCorrectionSpec")]
-    pub spell_correction_spec: Option<GoogleCloudRetailV2SearchRequestSpellCorrectionSpec>,
+    pub spell_correction_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestSpellCorrectionSpec>,
+    >,
     /// Optional. This field specifies tile navigation related parameters.
     #[serde(default, rename = "tileNavigationSpec")]
-    pub tile_navigation_spec: Option<GoogleCloudRetailV2SearchRequestTileNavigationSpec>,
+    pub tile_navigation_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestTileNavigationSpec>,
+    >,
     /// Optional. The user attributes that could be used for personalization of search results. * Populate at most 100 key-value pairs per query. * Only supports string keys and repeated string values. * Duplicate keys are not allowed within a single query. Example: user_attributes: [ { key: "pets" value { values: "dog" values: "cat" } }, { key: "state" value { values: "CA" } } ]
     #[serde(default, rename = "userAttributes")]
-    pub user_attributes: Option<serde_json::Value>,
+    pub user_attributes: ::core::option::Option<serde_json::Value>,
     /// User information.
     #[serde(default, rename = "userInfo")]
-    pub user_info: Option<GoogleCloudRetailV2UserInfo>,
+    pub user_info: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2UserInfo>>,
     /// The keys to fetch and rollup the matching variant Products attributes, FulfillmentInfo or LocalInventorys attributes. The attributes from all the matching variant Products or LocalInventorys are merged and de-duplicated. Notice that rollup attributes will lead to extra query latency. Maximum number of keys is 30. For FulfillmentInfo, a fulfillment type and a fulfillment ID must be provided in the format of "fulfillmentType.fulfillmentId". E.g., in "pickupInStore.store123", "pickupInStore" is fulfillment type and "store123" is the store ID. Supported keys are: * colorFamilies * price * originalPrice * discount * variantId * inventory(place_id,price) * inventory(place_id,original_price) * inventory(place_id,attributes.key), where key is any key in the Product.local_inventories.attributes map. * attributes.key, where key is any key in the Product.attributes map. * pickupInStore.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "pickup-in-store". * shipToStore.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "ship-to-store". * sameDayDelivery.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "same-day-delivery". * nextDayDelivery.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "next-day-delivery". * customFulfillment1.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "custom-type-1". * customFulfillment2.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "custom-type-2". * customFulfillment3.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "custom-type-3". * customFulfillment4.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "custom-type-4". * customFulfillment5.id, where id is any FulfillmentInfo.place_ids for FulfillmentInfo.type "custom-type-5". If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "variantRollupKeys")]
-    pub variant_rollup_keys: Option<Vec<String>>,
+    pub variant_rollup_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. A unique identifier for tracking visitors. For example, this could be implemented with an HTTP cookie, which should be able to uniquely identify a visitor on a single device. This unique identifier should not change if the visitor logs in or out of the website. This should be the same identifier as UserEvent.visitor_id. The field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "visitorId")]
-    pub visitor_id: Option<String>,
+    pub visitor_id: ::core::option::Option<String>,
 }
 
 /// Boost specification to boost certain items.
@@ -2041,11 +2189,14 @@ pub struct GoogleCloudRetailV2SearchRequest {
 pub struct GoogleCloudRetailV2SearchRequestBoostSpec {
     /// Condition boost specifications. If a product matches multiple conditions in the specifications, boost scores from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 20.
     #[serde(default, rename = "conditionBoostSpecs")]
-    pub condition_boost_specs:
-        Option<Vec<GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec>>,
+    pub condition_boost_specs: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec>,
+        >,
+    >,
     /// Whether to skip boostspec validation. If this field is set to true, invalid BoostSpec.condition_boost_specs will be ignored and valid BoostSpec.condition_boost_specs will still be applied.
     #[serde(default, rename = "skipBoostSpecValidation")]
-    pub skip_boost_spec_validation: Option<bool>,
+    pub skip_boost_spec_validation: ::core::option::Option<bool>,
 }
 
 /// Boost applies to products which match a condition.
@@ -2053,10 +2204,10 @@ pub struct GoogleCloudRetailV2SearchRequestBoostSpec {
 pub struct GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec {
     /// Strength of the condition boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the item a big promotion. However, it does not necessarily mean that the boosted item will be the top result at all times, nor that other items will be excluded. Results could still be shown even when none of them matches the condition. And results that are significantly more relevant to the search query can still trump your heavily favored but irrelevant items. Setting to -1.0 gives the item a big demotion. However, results that are deeply relevant might still be shown. The item will have an upstream battle to get a fairly high ranking, but it is not blocked out completely. Setting to 0.0 means no boost applied. The boosting condition is ignored.
     #[serde(default)]
-    pub boost: Option<f32>,
+    pub boost: ::core::option::Option<f32>,
     /// An expression which specifies a boost condition. The syntax and supported fields are the same as a filter expression. See SearchRequest.filter for detail syntax and limitations. Examples: * To boost products with product ID "product_1" or "product_2", and color "Red" or "Blue": * (id: ANY("product_1", "product_2")) AND (colorFamilies: ANY("Red","Blue"))
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
 }
 
 /// This field specifies all conversational related parameters addition to traditional retail search.
@@ -2064,13 +2215,15 @@ pub struct GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec {
 pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpec {
     /// This field specifies the conversation id, which maintains the state of the conversation between client side and server side. Use the value from the previous SearchResponse.ConversationalSearchResult.conversation_id. For the initial request, this should be empty.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// This field specifies whether the customer would like to do conversational search. If this field is set to true, conversational related extra information will be returned from server side, including follow-up question, answer options, etc.
     #[serde(default, rename = "followupConversationRequested")]
-    pub followup_conversation_requested: Option<bool>,
+    pub followup_conversation_requested: ::core::option::Option<bool>,
     /// This field specifies the current user answer during the conversational search. This can be either user selected from suggested answers or user input plain text.
     #[serde(default, rename = "userAnswer")]
-    pub user_answer: Option<GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswer>,
+    pub user_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswer>,
+    >,
 }
 
 /// This field specifies the current user answer during the conversational search. This can be either user selected from suggested answers or user input plain text.
@@ -2078,11 +2231,14 @@ pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpec {
 pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswer {
     /// This field specifies the selected attributes during the conversational search. This should be a subset of SearchResponse.ConversationalSearchResult.suggested_answers.
     #[serde(default, rename = "selectedAnswer")]
-    pub selected_answer:
-        Option<GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswerSelectedAnswer>,
+    pub selected_answer: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswerSelectedAnswer,
+        >,
+    >,
     /// This field specifies the incremental input text from the user during the conversational search.
     #[serde(default, rename = "textAnswer")]
-    pub text_answer: Option<String>,
+    pub text_answer: ::core::option::Option<String>,
 }
 
 /// This field specifies the selected answers during the conversational search.
@@ -2090,10 +2246,13 @@ pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswer {
 pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswerSelectedAnswer {
     /// This field specifies the selected answer which is a attribute key-value.
     #[serde(default, rename = "productAttributeValue")]
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    pub product_attribute_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
     /// This field is deprecated and should not be set.
     #[serde(default, rename = "productAttributeValues")]
-    pub product_attribute_values: Option<Vec<GoogleCloudRetailV2ProductAttributeValue>>,
+    pub product_attribute_values: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
+    >,
 }
 
 /// The specifications of dynamically generated facets.
@@ -2101,7 +2260,7 @@ pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswerSel
 pub struct GoogleCloudRetailV2SearchRequestDynamicFacetSpec {
     /// Mode of the DynamicFacet feature. Defaults to Mode.DISABLED if it''s unset. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
 }
 
 /// A facet specification to perform faceted search.
@@ -2109,16 +2268,18 @@ pub struct GoogleCloudRetailV2SearchRequestDynamicFacetSpec {
 pub struct GoogleCloudRetailV2SearchRequestFacetSpec {
     /// Enables dynamic position for this facet. If set to true, the position of this facet among all facets in the response is determined by Google Retail Search. It is ordered together with dynamic facets if dynamic facets is enabled. If set to false, the position of this facet in the response is the same as in the request, and it is ranked before the facets with dynamic position enable and all dynamic facets. For example, you may always want to have rating facet returned in the response, but it''s not necessarily to always display the rating facet at the top. In that case, you can set enable_dynamic_position to true so that the position of rating facet in response is determined by Google Retail Search. Another example, assuming you have the following facets in the request: * "rating", enable_dynamic_position = true * "price", enable_dynamic_position = false * "brands", enable_dynamic_position = false And also you have a dynamic facets enable, which generates a facet "gender". Then, the final order of the facets in the response can be ("price", "brands", "rating", "gender") or ("price", "brands", "gender", "rating") depends on how Google Retail Search orders "gender" and "rating" facets. However, notice that "price" and "brands" are always ranked at first and second position because their enable_dynamic_position values are false.
     #[serde(default, rename = "enableDynamicPosition")]
-    pub enable_dynamic_position: Option<bool>,
+    pub enable_dynamic_position: ::core::option::Option<bool>,
     /// List of keys to exclude when faceting. By default, FacetKey.key is not excluded from the filter unless it is listed in this field. Listing a facet key in this field allows its values to appear as facet results, even when they are filtered out of search results. Using this field does not affect what search results are returned. For example, suppose there are 100 products with the color facet "Red" and 200 products with the color facet "Blue". A query containing the filter "colorFamilies:ANY("Red")" and having "colorFamilies" as FacetKey.key would by default return only "Red" products in the search results, and also return "Red" with count 100 as the only color facet. Although there are also blue products available, "Blue" would not be shown as an available facet value. If "colorFamilies" is listed in "excludedFilterKeys", then the query returns the facet values "Red" with count 100 and "Blue" with count 200, because the "colorFamilies" key is now excluded from the filter. Because this field doesn''t affect search results, the search results are still correctly filtered to return only "Red" products. A maximum of 100 values are allowed. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "excludedFilterKeys")]
-    pub excluded_filter_keys: Option<Vec<String>>,
+    pub excluded_filter_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The facet key specification.
     #[serde(default, rename = "facetKey")]
-    pub facet_key: Option<GoogleCloudRetailV2SearchRequestFacetSpecFacetKey>,
+    pub facet_key: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestFacetSpecFacetKey>,
+    >,
     /// Maximum of facet values that should be returned for this facet. If unspecified, defaults to 50. The maximum allowed value is 300. Values above 300 will be coerced to 300. If this field is negative, an INVALID_ARGUMENT is returned.
     #[serde(default)]
-    pub limit: Option<i32>,
+    pub limit: ::core::option::Option<i32>,
 }
 
 /// Specifies how a facet is computed.
@@ -2126,31 +2287,32 @@ pub struct GoogleCloudRetailV2SearchRequestFacetSpec {
 pub struct GoogleCloudRetailV2SearchRequestFacetSpecFacetKey {
     /// True to make facet keys case insensitive when getting faceting values with prefixes or contains; false otherwise.
     #[serde(default, rename = "caseInsensitive")]
-    pub case_insensitive: Option<bool>,
+    pub case_insensitive: ::core::option::Option<bool>,
     /// Only get facet values that contains the given strings. For example, suppose "categories" has three values "Women &gt; Shoe", "Women &gt; Dress" and "Men &gt; Shoe". If set "contains" to "Shoe", the "categories" facet gives only "Women &gt; Shoe" and "Men &gt; Shoe". Only supported on textual fields. Maximum is 10.
     #[serde(default)]
-    pub contains: Option<Vec<String>>,
+    pub contains: ::core::option::Option<::std::vec::Vec<String>>,
     /// Set only if values should be bucketized into intervals. Must be set for facets with numerical values. Must not be set for facet with text values. Maximum number of intervals is 40. For all numerical facet keys that appear in the list of products from the catalog, the percentiles 0, 10, 30, 50, 70, 90, and 100 are computed from their distribution weekly. If the model assigns a high score to a numerical facet key and its intervals are not specified in the search request, these percentiles become the bounds for its intervals and are returned in the response. If the facet key intervals are specified in the request, then the specified intervals are returned instead.
     #[serde(default)]
-    pub intervals: Option<Vec<GoogleCloudRetailV2Interval>>,
+    pub intervals:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Interval>>>,
     /// Required. Supported textual and numerical facet keys in Product object, over which the facet values are computed. Facet key is case-sensitive. Allowed facet keys when FacetKey.query is not specified: * textual_field = * "brands" * "categories" * "genders" * "ageGroups" * "availability" * "colorFamilies" * "colors" * "sizes" * "materials" * "patterns" * "conditions" * "attributes.key" * "pickupInStore" * "shipToStore" * "sameDayDelivery" * "nextDayDelivery" * "customFulfillment1" * "customFulfillment2" * "customFulfillment3" * "customFulfillment4" * "customFulfillment5" * "inventory(place_id,attributes.key)" * numerical_field = * "price" * "discount" * "rating" * "ratingCount" * "attributes.key" * "inventory(place_id,price)" * "inventory(place_id,original_price)" * "inventory(place_id,attributes.key)"
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The order in which SearchResponse.Facet.values are returned. Allowed values are: * "count desc", which means order by SearchResponse.Facet.values.count descending. * "value desc", which means order by SearchResponse.Facet.values.value descending. Only applies to textual facets. If not set, textual values are sorted in [natural order](https://en.wikipedia.org/wiki/Natural_sort_order); numerical intervals are sorted in the order given by FacetSpec.FacetKey.intervals; FulfillmentInfo.place_ids are sorted in the order given by FacetSpec.FacetKey.restricted_values.
     #[serde(default, rename = "orderBy")]
-    pub order_by: Option<String>,
+    pub order_by: ::core::option::Option<String>,
     /// Only get facet values that start with the given string prefix. For example, suppose "categories" has three values "Women &gt; Shoe", "Women &gt; Dress" and "Men &gt; Shoe". If set "prefixes" to "Women", the "categories" facet gives only "Women &gt; Shoe" and "Women &gt; Dress". Only supported on textual fields. Maximum is 10.
     #[serde(default)]
-    pub prefixes: Option<Vec<String>>,
+    pub prefixes: ::core::option::Option<::std::vec::Vec<String>>,
     /// The query that is used to compute facet for the given facet key. When provided, it overrides the default behavior of facet computation. The query syntax is the same as a filter expression. See SearchRequest.filter for detail syntax and limitations. Notice that there is no limitation on FacetKey.key when query is specified. In the response, SearchResponse.Facet.values.value is always "1" and SearchResponse.Facet.values.count is the number of results that match the query. For example, you can set a customized facet for "shipToStore", where FacetKey.key is "customizedShipToStore", and FacetKey.query is "availability: ANY(\"IN_STOCK\") AND shipToStore: ANY(\"123\")". Then the facet counts the products that are both in stock and ship to store "123".
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Only get facet for the given restricted values. For example, when using "pickupInStore" as key and set restricted values to ["store123", "store456"], only facets for "store123" and "store456" are returned. Only supported on predefined textual fields, custom textual attributes and fulfillments. Maximum is 20. Must be set for the fulfillment facet keys: * pickupInStore * shipToStore * sameDayDelivery * nextDayDelivery * customFulfillment1 * customFulfillment2 * customFulfillment3 * customFulfillment4 * customFulfillment5
     #[serde(default, rename = "restrictedValues")]
-    pub restricted_values: Option<Vec<String>>,
+    pub restricted_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Returns the min and max value for each numerical facet intervals. Ignored for textual facets.
     #[serde(default, rename = "returnMinMax")]
-    pub return_min_max: Option<bool>,
+    pub return_min_max: ::core::option::Option<bool>,
 }
 
 /// The specification for personalization.
@@ -2158,7 +2320,7 @@ pub struct GoogleCloudRetailV2SearchRequestFacetSpecFacetKey {
 pub struct GoogleCloudRetailV2SearchRequestPersonalizationSpec {
     /// Defaults to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "AUTO", "DISABLED"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
 }
 
 /// Specification to determine under which conditions query expansion should occur.
@@ -2166,10 +2328,10 @@ pub struct GoogleCloudRetailV2SearchRequestPersonalizationSpec {
 pub struct GoogleCloudRetailV2SearchRequestQueryExpansionSpec {
     /// The condition under which query expansion should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "AUTO"]
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// Whether to pin unexpanded results. The default value is false. If this field is set to true, unexpanded products are always at the top of the search results, followed by the expanded results.
     #[serde(default, rename = "pinUnexpandedResults")]
-    pub pin_unexpanded_results: Option<bool>,
+    pub pin_unexpanded_results: ::core::option::Option<bool>,
 }
 
 /// The specification for query spell correction.
@@ -2177,7 +2339,7 @@ pub struct GoogleCloudRetailV2SearchRequestQueryExpansionSpec {
 pub struct GoogleCloudRetailV2SearchRequestSpellCorrectionSpec {
     /// The mode under which spell correction should take effect to replace the original search query. Default to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "SUGGESTION_ONLY", "AUTO"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
 }
 
 /// This field specifies tile navigation related parameters.
@@ -2185,10 +2347,11 @@ pub struct GoogleCloudRetailV2SearchRequestSpellCorrectionSpec {
 pub struct GoogleCloudRetailV2SearchRequestTileNavigationSpec {
     /// This optional field specifies the tiles which are already clicked in client side. While the feature works without this field set, particularly for an initial query, it is highly recommended to set this field because it can improve the quality of the search response and removes possible duplicate tiles. NOTE: This field is not being used for filtering search products. Client side should also put all the applied tiles in SearchRequest.filter.
     #[serde(default, rename = "appliedTiles")]
-    pub applied_tiles: Option<Vec<GoogleCloudRetailV2Tile>>,
+    pub applied_tiles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Tile>>>,
     /// This field specifies whether the customer would like to request tile navigation.
     #[serde(default, rename = "tileNavigationRequested")]
-    pub tile_navigation_requested: Option<bool>,
+    pub tile_navigation_requested: ::core::option::Option<bool>,
 }
 
 /// Response message for SearchService.Search method.
@@ -2196,48 +2359,63 @@ pub struct GoogleCloudRetailV2SearchRequestTileNavigationSpec {
 pub struct GoogleCloudRetailV2SearchResponse {
     /// The fully qualified resource name of applied [controls](https://cloud.google.com/retail/docs/serving-control-rules).
     #[serde(default, rename = "appliedControls")]
-    pub applied_controls: Option<Vec<String>>,
+    pub applied_controls: ::core::option::Option<::std::vec::Vec<String>>,
     /// A unique search token. This should be included in the UserEvent logs resulting from this search, which enables accurate attribution of search model performance.
     #[serde(default, rename = "attributionToken")]
-    pub attribution_token: Option<String>,
+    pub attribution_token: ::core::option::Option<String>,
     /// This field specifies all related information that is needed on client side for UI rendering of conversational retail search.
     #[serde(default, rename = "conversationalSearchResult")]
-    pub conversational_search_result:
-        Option<GoogleCloudRetailV2SearchResponseConversationalSearchResult>,
+    pub conversational_search_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchResponseConversationalSearchResult>,
+    >,
     /// Contains the spell corrected query, if found. If the spell correction type is AUTOMATIC, then the search results are based on corrected_query. Otherwise the original query is used for search.
     #[serde(default, rename = "correctedQuery")]
-    pub corrected_query: Option<String>,
+    pub corrected_query: ::core::option::Option<String>,
     /// Metadata related to A/B testing experiment associated with this response. Only exists when an experiment is triggered.
     #[serde(default, rename = "experimentInfo")]
-    pub experiment_info: Option<Vec<GoogleCloudRetailV2ExperimentInfo>>,
+    pub experiment_info: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ExperimentInfo>>,
+    >,
     /// Results of facets requested by user.
     #[serde(default)]
-    pub facets: Option<Vec<GoogleCloudRetailV2SearchResponseFacet>>,
+    pub facets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2SearchResponseFacet>>,
+    >,
     /// The invalid SearchRequest.BoostSpec.condition_boost_specs that are not applied during serving.
     #[serde(default, rename = "invalidConditionBoostSpecs")]
-    pub invalid_condition_boost_specs:
-        Option<Vec<GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec>>,
+    pub invalid_condition_boost_specs: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec>,
+        >,
+    >,
     /// A token that can be sent as SearchRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Metadata for pin controls which were applicable to the request. This contains two map fields, one for all matched pins and one for pins which were matched but not applied. The two maps are keyed by pin position, and the values are the product ids which were matched to that pin.
     #[serde(default, rename = "pinControlMetadata")]
-    pub pin_control_metadata: Option<GoogleCloudRetailV2PinControlMetadata>,
+    pub pin_control_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2PinControlMetadata>>,
     /// Query expansion information for the returned results.
     #[serde(default, rename = "queryExpansionInfo")]
-    pub query_expansion_info: Option<GoogleCloudRetailV2SearchResponseQueryExpansionInfo>,
+    pub query_expansion_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchResponseQueryExpansionInfo>,
+    >,
     /// The URI of a customer-defined redirect page. If redirect action is triggered, no search is performed, and only redirect_uri and attribution_token are set in the response.
     #[serde(default, rename = "redirectUri")]
-    pub redirect_uri: Option<String>,
+    pub redirect_uri: ::core::option::Option<String>,
     /// A list of matched items. The order represents the ranking.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudRetailV2SearchResponseSearchResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2SearchResponseSearchResult>>,
+    >,
     /// This field specifies all related information for tile navigation that will be used in client side.
     #[serde(default, rename = "tileNavigationResult")]
-    pub tile_navigation_result: Option<GoogleCloudRetailV2SearchResponseTileNavigationResult>,
+    pub tile_navigation_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchResponseTileNavigationResult>,
+    >,
     /// The estimated total count of matched items irrespective of pagination. The count of results returned by pagination may be less than the total_size that matches.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// This field specifies all related information that is needed on client side for UI rendering of conversational retail search.
@@ -2245,25 +2423,38 @@ pub struct GoogleCloudRetailV2SearchResponse {
 pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResult {
     /// This is the incremental additional filters implied from the current user answer. User should add the suggested addition filters to the previous SearchRequest.filter, and use the merged filter in the follow up search request.
     #[serde(default, rename = "additionalFilter")]
-    pub additional_filter:
-        Option<GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter>,
+    pub additional_filter: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter,
+        >,
+    >,
     /// This field is deprecated but will be kept for backward compatibility. There is expected to have only one additional filter and the value will be the same to the same as field additional_filter.
     #[serde(default, rename = "additionalFilters")]
-    pub additional_filters:
-        Option<Vec<GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter>>,
+    pub additional_filters: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter,
+            >,
+        >,
+    >,
     /// Conversation UUID. This field will be stored in client side storage to maintain the conversation session with server and will be used for next search request''s SearchRequest.ConversationalSearchSpec.conversation_id to restore conversation state in server.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// The follow-up question. e.g., What is the color?
     #[serde(default, rename = "followupQuestion")]
-    pub followup_question: Option<String>,
+    pub followup_question: ::core::option::Option<String>,
     /// The current refined query for the conversational search. This field will be used in customer UI that the query in the search bar should be replaced with the refined query. For example, if SearchRequest.query is dress and next SearchRequest.ConversationalSearchSpec.UserAnswer.text_answer is red color, which does not match any product attribute value filters, the refined query will be dress, red color.
     #[serde(default, rename = "refinedQuery")]
-    pub refined_query: Option<String>,
+    pub refined_query: ::core::option::Option<String>,
     /// The answer options provided to client for the follow-up question.
     #[serde(default, rename = "suggestedAnswers")]
-    pub suggested_answers:
-        Option<Vec<GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer>>,
+    pub suggested_answers: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer,
+            >,
+        >,
+    >,
 }
 
 /// Additional filter that client side need to apply.
@@ -2271,7 +2462,8 @@ pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResult {
 pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
     #[serde(default, rename = "productAttributeValue")]
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    pub product_attribute_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
 }
 
 /// Suggested answers to the follow-up question.
@@ -2279,7 +2471,8 @@ pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditional
 pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
     #[serde(default, rename = "productAttributeValue")]
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    pub product_attribute_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
 }
 
 /// A facet result.
@@ -2287,13 +2480,15 @@ pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedA
 pub struct GoogleCloudRetailV2SearchResponseFacet {
     /// Whether the facet is dynamically generated.
     #[serde(default, rename = "dynamicFacet")]
-    pub dynamic_facet: Option<bool>,
+    pub dynamic_facet: ::core::option::Option<bool>,
     /// The key for this facet. E.g., "colorFamilies" or "price" or "attributes.attr1".
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The facet values for this field.
     #[serde(default)]
-    pub values: Option<Vec<GoogleCloudRetailV2SearchResponseFacetFacetValue>>,
+    pub values: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2SearchResponseFacetFacetValue>>,
+    >,
 }
 
 /// A facet value which contains value names and their count.
@@ -2301,19 +2496,19 @@ pub struct GoogleCloudRetailV2SearchResponseFacet {
 pub struct GoogleCloudRetailV2SearchResponseFacetFacetValue {
     /// Number of items that have this facet value.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Interval value for a facet, such as [10, 20) for facet "price".
     #[serde(default)]
-    pub interval: Option<GoogleCloudRetailV2Interval>,
+    pub interval: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Interval>>,
     /// The maximum value in the FacetValue.interval. Only supported on numerical facets and returned if SearchRequest.FacetSpec.FacetKey.return_min_max is true.
     #[serde(default, rename = "maxValue")]
-    pub max_value: Option<f64>,
+    pub max_value: ::core::option::Option<f64>,
     /// The minimum value in the FacetValue.interval. Only supported on numerical facets and returned if SearchRequest.FacetSpec.FacetKey.return_min_max is true.
     #[serde(default, rename = "minValue")]
-    pub min_value: Option<f64>,
+    pub min_value: ::core::option::Option<f64>,
     /// Text value of a facet, such as "Black" for facet "colorFamilies".
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Information describing query expansion including whether expansion has occurred.
@@ -2321,10 +2516,10 @@ pub struct GoogleCloudRetailV2SearchResponseFacetFacetValue {
 pub struct GoogleCloudRetailV2SearchResponseQueryExpansionInfo {
     /// Bool describing whether query expansion has occurred.
     #[serde(default, rename = "expandedQuery")]
-    pub expanded_query: Option<bool>,
+    pub expanded_query: ::core::option::Option<bool>,
     /// Number of pinned results. This field will only be set when expansion happens and SearchRequest.QueryExpansionSpec.pin_unexpanded_results is set to true.
     #[serde(default, rename = "pinnedResultCount")]
-    pub pinned_result_count: Option<String>,
+    pub pinned_result_count: ::core::option::Option<String>,
 }
 
 /// Represents the search results.
@@ -2332,25 +2527,25 @@ pub struct GoogleCloudRetailV2SearchResponseQueryExpansionInfo {
 pub struct GoogleCloudRetailV2SearchResponseSearchResult {
     /// Product.id of the searched Product.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The count of matched variant Products.
     #[serde(default, rename = "matchingVariantCount")]
-    pub matching_variant_count: Option<i32>,
+    pub matching_variant_count: ::core::option::Option<i32>,
     /// If a variant Product matches the search query, this map indicates which Product fields are matched. The key is the Product.name, the value is a field mask of the matched Product fields. If matched attributes cannot be determined, this map will be empty. For example, a key "sku1" with field mask "products.color_info" indicates there is a match between "sku1" ColorInfo and the query.
     #[serde(default, rename = "matchingVariantFields")]
-    pub matching_variant_fields: Option<serde_json::Value>,
+    pub matching_variant_fields: ::core::option::Option<serde_json::Value>,
     /// Google provided available scores.
     #[serde(default, rename = "modelScores")]
-    pub model_scores: Option<serde_json::Value>,
+    pub model_scores: ::core::option::Option<serde_json::Value>,
     /// Specifies previous events related to this product for this user based on UserEvent with same SearchRequest.visitor_id or UserInfo.user_id. This is set only when SearchRequest.PersonalizationSpec.mode is SearchRequest.PersonalizationSpec.Mode.AUTO. Possible values: * purchased: Indicates that this product has been purchased before.
     #[serde(default, rename = "personalLabels")]
-    pub personal_labels: Option<Vec<String>>,
+    pub personal_labels: ::core::option::Option<::std::vec::Vec<String>>,
     /// The product data snippet in the search response. Only Product.name is guaranteed to be populated. Product.variants contains the product variants that match the search query. If there are multiple product variants matching the query, top 5 most relevant product variants are returned and ordered by relevancy. If relevancy can be deternmined, use matching_variant_fields to look up matched product variants fields. If relevancy cannot be determined, e.g. when searching "shoe" all products in a shoe product can be a match, 5 product variants are returned but order is meaningless.
     #[serde(default)]
-    pub product: Option<GoogleCloudRetailV2Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Product>>,
     /// The rollup matching variant Product attributes. The key is one of the SearchRequest.variant_rollup_keys. The values are the merged and de-duplicated Product attributes. Notice that the rollup values are respect filter. For example, when filtering by "colorFamilies:ANY(\"red\")" and rollup "colorFamilies", only "red" is returned. For textual and numerical attributes, the rollup values is a list of string or double values with type google.protobuf.ListValue. For example, if there are two variants with colors "red" and "blue", the rollup values are { key: "colorFamilies" value { list_value { values { string_value: "red" } values { string_value: "blue" } } } } For FulfillmentInfo, the rollup values is a double value with type google.protobuf.Value. For example, {key: "pickupInStore.store1" value { number_value: 10 }} means a there are 10 variants in this product are available in the store "store1".
     #[serde(default, rename = "variantRollupValues")]
-    pub variant_rollup_values: Option<serde_json::Value>,
+    pub variant_rollup_values: ::core::option::Option<serde_json::Value>,
 }
 
 /// This field specifies all related information for tile navigation that will be used in client side.
@@ -2358,7 +2553,7 @@ pub struct GoogleCloudRetailV2SearchResponseSearchResult {
 pub struct GoogleCloudRetailV2SearchResponseTileNavigationResult {
     /// The current tiles that are used for tile navigation, sorted by engagement.
     #[serde(default)]
-    pub tiles: Option<Vec<GoogleCloudRetailV2Tile>>,
+    pub tiles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Tile>>>,
 }
 
 /// Configures metadata that is used to generate serving time results (e.g. search results or recommendation predictions).
@@ -2366,64 +2561,67 @@ pub struct GoogleCloudRetailV2SearchResponseTileNavigationResult {
 pub struct GoogleCloudRetailV2ServingConfig {
     /// Condition boost specifications. If a product matches multiple conditions in the specifications, boost scores from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 100. Notice that if both ServingConfig.boost_control_ids and SearchRequest.boost_spec are set, the boost conditions from both places are evaluated. If a search request matches multiple boost conditions, the final boost score is equal to the sum of the boost scores from all matched boost conditions. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "boostControlIds")]
-    pub boost_control_ids: Option<Vec<String>>,
+    pub boost_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The human readable serving config display name. Used in Retail UI. This field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// How much diversity to use in recommendation model results e.g. medium-diversity or high-diversity. Currently supported values: * no-diversity * low-diversity * medium-diversity * high-diversity * auto-diversity If not specified, we choose default based on recommendation model type. Default value: no-diversity. Can only be set if solution_types is SOLUTION_TYPE_RECOMMENDATION.
     #[serde(default, rename = "diversityLevel")]
-    pub diversity_level: Option<String>,
+    pub diversity_level: ::core::option::Option<String>,
     /// What kind of diversity to use - data driven or rule based. If unset, the server behavior defaults to RULE_BASED_DIVERSITY. // TODO: enum values: ["DIVERSITY_TYPE_UNSPECIFIED", "RULE_BASED_DIVERSITY", "DATA_DRIVEN_DIVERSITY"]
     #[serde(default, rename = "diversityType")]
-    pub diversity_type: Option<String>,
+    pub diversity_type: ::core::option::Option<String>,
     /// Condition do not associate specifications. If multiple do not associate conditions match, all matching do not associate controls in the list will execute. - Order does not matter. - Maximum number of specifications is 100. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "doNotAssociateControlIds")]
-    pub do_not_associate_control_ids: Option<Vec<String>>,
+    pub do_not_associate_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The specification for dynamically generated facets. Notice that only textual facets can be dynamically generated. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "dynamicFacetSpec")]
-    pub dynamic_facet_spec: Option<GoogleCloudRetailV2SearchRequestDynamicFacetSpec>,
+    pub dynamic_facet_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2SearchRequestDynamicFacetSpec>>,
     /// Whether to add additional category filters on the similar-items model. If not specified, we enable it by default. Allowed values are: * no-category-match: No additional filtering of original results from the model and the customer''s filters. * relaxed-category-match: Only keep results with categories that match at least one item categories in the PredictRequests''s context item. * If customer also sends filters in the PredictRequest, then the results will satisfy both conditions (user given and category match). Can only be set if solution_types is SOLUTION_TYPE_RECOMMENDATION.
     #[serde(default, rename = "enableCategoryFilterLevel")]
-    pub enable_category_filter_level: Option<String>,
+    pub enable_category_filter_level: ::core::option::Option<String>,
     /// Facet specifications for faceted search. If empty, no facets are returned. The ids refer to the ids of Control resources with only the Facet control set. These controls are assumed to be in the same Catalog as the ServingConfig. A maximum of 100 values are allowed. Otherwise, an INVALID_ARGUMENT error is returned. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "facetControlIds")]
-    pub facet_control_ids: Option<Vec<String>>,
+    pub facet_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Condition filter specifications. If a product matches multiple conditions in the specifications, filters from these specifications are all applied and combined via the AND operator. Maximum number of specifications is 100. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "filterControlIds")]
-    pub filter_control_ids: Option<Vec<String>>,
+    pub filter_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Condition ignore specifications. If multiple ignore conditions match, all matching ignore controls in the list will execute. - Order does not matter. - Maximum number of specifications is 100. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "ignoreControlIds")]
-    pub ignore_control_ids: Option<Vec<String>>,
+    pub ignore_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// When the flag is enabled, the products in the denylist will not be filtered out in the recommendation filtering results.
     #[serde(default, rename = "ignoreRecsDenylist")]
-    pub ignore_recs_denylist: Option<bool>,
+    pub ignore_recs_denylist: ::core::option::Option<bool>,
     /// The id of the model in the same Catalog to use at serving time. Currently only RecommendationModels are supported: https://cloud.google.com/retail/recommendations-ai/docs/create-models Can be changed but only to a compatible model (e.g. others-you-may-like CTR to others-you-may-like CVR). Required when solution_types is SOLUTION_TYPE_RECOMMENDATION.
     #[serde(default, rename = "modelId")]
-    pub model_id: Option<String>,
+    pub model_id: ::core::option::Option<String>,
     /// Immutable. Fully qualified name projects/*/locations/global/catalogs/*/servingConfig/*
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Condition oneway synonyms specifications. If multiple oneway synonyms conditions match, all matching oneway synonyms controls in the list will execute. Order of controls in the list will not matter. Maximum number of specifications is 100. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "onewaySynonymsControlIds")]
-    pub oneway_synonyms_control_ids: Option<Vec<String>>,
+    pub oneway_synonyms_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The specification for personalization spec. Can only be set if solution_types is SOLUTION_TYPE_SEARCH. Notice that if both ServingConfig.personalization_spec and SearchRequest.personalization_spec are set. SearchRequest.personalization_spec will override ServingConfig.personalization_spec.
     #[serde(default, rename = "personalizationSpec")]
-    pub personalization_spec: Option<GoogleCloudRetailV2SearchRequestPersonalizationSpec>,
+    pub personalization_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2SearchRequestPersonalizationSpec>,
+    >,
     /// How much price ranking we want in serving results. Price reranking causes product items with a similar recommendation probability to be ordered by price, with the highest-priced items first. This setting could result in a decrease in click-through and conversion rates. Allowed values are: * no-price-reranking * low-price-reranking * medium-price-reranking * high-price-reranking If not specified, we choose default based on model type. Default value: no-price-reranking. Can only be set if solution_types is SOLUTION_TYPE_RECOMMENDATION.
     #[serde(default, rename = "priceRerankingLevel")]
-    pub price_reranking_level: Option<String>,
+    pub price_reranking_level: ::core::option::Option<String>,
     /// Condition redirect specifications. Only the first triggered redirect action is applied, even if multiple apply. Maximum number of specifications is 1000. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "redirectControlIds")]
-    pub redirect_control_ids: Option<Vec<String>>,
+    pub redirect_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Condition replacement specifications. - Applied according to the order in the list. - A previously replaced term can not be re-replaced. - Maximum number of specifications is 100. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "replacementControlIds")]
-    pub replacement_control_ids: Option<Vec<String>>,
+    pub replacement_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Immutable. Specifies the solution types that a serving config can be associated with. Currently we support setting only one type of solution.
     #[serde(default, rename = "solutionTypes")]
-    pub solution_types: Option<Vec<String>>,
+    pub solution_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Condition synonyms specifications. If multiple syonyms conditions match, all matching synonyms control in the list will execute. Order of controls in the list will not matter. Maximum number of specifications is 100. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "twowaySynonymsControlIds")]
-    pub twoway_synonyms_control_ids: Option<Vec<String>>,
+    pub twoway_synonyms_control_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message to set a specified branch as new default_branch.
@@ -2431,13 +2629,13 @@ pub struct GoogleCloudRetailV2ServingConfig {
 pub struct GoogleCloudRetailV2SetDefaultBranchRequest {
     /// The final component of the resource name of a branch. This field must be one of "0", "1" or "2". Otherwise, an INVALID_ARGUMENT error is returned. If there are no sufficient active products in the targeted branch and force is not set, a FAILED_PRECONDITION error is returned.
     #[serde(default, rename = "branchId")]
-    pub branch_id: Option<String>,
+    pub branch_id: ::core::option::Option<String>,
     /// If set to true, it permits switching to a branch with branch_id even if it has no sufficient active products.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Some note on this request, this can be retrieved by CatalogService.GetDefaultBranch before next valid default branch set occurs. This field must be a UTF-8 encoded string with a length limit of 1,000 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub note: Option<String>,
+    pub note: ::core::option::Option<String>,
 }
 
 /// Request message for ProductService.SetInventory method.
@@ -2445,16 +2643,16 @@ pub struct GoogleCloudRetailV2SetDefaultBranchRequest {
 pub struct GoogleCloudRetailV2SetInventoryRequest {
     /// If set to true, and the Product with name Product.name is not found, the inventory update will still be processed and retained for at most 1 day until the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
-    pub allow_missing: Option<bool>,
+    pub allow_missing: ::core::option::Option<bool>,
     /// Required. The inventory information to update. The allowable fields to update are: * Product.price_info * Product.availability * Product.available_quantity * Product.fulfillment_info The updated inventory fields must be specified in SetInventoryRequest.set_mask. If SetInventoryRequest.inventory.name is empty or invalid, an INVALID_ARGUMENT error is returned. If the caller does not have permission to update the Product named in Product.name, regardless of whether or not it exists, a PERMISSION_DENIED error is returned. If the Product to update does not have existing inventory information, the provided inventory information will be inserted. If the Product to update has existing inventory information, the provided inventory information will be merged while respecting the last update time for each inventory field, using the provided or default value for SetInventoryRequest.set_time. The caller can replace place IDs for a subset of fulfillment types in the following ways: * Adds "fulfillment_info" in SetInventoryRequest.set_mask * Specifies only the desired fulfillment types and corresponding place IDs to update in SetInventoryRequest.inventory.fulfillment_info The caller can clear all place IDs from a subset of fulfillment types in the following ways: * Adds "fulfillment_info" in SetInventoryRequest.set_mask * Specifies only the desired fulfillment types to clear in SetInventoryRequest.inventory.fulfillment_info * Checks that only the desired fulfillment info types have empty SetInventoryRequest.inventory.fulfillment_info.place_ids The last update time is recorded for the following inventory fields: * Product.price_info * Product.availability * Product.available_quantity * Product.fulfillment_info If a full overwrite of inventory information while ignoring timestamps is needed, ProductService.UpdateProduct should be invoked instead.
     #[serde(default)]
-    pub inventory: Option<GoogleCloudRetailV2Product>,
+    pub inventory: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Product>>,
     /// Indicates which inventory fields in the provided Product to update. At least one field must be provided. If an unsupported or unknown field is provided, an INVALID_ARGUMENT error is returned and the entire update will be ignored.
     #[serde(default, rename = "setMask")]
-    pub set_mask: Option<String>,
+    pub set_mask: ::core::option::Option<String>,
     /// The time when the request is issued, used to prevent out-of-order updates on inventory fields with the last update time recorded. If not provided, the internal system time will be used.
     #[serde(default, rename = "setTime")]
-    pub set_time: Option<String>,
+    pub set_time: ::core::option::Option<String>,
 }
 
 /// A list of string values.
@@ -2462,7 +2660,7 @@ pub struct GoogleCloudRetailV2SetInventoryRequest {
 pub struct GoogleCloudRetailV2StringList {
     /// String values.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This field specifies the tile information including an attribute key, attribute value. More fields will be added in the future, eg: product id or product counts, etc.
@@ -2470,13 +2668,15 @@ pub struct GoogleCloudRetailV2StringList {
 pub struct GoogleCloudRetailV2Tile {
     /// The product attribute key-numeric interval.
     #[serde(default, rename = "productAttributeInterval")]
-    pub product_attribute_interval: Option<GoogleCloudRetailV2ProductAttributeInterval>,
+    pub product_attribute_interval:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeInterval>>,
     /// The product attribute key-value.
     #[serde(default, rename = "productAttributeValue")]
-    pub product_attribute_value: Option<GoogleCloudRetailV2ProductAttributeValue>,
+    pub product_attribute_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2ProductAttributeValue>>,
     /// The representative product id for this tile.
     #[serde(default, rename = "representativeProductId")]
-    pub representative_product_id: Option<String>,
+    pub representative_product_id: ::core::option::Option<String>,
 }
 
 /// Metadata associated with a tune operation.
@@ -2484,7 +2684,7 @@ pub struct GoogleCloudRetailV2Tile {
 pub struct GoogleCloudRetailV2TuneModelMetadata {
     /// The resource name of the model that this tune applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Request for UpdateGenerativeQuestionConfig method.
@@ -2492,10 +2692,11 @@ pub struct GoogleCloudRetailV2TuneModelMetadata {
 pub struct GoogleCloudRetailV2UpdateGenerativeQuestionConfigRequest {
     /// Required. The question to update.
     #[serde(default, rename = "generativeQuestionConfig")]
-    pub generative_question_config: Option<GoogleCloudRetailV2GenerativeQuestionConfig>,
+    pub generative_question_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2GenerativeQuestionConfig>>,
     /// Optional. Indicates which fields in the provided GenerativeQuestionConfig to update. The following are NOT supported: * GenerativeQuestionConfig.frequency If not set or empty, all supported fields are updated.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// UserEvent captures all metadata information Retail API needs to know about how end users interact with customers'' website.
@@ -2503,70 +2704,75 @@ pub struct GoogleCloudRetailV2UpdateGenerativeQuestionConfigRequest {
 pub struct GoogleCloudRetailV2UserEvent {
     /// Extra user event features to include in the recommendation model. If you provide custom attributes for ingested user events, also include them in the user events that you associate with prediction requests. Custom attribute formatting must be consistent between imported events and events provided with prediction requests. This lets the Retail API use those custom attributes when training models and serving predictions, which helps improve recommendation quality. This field needs to pass all below criteria, otherwise an INVALID_ARGUMENT error is returned: * The key must be a UTF-8 encoded string with a length limit of 5,000 characters. * For text attributes, at most 400 values are allowed. Empty values are not allowed. Each value must be a UTF-8 encoded string with a length limit of 256 characters. * For number attributes, at most 400 values are allowed. For product recommendations, an example of extra user information is traffic_channel, which is how a user arrives at the site. Users can arrive at the site by coming to the site directly, coming through Google search, or in other ways.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Highly recommended for user events that are the result of PredictionService.Predict. This field enables accurate attribution of recommendation model performance. The value must be a valid PredictResponse.attribution_token for user events that are the result of PredictionService.Predict. The value must be a valid SearchResponse.attribution_token for user events that are the result of SearchService.Search. This token enables us to accurately attribute page view or purchase back to the event and the particular predict response containing this clicked/purchased product. If user clicks on product K in the recommendation results, pass PredictResponse.attribution_token as a URL parameter to product K''s page. When recording events on product K''s page, log the PredictResponse.attribution_token to this field.
     #[serde(default, rename = "attributionToken")]
-    pub attribution_token: Option<String>,
+    pub attribution_token: ::core::option::Option<String>,
     /// The ID or name of the associated shopping cart. This ID is used to associate multiple items added or present in the cart before purchase. This can only be set for add-to-cart, purchase-complete, or shopping-cart-page-view events.
     #[serde(default, rename = "cartId")]
-    pub cart_id: Option<String>,
+    pub cart_id: ::core::option::Option<String>,
     /// The main auto-completion details related to the event. This field should be set for search event when autocomplete function is enabled and the user clicks a suggestion for search.
     #[serde(default, rename = "completionDetail")]
-    pub completion_detail: Option<GoogleCloudRetailV2CompletionDetail>,
+    pub completion_detail:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2CompletionDetail>>,
     /// The entity for customers that may run multiple different entities, domains, sites or regions, for example, Google US, Google Ads, Waymo, google.com, youtube.com, etc. We recommend that you set this field to get better per-entity search, completion, and prediction results.
     #[serde(default)]
-    pub entity: Option<String>,
+    pub entity: ::core::option::Option<String>,
     /// Only required for UserEventService.ImportUserEvents method. Timestamp of when the user event happened.
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<String>,
+    pub event_time: ::core::option::Option<String>,
     /// Required. User event type. Allowed values are: * add-to-cart: Products being added to cart. * remove-from-cart: Products being removed from cart. * category-page-view: Special pages such as sale or promotion pages viewed. * detail-page-view: Products detail page viewed. * home-page-view: Homepage viewed. * purchase-complete: User finishing a purchase. * search: Product search. * shopping-cart-page-view: User viewing a shopping cart.
     #[serde(default, rename = "eventType")]
-    pub event_type: Option<String>,
+    pub event_type: ::core::option::Option<String>,
     /// A list of identifiers for the independent experiment groups this user event belongs to. This is used to distinguish between user events associated with different experiment setups (e.g. using Retail API, using different recommendation models).
     #[serde(default, rename = "experimentIds")]
-    pub experiment_ids: Option<Vec<String>>,
+    pub experiment_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The filter syntax consists of an expression language for constructing a predicate from one or more fields of the products being filtered. See SearchRequest.filter for definition and syntax. The value must be a UTF-8 encoded string with a length limit of 1,000 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// An integer that specifies the current offset for pagination (the 0-indexed starting location, amongst the products deemed by the API as relevant). See SearchRequest.offset for definition. If this field is negative, an INVALID_ARGUMENT is returned. This can only be set for search events. Other event types should not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
-    pub offset: Option<i32>,
+    pub offset: ::core::option::Option<i32>,
     /// The order in which products are returned. See SearchRequest.order_by for definition and syntax. The value must be a UTF-8 encoded string with a length limit of 1,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. This can only be set for search events. Other event types should not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "orderBy")]
-    pub order_by: Option<String>,
+    pub order_by: ::core::option::Option<String>,
     /// Optional. The categories associated with a category page. To represent the full path of category, use the ''&gt;'' sign, with one space on each side, to separate different hierarchies. If ''&gt;'' is part of the category name, replace it with other character(s). Category pages include special pages such as sales or promotions. For instance, a special sale page may have the category hierarchy: "pageCategories" : ["Sales &gt; 2017 Black Friday Deals"]. Required for category-page-view events. At least one of search_query or page_categories is required for search events. Other event types should not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "pageCategories")]
-    pub page_categories: Option<Vec<String>>,
+    pub page_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// A unique ID of a web page view. This should be kept the same for all user events triggered from the same pageview. For example, an item detail page view could trigger multiple events as the user is browsing the page. The pageViewId property should be kept the same for all these events so that they can be grouped together properly. When using the client side event reporting with JavaScript pixel and Google Tag Manager, this value is filled in automatically.
     #[serde(default, rename = "pageViewId")]
-    pub page_view_id: Option<String>,
+    pub page_view_id: ::core::option::Option<String>,
     /// Optional. List of panels associated with this event. Used for panel-level impression data.
     #[serde(default)]
-    pub panels: Option<Vec<GoogleCloudRetailV2PanelInfo>>,
+    pub panels:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2PanelInfo>>>,
     /// The main product details related to the event. This field is optional except for the following event types: * add-to-cart * detail-page-view * purchase-complete In a search event, this field represents the products returned to the end user on the current page (the end user may have not finished browsing the whole page yet). When a new page is returned to the end user, after pagination/filtering/ordering even for the same query, a new search event with different product_details is desired. The end user may have not finished browsing the whole page yet.
     #[serde(default, rename = "productDetails")]
-    pub product_details: Option<Vec<GoogleCloudRetailV2ProductDetail>>,
+    pub product_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2ProductDetail>>,
+    >,
     /// A transaction represents the entire purchase transaction. Required for purchase-complete events. Other event types should not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "purchaseTransaction")]
-    pub purchase_transaction: Option<GoogleCloudRetailV2PurchaseTransaction>,
+    pub purchase_transaction:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2PurchaseTransaction>>,
     /// The referrer URL of the current page. When using the client side event reporting with JavaScript pixel and Google Tag Manager, this value is filled in automatically.
     #[serde(default, rename = "referrerUri")]
-    pub referrer_uri: Option<String>,
+    pub referrer_uri: ::core::option::Option<String>,
     /// The user''s search query. See SearchRequest.query for definition. The value must be a UTF-8 encoded string with a length limit of 5,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. At least one of search_query or page_categories is required for search events. Other event types should not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "searchQuery")]
-    pub search_query: Option<String>,
+    pub search_query: ::core::option::Option<String>,
     /// A unique identifier for tracking a visitor session with a length limit of 128 bytes. A session is an aggregation of an end user behavior in a time span. A general guideline to populate the session_id: 1. If user has no activity for 30 min, a new session_id should be assigned. 2. The session_id should be unique across users, suggest use uuid or add visitor_id as prefix.
     #[serde(default, rename = "sessionId")]
-    pub session_id: Option<String>,
+    pub session_id: ::core::option::Option<String>,
     /// Complete URL (window.location.href) of the user''s current page. When using the client side event reporting with JavaScript pixel and Google Tag Manager, this value is filled in automatically. Maximum length 5,000 characters.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// User information.
     #[serde(default, rename = "userInfo")]
-    pub user_info: Option<GoogleCloudRetailV2UserInfo>,
+    pub user_info: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2UserInfo>>,
     /// Required. A unique identifier for tracking visitors. For example, this could be implemented with an HTTP cookie, which should be able to uniquely identify a visitor on a single device. This unique identifier should not change if the visitor log in/out of the website. Don''t set the field to the same fixed ID for different users. This mixes the event history of those users together, which results in degraded model quality. The field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. The field should not contain PII or user-data. We recommend to use Google Analytics [Client ID](https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference#clientId) for this field.
     #[serde(default, rename = "visitorId")]
-    pub visitor_id: Option<String>,
+    pub visitor_id: ::core::option::Option<String>,
 }
 
 /// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
@@ -2574,10 +2780,10 @@ pub struct GoogleCloudRetailV2UserEvent {
 pub struct GoogleCloudRetailV2UserEventImportSummary {
     /// Count of user events imported with complete existing catalog information.
     #[serde(default, rename = "joinedEventsCount")]
-    pub joined_events_count: Option<String>,
+    pub joined_events_count: ::core::option::Option<String>,
     /// Count of user events imported, but with catalog information not found in the imported catalog.
     #[serde(default, rename = "unjoinedEventsCount")]
-    pub unjoined_events_count: Option<String>,
+    pub unjoined_events_count: ::core::option::Option<String>,
 }
 
 /// The inline source for the input config for ImportUserEvents method.
@@ -2585,7 +2791,8 @@ pub struct GoogleCloudRetailV2UserEventImportSummary {
 pub struct GoogleCloudRetailV2UserEventInlineSource {
     /// Required. A list of user events to import. Recommended max of 10k items.
     #[serde(default, rename = "userEvents")]
-    pub user_events: Option<Vec<GoogleCloudRetailV2UserEvent>>,
+    pub user_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2UserEvent>>>,
 }
 
 /// The input config source for user events.
@@ -2593,13 +2800,15 @@ pub struct GoogleCloudRetailV2UserEventInlineSource {
 pub struct GoogleCloudRetailV2UserEventInputConfig {
     /// Required. BigQuery input source.
     #[serde(default, rename = "bigQuerySource")]
-    pub big_query_source: Option<GoogleCloudRetailV2BigQuerySource>,
+    pub big_query_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2BigQuerySource>>,
     /// Required. Google Cloud Storage location for the input content.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudRetailV2GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2GcsSource>>,
     /// Required. The Inline source for the input content for UserEvents.
     #[serde(default, rename = "userEventInlineSource")]
-    pub user_event_inline_source: Option<GoogleCloudRetailV2UserEventInlineSource>,
+    pub user_event_inline_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2UserEventInlineSource>>,
 }
 
 /// Information of an end user.
@@ -2607,16 +2816,16 @@ pub struct GoogleCloudRetailV2UserEventInputConfig {
 pub struct GoogleCloudRetailV2UserInfo {
     /// True if the request is made directly from the end user, in which case the ip_address and user_agent can be populated from the HTTP request. This flag should be set only if the API request is made directly from the end user such as a mobile app (and not if a gateway or a server is processing and pushing the user events). This should not be set when using the JavaScript tag in UserEventService.CollectUserEvent.
     #[serde(default, rename = "directUserRequest")]
-    pub direct_user_request: Option<bool>,
+    pub direct_user_request: ::core::option::Option<bool>,
     /// The end user''s IP address. This field is used to extract location information for personalization. This field must be either an IPv4 address (e.g. "104.133.9.80") or an IPv6 address (e.g. "2001:0db8:85a3:0000:0000:8a2e:0370:7334"). Otherwise, an INVALID_ARGUMENT error is returned. This should not be set when: * setting SearchRequest.user_info. * using the JavaScript tag in UserEventService.CollectUserEvent or if direct_user_request is set.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// User agent as included in the HTTP header. The field must be a UTF-8 encoded string with a length limit of 1,000 characters. Otherwise, an INVALID_ARGUMENT error is returned. This should not be set when using the client side event reporting with GTM or JavaScript tag in UserEventService.CollectUserEvent or if direct_user_request is set.
     #[serde(default, rename = "userAgent")]
-    pub user_agent: Option<String>,
+    pub user_agent: ::core::option::Option<String>,
     /// Highly recommended for logged-in users. Unique identifier for logged-in user, such as a user name. Don''t set for anonymous users. Always use a hashed value for this ID. Don''t set the field to the same fixed ID for different users. This mixes the event history of those users together, which results in degraded model quality. The field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// A BigQuery output result.
@@ -2624,10 +2833,10 @@ pub struct GoogleCloudRetailV2UserInfo {
 pub struct GoogleCloudRetailV2alphaBigQueryOutputResult {
     /// The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     /// The ID of a BigQuery Table.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// Common metadata related to the progress of the operations.
@@ -2635,10 +2844,10 @@ pub struct GoogleCloudRetailV2alphaBigQueryOutputResult {
 pub struct GoogleCloudRetailV2alphaCreateMerchantCenterAccountLinkMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Metadata associated with a create operation.
@@ -2646,7 +2855,7 @@ pub struct GoogleCloudRetailV2alphaCreateMerchantCenterAccountLinkMetadata {
 pub struct GoogleCloudRetailV2alphaCreateModelMetadata {
     /// The resource name of the model that this create applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Response for EnrollSolution method.
@@ -2654,7 +2863,7 @@ pub struct GoogleCloudRetailV2alphaCreateModelMetadata {
 pub struct GoogleCloudRetailV2alphaEnrollSolutionResponse {
     /// Retail API solution that the project has enrolled. // TODO: enum values: ["SOLUTION_TYPE_UNSPECIFIED", "SOLUTION_TYPE_RECOMMENDATION", "SOLUTION_TYPE_SEARCH"]
     #[serde(default, rename = "enrolledSolution")]
-    pub enrolled_solution: Option<String>,
+    pub enrolled_solution: ::core::option::Option<String>,
 }
 
 /// Response of the ExportAnalyticsMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -2662,13 +2871,15 @@ pub struct GoogleCloudRetailV2alphaEnrollSolutionResponse {
 pub struct GoogleCloudRetailV2alphaExportAnalyticsMetricsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// This field is never set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2alphaExportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaExportErrorsConfig>>,
     /// Output result indicating where the data were exported to.
     #[serde(default, rename = "outputResult")]
-    pub output_result: Option<GoogleCloudRetailV2alphaOutputResult>,
+    pub output_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaOutputResult>>,
 }
 
 /// Configuration of destination for Export related errors.
@@ -2676,7 +2887,7 @@ pub struct GoogleCloudRetailV2alphaExportAnalyticsMetricsResponse {
 pub struct GoogleCloudRetailV2alphaExportErrorsConfig {
     /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Export errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: Option<String>,
+    pub gcs_prefix: ::core::option::Option<String>,
 }
 
 /// Metadata related to the progress of the Export operation. This is returned by the google.longrunning.Operation.metadata field.
@@ -2684,10 +2895,10 @@ pub struct GoogleCloudRetailV2alphaExportErrorsConfig {
 pub struct GoogleCloudRetailV2alphaExportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response of the ExportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -2695,13 +2906,15 @@ pub struct GoogleCloudRetailV2alphaExportMetadata {
 pub struct GoogleCloudRetailV2alphaExportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// This field is never set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2alphaExportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaExportErrorsConfig>>,
     /// Output result indicating where the data were exported to.
     #[serde(default, rename = "outputResult")]
-    pub output_result: Option<GoogleCloudRetailV2alphaOutputResult>,
+    pub output_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaOutputResult>>,
 }
 
 /// Response of the ExportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -2709,13 +2922,15 @@ pub struct GoogleCloudRetailV2alphaExportProductsResponse {
 pub struct GoogleCloudRetailV2alphaExportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// This field is never set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2alphaExportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaExportErrorsConfig>>,
     /// Output result indicating where the data were exported to.
     #[serde(default, rename = "outputResult")]
-    pub output_result: Option<GoogleCloudRetailV2alphaOutputResult>,
+    pub output_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaOutputResult>>,
 }
 
 /// A Gcs output result.
@@ -2723,7 +2938,7 @@ pub struct GoogleCloudRetailV2alphaExportUserEventsResponse {
 pub struct GoogleCloudRetailV2alphaGcsOutputResult {
     /// The uri of Gcs output
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Response of the ImportCompletionDataRequest. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
@@ -2731,7 +2946,7 @@ pub struct GoogleCloudRetailV2alphaGcsOutputResult {
 pub struct GoogleCloudRetailV2alphaImportCompletionDataResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Configuration of destination for Import related errors.
@@ -2739,7 +2954,7 @@ pub struct GoogleCloudRetailV2alphaImportCompletionDataResponse {
 pub struct GoogleCloudRetailV2alphaImportErrorsConfig {
     /// Google Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: Option<String>,
+    pub gcs_prefix: ::core::option::Option<String>,
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
@@ -2747,26 +2962,27 @@ pub struct GoogleCloudRetailV2alphaImportErrorsConfig {
 pub struct GoogleCloudRetailV2alphaImportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Count of entries that encountered errors while processing.
     #[serde(default, rename = "failureCount")]
-    pub failure_count: Option<String>,
+    pub failure_count: ::core::option::Option<String>,
     /// Pub/Sub topic for receiving notification. If this field is set, when the import is finished, a notification is sent to specified Pub/Sub topic. The message data is JSON string of a Operation. Format of the Pub/Sub topic is projects/{project}/topics/{topic}.
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
     /// Deprecated. This field is never set.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Count of entries that were processed successfully.
     #[serde(default, rename = "successCount")]
-    pub success_count: Option<String>,
+    pub success_count: ::core::option::Option<String>,
     /// Metadata related to transform user events.
     #[serde(default, rename = "transformedUserEventsMetadata")]
-    pub transformed_user_events_metadata:
-        Option<GoogleCloudRetailV2alphaTransformedUserEventsMetadata>,
+    pub transformed_user_events_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2alphaTransformedUserEventsMetadata>,
+    >,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response of the ImportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -2774,10 +2990,11 @@ pub struct GoogleCloudRetailV2alphaImportMetadata {
 pub struct GoogleCloudRetailV2alphaImportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2alphaImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaImportErrorsConfig>>,
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -2785,13 +3002,15 @@ pub struct GoogleCloudRetailV2alphaImportProductsResponse {
 pub struct GoogleCloudRetailV2alphaImportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Echoes the destination for the complete errors if this field was set in the request.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2alphaImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaImportErrorsConfig>>,
     /// Aggregated statistics of user event import status.
     #[serde(default, rename = "importSummary")]
-    pub import_summary: Option<GoogleCloudRetailV2alphaUserEventImportSummary>,
+    pub import_summary:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaUserEventImportSummary>>,
 }
 
 /// Represents a link between a Merchant Center account and a branch. After a link is established, products from the linked Merchant Center account are streamed to the linked branch.
@@ -2799,35 +3018,40 @@ pub struct GoogleCloudRetailV2alphaImportUserEventsResponse {
 pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLink {
     /// Required. The branch ID (e.g. 0/1/2) within the catalog that products from merchant_center_account_id are streamed to. When updating this field, an empty value will use the currently configured default branch. However, changing the default branch later on won''t change the linked branch here. A single branch ID can only have one linked Merchant Center account ID.
     #[serde(default, rename = "branchId")]
-    pub branch_id: Option<String>,
+    pub branch_id: ::core::option::Option<String>,
     /// Criteria for the Merchant Center feeds to be ingested via the link. All offers will be ingested if the list is empty. Otherwise the offers will be ingested from selected feeds.
     #[serde(default, rename = "feedFilters")]
-    pub feed_filters:
-        Option<Vec<GoogleCloudRetailV2alphaMerchantCenterAccountLinkMerchantCenterFeedFilter>>,
+    pub feed_filters: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudRetailV2alphaMerchantCenterAccountLinkMerchantCenterFeedFilter,
+            >,
+        >,
+    >,
     /// The FeedLabel used to perform filtering. Note: this replaces [region_id](https://developers.google.com/shopping-content/reference/rest/v2.1/products#Product.FIELDS.feed_label). Example value: US. Example value: FeedLabel1.
     #[serde(default, rename = "feedLabel")]
-    pub feed_label: Option<String>,
+    pub feed_label: ::core::option::Option<String>,
     /// Output only. Immutable. MerchantCenterAccountLink identifier, which is the final component of name. This field is auto generated and follows the convention: BranchId_MerchantCenterAccountId. projects/*/locations/global/catalogs/default_catalog/merchantCenterAccountLinks/id_1.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Language of the title/description and other string attributes. Use language tags defined by [BCP 47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). ISO 639-1. This specifies the language of offers in Merchant Center that will be accepted. If empty, no language filtering will be performed. Example value: en.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Required. The linked [Merchant center account id](https://developers.google.com/shopping-content/guides/accountstatuses). The account must be a standalone account or a sub-account of a MCA.
     #[serde(default, rename = "merchantCenterAccountId")]
-    pub merchant_center_account_id: Option<String>,
+    pub merchant_center_account_id: ::core::option::Option<String>,
     /// Output only. Immutable. Full resource name of the Merchant Center Account Link, such as projects/*/locations/global/catalogs/default_catalog/merchantCenterAccountLinks/merchant_center_account_link.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Google Cloud project ID.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Optional. An optional arbitrary string that could be used as a tag for tracking link source.
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Output only. Represents the state of the link. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ACTIVE", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Merchant Center Feed filter criterion.
@@ -2835,13 +3059,13 @@ pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLink {
 pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLinkMerchantCenterFeedFilter {
     /// AFM data source ID.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Merchant Center primary feed ID. Deprecated: use data_source_id instead.
     #[serde(default, rename = "primaryFeedId")]
-    pub primary_feed_id: Option<String>,
+    pub primary_feed_id: ::core::option::Option<String>,
     /// Merchant Center primary feed name. The name is used for the display purposes only.
     #[serde(default, rename = "primaryFeedName")]
-    pub primary_feed_name: Option<String>,
+    pub primary_feed_name: ::core::option::Option<String>,
 }
 
 /// Metadata that describes the training and serving parameters of a Model. A Model can be associated with a ServingConfig and then queried through the Predict API.
@@ -2849,52 +3073,57 @@ pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLinkMerchantCenterFeedFi
 pub struct GoogleCloudRetailV2alphaModel {
     /// Output only. Timestamp the Recommendation Model was created at.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The state of data requirements for this model: DATA_OK and DATA_ERROR. Recommendation model cannot be trained if the data is in DATA_ERROR state. Recommendation model can have DATA_ERROR state even if serving state is ACTIVE: models were trained successfully before, but cannot be refreshed because model no longer has sufficient data for training. // TODO: enum values: ["DATA_STATE_UNSPECIFIED", "DATA_OK", "DATA_ERROR"]
     #[serde(default, rename = "dataState")]
-    pub data_state: Option<String>,
+    pub data_state: ::core::option::Option<String>,
     /// Required. The display name of the model. Should be human readable, used to display Recommendation Models in the Retail Cloud Console Dashboard. UTF-8 encoded string with limit of 1024 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. If RECOMMENDATIONS_FILTERING_ENABLED, recommendation filtering by attributes is enabled for the model. // TODO: enum values: ["RECOMMENDATIONS_FILTERING_OPTION_UNSPECIFIED", "RECOMMENDATIONS_FILTERING_DISABLED", "RECOMMENDATIONS_FILTERING_ENABLED"]
     #[serde(default, rename = "filteringOption")]
-    pub filtering_option: Option<String>,
+    pub filtering_option: ::core::option::Option<String>,
     /// Output only. The timestamp when the latest successful tune finished.
     #[serde(default, rename = "lastTuneTime")]
-    pub last_tune_time: Option<String>,
+    pub last_tune_time: ::core::option::Option<String>,
     /// Optional. Additional model features config.
     #[serde(default, rename = "modelFeaturesConfig")]
-    pub model_features_config: Option<GoogleCloudRetailV2alphaModelModelFeaturesConfig>,
+    pub model_features_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2alphaModelModelFeaturesConfig>>,
     /// Required. The fully qualified resource name of the model. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id} catalog_id has char limit of 50. recommendation_model_id has char limit of 40.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The optimization objective e.g. cvr. Currently supported values: ctr, cvr, revenue-per-order. If not specified, we choose default based on model type. Default depends on type of recommendation: recommended-for-you =&gt; ctr others-you-may-like =&gt; ctr frequently-bought-together =&gt; revenue_per_order This field together with optimization_objective describe model metadata to use to control model training and serving. See https://cloud.google.com/retail/docs/models for more details on what the model metadata control and which combination of parameters are valid. For invalid combinations of parameters (e.g. type = frequently-bought-together and optimization_objective = ctr), you receive an error 400 if you try to create/update a recommendation with this set of knobs.
     #[serde(default, rename = "optimizationObjective")]
-    pub optimization_objective: Option<String>,
+    pub optimization_objective: ::core::option::Option<String>,
     /// Optional. The page optimization config.
     #[serde(default, rename = "pageOptimizationConfig")]
-    pub page_optimization_config: Option<GoogleCloudRetailV2alphaModelPageOptimizationConfig>,
+    pub page_optimization_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2alphaModelPageOptimizationConfig>,
+    >,
     /// Optional. The state of periodic tuning. The period we use is 3 months - to do a one-off tune earlier use the TuneModel method. Default value is PERIODIC_TUNING_ENABLED. // TODO: enum values: ["PERIODIC_TUNING_STATE_UNSPECIFIED", "PERIODIC_TUNING_DISABLED", "ALL_TUNING_DISABLED", "PERIODIC_TUNING_ENABLED"]
     #[serde(default, rename = "periodicTuningState")]
-    pub periodic_tuning_state: Option<String>,
+    pub periodic_tuning_state: ::core::option::Option<String>,
     /// Output only. The list of valid serving configs associated with the PageOptimizationConfig.
     #[serde(default, rename = "servingConfigLists")]
-    pub serving_config_lists: Option<Vec<GoogleCloudRetailV2alphaModelServingConfigList>>,
+    pub serving_config_lists: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2alphaModelServingConfigList>>,
+    >,
     /// Output only. The serving state of the model: ACTIVE, NOT_ACTIVE. // TODO: enum values: ["SERVING_STATE_UNSPECIFIED", "INACTIVE", "ACTIVE", "TUNED"]
     #[serde(default, rename = "servingState")]
-    pub serving_state: Option<String>,
+    pub serving_state: ::core::option::Option<String>,
     /// Optional. The training state that the model is in (e.g. TRAINING or PAUSED). Since part of the cost of running the service is frequency of training - this can be used to determine when to train model in order to control cost. If not specified: the default value for CreateModel method is TRAINING. The default value for UpdateModel method is to keep the state the same as before. // TODO: enum values: ["TRAINING_STATE_UNSPECIFIED", "PAUSED", "TRAINING"]
     #[serde(default, rename = "trainingState")]
-    pub training_state: Option<String>,
+    pub training_state: ::core::option::Option<String>,
     /// Output only. The tune operation associated with the model. Can be used to determine if there is an ongoing tune for this recommendation. Empty field implies no tune is goig on.
     #[serde(default, rename = "tuningOperation")]
-    pub tuning_operation: Option<String>,
+    pub tuning_operation: ::core::option::Option<String>,
     /// Required. The type of model e.g. home-page. Currently supported values: recommended-for-you, others-you-may-like, frequently-bought-together, page-optimization, similar-items, buy-it-again, on-sale-items, and recently-viewed(readonly value). This field together with optimization_objective describe model metadata to use to control model training and serving. See https://cloud.google.com/retail/docs/models for more details on what the model metadata control and which combination of parameters are valid. For invalid combinations of parameters (e.g. type = frequently-bought-together and optimization_objective = ctr), you receive an error 400 if you try to create/update a recommendation with this set of knobs.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Timestamp the Recommendation Model was last updated. E.g. if a Recommendation Model was paused - this would be the time the pause was initiated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Additional configs for the frequently-bought-together model type.
@@ -2902,7 +3131,7 @@ pub struct GoogleCloudRetailV2alphaModel {
 pub struct GoogleCloudRetailV2alphaModelFrequentlyBoughtTogetherFeaturesConfig {
     /// Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the frequently-bought-together type. If it isn''t specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS. // TODO: enum values: ["CONTEXT_PRODUCTS_TYPE_UNSPECIFIED", "SINGLE_CONTEXT_PRODUCT", "MULTIPLE_CONTEXT_PRODUCTS"]
     #[serde(default, rename = "contextProductsType")]
-    pub context_products_type: Option<String>,
+    pub context_products_type: ::core::option::Option<String>,
 }
 
 /// Additional model features config.
@@ -2910,8 +3139,9 @@ pub struct GoogleCloudRetailV2alphaModelFrequentlyBoughtTogetherFeaturesConfig {
 pub struct GoogleCloudRetailV2alphaModelModelFeaturesConfig {
     /// Additional configs for frequently-bought-together models.
     #[serde(default, rename = "frequentlyBoughtTogetherConfig")]
-    pub frequently_bought_together_config:
-        Option<GoogleCloudRetailV2alphaModelFrequentlyBoughtTogetherFeaturesConfig>,
+    pub frequently_bought_together_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2alphaModelFrequentlyBoughtTogetherFeaturesConfig>,
+    >,
 }
 
 /// The PageOptimizationConfig for model training. This determines how many panels to optimize for, and which serving configs to consider for each panel. The purpose of this model is to optimize which ServingConfig to show on which panels in way that optimizes the visitors shopping journey.
@@ -2919,13 +3149,17 @@ pub struct GoogleCloudRetailV2alphaModelModelFeaturesConfig {
 pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfig {
     /// Required. The type of UserEvent this page optimization is shown for. Each page has an associated event type - this will be the corresponding event type for the page that the page optimization model is used on. Supported types: * add-to-cart: Products being added to cart. * detail-page-view: Products detail page viewed. * home-page-view: Homepage viewed * category-page-view: Homepage viewed * shopping-cart-page-view: User viewing a shopping cart. home-page-view only allows models with type recommended-for-you. All other page_optimization_event_type allow all Model.types.
     #[serde(default, rename = "pageOptimizationEventType")]
-    pub page_optimization_event_type: Option<String>,
+    pub page_optimization_event_type: ::core::option::Option<String>,
     /// Required. A list of panel configurations. Limit = 5.
     #[serde(default)]
-    pub panels: Option<Vec<GoogleCloudRetailV2alphaModelPageOptimizationConfigPanel>>,
+    pub panels: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2alphaModelPageOptimizationConfigPanel>,
+        >,
+    >,
     /// Optional. How to restrict results across panels e.g. can the same ServingConfig be shown on multiple panels at once. If unspecified, default to UNIQUE_MODEL_RESTRICTION. // TODO: enum values: ["RESTRICTION_UNSPECIFIED", "NO_RESTRICTION", "UNIQUE_SERVING_CONFIG_RESTRICTION", "UNIQUE_MODEL_RESTRICTION", "UNIQUE_MODEL_TYPE_RESTRICTION"]
     #[serde(default)]
-    pub restriction: Option<String>,
+    pub restriction: ::core::option::Option<String>,
 }
 
 /// A candidate to consider for a given panel. Currently only ServingConfig are valid candidates.
@@ -2933,7 +3167,7 @@ pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfig {
 pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate {
     /// This has to be a valid ServingConfig identifier. For example, for a ServingConfig with full name: projects/*/locations/global/catalogs/default_catalog/servingConfigs/my_candidate_config, this would be my_candidate_config.
     #[serde(default, rename = "servingConfigId")]
-    pub serving_config_id: Option<String>,
+    pub serving_config_id: ::core::option::Option<String>,
 }
 
 /// An individual panel with a list of ServingConfigs to consider for it.
@@ -2941,13 +3175,19 @@ pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate {
 pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigPanel {
     /// Required. The candidates to consider on the panel.
     #[serde(default)]
-    pub candidates: Option<Vec<GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate>>,
+    pub candidates: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate>,
+        >,
+    >,
     /// Required. The default candidate. If the model fails at serving time, we fall back to the default.
     #[serde(default, rename = "defaultCandidate")]
-    pub default_candidate: Option<GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate>,
+    pub default_candidate: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate>,
+    >,
     /// Optional. The name to display for the panel.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Represents an ordered combination of valid serving configs, which can be used for PAGE_OPTIMIZATION recommendations.
@@ -2955,7 +3195,7 @@ pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigPanel {
 pub struct GoogleCloudRetailV2alphaModelServingConfigList {
     /// Optional. A set of valid serving configs that may be used for PAGE_OPTIMIZATION.
     #[serde(default, rename = "servingConfigIds")]
-    pub serving_config_ids: Option<Vec<String>>,
+    pub serving_config_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Output result that stores the information about where the exported data is stored.
@@ -2963,10 +3203,14 @@ pub struct GoogleCloudRetailV2alphaModelServingConfigList {
 pub struct GoogleCloudRetailV2alphaOutputResult {
     /// The BigQuery location where the result is stored.
     #[serde(default, rename = "bigqueryResult")]
-    pub bigquery_result: Option<Vec<GoogleCloudRetailV2alphaBigQueryOutputResult>>,
+    pub bigquery_result: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2alphaBigQueryOutputResult>>,
+    >,
     /// The Google Cloud Storage location where the result is stored.
     #[serde(default, rename = "gcsResult")]
-    pub gcs_result: Option<Vec<GoogleCloudRetailV2alphaGcsOutputResult>>,
+    pub gcs_result: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2alphaGcsOutputResult>>,
+    >,
 }
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
@@ -2974,16 +3218,16 @@ pub struct GoogleCloudRetailV2alphaOutputResult {
 pub struct GoogleCloudRetailV2alphaPurgeProductsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Count of entries that encountered errors while processing.
     #[serde(default, rename = "failureCount")]
-    pub failure_count: Option<String>,
+    pub failure_count: ::core::option::Option<String>,
     /// Count of entries that were deleted successfully.
     #[serde(default, rename = "successCount")]
-    pub success_count: Option<String>,
+    pub success_count: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response of the PurgeProductsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
@@ -2991,10 +3235,10 @@ pub struct GoogleCloudRetailV2alphaPurgeProductsMetadata {
 pub struct GoogleCloudRetailV2alphaPurgeProductsResponse {
     /// The total count of products purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
-    pub purge_count: Option<String>,
+    pub purge_count: ::core::option::Option<String>,
     /// A sample of the product names that will be deleted. Only populated if force is set to false. A max of 100 names will be returned and the names are chosen at random.
     #[serde(default, rename = "purgeSample")]
-    pub purge_sample: Option<Vec<String>>,
+    pub purge_sample: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
@@ -3002,7 +3246,7 @@ pub struct GoogleCloudRetailV2alphaPurgeProductsResponse {
 pub struct GoogleCloudRetailV2alphaPurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgedEventsCount")]
-    pub purged_events_count: Option<String>,
+    pub purged_events_count: ::core::option::Option<String>,
 }
 
 /// Response message for RejoinUserEvents method.
@@ -3010,7 +3254,7 @@ pub struct GoogleCloudRetailV2alphaPurgeUserEventsResponse {
 pub struct GoogleCloudRetailV2alphaRejoinUserEventsResponse {
     /// Number of user events that were joined with latest product catalog.
     #[serde(default, rename = "rejoinedUserEventsCount")]
-    pub rejoined_user_events_count: Option<String>,
+    pub rejoined_user_events_count: ::core::option::Option<String>,
 }
 
 /// Metadata related to transform user events operation.
@@ -3018,10 +3262,10 @@ pub struct GoogleCloudRetailV2alphaRejoinUserEventsResponse {
 pub struct GoogleCloudRetailV2alphaTransformedUserEventsMetadata {
     /// Count of entries in the source user events BigQuery table.
     #[serde(default, rename = "sourceEventsCount")]
-    pub source_events_count: Option<String>,
+    pub source_events_count: ::core::option::Option<String>,
     /// Count of entries in the transformed user events BigQuery table, which could be different from the actually imported number of user events.
     #[serde(default, rename = "transformedEventsCount")]
-    pub transformed_events_count: Option<String>,
+    pub transformed_events_count: ::core::option::Option<String>,
 }
 
 /// Metadata associated with a tune operation.
@@ -3029,7 +3273,7 @@ pub struct GoogleCloudRetailV2alphaTransformedUserEventsMetadata {
 pub struct GoogleCloudRetailV2alphaTuneModelMetadata {
     /// The resource name of the model that this tune applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
@@ -3037,10 +3281,10 @@ pub struct GoogleCloudRetailV2alphaTuneModelMetadata {
 pub struct GoogleCloudRetailV2alphaUserEventImportSummary {
     /// Count of user events imported with complete existing catalog information.
     #[serde(default, rename = "joinedEventsCount")]
-    pub joined_events_count: Option<String>,
+    pub joined_events_count: ::core::option::Option<String>,
     /// Count of user events imported, but with catalog information not found in the imported catalog.
     #[serde(default, rename = "unjoinedEventsCount")]
-    pub unjoined_events_count: Option<String>,
+    pub unjoined_events_count: ::core::option::Option<String>,
 }
 
 /// A BigQuery output result.
@@ -3048,10 +3292,10 @@ pub struct GoogleCloudRetailV2alphaUserEventImportSummary {
 pub struct GoogleCloudRetailV2betaBigQueryOutputResult {
     /// The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     /// The ID of a BigQuery Table.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// Metadata associated with a create operation.
@@ -3059,7 +3303,7 @@ pub struct GoogleCloudRetailV2betaBigQueryOutputResult {
 pub struct GoogleCloudRetailV2betaCreateModelMetadata {
     /// The resource name of the model that this create applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Response of the ExportAnalyticsMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -3067,13 +3311,15 @@ pub struct GoogleCloudRetailV2betaCreateModelMetadata {
 pub struct GoogleCloudRetailV2betaExportAnalyticsMetricsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// This field is never set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2betaExportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaExportErrorsConfig>>,
     /// Output result indicating where the data were exported to.
     #[serde(default, rename = "outputResult")]
-    pub output_result: Option<GoogleCloudRetailV2betaOutputResult>,
+    pub output_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaOutputResult>>,
 }
 
 /// Configuration of destination for Export related errors.
@@ -3081,7 +3327,7 @@ pub struct GoogleCloudRetailV2betaExportAnalyticsMetricsResponse {
 pub struct GoogleCloudRetailV2betaExportErrorsConfig {
     /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Export errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: Option<String>,
+    pub gcs_prefix: ::core::option::Option<String>,
 }
 
 /// Metadata related to the progress of the Export operation. This is returned by the google.longrunning.Operation.metadata field.
@@ -3089,10 +3335,10 @@ pub struct GoogleCloudRetailV2betaExportErrorsConfig {
 pub struct GoogleCloudRetailV2betaExportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response of the ExportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -3100,13 +3346,15 @@ pub struct GoogleCloudRetailV2betaExportMetadata {
 pub struct GoogleCloudRetailV2betaExportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// This field is never set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2betaExportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaExportErrorsConfig>>,
     /// Output result indicating where the data were exported to.
     #[serde(default, rename = "outputResult")]
-    pub output_result: Option<GoogleCloudRetailV2betaOutputResult>,
+    pub output_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaOutputResult>>,
 }
 
 /// Response of the ExportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -3114,13 +3362,15 @@ pub struct GoogleCloudRetailV2betaExportProductsResponse {
 pub struct GoogleCloudRetailV2betaExportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// This field is never set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2betaExportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaExportErrorsConfig>>,
     /// Output result indicating where the data were exported to.
     #[serde(default, rename = "outputResult")]
-    pub output_result: Option<GoogleCloudRetailV2betaOutputResult>,
+    pub output_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaOutputResult>>,
 }
 
 /// A Gcs output result.
@@ -3128,7 +3378,7 @@ pub struct GoogleCloudRetailV2betaExportUserEventsResponse {
 pub struct GoogleCloudRetailV2betaGcsOutputResult {
     /// The uri of Gcs output
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Response of the ImportCompletionDataRequest. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
@@ -3136,7 +3386,7 @@ pub struct GoogleCloudRetailV2betaGcsOutputResult {
 pub struct GoogleCloudRetailV2betaImportCompletionDataResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Configuration of destination for Import related errors.
@@ -3144,7 +3394,7 @@ pub struct GoogleCloudRetailV2betaImportCompletionDataResponse {
 pub struct GoogleCloudRetailV2betaImportErrorsConfig {
     /// Google Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: Option<String>,
+    pub gcs_prefix: ::core::option::Option<String>,
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
@@ -3152,22 +3402,22 @@ pub struct GoogleCloudRetailV2betaImportErrorsConfig {
 pub struct GoogleCloudRetailV2betaImportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Count of entries that encountered errors while processing.
     #[serde(default, rename = "failureCount")]
-    pub failure_count: Option<String>,
+    pub failure_count: ::core::option::Option<String>,
     /// Pub/Sub topic for receiving notification. If this field is set, when the import is finished, a notification is sent to specified Pub/Sub topic. The message data is JSON string of a Operation. Format of the Pub/Sub topic is projects/{project}/topics/{topic}.
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
     /// Deprecated. This field is never set.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Count of entries that were processed successfully.
     #[serde(default, rename = "successCount")]
-    pub success_count: Option<String>,
+    pub success_count: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response of the ImportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -3175,10 +3425,11 @@ pub struct GoogleCloudRetailV2betaImportMetadata {
 pub struct GoogleCloudRetailV2betaImportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2betaImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaImportErrorsConfig>>,
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
@@ -3186,13 +3437,15 @@ pub struct GoogleCloudRetailV2betaImportProductsResponse {
 pub struct GoogleCloudRetailV2betaImportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
-    pub error_samples: Option<Vec<GoogleRpcStatus>>,
+    pub error_samples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Echoes the destination for the complete errors if this field was set in the request.
     #[serde(default, rename = "errorsConfig")]
-    pub errors_config: Option<GoogleCloudRetailV2betaImportErrorsConfig>,
+    pub errors_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaImportErrorsConfig>>,
     /// Aggregated statistics of user event import status.
     #[serde(default, rename = "importSummary")]
-    pub import_summary: Option<GoogleCloudRetailV2betaUserEventImportSummary>,
+    pub import_summary:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaUserEventImportSummary>>,
 }
 
 /// Metadata that describes the training and serving parameters of a Model. A Model can be associated with a ServingConfig and then queried through the Predict API.
@@ -3200,49 +3453,52 @@ pub struct GoogleCloudRetailV2betaImportUserEventsResponse {
 pub struct GoogleCloudRetailV2betaModel {
     /// Output only. Timestamp the Recommendation Model was created at.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The state of data requirements for this model: DATA_OK and DATA_ERROR. Recommendation model cannot be trained if the data is in DATA_ERROR state. Recommendation model can have DATA_ERROR state even if serving state is ACTIVE: models were trained successfully before, but cannot be refreshed because model no longer has sufficient data for training. // TODO: enum values: ["DATA_STATE_UNSPECIFIED", "DATA_OK", "DATA_ERROR"]
     #[serde(default, rename = "dataState")]
-    pub data_state: Option<String>,
+    pub data_state: ::core::option::Option<String>,
     /// Required. The display name of the model. Should be human readable, used to display Recommendation Models in the Retail Cloud Console Dashboard. UTF-8 encoded string with limit of 1024 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. If RECOMMENDATIONS_FILTERING_ENABLED, recommendation filtering by attributes is enabled for the model. // TODO: enum values: ["RECOMMENDATIONS_FILTERING_OPTION_UNSPECIFIED", "RECOMMENDATIONS_FILTERING_DISABLED", "RECOMMENDATIONS_FILTERING_ENABLED"]
     #[serde(default, rename = "filteringOption")]
-    pub filtering_option: Option<String>,
+    pub filtering_option: ::core::option::Option<String>,
     /// Output only. The timestamp when the latest successful tune finished.
     #[serde(default, rename = "lastTuneTime")]
-    pub last_tune_time: Option<String>,
+    pub last_tune_time: ::core::option::Option<String>,
     /// Optional. Additional model features config.
     #[serde(default, rename = "modelFeaturesConfig")]
-    pub model_features_config: Option<GoogleCloudRetailV2betaModelModelFeaturesConfig>,
+    pub model_features_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2betaModelModelFeaturesConfig>>,
     /// Required. The fully qualified resource name of the model. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id} catalog_id has char limit of 50. recommendation_model_id has char limit of 40.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The optimization objective e.g. cvr. Currently supported values: ctr, cvr, revenue-per-order. If not specified, we choose default based on model type. Default depends on type of recommendation: recommended-for-you =&gt; ctr others-you-may-like =&gt; ctr frequently-bought-together =&gt; revenue_per_order This field together with optimization_objective describe model metadata to use to control model training and serving. See https://cloud.google.com/retail/docs/models for more details on what the model metadata control and which combination of parameters are valid. For invalid combinations of parameters (e.g. type = frequently-bought-together and optimization_objective = ctr), you receive an error 400 if you try to create/update a recommendation with this set of knobs.
     #[serde(default, rename = "optimizationObjective")]
-    pub optimization_objective: Option<String>,
+    pub optimization_objective: ::core::option::Option<String>,
     /// Optional. The state of periodic tuning. The period we use is 3 months - to do a one-off tune earlier use the TuneModel method. Default value is PERIODIC_TUNING_ENABLED. // TODO: enum values: ["PERIODIC_TUNING_STATE_UNSPECIFIED", "PERIODIC_TUNING_DISABLED", "ALL_TUNING_DISABLED", "PERIODIC_TUNING_ENABLED"]
     #[serde(default, rename = "periodicTuningState")]
-    pub periodic_tuning_state: Option<String>,
+    pub periodic_tuning_state: ::core::option::Option<String>,
     /// Output only. The list of valid serving configs associated with the PageOptimizationConfig.
     #[serde(default, rename = "servingConfigLists")]
-    pub serving_config_lists: Option<Vec<GoogleCloudRetailV2betaModelServingConfigList>>,
+    pub serving_config_lists: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2betaModelServingConfigList>>,
+    >,
     /// Output only. The serving state of the model: ACTIVE, NOT_ACTIVE. // TODO: enum values: ["SERVING_STATE_UNSPECIFIED", "INACTIVE", "ACTIVE", "TUNED"]
     #[serde(default, rename = "servingState")]
-    pub serving_state: Option<String>,
+    pub serving_state: ::core::option::Option<String>,
     /// Optional. The training state that the model is in (e.g. TRAINING or PAUSED). Since part of the cost of running the service is frequency of training - this can be used to determine when to train model in order to control cost. If not specified: the default value for CreateModel method is TRAINING. The default value for UpdateModel method is to keep the state the same as before. // TODO: enum values: ["TRAINING_STATE_UNSPECIFIED", "PAUSED", "TRAINING"]
     #[serde(default, rename = "trainingState")]
-    pub training_state: Option<String>,
+    pub training_state: ::core::option::Option<String>,
     /// Output only. The tune operation associated with the model. Can be used to determine if there is an ongoing tune for this recommendation. Empty field implies no tune is goig on.
     #[serde(default, rename = "tuningOperation")]
-    pub tuning_operation: Option<String>,
+    pub tuning_operation: ::core::option::Option<String>,
     /// Required. The type of model e.g. home-page. Currently supported values: recommended-for-you, others-you-may-like, frequently-bought-together, page-optimization, similar-items, buy-it-again, on-sale-items, and recently-viewed(readonly value). This field together with optimization_objective describe model metadata to use to control model training and serving. See https://cloud.google.com/retail/docs/models for more details on what the model metadata control and which combination of parameters are valid. For invalid combinations of parameters (e.g. type = frequently-bought-together and optimization_objective = ctr), you receive an error 400 if you try to create/update a recommendation with this set of knobs.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Timestamp the Recommendation Model was last updated. E.g. if a Recommendation Model was paused - this would be the time the pause was initiated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Additional configs for the frequently-bought-together model type.
@@ -3250,7 +3506,7 @@ pub struct GoogleCloudRetailV2betaModel {
 pub struct GoogleCloudRetailV2betaModelFrequentlyBoughtTogetherFeaturesConfig {
     /// Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the frequently-bought-together type. If it isn''t specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS. // TODO: enum values: ["CONTEXT_PRODUCTS_TYPE_UNSPECIFIED", "SINGLE_CONTEXT_PRODUCT", "MULTIPLE_CONTEXT_PRODUCTS"]
     #[serde(default, rename = "contextProductsType")]
-    pub context_products_type: Option<String>,
+    pub context_products_type: ::core::option::Option<String>,
 }
 
 /// Additional model features config.
@@ -3258,8 +3514,9 @@ pub struct GoogleCloudRetailV2betaModelFrequentlyBoughtTogetherFeaturesConfig {
 pub struct GoogleCloudRetailV2betaModelModelFeaturesConfig {
     /// Additional configs for frequently-bought-together models.
     #[serde(default, rename = "frequentlyBoughtTogetherConfig")]
-    pub frequently_bought_together_config:
-        Option<GoogleCloudRetailV2betaModelFrequentlyBoughtTogetherFeaturesConfig>,
+    pub frequently_bought_together_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudRetailV2betaModelFrequentlyBoughtTogetherFeaturesConfig>,
+    >,
 }
 
 /// Represents an ordered combination of valid serving configs, which can be used for PAGE_OPTIMIZATION recommendations.
@@ -3267,7 +3524,7 @@ pub struct GoogleCloudRetailV2betaModelModelFeaturesConfig {
 pub struct GoogleCloudRetailV2betaModelServingConfigList {
     /// Optional. A set of valid serving configs that may be used for PAGE_OPTIMIZATION.
     #[serde(default, rename = "servingConfigIds")]
-    pub serving_config_ids: Option<Vec<String>>,
+    pub serving_config_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Output result that stores the information about where the exported data is stored.
@@ -3275,10 +3532,14 @@ pub struct GoogleCloudRetailV2betaModelServingConfigList {
 pub struct GoogleCloudRetailV2betaOutputResult {
     /// The BigQuery location where the result is stored.
     #[serde(default, rename = "bigqueryResult")]
-    pub bigquery_result: Option<Vec<GoogleCloudRetailV2betaBigQueryOutputResult>>,
+    pub bigquery_result: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2betaBigQueryOutputResult>>,
+    >,
     /// The Google Cloud Storage location where the result is stored.
     #[serde(default, rename = "gcsResult")]
-    pub gcs_result: Option<Vec<GoogleCloudRetailV2betaGcsOutputResult>>,
+    pub gcs_result: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2betaGcsOutputResult>>,
+    >,
 }
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
@@ -3286,16 +3547,16 @@ pub struct GoogleCloudRetailV2betaOutputResult {
 pub struct GoogleCloudRetailV2betaPurgeProductsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Count of entries that encountered errors while processing.
     #[serde(default, rename = "failureCount")]
-    pub failure_count: Option<String>,
+    pub failure_count: ::core::option::Option<String>,
     /// Count of entries that were deleted successfully.
     #[serde(default, rename = "successCount")]
-    pub success_count: Option<String>,
+    pub success_count: ::core::option::Option<String>,
     /// Operation last update time. If the operation is done, this is also the finish time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response of the PurgeProductsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
@@ -3303,10 +3564,10 @@ pub struct GoogleCloudRetailV2betaPurgeProductsMetadata {
 pub struct GoogleCloudRetailV2betaPurgeProductsResponse {
     /// The total count of products purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
-    pub purge_count: Option<String>,
+    pub purge_count: ::core::option::Option<String>,
     /// A sample of the product names that will be deleted. Only populated if force is set to false. A max of 100 names will be returned and the names are chosen at random.
     #[serde(default, rename = "purgeSample")]
-    pub purge_sample: Option<Vec<String>>,
+    pub purge_sample: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
@@ -3314,7 +3575,7 @@ pub struct GoogleCloudRetailV2betaPurgeProductsResponse {
 pub struct GoogleCloudRetailV2betaPurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgedEventsCount")]
-    pub purged_events_count: Option<String>,
+    pub purged_events_count: ::core::option::Option<String>,
 }
 
 /// Response message for RejoinUserEvents method.
@@ -3322,7 +3583,7 @@ pub struct GoogleCloudRetailV2betaPurgeUserEventsResponse {
 pub struct GoogleCloudRetailV2betaRejoinUserEventsResponse {
     /// Number of user events that were joined with latest product catalog.
     #[serde(default, rename = "rejoinedUserEventsCount")]
-    pub rejoined_user_events_count: Option<String>,
+    pub rejoined_user_events_count: ::core::option::Option<String>,
 }
 
 /// Metadata associated with a tune operation.
@@ -3330,7 +3591,7 @@ pub struct GoogleCloudRetailV2betaRejoinUserEventsResponse {
 pub struct GoogleCloudRetailV2betaTuneModelMetadata {
     /// The resource name of the model that this tune applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
@@ -3338,10 +3599,10 @@ pub struct GoogleCloudRetailV2betaTuneModelMetadata {
 pub struct GoogleCloudRetailV2betaUserEventImportSummary {
     /// Count of user events imported with complete existing catalog information.
     #[serde(default, rename = "joinedEventsCount")]
-    pub joined_events_count: Option<String>,
+    pub joined_events_count: ::core::option::Option<String>,
     /// Count of user events imported, but with catalog information not found in the imported catalog.
     #[serde(default, rename = "unjoinedEventsCount")]
-    pub unjoined_events_count: Option<String>,
+    pub unjoined_events_count: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -3349,13 +3610,14 @@ pub struct GoogleCloudRetailV2betaUserEventImportSummary {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -3363,19 +3625,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -3383,13 +3645,13 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -3397,11 +3659,11 @@ pub struct GoogleRpcStatus {
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }

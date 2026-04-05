@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Details of a Cloud Asset Inventory asset that caused a violation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AssetDetails {
     /// Information about the Cloud Asset Inventory asset that violated a policy. The format of this information can change at any time without prior notice. Your application must not depend on this information in any way.
     #[serde(default)]
-    pub asset: Option<String>,
+    pub asset: ::core::option::Option<String>,
     /// The type of Cloud Asset Inventory asset. For a list of asset types, see [Supported asset types](https://cloud.google.com/asset-inventory/docs/supported-asset-types).
     #[serde(default, rename = "assetType")]
-    pub asset_type: Option<String>,
+    pub asset_type: ::core::option::Option<String>,
 }
 
 /// Information about a compliance standard that the policy helps enforce.
@@ -29,10 +29,10 @@ pub struct AssetDetails {
 pub struct ComplianceStandard {
     /// Optional. The control in the compliance standard that the policy helps enforce. For example, AC-3.
     #[serde(default)]
-    pub control: Option<String>,
+    pub control: ::core::option::Option<String>,
     /// Optional. The compliance standard that the policy helps enforce. For example, NIST SP 800-53.
     #[serde(default)]
-    pub standard: Option<String>,
+    pub standard: ::core::option::Option<String>,
 }
 
 /// Metadata for a constraint in a Policy.
@@ -40,16 +40,19 @@ pub struct ComplianceStandard {
 pub struct Constraint {
     /// Optional. A predefined organization policy constraint.
     #[serde(default, rename = "orgPolicyConstraint")]
-    pub org_policy_constraint: Option<OrgPolicyConstraint>,
+    pub org_policy_constraint: ::core::option::Option<::std::boxed::Box<OrgPolicyConstraint>>,
     /// Optional. A custom organization policy constraint.
     #[serde(default, rename = "orgPolicyConstraintCustom")]
-    pub org_policy_constraint_custom: Option<OrgPolicyConstraintCustom>,
+    pub org_policy_constraint_custom:
+        ::core::option::Option<::std::boxed::Box<OrgPolicyConstraintCustom>>,
     /// Optional. A custom module for Security Health Analytics.
     #[serde(default, rename = "securityHealthAnalyticsCustomModule")]
-    pub security_health_analytics_custom_module: Option<SecurityHealthAnalyticsCustomModule>,
+    pub security_health_analytics_custom_module:
+        ::core::option::Option<::std::boxed::Box<SecurityHealthAnalyticsCustomModule>>,
     /// Optional. A built-in detector for Security Health Analytics.
     #[serde(default, rename = "securityHealthAnalyticsModule")]
-    pub security_health_analytics_module: Option<SecurityHealthAnalyticsModule>,
+    pub security_health_analytics_module:
+        ::core::option::Option<::std::boxed::Box<SecurityHealthAnalyticsModule>>,
 }
 
 /// Request message for CreateIaCValidationReport.
@@ -57,7 +60,7 @@ pub struct Constraint {
 pub struct CreateIaCValidationReportRequest {
     /// Required. The infrastructure-as-code (IaC) configuration to validate.
     #[serde(default)]
-    pub iac: Option<IaC>,
+    pub iac: ::core::option::Option<::std::boxed::Box<IaC>>,
 }
 
 /// A custom module configuration for Security Health Analytics. Use CustomConfig to create custom detectors that generate custom findings for resources that you specify.
@@ -65,22 +68,22 @@ pub struct CreateIaCValidationReportRequest {
 pub struct CustomConfig {
     /// Optional. Definitions of custom source properties to include in findings.
     #[serde(default, rename = "customOutput")]
-    pub custom_output: Option<CustomOutputSpec>,
+    pub custom_output: ::core::option::Option<::std::boxed::Box<CustomOutputSpec>>,
     /// Optional. A description of the vulnerability or misconfiguration that the custom module detects. The description appears in each finding. Provide enough information to help an investigator understand the finding. The value must be enclosed in quotation marks.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The Common Expression Language (CEL) expression to evaluate. When the expression evaluates to true for a resource, a finding is generated.
     #[serde(default)]
-    pub predicate: Option<Expr>,
+    pub predicate: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Required. An explanation of the steps that security teams can take to resolve the detected issue. The explanation appears in each finding.
     #[serde(default)]
-    pub recommendation: Option<String>,
+    pub recommendation: ::core::option::Option<String>,
     /// Required. The resource types that the custom module operates on.
     #[serde(default, rename = "resourceSelector")]
-    pub resource_selector: Option<ResourceSelector>,
+    pub resource_selector: ::core::option::Option<::std::boxed::Box<ResourceSelector>>,
     /// Required. The severity of findings generated by the custom module. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// Definitions of custom source properties that can appear in findings.
@@ -88,7 +91,7 @@ pub struct CustomConfig {
 pub struct CustomOutputSpec {
     /// Optional. The custom source properties that can appear in findings.
     #[serde(default)]
-    pub properties: Option<Vec<Property>>,
+    pub properties: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Property>>>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -96,16 +99,16 @@ pub struct CustomOutputSpec {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Request message for ExtractPosture.
@@ -113,10 +116,10 @@ pub struct Expr {
 pub struct ExtractPostureRequest {
     /// Required. An identifier for the posture.
     #[serde(default, rename = "postureId")]
-    pub posture_id: Option<String>,
+    pub posture_id: ::core::option::Option<String>,
     /// Required. The organization, folder, or project from which policies are extracted. Must be within the organization defined in parent. Use one of the following formats: * organization/{organization_number} * folder/{folder_number} * project/{project_number}
     #[serde(default)]
-    pub workload: Option<String>,
+    pub workload: ::core::option::Option<String>,
 }
 
 /// A custom, user-defined constraint. You can apply the constraint only to the resource types specified in the constraint, and only within the organization where the constraint is defined. _When you create a custom constraint, it is not enforced automatically._ You must use an organization policy to [enforce the constraint](https://cloud.google.com/resource-manager/help/organization-policy/constraints/enforce).
@@ -124,28 +127,28 @@ pub struct ExtractPostureRequest {
 pub struct GoogleCloudSecuritypostureV1CustomConstraint {
     /// Whether to allow or deny the action. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
-    pub action_type: Option<String>,
+    pub action_type: ::core::option::Option<String>,
     /// A Common Expression Language (CEL) condition expression that must evaluate to true for the constraint to be enforced. The maximum length is 1000 characters. For example: + resource.instanceName.matches(''(production|test)_(.+_)?[\d]+''): Evaluates to true if the resource''s instanceName attribute contains the following: + The prefix production or test + An underscore (_) + Optional: One or more characters, followed by an underscore (_) + One or more digits + resource.management.auto_upgrade == true: Evaluates to true if the resource''s management.auto_upgrade attribute is true.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// A description of the constraint. The maximum length is 2000 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A display name for the constraint. The maximum length is 200 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The types of operations that the constraint applies to.
     #[serde(default, rename = "methodTypes")]
-    pub method_types: Option<Vec<String>>,
+    pub method_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Immutable. The name of the constraint, in the format organizations/{organization_id}/customConstraints/custom.{custom_constraint_id}. For example, organizations/123456789012/customConstraints/custom.createOnlyE2TypeVms. Must contain 1 to 62 characters, excluding the prefix organizations/{organization_id}/customConstraints/custom..
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The resource type that the constraint applies to, in the format {canonical_service_name}/{resource_type_name}. For example, compute.googleapis.com/Instance.
     #[serde(default, rename = "resourceTypes")]
-    pub resource_types: Option<Vec<String>>,
+    pub resource_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The last time at which the constraint was updated or created.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A rule that defines the allowed and denied values for an organization policy constraint.
@@ -153,25 +156,27 @@ pub struct GoogleCloudSecuritypostureV1CustomConstraint {
 pub struct GoogleCloudSecuritypostureV1PolicyRule {
     /// Whether to allow any value for a list constraint. Valid only for list constraints.
     #[serde(default, rename = "allowAll")]
-    pub allow_all: Option<bool>,
+    pub allow_all: ::core::option::Option<bool>,
     /// A condition that determines whether this rule is used to evaluate the policy. When set, the google.type.Expr.expression field must contain 1 to 10 subexpressions, joined by the || or && operators. Each subexpression must use the resource.matchTag(), resource.matchTagId(), resource.hasTagKey(), or resource.hasTagKeyId() Common Expression Language (CEL) function. The resource.matchTag() function takes the following arguments: * key_name: the namespaced name of the tag key, with the organization ID and a slash (/) as a prefix; for example, 123456789012/environment * value_name: the short name of the tag value For example: resource.matchTag(''123456789012/environment, ''prod'') The resource.matchTagId() function takes the following arguments: * key_id: the permanent ID of the tag key; for example, tagKeys/123456789012 * value_id: the permanent ID of the tag value; for example, tagValues/567890123456 For example: resource.matchTagId(''tagKeys/123456789012'', ''tagValues/567890123456'') The resource.hasTagKey() function takes the following argument: * key_name: the namespaced name of the tag key, with the organization ID and a slash (/) as a prefix; for example, 123456789012/environment For example: resource.hasTagKey(''123456789012/environment'') The resource.hasTagKeyId() function takes the following arguments: * key_id: the permanent ID of the tag key; for example, tagKeys/123456789012 For example: resource.hasTagKeyId(''tagKeys/123456789012'')
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Whether to deny all values for a list constraint. Valid only for list constraints.
     #[serde(default, rename = "denyAll")]
-    pub deny_all: Option<bool>,
+    pub deny_all: ::core::option::Option<bool>,
     /// Whether to enforce the constraint. Valid only for boolean constraints.
     #[serde(default)]
-    pub enforce: Option<bool>,
+    pub enforce: ::core::option::Option<bool>,
     /// Optional. Required for managed constraints if parameters are defined. Passes parameter values when policy enforcement is enabled. Ensure that parameter value types match those defined in the constraint definition. For example:  { "allowedLocations": ["us-east1", "us-west1"], "allowAll": true }
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. The resource types policies can support, only used for managed constraints. Method type is GOVERN_TAGS.
     #[serde(default, rename = "resourceTypes")]
-    pub resource_types: Option<ResourceTypes>,
+    pub resource_types: ::core::option::Option<::std::boxed::Box<ResourceTypes>>,
     /// The allowed and denied values for a list constraint. Valid only for list constraints.
     #[serde(default)]
-    pub values: Option<GoogleCloudSecuritypostureV1PolicyRuleStringValues>,
+    pub values: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudSecuritypostureV1PolicyRuleStringValues>,
+    >,
 }
 
 /// The allowed and denied values for a list constraint. For all constraints, these fields can contain literal values. Optionally, you can add the is: prefix to these values. If the value contains a colon (:), then the is: prefix is required. Some constraints allow you to specify a portion of the resource hierarchy, known as a [_hierarchy subtree_](https://cloud.google.com/resource-manager/help/organization-policy/hierarchy-subtree), that the constraint applies to. To specify a hierarchy subtree, use the under: prefix, followed by a value with one of these formats: - projects/{project_id} (for example, projects/tokyo-rain-123) - folders/{folder_id} (for example, folders/1234567890123) - organizations/{organization_id} (for example, organizations/123456789012) A constraint''s supports_under field indicates whether you can specify a hierarchy subtree. To learn which predefined constraints let you specify a hierarchy subtree, see the [constraints reference](https://cloud.google.com/resource-manager/help/organization-policy/constraints/reference).
@@ -179,10 +184,10 @@ pub struct GoogleCloudSecuritypostureV1PolicyRule {
 pub struct GoogleCloudSecuritypostureV1PolicyRuleStringValues {
     /// The allowed values for the constraint.
     #[serde(default, rename = "allowedValues")]
-    pub allowed_values: Option<Vec<String>>,
+    pub allowed_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// The denied values for the constraint.
     #[serde(default, rename = "deniedValues")]
-    pub denied_values: Option<Vec<String>>,
+    pub denied_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Details of an infrastructure-as-code (IaC) configuration.
@@ -190,7 +195,7 @@ pub struct GoogleCloudSecuritypostureV1PolicyRuleStringValues {
 pub struct IaC {
     /// Optional. A Terraform plan file, formatted as a stringified JSON object. To learn how to generate a Terraform plan file in JSON format, see [JSON output format](https://developer.hashicorp.com/terraform/internals/json-format) in the Terraform documentation.
     #[serde(default, rename = "tfPlan")]
-    pub tf_plan: Option<String>,
+    pub tf_plan: ::core::option::Option<String>,
 }
 
 /// Details of an infrastructure-as-code (IaC) validation report.
@@ -198,10 +203,10 @@ pub struct IaC {
 pub struct IaCValidationReport {
     /// Additional information about the report.
     #[serde(default)]
-    pub note: Option<String>,
+    pub note: ::core::option::Option<String>,
     /// A list of every Violation found in the IaC configuration.
     #[serde(default)]
-    pub violations: Option<Vec<Violation>>,
+    pub violations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Violation>>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -209,10 +214,10 @@ pub struct IaCValidationReport {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -220,13 +225,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListPostureDeployments.
@@ -234,13 +239,14 @@ pub struct ListOperationsResponse {
 pub struct ListPostureDeploymentsResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of PostureDeployment resources.
     #[serde(default, rename = "postureDeployments")]
-    pub posture_deployments: Option<Vec<PostureDeployment>>,
+    pub posture_deployments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostureDeployment>>>,
     /// Locations that were temporarily unavailable and could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListPostureRevisions.
@@ -248,10 +254,10 @@ pub struct ListPostureDeploymentsResponse {
 pub struct ListPostureRevisionsResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of revisions for the Posture.
     #[serde(default)]
-    pub revisions: Option<Vec<Posture>>,
+    pub revisions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Posture>>>,
 }
 
 /// Response message for ListPostureTemplates.
@@ -259,10 +265,11 @@ pub struct ListPostureRevisionsResponse {
 pub struct ListPostureTemplatesResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of PostureTemplate resources.
     #[serde(default, rename = "postureTemplates")]
-    pub posture_templates: Option<Vec<PostureTemplate>>,
+    pub posture_templates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostureTemplate>>>,
 }
 
 /// Response message for ListPostures.
@@ -270,13 +277,13 @@ pub struct ListPostureTemplatesResponse {
 pub struct ListPosturesResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Posture resources.
     #[serde(default)]
-    pub postures: Option<Vec<Posture>>,
+    pub postures: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Posture>>>,
     /// Locations that were temporarily unavailable and could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListReports.
@@ -284,13 +291,13 @@ pub struct ListPosturesResponse {
 pub struct ListReportsResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Report resources.
     #[serde(default)]
-    pub reports: Option<Vec<Report>>,
+    pub reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Report>>>,
     /// Locations that were temporarily unavailable and could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -298,19 +305,19 @@ pub struct ListReportsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -318,19 +325,19 @@ pub struct Location {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for an Operation.
@@ -338,28 +345,28 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. The API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time at which the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time at which the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. An error message. Returned when a PostureDeployment enters a failure state like UPDATE_FAILED.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// Output only. Whether a request to cancel the operation has been received. For operations that have been cancelled successfully, the Operation.error field contains the error code CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. The status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. The server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. The name of the action executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// A predefined organization policy constraint.
@@ -367,10 +374,12 @@ pub struct OperationMetadata {
 pub struct OrgPolicyConstraint {
     /// Required. A unique identifier for the constraint.
     #[serde(default, rename = "cannedConstraintId")]
-    pub canned_constraint_id: Option<String>,
+    pub canned_constraint_id: ::core::option::Option<String>,
     /// Required. The rules enforced by the constraint.
     #[serde(default, rename = "policyRules")]
-    pub policy_rules: Option<Vec<GoogleCloudSecuritypostureV1PolicyRule>>,
+    pub policy_rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudSecuritypostureV1PolicyRule>>,
+    >,
 }
 
 /// A custom organization policy constraint.
@@ -378,10 +387,13 @@ pub struct OrgPolicyConstraint {
 pub struct OrgPolicyConstraintCustom {
     /// Required. Metadata for the constraint.
     #[serde(default, rename = "customConstraint")]
-    pub custom_constraint: Option<GoogleCloudSecuritypostureV1CustomConstraint>,
+    pub custom_constraint:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudSecuritypostureV1CustomConstraint>>,
     /// Required. The rules enforced by the constraint.
     #[serde(default, rename = "policyRules")]
-    pub policy_rules: Option<Vec<GoogleCloudSecuritypostureV1PolicyRule>>,
+    pub policy_rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudSecuritypostureV1PolicyRule>>,
+    >,
 }
 
 /// The details of a policy, including the constraints that it includes.
@@ -389,16 +401,17 @@ pub struct OrgPolicyConstraintCustom {
 pub struct Policy {
     /// Optional. The compliance standards that the policy helps enforce.
     #[serde(default, rename = "complianceStandards")]
-    pub compliance_standards: Option<Vec<ComplianceStandard>>,
+    pub compliance_standards:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComplianceStandard>>>,
     /// Required. The constraints that the policy includes.
     #[serde(default)]
-    pub constraint: Option<Constraint>,
+    pub constraint: ::core::option::Option<::std::boxed::Box<Constraint>>,
     /// Optional. A description of the policy.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. A user-specified identifier for the policy. In a PolicySet, each policy must have a unique identifier.
     #[serde(default, rename = "policyId")]
-    pub policy_id: Option<String>,
+    pub policy_id: ::core::option::Option<String>,
 }
 
 /// Details of a policy that was violated.
@@ -406,16 +419,16 @@ pub struct Policy {
 pub struct PolicyDetails {
     /// The compliance standards that the policy maps to. For example, CIS-2.0 1.15.
     #[serde(default, rename = "complianceStandards")]
-    pub compliance_standards: Option<Vec<String>>,
+    pub compliance_standards: ::core::option::Option<::std::vec::Vec<String>>,
     /// Information about the constraint that was violated. The format of this information can change at any time without prior notice. Your application must not depend on this information in any way.
     #[serde(default)]
-    pub constraint: Option<String>,
+    pub constraint: ::core::option::Option<String>,
     /// The type of constraint that was violated. // TODO: enum values: ["CONSTRAINT_TYPE_UNSPECIFIED", "SECURITY_HEALTH_ANALYTICS_CUSTOM_MODULE", "ORG_POLICY_CUSTOM", "SECURITY_HEALTH_ANALYTICS_MODULE", "ORG_POLICY", "REGO_POLICY"]
     #[serde(default, rename = "constraintType")]
-    pub constraint_type: Option<String>,
+    pub constraint_type: ::core::option::Option<String>,
     /// A description of the policy.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// A group of one or more Policy resources.
@@ -423,13 +436,13 @@ pub struct PolicyDetails {
 pub struct PolicySet {
     /// Optional. A description of the policy set.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The Policy resources in the policy set. Each policy must have a policy_id that''s unique within the policy set.
     #[serde(default)]
-    pub policies: Option<Vec<Policy>>,
+    pub policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Policy>>>,
     /// Required. An identifier for the policy set.
     #[serde(default, rename = "policySetId")]
-    pub policy_set_id: Option<String>,
+    pub policy_set_id: ::core::option::Option<String>,
 }
 
 /// The details of a posture.
@@ -437,37 +450,37 @@ pub struct PolicySet {
 pub struct Posture {
     /// Optional. The user-specified annotations for the posture. For details about the values you can use in an annotation, see [AIP-148: Standard fields](https://google.aip.dev/148#annotations).
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. The categories that the posture belongs to, as determined by the Security Posture API.
     #[serde(default)]
-    pub categories: Option<Vec<String>>,
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The time at which the posture was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. A description of the posture.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. An opaque identifier for the current version of the posture at the specified revision_id. To prevent concurrent updates from overwriting each other, always provide the etag when you update a posture. You can also provide the etag when you delete a posture, to help ensure that you''re deleting the intended version of the posture.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Required. Identifier. The name of the posture, in the format organizations/{organization}/locations/global/postures/{posture_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The PolicySet resources that the posture includes.
     #[serde(default, rename = "policySets")]
-    pub policy_sets: Option<Vec<PolicySet>>,
+    pub policy_sets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PolicySet>>>,
     /// Output only. Whether the posture is in the process of being updated.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. Immutable. An opaque eight-character string that identifies the revision of the posture. A posture can have multiple revisions; when you deploy a posture, you deploy a specific revision of the posture.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Required. The state of the posture at the specified revision_id. // TODO: enum values: ["STATE_UNSPECIFIED", "DEPRECATED", "DRAFT", "ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time at which the posture was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Details for a Posture deployment on an organization, folder, or project. You can deploy at most one posture to each organization, folder, or project. The parent resource for a posture deployment is always the organization, even if the deployment applies to a folder or project.
@@ -475,49 +488,49 @@ pub struct Posture {
 pub struct PostureDeployment {
     /// Optional. The user-specified annotations for the posture deployment. For details about the values you can use in an annotation, see [AIP-148: Standard fields](https://google.aip.dev/148#annotations).
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. The categories that the posture deployment belongs to, as determined by the Security Posture API.
     #[serde(default)]
-    pub categories: Option<Vec<String>>,
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The time at which the posture deployment was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. A description of the posture deployment.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The posture ID that was specified for the deployment. Present only if the posture deployment is in a failed state.
     #[serde(default, rename = "desiredPostureId")]
-    pub desired_posture_id: Option<String>,
+    pub desired_posture_id: ::core::option::Option<String>,
     /// Output only. The revision ID of the posture that was specified for the deployment. Present only if the deployment is in a failed state.
     #[serde(default, rename = "desiredPostureRevisionId")]
-    pub desired_posture_revision_id: Option<String>,
+    pub desired_posture_revision_id: ::core::option::Option<String>,
     /// Optional. An opaque identifier for the current version of the posture deployment. To prevent concurrent updates from overwriting each other, always provide the etag when you update a posture deployment. You can also provide the etag when you delete a posture deployment, to help ensure that you''re deleting the intended posture deployment.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. A description of why the posture deployment failed. Present only if the deployment is in a failed state.
     #[serde(default, rename = "failureMessage")]
-    pub failure_message: Option<String>,
+    pub failure_message: ::core::option::Option<String>,
     /// Required. Identifier. The name of the posture deployment, in the format organizations/{organization}/locations/global/postureDeployments/{deployment_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The posture used in the deployment, in the format organizations/{organization}/locations/global/postures/{posture_id}.
     #[serde(default, rename = "postureId")]
-    pub posture_id: Option<String>,
+    pub posture_id: ::core::option::Option<String>,
     /// Required. The revision ID of the posture used in the deployment.
     #[serde(default, rename = "postureRevisionId")]
-    pub posture_revision_id: Option<String>,
+    pub posture_revision_id: ::core::option::Option<String>,
     /// Output only. Whether the posture deployment is in the process of being updated.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The state of the posture deployment. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "UPDATING", "ACTIVE", "CREATE_FAILED", "UPDATE_FAILED", "DELETE_FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Required. The organization, folder, or project where the posture is deployed. Uses one of the following formats: * organizations/{organization_number} * folders/{folder_number} * projects/{project_number}
     #[serde(default, rename = "targetResource")]
-    pub target_resource: Option<String>,
+    pub target_resource: ::core::option::Option<String>,
     /// Output only. The time at which the posture deployment was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Details of a posture deployment.
@@ -525,19 +538,19 @@ pub struct PostureDeployment {
 pub struct PostureDetails {
     /// The identifier for the PolicySet that the relevant policy belongs to.
     #[serde(default, rename = "policySet")]
-    pub policy_set: Option<String>,
+    pub policy_set: ::core::option::Option<String>,
     /// The posture used in the deployment, in the format organizations/{organization}/locations/global/postures/{posture_id}.
     #[serde(default)]
-    pub posture: Option<String>,
+    pub posture: ::core::option::Option<String>,
     /// The name of the posture deployment, in the format organizations/{organization}/locations/global/postureDeployments/{deployment_id}.
     #[serde(default, rename = "postureDeployment")]
-    pub posture_deployment: Option<String>,
+    pub posture_deployment: ::core::option::Option<String>,
     /// The organization, folder, or project where the posture is deployed. Uses one of the following formats: * organizations/{organization_number} * folders/{folder_number} * projects/{project_number}
     #[serde(default, rename = "postureDeploymentTargetResource")]
-    pub posture_deployment_target_resource: Option<String>,
+    pub posture_deployment_target_resource: ::core::option::Option<String>,
     /// The revision ID of the posture used in the deployment.
     #[serde(default, rename = "postureRevisionId")]
-    pub posture_revision_id: Option<String>,
+    pub posture_revision_id: ::core::option::Option<String>,
 }
 
 /// The details of a posture template.
@@ -545,22 +558,22 @@ pub struct PostureDetails {
 pub struct PostureTemplate {
     /// Output only. The categories that the posture template belongs to, as determined by the Security Posture API.
     #[serde(default)]
-    pub categories: Option<Vec<String>>,
+    pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. A description of the posture template.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Identifier. The name of the posture template, in the format organizations/{organization}/locations/global/postureTemplates/{posture_template}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The PolicySet resources that the posture template includes.
     #[serde(default, rename = "policySets")]
-    pub policy_sets: Option<Vec<PolicySet>>,
+    pub policy_sets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PolicySet>>>,
     /// Output only. A string that identifies the revision of the posture template.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Output only. The state of the posture template at the specified revision_id. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DEPRECATED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// A name-value pair used as a custom source property.
@@ -568,10 +581,10 @@ pub struct PostureTemplate {
 pub struct Property {
     /// Required. The name of the custom source property.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The CEL expression for the value of the custom source property. For resource properties, you can return the value of the property or a string enclosed in quotation marks.
     #[serde(default, rename = "valueExpression")]
-    pub value_expression: Option<Expr>,
+    pub value_expression: ::core::option::Option<::std::boxed::Box<Expr>>,
 }
 
 /// Details of a report.
@@ -579,16 +592,16 @@ pub struct Property {
 pub struct Report {
     /// Output only. The time at which the report was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. An infrastructure-as-code (IaC) validation report.
     #[serde(default, rename = "iacValidationReport")]
-    pub iac_validation_report: Option<IaCValidationReport>,
+    pub iac_validation_report: ::core::option::Option<::std::boxed::Box<IaCValidationReport>>,
     /// Required. The name of the report, in the format organizations/{organization}/locations/global/reports/{report_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time at which the report was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A selector for the resource types to run the detector on.
@@ -596,7 +609,7 @@ pub struct Report {
 pub struct ResourceSelector {
     /// Required. The resource types to run the detector on. Each custom module can specify up to 5 resource types.
     #[serde(default, rename = "resourceTypes")]
-    pub resource_types: Option<Vec<String>>,
+    pub resource_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Set multiple resource types for one policy, for example:  resourceTypes: included: - compute.googleapis.com/Instance - compute.googleapis.com/Disk  Constraint definition contains an empty resource type in order to support multiple resource types in the policy. Only supports managed constraints. Method type is GOVERN_TAGS.
@@ -604,7 +617,7 @@ pub struct ResourceSelector {
 pub struct ResourceTypes {
     /// Optional. The resource types we currently support.
     #[serde(default)]
-    pub included: Option<Vec<String>>,
+    pub included: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A custom module for Security Health Analytics.
@@ -612,16 +625,16 @@ pub struct ResourceTypes {
 pub struct SecurityHealthAnalyticsCustomModule {
     /// Required. Configuration settings for the custom module.
     #[serde(default)]
-    pub config: Option<CustomConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<CustomConfig>>,
     /// Optional. The display name of the custom module. This value is used as the finding category for all the asset violation findings that the custom module returns. The display name must contain between 1 and 128 alphanumeric characters or underscores, and it must start with a lowercase letter.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Immutable. The unique identifier for the custom module. Contains 1 to 20 digits.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Whether the custom module is enabled at a specified level of the resource hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "moduleEnablementState")]
-    pub module_enablement_state: Option<String>,
+    pub module_enablement_state: ::core::option::Option<String>,
 }
 
 /// A built-in detector for Security Health Analytics.
@@ -629,10 +642,10 @@ pub struct SecurityHealthAnalyticsCustomModule {
 pub struct SecurityHealthAnalyticsModule {
     /// Whether the detector is enabled at a specified level of the resource hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "moduleEnablementState")]
-    pub module_enablement_state: Option<String>,
+    pub module_enablement_state: ::core::option::Option<String>,
     /// Required. The name of the detector. For example, BIGQUERY_TABLE_CMEK_DISABLED. This field is also used as the finding category for all the asset violation findings that the detector returns.
     #[serde(default, rename = "moduleName")]
-    pub module_name: Option<String>,
+    pub module_name: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -640,13 +653,13 @@ pub struct SecurityHealthAnalyticsModule {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Details of a violation.
@@ -654,23 +667,23 @@ pub struct Status {
 pub struct Violation {
     /// The full resource name of the asset that caused the violation. For details about the format of the full resource name for each asset type, see [Resource name format](https://cloud.google.com/asset-inventory/docs/resource-name-format).
     #[serde(default, rename = "assetId")]
-    pub asset_id: Option<String>,
+    pub asset_id: ::core::option::Option<String>,
     /// A description of the steps that you can take to fix the violation.
     #[serde(default, rename = "nextSteps")]
-    pub next_steps: Option<String>,
+    pub next_steps: ::core::option::Option<String>,
     /// The policy that was violated.
     #[serde(default, rename = "policyId")]
-    pub policy_id: Option<String>,
+    pub policy_id: ::core::option::Option<String>,
     /// The severity of the violation. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// Details of the Cloud Asset Inventory asset that caused the violation.
     #[serde(default, rename = "violatedAsset")]
-    pub violated_asset: Option<AssetDetails>,
+    pub violated_asset: ::core::option::Option<::std::boxed::Box<AssetDetails>>,
     /// Details of the policy that was violated.
     #[serde(default, rename = "violatedPolicy")]
-    pub violated_policy: Option<PolicyDetails>,
+    pub violated_policy: ::core::option::Option<::std::boxed::Box<PolicyDetails>>,
     /// Details for the posture that was violated. This field is present only if the violated policy belongs to a deployed posture.
     #[serde(default, rename = "violatedPosture")]
-    pub violated_posture: Option<PostureDetails>,
+    pub violated_posture: ::core::option::Option<::std::boxed::Box<PostureDetails>>,
 }
