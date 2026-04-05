@@ -231,7 +231,8 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ReportStatusRequest {
     pub request_id: ::core::option::Option<String>,
     /// Required. Resource info of the connector.
     #[serde(default, rename = "resourceInfo")]
-    pub resource_info: ::core::option::Option<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>,
+    pub resource_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>>,
     /// Optional. If set, validates request by executing a dry-run which would not alter the resource in any way.
     #[serde(default, rename = "validateOnly")]
     pub validate_only: ::core::option::Option<bool>,
@@ -685,7 +686,8 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnector {
         ::core::option::Option<GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo>,
     /// Optional. Resource info of the connector.
     #[serde(default, rename = "resourceInfo")]
-    pub resource_info: ::core::option::Option<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>,
+    pub resource_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>>,
     /// Output only. The current state of the AppConnector. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "CREATED", "UPDATING", "DELETING", "DOWN"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
@@ -975,8 +977,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo {
     pub status: ::core::option::Option<String>,
     /// List of Info for the sub level resources.
     #[serde(default)]
-    pub sub:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>>,
+    pub sub: ::std::vec::Vec<::std::boxed::Box<GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo>>,
     /// The timestamp to collect the info. It is suggested to be set by the topmost level resource only.
     #[serde(default)]
     pub time: ::core::option::Option<String>,

@@ -85,7 +85,7 @@ pub struct Document {
     pub suggestions_view_mode: ::core::option::Option<String>,
     /// Tabs that are part of a document. Tabs can contain child tabs, a tab nested within another tab. Child tabs are represented by the Tab.childTabs field.
     #[serde(default)]
-    pub tabs: ::core::option::Option<::std::vec::Vec<Tab>>,
+    pub tabs: ::std::vec::Vec<::std::boxed::Box<Tab>>,
     /// The title of the document.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
@@ -104,7 +104,7 @@ pub struct EmbeddedDrawingPropertiesSuggestionState {}
 pub struct Footer {
     /// The contents of the footer. The indexes for a footer''s content begin at zero.
     #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    pub content: ::std::vec::Vec<::std::boxed::Box<StructuralElement>>,
     /// The ID of the footer.
     #[serde(default, rename = "footerId")]
     pub footer_id: ::core::option::Option<String>,
@@ -115,7 +115,7 @@ pub struct Footer {
 pub struct Footnote {
     /// The contents of the footnote. The indexes for a footnote''s content begin at zero.
     #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    pub content: ::std::vec::Vec<::std::boxed::Box<StructuralElement>>,
     /// The ID of the footnote.
     #[serde(default, rename = "footnoteId")]
     pub footnote_id: ::core::option::Option<String>,
@@ -126,7 +126,7 @@ pub struct Footnote {
 pub struct Header {
     /// The contents of the header. The indexes for a header''s content begin at zero.
     #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    pub content: ::std::vec::Vec<::std::boxed::Box<StructuralElement>>,
     /// The ID of the header.
     #[serde(default, rename = "headerId")]
     pub header_id: ::core::option::Option<String>,
@@ -213,7 +213,7 @@ pub struct PositionedObject {
 pub struct SuggestedBullet {
     /// A Bullet that only includes the changes made in this suggestion. This can be used along with the bullet_suggestion_state to see which fields have changed and their new values.
     #[serde(default)]
-    pub bullet: ::core::option::Option<Bullet>,
+    pub bullet: ::core::option::Option<::std::boxed::Box<Bullet>>,
     /// A mask that indicates which of the fields on the base Bullet have been changed in this suggestion.
     #[serde(default, rename = "bulletSuggestionState")]
     pub bullet_suggestion_state: ::core::option::Option<BulletSuggestionState>,
@@ -224,7 +224,7 @@ pub struct SuggestedBullet {
 pub struct SuggestedDateElementProperties {
     /// DateElementProperties that only includes the changes made in this suggestion. This can be used along with the date_element_properties_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "dateElementProperties")]
-    pub date_element_properties: ::core::option::Option<DateElementProperties>,
+    pub date_element_properties: ::core::option::Option<::std::boxed::Box<DateElementProperties>>,
     /// A mask that indicates which of the fields on the base DateElementProperties have been changed in this suggestion.
     #[serde(default, rename = "dateElementPropertiesSuggestionState")]
     pub date_element_properties_suggestion_state:
@@ -281,7 +281,7 @@ pub struct SuggestedNamedStyles {
 pub struct SuggestedParagraphStyle {
     /// A ParagraphStyle that only includes the changes made in this suggestion. This can be used along with the paragraph_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "paragraphStyle")]
-    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
+    pub paragraph_style: ::core::option::Option<::std::boxed::Box<ParagraphStyle>>,
     /// A mask that indicates which of the fields on the base ParagraphStyle have been changed in this suggestion.
     #[serde(default, rename = "paragraphStyleSuggestionState")]
     pub paragraph_style_suggestion_state: ::core::option::Option<ParagraphStyleSuggestionState>,
@@ -304,7 +304,7 @@ pub struct SuggestedPositionedObjectProperties {
 pub struct SuggestedTableCellStyle {
     /// A TableCellStyle that only includes the changes made in this suggestion. This can be used along with the table_cell_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "tableCellStyle")]
-    pub table_cell_style: ::core::option::Option<TableCellStyle>,
+    pub table_cell_style: ::core::option::Option<::std::boxed::Box<TableCellStyle>>,
     /// A mask that indicates which of the fields on the base TableCellStyle have been changed in this suggestion.
     #[serde(default, rename = "tableCellStyleSuggestionState")]
     pub table_cell_style_suggestion_state: ::core::option::Option<TableCellStyleSuggestionState>,
@@ -315,7 +315,7 @@ pub struct SuggestedTableCellStyle {
 pub struct SuggestedTableRowStyle {
     /// A TableRowStyle that only includes the changes made in this suggestion. This can be used along with the table_row_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "tableRowStyle")]
-    pub table_row_style: ::core::option::Option<TableRowStyle>,
+    pub table_row_style: ::core::option::Option<::std::boxed::Box<TableRowStyle>>,
     /// A mask that indicates which of the fields on the base TableRowStyle have been changed in this suggestion.
     #[serde(default, rename = "tableRowStyleSuggestionState")]
     pub table_row_style_suggestion_state: ::core::option::Option<TableRowStyleSuggestionState>,
@@ -326,7 +326,7 @@ pub struct SuggestedTableRowStyle {
 pub struct SuggestedTextStyle {
     /// A TextStyle that only includes the changes made in this suggestion. This can be used along with the text_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
     /// A mask that indicates which of the fields on the base TextStyle have been changed in this suggestion.
     #[serde(default, rename = "textStyleSuggestionState")]
     pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
@@ -496,7 +496,7 @@ pub struct WriteControl {
 pub struct Tab {
     /// The child tabs nested within this tab.
     #[serde(default, rename = "childTabs")]
-    pub child_tabs: ::core::option::Option<::std::vec::Vec<Tab>>,
+    pub child_tabs: ::std::vec::Vec<::std::boxed::Box<Tab>>,
     /// A tab with document contents, like text and images.
     #[serde(default, rename = "documentTab")]
     pub document_tab: ::core::option::Option<DocumentTab>,
@@ -884,7 +884,7 @@ pub struct DeleteTableRowRequest {
 pub struct InsertDateRequest {
     /// The properties of the date to insert.
     #[serde(default, rename = "dateElementProperties")]
-    pub date_element_properties: ::core::option::Option<DateElementProperties>,
+    pub date_element_properties: ::core::option::Option<::std::boxed::Box<DateElementProperties>>,
     /// Inserts the date at the end of the given header, footer or document body.
     #[serde(default, rename = "endOfSegmentLocation")]
     pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
@@ -932,7 +932,7 @@ pub struct InsertPersonRequest {
     pub location: ::core::option::Option<Location>,
     /// The properties of the person mention to insert.
     #[serde(default, rename = "personProperties")]
-    pub person_properties: ::core::option::Option<PersonProperties>,
+    pub person_properties: ::core::option::Option<::std::boxed::Box<PersonProperties>>,
 }
 
 /// Inserts a section break at the given location. A newline character will be inserted before the section break.
@@ -1110,7 +1110,7 @@ pub struct UpdateParagraphStyleRequest {
     pub fields: ::core::option::Option<String>,
     /// The styles to set on the paragraphs. Certain paragraph style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of ParagraphStyle for more information.
     #[serde(default, rename = "paragraphStyle")]
-    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
+    pub paragraph_style: ::core::option::Option<::std::boxed::Box<ParagraphStyle>>,
     /// The range overlapping the paragraphs to style.
     #[serde(default)]
     pub range: ::core::option::Option<Range>,
@@ -1127,7 +1127,7 @@ pub struct UpdateSectionStyleRequest {
     pub range: ::core::option::Option<Range>,
     /// The styles to be set on the section. Certain section style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of SectionStyle for more information.
     #[serde(default, rename = "sectionStyle")]
-    pub section_style: ::core::option::Option<SectionStyle>,
+    pub section_style: ::core::option::Option<::std::boxed::Box<SectionStyle>>,
 }
 
 /// Updates the style of a range of table cells.
@@ -1138,7 +1138,7 @@ pub struct UpdateTableCellStyleRequest {
     pub fields: ::core::option::Option<String>,
     /// The style to set on the table cells. When updating borders, if a cell shares a border with an adjacent cell, the corresponding border property of the adjacent cell is updated as well. Borders that are merged and invisible are not updated. Since updating a border shared by adjacent cells in the same request can cause conflicting border updates, border updates are applied in the following order: - border_right - border_left - border_bottom - border_top
     #[serde(default, rename = "tableCellStyle")]
-    pub table_cell_style: ::core::option::Option<TableCellStyle>,
+    pub table_cell_style: ::core::option::Option<::std::boxed::Box<TableCellStyle>>,
     /// The table range representing the subset of the table to which the updates are applied.
     #[serde(default, rename = "tableRange")]
     pub table_range: ::core::option::Option<TableRange>,
@@ -1158,7 +1158,7 @@ pub struct UpdateTableColumnPropertiesRequest {
     pub fields: ::core::option::Option<String>,
     /// The table column properties to update. If the value of table_column_properties#width is less than 5 points (5/72 inch), a 400 bad request error is returned.
     #[serde(default, rename = "tableColumnProperties")]
-    pub table_column_properties: ::core::option::Option<TableColumnProperties>,
+    pub table_column_properties: ::core::option::Option<::std::boxed::Box<TableColumnProperties>>,
     /// The location where the table starts in the document.
     #[serde(default, rename = "tableStartLocation")]
     pub table_start_location: ::core::option::Option<Location>,
@@ -1175,7 +1175,7 @@ pub struct UpdateTableRowStyleRequest {
     pub row_indices: ::core::option::Option<::std::vec::Vec<i32>>,
     /// The styles to be set on the rows.
     #[serde(default, rename = "tableRowStyle")]
-    pub table_row_style: ::core::option::Option<TableRowStyle>,
+    pub table_row_style: ::core::option::Option<::std::boxed::Box<TableRowStyle>>,
     /// The location where the table starts in the document.
     #[serde(default, rename = "tableStartLocation")]
     pub table_start_location: ::core::option::Option<Location>,
@@ -1192,7 +1192,7 @@ pub struct UpdateTextStyleRequest {
     pub range: ::core::option::Option<Range>,
     /// The styles to set on the text. If the value for a particular style matches that of the parent, that style will be set to inherit. Certain text style changes may cause other changes in order to to mirror the behavior of the Docs editor. See the documentation of TextStyle for more information.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// The result of adding a document tab.
@@ -1325,16 +1325,16 @@ pub struct NestingLevel {
     pub glyph_type: ::core::option::Option<String>,
     /// The amount of indentation for the first line of paragraphs at this level of nesting.
     #[serde(default, rename = "indentFirstLine")]
-    pub indent_first_line: ::core::option::Option<Dimension>,
+    pub indent_first_line: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of indentation for paragraphs at this level of nesting. Applied to the side that corresponds to the start of the text, based on the paragraph''s content direction.
     #[serde(default, rename = "indentStart")]
-    pub indent_start: ::core::option::Option<Dimension>,
+    pub indent_start: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The number of the first list item at this nesting level. A value of 0 is treated as a value of 1 for lettered lists and Roman numeral lists. For values of both 0 and 1, lettered and Roman numeral lists will begin at a and i respectively. This value is ignored for nesting levels with unordered glyphs.
     #[serde(default, rename = "startNumber")]
     pub start_number: ::core::option::Option<i32>,
     /// The text style of bullets at this level of nesting.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A mask that indicates which of the fields on the base NestingLevel have been changed in this suggestion. For any field set to true, there''s a new suggested value.
@@ -1400,16 +1400,16 @@ pub struct EmbeddedObject {
     pub linked_content_reference: ::core::option::Option<LinkedContentReference>,
     /// The bottom margin of the embedded object.
     #[serde(default, rename = "marginBottom")]
-    pub margin_bottom: ::core::option::Option<Dimension>,
+    pub margin_bottom: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The left margin of the embedded object.
     #[serde(default, rename = "marginLeft")]
-    pub margin_left: ::core::option::Option<Dimension>,
+    pub margin_left: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The right margin of the embedded object.
     #[serde(default, rename = "marginRight")]
-    pub margin_right: ::core::option::Option<Dimension>,
+    pub margin_right: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The top margin of the embedded object.
     #[serde(default, rename = "marginTop")]
-    pub margin_top: ::core::option::Option<Dimension>,
+    pub margin_top: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The visible size of the image after cropping.
     #[serde(default)]
     pub size: ::core::option::Option<Size>,
@@ -1426,10 +1426,10 @@ pub struct PositionedObjectPositioning {
     pub layout: ::core::option::Option<String>,
     /// The offset of the left edge of the positioned object relative to the beginning of the Paragraph it''s tethered to. The exact positioning of the object can depend on other content in the document and the document''s styling.
     #[serde(default, rename = "leftOffset")]
-    pub left_offset: ::core::option::Option<Dimension>,
+    pub left_offset: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The offset of the top edge of the positioned object relative to the beginning of the Paragraph it''s tethered to. The exact positioning of the object can depend on other content in the document and the document''s styling.
     #[serde(default, rename = "topOffset")]
-    pub top_offset: ::core::option::Option<Dimension>,
+    pub top_offset: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// A mask that indicates which of the fields on the base EmbeddedObject have been changed in this suggestion. For any field set to true, there''s a new suggested value.
@@ -1578,7 +1578,7 @@ pub struct TabProperties {
 pub struct Body {
     /// The contents of the body. The indexes for the body''s content begin at zero.
     #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    pub content: ::std::vec::Vec<::std::boxed::Box<StructuralElement>>,
 }
 
 /// The style of the document.
@@ -1613,22 +1613,22 @@ pub struct DocumentStyle {
     pub flip_page_orientation: ::core::option::Option<bool>,
     /// The bottom page margin. Updating the bottom page margin on the document style clears the bottom page margin on all section styles. If DocumentMode is PAGELESS, this property will not be rendered.
     #[serde(default, rename = "marginBottom")]
-    pub margin_bottom: ::core::option::Option<Dimension>,
+    pub margin_bottom: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of space between the bottom of the page and the contents of the footer. If DocumentMode is PAGELESS, this property will not be rendered.
     #[serde(default, rename = "marginFooter")]
-    pub margin_footer: ::core::option::Option<Dimension>,
+    pub margin_footer: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of space between the top of the page and the contents of the header. If DocumentMode is PAGELESS, this property will not be rendered.
     #[serde(default, rename = "marginHeader")]
-    pub margin_header: ::core::option::Option<Dimension>,
+    pub margin_header: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The left page margin. Updating the left page margin on the document style clears the left page margin on all section styles. It may also cause columns to resize in all sections. If DocumentMode is PAGELESS, this property will not be rendered.
     #[serde(default, rename = "marginLeft")]
-    pub margin_left: ::core::option::Option<Dimension>,
+    pub margin_left: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The right page margin. Updating the right page margin on the document style clears the right page margin on all section styles. It may also cause columns to resize in all sections. If DocumentMode is PAGELESS, this property will not be rendered.
     #[serde(default, rename = "marginRight")]
-    pub margin_right: ::core::option::Option<Dimension>,
+    pub margin_right: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The top page margin. Updating the top page margin on the document style clears the top page margin on all section styles. If DocumentMode is PAGELESS, this property will not be rendered.
     #[serde(default, rename = "marginTop")]
-    pub margin_top: ::core::option::Option<Dimension>,
+    pub margin_top: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The page number from which to start counting the number of pages. If DocumentMode is PAGELESS, this property will not be rendered.
     #[serde(default, rename = "pageNumberStart")]
     pub page_number_start: ::core::option::Option<i32>,
@@ -1765,7 +1765,7 @@ pub struct TextStyleSuggestionState {
 pub struct EmbeddedObjectBorder {
     /// The color of the border.
     #[serde(default)]
-    pub color: ::core::option::Option<OptionalColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// The dash style of the border. // TODO: enum values: ["DASH_STYLE_UNSPECIFIED", "SOLID", "DOT", "DASH"]
     #[serde(default, rename = "dashStyle")]
     pub dash_style: ::core::option::Option<String>,
@@ -1774,7 +1774,7 @@ pub struct EmbeddedObjectBorder {
     pub property_state: ::core::option::Option<String>,
     /// The width of the border.
     #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
+    pub width: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// The properties of an image.
@@ -1893,7 +1893,7 @@ pub struct TableCellLocation {
 pub struct Background {
     /// The background color.
     #[serde(default)]
-    pub color: ::core::option::Option<OptionalColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
 }
 
 /// Represents document-level format settings.
@@ -1909,10 +1909,10 @@ pub struct DocumentFormat {
 pub struct Size {
     /// The height of the object.
     #[serde(default)]
-    pub height: ::core::option::Option<Dimension>,
+    pub height: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The width of the object.
     #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
+    pub width: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// A named style. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from this named style when they have the same named style type.
@@ -1923,10 +1923,10 @@ pub struct NamedStyle {
     pub named_style_type: ::core::option::Option<String>,
     /// The paragraph style of this named style.
     #[serde(default, rename = "paragraphStyle")]
-    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
+    pub paragraph_style: ::core::option::Option<::std::boxed::Box<ParagraphStyle>>,
     /// The text style of this named style.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A mask that indicates which of the fields on the base Shading have been changed in this suggested change. For any field set to true, there''s a new suggested value.
@@ -2027,7 +2027,7 @@ pub struct AutoText {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this AutoText.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
     /// The type of this auto text. // TODO: enum values: ["TYPE_UNSPECIFIED", "PAGE_NUMBER", "PAGE_COUNT"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -2055,7 +2055,7 @@ pub struct Bullet {
     pub nesting_level: ::core::option::Option<i32>,
     /// The paragraph-specific text style applied to this bullet.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A solid color.
@@ -2063,7 +2063,7 @@ pub struct Bullet {
 pub struct Color {
     /// The RGB color value.
     #[serde(default, rename = "rgbColor")]
-    pub rgb_color: ::core::option::Option<RgbColor>,
+    pub rgb_color: ::core::option::Option<::std::boxed::Box<RgbColor>>,
 }
 
 /// A ParagraphElement representing a column break. A column break makes the subsequent text start at the top of the next column.
@@ -2080,7 +2080,7 @@ pub struct ColumnBreak {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this ColumnBreak. Similar to text content, like text runs and footnote references, the text style of a column break can affect content layout as well as the styling of text inserted next to it.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A date instance mentioned in a document.
@@ -2088,7 +2088,7 @@ pub struct ColumnBreak {
 pub struct DateElement {
     /// The properties of this DateElement.
     #[serde(default, rename = "dateElementProperties")]
-    pub date_element_properties: ::core::option::Option<DateElementProperties>,
+    pub date_element_properties: ::core::option::Option<::std::boxed::Box<DateElementProperties>>,
     /// Output only. The unique ID of this date.
     #[serde(default, rename = "dateId")]
     pub date_id: ::core::option::Option<String>,
@@ -2106,7 +2106,7 @@ pub struct DateElement {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this DateElement.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// Properties of a DateElement.
@@ -2174,7 +2174,7 @@ pub struct FootnoteReference {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this FootnoteReference.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A reference to a heading in this document.
@@ -2202,7 +2202,7 @@ pub struct HorizontalRule {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this HorizontalRule. Similar to text content, like text runs and footnote references, the text style of a horizontal rule can affect content layout as well as the styling of text inserted next to it.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A ParagraphElement that contains an InlineObject.
@@ -2222,7 +2222,7 @@ pub struct InlineObjectElement {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this InlineObjectElement. Similar to text content, like text runs and footnote references, the text style of an inline object element can affect content layout as well as the styling of text inserted next to it.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A reference to another portion of a document or an external URL resource.
@@ -2230,13 +2230,13 @@ pub struct InlineObjectElement {
 pub struct Link {
     /// A bookmark in this document. In documents containing a single tab, links to bookmarks within the singular tab continue to return Link.bookmarkId when the includeTabsContent parameter is set to false or unset. Otherwise, this field is returned.
     #[serde(default)]
-    pub bookmark: ::core::option::Option<BookmarkLink>,
+    pub bookmark: ::core::option::Option<::std::boxed::Box<BookmarkLink>>,
     /// The ID of a bookmark in this document. Legacy field: Instead, set includeTabsContent to true and use Link.bookmark for read and write operations. This field is only returned when includeTabsContent is set to false in documents containing a single tab and links to a bookmark within the singular tab. Otherwise, Link.bookmark is returned. If this field is used in a write request, the bookmark is considered to be from the tab ID specified in the request. If a tab ID is not specified in the request, it is considered to be from the first tab in the document.
     #[serde(default, rename = "bookmarkId")]
     pub bookmark_id: ::core::option::Option<String>,
     /// A heading in this document. In documents containing a single tab, links to headings within the singular tab continue to return Link.headingId when the includeTabsContent parameter is set to false or unset. Otherwise, this field is returned.
     #[serde(default)]
-    pub heading: ::core::option::Option<HeadingLink>,
+    pub heading: ::core::option::Option<::std::boxed::Box<HeadingLink>>,
     /// The ID of a heading in this document. Legacy field: Instead, set includeTabsContent to true and use Link.heading for read and write operations. This field is only returned when includeTabsContent is set to false in documents containing a single tab and links to a heading within the singular tab. Otherwise, Link.heading is returned. If this field is used in a write request, the heading is considered to be from the tab ID specified in the request. If a tab ID is not specified in the request, it is considered to be from the first tab in the document.
     #[serde(default, rename = "headingId")]
     pub heading_id: ::core::option::Option<String>,
@@ -2253,7 +2253,7 @@ pub struct Link {
 pub struct OptionalColor {
     /// If set, this will be used as an opaque color. If unset, this represents a transparent color.
     #[serde(default)]
-    pub color: ::core::option::Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
 }
 
 /// A ParagraphElement representing a page break. A page break makes the subsequent text start at the top of the next page.
@@ -2270,7 +2270,7 @@ pub struct PageBreak {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this PageBreak. Similar to text content, like text runs and footnote references, the text style of a page break can affect content layout as well as the styling of text inserted next to it.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A StructuralElement representing a paragraph. A paragraph is a range of content that''s terminated with a newline character.
@@ -2278,13 +2278,13 @@ pub struct PageBreak {
 pub struct Paragraph {
     /// The bullet for this paragraph. If not present, the paragraph does not belong to a list.
     #[serde(default)]
-    pub bullet: ::core::option::Option<Bullet>,
+    pub bullet: ::core::option::Option<::std::boxed::Box<Bullet>>,
     /// The content of the paragraph, broken down into its component parts.
     #[serde(default)]
-    pub elements: ::core::option::Option<::std::vec::Vec<ParagraphElement>>,
+    pub elements: ::std::vec::Vec<::std::boxed::Box<ParagraphElement>>,
     /// The style of this paragraph.
     #[serde(default, rename = "paragraphStyle")]
-    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
+    pub paragraph_style: ::core::option::Option<::std::boxed::Box<ParagraphStyle>>,
     /// The IDs of the positioned objects tethered to this paragraph.
     #[serde(default, rename = "positionedObjectIds")]
     pub positioned_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
@@ -2304,16 +2304,16 @@ pub struct Paragraph {
 pub struct ParagraphBorder {
     /// The color of the border.
     #[serde(default)]
-    pub color: ::core::option::Option<OptionalColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// The dash style of the border. // TODO: enum values: ["DASH_STYLE_UNSPECIFIED", "SOLID", "DOT", "DASH"]
     #[serde(default, rename = "dashStyle")]
     pub dash_style: ::core::option::Option<String>,
     /// The padding of the border.
     #[serde(default)]
-    pub padding: ::core::option::Option<Dimension>,
+    pub padding: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The width of the border.
     #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
+    pub width: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// A ParagraphElement describes content within a Paragraph.
@@ -2321,43 +2321,43 @@ pub struct ParagraphBorder {
 pub struct ParagraphElement {
     /// An auto text paragraph element.
     #[serde(default, rename = "autoText")]
-    pub auto_text: ::core::option::Option<AutoText>,
+    pub auto_text: ::core::option::Option<::std::boxed::Box<AutoText>>,
     /// A column break paragraph element.
     #[serde(default, rename = "columnBreak")]
-    pub column_break: ::core::option::Option<ColumnBreak>,
+    pub column_break: ::core::option::Option<::std::boxed::Box<ColumnBreak>>,
     /// A paragraph element that represents a date.
     #[serde(default, rename = "dateElement")]
-    pub date_element: ::core::option::Option<DateElement>,
+    pub date_element: ::core::option::Option<::std::boxed::Box<DateElement>>,
     /// The zero-base end index of this paragraph element, exclusive, in UTF-16 code units.
     #[serde(default, rename = "endIndex")]
     pub end_index: ::core::option::Option<i32>,
     /// An equation paragraph element.
     #[serde(default)]
-    pub equation: ::core::option::Option<Equation>,
+    pub equation: ::core::option::Option<::std::boxed::Box<Equation>>,
     /// A footnote reference paragraph element.
     #[serde(default, rename = "footnoteReference")]
-    pub footnote_reference: ::core::option::Option<FootnoteReference>,
+    pub footnote_reference: ::core::option::Option<::std::boxed::Box<FootnoteReference>>,
     /// A horizontal rule paragraph element.
     #[serde(default, rename = "horizontalRule")]
-    pub horizontal_rule: ::core::option::Option<HorizontalRule>,
+    pub horizontal_rule: ::core::option::Option<::std::boxed::Box<HorizontalRule>>,
     /// An inline object paragraph element.
     #[serde(default, rename = "inlineObjectElement")]
-    pub inline_object_element: ::core::option::Option<InlineObjectElement>,
+    pub inline_object_element: ::core::option::Option<::std::boxed::Box<InlineObjectElement>>,
     /// A page break paragraph element.
     #[serde(default, rename = "pageBreak")]
-    pub page_break: ::core::option::Option<PageBreak>,
+    pub page_break: ::core::option::Option<::std::boxed::Box<PageBreak>>,
     /// A paragraph element that links to a person or email address.
     #[serde(default)]
-    pub person: ::core::option::Option<Person>,
+    pub person: ::core::option::Option<::std::boxed::Box<Person>>,
     /// A paragraph element that links to a Google resource (such as a file in Google Drive, a YouTube video, or a Calendar event.)
     #[serde(default, rename = "richLink")]
-    pub rich_link: ::core::option::Option<RichLink>,
+    pub rich_link: ::core::option::Option<::std::boxed::Box<RichLink>>,
     /// The zero-based start index of this paragraph element, in UTF-16 code units.
     #[serde(default, rename = "startIndex")]
     pub start_index: ::core::option::Option<i32>,
     /// A text run paragraph element.
     #[serde(default, rename = "textRun")]
-    pub text_run: ::core::option::Option<TextRun>,
+    pub text_run: ::core::option::Option<::std::boxed::Box<TextRun>>,
 }
 
 /// Styles that apply to a whole paragraph. Inherited paragraph styles are represented as unset fields in this message. A paragraph style''s parent depends on where the paragraph style is defined: * The ParagraphStyle on a Paragraph inherits from the paragraph''s corresponding named style type. * The ParagraphStyle on a named style inherits from the normal text named style. * The ParagraphStyle of the normal text named style inherits from the default paragraph style in the Docs editor. * The ParagraphStyle on a Paragraph element that''s contained in a table may inherit its paragraph style from the table style. If the paragraph style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.
@@ -2371,19 +2371,19 @@ pub struct ParagraphStyle {
     pub avoid_widow_and_orphan: ::core::option::Option<bool>,
     /// The border between this paragraph and the next and previous paragraphs. If unset, the value is inherited from the parent. The between border is rendered when the adjacent paragraph has the same border and indent properties. Paragraph borders cannot be partially updated. When changing a paragraph border, the new border must be specified in its entirety.
     #[serde(default, rename = "borderBetween")]
-    pub border_between: ::core::option::Option<ParagraphBorder>,
+    pub border_between: ::core::option::Option<::std::boxed::Box<ParagraphBorder>>,
     /// The border at the bottom of this paragraph. If unset, the value is inherited from the parent. The bottom border is rendered when the paragraph below has different border and indent properties. Paragraph borders cannot be partially updated. When changing a paragraph border, the new border must be specified in its entirety.
     #[serde(default, rename = "borderBottom")]
-    pub border_bottom: ::core::option::Option<ParagraphBorder>,
+    pub border_bottom: ::core::option::Option<::std::boxed::Box<ParagraphBorder>>,
     /// The border to the left of this paragraph. If unset, the value is inherited from the parent. Paragraph borders cannot be partially updated. When changing a paragraph border, the new border must be specified in its entirety.
     #[serde(default, rename = "borderLeft")]
-    pub border_left: ::core::option::Option<ParagraphBorder>,
+    pub border_left: ::core::option::Option<::std::boxed::Box<ParagraphBorder>>,
     /// The border to the right of this paragraph. If unset, the value is inherited from the parent. Paragraph borders cannot be partially updated. When changing a paragraph border, the new border must be specified in its entirety.
     #[serde(default, rename = "borderRight")]
-    pub border_right: ::core::option::Option<ParagraphBorder>,
+    pub border_right: ::core::option::Option<::std::boxed::Box<ParagraphBorder>>,
     /// The border at the top of this paragraph. If unset, the value is inherited from the parent. The top border is rendered when the paragraph above has different border and indent properties. Paragraph borders cannot be partially updated. When changing a paragraph border, the new border must be specified in its entirety.
     #[serde(default, rename = "borderTop")]
-    pub border_top: ::core::option::Option<ParagraphBorder>,
+    pub border_top: ::core::option::Option<::std::boxed::Box<ParagraphBorder>>,
     /// The text direction of this paragraph. If unset, the value defaults to LEFT_TO_RIGHT since paragraph direction is not inherited. // TODO: enum values: ["CONTENT_DIRECTION_UNSPECIFIED", "LEFT_TO_RIGHT", "RIGHT_TO_LEFT"]
     #[serde(default)]
     pub direction: ::core::option::Option<String>,
@@ -2392,13 +2392,13 @@ pub struct ParagraphStyle {
     pub heading_id: ::core::option::Option<String>,
     /// The amount of indentation for the paragraph on the side that corresponds to the end of the text, based on the current paragraph direction. If unset, the value is inherited from the parent.
     #[serde(default, rename = "indentEnd")]
-    pub indent_end: ::core::option::Option<Dimension>,
+    pub indent_end: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of indentation for the first line of the paragraph. If unset, the value is inherited from the parent.
     #[serde(default, rename = "indentFirstLine")]
-    pub indent_first_line: ::core::option::Option<Dimension>,
+    pub indent_first_line: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of indentation for the paragraph on the side that corresponds to the start of the text, based on the current paragraph direction. If unset, the value is inherited from the parent.
     #[serde(default, rename = "indentStart")]
-    pub indent_start: ::core::option::Option<Dimension>,
+    pub indent_start: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// Whether all lines of the paragraph should be laid out on the same page or column if possible. If unset, the value is inherited from the parent.
     #[serde(default, rename = "keepLinesTogether")]
     pub keep_lines_together: ::core::option::Option<bool>,
@@ -2416,19 +2416,19 @@ pub struct ParagraphStyle {
     pub page_break_before: ::core::option::Option<bool>,
     /// The shading of the paragraph. If unset, the value is inherited from the parent.
     #[serde(default)]
-    pub shading: ::core::option::Option<Shading>,
+    pub shading: ::core::option::Option<::std::boxed::Box<Shading>>,
     /// The amount of extra space above the paragraph. If unset, the value is inherited from the parent.
     #[serde(default, rename = "spaceAbove")]
-    pub space_above: ::core::option::Option<Dimension>,
+    pub space_above: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of extra space below the paragraph. If unset, the value is inherited from the parent.
     #[serde(default, rename = "spaceBelow")]
-    pub space_below: ::core::option::Option<Dimension>,
+    pub space_below: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The spacing mode for the paragraph. // TODO: enum values: ["SPACING_MODE_UNSPECIFIED", "NEVER_COLLAPSE", "COLLAPSE_LISTS"]
     #[serde(default, rename = "spacingMode")]
     pub spacing_mode: ::core::option::Option<String>,
     /// A list of the tab stops for this paragraph. The list of tab stops is not inherited. This property is read-only.
     #[serde(default, rename = "tabStops")]
-    pub tab_stops: ::core::option::Option<::std::vec::Vec<TabStop>>,
+    pub tab_stops: ::std::vec::Vec<::std::boxed::Box<TabStop>>,
 }
 
 /// A person or email address mentioned in a document. These mentions behave as a single, immutable element containing the person''s name or email address.
@@ -2439,7 +2439,7 @@ pub struct Person {
     pub person_id: ::core::option::Option<String>,
     /// Output only. The properties of this Person. This field is always present.
     #[serde(default, rename = "personProperties")]
-    pub person_properties: ::core::option::Option<PersonProperties>,
+    pub person_properties: ::core::option::Option<::std::boxed::Box<PersonProperties>>,
     /// IDs for suggestions that remove this person link from the document. A Person might have multiple deletion IDs if, for example, multiple users suggest deleting it. If empty, then this person link isn''t suggested for deletion.
     #[serde(default, rename = "suggestedDeletionIds")]
     pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
@@ -2451,7 +2451,7 @@ pub struct Person {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this Person.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// Properties specific to a linked Person.
@@ -2487,7 +2487,7 @@ pub struct RichLink {
     pub rich_link_id: ::core::option::Option<String>,
     /// Output only. The properties of this RichLink. This field is always present.
     #[serde(default, rename = "richLinkProperties")]
-    pub rich_link_properties: ::core::option::Option<RichLinkProperties>,
+    pub rich_link_properties: ::core::option::Option<::std::boxed::Box<RichLinkProperties>>,
     /// IDs for suggestions that remove this link from the document. A RichLink might have multiple deletion IDs if, for example, multiple users suggest deleting it. If empty, then this person link isn''t suggested for deletion.
     #[serde(default, rename = "suggestedDeletionIds")]
     pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
@@ -2499,7 +2499,7 @@ pub struct RichLink {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this RichLink.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// Properties specific to a RichLink.
@@ -2521,7 +2521,7 @@ pub struct RichLinkProperties {
 pub struct SectionBreak {
     /// The style of the section after this section break.
     #[serde(default, rename = "sectionStyle")]
-    pub section_style: ::core::option::Option<SectionStyle>,
+    pub section_style: ::core::option::Option<::std::boxed::Box<SectionStyle>>,
     /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
     #[serde(default, rename = "suggestedDeletionIds")]
     pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
@@ -2535,10 +2535,10 @@ pub struct SectionBreak {
 pub struct SectionColumnProperties {
     /// The padding at the end of the column.
     #[serde(default, rename = "paddingEnd")]
-    pub padding_end: ::core::option::Option<Dimension>,
+    pub padding_end: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// Output only. The width of the column.
     #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
+    pub width: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// The styling that applies to a section.
@@ -2546,7 +2546,7 @@ pub struct SectionColumnProperties {
 pub struct SectionStyle {
     /// The section''s columns properties. If empty, the section contains one column with the default properties in the Docs editor. A section can be updated to have no more than 3 columns. When updating this property, setting a concrete value is required. Unsetting this property will result in a 400 bad request error.
     #[serde(default, rename = "columnProperties")]
-    pub column_properties: ::core::option::Option<::std::vec::Vec<SectionColumnProperties>>,
+    pub column_properties: ::std::vec::Vec<::std::boxed::Box<SectionColumnProperties>>,
     /// The style of column separators. This style can be set even when there''s one column in the section. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error. // TODO: enum values: ["COLUMN_SEPARATOR_STYLE_UNSPECIFIED", "NONE", "BETWEEN_EACH_COLUMN"]
     #[serde(default, rename = "columnSeparatorStyle")]
     pub column_separator_style: ::core::option::Option<String>,
@@ -2576,22 +2576,22 @@ pub struct SectionStyle {
     pub flip_page_orientation: ::core::option::Option<bool>,
     /// The bottom page margin of the section. If unset, the value defaults to margin_bottom from DocumentStyle. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.
     #[serde(default, rename = "marginBottom")]
-    pub margin_bottom: ::core::option::Option<Dimension>,
+    pub margin_bottom: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The footer margin of the section. If unset, the value defaults to margin_footer from DocumentStyle. If updated, use_custom_header_footer_margins is set to true on DocumentStyle. The value of use_custom_header_footer_margins on DocumentStyle indicates if a footer margin is being respected for this section If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.
     #[serde(default, rename = "marginFooter")]
-    pub margin_footer: ::core::option::Option<Dimension>,
+    pub margin_footer: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The header margin of the section. If unset, the value defaults to margin_header from DocumentStyle. If updated, use_custom_header_footer_margins is set to true on DocumentStyle. The value of use_custom_header_footer_margins on DocumentStyle indicates if a header margin is being respected for this section. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.
     #[serde(default, rename = "marginHeader")]
-    pub margin_header: ::core::option::Option<Dimension>,
+    pub margin_header: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The left page margin of the section. If unset, the value defaults to margin_left from DocumentStyle. Updating the left margin causes columns in this section to resize. Since the margin affects column width, it''s applied before column properties. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.
     #[serde(default, rename = "marginLeft")]
-    pub margin_left: ::core::option::Option<Dimension>,
+    pub margin_left: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The right page margin of the section. If unset, the value defaults to margin_right from DocumentStyle. Updating the right margin causes columns in this section to resize. Since the margin affects column width, it''s applied before column properties. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.
     #[serde(default, rename = "marginRight")]
-    pub margin_right: ::core::option::Option<Dimension>,
+    pub margin_right: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The top page margin of the section. If unset, the value defaults to margin_top from DocumentStyle. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.
     #[serde(default, rename = "marginTop")]
-    pub margin_top: ::core::option::Option<Dimension>,
+    pub margin_top: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The page number from which to start counting the number of pages for this section. If unset, page numbering continues from the previous section. If the value is unset in the first SectionBreak, refer to DocumentStyle''s page_number_start. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.
     #[serde(default, rename = "pageNumberStart")]
     pub page_number_start: ::core::option::Option<i32>,
@@ -2608,7 +2608,7 @@ pub struct SectionStyle {
 pub struct Shading {
     /// The background color of this paragraph shading.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<OptionalColor>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
 }
 
 /// A StructuralElement describes content that provides structure to the document.
@@ -2619,19 +2619,19 @@ pub struct StructuralElement {
     pub end_index: ::core::option::Option<i32>,
     /// A paragraph type of structural element.
     #[serde(default)]
-    pub paragraph: ::core::option::Option<Paragraph>,
+    pub paragraph: ::core::option::Option<::std::boxed::Box<Paragraph>>,
     /// A section break type of structural element.
     #[serde(default, rename = "sectionBreak")]
-    pub section_break: ::core::option::Option<SectionBreak>,
+    pub section_break: ::core::option::Option<::std::boxed::Box<SectionBreak>>,
     /// The zero-based start index of this structural element, in UTF-16 code units.
     #[serde(default, rename = "startIndex")]
     pub start_index: ::core::option::Option<i32>,
     /// A table type of structural element.
     #[serde(default)]
-    pub table: ::core::option::Option<Table>,
+    pub table: ::core::option::Option<::std::boxed::Box<Table>>,
     /// A table of contents type of structural element.
     #[serde(default, rename = "tableOfContents")]
-    pub table_of_contents: ::core::option::Option<TableOfContents>,
+    pub table_of_contents: ::core::option::Option<::std::boxed::Box<TableOfContents>>,
 }
 
 /// A tab stop within a paragraph.
@@ -2642,7 +2642,7 @@ pub struct TabStop {
     pub alignment: ::core::option::Option<String>,
     /// The offset between this tab stop and the start margin.
     #[serde(default)]
-    pub offset: ::core::option::Option<Dimension>,
+    pub offset: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// A StructuralElement representing a table.
@@ -2662,10 +2662,10 @@ pub struct Table {
     pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The contents and style of each row.
     #[serde(default, rename = "tableRows")]
-    pub table_rows: ::core::option::Option<::std::vec::Vec<TableRow>>,
+    pub table_rows: ::std::vec::Vec<::std::boxed::Box<TableRow>>,
     /// The style of the table.
     #[serde(default, rename = "tableStyle")]
-    pub table_style: ::core::option::Option<TableStyle>,
+    pub table_style: ::core::option::Option<::std::boxed::Box<TableStyle>>,
 }
 
 /// The contents and style of a cell in a Table.
@@ -2673,7 +2673,7 @@ pub struct Table {
 pub struct TableCell {
     /// The content of the cell.
     #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    pub content: ::std::vec::Vec<::std::boxed::Box<StructuralElement>>,
     /// The zero-based end index of this cell, exclusive, in UTF-16 code units.
     #[serde(default, rename = "endIndex")]
     pub end_index: ::core::option::Option<i32>,
@@ -2691,7 +2691,7 @@ pub struct TableCell {
     pub suggested_table_cell_style_changes: ::core::option::Option<serde_json::Value>,
     /// The style of the cell.
     #[serde(default, rename = "tableCellStyle")]
-    pub table_cell_style: ::core::option::Option<TableCellStyle>,
+    pub table_cell_style: ::core::option::Option<::std::boxed::Box<TableCellStyle>>,
 }
 
 /// A border around a table cell. Table cell borders cannot be transparent. To hide a table cell border, make its width 0.
@@ -2699,13 +2699,13 @@ pub struct TableCell {
 pub struct TableCellBorder {
     /// The color of the border. This color cannot be transparent.
     #[serde(default)]
-    pub color: ::core::option::Option<OptionalColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// The dash style of the border. // TODO: enum values: ["DASH_STYLE_UNSPECIFIED", "SOLID", "DOT", "DASH"]
     #[serde(default, rename = "dashStyle")]
     pub dash_style: ::core::option::Option<String>,
     /// The width of the border.
     #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
+    pub width: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// The style of a TableCell. Inherited table cell styles are represented as unset fields in this message. A table cell style can inherit from the table''s style.
@@ -2713,19 +2713,19 @@ pub struct TableCellBorder {
 pub struct TableCellStyle {
     /// The background color of the cell.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<OptionalColor>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// The bottom border of the cell.
     #[serde(default, rename = "borderBottom")]
-    pub border_bottom: ::core::option::Option<TableCellBorder>,
+    pub border_bottom: ::core::option::Option<::std::boxed::Box<TableCellBorder>>,
     /// The left border of the cell.
     #[serde(default, rename = "borderLeft")]
-    pub border_left: ::core::option::Option<TableCellBorder>,
+    pub border_left: ::core::option::Option<::std::boxed::Box<TableCellBorder>>,
     /// The right border of the cell.
     #[serde(default, rename = "borderRight")]
-    pub border_right: ::core::option::Option<TableCellBorder>,
+    pub border_right: ::core::option::Option<::std::boxed::Box<TableCellBorder>>,
     /// The top border of the cell.
     #[serde(default, rename = "borderTop")]
-    pub border_top: ::core::option::Option<TableCellBorder>,
+    pub border_top: ::core::option::Option<::std::boxed::Box<TableCellBorder>>,
     /// The column span of the cell. This property is read-only.
     #[serde(default, rename = "columnSpan")]
     pub column_span: ::core::option::Option<i32>,
@@ -2734,16 +2734,16 @@ pub struct TableCellStyle {
     pub content_alignment: ::core::option::Option<String>,
     /// The bottom padding of the cell.
     #[serde(default, rename = "paddingBottom")]
-    pub padding_bottom: ::core::option::Option<Dimension>,
+    pub padding_bottom: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The left padding of the cell.
     #[serde(default, rename = "paddingLeft")]
-    pub padding_left: ::core::option::Option<Dimension>,
+    pub padding_left: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The right padding of the cell.
     #[serde(default, rename = "paddingRight")]
-    pub padding_right: ::core::option::Option<Dimension>,
+    pub padding_right: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The top padding of the cell.
     #[serde(default, rename = "paddingTop")]
-    pub padding_top: ::core::option::Option<Dimension>,
+    pub padding_top: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The row span of the cell. This property is read-only.
     #[serde(default, rename = "rowSpan")]
     pub row_span: ::core::option::Option<i32>,
@@ -2754,7 +2754,7 @@ pub struct TableCellStyle {
 pub struct TableColumnProperties {
     /// The width of the column. Set when the column''s width_type is FIXED_WIDTH.
     #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
+    pub width: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The width type of the column. // TODO: enum values: ["WIDTH_TYPE_UNSPECIFIED", "EVENLY_DISTRIBUTED", "FIXED_WIDTH"]
     #[serde(default, rename = "widthType")]
     pub width_type: ::core::option::Option<String>,
@@ -2765,7 +2765,7 @@ pub struct TableColumnProperties {
 pub struct TableOfContents {
     /// The content of the table of contents.
     #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    pub content: ::std::vec::Vec<::std::boxed::Box<StructuralElement>>,
     /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
     #[serde(default, rename = "suggestedDeletionIds")]
     pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
@@ -2794,10 +2794,10 @@ pub struct TableRow {
     pub suggested_table_row_style_changes: ::core::option::Option<serde_json::Value>,
     /// The contents and style of each cell in this row. It''s possible for a table to be non-rectangular, so some rows may have a different number of cells than other rows in the same table.
     #[serde(default, rename = "tableCells")]
-    pub table_cells: ::core::option::Option<::std::vec::Vec<TableCell>>,
+    pub table_cells: ::std::vec::Vec<::std::boxed::Box<TableCell>>,
     /// The style of the table row.
     #[serde(default, rename = "tableRowStyle")]
-    pub table_row_style: ::core::option::Option<TableRowStyle>,
+    pub table_row_style: ::core::option::Option<::std::boxed::Box<TableRowStyle>>,
 }
 
 /// Styles that apply to a table row.
@@ -2805,7 +2805,7 @@ pub struct TableRow {
 pub struct TableRowStyle {
     /// The minimum height of the row. The row will be rendered in the Docs editor at a height equal to or greater than this value in order to show all the content in the row''s cells.
     #[serde(default, rename = "minRowHeight")]
-    pub min_row_height: ::core::option::Option<Dimension>,
+    pub min_row_height: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// Whether the row cannot overflow across page or column boundaries.
     #[serde(default, rename = "preventOverflow")]
     pub prevent_overflow: ::core::option::Option<bool>,
@@ -2819,7 +2819,7 @@ pub struct TableRowStyle {
 pub struct TableStyle {
     /// The properties of each column. Note that in Docs, tables contain rows and rows contain cells, similar to HTML. So the properties for a row can be found on the row''s table_row_style.
     #[serde(default, rename = "tableColumnProperties")]
-    pub table_column_properties: ::core::option::Option<::std::vec::Vec<TableColumnProperties>>,
+    pub table_column_properties: ::std::vec::Vec<::std::boxed::Box<TableColumnProperties>>,
 }
 
 /// A ParagraphElement that represents a run of text that all has the same styling.
@@ -2839,7 +2839,7 @@ pub struct TextRun {
     pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
     /// The text style of this run.
     #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
+    pub text_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// Represents the styling that can be applied to text. Inherited text styles are represented as unset fields in this message. A text style''s parent depends on where the text style is defined: * The TextStyle of text in a Paragraph inherits from the paragraph''s corresponding named style type. * The TextStyle on a named style inherits from the normal text named style. * The TextStyle of the normal text named style inherits from the default text style in the Docs editor. * The TextStyle on a Paragraph element that''s contained in a table may inherit its text style from the table style. If the text style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.
@@ -2847,7 +2847,7 @@ pub struct TextRun {
 pub struct TextStyle {
     /// The background color of the text. If set, the color is either an RGB color or transparent, depending on the color field.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<OptionalColor>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// The text''s vertical offset from its normal position. Text with SUPERSCRIPT or SUBSCRIPT baseline offsets is automatically rendered in a smaller font size, computed based on the font_size field. Changes in this field don''t affect the font_size. // TODO: enum values: ["BASELINE_OFFSET_UNSPECIFIED", "NONE", "SUPERSCRIPT", "SUBSCRIPT"]
     #[serde(default, rename = "baselineOffset")]
     pub baseline_offset: ::core::option::Option<String>,
@@ -2856,16 +2856,16 @@ pub struct TextStyle {
     pub bold: ::core::option::Option<bool>,
     /// The size of the text''s font.
     #[serde(default, rename = "fontSize")]
-    pub font_size: ::core::option::Option<Dimension>,
+    pub font_size: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The foreground color of the text. If set, the color is either an RGB color or transparent, depending on the color field.
     #[serde(default, rename = "foregroundColor")]
-    pub foreground_color: ::core::option::Option<OptionalColor>,
+    pub foreground_color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// Whether or not the text is italicized.
     #[serde(default)]
     pub italic: ::core::option::Option<bool>,
     /// The hyperlink destination of the text. If unset, there''s no link. Links are not inherited from parent text. Changing the link in an update request causes some other changes to the text style of the range: * When setting a link, the text foreground color will be updated to the default link color and the text will be underlined. If these fields are modified in the same request, those values will be used instead of the link defaults. * Setting a link on a text range that overlaps with an existing link will also update the existing link to point to the new URL. * Links are not settable on newline characters. As a result, setting a link on a text range that crosses a paragraph boundary, such as "ABC\n123", will separate the newline character(s) into their own text runs. The link will be applied separately to the runs before and after the newline. * Removing a link will update the text style of the range to match the style of the preceding text (or the default text styles if the preceding text is another link) unless different styles are being set in the same request.
     #[serde(default)]
-    pub link: ::core::option::Option<Link>,
+    pub link: ::core::option::Option<::std::boxed::Box<Link>>,
     /// Whether or not the text is in small capital letters.
     #[serde(default, rename = "smallCaps")]
     pub small_caps: ::core::option::Option<bool>,
@@ -2877,7 +2877,7 @@ pub struct TextStyle {
     pub underline: ::core::option::Option<bool>,
     /// The font family and rendered weight of the text. If an update request specifies values for both weighted_font_family and bold, the weighted_font_family is applied first, then bold. If weighted_font_family#weight is not set, it defaults to 400. If weighted_font_family is set, then weighted_font_family#font_family must also be set with a non-empty value. Otherwise, a 400 bad request error is returned.
     #[serde(default, rename = "weightedFontFamily")]
-    pub weighted_font_family: ::core::option::Option<WeightedFontFamily>,
+    pub weighted_font_family: ::core::option::Option<::std::boxed::Box<WeightedFontFamily>>,
 }
 
 /// Represents a font family and weight of text.

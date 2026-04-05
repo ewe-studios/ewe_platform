@@ -1192,7 +1192,7 @@ pub struct Operation {
     pub operation_type: ::core::option::Option<String>,
     /// Output only. Progress information for an operation.
     #[serde(default)]
-    pub progress: ::core::option::Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// Output only. Server-defined URI for the operation. Example: https://container.googleapis.com/v1alpha1/projects/123/locations/us-central1/operations/operation-123.
     #[serde(default, rename = "selfLink")]
     pub self_link: ::core::option::Option<String>,
@@ -1909,7 +1909,7 @@ pub struct OperationProgress {
     pub name: ::core::option::Option<String>,
     /// Substages of an operation or a stage.
     #[serde(default)]
-    pub stages: ::core::option::Option<::std::vec::Vec<OperationProgress>>,
+    pub stages: ::std::vec::Vec<::std::boxed::Box<OperationProgress>>,
     /// Status of an operation stage. Unset for single-stage operations. // TODO: enum values: ["STATUS_UNSPECIFIED", "PENDING", "RUNNING", "DONE", "ABORTING"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,

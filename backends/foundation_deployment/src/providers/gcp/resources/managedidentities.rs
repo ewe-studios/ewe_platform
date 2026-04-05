@@ -273,7 +273,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
 pub struct LDAPSSettings {
     /// Output only. The certificate used to configure LDAPS. Certificates can be chained with a maximum length of 15.
     #[serde(default)]
-    pub certificate: ::core::option::Option<Certificate>,
+    pub certificate: ::core::option::Option<::std::boxed::Box<Certificate>>,
     /// Input only. The password used to encrypt the uploaded PFX certificate.
     #[serde(default, rename = "certificatePassword")]
     pub certificate_password: ::core::option::Option<String>,
@@ -559,7 +559,7 @@ pub struct Certificate {
     pub expire_time: ::core::option::Option<String>,
     /// The issuer of this certificate.
     #[serde(default, rename = "issuingCertificate")]
-    pub issuing_certificate: ::core::option::Option<Certificate>,
+    pub issuing_certificate: ::core::option::Option<::std::boxed::Box<Certificate>>,
     /// The certificate subject.
     #[serde(default)]
     pub subject: ::core::option::Option<String>,

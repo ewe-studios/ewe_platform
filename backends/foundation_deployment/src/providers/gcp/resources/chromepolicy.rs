@@ -351,8 +351,8 @@ pub struct GoogleChromePolicyVersionsV1PolicySchema {
     pub definition: ::core::option::Option<Proto2FileDescriptorProto>,
     /// Output only. Detailed description of each field that is part of the schema. Fields are suggested to be displayed by the ordering in this list, not by field number.
     #[serde(default, rename = "fieldDescriptions")]
-    pub field_descriptions: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
+    pub field_descriptions: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
     >,
     /// Format: name=customers/{customer}/policySchemas/{schema_namespace}
     #[serde(default)]
@@ -451,7 +451,7 @@ pub struct Proto2FileDescriptorProto {
     pub enum_type: ::core::option::Option<::std::vec::Vec<Proto2EnumDescriptorProto>>,
     /// All top-level definitions in this file.
     #[serde(default, rename = "messageType")]
-    pub message_type: ::core::option::Option<::std::vec::Vec<Proto2DescriptorProto>>,
+    pub message_type: ::std::vec::Vec<::std::boxed::Box<Proto2DescriptorProto>>,
     /// file name, relative to root of source tree
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -502,8 +502,8 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDescription {
     pub name: ::core::option::Option<String>,
     /// Output only. Provides the description of the fields nested in this field, if the field is a message type that defines multiple fields. Fields are suggested to be displayed by the ordering in this list, not by field number.
     #[serde(default, rename = "nestedFieldDescriptions")]
-    pub nested_field_descriptions: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
+    pub nested_field_descriptions: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
     >,
     /// Output only. Provides a list of fields that are required to be set if this field has a certain value.
     #[serde(default, rename = "requiredItems")]
@@ -592,7 +592,7 @@ pub struct Proto2DescriptorProto {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     #[serde(default, rename = "nestedType")]
-    pub nested_type: ::core::option::Option<::std::vec::Vec<Proto2DescriptorProto>>,
+    pub nested_type: ::std::vec::Vec<::std::boxed::Box<Proto2DescriptorProto>>,
     #[serde(default, rename = "oneofDecl")]
     pub oneof_decl: ::core::option::Option<::std::vec::Vec<Proto2OneofDescriptorProto>>,
     /// Support for export and local keywords on enums. // TODO: enum values: ["VISIBILITY_UNSET", "VISIBILITY_LOCAL", "VISIBILITY_EXPORT"]

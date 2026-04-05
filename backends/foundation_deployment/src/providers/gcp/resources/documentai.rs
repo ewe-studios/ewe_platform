@@ -1603,7 +1603,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3Schema {
     /// Entity types of the schema.
     #[serde(default, rename = "entityTypes")]
     pub entity_types:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
 }
 
 /// Resync status against inconsistency types on the dataset level.
@@ -2288,13 +2288,9 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleF
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation {
     #[serde(default, rename = "leftOperand")]
-    pub left_operand: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation,
-    >,
+    pub left_operand: ::core::option::Option<::std::boxed::Box<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation>>,
     #[serde(default, rename = "rightOperand")]
-    pub right_operand: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation,
-    >,
+    pub right_operand: ::core::option::Option<::std::boxed::Box<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation>>,
     /// The relational operator to be applied to the operands. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPERATION_TYPE_EQ", "OPERATION_TYPE_NE", "OPERATION_TYPE_LT", "OPERATION_TYPE_LE", "OPERATION_TYPE_GT", "OPERATION_TYPE_GE"]
     #[serde(default, rename = "validationOperator")]
     pub validation_operator: ::core::option::Option<String>,
@@ -2430,7 +2426,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SchemaEntityType {
     /// Describing the nested structure of an entity. An EntityType may consist of several other EntityTypes. For example, in a document there can be an EntityType ID, which consists of EntityType name and address, with corresponding attributes, such as TEXT for both types and ONCE for occurrence types.
     #[serde(default)]
     pub properties:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
     /// Source of this entity type. // TODO: enum values: ["SOURCE_UNSPECIFIED", "PREDEFINED", "USER_INPUT"]
     #[serde(default)]
     pub source: ::core::option::Option<String>,
@@ -2511,7 +2507,7 @@ pub struct GoogleCloudDocumentaiV1Document {
     pub document_layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentDocumentLayout>,
     /// A list of entities detected on Document.text. For document shards, entities in this list may cross shard boundaries.
     #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    pub entities: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiV1DocumentEntity>>,
     /// The entity revision ID that document.entities field is based on. If this field is set and entities_revisions is not empty, the entities in document.entities field are the entities in the entity revision with this id and document.entity_validation_output field is the entity_validation_output field in this entity revision.
     #[serde(default, rename = "entitiesRevisionId")]
     pub entities_revision_id: ::core::option::Option<String>,
@@ -2890,7 +2886,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleF
     pub operation_type: ::core::option::Option<String>,
     /// A list of recursive operations to be used as operands.
     #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation>>,
+    pub operations: ::std::vec::Vec<::std::boxed::Box<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation>>,
 }
 
 /// Metadata about an entity type.
@@ -3028,8 +3024,8 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
     /// List of blocks in the document.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
 }
 
@@ -3038,7 +3034,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
 pub struct GoogleCloudDocumentaiV1DocumentEntitiesRevision {
     /// The entities in this revision.
     #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    pub entities: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiV1DocumentEntity>>,
     /// The entity validation output for this revision.
     #[serde(default, rename = "entityValidationOutput")]
     pub entity_validation_output:
@@ -3543,7 +3539,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntity {
     pub page_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
     /// Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.
     #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    pub properties: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiV1DocumentEntity>>,
     /// Optional. The history of this annotation.
     #[serde(default)]
     pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
@@ -4356,7 +4352,8 @@ pub struct GoogleTypeMoney {
 pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
     /// Optional. Identifies the bounding polygon of a layout element on the page. If layout_type is set, the bounding polygon must be exactly the same to the layout element it''s referring to.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDocumentaiV1BoundingPoly>>,
     /// Optional. Confidence of detected page element, if applicable. Range [0, 1].
     #[serde(default)]
     pub confidence: ::core::option::Option<f32>,
@@ -4487,7 +4484,8 @@ pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
 pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
     /// The bounding polygon for the Layout.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDocumentaiV1BoundingPoly>>,
     /// Confidence of the current Layout within context of the object this layout is for. For example, confidence can be for a single token, a table, a visual element, etc. depending on context. Range [0, 1].
     #[serde(default)]
     pub confidence: ::core::option::Option<f32>,
@@ -4529,10 +4527,10 @@ pub struct GoogleCloudDocumentaiV1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
     pub normalized_vertices:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1NormalizedVertex>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiV1NormalizedVertex>>,
     /// The bounding polygon vertices.
     #[serde(default)]
-    pub vertices: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Vertex>>,
+    pub vertices: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiV1Vertex>>,
 }
 
 /// Represents a block. A block could be one of the various types (text, table, list) supported.
@@ -4543,26 +4541,35 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
     pub block_id: ::core::option::Option<String>,
     /// Identifies the bounding box for the block.
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDocumentaiV1BoundingPoly>>,
     /// Block consisting of list content/structure.
     #[serde(default, rename = "listBlock")]
     pub list_block: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock,
+        >,
     >,
     /// Page span of the block.
     #[serde(default, rename = "pageSpan")]
     pub page_span: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan,
+        >,
     >,
     /// Block consisting of table content/structure.
     #[serde(default, rename = "tableBlock")]
     pub table_block: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock,
+        >,
     >,
     /// Block consisting of text content.
     #[serde(default, rename = "textBlock")]
     pub text_block: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock,
+        >,
     >,
 }
 
@@ -4571,8 +4578,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock {
     /// List entries that constitute a list block.
     #[serde(default, rename = "listEntries")]
-    pub list_entries: ::core::option::Option<
-        ::std::vec::Vec<
+    pub list_entries: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry,
         >,
     >,
@@ -4586,8 +4593,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry {
     /// A list entry is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
 }
 
@@ -4607,8 +4614,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock {
     /// Body rows containing main table content.
     #[serde(default, rename = "bodyRows")]
-    pub body_rows: ::core::option::Option<
-        ::std::vec::Vec<
+    pub body_rows: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow,
         >,
     >,
@@ -4617,8 +4624,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
     pub caption: ::core::option::Option<String>,
     /// Header rows at the top of the table.
     #[serde(default, rename = "headerRows")]
-    pub header_rows: ::core::option::Option<
-        ::std::vec::Vec<
+    pub header_rows: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow,
         >,
     >,
@@ -4629,8 +4636,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell {
     /// A table cell is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
     /// How many columns this cell spans.
     #[serde(default, rename = "colSpan")]
@@ -4645,8 +4652,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow {
     /// A table row is a list of table cells.
     #[serde(default)]
-    pub cells: ::core::option::Option<
-        ::std::vec::Vec<
+    pub cells: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell,
         >,
     >,
@@ -4657,8 +4664,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock {
     /// A text block could further have child blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
     /// Text content stored in the block.
     #[serde(default)]

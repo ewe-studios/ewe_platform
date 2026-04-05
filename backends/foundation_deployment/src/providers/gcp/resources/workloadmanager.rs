@@ -199,7 +199,7 @@ pub struct WorkloadProfileHealth {
     pub check_time: ::core::option::Option<String>,
     /// The detailed condition reports of each component.
     #[serde(default, rename = "componentsHealth")]
-    pub components_health: ::core::option::Option<::std::vec::Vec<ComponentHealth>>,
+    pub components_health: ::std::vec::Vec<::std::boxed::Box<ComponentHealth>>,
     /// Output only. The health state of the workload. // TODO: enum values: ["HEALTH_STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "CRITICAL", "UNSUPPORTED"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
@@ -533,7 +533,7 @@ pub struct ComponentHealth {
     pub state: ::core::option::Option<String>,
     /// Sub component health.
     #[serde(default, rename = "subComponentsHealth")]
-    pub sub_components_health: ::core::option::Option<::std::vec::Vec<ComponentHealth>>,
+    pub sub_components_health: ::std::vec::Vec<::std::boxed::Box<ComponentHealth>>,
 }
 
 /// A presentation of host resource usage where the workload runs.
@@ -930,7 +930,9 @@ pub struct AgentStatus {
     pub instance_uri: ::core::option::Option<String>,
     /// Output only. The kernel version of the system.
     #[serde(default, rename = "kernelVersion")]
-    pub kernel_version: ::core::option::Option<SapDiscoveryResourceInstancePropertiesKernelVersion>,
+    pub kernel_version: ::core::option::Option<
+        ::std::boxed::Box<SapDiscoveryResourceInstancePropertiesKernelVersion>,
+    >,
     /// Output only. Optional references to public documentation.
     #[serde(default)]
     pub references: ::core::option::Option<::std::vec::Vec<AgentStatusReference>>,
@@ -961,10 +963,10 @@ pub struct OpenShiftValidation {
 pub struct SapDiscovery {
     /// Optional. An SAP system may run without an application layer.
     #[serde(default, rename = "applicationLayer")]
-    pub application_layer: ::core::option::Option<SapDiscoveryComponent>,
+    pub application_layer: ::core::option::Option<::std::boxed::Box<SapDiscoveryComponent>>,
     /// Required. An SAP System must have a database.
     #[serde(default, rename = "databaseLayer")]
-    pub database_layer: ::core::option::Option<SapDiscoveryComponent>,
+    pub database_layer: ::core::option::Option<::std::boxed::Box<SapDiscoveryComponent>>,
     /// Optional. The metadata for SAP system discovery data.
     #[serde(default)]
     pub metadata: ::core::option::Option<SapDiscoveryMetadata>,
@@ -1645,10 +1647,12 @@ pub struct IAMPermission {
 pub struct SapDiscoveryComponent {
     /// Optional. The component is a SAP application.
     #[serde(default, rename = "applicationProperties")]
-    pub application_properties: ::core::option::Option<SapDiscoveryComponentApplicationProperties>,
+    pub application_properties:
+        ::core::option::Option<::std::boxed::Box<SapDiscoveryComponentApplicationProperties>>,
     /// Optional. The component is a SAP database.
     #[serde(default, rename = "databaseProperties")]
-    pub database_properties: ::core::option::Option<SapDiscoveryComponentDatabaseProperties>,
+    pub database_properties:
+        ::core::option::Option<::std::boxed::Box<SapDiscoveryComponentDatabaseProperties>>,
     /// Optional. A list of host URIs that are part of the HA configuration if present. An empty list indicates the component is not configured for HA.
     #[serde(default, rename = "haHosts")]
     pub ha_hosts: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1660,11 +1664,10 @@ pub struct SapDiscoveryComponent {
     pub region: ::core::option::Option<String>,
     /// Optional. A list of replication sites used in Disaster Recovery (DR) configurations.
     #[serde(default, rename = "replicationSites")]
-    pub replication_sites:
-        ::core::option::Option<::std::vec::Vec<SapDiscoveryComponentReplicationSite>>,
+    pub replication_sites: ::std::vec::Vec<::std::boxed::Box<SapDiscoveryComponentReplicationSite>>,
     /// Optional. The resources in a component.
     #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<SapDiscoveryResource>>,
+    pub resources: ::std::vec::Vec<::std::boxed::Box<SapDiscoveryResource>>,
     /// Optional. The SAP identifier, used by the SAP software and helps differentiate systems for customers.
     #[serde(default)]
     pub sid: ::core::option::Option<String>,
@@ -1733,7 +1736,7 @@ pub struct SapDiscoveryComponentDatabaseProperties {
 pub struct SapDiscoveryComponentReplicationSite {
     /// Optional. The system component for the site.
     #[serde(default)]
-    pub component: ::core::option::Option<SapDiscoveryComponent>,
+    pub component: ::core::option::Option<::std::boxed::Box<SapDiscoveryComponent>>,
     /// Optional. The name of the source site from which this one replicates.
     #[serde(default, rename = "sourceSite")]
     pub source_site: ::core::option::Option<String>,
@@ -1744,7 +1747,8 @@ pub struct SapDiscoveryComponentReplicationSite {
 pub struct SapDiscoveryResource {
     /// Optional. A set of properties only applying to instance type resources.
     #[serde(default, rename = "instanceProperties")]
-    pub instance_properties: ::core::option::Option<SapDiscoveryResourceInstanceProperties>,
+    pub instance_properties:
+        ::core::option::Option<::std::boxed::Box<SapDiscoveryResourceInstanceProperties>>,
     /// Optional. A list of resource URIs related to this resource.
     #[serde(default, rename = "relatedResources")]
     pub related_resources: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1768,14 +1772,14 @@ pub struct SapDiscoveryResourceInstanceProperties {
     /// Optional. App server instances on the host
     #[serde(default, rename = "appInstances")]
     pub app_instances:
-        ::core::option::Option<::std::vec::Vec<SapDiscoveryResourceInstancePropertiesAppInstance>>,
+        ::std::vec::Vec<::std::boxed::Box<SapDiscoveryResourceInstancePropertiesAppInstance>>,
     /// Optional. A list of instance URIs that are part of a cluster with this one.
     #[serde(default, rename = "clusterInstances")]
     pub cluster_instances: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Disk mounts on the instance.
     #[serde(default, rename = "diskMounts")]
     pub disk_mounts:
-        ::core::option::Option<::std::vec::Vec<SapDiscoveryResourceInstancePropertiesDiskMount>>,
+        ::std::vec::Vec<::std::boxed::Box<SapDiscoveryResourceInstancePropertiesDiskMount>>,
     /// Optional. The VM''s instance number.
     #[serde(default, rename = "instanceNumber")]
     pub instance_number: ::core::option::Option<String>,
@@ -1787,8 +1791,9 @@ pub struct SapDiscoveryResourceInstanceProperties {
     pub is_dr_site: ::core::option::Option<bool>,
     /// Optional. The kernel version of the instance.
     #[serde(default, rename = "osKernelVersion")]
-    pub os_kernel_version:
-        ::core::option::Option<SapDiscoveryResourceInstancePropertiesKernelVersion>,
+    pub os_kernel_version: ::core::option::Option<
+        ::std::boxed::Box<SapDiscoveryResourceInstancePropertiesKernelVersion>,
+    >,
     /// Optional. A virtual hostname of the instance if it has one.
     #[serde(default, rename = "virtualHostname")]
     pub virtual_hostname: ::core::option::Option<String>,
@@ -1824,12 +1829,14 @@ pub struct SapDiscoveryResourceInstancePropertiesDiskMount {
 pub struct SapDiscoveryResourceInstancePropertiesKernelVersion {
     /// Optional. Captures the distro-specific kernel version, the portion of the string following the first dash.
     #[serde(default, rename = "distroKernel")]
-    pub distro_kernel:
-        ::core::option::Option<SapDiscoveryResourceInstancePropertiesKernelVersionVersion>,
+    pub distro_kernel: ::core::option::Option<
+        ::std::boxed::Box<SapDiscoveryResourceInstancePropertiesKernelVersionVersion>,
+    >,
     /// Optional. Captures the OS-specific kernel version, the portion of the string up to the first dash.
     #[serde(default, rename = "osKernel")]
-    pub os_kernel:
-        ::core::option::Option<SapDiscoveryResourceInstancePropertiesKernelVersionVersion>,
+    pub os_kernel: ::core::option::Option<
+        ::std::boxed::Box<SapDiscoveryResourceInstancePropertiesKernelVersionVersion>,
+    >,
     /// Optional. Raw string of the kernel version.
     #[serde(default, rename = "rawString")]
     pub raw_string: ::core::option::Option<String>,

@@ -992,7 +992,7 @@ pub struct Table {
     pub restore_info: ::core::option::Option<RestoreInfo>,
     /// The row key schema for this table. The schema is used to decode the raw row key bytes into a structured format. The order of field declarations in this schema is important, as it reflects how the raw row key bytes are structured. Currently, this only affects how the key is read via a GoogleSQL query from the ExecuteQuery API. For a SQL query, the _key column is still read as raw bytes. But queries can reference the key fields by name, which will be decoded from _key using provided type and encoding. Queries that reference key fields will fail if they encounter an invalid row key. For example, if _key = "some_id#2024-04-30#\x00\x13\x00\xf3" with the following schema: { fields { field_name: "id" type { string { encoding: utf8_bytes {} } } } fields { field_name: "date" type { string { encoding: utf8_bytes {} } } } fields { field_name: "product_code" type { int64 { encoding: big_endian_bytes {} } } } encoding { delimited_bytes { delimiter: "#" } } } The decoded key parts would be: id = "some_id", date = "2024-04-30", product_code = 1245427 The query "SELECT _key, product_code FROM table" will return two columns: /------------------------------------------------------\ | _key | product_code | | --------------------------------------|--------------| | "some_id#2024-04-30#\x00\x13\x00\xf3" | 1245427 | \------------------------------------------------------/ The schema has the following invariants: (1) The decoded field values are order-preserved. For read, the field values will be decoded in sorted mode from the raw bytes. (2) Every field in the schema must specify a non-empty name. (3) Every field must specify a type with an associated encoding. The type is limited to scalar types only: Array, Map, Aggregate, and Struct are not allowed. (4) The field names must not collide with existing column family names and reserved keywords "_key" and "_timestamp". The following update operations are allowed for row_key_schema: - Update from an empty schema to a new schema. - Remove the existing schema. This operation requires setting the ignore_warnings flag to true, since it might be a backward incompatible change. Without the flag, the update request will fail with an INVALID_ARGUMENT error. Any other row key schema update operation (e.g. update existing schema columns names or types) is currently unsupported.
     #[serde(default, rename = "rowKeySchema")]
-    pub row_key_schema: ::core::option::Option<GoogleBigtableAdminV2TypeStruct>,
+    pub row_key_schema: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStruct>>,
     /// Output only. Only available with STATS_VIEW, this includes summary statistics about the entire table contents. For statistics about a specific column family, see ColumnFamilyStats in the mapped ColumnFamily collection above.
     #[serde(default)]
     pub stats: ::core::option::Option<TableStats>,
@@ -1239,13 +1239,13 @@ pub struct TieredStorageConfig {
 pub struct ColumnFamily {
     /// Garbage collection rule specified as a protobuf. Must serialize to at most 500 bytes. NOTE: Garbage collection executes opportunistically in the background, and so it''s possible for reads to return a cell even if it matches the active GC expression for its family.
     #[serde(default, rename = "gcRule")]
-    pub gc_rule: ::core::option::Option<GcRule>,
+    pub gc_rule: ::core::option::Option<::std::boxed::Box<GcRule>>,
     /// Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.
     #[serde(default)]
     pub stats: ::core::option::Option<ColumnFamilyStats>,
     /// The type of data stored in each of this family''s cell values, including its full encoding. If omitted, the family only serves raw untyped bytes. For now, only the Aggregate type is supported. Aggregate can only be set at family creation and is immutable afterwards. This field is mutually exclusive with sql_type. If value_type is Aggregate, written data must be compatible with: * value_type.input_type for AddInput mutations
     #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<Type>,
+    pub value_type: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// A resizable group of nodes in a particular cloud location, capable of serving all Tables in the parent Instance.
@@ -1520,7 +1520,7 @@ pub struct AutoscalingTargets {
 pub struct GcRule {
     /// Delete cells that would be deleted by every nested rule.
     #[serde(default)]
-    pub intersection: ::core::option::Option<Intersection>,
+    pub intersection: ::core::option::Option<::std::boxed::Box<Intersection>>,
     /// Delete cells in a column older than the given age. Values must be at least one millisecond, and will be truncated to microsecond granularity.
     #[serde(default, rename = "maxAge")]
     pub max_age: ::core::option::Option<String>,
@@ -1529,7 +1529,7 @@ pub struct GcRule {
     pub max_num_versions: ::core::option::Option<i32>,
     /// Delete cells that would be deleted by any nested rule.
     #[serde(default)]
-    pub union: ::core::option::Option<Union>,
+    pub union: ::core::option::Option<::std::boxed::Box<Union>>,
 }
 
 /// A value that combines incremental updates into a summarized value. Data is never directly written or read using type Aggregate. Writes provide either the input_type or state_type, and reads always return the state_type .
@@ -1540,7 +1540,7 @@ pub struct GoogleBigtableAdminV2TypeAggregate {
     pub hllpp_unique_count: ::core::option::Option<serde_json::Value>,
     /// Type of the inputs that are accumulated by this Aggregate. Use AddInput mutations to accumulate new inputs.
     #[serde(default, rename = "inputType")]
-    pub input_type: ::core::option::Option<Type>,
+    pub input_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Max aggregator.
     #[serde(default)]
     pub max: ::core::option::Option<serde_json::Value>,
@@ -1549,7 +1549,7 @@ pub struct GoogleBigtableAdminV2TypeAggregate {
     pub min: ::core::option::Option<serde_json::Value>,
     /// Output only. Type that holds the internal accumulator state for the Aggregate. This is a function of the input_type and aggregator chosen.
     #[serde(default, rename = "stateType")]
-    pub state_type: ::core::option::Option<Type>,
+    pub state_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Sum aggregator.
     #[serde(default)]
     pub sum: ::core::option::Option<serde_json::Value>,
@@ -1560,7 +1560,7 @@ pub struct GoogleBigtableAdminV2TypeAggregate {
 pub struct GoogleBigtableAdminV2TypeArray {
     /// The type of the elements in the array. This must not be Array.
     #[serde(default, rename = "elementType")]
-    pub element_type: ::core::option::Option<Type>,
+    pub element_type: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// bool Values of type Bool are stored in Value.bool_value.
@@ -1576,7 +1576,7 @@ pub struct GoogleBigtableAdminV2TypeBool {
 pub struct GoogleBigtableAdminV2TypeBytes {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: ::core::option::Option<GoogleBigtableAdminV2TypeBytesEncoding>,
+    pub encoding: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytesEncoding>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -1584,7 +1584,7 @@ pub struct GoogleBigtableAdminV2TypeBytes {
 pub struct GoogleBigtableAdminV2TypeBytesEncoding {
     /// Use Raw encoding.
     #[serde(default)]
-    pub raw: ::core::option::Option<GoogleBigtableAdminV2TypeBytesEncodingRaw>,
+    pub raw: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytesEncodingRaw>>,
 }
 
 /// Leaves the value as-is. Sorted mode: all values are supported. Distinct mode: all values are supported.
@@ -1611,7 +1611,7 @@ pub struct GoogleBigtableAdminV2TypeEnum {
 pub struct GoogleBigtableAdminV2TypeInt64 {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: ::core::option::Option<GoogleBigtableAdminV2TypeInt64Encoding>,
+    pub encoding: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64Encoding>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -1619,8 +1619,9 @@ pub struct GoogleBigtableAdminV2TypeInt64 {
 pub struct GoogleBigtableAdminV2TypeInt64Encoding {
     /// Use BigEndianBytes encoding.
     #[serde(default, rename = "bigEndianBytes")]
-    pub big_endian_bytes:
-        ::core::option::Option<GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes>,
+    pub big_endian_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes>,
+    >,
     /// Use OrderedCodeBytes encoding.
     #[serde(default, rename = "orderedCodeBytes")]
     pub ordered_code_bytes: ::core::option::Option<serde_json::Value>,
@@ -1631,7 +1632,7 @@ pub struct GoogleBigtableAdminV2TypeInt64Encoding {
 pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
     /// Deprecated: ignored if set.
     #[serde(default, rename = "bytesType")]
-    pub bytes_type: ::core::option::Option<GoogleBigtableAdminV2TypeBytes>,
+    pub bytes_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytes>>,
 }
 
 /// A mapping of keys to values of a given type. Values of type Map are stored in a Value.array_value where each entry is another Value.array_value with two elements (the key and the value, in that order). Normally encoded Map values won''t have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.
@@ -1639,10 +1640,10 @@ pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
 pub struct GoogleBigtableAdminV2TypeMap {
     /// The type of a map key. Only Bytes, String, and Int64 are allowed as key types.
     #[serde(default, rename = "keyType")]
-    pub key_type: ::core::option::Option<Type>,
+    pub key_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// The type of the values in a map.
     #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<Type>,
+    pub value_type: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// A protobuf message type. Values of type Proto are stored in Value.bytes_value.
@@ -1661,10 +1662,11 @@ pub struct GoogleBigtableAdminV2TypeProto {
 pub struct GoogleBigtableAdminV2TypeStruct {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: ::core::option::Option<GoogleBigtableAdminV2TypeStructEncoding>,
+    pub encoding:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStructEncoding>>,
     /// The names and types of the fields in this struct.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<GoogleBigtableAdminV2TypeStructField>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<GoogleBigtableAdminV2TypeStructField>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -1672,8 +1674,9 @@ pub struct GoogleBigtableAdminV2TypeStruct {
 pub struct GoogleBigtableAdminV2TypeStructEncoding {
     /// Use DelimitedBytes encoding.
     #[serde(default, rename = "delimitedBytes")]
-    pub delimited_bytes:
-        ::core::option::Option<GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes>,
+    pub delimited_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes>,
+    >,
     /// User OrderedCodeBytes encoding.
     #[serde(default, rename = "orderedCodeBytes")]
     pub ordered_code_bytes: ::core::option::Option<serde_json::Value>,
@@ -1698,7 +1701,7 @@ pub struct GoogleBigtableAdminV2TypeStructField {
     pub field_name: ::core::option::Option<String>,
     /// The type of values in this field.
     #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<Type>,
+    pub type_: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// Timestamp Values of type Timestamp are stored in Value.timestamp_value.
@@ -1706,7 +1709,8 @@ pub struct GoogleBigtableAdminV2TypeStructField {
 pub struct GoogleBigtableAdminV2TypeTimestamp {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: ::core::option::Option<GoogleBigtableAdminV2TypeTimestampEncoding>,
+    pub encoding:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeTimestampEncoding>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -1714,7 +1718,8 @@ pub struct GoogleBigtableAdminV2TypeTimestamp {
 pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
     /// Encodes the number of microseconds since the Unix epoch using the given Int64 encoding. Values must be microsecond-aligned. Compatible with: - Java Instant.truncatedTo() with ChronoUnit.MICROS
     #[serde(default, rename = "unixMicrosInt64")]
-    pub unix_micros_int64: ::core::option::Option<GoogleBigtableAdminV2TypeInt64Encoding>,
+    pub unix_micros_int64:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64Encoding>>,
 }
 
 /// A GcRule which deletes cells matching all of the given rules.
@@ -1722,7 +1727,7 @@ pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
 pub struct Intersection {
     /// Only delete cells which would be deleted by every element of rules.
     #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GcRule>>,
+    pub rules: ::std::vec::Vec<::std::boxed::Box<GcRule>>,
 }
 
 /// Type represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable''s existing untyped APIs, each Type includes an Encoding which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that Encode(X) &lt;= Encode(Y) if and only if X &lt;= Y. This is useful anywhere sort order is important, for example when encoding keys. - Distinct: In this mode, Bigtable guarantees that if X != Y then Encode(X) != Encode(Y). However, the converse is not guaranteed. For example, both {''foo'': ''1'', ''bar'': ''2''} and {''bar'': ''2'', ''foo'': ''1''} are valid encodings of the same JSON value. The API clearly documents which mode is used wherever an encoding can be configured. Each encoding also documents which values are supported in which modes. For example, when encoding INT64 as a numeric STRING, negative numbers cannot be encoded in sorted mode. This is because INT64(1) &gt; INT64(-1), but STRING("-00001") &gt; STRING("00001").
@@ -1730,22 +1735,23 @@ pub struct Intersection {
 pub struct Type {
     /// Aggregate
     #[serde(default, rename = "aggregateType")]
-    pub aggregate_type: ::core::option::Option<GoogleBigtableAdminV2TypeAggregate>,
+    pub aggregate_type:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeAggregate>>,
     /// Array
     #[serde(default, rename = "arrayType")]
-    pub array_type: ::core::option::Option<GoogleBigtableAdminV2TypeArray>,
+    pub array_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeArray>>,
     /// Bool
     #[serde(default, rename = "boolType")]
-    pub bool_type: ::core::option::Option<GoogleBigtableAdminV2TypeBool>,
+    pub bool_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBool>>,
     /// Bytes
     #[serde(default, rename = "bytesType")]
-    pub bytes_type: ::core::option::Option<GoogleBigtableAdminV2TypeBytes>,
+    pub bytes_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytes>>,
     /// Date
     #[serde(default, rename = "dateType")]
     pub date_type: ::core::option::Option<serde_json::Value>,
     /// Enum
     #[serde(default, rename = "enumType")]
-    pub enum_type: ::core::option::Option<GoogleBigtableAdminV2TypeEnum>,
+    pub enum_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeEnum>>,
     /// Float32
     #[serde(default, rename = "float32Type")]
     pub float32_type: ::core::option::Option<serde_json::Value>,
@@ -1757,22 +1763,23 @@ pub struct Type {
     pub geography_type: ::core::option::Option<serde_json::Value>,
     /// Int64
     #[serde(default, rename = "int64Type")]
-    pub int64_type: ::core::option::Option<GoogleBigtableAdminV2TypeInt64>,
+    pub int64_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64>>,
     /// Map
     #[serde(default, rename = "mapType")]
-    pub map_type: ::core::option::Option<GoogleBigtableAdminV2TypeMap>,
+    pub map_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeMap>>,
     /// Proto
     #[serde(default, rename = "protoType")]
-    pub proto_type: ::core::option::Option<GoogleBigtableAdminV2TypeProto>,
+    pub proto_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeProto>>,
     /// String
     #[serde(default, rename = "stringType")]
     pub string_type: ::core::option::Option<GoogleBigtableAdminV2TypeString>,
     /// Struct
     #[serde(default, rename = "structType")]
-    pub struct_type: ::core::option::Option<GoogleBigtableAdminV2TypeStruct>,
+    pub struct_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStruct>>,
     /// Timestamp
     #[serde(default, rename = "timestampType")]
-    pub timestamp_type: ::core::option::Option<GoogleBigtableAdminV2TypeTimestamp>,
+    pub timestamp_type:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeTimestamp>>,
 }
 
 /// A GcRule which deletes cells matching any of the given rules.
@@ -1780,5 +1787,5 @@ pub struct Type {
 pub struct Union {
     /// Delete cells which would be deleted by any element of rules.
     #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GcRule>>,
+    pub rules: ::std::vec::Vec<::std::boxed::Box<GcRule>>,
 }

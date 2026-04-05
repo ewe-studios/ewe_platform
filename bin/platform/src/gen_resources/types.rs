@@ -906,6 +906,16 @@ impl ResourceGenerator {
         out: &mut String,
         resource: &ResourceDef,
     ) -> Result<(), GenResourceError> {
+        self.generate_struct_with_box(out, resource, &std::collections::HashSet::new())
+    }
+
+    /// Generate a single struct definition, wrapping recursive type references in Box.
+    fn generate_struct_with_box(
+        &self,
+        out: &mut String,
+        resource: &ResourceDef,
+        recursive_types: &std::collections::HashSet<String>,
+    ) -> Result<(), GenResourceError> {
         // Write struct-level doc comment (full description, sanitized)
         // Split by newlines and write each line as a separate doc comment
         if let Some(desc) = &resource.description {
@@ -990,11 +1000,9 @@ impl ResourceGenerator {
                     }
                 })?;
             }
-            let field_ty = if field.required {
-                field.ty.clone()
-            } else {
-                format!("::core::option::Option<{}>", field.ty)
-            };
+
+            // Wrap recursive type references in Box to break infinite size cycles
+            let field_ty = self.wrap_recursive_type(&field.ty, field.required, recursive_types);
             writeln!(out, "    pub {}: {},", field.name, field_ty).map_err(|e| {
                 GenResourceError::WriteFile {
                     path: format!("field {}.{}", resource.name, field.name),
@@ -1009,6 +1017,81 @@ impl ResourceGenerator {
         })?;
 
         Ok(())
+    }
+
+    /// Wrap recursive type references in Box to break infinite size cycles.
+    fn wrap_recursive_type(
+        &self,
+        ty: &str,
+        required: bool,
+        recursive_types: &std::collections::HashSet<String>,
+    ) -> String {
+        // Extract type names and check if any are recursive
+        let type_names = extract_type_names(ty);
+        let has_recursive = type_names.iter().any(|t| recursive_types.contains(t));
+
+        if !has_recursive {
+            // No recursion, return as-is
+            if required {
+                return ty.to_string();
+            } else {
+                return format!("::core::option::Option<{}>", ty);
+            }
+        }
+
+        // Wrap recursive references in Box
+        let mut result = ty.to_string();
+
+        // Handle Vec<T> - wrap inner recursive types
+        if result.starts_with("::std::vec::Vec<") || result.starts_with("Vec<") {
+            let prefix = if result.starts_with("::std::vec::Vec<") { "::std::vec::Vec<" } else { "Vec<" };
+            let suffix = result.strip_prefix(prefix).unwrap_or(&result);
+            if let Some(inner) = suffix.strip_suffix('>') {
+                let wrapped_inner = self.wrap_recursive_type(inner, true, recursive_types);
+                return format!("{}{}>", prefix, wrapped_inner);
+            }
+        }
+
+        // Handle Option<T> - wrap inner recursive types
+        if result.starts_with("::core::option::Option<") || result.starts_with("Option<") {
+            let prefix = if result.starts_with("::core::option::Option<") { "::core::option::Option<" } else { "Option<" };
+            let suffix = result.strip_prefix(prefix).unwrap_or(&result);
+            if let Some(inner) = suffix.strip_suffix('>') {
+                let wrapped_inner = self.wrap_recursive_type(inner, true, recursive_types);
+                return format!("{}{}>", prefix, wrapped_inner);
+            }
+        }
+
+        // Handle HashMap/BTreeMap - wrap recursive values
+        for map_prefix in ["::std::collections::HashMap<", "HashMap<", "::std::collections::BTreeMap<", "BTreeMap<"] {
+            if result.starts_with(map_prefix) {
+                let suffix = result.strip_prefix(map_prefix).unwrap_or(&result);
+                if let Some(inner) = suffix.strip_suffix('>') {
+                    // Maps have K, V - only wrap V
+                    if let Some(comma_pos) = inner.find(',') {
+                        let key = &inner[..comma_pos].trim();
+                        let value = inner[comma_pos + 1..].trim();
+                        let wrapped_value = self.wrap_recursive_type(value, true, recursive_types);
+                        return format!("{}{}, {}>", map_prefix, key, wrapped_value);
+                    }
+                }
+            }
+        }
+
+        // Simple type reference - wrap in Box if recursive
+        if recursive_types.contains(ty) {
+            if required {
+                return format!("::std::boxed::Box<{}>", ty);
+            } else {
+                return format!("::core::option::Option<::std::boxed::Box<{}>>", ty);
+            }
+        }
+
+        if required {
+            ty.to_string()
+        } else {
+            format!("::core::option::Option<{}>", ty)
+        }
     }
 
     /// Generate mod.rs for a resources directory.
@@ -1150,15 +1233,20 @@ impl ResourceGenerator {
              use super::*;\n"
         ).map_err(|e| GenResourceError::WriteFile { path: format!("generated code for {label}"), source: std::io::Error::new(std::io::ErrorKind::Other, e) })?;
 
-        // Topologically sort resources so types are defined before use
-        let sorted = self.sort_resources_topo(resources);
-        for resource in sorted { self.generate_struct(&mut out, resource)?; }
+        // Topologically sort resources and detect recursive types
+        let (sorted, recursive_types) = self.sort_resources_topo(resources);
+
+        // Generate structs, wrapping recursive field references in Box
+        for resource in sorted {
+            self.generate_struct_with_box(&mut out, resource, &recursive_types)?;
+        }
         Ok(out)
     }
 
     /// Topologically sort resources so types with no dependencies come first.
     /// Types referenced by other types must be defined before the referencing type.
-    fn sort_resources_topo<'a>(&self, resources: &'a [ResourceDef]) -> Vec<&'a ResourceDef> {
+    /// Also detects cycles and marks recursive field references for Box wrapping.
+    fn sort_resources_topo<'a>(&self, resources: &'a [ResourceDef]) -> (Vec<&'a ResourceDef>, std::collections::HashSet<String>) {
         use std::collections::{HashMap, HashSet, VecDeque};
 
         // Build a map of name -> resource and collect dependencies
@@ -1171,10 +1259,7 @@ impl ResourceGenerator {
             let mut seen = HashSet::new();
 
             for field in &resource.fields {
-                // Extract type names from the field type string
-                // Types are PascalCase identifiers (may have generics like Option<T>)
                 for ty_name in extract_type_names(&field.ty) {
-                    // Check if this type name matches a resource in our list
                     if let Some(&dep_idx) = name_to_idx.get(ty_name.as_str()) {
                         if dep_idx != i && !seen.contains(&dep_idx) {
                             dep_idxs.push(dep_idx);
@@ -1208,8 +1293,16 @@ impl ResourceGenerator {
             }
         }
 
-        // If we couldn't process all resources, there's a cycle - just append remaining
+        // Detect cycles - types not in result are part of cycles
+        let mut recursive_types: HashSet<String> = HashSet::new();
         if result.len() < resources.len() {
+            // Find types involved in cycles
+            for r in resources.iter() {
+                if !result.iter().any(|&rr| rr.name == r.name) {
+                    recursive_types.insert(r.name.clone());
+                }
+            }
+            // Append remaining types (in cycle) to result
             for r in resources.iter() {
                 if !result.iter().any(|&rr| rr.name == r.name) {
                     result.push(r);
@@ -1217,7 +1310,18 @@ impl ResourceGenerator {
             }
         }
 
-        result
+        // Also detect self-referential types (direct recursion)
+        for resource in resources.iter() {
+            for field in &resource.fields {
+                for ty_name in extract_type_names(&field.ty) {
+                    if ty_name == resource.name {
+                        recursive_types.insert(resource.name.clone());
+                    }
+                }
+            }
+        }
+
+        (result, recursive_types)
     }
 
     /// Get display name for a provider.

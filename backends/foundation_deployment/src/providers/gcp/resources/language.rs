@@ -180,10 +180,10 @@ pub struct XPSColumnSpec {
     pub column_id: ::core::option::Option<i32>,
     /// The data stats of the column. It''s outputed in RefreshTablesStats and a required input for Train.
     #[serde(default, rename = "dataStats")]
-    pub data_stats: ::core::option::Option<XPSDataStats>,
+    pub data_stats: ::core::option::Option<::std::boxed::Box<XPSDataStats>>,
     /// The data type of the column. It''s outputed in Preprocess rpc and a required input for RefreshTablesStats and Train.
     #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<XPSDataType>,
+    pub data_type: ::core::option::Option<::std::boxed::Box<XPSDataType>>,
     /// The display name of the column. It''s outputed in Preprocess and a required input for RefreshTablesStats and Train.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
@@ -243,7 +243,7 @@ pub struct XPSResponseExplanationMetadataOutputMetadata {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSStringStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: ::core::option::Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// The statistics of the top 20 unigrams, ordered by StringStats.UnigramStats.count.
     #[serde(default, rename = "topUnigramStats")]
     pub top_unigram_stats: ::core::option::Option<::std::vec::Vec<XPSStringStatsUnigramStats>>,
@@ -442,10 +442,10 @@ pub struct ClassificationCategory {
 pub struct XPSDataType {
     /// The highly compatible data types to this data type.
     #[serde(default, rename = "compatibleDataTypes")]
-    pub compatible_data_types: ::core::option::Option<::std::vec::Vec<XPSDataType>>,
+    pub compatible_data_types: ::std::vec::Vec<::std::boxed::Box<XPSDataType>>,
     /// If type_code == ARRAY, then list_element_type is the type of the elements.
     #[serde(default, rename = "listElementType")]
-    pub list_element_type: ::core::option::Option<XPSDataType>,
+    pub list_element_type: ::core::option::Option<::std::boxed::Box<XPSDataType>>,
     /// If true, this DataType can also be null.
     #[serde(default)]
     pub nullable: ::core::option::Option<bool>,
@@ -2024,21 +2024,20 @@ pub struct XPSTablesConfidenceMetricsEntry {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSArrayStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: ::core::option::Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// Stats of all the values of all arrays, as if they were a single long series of data. The type depends on the element type of the array.
     #[serde(default, rename = "memberStats")]
-    pub member_stats: ::core::option::Option<XPSDataStats>,
+    pub member_stats: ::core::option::Option<::std::boxed::Box<XPSDataStats>>,
 }
 
 /// The data statistics of a series of CATEGORY values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSCategoryStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: ::core::option::Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// The statistics of the top 20 CATEGORY values, ordered by CategoryStats.SingleCategoryStats.count.
     #[serde(default, rename = "topCategoryStats")]
-    pub top_category_stats:
-        ::core::option::Option<::std::vec::Vec<XPSCategoryStatsSingleCategoryStats>>,
+    pub top_category_stats: ::std::vec::Vec<::std::boxed::Box<XPSCategoryStatsSingleCategoryStats>>,
 }
 
 /// The statistics of a single CATEGORY value.
@@ -2068,16 +2067,16 @@ pub struct XPSCommonStats {
 pub struct XPSDataStats {
     /// The statistics for ARRAY DataType.
     #[serde(default, rename = "arrayStats")]
-    pub array_stats: ::core::option::Option<XPSArrayStats>,
+    pub array_stats: ::core::option::Option<::std::boxed::Box<XPSArrayStats>>,
     /// The statistics for CATEGORY DataType.
     #[serde(default, rename = "categoryStats")]
-    pub category_stats: ::core::option::Option<XPSCategoryStats>,
+    pub category_stats: ::core::option::Option<::std::boxed::Box<XPSCategoryStats>>,
     /// The number of distinct values.
     #[serde(default, rename = "distinctValueCount")]
     pub distinct_value_count: ::core::option::Option<String>,
     /// The statistics for FLOAT64 DataType.
     #[serde(default, rename = "float64Stats")]
-    pub float64_stats: ::core::option::Option<XPSFloat64Stats>,
+    pub float64_stats: ::core::option::Option<::std::boxed::Box<XPSFloat64Stats>>,
     /// The number of values that are null.
     #[serde(default, rename = "nullValueCount")]
     pub null_value_count: ::core::option::Option<String>,
@@ -2086,10 +2085,10 @@ pub struct XPSDataStats {
     pub string_stats: ::core::option::Option<XPSStringStats>,
     /// The statistics for STRUCT DataType.
     #[serde(default, rename = "structStats")]
-    pub struct_stats: ::core::option::Option<XPSStructStats>,
+    pub struct_stats: ::core::option::Option<::std::boxed::Box<XPSStructStats>>,
     /// The statistics for TIMESTAMP DataType.
     #[serde(default, rename = "timestampStats")]
-    pub timestamp_stats: ::core::option::Option<XPSTimestampStats>,
+    pub timestamp_stats: ::core::option::Option<::std::boxed::Box<XPSTimestampStats>>,
     /// The number of values that are valid.
     #[serde(default, rename = "validValueCount")]
     pub valid_value_count: ::core::option::Option<String>,
@@ -2099,10 +2098,10 @@ pub struct XPSDataStats {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSFloat64Stats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: ::core::option::Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// Histogram buckets of the data series. Sorted by the min value of the bucket, ascendingly, and the number of the buckets is dynamically generated. The buckets are non-overlapping and completely cover whole FLOAT64 range with min of first bucket being "-Infinity", and max of the last one being "Infinity".
     #[serde(default, rename = "histogramBuckets")]
-    pub histogram_buckets: ::core::option::Option<::std::vec::Vec<XPSFloat64StatsHistogramBucket>>,
+    pub histogram_buckets: ::std::vec::Vec<::std::boxed::Box<XPSFloat64StatsHistogramBucket>>,
     /// The mean of the series.
     #[serde(default)]
     pub mean: ::core::option::Option<f64>,
@@ -2132,7 +2131,7 @@ pub struct XPSFloat64StatsHistogramBucket {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSStructStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: ::core::option::Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// Map from a field name of the struct to data stats aggregated over series of all data in that field across all the structs.
     #[serde(default, rename = "fieldStats")]
     pub field_stats: ::core::option::Option<serde_json::Value>,
@@ -2142,7 +2141,7 @@ pub struct XPSStructStats {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSTimestampStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: ::core::option::Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// The string key is the pre-defined granularity. Currently supported: hour_of_day, day_of_week, month_of_year. Granularities finer that the granularity of timestamp data are not populated (e.g. if timestamps are at day granularity, then hour_of_day is not populated).
     #[serde(default, rename = "granularStats")]
     pub granular_stats: ::core::option::Option<serde_json::Value>,

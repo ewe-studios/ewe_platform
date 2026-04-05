@@ -849,7 +849,7 @@ pub struct Model {
     pub expiration_time: ::core::option::Option<String>,
     /// Output only. Input feature columns for the model inference. If the model is trained with TRANSFORM clause, these are the input of the TRANSFORM clause.
     #[serde(default, rename = "featureColumns")]
-    pub feature_columns: ::core::option::Option<::std::vec::Vec<StandardSqlField>>,
+    pub feature_columns: ::std::vec::Vec<::std::boxed::Box<StandardSqlField>>,
     /// Optional. A descriptive name for this model.
     #[serde(default, rename = "friendlyName")]
     pub friendly_name: ::core::option::Option<String>,
@@ -861,7 +861,7 @@ pub struct Model {
     pub hparam_trials: ::core::option::Option<::std::vec::Vec<HparamTuningTrial>>,
     /// Output only. Label columns that were used to train this model. The output of the model will have a "predicted_" prefix to these columns.
     #[serde(default, rename = "labelColumns")]
-    pub label_columns: ::core::option::Option<::std::vec::Vec<StandardSqlField>>,
+    pub label_columns: ::std::vec::Vec<::std::boxed::Box<StandardSqlField>>,
     /// The labels associated with this model. You can use these to organize and group your models. Label keys and values can be no longer than 63 characters, can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter and each label in the list must have a different key.
     #[serde(default)]
     pub labels: ::core::option::Option<serde_json::Value>,
@@ -941,7 +941,7 @@ pub struct Routine {
     pub return_table_type: ::core::option::Option<StandardSqlTableType>,
     /// Optional if language = "SQL"; required otherwise. Cannot be set if routine_type = "TABLE_VALUED_FUNCTION". If absent, the return type is inferred from definition_body at query time in each query that references this routine. If present, then the evaluated result will be cast to the specified returned type at query time. For example, for the functions created with the following statements: * CREATE FUNCTION Add(x FLOAT64, y FLOAT64) RETURNS FLOAT64 AS (x + y); * CREATE FUNCTION Increment(x FLOAT64) AS (Add(x, 1)); * CREATE FUNCTION Decrement(x FLOAT64) RETURNS FLOAT64 AS (Add(x, -1)); The return_type is {type_kind: "FLOAT64"} for Add and Decrement, and is absent for Increment (inferred as FLOAT64 at query time). Suppose the function Add is replaced by CREATE OR REPLACE FUNCTION Add(x INT64, y INT64) AS (x + y); Then the inferred return type of Increment is automatically changed to INT64 at query time, while the return type of Decrement remains FLOAT64.
     #[serde(default, rename = "returnType")]
-    pub return_type: ::core::option::Option<StandardSqlDataType>,
+    pub return_type: ::core::option::Option<::std::boxed::Box<StandardSqlDataType>>,
     /// Required. Reference describing the ID of this routine.
     #[serde(default, rename = "routineReference")]
     pub routine_reference: ::core::option::Option<RoutineReference>,
@@ -1572,7 +1572,7 @@ pub struct TransformColumn {
     pub transform_sql: ::core::option::Option<String>,
     /// Output only. Data type of the column after the transform.
     #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<StandardSqlDataType>,
+    pub type_: ::core::option::Option<::std::boxed::Box<StandardSqlDataType>>,
 }
 
 /// Input/output argument of a function or a stored procedure.
@@ -1583,7 +1583,7 @@ pub struct Argument {
     pub argument_kind: ::core::option::Option<String>,
     /// Set if argument_kind == FIXED_TYPE.
     #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<StandardSqlDataType>,
+    pub data_type: ::core::option::Option<::std::boxed::Box<StandardSqlDataType>>,
     /// Optional. Whether the argument is an aggregate function parameter. Must be Unset for routine types other than AGGREGATE_FUNCTION. For AGGREGATE_FUNCTION, if set to false, it is equivalent to adding "NOT AGGREGATE" clause in DDL; Otherwise, it is equivalent to omitting "NOT AGGREGATE" clause in DDL.
     #[serde(default, rename = "isAggregate")]
     pub is_aggregate: ::core::option::Option<bool>,
@@ -1668,7 +1668,7 @@ pub struct RemoteFunctionOptions {
 pub struct StandardSqlTableType {
     /// The columns in this table type
     #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<StandardSqlField>>,
+    pub columns: ::std::vec::Vec<::std::boxed::Box<StandardSqlField>>,
 }
 
 /// Options for a user-defined Spark routine.
@@ -3146,7 +3146,7 @@ pub struct PropertyGraphReference {
 pub struct TableSchema {
     /// Describes the fields in a table.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<TableFieldSchema>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<TableFieldSchema>>,
     /// Optional. Specifies metadata of the foreign data type definition in field schema (TableFieldSchema.foreign_type_definition).
     #[serde(default, rename = "foreignTypeInfo")]
     pub foreign_type_info: ::core::option::Option<ForeignTypeInfo>,
@@ -3223,10 +3223,10 @@ pub struct QueryParameter {
     pub name: ::core::option::Option<String>,
     /// Required. The type of this parameter.
     #[serde(default, rename = "parameterType")]
-    pub parameter_type: ::core::option::Option<QueryParameterType>,
+    pub parameter_type: ::core::option::Option<::std::boxed::Box<QueryParameterType>>,
     /// Required. The value of this parameter.
     #[serde(default, rename = "parameterValue")]
-    pub parameter_value: ::core::option::Option<QueryParameterValue>,
+    pub parameter_value: ::core::option::Option<::std::boxed::Box<QueryParameterValue>>,
 }
 
 /// Statistics for a vector search query. Populated as part of JobStatistics2.
@@ -3546,7 +3546,7 @@ pub struct TableFieldSchema {
     pub description: ::core::option::Option<String>,
     /// Optional. Describes the nested schema fields if the type property is set to RECORD.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<TableFieldSchema>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<TableFieldSchema>>,
     /// Optional. Definition of the foreign data type. Only valid for top-level schema fields (not nested fields). If the type is FOREIGN, this field is required.
     #[serde(default, rename = "foreignTypeDefinition")]
     pub foreign_type_definition: ::core::option::Option<String>,
@@ -3626,10 +3626,10 @@ pub struct SparkLoggingInfo {
 pub struct QueryParameterType {
     /// Optional. The type of the array''s elements, if this is an array.
     #[serde(default, rename = "arrayType")]
-    pub array_type: ::core::option::Option<QueryParameterType>,
+    pub array_type: ::core::option::Option<::std::boxed::Box<QueryParameterType>>,
     /// Optional. The element type of the range, if this is a range.
     #[serde(default, rename = "rangeElementType")]
-    pub range_element_type: ::core::option::Option<QueryParameterType>,
+    pub range_element_type: ::core::option::Option<::std::boxed::Box<QueryParameterType>>,
     /// Optional. The types of the fields of this struct, in order, if this is a struct.
     #[serde(default, rename = "structTypes")]
     pub struct_types: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
@@ -4573,10 +4573,10 @@ pub struct CategoryCount {
 pub struct QueryParameterValue {
     /// Optional. The array values, if this is an array type.
     #[serde(default, rename = "arrayValues")]
-    pub array_values: ::core::option::Option<::std::vec::Vec<QueryParameterValue>>,
+    pub array_values: ::std::vec::Vec<::std::boxed::Box<QueryParameterValue>>,
     /// Optional. The range value, if this is a range type.
     #[serde(default, rename = "rangeValue")]
-    pub range_value: ::core::option::Option<RangeValue>,
+    pub range_value: ::core::option::Option<::std::boxed::Box<RangeValue>>,
     /// The struct field values.
     #[serde(default, rename = "structValues")]
     pub struct_values: ::core::option::Option<serde_json::Value>,
@@ -4590,10 +4590,10 @@ pub struct QueryParameterValue {
 pub struct RangeValue {
     /// Optional. The end value of the range. A missing value represents an unbounded end.
     #[serde(default)]
-    pub end: ::core::option::Option<QueryParameterValue>,
+    pub end: ::core::option::Option<::std::boxed::Box<QueryParameterValue>>,
     /// Optional. The start value of the range. A missing value represents an unbounded start.
     #[serde(default)]
-    pub start: ::core::option::Option<QueryParameterValue>,
+    pub start: ::core::option::Option<::std::boxed::Box<QueryParameterValue>>,
 }
 
 /// The data type of a variable such as a function argument. Examples include: * INT64: {"typeKind": "INT64"} * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT&gt;: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }
@@ -4601,13 +4601,13 @@ pub struct RangeValue {
 pub struct StandardSqlDataType {
     /// The type of the array''s elements, if type_kind = "ARRAY".
     #[serde(default, rename = "arrayElementType")]
-    pub array_element_type: ::core::option::Option<StandardSqlDataType>,
+    pub array_element_type: ::core::option::Option<::std::boxed::Box<StandardSqlDataType>>,
     /// The type of the range''s elements, if type_kind = "RANGE".
     #[serde(default, rename = "rangeElementType")]
-    pub range_element_type: ::core::option::Option<StandardSqlDataType>,
+    pub range_element_type: ::core::option::Option<::std::boxed::Box<StandardSqlDataType>>,
     /// The fields of this struct, in order, if type_kind = "STRUCT".
     #[serde(default, rename = "structType")]
-    pub struct_type: ::core::option::Option<StandardSqlStructType>,
+    pub struct_type: ::core::option::Option<::std::boxed::Box<StandardSqlStructType>>,
     /// Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY"). // TODO: enum values: ["TYPE_KIND_UNSPECIFIED", "INT64", "BOOL", "FLOAT64", "STRING", "BYTES", "TIMESTAMP", "DATE", "TIME", "DATETIME", "INTERVAL", "GEOGRAPHY", "NUMERIC", "BIGNUMERIC", "JSON", "ARRAY", "STRUCT", "RANGE"]
     #[serde(default, rename = "typeKind")]
     pub type_kind: ::core::option::Option<String>,
@@ -4621,7 +4621,7 @@ pub struct StandardSqlField {
     pub name: ::core::option::Option<String>,
     /// Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).
     #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<StandardSqlDataType>,
+    pub type_: ::core::option::Option<::std::boxed::Box<StandardSqlDataType>>,
 }
 
 /// The representation of a SQL STRUCT type.
@@ -4629,5 +4629,5 @@ pub struct StandardSqlField {
 pub struct StandardSqlStructType {
     /// Fields within the struct.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<StandardSqlField>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<StandardSqlField>>,
 }

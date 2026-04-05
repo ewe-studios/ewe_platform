@@ -485,13 +485,13 @@ pub struct Documentation {
     pub overview: ::core::option::Option<String>,
     /// The top level pages for the documentation set.
     #[serde(default)]
-    pub pages: ::core::option::Option<::std::vec::Vec<Page>>,
+    pub pages: ::std::vec::Vec<::std::boxed::Box<Page>>,
     /// A list of documentation rules that apply to individual API elements. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
     pub rules: ::core::option::Option<::std::vec::Vec<DocumentationRule>>,
     /// Specifies section and content to override the boilerplate content. Currently overrides following sections: 1. rest.service.client_libraries
     #[serde(default, rename = "sectionOverrides")]
-    pub section_overrides: ::core::option::Option<::std::vec::Vec<Page>>,
+    pub section_overrides: ::std::vec::Vec<::std::boxed::Box<Page>>,
     /// Specifies the service root url if the default one (the service name from the yaml file) is not suitable. This can be seen in any fully specified service urls as well as sections that show a base that other urls are relative to.
     #[serde(default, rename = "serviceRootUrl")]
     pub service_root_url: ::core::option::Option<String>,
@@ -548,7 +548,7 @@ pub struct Http {
     pub fully_decode_reserved_expansion: ::core::option::Option<bool>,
     /// A list of HTTP configuration rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.
     #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<HttpRule>>,
+    pub rules: ::std::vec::Vec<::std::boxed::Box<HttpRule>>,
 }
 
 /// Logging configuration of the service. The following example shows how to configure logs to be sent to the producer and consumer projects. In the example, the activity_history log is sent to both the producer and consumer projects, whereas the purchase_history log is only sent to the producer project. monitored_resources: - type: library.googleapis.com/branch labels: - key: /city description: The city where the library branch is located in. - key: /name description: The name of the branch. logs: - name: activity_history labels: - key: /customer_id - name: purchase_history logging: producer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history - purchase_history consumer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history
@@ -1110,7 +1110,7 @@ pub struct Page {
     pub name: ::core::option::Option<String>,
     /// Subpages of this page. The order of subpages specified here will be honored in the generated docset.
     #[serde(default)]
-    pub subpages: ::core::option::Option<::std::vec::Vec<Page>>,
+    pub subpages: ::std::vec::Vec<::std::boxed::Box<Page>>,
 }
 
 /// A documentation rule provides information about individual API elements.
@@ -1149,7 +1149,7 @@ pub struct EnumValue {
 pub struct HttpRule {
     /// Additional HTTP bindings for the selector. Nested bindings must not contain an additional_bindings field themselves (that is, the nesting may only be one level deep).
     #[serde(default, rename = "additionalBindings")]
-    pub additional_bindings: ::core::option::Option<::std::vec::Vec<HttpRule>>,
+    pub additional_bindings: ::std::vec::Vec<::std::boxed::Box<HttpRule>>,
     /// The name of the request field whose value is mapped to the HTTP request body, or * for mapping all request fields not captured by the path pattern to the HTTP body, or omitted for not having any HTTP request body. NOTE: the referred field must be present at the top-level of the request message type.
     #[serde(default)]
     pub body: ::core::option::Option<String>,

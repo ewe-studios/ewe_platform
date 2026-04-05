@@ -18,7 +18,7 @@ pub struct AllocateIdsRequest {
     pub database_id: ::core::option::Option<String>,
     /// Required. A list of keys with incomplete key paths for which to allocate IDs. No key may be reserved/read-only.
     #[serde(default)]
-    pub keys: ::core::option::Option<::std::vec::Vec<Key>>,
+    pub keys: ::std::vec::Vec<::std::boxed::Box<Key>>,
 }
 
 /// The response for Datastore.AllocateIds.
@@ -26,7 +26,7 @@ pub struct AllocateIdsRequest {
 pub struct AllocateIdsResponse {
     /// The keys specified in the request (in the same order), each with its key path completed with a newly allocated ID.
     #[serde(default)]
-    pub keys: ::core::option::Option<::std::vec::Vec<Key>>,
+    pub keys: ::std::vec::Vec<::std::boxed::Box<Key>>,
 }
 
 /// The request for Datastore.BeginTransaction.
@@ -291,7 +291,7 @@ pub struct LookupRequest {
     pub database_id: ::core::option::Option<String>,
     /// Required. Keys of entities to look up.
     #[serde(default)]
-    pub keys: ::core::option::Option<::std::vec::Vec<Key>>,
+    pub keys: ::std::vec::Vec<::std::boxed::Box<Key>>,
     /// The properties to return. Defaults to returning all properties. If this field is set and an entity has a property not referenced in the mask, it will be absent from LookupResponse.found.entity.properties. The entity''s key is always returned.
     #[serde(default, rename = "propertyMask")]
     pub property_mask: ::core::option::Option<PropertyMask>,
@@ -305,7 +305,7 @@ pub struct LookupRequest {
 pub struct LookupResponse {
     /// A list of keys that were not looked up due to resource constraints. The order of results in this field is undefined and has no relation to the order of the keys in the input.
     #[serde(default)]
-    pub deferred: ::core::option::Option<::std::vec::Vec<Key>>,
+    pub deferred: ::std::vec::Vec<::std::boxed::Box<Key>>,
     /// Entities found as ResultType.FULL entities. The order of results in this field is undefined and has no relation to the order of the keys in the input.
     #[serde(default)]
     pub found: ::core::option::Option<::std::vec::Vec<EntityResult>>,
@@ -328,7 +328,7 @@ pub struct ReserveIdsRequest {
     pub database_id: ::core::option::Option<String>,
     /// Required. A list of keys with complete key paths whose numeric IDs should not be auto-allocated.
     #[serde(default)]
-    pub keys: ::core::option::Option<::std::vec::Vec<Key>>,
+    pub keys: ::std::vec::Vec<::std::boxed::Box<Key>>,
 }
 
 /// The response for Datastore.ReserveIds.
@@ -367,7 +367,7 @@ pub struct RunAggregationQueryRequest {
     pub gql_query: ::core::option::Option<GqlQuery>,
     /// Entities are partitioned into subsets, identified by a partition ID. Queries are scoped to a single partition. This partition ID is normalized with the standard default context partition ID.
     #[serde(default, rename = "partitionId")]
-    pub partition_id: ::core::option::Option<PartitionId>,
+    pub partition_id: ::core::option::Option<::std::boxed::Box<PartitionId>>,
     /// The options for this query.
     #[serde(default, rename = "readOptions")]
     pub read_options: ::core::option::Option<ReadOptions>,
@@ -404,7 +404,7 @@ pub struct RunQueryRequest {
     pub gql_query: ::core::option::Option<GqlQuery>,
     /// Entities are partitioned into subsets, identified by a partition ID. Queries are scoped to a single partition. This partition ID is normalized with the standard default context partition ID.
     #[serde(default, rename = "partitionId")]
-    pub partition_id: ::core::option::Option<PartitionId>,
+    pub partition_id: ::core::option::Option<::std::boxed::Box<PartitionId>>,
     /// The properties to return. This field must not be set for a projection query. See LookupRequest.property_mask.
     #[serde(default, rename = "propertyMask")]
     pub property_mask: ::core::option::Option<PropertyMask>,
@@ -444,10 +444,10 @@ pub struct Mutation {
     pub conflict_resolution_strategy: ::core::option::Option<String>,
     /// The key of the entity to delete. The entity may or may not already exist. Must have a complete key path and must not be reserved/read-only.
     #[serde(default)]
-    pub delete: ::core::option::Option<Key>,
+    pub delete: ::core::option::Option<::std::boxed::Box<Key>>,
     /// The entity to insert. The entity must not already exist. The entity key''s final path element may be incomplete.
     #[serde(default)]
-    pub insert: ::core::option::Option<Entity>,
+    pub insert: ::core::option::Option<::std::boxed::Box<Entity>>,
     /// The properties to write in this mutation. None of the properties in the mask may have a reserved name, except for __key__. This field is ignored for delete. If the entity already exists, only properties referenced in the mask are updated, others are left untouched. Properties referenced in the mask but not in the entity are deleted.
     #[serde(default, rename = "propertyMask")]
     pub property_mask: ::core::option::Option<PropertyMask>,
@@ -456,13 +456,13 @@ pub struct Mutation {
     pub property_transforms: ::core::option::Option<::std::vec::Vec<PropertyTransform>>,
     /// The entity to update. The entity must already exist. Must have a complete key path.
     #[serde(default)]
-    pub update: ::core::option::Option<Entity>,
+    pub update: ::core::option::Option<::std::boxed::Box<Entity>>,
     /// The update time of the entity that this mutation is being applied to. If this does not match the current update time on the server, the mutation conflicts.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
     /// The entity to upsert. The entity may or may not already exist. The entity key''s final path element may be incomplete.
     #[serde(default)]
-    pub upsert: ::core::option::Option<Entity>,
+    pub upsert: ::core::option::Option<::std::boxed::Box<Entity>>,
 }
 
 /// The result of applying a mutation.
@@ -476,10 +476,10 @@ pub struct MutationResult {
     pub create_time: ::core::option::Option<String>,
     /// The automatically allocated key. Set only when the mutation allocated a key.
     #[serde(default)]
-    pub key: ::core::option::Option<Key>,
+    pub key: ::core::option::Option<::std::boxed::Box<Key>>,
     /// The results of applying each PropertyTransform, in the same order of the request.
     #[serde(default, rename = "transformResults")]
-    pub transform_results: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    pub transform_results: ::std::vec::Vec<::std::boxed::Box<ApiValue>>,
     /// The update time of the entity on the server after processing the mutation. If the mutation doesn''t change anything on the server, then the timestamp will be the update timestamp of the current entity. This field will not be set after a ''delete''.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -751,22 +751,22 @@ pub struct PropertyMask {
 pub struct PropertyTransform {
     /// Appends the given elements in order if they are not already present in the current property value. If the property is not an array, or if the property does not yet exist, it is first set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when checking if a value is missing. NaN is equal to NaN, and the null value is equal to the null value. If the input contains multiple equivalent values, only the first will be considered. The corresponding transform result will be the null value.
     #[serde(default, rename = "appendMissingElements")]
-    pub append_missing_elements: ::core::option::Option<ArrayValue>,
+    pub append_missing_elements: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// Adds the given value to the property''s current value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the given value. If either of the given value or the current property value are doubles, both values will be interpreted as doubles. Double arithmetic and representation of double values follows IEEE 754 semantics. If there is positive/negative integer overflow, the property is resolved to the largest magnitude positive/negative integer.
     #[serde(default)]
-    pub increment: ::core::option::Option<ApiValue>,
+    pub increment: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Sets the property to the maximum of its current value and the given value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the given value. If a maximum operation is applied where the property and the input value are of mixed types (that is - one is an integer and one is a double) the property takes on the type of the larger operand. If the operands are equivalent (e.g. 3 and 3.0), the property does not change. 0, 0.0, and -0.0 are all zero. The maximum of a zero stored value and zero input value is always the stored value. The maximum of any numeric value x and NaN is NaN.
     #[serde(default)]
-    pub maximum: ::core::option::Option<ApiValue>,
+    pub maximum: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Sets the property to the minimum of its current value and the given value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the input value. If a minimum operation is applied where the property and the input value are of mixed types (that is - one is an integer and one is a double) the property takes on the type of the smaller operand. If the operands are equivalent (e.g. 3 and 3.0), the property does not change. 0, 0.0, and -0.0 are all zero. The minimum of a zero stored value and zero input value is always the stored value. The minimum of any numeric value x and NaN is NaN.
     #[serde(default)]
-    pub minimum: ::core::option::Option<ApiValue>,
+    pub minimum: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Optional. The name of the property. Property paths (a list of property names separated by dots (.)) may be used to refer to properties inside entity values. For example foo.bar means the property bar inside the entity property foo. If a property name contains a dot . or a backlslash \, then that name must be escaped.
     #[serde(default)]
     pub property: ::core::option::Option<String>,
     /// Removes all of the given elements from the array in the property. If the property is not an array, or if the property does not yet exist, it is set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when deciding whether an element should be removed. NaN is equal to NaN, and the null value is equal to the null value. This will remove all equivalent values if there are duplicates. The corresponding transform result will be the null value.
     #[serde(default, rename = "removeAllFromArray")]
-    pub remove_all_from_array: ::core::option::Option<ArrayValue>,
+    pub remove_all_from_array: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// Sets the property to the given server value. // TODO: enum values: ["SERVER_VALUE_UNSPECIFIED", "REQUEST_TIME"]
     #[serde(default, rename = "setToServerValue")]
     pub set_to_server_value: ::core::option::Option<String>,
@@ -827,13 +827,13 @@ pub struct Aggregation {
 pub struct Query {
     /// The properties to make distinct. The query results will contain the first result for each distinct combination of values for the given properties (if empty, all results are returned). Requires: * If order is specified, the set of distinct on properties must appear before the non-distinct on properties in order.
     #[serde(default, rename = "distinctOn")]
-    pub distinct_on: ::core::option::Option<::std::vec::Vec<PropertyReference>>,
+    pub distinct_on: ::std::vec::Vec<::std::boxed::Box<PropertyReference>>,
     /// An ending point for the query results. Query cursors are returned in query result batches and [can only be used to limit the same query](https://cloud.google.com/datastore/docs/concepts/queries#cursors_limits_and_offsets).
     #[serde(default, rename = "endCursor")]
     pub end_cursor: ::core::option::Option<String>,
     /// The filter to apply.
     #[serde(default)]
-    pub filter: ::core::option::Option<Filter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<Filter>>,
     /// Optional. A potential Nearest Neighbors Search. Applies after all other filters and ordering. Finds the closest vector embeddings to the given query vector.
     #[serde(default, rename = "findNearest")]
     pub find_nearest: ::core::option::Option<FindNearest>,
@@ -865,7 +865,7 @@ pub struct GqlQueryParameter {
     pub cursor: ::core::option::Option<String>,
     /// A value parameter.
     #[serde(default)]
-    pub value: ::core::option::Option<ApiValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }
 
 /// Options for beginning a new transaction. Transactions can be created explicitly with calls to Datastore.BeginTransaction or implicitly by setting ReadOptions.new_transaction in read requests.
@@ -890,7 +890,7 @@ pub struct EntityResult {
     pub cursor: ::core::option::Option<String>,
     /// The resulting entity.
     #[serde(default)]
-    pub entity: ::core::option::Option<Entity>,
+    pub entity: ::core::option::Option<::std::boxed::Box<Entity>>,
     /// The time at which the entity was last changed. This field is set for FULL entity results. If this entity is missing, this field will not be set.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -929,7 +929,7 @@ pub struct PlanSummary {
 pub struct Avg {
     /// The property to aggregate on.
     #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
+    pub property: ::core::option::Option<::std::boxed::Box<PropertyReference>>,
 }
 
 /// Count of entities that match the query. The COUNT(*) aggregation function operates on the entire entity so it does not require a field reference.
@@ -945,7 +945,7 @@ pub struct Count {
 pub struct Sum {
     /// The property to aggregate on.
     #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
+    pub property: ::core::option::Option<::std::boxed::Box<PropertyReference>>,
 }
 
 /// Nearest Neighbors search config. The ordering provided by FindNearest supersedes the order_by stage. If multiple documents have the same vector distance, the returned document order is not guaranteed to be stable between queries.
@@ -965,10 +965,10 @@ pub struct FindNearest {
     pub limit: ::core::option::Option<i32>,
     /// Required. The query vector that we are searching on. Must be a vector of no more than 2048 dimensions.
     #[serde(default, rename = "queryVector")]
-    pub query_vector: ::core::option::Option<ApiValue>,
+    pub query_vector: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Required. An indexed vector property to search upon. Only documents which contain vectors whose dimensionality match the query_vector can be returned.
     #[serde(default, rename = "vectorProperty")]
-    pub vector_property: ::core::option::Option<PropertyReference>,
+    pub vector_property: ::core::option::Option<::std::boxed::Box<PropertyReference>>,
 }
 
 /// A representation of a kind.
@@ -987,7 +987,7 @@ pub struct PropertyOrder {
     pub direction: ::core::option::Option<String>,
     /// The property to order by.
     #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
+    pub property: ::core::option::Option<::std::boxed::Box<PropertyReference>>,
 }
 
 /// A representation of a property in a projection.
@@ -995,7 +995,7 @@ pub struct PropertyOrder {
 pub struct Projection {
     /// The property to project.
     #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
+    pub property: ::core::option::Option<::std::boxed::Box<PropertyReference>>,
 }
 
 /// Options specific to read-only transactions.
@@ -1019,7 +1019,7 @@ pub struct ReadWrite {
 pub struct ArrayValue {
     /// Values in the array. The order of values in an array is preserved as long as all values have identical settings for ''exclude_from_indexes''.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<ApiValue>>,
 }
 
 /// A filter that merges multiple other filters using the given operator.
@@ -1027,7 +1027,7 @@ pub struct ArrayValue {
 pub struct CompositeFilter {
     /// The list of filters to combine. Requires: * At least one filter is present.
     #[serde(default)]
-    pub filters: ::core::option::Option<::std::vec::Vec<Filter>>,
+    pub filters: ::std::vec::Vec<::std::boxed::Box<Filter>>,
     /// The operator for combining multiple filters. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "AND", "OR"]
     #[serde(default)]
     pub op: ::core::option::Option<String>,
@@ -1038,7 +1038,7 @@ pub struct CompositeFilter {
 pub struct Entity {
     /// The entity''s key. An entity must have a key, unless otherwise documented (for example, an entity in Value.entity_value may have no key). An entity''s kind is its key path''s last element''s kind, or null if it has no key.
     #[serde(default)]
-    pub key: ::core::option::Option<Key>,
+    pub key: ::core::option::Option<::std::boxed::Box<Key>>,
     /// The entity''s properties. The map''s keys are property names. A property name matching regex __.*__ is reserved. A reserved property name is forbidden in certain documented contexts. The map keys, represented as UTF-8, must not exceed 1,500 bytes and cannot be empty.
     #[serde(default)]
     pub properties: ::core::option::Option<serde_json::Value>,
@@ -1049,10 +1049,10 @@ pub struct Entity {
 pub struct Filter {
     /// A composite filter.
     #[serde(default, rename = "compositeFilter")]
-    pub composite_filter: ::core::option::Option<CompositeFilter>,
+    pub composite_filter: ::core::option::Option<::std::boxed::Box<CompositeFilter>>,
     /// A filter on a property.
     #[serde(default, rename = "propertyFilter")]
-    pub property_filter: ::core::option::Option<PropertyFilter>,
+    pub property_filter: ::core::option::Option<::std::boxed::Box<PropertyFilter>>,
 }
 
 /// A unique identifier for an entity. If a key''s partition ID or any of its path kinds or names are reserved/read-only, the key is reserved/read-only. A reserved/read-only key is forbidden in certain documented contexts.
@@ -1060,10 +1060,10 @@ pub struct Filter {
 pub struct Key {
     /// Entities are partitioned into subsets, currently identified by a project ID and namespace ID. Queries are scoped to a single partition.
     #[serde(default, rename = "partitionId")]
-    pub partition_id: ::core::option::Option<PartitionId>,
+    pub partition_id: ::core::option::Option<::std::boxed::Box<PartitionId>>,
     /// The entity path. An entity path consists of one or more elements composed of a kind and a string or numerical identifier, which identify entities. The first element identifies a _root entity_, the second element identifies a _child_ of the root entity, the third element identifies a child of the second entity, and so forth. The entities identified by all prefixes of the path are called the element''s _ancestors_. An entity path is always fully complete: *all* of the entity''s ancestors are required to be in the path along with the entity identifier itself. The only exception is that in some documented cases, the identifier in the last path element (for the entity) itself may be omitted. For example, the last path element of the key of Mutation.insert may have no identifier. A path can never be empty, and a path can have at most 100 elements.
     #[serde(default)]
-    pub path: ::core::option::Option<::std::vec::Vec<PathElement>>,
+    pub path: ::std::vec::Vec<::std::boxed::Box<PathElement>>,
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
@@ -1113,10 +1113,10 @@ pub struct PropertyFilter {
     pub op: ::core::option::Option<String>,
     /// The property to filter by.
     #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
+    pub property: ::core::option::Option<::std::boxed::Box<PropertyReference>>,
     /// The value to compare the property to.
     #[serde(default)]
-    pub value: ::core::option::Option<ApiValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }
 
 /// A reference to a property relative to the kind expressions.
@@ -1132,7 +1132,7 @@ pub struct PropertyReference {
 pub struct ApiValue {
     /// An array value. Cannot contain another array value. A Value instance that sets field array_value must not set fields meaning or exclude_from_indexes.
     #[serde(default, rename = "arrayValue")]
-    pub array_value: ::core::option::Option<ArrayValue>,
+    pub array_value: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// A blob value. May have at most 1,000,000 bytes. When exclude_from_indexes is false, may have at most 1500 bytes. In JSON requests, must be base64-encoded.
     #[serde(default, rename = "blobValue")]
     pub blob_value: ::core::option::Option<String>,
@@ -1144,19 +1144,19 @@ pub struct ApiValue {
     pub double_value: ::core::option::Option<f64>,
     /// An entity value. - May have no key. - May have a key with an incomplete key path. - May have a reserved/read-only key.
     #[serde(default, rename = "entityValue")]
-    pub entity_value: ::core::option::Option<Entity>,
+    pub entity_value: ::core::option::Option<::std::boxed::Box<Entity>>,
     /// If the value should be excluded from all indexes including those defined explicitly.
     #[serde(default, rename = "excludeFromIndexes")]
     pub exclude_from_indexes: ::core::option::Option<bool>,
     /// A geo point value representing a point on the surface of Earth.
     #[serde(default, rename = "geoPointValue")]
-    pub geo_point_value: ::core::option::Option<LatLng>,
+    pub geo_point_value: ::core::option::Option<::std::boxed::Box<LatLng>>,
     /// An integer value.
     #[serde(default, rename = "integerValue")]
     pub integer_value: ::core::option::Option<String>,
     /// A key value.
     #[serde(default, rename = "keyValue")]
-    pub key_value: ::core::option::Option<Key>,
+    pub key_value: ::core::option::Option<::std::boxed::Box<Key>>,
     /// The meaning field should only be populated for backwards compatibility.
     #[serde(default)]
     pub meaning: ::core::option::Option<i32>,

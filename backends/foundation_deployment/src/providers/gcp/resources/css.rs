@@ -21,7 +21,7 @@ pub struct CssProductInput {
     pub content_language: ::core::option::Option<String>,
     /// A list of custom (CSS-provided) attributes. It can also be used for submitting any attribute of the feed specification in its generic form (for example: { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as additional attributes used for Buy on Google.
     #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub custom_attributes: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// Required. The [feed label](https://developers.google.com/shopping-content/guides/products/feed-labels) for the CSS Product. Feed Label is synonymous to "target country" and hence should always be a valid region code. For example: ''DE'' for Germany, ''FR'' for France.
     #[serde(default, rename = "feedLabel")]
     pub feed_label: ::core::option::Option<String>,
@@ -164,7 +164,7 @@ pub struct CssProduct {
     pub css_product_status: ::core::option::Option<CssProductStatus>,
     /// Output only. A list of custom (CSS-provided) attributes. It can also be used to submit any attribute of the feed specification in its generic form (for example, { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as additional attributes used for Buy on Google.
     #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub custom_attributes: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// Output only. The feed label for the product.
     #[serde(default, rename = "feedLabel")]
     pub feed_label: ::core::option::Option<String>,
@@ -388,7 +388,7 @@ pub struct CssProductStatus {
 pub struct CustomAttribute {
     /// Subattributes within this attribute group. If group_values is not empty, value must be empty.
     #[serde(default, rename = "groupValues")]
-    pub group_values: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub group_values: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// The name of the attribute.
     #[serde(default)]
     pub name: ::core::option::Option<String>,

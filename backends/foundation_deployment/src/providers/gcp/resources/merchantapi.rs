@@ -73,7 +73,7 @@ pub struct ProductStatusChangeMessage {
 pub struct MerchantReview {
     /// Optional. A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the data specification in its generic form (for example, { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as experimental attributes. Maximum allowed number of characters for each custom attribute is 10240 (represents sum of characters for name and value). Maximum 2500 custom attributes can be set per product, with total size of 102.4kB. Underscores in custom attribute names are replaced by spaces upon insertion.
     #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub custom_attributes: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// Output only. The primary data source of the merchant review.
     #[serde(default, rename = "dataSource")]
     pub data_source: ::core::option::Option<String>,
@@ -96,7 +96,7 @@ pub struct MerchantReview {
 pub struct ProductReview {
     /// Optional. A list of custom (merchant-provided) attributes.
     #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub custom_attributes: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// Output only. The primary data source of the product review.
     #[serde(default, rename = "dataSource")]
     pub data_source: ::core::option::Option<String>,
@@ -207,7 +207,7 @@ pub struct MerchantReviewStatus {
 pub struct CustomAttribute {
     /// Subattributes within this attribute group. If group_values is not empty, value must be empty.
     #[serde(default, rename = "groupValues")]
-    pub group_values: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub group_values: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// The name of the attribute.
     #[serde(default)]
     pub name: ::core::option::Option<String>,

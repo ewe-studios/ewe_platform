@@ -498,7 +498,7 @@ pub struct GoogleCloudContentwarehouseV1Value {
     pub boolean_value: ::core::option::Option<bool>,
     /// Represents a datetime value.
     #[serde(default, rename = "datetimeValue")]
-    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
+    pub datetime_value: ::core::option::Option<::std::boxed::Box<GoogleTypeDateTime>>,
     /// Represents an enum value.
     #[serde(default, rename = "enumValue")]
     pub enum_value: ::core::option::Option<GoogleCloudContentwarehouseV1EnumValue>,
@@ -513,7 +513,8 @@ pub struct GoogleCloudContentwarehouseV1Value {
     pub string_value: ::core::option::Option<String>,
     /// Represents a timestamp value.
     #[serde(default, rename = "timestampValue")]
-    pub timestamp_value: ::core::option::Option<GoogleCloudContentwarehouseV1TimestampValue>,
+    pub timestamp_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1TimestampValue>>,
 }
 
 /// Metadata object for CreateDocument request (currently empty).
@@ -942,7 +943,7 @@ pub struct GoogleCloudContentwarehouseV1DocumentSchema {
     /// Document details.
     #[serde(default, rename = "propertyDefinitions")]
     pub property_definitions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyDefinition>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContentwarehouseV1PropertyDefinition>>,
     /// Output only. The time when the document schema is last updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -1258,7 +1259,7 @@ pub struct GoogleCloudContentwarehouseV1Document {
     pub plain_text: ::core::option::Option<String>,
     /// List of values that are user supplied metadata.
     #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Property>>,
+    pub properties: ::std::vec::Vec<::std::boxed::Box<GoogleCloudContentwarehouseV1Property>>,
     /// This is used when DocAI was not used to load the document and parsing/ extracting is needed for the inline_raw_document. For example, if inline_raw_document is the byte representation of a PDF file, then this should be set to: RAW_DOCUMENT_FILE_TYPE_PDF. // TODO: enum values: ["RAW_DOCUMENT_FILE_TYPE_UNSPECIFIED", "RAW_DOCUMENT_FILE_TYPE_PDF", "RAW_DOCUMENT_FILE_TYPE_DOCX", "RAW_DOCUMENT_FILE_TYPE_XLSX", "RAW_DOCUMENT_FILE_TYPE_PPTX", "RAW_DOCUMENT_FILE_TYPE_TEXT", "RAW_DOCUMENT_FILE_TYPE_TIFF"]
     #[serde(default, rename = "rawDocumentFileType")]
     pub raw_document_file_type: ::core::option::Option<String>,
@@ -1412,7 +1413,7 @@ pub struct GoogleCloudDocumentaiV1Document {
     pub document_layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentDocumentLayout>,
     /// A list of entities detected on Document.text. For document shards, entities in this list may cross shard boundaries.
     #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    pub entities: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiV1DocumentEntity>>,
     /// Placeholder. Relationship among Document.entities.
     #[serde(default, rename = "entityRelations")]
     pub entity_relations:
@@ -1496,8 +1497,8 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
     /// List of blocks in the document.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
 }
 
@@ -1525,7 +1526,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntity {
     pub page_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
     /// Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.
     #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    pub properties: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDocumentaiV1DocumentEntity>>,
     /// Optional. The history of this annotation.
     #[serde(default)]
     pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
@@ -1792,7 +1793,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
     pub date_value: ::core::option::Option<GoogleTypeDate>,
     /// DateTime value. Includes date, time, and timezone. See also: https://github.com/googleapis/googleapis/blob/master/google/type/datetime.proto
     #[serde(default, rename = "datetimeValue")]
-    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
+    pub datetime_value: ::core::option::Option<::std::boxed::Box<GoogleTypeDateTime>>,
     /// Float value.
     #[serde(default, rename = "floatValue")]
     pub float_value: ::core::option::Option<f32>,
@@ -2605,7 +2606,7 @@ pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
 pub struct GoogleCloudContentwarehouseV1DateTimeArray {
     /// List of datetime values. Both OffsetDateTime and ZonedDateTime are supported.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<GoogleTypeDateTime>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<GoogleTypeDateTime>>,
 }
 
 /// Enum values.
@@ -2656,31 +2657,39 @@ pub struct GoogleCloudContentwarehouseV1MapProperty {
 pub struct GoogleCloudContentwarehouseV1Property {
     /// Date time property values. It is not supported by CMEK compliant deployment.
     #[serde(default, rename = "dateTimeValues")]
-    pub date_time_values: ::core::option::Option<GoogleCloudContentwarehouseV1DateTimeArray>,
+    pub date_time_values:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1DateTimeArray>>,
     /// Enum property values.
     #[serde(default, rename = "enumValues")]
-    pub enum_values: ::core::option::Option<GoogleCloudContentwarehouseV1EnumArray>,
+    pub enum_values:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1EnumArray>>,
     /// Float property values.
     #[serde(default, rename = "floatValues")]
-    pub float_values: ::core::option::Option<GoogleCloudContentwarehouseV1FloatArray>,
+    pub float_values:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1FloatArray>>,
     /// Integer property values.
     #[serde(default, rename = "integerValues")]
-    pub integer_values: ::core::option::Option<GoogleCloudContentwarehouseV1IntegerArray>,
+    pub integer_values:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1IntegerArray>>,
     /// Map property values.
     #[serde(default, rename = "mapProperty")]
-    pub map_property: ::core::option::Option<GoogleCloudContentwarehouseV1MapProperty>,
+    pub map_property:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1MapProperty>>,
     /// Required. Must match the name of a PropertyDefinition in the DocumentSchema.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     /// Nested structured data property values.
     #[serde(default, rename = "propertyValues")]
-    pub property_values: ::core::option::Option<GoogleCloudContentwarehouseV1PropertyArray>,
+    pub property_values:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1PropertyArray>>,
     /// String/text property values.
     #[serde(default, rename = "textValues")]
-    pub text_values: ::core::option::Option<GoogleCloudContentwarehouseV1TextArray>,
+    pub text_values:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1TextArray>>,
     /// Timestamp property values. It is not supported by CMEK compliant deployment.
     #[serde(default, rename = "timestampValues")]
-    pub timestamp_values: ::core::option::Option<GoogleCloudContentwarehouseV1TimestampArray>,
+    pub timestamp_values:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1TimestampArray>>,
 }
 
 /// Property values.
@@ -2688,7 +2697,7 @@ pub struct GoogleCloudContentwarehouseV1Property {
 pub struct GoogleCloudContentwarehouseV1PropertyArray {
     /// List of property values.
     #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Property>>,
+    pub properties: ::std::vec::Vec<::std::boxed::Box<GoogleCloudContentwarehouseV1Property>>,
 }
 
 /// Defines the metadata for a schema property.
@@ -2702,7 +2711,8 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     pub display_name: ::core::option::Option<String>,
     /// Enum/categorical property.
     #[serde(default, rename = "enumTypeOptions")]
-    pub enum_type_options: ::core::option::Option<GoogleCloudContentwarehouseV1EnumTypeOptions>,
+    pub enum_type_options:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1EnumTypeOptions>>,
     /// Float property.
     #[serde(default, rename = "floatTypeOptions")]
     pub float_type_options: ::core::option::Option<serde_json::Value>,
@@ -2733,14 +2743,14 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     /// Nested structured data property.
     #[serde(default, rename = "propertyTypeOptions")]
     pub property_type_options:
-        ::core::option::Option<GoogleCloudContentwarehouseV1PropertyTypeOptions>,
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1PropertyTypeOptions>>,
     /// The retrieval importance of the property during search. // TODO: enum values: ["RETRIEVAL_IMPORTANCE_UNSPECIFIED", "HIGHEST", "HIGHER", "HIGH", "MEDIUM", "LOW", "LOWEST"]
     #[serde(default, rename = "retrievalImportance")]
     pub retrieval_importance: ::core::option::Option<String>,
     /// The mapping information between this property to another schema source.
     #[serde(default, rename = "schemaSources")]
-    pub schema_sources: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource>,
+    pub schema_sources: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource>,
     >,
     /// Text/string property.
     #[serde(default, rename = "textTypeOptions")]
@@ -2767,7 +2777,7 @@ pub struct GoogleCloudContentwarehouseV1PropertyTypeOptions {
     /// Required. List of property definitions.
     #[serde(default, rename = "propertyDefinitions")]
     pub property_definitions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyDefinition>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContentwarehouseV1PropertyDefinition>>,
 }
 
 /// String/text values.
@@ -2783,8 +2793,7 @@ pub struct GoogleCloudContentwarehouseV1TextArray {
 pub struct GoogleCloudContentwarehouseV1TimestampArray {
     /// List of timestamp values.
     #[serde(default)]
-    pub values:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1TimestampValue>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<GoogleCloudContentwarehouseV1TimestampValue>>,
 }
 
 /// Timestamp value type.
@@ -2807,22 +2816,30 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
     /// Block consisting of list content/structure.
     #[serde(default, rename = "listBlock")]
     pub list_block: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock,
+        >,
     >,
     /// Page span of the block.
     #[serde(default, rename = "pageSpan")]
     pub page_span: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan,
+        >,
     >,
     /// Block consisting of table content/structure.
     #[serde(default, rename = "tableBlock")]
     pub table_block: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock,
+        >,
     >,
     /// Block consisting of text content.
     #[serde(default, rename = "textBlock")]
     pub text_block: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock,
+        ::std::boxed::Box<
+            GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock,
+        >,
     >,
 }
 
@@ -2831,8 +2848,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock {
     /// List entries that constitute a list block.
     #[serde(default, rename = "listEntries")]
-    pub list_entries: ::core::option::Option<
-        ::std::vec::Vec<
+    pub list_entries: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry,
         >,
     >,
@@ -2846,8 +2863,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry {
     /// A list entry is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
 }
 
@@ -2867,8 +2884,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock {
     /// Body rows containing main table content.
     #[serde(default, rename = "bodyRows")]
-    pub body_rows: ::core::option::Option<
-        ::std::vec::Vec<
+    pub body_rows: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow,
         >,
     >,
@@ -2877,8 +2894,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
     pub caption: ::core::option::Option<String>,
     /// Header rows at the top of the table.
     #[serde(default, rename = "headerRows")]
-    pub header_rows: ::core::option::Option<
-        ::std::vec::Vec<
+    pub header_rows: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow,
         >,
     >,
@@ -2889,8 +2906,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell {
     /// A table cell is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
     /// How many columns this cell spans.
     #[serde(default, rename = "colSpan")]
@@ -2905,8 +2922,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow {
     /// A table row is a list of table cells.
     #[serde(default)]
-    pub cells: ::core::option::Option<
-        ::std::vec::Vec<
+    pub cells: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell,
         >,
     >,
@@ -2917,8 +2934,8 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock {
     /// A text block could further have child blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub blocks: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
     >,
     /// Text content stored in the block.
     #[serde(default)]
@@ -2951,7 +2968,7 @@ pub struct GoogleTypeDateTime {
     pub seconds: ::core::option::Option<i32>,
     /// Time zone.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<GoogleTypeTimeZone>,
+    pub time_zone: ::core::option::Option<::std::boxed::Box<GoogleTypeTimeZone>>,
     /// UTC offset. Must be whole seconds, between -18 hours and +18 hours. For example, a UTC offset of -4:00 would be represented as { seconds: -14400 }.
     #[serde(default, rename = "utcOffset")]
     pub utc_offset: ::core::option::Option<String>,

@@ -1280,7 +1280,7 @@ pub struct GoogleCloudAssetV1QueryAssetsOutputConfigBigQueryDestination {
 pub struct TableSchema {
     /// Describes the fields in a table.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<TableFieldSchema>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<TableFieldSchema>>,
 }
 
 /// Explanation about the IAM policy search result.
@@ -1629,7 +1629,7 @@ pub struct TableFieldSchema {
     pub field: ::core::option::Option<String>,
     /// Describes the nested schema fields if the type property is set to RECORD.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<TableFieldSchema>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<TableFieldSchema>>,
     /// The field mode. Possible values include NULLABLE, REQUIRED and REPEATED. The default value is NULLABLE.
     #[serde(default)]
     pub mode: ::core::option::Option<String>,

@@ -319,7 +319,7 @@ pub struct EvaluateUserConsentsResponse {
 pub struct ExplainDataAccessResponse {
     /// List of applicable consent scopes. Sorted in order of actor such that scopes belonging to the same actor will be adjacent to each other in the list.
     #[serde(default, rename = "consentScopes")]
-    pub consent_scopes: ::core::option::Option<::std::vec::Vec<ExplainDataAccessConsentScope>>,
+    pub consent_scopes: ::std::vec::Vec<::std::boxed::Box<ExplainDataAccessConsentScope>>,
     /// Warnings associated with this response. It inform user with exceeded scope limit errors.
     #[serde(default)]
     pub warning: ::core::option::Option<String>,
@@ -1017,7 +1017,7 @@ pub struct ExplainDataAccessConsentScope {
     pub enforcing_consents: ::core::option::Option<::std::vec::Vec<ExplainDataAccessConsentInfo>>,
     /// Other consent scopes that created exceptions within this scope.
     #[serde(default)]
-    pub exceptions: ::core::option::Option<::std::vec::Vec<ExplainDataAccessConsentScope>>,
+    pub exceptions: ::std::vec::Vec<::std::boxed::Box<ExplainDataAccessConsentScope>>,
 }
 
 /// The Cloud Storage location where the server writes the output and the export configuration.
@@ -2246,9 +2246,9 @@ pub struct KmsWrappedCryptoKey {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroupOrSegment {
     #[serde(default)]
-    pub group: ::core::option::Option<SchemaGroup>,
+    pub group: ::core::option::Option<::std::boxed::Box<SchemaGroup>>,
     #[serde(default)]
-    pub segment: ::core::option::Option<SchemaSegment>,
+    pub segment: ::core::option::Option<::std::boxed::Box<SchemaSegment>>,
 }
 
 /// An HL7v2 logical group construct.
@@ -2262,7 +2262,7 @@ pub struct SchemaGroup {
     pub max_occurs: ::core::option::Option<i32>,
     /// Nested groups and/or segments.
     #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<GroupOrSegment>>,
+    pub members: ::std::vec::Vec<::std::boxed::Box<GroupOrSegment>>,
     /// The minimum number of times this group must be present/repeated.
     #[serde(default, rename = "minOccurs")]
     pub min_occurs: ::core::option::Option<i32>,

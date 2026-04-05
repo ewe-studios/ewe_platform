@@ -801,7 +801,7 @@ pub struct Group {
 pub struct AccessoryWidget {
     /// A list of buttons.
     #[serde(default, rename = "buttonList")]
-    pub button_list: ::core::option::Option<GoogleAppsCardV1ButtonList>,
+    pub button_list: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ButtonList>>,
 }
 
 /// Parameters that a Chat app can use to configure how its response is posted.
@@ -851,7 +851,7 @@ pub struct Card {
 pub struct CardWithId {
     /// A card. Maximum size is 32 KB.
     #[serde(default)]
-    pub card: ::core::option::Option<GoogleAppsCardV1Card>,
+    pub card: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Card>>,
     /// Required if the message contains multiple cards. A unique identifier for a card in a message.
     #[serde(default, rename = "cardId")]
     pub card_id: ::core::option::Option<String>,
@@ -1172,7 +1172,7 @@ pub struct ActionStatus {
 pub struct Dialog {
     /// Input only. Body of the dialog, which is rendered in a modal. Google Chat apps don''t support the following card entities: DateTimePicker, OnChangeAction.
     #[serde(default)]
-    pub body: ::core::option::Option<GoogleAppsCardV1Card>,
+    pub body: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Card>>,
 }
 
 /// List of widget autocomplete results.
@@ -1180,7 +1180,7 @@ pub struct Dialog {
 pub struct SelectionItems {
     /// An array of the SelectionItem objects.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1SelectionItem>>,
+    pub items: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1SelectionItem>>,
 }
 
 /// A widget is a UI element that presents text and images.
@@ -1586,7 +1586,7 @@ pub struct ActionParameter {
 pub struct ChatClientDataSourceMarkup {
     /// Google Chat spaces that the user is a member of.
     #[serde(default, rename = "spaceDataSource")]
-    pub space_data_source: ::core::option::Option<SpaceDataSource>,
+    pub space_data_source: ::core::option::Option<::std::boxed::Box<SpaceDataSource>>,
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
@@ -1623,7 +1623,7 @@ pub struct GoogleAppsCardV1Action {
     pub load_indicator: ::core::option::Option<String>,
     /// List of action parameters.
     #[serde(default)]
-    pub parameters: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1ActionParameter>>,
+    pub parameters: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1ActionParameter>>,
     /// Indicates whether form values persist after the action. The default value is false. If true, form values remain after the action is triggered. To let the user make changes while the action is being processed, set [LoadIndicator](https://developers.google.com/workspace/add-ons/reference/rpc/google.apps.card.v1#loadindicator) to NONE. For [card messages](https://developers.google.com/workspace/chat/api/guides/v1/messages/create#create) in Chat apps, you must also set the action''s [ResponseType](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages#responsetype) to UPDATE_MESSAGE and use the same [card_id](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages#CardWithId) from the card that contained the action. If false, the form values are cleared when the action is triggered. To prevent the user from making changes while the action is being processed, set [LoadIndicator](https://developers.google.com/workspace/add-ons/reference/rpc/google.apps.card.v1#loadindicator) to SPINNER.
     #[serde(default, rename = "persistValues")]
     pub persist_values: ::core::option::Option<bool>,
@@ -1651,7 +1651,7 @@ pub struct GoogleAppsCardV1BorderStyle {
     pub corner_radius: ::core::option::Option<i32>,
     /// The colors to use when the type is BORDER_TYPE_STROKE. To set the stroke color, specify a value for the red, green, and blue fields. The value must be a float number between 0 and 1 based on the RGB color value, where 0 (0/255) represents the absence of color and 1 (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity:  "color": { "red": 1, "green": 0, "blue": 0, }  The alpha field is unavailable for stroke color. If specified, this field is ignored.
     #[serde(default, rename = "strokeColor")]
-    pub stroke_color: ::core::option::Option<Color>,
+    pub stroke_color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The border type. // TODO: enum values: ["BORDER_TYPE_UNSPECIFIED", "NO_BORDER", "STROKE"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -1665,16 +1665,16 @@ pub struct GoogleAppsCardV1Button {
     pub alt_text: ::core::option::Option<String>,
     /// Optional. The color of the button. If set, the button type is set to FILLED and the color of text and icon fields are set to a contrasting color for readability. For example, if the button color is set to blue, any text or icons in the button are set to white. To set the button color, specify a value for the red, green, and blue fields. The value must be a float number between 0 and 1 based on the RGB color value, where 0 (0/255) represents the absence of color and 1 (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity:  "color": { "red": 1, "green": 0, "blue": 0, }  The alpha field is unavailable for button color. If specified, this field is ignored.
     #[serde(default)]
-    pub color: ::core::option::Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// If true, the button is displayed in an inactive state and doesn''t respond to user actions.
     #[serde(default)]
     pub disabled: ::core::option::Option<bool>,
     /// An icon displayed inside the button. If both icon and text are set, then the icon appears before the text.
     #[serde(default)]
-    pub icon: ::core::option::Option<GoogleAppsCardV1Icon>,
+    pub icon: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Icon>>,
     /// Required. The action to perform when a user clicks the button, such as opening a hyperlink or running a custom function.
     #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<GoogleAppsCardV1OnClick>,
+    pub on_click: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OnClick>>,
     /// The text displayed inside the button.
     #[serde(default)]
     pub text: ::core::option::Option<String>,
@@ -1688,7 +1688,7 @@ pub struct GoogleAppsCardV1Button {
 pub struct GoogleAppsCardV1ButtonList {
     /// An array of buttons.
     #[serde(default)]
-    pub buttons: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Button>>,
+    pub buttons: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Button>>,
 }
 
 /// A card interface displayed in a Google Chat message or Google Workspace add-on. Cards support a defined layout, interactive UI elements like buttons, and rich media like images. Use cards to present detailed information, gather information from users, and guide users to take a next step. [Card builder](https://addons.gsuite.google.com/uikit/builder) To learn how to build cards, see the following documentation: * For Google Chat apps, see [Design the components of a card or dialog](https://developers.google.com/workspace/chat/design-components-card-dialog). * For Google Workspace add-ons, see [Card-based interfaces](https://developers.google.com/apps-script/add-ons/concepts/cards). Note: You can add up to 100 widgets per card. If a section''s widgets push the total count above 100, that entire section and all following sections are ignored. This limit applies to both card messages and dialogs in Google Chat apps, and to cards in Google Workspace add-ons. **Example: Card message for a Google Chat app** ![Example contact card](https://developers.google.com/workspace/chat/images/card_api_reference.png) To create the sample card message in Google Chat, use the following JSON:  { "cardsV2": [ { "cardId": "unique-card-id", "card": { "header": { "title": "Sasha", "subtitle": "Software Engineer", "imageUrl": "https://developers.google.com/workspace/chat/images/quickstart-app-avatar.png", "imageType": "CIRCLE", "imageAltText": "Avatar for Sasha" }, "sections": [ { "header": "Contact Info", "collapsible": true, "uncollapsibleWidgetsCount": 1, "widgets": [ { "decoratedText": { "startIcon": { "knownIcon": "EMAIL" }, "text": "sasha@example.com" } }, { "decoratedText": { "startIcon": { "knownIcon": "PERSON" }, "text": "Online" } }, { "decoratedText": { "startIcon": { "knownIcon": "PHONE" }, "text": "+1 (555) 555-1234" } }, { "buttonList": { "buttons": [ { "text": "Share", "onClick": { "openLink": { "url": "https://example.com/share" } } }, { "text": "Edit", "onClick": { "action": { "function": "goToView", "parameters": [ { "key": "viewType", "value": "EDIT" } ] } } } ] } } ] } ] } } ] }
@@ -1696,31 +1696,31 @@ pub struct GoogleAppsCardV1ButtonList {
 pub struct GoogleAppsCardV1Card {
     /// The card''s actions. Actions are added to the card''s toolbar menu. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons): For example, the following JSON constructs a card action menu with Settings and Send Feedback options:  "card_actions": [ { "actionLabel": "Settings", "onClick": { "action": { "functionName": "goToView", "parameters": [ { "key": "viewType", "value": "SETTING" } ], "loadIndicator": "LoadIndicator.SPINNER" } } }, { "actionLabel": "Send Feedback", "onClick": { "openLink": { "url": "https://example.com/feedback" } } } ]
     #[serde(default, rename = "cardActions")]
-    pub card_actions: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1CardAction>>,
+    pub card_actions: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1CardAction>>,
     /// In Google Workspace add-ons, sets the display properties of the peekCardHeader. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons): // TODO: enum values: ["DISPLAY_STYLE_UNSPECIFIED", "PEEK", "REPLACE"]
     #[serde(default, rename = "displayStyle")]
     pub display_style: ::core::option::Option<String>,
     /// The expression data for the card. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
     #[serde(default, rename = "expressionData")]
-    pub expression_data: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1ExpressionData>>,
+    pub expression_data: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1ExpressionData>>,
     /// The fixed footer shown at the bottom of this card. Setting fixedFooter without specifying a primaryButton or a secondaryButton causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
     #[serde(default, rename = "fixedFooter")]
-    pub fixed_footer: ::core::option::Option<GoogleAppsCardV1CardFixedFooter>,
+    pub fixed_footer: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1CardFixedFooter>>,
     /// The header of the card. A header usually contains a leading image and a title. Headers always appear at the top of a card.
     #[serde(default)]
-    pub header: ::core::option::Option<GoogleAppsCardV1CardHeader>,
+    pub header: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1CardHeader>>,
     /// Name of the card. Used as a card identifier in card navigation. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     /// When displaying contextual content, the peek card header acts as a placeholder so that the user can navigate forward between the homepage cards and the contextual cards. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
     #[serde(default, rename = "peekCardHeader")]
-    pub peek_card_header: ::core::option::Option<GoogleAppsCardV1CardHeader>,
+    pub peek_card_header: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1CardHeader>>,
     /// The divider style between the header, sections and footer. // TODO: enum values: ["DIVIDER_STYLE_UNSPECIFIED", "SOLID_DIVIDER", "NO_DIVIDER"]
     #[serde(default, rename = "sectionDividerStyle")]
     pub section_divider_style: ::core::option::Option<String>,
     /// Contains a collection of widgets. Each section has its own, optional header. Sections are visually separated by a line divider. For an example in Google Chat apps, see [Define a section of a card](https://developers.google.com/workspace/chat/design-components-card-dialog#define_a_section_of_a_card).
     #[serde(default)]
-    pub sections: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Section>>,
+    pub sections: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Section>>,
 }
 
 /// A card action is the action associated with the card. For example, an invoice card might include actions such as delete invoice, email invoice, or open the invoice in a browser. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
@@ -1731,7 +1731,7 @@ pub struct GoogleAppsCardV1CardAction {
     pub action_label: ::core::option::Option<String>,
     /// The onClick action for this action item.
     #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<GoogleAppsCardV1OnClick>,
+    pub on_click: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OnClick>>,
 }
 
 /// A persistent (sticky) footer that that appears at the bottom of the card. Setting fixedFooter without specifying a primaryButton or a secondaryButton causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). For an example in Google Chat apps, see [Add a persistent footer](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_persistent_footer). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -1739,10 +1739,10 @@ pub struct GoogleAppsCardV1CardAction {
 pub struct GoogleAppsCardV1CardFixedFooter {
     /// The primary button of the fixed footer. The button must be a text button with text and color set.
     #[serde(default, rename = "primaryButton")]
-    pub primary_button: ::core::option::Option<GoogleAppsCardV1Button>,
+    pub primary_button: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Button>>,
     /// The secondary button of the fixed footer. The button must be a text button with text and color set. If secondaryButton is set, you must also set primaryButton.
     #[serde(default, rename = "secondaryButton")]
-    pub secondary_button: ::core::option::Option<GoogleAppsCardV1Button>,
+    pub secondary_button: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Button>>,
 }
 
 /// Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -1770,7 +1770,7 @@ pub struct GoogleAppsCardV1CardHeader {
 pub struct GoogleAppsCardV1Carousel {
     /// A list of cards included in the carousel.
     #[serde(default, rename = "carouselCards")]
-    pub carousel_cards: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1CarouselCard>>,
+    pub carousel_cards: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1CarouselCard>>,
 }
 
 /// A card that can be displayed as a carousel item. [Google Chat apps](https://developers.google.com/workspace/chat):
@@ -1778,10 +1778,10 @@ pub struct GoogleAppsCardV1Carousel {
 pub struct GoogleAppsCardV1CarouselCard {
     /// A list of widgets displayed at the bottom of the carousel card. The widgets are displayed in the order that they are specified.
     #[serde(default, rename = "footerWidgets")]
-    pub footer_widgets: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1NestedWidget>>,
+    pub footer_widgets: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1NestedWidget>>,
     /// A list of widgets displayed in the carousel card. The widgets are displayed in the order that they are specified.
     #[serde(default)]
-    pub widgets: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1NestedWidget>>,
+    pub widgets: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1NestedWidget>>,
 }
 
 /// A text, icon, or text and icon chip that users can click. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -1798,13 +1798,13 @@ pub struct GoogleAppsCardV1Chip {
     pub enabled: ::core::option::Option<bool>,
     /// The icon image. If both icon and text are set, then the icon appears before the text.
     #[serde(default)]
-    pub icon: ::core::option::Option<GoogleAppsCardV1Icon>,
+    pub icon: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Icon>>,
     /// The text displayed inside the chip.
     #[serde(default)]
     pub label: ::core::option::Option<String>,
     /// Optional. The action to perform when a user clicks the chip, such as opening a hyperlink or running a custom function.
     #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<GoogleAppsCardV1OnClick>,
+    pub on_click: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OnClick>>,
 }
 
 /// A list of chips layed out horizontally, which can either scroll horizontally or wrap to the next line. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -1812,7 +1812,7 @@ pub struct GoogleAppsCardV1Chip {
 pub struct GoogleAppsCardV1ChipList {
     /// An array of chips.
     #[serde(default)]
-    pub chips: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Chip>>,
+    pub chips: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Chip>>,
     /// Specified chip list layout. // TODO: enum values: ["LAYOUT_UNSPECIFIED", "WRAPPED", "HORIZONTAL_SCROLLABLE"]
     #[serde(default)]
     pub layout: ::core::option::Option<String>,
@@ -1823,10 +1823,10 @@ pub struct GoogleAppsCardV1ChipList {
 pub struct GoogleAppsCardV1CollapseControl {
     /// Optional. Define a customizable button to collapse the section. Both expand_button and collapse_button field must be set. Only one field set will not take into effect. If this field isn''t set, the default button is used.
     #[serde(default, rename = "collapseButton")]
-    pub collapse_button: ::core::option::Option<GoogleAppsCardV1Button>,
+    pub collapse_button: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Button>>,
     /// Optional. Define a customizable button to expand the section. Both expand_button and collapse_button field must be set. Only one field set will not take into effect. If this field isn''t set, the default button is used.
     #[serde(default, rename = "expandButton")]
-    pub expand_button: ::core::option::Option<GoogleAppsCardV1Button>,
+    pub expand_button: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Button>>,
     /// The horizontal alignment of the expand and collapse button. // TODO: enum values: ["HORIZONTAL_ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END"]
     #[serde(default, rename = "horizontalAlignment")]
     pub horizontal_alignment: ::core::option::Option<String>,
@@ -1846,7 +1846,7 @@ pub struct GoogleAppsCardV1Column {
     pub vertical_alignment: ::core::option::Option<String>,
     /// An array of widgets included in a column. Widgets appear in the order that they are specified.
     #[serde(default)]
-    pub widgets: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Widgets>>,
+    pub widgets: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Widgets>>,
 }
 
 /// The Columns widget displays up to 2 columns in a card or dialog. You can add widgets to each column; the widgets appear in the order that they are specified. For an example in Google Chat apps, see [Display cards and dialogs in columns](https://developers.google.com/workspace/chat/format-structure-card-dialog#display_cards_and_dialogs_in_columns). The height of each column is determined by the taller column. For example, if the first column is taller than the second column, both columns have the height of the first column. Because each column can contain a different number of widgets, you can''t define rows or align widgets between the columns. Columns are displayed side-by-side. You can customize the width of each column using the HorizontalSizeStyle field. If the user''s screen width is too narrow, the second column wraps below the first: * On web, the second column wraps if the screen width is less than or equal to 480 pixels. * On iOS devices, the second column wraps if the screen width is less than or equal to 300 pt. * On Android devices, the second column wraps if the screen width is less than or equal to 320 dp. To include more than two columns, or to use rows, use the Grid widget. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): The add-on UIs that support columns include: * The dialog displayed when users open the add-on from an email draft. * The dialog displayed when users open the add-on from the **Add attachment** menu in a Google Calendar event.
@@ -1854,7 +1854,7 @@ pub struct GoogleAppsCardV1Column {
 pub struct GoogleAppsCardV1Columns {
     /// An array of columns. You can include up to 2 columns in a card or dialog.
     #[serde(default, rename = "columnItems")]
-    pub column_items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Column>>,
+    pub column_items: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Column>>,
 }
 
 /// Represents an action that is not specific to a widget. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
@@ -1862,7 +1862,8 @@ pub struct GoogleAppsCardV1Columns {
 pub struct GoogleAppsCardV1CommonWidgetAction {
     /// The action to update the visibility of a widget.
     #[serde(default, rename = "updateVisibilityAction")]
-    pub update_visibility_action: ::core::option::Option<GoogleAppsCardV1UpdateVisibilityAction>,
+    pub update_visibility_action:
+        ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1UpdateVisibilityAction>>,
 }
 
 /// Represents a condition that can be used to trigger an action. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
@@ -1873,7 +1874,8 @@ pub struct GoogleAppsCardV1Condition {
     pub action_rule_id: ::core::option::Option<String>,
     /// The condition that is determined by the expression data.
     #[serde(default, rename = "expressionDataCondition")]
-    pub expression_data_condition: ::core::option::Option<GoogleAppsCardV1ExpressionDataCondition>,
+    pub expression_data_condition:
+        ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ExpressionDataCondition>>,
 }
 
 /// A configuration object that helps configure the data sources for a widget. Available for Google Chat apps and Google Workspace add-ons that extend Google Workspace Studio.
@@ -1884,10 +1886,11 @@ pub struct GoogleAppsCardV1DataSourceConfig {
     pub min_characters_trigger: ::core::option::Option<i32>,
     /// The data is from a Google Workspace application.
     #[serde(default, rename = "platformDataSource")]
-    pub platform_data_source: ::core::option::Option<GoogleAppsCardV1PlatformDataSource>,
+    pub platform_data_source:
+        ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1PlatformDataSource>>,
     /// The data is from a remote data provider.
     #[serde(default, rename = "remoteDataSource")]
-    pub remote_data_source: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub remote_data_source: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
 }
 
 /// Lets users input a date, a time, or both a date and a time. Supports form submission validation. When Action.all_widgets_are_required is set to true or this widget is specified in Action.required_widgets, the submission action is blocked unless a value is selected. For an example in Google Chat apps, see [Let a user pick a date and time](https://developers.google.com/workspace/chat/design-interactive-card-dialog#let_a_user_pick_a_date_and_time). Users can input text or use the picker to select dates and times. If users input an invalid date or time, the picker shows an error that prompts users to input the information correctly. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -1895,7 +1898,7 @@ pub struct GoogleAppsCardV1DataSourceConfig {
 pub struct GoogleAppsCardV1DateTimePicker {
     /// A data source that''s unique to a Google Workspace host application, such as Gmail emails, Google Calendar events, or Google Chat messages. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
     #[serde(default, rename = "hostAppDataSource")]
-    pub host_app_data_source: ::core::option::Option<HostAppDataSourceMarkup>,
+    pub host_app_data_source: ::core::option::Option<::std::boxed::Box<HostAppDataSourceMarkup>>,
     /// The text that prompts users to input a date, a time, or a date and time. For example, if users are scheduling an appointment, use a label such as Appointment date or Appointment date and time.
     #[serde(default)]
     pub label: ::core::option::Option<String>,
@@ -1904,7 +1907,7 @@ pub struct GoogleAppsCardV1DateTimePicker {
     pub name: ::core::option::Option<String>,
     /// Triggered when the user clicks **Save** or **Clear** from the DateTimePicker interface.
     #[serde(default, rename = "onChangeAction")]
-    pub on_change_action: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub on_change_action: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// The number representing the time zone offset from UTC, in minutes. If set, the value_ms_epoch is displayed in the specified time zone. If unset, the value defaults to the user''s time zone setting.
     #[serde(default, rename = "timezoneOffsetDate")]
     pub timezone_offset_date: ::core::option::Option<i32>,
@@ -1924,31 +1927,31 @@ pub struct GoogleAppsCardV1DecoratedText {
     pub bottom_label: ::core::option::Option<String>,
     /// TextParagraph equivalent of bottom_label. Always wraps. Allows for more complex formatting than bottom_label. [Google Chat apps](https://developers.google.com/workspace/chat):
     #[serde(default, rename = "bottomLabelText")]
-    pub bottom_label_text: ::core::option::Option<GoogleAppsCardV1TextParagraph>,
+    pub bottom_label_text: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextParagraph>>,
     /// A button that a user can click to trigger an action.
     #[serde(default)]
-    pub button: ::core::option::Option<GoogleAppsCardV1Button>,
+    pub button: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Button>>,
     /// TextParagraph equivalent of text. Allows for more complex formatting than text. [Google Chat apps](https://developers.google.com/workspace/chat):
     #[serde(default, rename = "contentText")]
-    pub content_text: ::core::option::Option<GoogleAppsCardV1TextParagraph>,
+    pub content_text: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextParagraph>>,
     /// An icon displayed after the text. Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons.
     #[serde(default, rename = "endIcon")]
-    pub end_icon: ::core::option::Option<GoogleAppsCardV1Icon>,
+    pub end_icon: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Icon>>,
     /// Deprecated in favor of startIcon.
     #[serde(default)]
-    pub icon: ::core::option::Option<GoogleAppsCardV1Icon>,
+    pub icon: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Icon>>,
     /// This action is triggered when users click topLabel or bottomLabel.
     #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<GoogleAppsCardV1OnClick>,
+    pub on_click: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OnClick>>,
     /// The icon displayed in front of the text.
     #[serde(default, rename = "startIcon")]
-    pub start_icon: ::core::option::Option<GoogleAppsCardV1Icon>,
+    pub start_icon: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Icon>>,
     /// Optional. Vertical alignment of the start icon. If not set, the icon will be vertically centered. [Google Chat apps](https://developers.google.com/workspace/chat): // TODO: enum values: ["VERTICAL_ALIGNMENT_UNSPECIFIED", "TOP", "MIDDLE", "BOTTOM"]
     #[serde(default, rename = "startIconVerticalAlignment")]
     pub start_icon_vertical_alignment: ::core::option::Option<String>,
     /// A switch widget that a user can click to change its state and trigger an action.
     #[serde(default, rename = "switchControl")]
-    pub switch_control: ::core::option::Option<GoogleAppsCardV1SwitchControl>,
+    pub switch_control: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1SwitchControl>>,
     /// Required. The primary text. Supports simple formatting. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
     #[serde(default)]
     pub text: ::core::option::Option<String>,
@@ -1957,7 +1960,7 @@ pub struct GoogleAppsCardV1DecoratedText {
     pub top_label: ::core::option::Option<String>,
     /// TextParagraph equivalent of top_label. Always truncates. Allows for more complex formatting than top_label. [Google Chat apps](https://developers.google.com/workspace/chat):
     #[serde(default, rename = "topLabelText")]
-    pub top_label_text: ::core::option::Option<GoogleAppsCardV1TextParagraph>,
+    pub top_label_text: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextParagraph>>,
     /// The wrap text setting. If true, the text wraps and displays on multiple lines. Otherwise, the text is truncated. Only applies to text, not topLabel and bottomLabel.
     #[serde(default, rename = "wrapText")]
     pub wrap_text: ::core::option::Option<bool>,
@@ -1971,10 +1974,11 @@ pub struct GoogleAppsCardV1EventAction {
     pub action_rule_id: ::core::option::Option<String>,
     /// Common widget action.
     #[serde(default, rename = "commonWidgetAction")]
-    pub common_widget_action: ::core::option::Option<GoogleAppsCardV1CommonWidgetAction>,
+    pub common_widget_action:
+        ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1CommonWidgetAction>>,
     /// The list of triggers that will be triggered after the EventAction is executed.
     #[serde(default, rename = "postEventTriggers")]
-    pub post_event_triggers: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Trigger>>,
+    pub post_event_triggers: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Trigger>>,
 }
 
 /// Represents the data that is used to evaluate an expression. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
@@ -1982,10 +1986,10 @@ pub struct GoogleAppsCardV1EventAction {
 pub struct GoogleAppsCardV1ExpressionData {
     /// The list of conditions that are determined by the expression evaluation result.
     #[serde(default)]
-    pub conditions: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Condition>>,
+    pub conditions: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Condition>>,
     /// The list of actions that the ExpressionData can be used.
     #[serde(default, rename = "eventActions")]
-    pub event_actions: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1EventAction>>,
+    pub event_actions: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1EventAction>>,
     /// The uncompiled expression.
     #[serde(default)]
     pub expression: ::core::option::Option<String>,
@@ -2007,16 +2011,16 @@ pub struct GoogleAppsCardV1ExpressionDataCondition {
 pub struct GoogleAppsCardV1Grid {
     /// The border style to apply to each grid item.
     #[serde(default, rename = "borderStyle")]
-    pub border_style: ::core::option::Option<GoogleAppsCardV1BorderStyle>,
+    pub border_style: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1BorderStyle>>,
     /// The number of columns to display in the grid. A default value is used if this field isn''t specified, and that default value is different depending on where the grid is shown (dialog versus companion).
     #[serde(default, rename = "columnCount")]
     pub column_count: ::core::option::Option<i32>,
     /// The items to display in the grid.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1GridItem>>,
+    pub items: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1GridItem>>,
     /// This callback is reused by each individual grid item, but with the item''s identifier and index in the items list added to the callback''s parameters.
     #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<GoogleAppsCardV1OnClick>,
+    pub on_click: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OnClick>>,
     /// The text that displays in the grid header.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
@@ -2030,7 +2034,7 @@ pub struct GoogleAppsCardV1GridItem {
     pub id: ::core::option::Option<String>,
     /// The image that displays in the grid item.
     #[serde(default)]
-    pub image: ::core::option::Option<GoogleAppsCardV1ImageComponent>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ImageComponent>>,
     /// The layout to use for the grid item. // TODO: enum values: ["GRID_ITEM_LAYOUT_UNSPECIFIED", "TEXT_BELOW", "TEXT_ABOVE"]
     #[serde(default)]
     pub layout: ::core::option::Option<String>,
@@ -2059,7 +2063,7 @@ pub struct GoogleAppsCardV1Icon {
     pub known_icon: ::core::option::Option<String>,
     /// Display one of the [Google Material Icons](https://fonts.google.com/icons). For example, to display a [checkbox icon](https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Acheck_box%3AFILL%400%3Bwght%40400%3BGRAD%400%3Bopsz%4048), use  "material_icon": { "name": "check_box" }  [Google Chat apps](https://developers.google.com/workspace/chat):
     #[serde(default, rename = "materialIcon")]
-    pub material_icon: ::core::option::Option<GoogleAppsCardV1MaterialIcon>,
+    pub material_icon: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1MaterialIcon>>,
 }
 
 /// An image that is specified by a URL and can have an onClick action. For an example, see [Add an image](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_image). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -2073,7 +2077,7 @@ pub struct GoogleAppsCardV1Image {
     pub image_url: ::core::option::Option<String>,
     /// When a user clicks the image, the click triggers this action.
     #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<GoogleAppsCardV1OnClick>,
+    pub on_click: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OnClick>>,
 }
 
 /// Represents an image. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -2084,10 +2088,10 @@ pub struct GoogleAppsCardV1ImageComponent {
     pub alt_text: ::core::option::Option<String>,
     /// The border style to apply to the image.
     #[serde(default, rename = "borderStyle")]
-    pub border_style: ::core::option::Option<GoogleAppsCardV1BorderStyle>,
+    pub border_style: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1BorderStyle>>,
     /// The crop style to apply to the image.
     #[serde(default, rename = "cropStyle")]
-    pub crop_style: ::core::option::Option<GoogleAppsCardV1ImageCropStyle>,
+    pub crop_style: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ImageCropStyle>>,
     /// The image URL.
     #[serde(default, rename = "imageUri")]
     pub image_uri: ::core::option::Option<String>,
@@ -2126,13 +2130,13 @@ pub struct GoogleAppsCardV1MaterialIcon {
 pub struct GoogleAppsCardV1NestedWidget {
     /// A button list widget.
     #[serde(default, rename = "buttonList")]
-    pub button_list: ::core::option::Option<GoogleAppsCardV1ButtonList>,
+    pub button_list: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ButtonList>>,
     /// An image widget.
     #[serde(default)]
-    pub image: ::core::option::Option<GoogleAppsCardV1Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Image>>,
     /// A text paragraph widget.
     #[serde(default, rename = "textParagraph")]
-    pub text_paragraph: ::core::option::Option<GoogleAppsCardV1TextParagraph>,
+    pub text_paragraph: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextParagraph>>,
 }
 
 /// Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -2140,19 +2144,19 @@ pub struct GoogleAppsCardV1NestedWidget {
 pub struct GoogleAppsCardV1OnClick {
     /// If specified, an action is triggered by this onClick.
     #[serde(default)]
-    pub action: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub action: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// A new card is pushed to the card stack after clicking if specified. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
     #[serde(default)]
-    pub card: ::core::option::Option<GoogleAppsCardV1Card>,
+    pub card: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Card>>,
     /// An add-on triggers this action when the action needs to open a link. This differs from the open_link above in that this needs to talk to server to get the link. Thus some preparation work is required for web client to do before the open link action response comes back. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
     #[serde(default, rename = "openDynamicLinkAction")]
-    pub open_dynamic_link_action: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub open_dynamic_link_action: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// If specified, this onClick triggers an open link action.
     #[serde(default, rename = "openLink")]
-    pub open_link: ::core::option::Option<GoogleAppsCardV1OpenLink>,
+    pub open_link: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OpenLink>>,
     /// If specified, this onClick opens an overflow menu.
     #[serde(default, rename = "overflowMenu")]
-    pub overflow_menu: ::core::option::Option<GoogleAppsCardV1OverflowMenu>,
+    pub overflow_menu: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OverflowMenu>>,
 }
 
 /// Represents an onClick event that opens a hyperlink. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -2174,7 +2178,7 @@ pub struct GoogleAppsCardV1OpenLink {
 pub struct GoogleAppsCardV1OverflowMenu {
     /// Required. The list of menu options.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1OverflowMenuItem>>,
+    pub items: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1OverflowMenuItem>>,
 }
 
 /// An option that users can invoke in an overflow menu. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -2185,10 +2189,10 @@ pub struct GoogleAppsCardV1OverflowMenuItem {
     pub disabled: ::core::option::Option<bool>,
     /// Required. The action invoked when a menu option is selected. This OnClick cannot contain an OverflowMenu, any specified OverflowMenu is dropped and the menu item disabled.
     #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<GoogleAppsCardV1OnClick>,
+    pub on_click: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1OnClick>>,
     /// The icon displayed in front of the text.
     #[serde(default, rename = "startIcon")]
-    pub start_icon: ::core::option::Option<GoogleAppsCardV1Icon>,
+    pub start_icon: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Icon>>,
     /// Required. The text that identifies or describes the item to users.
     #[serde(default)]
     pub text: ::core::option::Option<String>,
@@ -2202,7 +2206,7 @@ pub struct GoogleAppsCardV1PlatformDataSource {
     pub common_data_source: ::core::option::Option<String>,
     /// A data source that''s unique to a Google Workspace host application, such spaces in Google Chat. This field supports the Google API Client Libraries but isn''t available in the Cloud Client Libraries. To learn more, see [Install the client libraries](https://developers.google.com/workspace/chat/libraries).
     #[serde(default, rename = "hostAppDataSource")]
-    pub host_app_data_source: ::core::option::Option<HostAppDataSourceMarkup>,
+    pub host_app_data_source: ::core::option::Option<::std::boxed::Box<HostAppDataSourceMarkup>>,
 }
 
 /// A section contains a collection of widgets that are rendered vertically in the order that they''re specified. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -2210,7 +2214,8 @@ pub struct GoogleAppsCardV1PlatformDataSource {
 pub struct GoogleAppsCardV1Section {
     /// Optional. Define the expand and collapse button of the section. This button will be shown only if the section is collapsible. If this field isn''t set, the default button is used.
     #[serde(default, rename = "collapseControl")]
-    pub collapse_control: ::core::option::Option<GoogleAppsCardV1CollapseControl>,
+    pub collapse_control:
+        ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1CollapseControl>>,
     /// Indicates whether this section is collapsible. Collapsible sections hide some or all widgets, but users can expand the section to reveal the hidden widgets by clicking **Show more**. Users can hide the widgets again by clicking **Show less**. To determine which widgets are hidden, specify uncollapsibleWidgetsCount.
     #[serde(default)]
     pub collapsible: ::core::option::Option<bool>,
@@ -2225,7 +2230,7 @@ pub struct GoogleAppsCardV1Section {
     pub uncollapsible_widgets_count: ::core::option::Option<i32>,
     /// All the widgets in the section. Must contain at least one widget.
     #[serde(default)]
-    pub widgets: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1Widget>>,
+    pub widgets: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1Widget>>,
 }
 
 /// A widget that creates one or more UI items that users can select. Supports form submission validation for dropdown and multiselect menus only. When Action.all_widgets_are_required is set to true or this widget is specified in Action.required_widgets, the submission action is blocked unless a value is selected. For example, a dropdown menu or checkboxes. You can use this widget to collect data that can be predicted or enumerated. For an example in Google Chat apps, see [Add selectable UI elements](/workspace/chat/design-interactive-card-dialog#add_selectable_ui_elements). Chat apps can process the value of items that users select or input. For details about working with form inputs, see [Receive form data](https://developers.google.com/workspace/chat/read-form-data). To collect undefined or abstract data from users, use the TextInput widget. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -2233,17 +2238,16 @@ pub struct GoogleAppsCardV1Section {
 pub struct GoogleAppsCardV1SelectionInput {
     /// Optional. The data source configs for the selection control. This field provides more fine-grained control over the data source. If specified, the multi_select_max_selected_items field, multi_select_min_query_length field, external_data_source field and platform_data_source field are ignored. Available for Google Workspace add-ons that extend Google Workspace Studio. Available for the Dropdown widget in Google Chat apps. For the Dropdown widget in Google Chat apps, only one DataSourceConfig is supported. If multiple DataSourceConfigs are set, only the first one is used.
     #[serde(default, rename = "dataSourceConfigs")]
-    pub data_source_configs:
-        ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1DataSourceConfig>>,
+    pub data_source_configs: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1DataSourceConfig>>,
     /// An external data source, such as a relational database.
     #[serde(default, rename = "externalDataSource")]
-    pub external_data_source: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub external_data_source: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// Optional. Text that appears below the selection input field meant to assist users by prompting them to enter a certain value. This text is always visible. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
     #[serde(default, rename = "hintText")]
     pub hint_text: ::core::option::Option<String>,
     /// An array of selectable items. For example, an array of radio buttons or checkboxes. Supports up to 100 items.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1SelectionItem>>,
+    pub items: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1SelectionItem>>,
     /// The text that appears above the selection input field in the user interface. Specify text that helps the user enter the information your app needs. For example, if users are selecting the urgency of a work ticket from a drop-down menu, the label might be "Urgency" or "Select urgency".
     #[serde(default)]
     pub label: ::core::option::Option<String>,
@@ -2258,10 +2262,11 @@ pub struct GoogleAppsCardV1SelectionInput {
     pub name: ::core::option::Option<String>,
     /// If specified, the form is submitted when the selection changes. If not specified, you must specify a separate button that submits the form. For details about working with form inputs, see [Receive form data](https://developers.google.com/workspace/chat/read-form-data).
     #[serde(default, rename = "onChangeAction")]
-    pub on_change_action: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub on_change_action: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// A data source from Google Workspace.
     #[serde(default, rename = "platformDataSource")]
-    pub platform_data_source: ::core::option::Option<GoogleAppsCardV1PlatformDataSource>,
+    pub platform_data_source:
+        ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1PlatformDataSource>>,
     /// The type of items that are displayed to users in a SelectionInput widget. Selection types support different types of interactions. For example, users can select one or more checkboxes, but they can only select one value from a dropdown menu. // TODO: enum values: ["CHECK_BOX", "RADIO_BUTTON", "SWITCH", "DROPDOWN", "MULTI_SELECT"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -2299,7 +2304,7 @@ pub struct GoogleAppsCardV1SuggestionItem {
 pub struct GoogleAppsCardV1Suggestions {
     /// A list of suggestions used for autocomplete recommendations in text input fields.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1SuggestionItem>>,
+    pub items: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1SuggestionItem>>,
 }
 
 /// Either a toggle-style switch or a checkbox inside a decoratedText widget. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): Only supported in the decoratedText widget.
@@ -2313,7 +2318,7 @@ pub struct GoogleAppsCardV1SwitchControl {
     pub name: ::core::option::Option<String>,
     /// The action to perform when the switch state is changed, such as what function to run.
     #[serde(default, rename = "onChangeAction")]
-    pub on_change_action: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub on_change_action: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// When true, the switch is selected.
     #[serde(default)]
     pub selected: ::core::option::Option<bool>,
@@ -2327,16 +2332,16 @@ pub struct GoogleAppsCardV1SwitchControl {
 pub struct GoogleAppsCardV1TextInput {
     /// Optional. Specify what action to take when the text input field provides suggestions to users who interact with it. If unspecified, the suggestions are set by initialSuggestions and are processed by the client. If specified, the app takes the action specified here, such as running a custom function. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
     #[serde(default, rename = "autoCompleteAction")]
-    pub auto_complete_action: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub auto_complete_action: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// Text that appears below the text input field meant to assist users by prompting them to enter a certain value. This text is always visible. Required if label is unspecified. Otherwise, optional.
     #[serde(default, rename = "hintText")]
     pub hint_text: ::core::option::Option<String>,
     /// A data source that''s unique to a Google Workspace host application, such as Gmail emails, Google Calendar events, or Google Chat messages. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
     #[serde(default, rename = "hostAppDataSource")]
-    pub host_app_data_source: ::core::option::Option<HostAppDataSourceMarkup>,
+    pub host_app_data_source: ::core::option::Option<::std::boxed::Box<HostAppDataSourceMarkup>>,
     /// Suggested values that users can enter. These values appear when users click inside the text input field. As users type, the suggested values dynamically filter to match what the users have typed. For example, a text input field for programming language might suggest Java, JavaScript, Python, and C++. When users start typing Jav, the list of suggestions filters to show just Java and JavaScript. Suggested values help guide users to enter values that your app can make sense of. When referring to JavaScript, some users might enter javascript and others java script. Suggesting JavaScript can standardize how users interact with your app. When specified, TextInput.type is always SINGLE_LINE, even if it''s set to MULTIPLE_LINE. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
     #[serde(default, rename = "initialSuggestions")]
-    pub initial_suggestions: ::core::option::Option<GoogleAppsCardV1Suggestions>,
+    pub initial_suggestions: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Suggestions>>,
     /// The text that appears above the text input field in the user interface. Specify text that helps the user enter the information your app needs. For example, if you are asking someone''s name, but specifically need their surname, write surname instead of name. Required if hintText is unspecified. Otherwise, optional.
     #[serde(default)]
     pub label: ::core::option::Option<String>,
@@ -2345,7 +2350,7 @@ pub struct GoogleAppsCardV1TextInput {
     pub name: ::core::option::Option<String>,
     /// What to do when a change occurs in the text input field. For example, a user adding to the field or deleting text. Examples of actions to take include running a custom function or opening a [dialog](https://developers.google.com/workspace/chat/dialogs) in Google Chat.
     #[serde(default, rename = "onChangeAction")]
-    pub on_change_action: ::core::option::Option<GoogleAppsCardV1Action>,
+    pub on_change_action: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Action>>,
     /// Text that appears in the text input field when the field is empty. Use this text to prompt users to enter a value. For example, Enter a number from 0 to 100. [Google Chat apps](https://developers.google.com/workspace/chat):
     #[serde(default, rename = "placeholderText")]
     pub placeholder_text: ::core::option::Option<String>,
@@ -2354,7 +2359,7 @@ pub struct GoogleAppsCardV1TextInput {
     pub type_: ::core::option::Option<String>,
     /// Specify the input format validation necessary for this text field. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
     #[serde(default)]
-    pub validation: ::core::option::Option<GoogleAppsCardV1Validation>,
+    pub validation: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Validation>>,
     /// The value entered by a user, returned as part of a form input event. For details about working with form inputs, see [Receive form data](https://developers.google.com/workspace/chat/read-form-data).
     #[serde(default)]
     pub value: ::core::option::Option<String>,
@@ -2406,31 +2411,31 @@ pub struct GoogleAppsCardV1Validation {
 pub struct GoogleAppsCardV1Widget {
     /// A list of buttons. For example, the following JSON creates two buttons. The first is a blue text button and the second is an image button that opens a link:  "buttonList": { "buttons": [ { "text": "Edit", "color": { "red": 0, "green": 0, "blue": 1, }, "disabled": true, }, { "icon": { "knownIcon": "INVITE", "altText": "check calendar" }, "onClick": { "openLink": { "url": "https://example.com/calendar" } } } ] }
     #[serde(default, rename = "buttonList")]
-    pub button_list: ::core::option::Option<GoogleAppsCardV1ButtonList>,
+    pub button_list: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ButtonList>>,
     /// A carousel contains a collection of nested widgets. For example, this is a JSON representation of a carousel that contains two text paragraphs.  { "widgets": [ { "textParagraph": { "text": "First text paragraph in the carousel." } }, { "textParagraph": { "text": "Second text paragraph in the carousel." } } ] }
     #[serde(default)]
-    pub carousel: ::core::option::Option<GoogleAppsCardV1Carousel>,
+    pub carousel: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Carousel>>,
     /// A list of chips. For example, the following JSON creates two chips. The first is a text chip and the second is an icon chip that opens a link:  "chipList": { "chips": [ { "text": "Edit", "disabled": true, }, { "icon": { "knownIcon": "INVITE", "altText": "check calendar" }, "onClick": { "openLink": { "url": "https://example.com/calendar" } } } ] }
     #[serde(default, rename = "chipList")]
-    pub chip_list: ::core::option::Option<GoogleAppsCardV1ChipList>,
+    pub chip_list: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ChipList>>,
     /// Displays up to 2 columns. To include more than 2 columns, or to use rows, use the Grid widget. For example, the following JSON creates 2 columns that each contain text paragraphs:  "columns": { "columnItems": [ { "horizontalSizeStyle": "FILL_AVAILABLE_SPACE", "horizontalAlignment": "CENTER", "verticalAlignment": "CENTER", "widgets": [ { "textParagraph": { "text": "First column text paragraph" } } ] }, { "horizontalSizeStyle": "FILL_AVAILABLE_SPACE", "horizontalAlignment": "CENTER", "verticalAlignment": "CENTER", "widgets": [ { "textParagraph": { "text": "Second column text paragraph" } } ] } ] }
     #[serde(default)]
-    pub columns: ::core::option::Option<GoogleAppsCardV1Columns>,
+    pub columns: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Columns>>,
     /// Displays a widget that lets users input a date, time, or date and time. For example, the following JSON creates a date time picker to schedule an appointment:  "dateTimePicker": { "name": "appointment_time", "label": "Book your appointment at:", "type": "DATE_AND_TIME", "valueMsEpoch": 796435200000 }
     #[serde(default, rename = "dateTimePicker")]
-    pub date_time_picker: ::core::option::Option<GoogleAppsCardV1DateTimePicker>,
+    pub date_time_picker: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1DateTimePicker>>,
     /// Displays a decorated text item. For example, the following JSON creates a decorated text widget showing email address:  "decoratedText": { "icon": { "knownIcon": "EMAIL" }, "topLabel": "Email Address", "text": "sasha@example.com", "bottomLabel": "This is a new Email address!", "switchControl": { "name": "has_send_welcome_email_to_sasha", "selected": false, "controlType": "CHECKBOX" } }
     #[serde(default, rename = "decoratedText")]
-    pub decorated_text: ::core::option::Option<GoogleAppsCardV1DecoratedText>,
+    pub decorated_text: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1DecoratedText>>,
     /// Displays a horizontal line divider between widgets. For example, the following JSON creates a divider:  "divider": { }
     #[serde(default)]
     pub divider: ::core::option::Option<serde_json::Value>,
     /// Specifies the event actions that can be performed on the widget. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
     #[serde(default, rename = "eventActions")]
-    pub event_actions: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1EventAction>>,
+    pub event_actions: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1EventAction>>,
     /// Displays a grid with a collection of items. A grid supports any number of columns and items. The number of rows is determined by the upper bounds of the number items divided by the number of columns. A grid with 10 items and 2 columns has 5 rows. A grid with 11 items and 2 columns has 6 rows. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): For example, the following JSON creates a 2 column grid with a single item:  "grid": { "title": "A fine collection of items", "columnCount": 2, "borderStyle": { "type": "STROKE", "cornerRadius": 4 }, "items": [ { "image": { "imageUri": "https://www.example.com/image.png", "cropStyle": { "type": "SQUARE" }, "borderStyle": { "type": "STROKE" } }, "title": "An item", "textAlignment": "CENTER" } ], "onClick": { "openLink": { "url": "https://www.example.com" } } }
     #[serde(default)]
-    pub grid: ::core::option::Option<GoogleAppsCardV1Grid>,
+    pub grid: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Grid>>,
     /// Specifies whether widgets align to the left, right, or center of a column. // TODO: enum values: ["HORIZONTAL_ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END"]
     #[serde(default, rename = "horizontalAlignment")]
     pub horizontal_alignment: ::core::option::Option<String>,
@@ -2439,16 +2444,16 @@ pub struct GoogleAppsCardV1Widget {
     pub id: ::core::option::Option<String>,
     /// Displays an image. For example, the following JSON creates an image with alternative text:  "image": { "imageUrl": "https://developers.google.com/workspace/chat/images/quickstart-app-avatar.png", "altText": "Chat app avatar" }
     #[serde(default)]
-    pub image: ::core::option::Option<GoogleAppsCardV1Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Image>>,
     /// Displays a selection control that lets users select items. Selection controls can be checkboxes, radio buttons, switches, or dropdown menus. For example, the following JSON creates a dropdown menu that lets users choose a size:  "selectionInput": { "name": "size", "label": "Size" "type": "DROPDOWN", "items": [ { "text": "S", "value": "small", "selected": false }, { "text": "M", "value": "medium", "selected": true }, { "text": "L", "value": "large", "selected": false }, { "text": "XL", "value": "extra_large", "selected": false } ] }
     #[serde(default, rename = "selectionInput")]
-    pub selection_input: ::core::option::Option<GoogleAppsCardV1SelectionInput>,
+    pub selection_input: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1SelectionInput>>,
     /// Displays a text box that users can type into. For example, the following JSON creates a text input for an email address:  "textInput": { "name": "mailing_address", "label": "Mailing Address" }  As another example, the following JSON creates a text input for a programming language with static suggestions:  "textInput": { "name": "preferred_programing_language", "label": "Preferred Language", "initialSuggestions": { "items": [ { "text": "C++" }, { "text": "Java" }, { "text": "JavaScript" }, { "text": "Python" } ] } }
     #[serde(default, rename = "textInput")]
-    pub text_input: ::core::option::Option<GoogleAppsCardV1TextInput>,
+    pub text_input: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextInput>>,
     /// Displays a text paragraph. Supports simple HTML formatted text. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting). For example, the following JSON creates a bolded text:  "textParagraph": { "text": " *bold text*" }
     #[serde(default, rename = "textParagraph")]
-    pub text_paragraph: ::core::option::Option<GoogleAppsCardV1TextParagraph>,
+    pub text_paragraph: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextParagraph>>,
     /// Specifies whether the widget is visible or hidden. The default value is VISIBLE. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps. // TODO: enum values: ["VISIBILITY_UNSPECIFIED", "VISIBLE", "HIDDEN"]
     #[serde(default)]
     pub visibility: ::core::option::Option<String>,
@@ -2459,28 +2464,28 @@ pub struct GoogleAppsCardV1Widget {
 pub struct GoogleAppsCardV1Widgets {
     /// ButtonList widget.
     #[serde(default, rename = "buttonList")]
-    pub button_list: ::core::option::Option<GoogleAppsCardV1ButtonList>,
+    pub button_list: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ButtonList>>,
     /// ChipList widget.
     #[serde(default, rename = "chipList")]
-    pub chip_list: ::core::option::Option<GoogleAppsCardV1ChipList>,
+    pub chip_list: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1ChipList>>,
     /// DateTimePicker widget.
     #[serde(default, rename = "dateTimePicker")]
-    pub date_time_picker: ::core::option::Option<GoogleAppsCardV1DateTimePicker>,
+    pub date_time_picker: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1DateTimePicker>>,
     /// DecoratedText widget.
     #[serde(default, rename = "decoratedText")]
-    pub decorated_text: ::core::option::Option<GoogleAppsCardV1DecoratedText>,
+    pub decorated_text: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1DecoratedText>>,
     /// Image widget.
     #[serde(default)]
-    pub image: ::core::option::Option<GoogleAppsCardV1Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Image>>,
     /// SelectionInput widget.
     #[serde(default, rename = "selectionInput")]
-    pub selection_input: ::core::option::Option<GoogleAppsCardV1SelectionInput>,
+    pub selection_input: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1SelectionInput>>,
     /// TextInput widget.
     #[serde(default, rename = "textInput")]
-    pub text_input: ::core::option::Option<GoogleAppsCardV1TextInput>,
+    pub text_input: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextInput>>,
     /// TextParagraph widget.
     #[serde(default, rename = "textParagraph")]
-    pub text_paragraph: ::core::option::Option<GoogleAppsCardV1TextParagraph>,
+    pub text_paragraph: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1TextParagraph>>,
 }
 
 /// A data source from a Google Workspace application. The data source populates available items for a widget.
@@ -2488,10 +2493,10 @@ pub struct GoogleAppsCardV1Widgets {
 pub struct HostAppDataSourceMarkup {
     /// A data source from Google Chat.
     #[serde(default, rename = "chatDataSource")]
-    pub chat_data_source: ::core::option::Option<ChatClientDataSourceMarkup>,
+    pub chat_data_source: ::core::option::Option<::std::boxed::Box<ChatClientDataSourceMarkup>>,
     /// A data source from Google Workflow.
     #[serde(default, rename = "workflowDataSource")]
-    pub workflow_data_source: ::core::option::Option<WorkflowDataSourceMarkup>,
+    pub workflow_data_source: ::core::option::Option<::std::boxed::Box<WorkflowDataSourceMarkup>>,
 }
 
 /// A data source that populates Google Chat spaces as selection items for a multiselect menu. Only populates spaces that the user is a member of. [Google Chat apps](https://developers.google.com/workspace/chat):

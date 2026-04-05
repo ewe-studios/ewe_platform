@@ -2315,7 +2315,7 @@ pub struct RddOperationGraph {
     #[serde(default, rename = "outgoingEdges")]
     pub outgoing_edges: ::core::option::Option<::std::vec::Vec<RddOperationEdge>>,
     #[serde(default, rename = "rootCluster")]
-    pub root_cluster: ::core::option::Option<RddOperationCluster>,
+    pub root_cluster: ::core::option::Option<::std::boxed::Box<RddOperationCluster>>,
     #[serde(default, rename = "stageId")]
     pub stage_id: ::core::option::Option<String>,
 }
@@ -2415,7 +2415,7 @@ pub struct SparkPlanGraph {
     #[serde(default, rename = "executionId")]
     pub execution_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<SparkPlanGraphNodeWrapper>>,
+    pub nodes: ::std::vec::Vec<::std::boxed::Box<SparkPlanGraphNodeWrapper>>,
 }
 
 /// SQL Execution Data
@@ -2438,7 +2438,7 @@ pub struct SqlExecutionUiData {
     #[serde(default, rename = "metricValuesIsNull")]
     pub metric_values_is_null: ::core::option::Option<bool>,
     #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<SqlPlanMetric>>,
+    pub metrics: ::std::vec::Vec<::std::boxed::Box<SqlPlanMetric>>,
     #[serde(default, rename = "modifiedConfigs")]
     pub modified_configs: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "physicalPlanDescription")]
@@ -3249,7 +3249,7 @@ pub struct RddOperationEdge {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddOperationCluster {
     #[serde(default, rename = "childClusters")]
-    pub child_clusters: ::core::option::Option<::std::vec::Vec<RddOperationCluster>>,
+    pub child_clusters: ::std::vec::Vec<::std::boxed::Box<RddOperationCluster>>,
     #[serde(default, rename = "childNodes")]
     pub child_nodes: ::core::option::Option<::std::vec::Vec<RddOperationNode>>,
     #[serde(default)]
@@ -4558,11 +4558,11 @@ pub struct SparkPlanGraphCluster {
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<SqlPlanMetric>>,
+    pub metrics: ::std::vec::Vec<::std::boxed::Box<SqlPlanMetric>>,
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<SparkPlanGraphNodeWrapper>>,
+    pub nodes: ::std::vec::Vec<::std::boxed::Box<SparkPlanGraphNodeWrapper>>,
     #[serde(default, rename = "sparkPlanGraphClusterId")]
     pub spark_plan_graph_cluster_id: ::core::option::Option<String>,
 }
@@ -4576,7 +4576,7 @@ pub struct SparkPlanGraphNode {
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<SqlPlanMetric>>,
+    pub metrics: ::std::vec::Vec<::std::boxed::Box<SqlPlanMetric>>,
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     #[serde(default, rename = "sparkPlanGraphNodeId")]
@@ -4587,9 +4587,9 @@ pub struct SparkPlanGraphNode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkPlanGraphNodeWrapper {
     #[serde(default)]
-    pub cluster: ::core::option::Option<SparkPlanGraphCluster>,
+    pub cluster: ::core::option::Option<::std::boxed::Box<SparkPlanGraphCluster>>,
     #[serde(default)]
-    pub node: ::core::option::Option<SparkPlanGraphNode>,
+    pub node: ::core::option::Option<::std::boxed::Box<SparkPlanGraphNode>>,
 }
 
 /// Metrics related to SQL execution.

@@ -635,7 +635,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListChartsResponse {
     /// The charts under the parent.
     #[serde(default)]
-    pub charts: ::core::option::Option<::std::vec::Vec<GoogleCloudContactcenterinsightsV1Chart>>,
+    pub charts: ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Chart>>,
     /// The value returned by the last ListChartsResponse. This value indicates that this is a continuation of a prior ListCharts call and that the system should return the next page of data.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
@@ -858,13 +858,14 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest {
     /// The time window of the conversations to compare the performance to.
     #[serde(default, rename = "comparisonQueryInterval")]
     pub comparison_query_interval:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryInterval>>,
     /// Optional. Filter to select a subset of conversations to compute the performance overview. Supports the same filters as the filter field in QueryMetricsRequest. The source and query interval/comparison query interval should not be included here.
     #[serde(default)]
     pub filter: ::core::option::Option<String>,
     /// Required. The time window of the conversations to derive performance stats from.
     #[serde(default, rename = "queryInterval")]
-    pub query_interval: ::core::option::Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
+    pub query_interval:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryInterval>>,
 }
 
 /// The response for querying performance overview.
@@ -2748,8 +2749,9 @@ pub struct GoogleCloudContactcenterinsightsV1Dashboard {
     pub create_time: ::core::option::Option<String>,
     /// Date range config applied to all charts in the dashboard.
     #[serde(default, rename = "dateRangeConfig")]
-    pub date_range_config:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    pub date_range_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    >,
     /// Dashboard description
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -2767,7 +2769,8 @@ pub struct GoogleCloudContactcenterinsightsV1Dashboard {
     pub read_only: ::core::option::Option<bool>,
     /// The dashboard''s root widget container. We want to display the dashboard layout in a tree-like structure, where the root container contains other widgets (containers or charts) as children.
     #[serde(default, rename = "rootContainer")]
-    pub root_container: ::core::option::Option<GoogleCloudContactcenterinsightsV1Container>,
+    pub root_container:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Container>>,
     /// Output only. Dashboard last update time.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -9894,7 +9897,8 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue {
 pub struct GoogleCloudContactcenterinsightsV1Chart {
     /// Optional action to be taken when the chart is clicked.
     #[serde(default)]
-    pub action: ::core::option::Option<GoogleCloudContactcenterinsightsV1ChartAction>,
+    pub action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ChartAction>>,
     /// Output only. Chart type. // TODO: enum values: ["CHART_TYPE_UNSPECIFIED", "SYSTEM_DEFINED", "USER_DEFINED"]
     #[serde(default, rename = "chartType")]
     pub chart_type: ::core::option::Option<String>,
@@ -9905,11 +9909,14 @@ pub struct GoogleCloudContactcenterinsightsV1Chart {
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "dataSource")]
-    pub data_source: ::core::option::Option<GoogleCloudContactcenterinsightsV1ChartDataSource>,
+    pub data_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ChartDataSource>,
+    >,
     /// Date range config applied to the chart.
     #[serde(default, rename = "dateRangeConfig")]
-    pub date_range_config:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    pub date_range_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    >,
     /// Chart description
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -9938,7 +9945,8 @@ pub struct GoogleCloudContactcenterinsightsV1Chart {
 pub struct GoogleCloudContactcenterinsightsV1ChartAction {
     /// Redirect action.
     #[serde(default, rename = "redirectAction")]
-    pub redirect_action: ::core::option::Option<GoogleCloudContactcenterinsightsV1RedirectAction>,
+    pub redirect_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1RedirectAction>>,
 }
 
 /// The request data for visualizing the dataset in the chart.
@@ -9946,11 +9954,13 @@ pub struct GoogleCloudContactcenterinsightsV1ChartAction {
 pub struct GoogleCloudContactcenterinsightsV1ChartDataSource {
     /// Use natural language query to generate the chart.
     #[serde(default, rename = "generativeInsights")]
-    pub generative_insights:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1GenerativeInsights>,
+    pub generative_insights: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsights>,
+    >,
     /// Use the existing QueryMetrics to generate the chart.
     #[serde(default, rename = "queryMetrics")]
-    pub query_metrics: ::core::option::Option<GoogleCloudContactcenterinsightsV1QueryMetrics>,
+    pub query_metrics:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetrics>>,
 }
 
 /// Configurable dashboard''s container. Container can contain multiple widgets.
@@ -9961,8 +9971,9 @@ pub struct GoogleCloudContactcenterinsightsV1Container {
     pub container_id: ::core::option::Option<String>,
     /// Date range config applied to all charts in the container.
     #[serde(default, rename = "dateRangeConfig")]
-    pub date_range_config:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    pub date_range_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    >,
     /// Container description
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -9977,7 +9988,7 @@ pub struct GoogleCloudContactcenterinsightsV1Container {
     pub height: ::core::option::Option<i32>,
     /// Widgets in the Container.
     #[serde(default)]
-    pub widgets: ::core::option::Option<::std::vec::Vec<GoogleCloudContactcenterinsightsV1Widget>>,
+    pub widgets: ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Widget>>,
     /// The width of the container in grid units.
     #[serde(default)]
     pub width: ::core::option::Option<i32>,
@@ -9989,11 +10000,12 @@ pub struct GoogleCloudContactcenterinsightsV1DateRangeConfig {
     /// An absolute date range.
     #[serde(default, rename = "absoluteDateRange")]
     pub absolute_date_range:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryInterval>>,
     /// A relative date range.
     #[serde(default, rename = "relativeDateRange")]
-    pub relative_date_range:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange>,
+    pub relative_date_range: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange>,
+    >,
 }
 
 /// Relative date range configuration.
@@ -10012,12 +10024,13 @@ pub struct GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange {
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsights {
     /// The chart checkpoint used to generate the chart.
     #[serde(default, rename = "chartCheckpoint")]
-    pub chart_checkpoint:
-        ::core::option::Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint>,
+    pub chart_checkpoint: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint>,
+    >,
     /// Output only. The chart conversations used to generate the chart.
     #[serde(default, rename = "chartConversations")]
-    pub chart_conversations: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation>,
+    pub chart_conversations: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation>,
     >,
     /// Chart spec for the chart.
     #[serde(default, rename = "chartSpec")]
@@ -10054,8 +10067,8 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
     pub create_time: ::core::option::Option<String>,
     /// Ordered list of messages, including user inputs and system responses.
     #[serde(default)]
-    pub messages: ::core::option::Option<
-        ::std::vec::Vec<
+    pub messages: ::std::vec::Vec<
+        ::std::boxed::Box<
             GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage,
         >,
     >,
@@ -10075,14 +10088,10 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
     pub message_id: ::core::option::Option<String>,
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessage")]
-    pub system_message: ::core::option::Option<
-        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage,
-    >,
+    pub system_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage>>,
     /// A message from the user that is interacting with the system.
     #[serde(default, rename = "userMessage")]
-    pub user_message: ::core::option::Option<
-        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage,
-    >,
+    pub user_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage>>,
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
@@ -10096,7 +10105,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
     pub generated_sql_query: ::core::option::Option<String>,
     /// A direct natural language response to the user message.
     #[serde(default, rename = "textOutput")]
-    pub text_output: ::core::option::Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput>,
+    pub text_output: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput>>,
 }
 
 /// A text output message from the system.
@@ -10150,13 +10159,14 @@ pub struct GoogleCloudContactcenterinsightsV1RedirectAction {
 pub struct GoogleCloudContactcenterinsightsV1Widget {
     /// A chart widget.
     #[serde(default)]
-    pub chart: ::core::option::Option<GoogleCloudContactcenterinsightsV1Chart>,
+    pub chart: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Chart>>,
     /// A reference to a chart widget. Format: projects/{project}/locations/{location}/dashboards/{dashboard}/charts/{chart}
     #[serde(default, rename = "chartReference")]
     pub chart_reference: ::core::option::Option<String>,
     /// A container widget.
     #[serde(default)]
-    pub container: ::core::option::Option<GoogleCloudContactcenterinsightsV1Container>,
+    pub container:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Container>>,
     /// Filter applied to all charts in the container. Should support scope later.
     #[serde(default)]
     pub filter: ::core::option::Option<String>,

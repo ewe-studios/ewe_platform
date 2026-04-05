@@ -783,7 +783,7 @@ pub struct StructuredPipeline {
     pub options: ::core::option::Option<serde_json::Value>,
     /// Required. The pipeline query to execute.
     #[serde(default)]
-    pub pipeline: ::core::option::Option<Pipeline>,
+    pub pipeline: ::core::option::Option<::std::boxed::Box<Pipeline>>,
 }
 
 /// Pipeline explain stats. Depending on the explain options in the original request, this can contain the optimized plan and / or execution stats.
@@ -1238,7 +1238,7 @@ pub struct Write {
 pub struct WriteResult {
     /// The results of applying each DocumentTransform.FieldTransform, in the same order.
     #[serde(default, rename = "transformResults")]
-    pub transform_results: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    pub transform_results: ::std::vec::Vec<::std::boxed::Box<ApiValue>>,
     /// The last update time of the document after applying the write. Not set after a delete. If the write did not actually change the document, this will be the previous update_time.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -1553,7 +1553,7 @@ pub struct StructuredQuery {
     pub start_at: ::core::option::Option<Cursor>,
     /// The filter to apply.
     #[serde(default, rename = "where")]
-    pub where_: ::core::option::Option<Filter>,
+    pub where_: ::core::option::Option<::std::boxed::Box<Filter>>,
 }
 
 /// A sequence of bits, encoded in a byte array. Each byte in the bitmap byte array stores 8 bits of the sequence. The only exception is the last byte, which may store 8 _or fewer_ bits. The padding defines the number of bits of the last byte to be ignored as "padding". The values of these "padding" bits are unspecified and must be ignored. To retrieve the first bit, bit 0, calculate: (bitmap[0] & 0x01) != 0. To retrieve the second bit, bit 1, calculate: (bitmap[0] & 0x02) != 0. To retrieve the third bit, bit 2, calculate: (bitmap[0] & 0x04) != 0. To retrieve the fourth bit, bit 3, calculate: (bitmap[0] & 0x08) != 0. To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 &lt;&lt; (n % 8))) != 0. The "size" of a BitSequence (the number of bits it contains) is calculated by this formula: (bitmap.length * 8) - padding.
@@ -1572,7 +1572,7 @@ pub struct BitSequence {
 pub struct Avg {
     /// The field to aggregate on.
     #[serde(default)]
-    pub field: ::core::option::Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// Count of documents that match the query. The COUNT(*) aggregation function operates on the entire document so it does not require a field reference.
@@ -1588,7 +1588,7 @@ pub struct Count {
 pub struct Sum {
     /// The field to aggregate on.
     #[serde(default)]
-    pub field: ::core::option::Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// A transformation of a field of the document.
@@ -1596,22 +1596,22 @@ pub struct Sum {
 pub struct FieldTransform {
     /// Append the given elements in order if they are not already present in the current field value. If the field is not an array, or if the field does not yet exist, it is first set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when checking if a value is missing. NaN is equal to NaN, and Null is equal to Null. If the input contains multiple equivalent values, only the first will be considered. The corresponding transform_result will be the null value.
     #[serde(default, rename = "appendMissingElements")]
-    pub append_missing_elements: ::core::option::Option<ArrayValue>,
+    pub append_missing_elements: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// The path of the field. See Document.fields for the field path syntax reference.
     #[serde(default, rename = "fieldPath")]
     pub field_path: ::core::option::Option<String>,
     /// Adds the given value to the field''s current value. This must be an integer or a double value. If the field is not an integer or double, or if the field does not yet exist, the transformation will set the field to the given value. If either of the given value or the current field value are doubles, both values will be interpreted as doubles. Double arithmetic and representation of double values follow IEEE 754 semantics. If there is positive/negative integer overflow, the field is resolved to the largest magnitude positive/negative integer.
     #[serde(default)]
-    pub increment: ::core::option::Option<ApiValue>,
+    pub increment: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Sets the field to the maximum of its current value and the given value. This must be an integer or a double value. If the field is not an integer or double, or if the field does not yet exist, the transformation will set the field to the given value. If a maximum operation is applied where the field and the input value are of mixed types (that is - one is an integer and one is a double) the field takes on the type of the larger operand. If the operands are equivalent (e.g. 3 and 3.0), the field does not change. 0, 0.0, and -0.0 are all zero. The maximum of a zero stored value and zero input value is always the stored value. The maximum of any numeric value x and NaN is NaN.
     #[serde(default)]
-    pub maximum: ::core::option::Option<ApiValue>,
+    pub maximum: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Sets the field to the minimum of its current value and the given value. This must be an integer or a double value. If the field is not an integer or double, or if the field does not yet exist, the transformation will set the field to the input value. If a minimum operation is applied where the field and the input value are of mixed types (that is - one is an integer and one is a double) the field takes on the type of the smaller operand. If the operands are equivalent (e.g. 3 and 3.0), the field does not change. 0, 0.0, and -0.0 are all zero. The minimum of a zero stored value and zero input value is always the stored value. The minimum of any numeric value x and NaN is NaN.
     #[serde(default)]
-    pub minimum: ::core::option::Option<ApiValue>,
+    pub minimum: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Remove all of the given elements from the array in the field. If the field is not an array, or if the field does not yet exist, it is set to the empty array. Equivalent numbers of the different types (e.g. 3L and 3.0) are considered equal when deciding whether an element should be removed. NaN is equal to NaN, and Null is equal to Null. This will remove all equivalent values if there are duplicates. The corresponding transform_result will be the null value.
     #[serde(default, rename = "removeAllFromArray")]
-    pub remove_all_from_array: ::core::option::Option<ArrayValue>,
+    pub remove_all_from_array: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// Sets the field to the given server value. // TODO: enum values: ["SERVER_VALUE_UNSPECIFIED", "REQUEST_TIME"]
     #[serde(default, rename = "setToServerValue")]
     pub set_to_server_value: ::core::option::Option<String>,
@@ -1659,7 +1659,7 @@ pub struct Cursor {
     pub before: ::core::option::Option<bool>,
     /// The values that represent a position, in the order they appear in the order by clause of a query. Can contain fewer values than specified in the order by clause.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<ApiValue>>,
 }
 
 /// Nearest Neighbors search config. The ordering provided by FindNearest supersedes the order_by stage. If multiple documents have the same vector distance, the returned document order is not guaranteed to be stable between queries.
@@ -1679,10 +1679,10 @@ pub struct FindNearest {
     pub limit: ::core::option::Option<i32>,
     /// Required. The query vector that we are searching on. Must be a vector of no more than 2048 dimensions.
     #[serde(default, rename = "queryVector")]
-    pub query_vector: ::core::option::Option<ApiValue>,
+    pub query_vector: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Required. An indexed vector field to search upon. Only documents which contain vectors whose dimensionality match the query_vector can be returned.
     #[serde(default, rename = "vectorField")]
-    pub vector_field: ::core::option::Option<FieldReference>,
+    pub vector_field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// A selection of a collection, such as messages as m1.
@@ -1704,7 +1704,7 @@ pub struct Order {
     pub direction: ::core::option::Option<String>,
     /// The field to order by.
     #[serde(default)]
-    pub field: ::core::option::Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// The projection of document''s fields to return.
@@ -1712,7 +1712,7 @@ pub struct Order {
 pub struct Projection {
     /// The fields to return. If empty, all fields are returned. To only return the name of the document, use [''__name__''].
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<FieldReference>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<FieldReference>>,
 }
 
 /// The configuration for how to index a field for search.
@@ -1781,7 +1781,7 @@ pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
 pub struct ArrayValue {
     /// Values in the array.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<ApiValue>>,
 }
 
 /// A filter that merges multiple other filters using the given operator.
@@ -1789,7 +1789,7 @@ pub struct ArrayValue {
 pub struct CompositeFilter {
     /// The list of filters to combine. Requires: * At least one filter is present.
     #[serde(default)]
-    pub filters: ::core::option::Option<::std::vec::Vec<Filter>>,
+    pub filters: ::std::vec::Vec<::std::boxed::Box<Filter>>,
     /// The operator for combining multiple filters. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "AND", "OR"]
     #[serde(default)]
     pub op: ::core::option::Option<String>,
@@ -1800,13 +1800,13 @@ pub struct CompositeFilter {
 pub struct FieldFilter {
     /// The field to filter by.
     #[serde(default)]
-    pub field: ::core::option::Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
     /// The operator to filter by. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL", "EQUAL", "NOT_EQUAL", "ARRAY_CONTAINS", "IN", "ARRAY_CONTAINS_ANY", "NOT_IN"]
     #[serde(default)]
     pub op: ::core::option::Option<String>,
     /// The value to compare to.
     #[serde(default)]
-    pub value: ::core::option::Option<ApiValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }
 
 /// A reference to a field in a document, ex: stats.operations.
@@ -1822,13 +1822,13 @@ pub struct FieldReference {
 pub struct Filter {
     /// A composite filter.
     #[serde(default, rename = "compositeFilter")]
-    pub composite_filter: ::core::option::Option<CompositeFilter>,
+    pub composite_filter: ::core::option::Option<::std::boxed::Box<CompositeFilter>>,
     /// A filter on a document field.
     #[serde(default, rename = "fieldFilter")]
-    pub field_filter: ::core::option::Option<FieldFilter>,
+    pub field_filter: ::core::option::Option<::std::boxed::Box<FieldFilter>>,
     /// A filter that takes exactly one argument.
     #[serde(default, rename = "unaryFilter")]
-    pub unary_filter: ::core::option::Option<UnaryFilter>,
+    pub unary_filter: ::core::option::Option<::std::boxed::Box<UnaryFilter>>,
 }
 
 /// Represents an unevaluated scalar expression. For example, the expression like(user_name, "%alice%") is represented as:  name: "like" args { field_reference: "user_name" } args { string_value: "%alice%" }
@@ -1836,7 +1836,7 @@ pub struct Filter {
 pub struct Function {
     /// Optional. Ordered list of arguments the given function expects.
     #[serde(default)]
-    pub args: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    pub args: ::std::vec::Vec<::std::boxed::Box<ApiValue>>,
     /// Required. The name of the function to evaluate. **Requires:** * must be in snake case (lower case with underscore separator).
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1869,7 +1869,7 @@ pub struct MapValue {
 pub struct Pipeline {
     /// Required. Ordered list of stages to evaluate.
     #[serde(default)]
-    pub stages: ::core::option::Option<::std::vec::Vec<Stage>>,
+    pub stages: ::std::vec::Vec<::std::boxed::Box<Stage>>,
 }
 
 /// A single operation within a pipeline. A stage is made up of a unique name, and a list of arguments. The exact number of arguments & types is dependent on the stage type. To give an example, the stage filter(state = "MD") would be encoded as:  name: "filter" args { function_value { name: "eq" args { field_reference_value: "state" } args { string_value: "MD" } } }  See public documentation for the full list.
@@ -1877,7 +1877,7 @@ pub struct Pipeline {
 pub struct Stage {
     /// Optional. Ordered list of arguments the given stage expects.
     #[serde(default)]
-    pub args: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    pub args: ::std::vec::Vec<::std::boxed::Box<ApiValue>>,
     /// Required. The name of the stage to evaluate. **Requires:** * must be in snake case (lower case with underscore separator).
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1891,7 +1891,7 @@ pub struct Stage {
 pub struct UnaryFilter {
     /// The field to which to apply the operator.
     #[serde(default)]
-    pub field: ::core::option::Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
     /// The unary operator to apply. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "IS_NAN", "IS_NULL", "IS_NOT_NAN", "IS_NOT_NULL"]
     #[serde(default)]
     pub op: ::core::option::Option<String>,
@@ -1902,7 +1902,7 @@ pub struct UnaryFilter {
 pub struct ApiValue {
     /// An array value. Cannot directly contain another array value, though can contain a map which contains another array.
     #[serde(default, rename = "arrayValue")]
-    pub array_value: ::core::option::Option<ArrayValue>,
+    pub array_value: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// A boolean value.
     #[serde(default, rename = "booleanValue")]
     pub boolean_value: ::core::option::Option<bool>,
@@ -1917,22 +1917,22 @@ pub struct ApiValue {
     pub field_reference_value: ::core::option::Option<String>,
     /// A value that represents an unevaluated expression. **Requires:** * Not allowed to be used when writing documents.
     #[serde(default, rename = "functionValue")]
-    pub function_value: ::core::option::Option<Function>,
+    pub function_value: ::core::option::Option<::std::boxed::Box<Function>>,
     /// A geo point value representing a point on the surface of Earth.
     #[serde(default, rename = "geoPointValue")]
-    pub geo_point_value: ::core::option::Option<LatLng>,
+    pub geo_point_value: ::core::option::Option<::std::boxed::Box<LatLng>>,
     /// An integer value.
     #[serde(default, rename = "integerValue")]
     pub integer_value: ::core::option::Option<String>,
     /// A map value.
     #[serde(default, rename = "mapValue")]
-    pub map_value: ::core::option::Option<MapValue>,
+    pub map_value: ::core::option::Option<::std::boxed::Box<MapValue>>,
     /// A null value. // TODO: enum values: ["NULL_VALUE"]
     #[serde(default, rename = "nullValue")]
     pub null_value: ::core::option::Option<String>,
     /// A value that represents an unevaluated pipeline. **Requires:** * Not allowed to be used when writing documents.
     #[serde(default, rename = "pipelineValue")]
-    pub pipeline_value: ::core::option::Option<Pipeline>,
+    pub pipeline_value: ::core::option::Option<::std::boxed::Box<Pipeline>>,
     /// A reference to a document. For example: projects/{project_id}/databases/{database_id}/documents/{document_path}.
     #[serde(default, rename = "referenceValue")]
     pub reference_value: ::core::option::Option<String>,

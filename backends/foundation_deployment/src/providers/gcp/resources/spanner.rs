@@ -1811,7 +1811,7 @@ pub struct ColumnMetadata {
     pub ordinal_position: ::core::option::Option<String>,
     /// Type of the column.
     #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<Type>,
+    pub type_: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// A mod describes all data changes in a watched table row.
@@ -1849,13 +1849,13 @@ pub struct MoveOutEvent {
 pub struct ResultSetMetadata {
     /// Indicates the field names and types for the rows in the result set. For example, a SQL query like "SELECT UserId, UserName FROM Users" could return a row_type value like: "fields": [ { "name": "UserId", "type": { "code": "INT64" } }, { "name": "UserName", "type": { "code": "STRING" } }, ]
     #[serde(default, rename = "rowType")]
-    pub row_type: ::core::option::Option<StructType>,
+    pub row_type: ::core::option::Option<::std::boxed::Box<StructType>>,
     /// If the read or SQL query began a transaction as a side-effect, the information about the new transaction is yielded here.
     #[serde(default)]
     pub transaction: ::core::option::Option<Transaction>,
     /// A SQL query can be parameterized. In PLAN mode, these parameters can be undeclared. This indicates the field names and types for those undeclared parameters in the SQL query. For example, a SQL query like "SELECT * FROM Users where UserId = @userId and UserName = @userName " could return a undeclared_parameters value like: "fields": [ { "name": "UserId", "type": { "code": "INT64" } }, { "name": "UserName", "type": { "code": "STRING" } }, ]
     #[serde(default, rename = "undeclaredParameters")]
-    pub undeclared_parameters: ::core::option::Option<StructType>,
+    pub undeclared_parameters: ::core::option::Option<::std::boxed::Box<StructType>>,
 }
 
 /// Additional statistics about a ResultSet or PartialResultSet.
@@ -2713,7 +2713,7 @@ pub struct Field {
     pub name: ::core::option::Option<String>,
     /// The type of the field.
     #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<Type>,
+    pub type_: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// StructType defines the fields of a STRUCT type.
@@ -2721,7 +2721,7 @@ pub struct Field {
 pub struct StructType {
     /// The list of fields that make up this struct. Order is significant, because values of this struct type are represented as lists, where the order of field values matches the order of fields in the StructType. In turn, the order of fields matches the order of columns in a read request, or the order of fields in the SELECT clause of a query.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<Field>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<Field>>,
 }
 
 /// Type indicates the type of a Cloud Spanner value, as might be stored in a table cell or returned from an SQL query.
@@ -2729,7 +2729,7 @@ pub struct StructType {
 pub struct Type {
     /// If code == ARRAY, then array_element_type is the type of the array elements.
     #[serde(default, rename = "arrayElementType")]
-    pub array_element_type: ::core::option::Option<Type>,
+    pub array_element_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Required. The TypeCode for this type. // TODO: enum values: ["TYPE_CODE_UNSPECIFIED", "BOOL", "INT64", "FLOAT64", "FLOAT32", "TIMESTAMP", "DATE", "STRING", "BYTES", "ARRAY", "STRUCT", "NUMERIC", "JSON", "PROTO", "ENUM", "INTERVAL", "UUID"]
     #[serde(default)]
     pub code: ::core::option::Option<String>,
@@ -2738,7 +2738,7 @@ pub struct Type {
     pub proto_type_fqn: ::core::option::Option<String>,
     /// If code == STRUCT, then struct_type provides type information for the struct''s fields.
     #[serde(default, rename = "structType")]
-    pub struct_type: ::core::option::Option<StructType>,
+    pub struct_type: ::core::option::Option<::std::boxed::Box<StructType>>,
     /// The TypeAnnotationCode that disambiguates SQL type that Spanner will use to represent values of this type during query processing. This is necessary for some type codes because a single TypeCode can be mapped to different SQL types depending on the SQL dialect. type_annotation typically is not needed to process the content of a value (it doesn''t affect serialization) and clients can ignore it on the read path. // TODO: enum values: ["TYPE_ANNOTATION_CODE_UNSPECIFIED", "PG_NUMERIC", "PG_JSONB", "PG_OID"]
     #[serde(default, rename = "typeAnnotation")]
     pub type_annotation: ::core::option::Option<String>,

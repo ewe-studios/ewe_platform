@@ -821,7 +821,7 @@ pub struct GoogleCloudDatacatalogV1SerializedTaxonomy {
     /// Top level policy tags associated with the taxonomy, if any.
     #[serde(default, rename = "policyTags")]
     pub policy_tags:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
 }
 
 /// The source system of the Taxonomy.
@@ -1086,7 +1086,7 @@ pub struct GoogleCloudDatacatalogV1RoutineSpec {
 pub struct GoogleCloudDatacatalogV1Schema {
     /// The unified GoogleSQL-like schema of columns. The overall maximum number of columns and nested columns is 10,000. The maximum nested depth is 15 levels.
     #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogV1ColumnSchema>>,
+    pub columns: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1ColumnSchema>>,
 }
 
 /// Specification that applies to a Service resource. Valid only for entries with the SERVICE type.
@@ -1149,7 +1149,7 @@ pub struct GoogleCloudDatacatalogV1SerializedPolicyTag {
     /// Children of the policy tag, if any.
     #[serde(default, rename = "childPolicyTags")]
     pub child_policy_tags:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
     /// Description of the serialized policy tag. At most 2000 bytes when encoded in UTF-8. If not set, defaults to an empty description.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -1423,7 +1423,7 @@ pub struct GoogleCloudDatacatalogV1ColumnSchema {
         ::core::option::Option<GoogleCloudDatacatalogV1ColumnSchemaFieldElementType>,
     /// Optional. Schema of sub-columns. A column can have zero or more sub-columns.
     #[serde(default)]
-    pub subcolumns: ::core::option::Option<::std::vec::Vec<GoogleCloudDatacatalogV1ColumnSchema>>,
+    pub subcolumns: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1ColumnSchema>>,
     /// Required. Type of the column. Must be a UTF-8 string with the maximum size of 128 bytes.
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,

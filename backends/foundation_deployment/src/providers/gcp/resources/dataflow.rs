@@ -790,7 +790,7 @@ pub struct WorkItemStatus {
     pub source_operation_response: ::core::option::Option<SourceOperationResponse>,
     /// A worker may split an active map task in two parts, "primary" and "residual", continuing to process the primary part and returning the residual part into the pool of available work. This event is called a "dynamic split" and is critical to the dynamic work rebalancing feature. The two obtained sub-tasks are called "parts" of the split. The parts, if concatenated, must represent the same input as would be read by the current task if the split did not happen. The exact way in which the original task is decomposed into the two parts is specified either as a position demarcating them (stop_position), or explicitly as two DerivedSources, if this task consumes a user-defined source type (dynamic_source_split). The "current" task is adjusted as a result of the split: after a task with range [A, B) sends a stop_position update at C, its range is considered to be [A, C), e.g.: * Progress should be interpreted relative to the new range, e.g. "75% completed" means "75% of [A, C) completed" * The worker should interpret proposed_stop_position relative to the new range, e.g. "split at 68%" should be interpreted as "split at 68% of [A, C)". * If the worker chooses to split again using stop_position, only stop_positions in [A, C) will be accepted. * Etc. dynamic_source_split has similar semantics: e.g., if a task with source S splits using dynamic_source_split into {P, R} (where P and R must be together equivalent to S), then subsequent progress and proposed_stop_position should be interpreted relative to P, and in a potential subsequent dynamic_source_split into {P'', R''}, P'' and R'' must be together equivalent to P, etc.
     #[serde(default, rename = "stopPosition")]
-    pub stop_position: ::core::option::Option<Position>,
+    pub stop_position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// Total time the worker spent being throttled by external systems.
     #[serde(default, rename = "totalThrottlerWaitTimeSeconds")]
     pub total_throttler_wait_time_seconds: ::core::option::Option<f64>,
@@ -831,7 +831,7 @@ pub struct WorkItemServiceState {
     pub suggested_stop_point: ::core::option::Option<ApproximateProgress>,
     /// Obsolete, always empty.
     #[serde(default, rename = "suggestedStopPosition")]
-    pub suggested_stop_position: ::core::option::Option<Position>,
+    pub suggested_stop_position: ::core::option::Option<::std::boxed::Box<Position>>,
 }
 
 /// WorkerMessage provides information to the backend about a worker.
@@ -1397,7 +1397,7 @@ pub struct ApproximateReportedProgress {
     pub fraction_consumed: ::core::option::Option<f64>,
     /// A Position within the work to represent a progress.
     #[serde(default)]
-    pub position: ::core::option::Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// Total amount of parallelism in the input of this task that remains, (i.e. can be delegated to this task and any new tasks via dynamic splitting). Always at least 1 for non-finished work items and 0 for finished. "Amount of parallelism" refers to how many non-empty parts of the input can be read in parallel. This does not necessarily equal number of records. An input that can be read in parallel down to the individual records is called "perfectly splittable". An example of non-perfectly parallelizable input is a block-compressed file format where a block of records has to be read as a whole, but different blocks can be read in parallel. Examples: * If we are processing record #30 (starting at 1) out of 50 in a perfectly splittable 50-record input, this value should be 21 (20 remaining + 1 current). * If we are reading through block 3 in a block-compressed file consisting of 5 blocks, this value should be 3 (since blocks 4 and 5 can be processed in parallel by new tasks via dynamic splitting and the current task remains processing block 3). * If we are reading through the last block in a block-compressed file, or reading or processing the last record in a perfectly splittable input, this value should be 1, because apart from the current task, no additional remainder can be split off.
     #[serde(default, rename = "remainingParallelism")]
     pub remaining_parallelism: ::core::option::Option<ReportedParallelism>,
@@ -1481,7 +1481,7 @@ pub struct ApproximateSplitRequest {
     pub fraction_of_remainder: ::core::option::Option<f64>,
     /// A Position at which to split the work item.
     #[serde(default)]
-    pub position: ::core::option::Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
 }
 
 /// Obsolete in favor of ApproximateReportedProgress and ApproximateSplitRequest.
@@ -1492,7 +1492,7 @@ pub struct ApproximateProgress {
     pub percent_complete: ::core::option::Option<f32>,
     /// Obsolete.
     #[serde(default)]
-    pub position: ::core::option::Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// Obsolete.
     #[serde(default, rename = "remainingTime")]
     pub remaining_time: ::core::option::Option<String>,
@@ -3411,7 +3411,7 @@ pub struct ConcatPosition {
     pub index: ::core::option::Option<i32>,
     /// Position within the inner source.
     #[serde(default)]
-    pub position: ::core::option::Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
 }
 
 /// Position defines a position within a collection of data. The value can be either the end position, a key (used with ordered collections), a byte offset, or a record index.
@@ -3422,7 +3422,7 @@ pub struct Position {
     pub byte_offset: ::core::option::Option<String>,
     /// CloudPosition is a concat position.
     #[serde(default, rename = "concatPosition")]
-    pub concat_position: ::core::option::Option<ConcatPosition>,
+    pub concat_position: ::core::option::Option<::std::boxed::Box<ConcatPosition>>,
     /// Position is past all other positions. Also useful for the end position of an unbounded range.
     #[serde(default)]
     pub end: ::core::option::Option<bool>,

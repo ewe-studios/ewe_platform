@@ -145,7 +145,7 @@ pub struct TestResult {
     pub error_position: ::core::option::Option<SourcePosition>,
     /// The mapping from expression in the ruleset AST to the values they were evaluated to. Partially-nested to mirror AST structure. Note that this field is actually tracking expressions and not permission statements in contrast to the "visited_expressions" field above. Literal expressions are omitted.
     #[serde(default, rename = "expressionReports")]
-    pub expression_reports: ::core::option::Option<::std::vec::Vec<ExpressionReport>>,
+    pub expression_reports: ::std::vec::Vec<::std::boxed::Box<ExpressionReport>>,
     /// The set of function calls made to service-defined methods. Function calls are included in the order in which they are encountered during evaluation, are provided for both mocked and unmocked functions, and included on the response regardless of the test state.
     #[serde(default, rename = "functionCalls")]
     pub function_calls: ::core::option::Option<::std::vec::Vec<FunctionCall>>,
@@ -218,7 +218,7 @@ pub struct TestCase {
 pub struct ExpressionReport {
     /// Subexpressions
     #[serde(default)]
-    pub children: ::core::option::Option<::std::vec::Vec<ExpressionReport>>,
+    pub children: ::std::vec::Vec<::std::boxed::Box<ExpressionReport>>,
     /// Position of expression in original rules source.
     #[serde(default, rename = "sourcePosition")]
     pub source_position: ::core::option::Option<SourcePosition>,

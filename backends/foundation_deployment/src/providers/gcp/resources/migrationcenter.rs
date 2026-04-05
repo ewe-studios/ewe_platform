@@ -1473,7 +1473,7 @@ pub struct DiskPartitionDetails {
     pub free_space_bytes: ::core::option::Option<String>,
     /// Optional. List of partitions.
     #[serde(default)]
-    pub partitions: ::core::option::Option<DiskPartitionList>,
+    pub partitions: ::core::option::Option<::std::boxed::Box<DiskPartitionList>>,
     /// Output only. Total capacity of all partitions.
     #[serde(default, rename = "totalCapacityBytes")]
     pub total_capacity_bytes: ::core::option::Option<String>,
@@ -2382,7 +2382,7 @@ pub struct DiskEntry {
     pub interface_type: ::core::option::Option<String>,
     /// Partition layout.
     #[serde(default)]
-    pub partitions: ::core::option::Option<DiskPartitionList>,
+    pub partitions: ::core::option::Option<::std::boxed::Box<DiskPartitionList>>,
     /// VMware disk details.
     #[serde(default)]
     pub vmware: ::core::option::Option<VmwareDiskConfig>,
@@ -2934,7 +2934,7 @@ pub struct DiskPartition {
     pub mount_point: ::core::option::Option<String>,
     /// Sub-partitions.
     #[serde(default, rename = "subPartitions")]
-    pub sub_partitions: ::core::option::Option<DiskPartitionList>,
+    pub sub_partitions: ::core::option::Option<::std::boxed::Box<DiskPartitionList>>,
     /// Partition type.
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -2948,5 +2948,5 @@ pub struct DiskPartition {
 pub struct DiskPartitionList {
     /// Partition entries.
     #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<DiskPartition>>,
+    pub entries: ::std::vec::Vec<::std::boxed::Box<DiskPartition>>,
 }

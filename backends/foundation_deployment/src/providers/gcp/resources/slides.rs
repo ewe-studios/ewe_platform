@@ -51,7 +51,7 @@ pub struct List {
 pub struct NestingLevel {
     /// The style of a bullet at this level of nesting.
     #[serde(default, rename = "bulletStyle")]
-    pub bullet_style: ::core::option::Option<TextStyle>,
+    pub bullet_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// A Google Slides presentation.
@@ -59,19 +59,19 @@ pub struct NestingLevel {
 pub struct Presentation {
     /// The layouts in the presentation. A layout is a template that determines how content is arranged and styled on the slides that inherit from that layout.
     #[serde(default)]
-    pub layouts: ::core::option::Option<::std::vec::Vec<Page>>,
+    pub layouts: ::std::vec::Vec<::std::boxed::Box<Page>>,
     /// The locale of the presentation, as an IETF BCP 47 language tag.
     #[serde(default)]
     pub locale: ::core::option::Option<String>,
     /// The slide masters in the presentation. A slide master contains all common page elements and the common properties for a set of layouts. They serve three purposes: - Placeholder shapes on a master contain the default text styles and shape properties of all placeholder shapes on pages that use that master. - The master page properties define the common page properties inherited by its layouts. - Any other shapes on the master slide appear on all slides using that master, regardless of their layout.
     #[serde(default)]
-    pub masters: ::core::option::Option<::std::vec::Vec<Page>>,
+    pub masters: ::std::vec::Vec<::std::boxed::Box<Page>>,
     /// The notes master in the presentation. It serves three purposes: - Placeholder shapes on a notes master contain the default text styles and shape properties of all placeholder shapes on notes pages. Specifically, a SLIDE_IMAGE placeholder shape contains the slide thumbnail, and a BODY placeholder shape contains the speaker notes. - The notes master page properties define the common page properties inherited by all notes pages. - Any other shapes on the notes master appear on all notes pages. The notes master is read-only.
     #[serde(default, rename = "notesMaster")]
-    pub notes_master: ::core::option::Option<Page>,
+    pub notes_master: ::core::option::Option<::std::boxed::Box<Page>>,
     /// The size of pages in the presentation.
     #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<Size>,
+    pub page_size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// The ID of the presentation.
     #[serde(default, rename = "presentationId")]
     pub presentation_id: ::core::option::Option<String>,
@@ -80,7 +80,7 @@ pub struct Presentation {
     pub revision_id: ::core::option::Option<String>,
     /// The slides in the presentation. A slide inherits properties from a slide layout.
     #[serde(default)]
-    pub slides: ::core::option::Option<::std::vec::Vec<Page>>,
+    pub slides: ::std::vec::Vec<::std::boxed::Box<Page>>,
     /// The title of the presentation.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
@@ -327,7 +327,7 @@ pub struct CreateParagraphBulletsRequest {
     pub bullet_preset: ::core::option::Option<String>,
     /// The optional table cell location if the text to be modified is in a table cell. If present, the object_id must refer to a table.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The object ID of the shape or table containing the text to add bullets to.
     #[serde(default, rename = "objectId")]
     pub object_id: ::core::option::Option<String>,
@@ -435,7 +435,7 @@ pub struct DeleteObjectRequest {
 pub struct DeleteParagraphBulletsRequest {
     /// The optional table cell location if the text to be modified is in a table cell. If present, the object_id must refer to a table.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The object ID of the shape or table containing the text to delete bullets from.
     #[serde(default, rename = "objectId")]
     pub object_id: ::core::option::Option<String>,
@@ -449,7 +449,7 @@ pub struct DeleteParagraphBulletsRequest {
 pub struct DeleteTableColumnRequest {
     /// The reference table cell location from which a column will be deleted. The column this cell spans will be deleted. If this is a merged cell, multiple columns will be deleted. If no columns remain in the table after this deletion, the whole table is deleted.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The table to delete columns from.
     #[serde(default, rename = "tableObjectId")]
     pub table_object_id: ::core::option::Option<String>,
@@ -460,7 +460,7 @@ pub struct DeleteTableColumnRequest {
 pub struct DeleteTableRowRequest {
     /// The reference table cell location from which a row will be deleted. The row this cell spans will be deleted. If this is a merged cell, multiple rows will be deleted. If no rows remain in the table after this deletion, the whole table is deleted.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The table to delete rows from.
     #[serde(default, rename = "tableObjectId")]
     pub table_object_id: ::core::option::Option<String>,
@@ -471,7 +471,7 @@ pub struct DeleteTableRowRequest {
 pub struct DeleteTextRequest {
     /// The optional table cell location if the text is to be deleted from a table cell. If present, the object_id must refer to a table.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The object ID of the shape or table from which the text will be deleted.
     #[serde(default, rename = "objectId")]
     pub object_id: ::core::option::Option<String>,
@@ -507,7 +507,7 @@ pub struct GroupObjectsRequest {
 pub struct InsertTableColumnsRequest {
     /// The reference table cell location from which columns will be inserted. A new column will be inserted to the left (or right) of the column where the reference cell is. If the reference cell is a merged cell, a new column will be inserted to the left (or right) of the merged cell.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// Whether to insert new columns to the right of the reference cell location. - True: insert to the right. - False: insert to the left.
     #[serde(default, rename = "insertRight")]
     pub insert_right: ::core::option::Option<bool>,
@@ -524,7 +524,7 @@ pub struct InsertTableColumnsRequest {
 pub struct InsertTableRowsRequest {
     /// The reference table cell location from which rows will be inserted. A new row will be inserted above (or below) the row where the reference cell is. If the reference cell is a merged cell, a new row will be inserted above (or below) the merged cell.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// Whether to insert new rows below the reference cell location. - True: insert below the cell. - False: insert above the cell.
     #[serde(default, rename = "insertBelow")]
     pub insert_below: ::core::option::Option<bool>,
@@ -541,7 +541,7 @@ pub struct InsertTableRowsRequest {
 pub struct InsertTextRequest {
     /// The optional table cell location if the text is to be inserted into a table cell. If present, the object_id must refer to a table.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The index where the text will be inserted, in Unicode code units, based on TextElement indexes. The index is zero-based and is computed from the start of the string. The index may be adjusted to prevent insertions inside Unicode grapheme clusters. In these cases, the text will be inserted immediately after the grapheme cluster.
     #[serde(default, rename = "insertionIndex")]
     pub insertion_index: ::core::option::Option<i32>,
@@ -675,7 +675,7 @@ pub struct UpdateImagePropertiesRequest {
     pub fields: ::core::option::Option<String>,
     /// The image properties to update.
     #[serde(default, rename = "imageProperties")]
-    pub image_properties: ::core::option::Option<ImageProperties>,
+    pub image_properties: ::core::option::Option<::std::boxed::Box<ImageProperties>>,
     /// The object ID of the image the updates are applied to.
     #[serde(default, rename = "objectId")]
     pub object_id: ::core::option::Option<String>,
@@ -700,7 +700,7 @@ pub struct UpdateLinePropertiesRequest {
     pub fields: ::core::option::Option<String>,
     /// The line properties to update.
     #[serde(default, rename = "lineProperties")]
-    pub line_properties: ::core::option::Option<LineProperties>,
+    pub line_properties: ::core::option::Option<::std::boxed::Box<LineProperties>>,
     /// The object ID of the line the update is applied to.
     #[serde(default, rename = "objectId")]
     pub object_id: ::core::option::Option<String>,
@@ -731,7 +731,7 @@ pub struct UpdatePageElementTransformRequest {
     pub object_id: ::core::option::Option<String>,
     /// The input transform matrix used to update the page element.
     #[serde(default)]
-    pub transform: ::core::option::Option<AffineTransform>,
+    pub transform: ::core::option::Option<::std::boxed::Box<AffineTransform>>,
 }
 
 /// Updates the Z-order of page elements. Z-order is an ordering of the elements on the page from back to front. The page element in the front may cover the elements that are behind it.
@@ -756,7 +756,7 @@ pub struct UpdatePagePropertiesRequest {
     pub object_id: ::core::option::Option<String>,
     /// The page properties to update.
     #[serde(default, rename = "pageProperties")]
-    pub page_properties: ::core::option::Option<PageProperties>,
+    pub page_properties: ::core::option::Option<::std::boxed::Box<PageProperties>>,
 }
 
 /// Updates the styling for all of the paragraphs within a Shape or Table that overlap with the given text index range.
@@ -764,7 +764,7 @@ pub struct UpdatePagePropertiesRequest {
 pub struct UpdateParagraphStyleRequest {
     /// The location of the cell in the table containing the paragraph(s) to style. If object_id refers to a table, cell_location must have a value. Otherwise, it must not.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The fields that should be updated. At least one field must be specified. The root style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the paragraph alignment, set fields to "alignment". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
     #[serde(default)]
     pub fields: ::core::option::Option<String>,
@@ -773,7 +773,7 @@ pub struct UpdateParagraphStyleRequest {
     pub object_id: ::core::option::Option<String>,
     /// The paragraph''s style.
     #[serde(default)]
-    pub style: ::core::option::Option<ParagraphStyle>,
+    pub style: ::core::option::Option<::std::boxed::Box<ParagraphStyle>>,
     /// The range of text containing the paragraph(s) to style.
     #[serde(default, rename = "textRange")]
     pub text_range: ::core::option::Option<Range>,
@@ -790,7 +790,7 @@ pub struct UpdateShapePropertiesRequest {
     pub object_id: ::core::option::Option<String>,
     /// The shape properties to update.
     #[serde(default, rename = "shapeProperties")]
-    pub shape_properties: ::core::option::Option<ShapeProperties>,
+    pub shape_properties: ::core::option::Option<::std::boxed::Box<ShapeProperties>>,
 }
 
 /// Updates the properties of a Slide.
@@ -804,7 +804,7 @@ pub struct UpdateSlidePropertiesRequest {
     pub object_id: ::core::option::Option<String>,
     /// The slide properties to update.
     #[serde(default, rename = "slideProperties")]
-    pub slide_properties: ::core::option::Option<SlideProperties>,
+    pub slide_properties: ::core::option::Option<::std::boxed::Box<SlideProperties>>,
 }
 
 /// Updates the position of slides in the presentation.
@@ -832,7 +832,7 @@ pub struct UpdateTableBorderPropertiesRequest {
     pub object_id: ::core::option::Option<String>,
     /// The table border properties to update.
     #[serde(default, rename = "tableBorderProperties")]
-    pub table_border_properties: ::core::option::Option<TableBorderProperties>,
+    pub table_border_properties: ::core::option::Option<::std::boxed::Box<TableBorderProperties>>,
     /// The table range representing the subset of the table to which the updates are applied. If a table range is not specified, the updates will apply to the entire table.
     #[serde(default, rename = "tableRange")]
     pub table_range: ::core::option::Option<TableRange>,
@@ -849,7 +849,7 @@ pub struct UpdateTableCellPropertiesRequest {
     pub object_id: ::core::option::Option<String>,
     /// The table cell properties to update.
     #[serde(default, rename = "tableCellProperties")]
-    pub table_cell_properties: ::core::option::Option<TableCellProperties>,
+    pub table_cell_properties: ::core::option::Option<::std::boxed::Box<TableCellProperties>>,
     /// The table range representing the subset of the table to which the updates are applied. If a table range is not specified, the updates will apply to the entire table.
     #[serde(default, rename = "tableRange")]
     pub table_range: ::core::option::Option<TableRange>,
@@ -869,7 +869,7 @@ pub struct UpdateTableColumnPropertiesRequest {
     pub object_id: ::core::option::Option<String>,
     /// The table column properties to update. If the value of table_column_properties#column_width in the request is less than 406,400 EMU (32 points), a 400 bad request error is returned.
     #[serde(default, rename = "tableColumnProperties")]
-    pub table_column_properties: ::core::option::Option<TableColumnProperties>,
+    pub table_column_properties: ::core::option::Option<::std::boxed::Box<TableColumnProperties>>,
 }
 
 /// Updates the properties of a Table row.
@@ -886,7 +886,7 @@ pub struct UpdateTableRowPropertiesRequest {
     pub row_indices: ::core::option::Option<::std::vec::Vec<i32>>,
     /// The table row properties to update.
     #[serde(default, rename = "tableRowProperties")]
-    pub table_row_properties: ::core::option::Option<TableRowProperties>,
+    pub table_row_properties: ::core::option::Option<::std::boxed::Box<TableRowProperties>>,
 }
 
 /// Update the styling of text in a Shape or Table.
@@ -894,7 +894,7 @@ pub struct UpdateTableRowPropertiesRequest {
 pub struct UpdateTextStyleRequest {
     /// The location of the cell in the table containing the text to style. If object_id refers to a table, cell_location must have a value. Otherwise, it must not.
     #[serde(default, rename = "cellLocation")]
-    pub cell_location: ::core::option::Option<TableCellLocation>,
+    pub cell_location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The fields that should be updated. At least one field must be specified. The root style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the text style to bold, set fields to "bold". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
     #[serde(default)]
     pub fields: ::core::option::Option<String>,
@@ -903,7 +903,7 @@ pub struct UpdateTextStyleRequest {
     pub object_id: ::core::option::Option<String>,
     /// The style(s) to set on the text. If the value for a particular style matches that of the parent, that style will be set to inherit. Certain text style changes may cause other changes meant to mirror the behavior of the Slides editor. See the documentation of TextStyle for more information.
     #[serde(default)]
-    pub style: ::core::option::Option<TextStyle>,
+    pub style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
     /// The range of text to style. The range may be extended to include adjacent newlines. If the range fully contains a paragraph belonging to a list, the paragraph''s bullet is also updated with the matching text style.
     #[serde(default, rename = "textRange")]
     pub text_range: ::core::option::Option<Range>,
@@ -920,7 +920,7 @@ pub struct UpdateVideoPropertiesRequest {
     pub object_id: ::core::option::Option<String>,
     /// The video properties to update.
     #[serde(default, rename = "videoProperties")]
-    pub video_properties: ::core::option::Option<VideoProperties>,
+    pub video_properties: ::core::option::Option<::std::boxed::Box<VideoProperties>>,
 }
 
 /// The result of creating an image.
@@ -1024,7 +1024,7 @@ pub struct ReplaceAllTextResponse {
 pub struct LayoutPlaceholderIdMapping {
     /// The placeholder on a layout that will be applied to a slide. Only type and index are needed. For example, a predefined TITLE_AND_BODY layout may usually have a TITLE placeholder with index 0 and a BODY placeholder with index 0.
     #[serde(default, rename = "layoutPlaceholder")]
-    pub layout_placeholder: ::core::option::Option<Placeholder>,
+    pub layout_placeholder: ::core::option::Option<::std::boxed::Box<Placeholder>>,
     /// The object ID of the placeholder on a layout that will be applied to a slide.
     #[serde(default, rename = "layoutPlaceholderObjectId")]
     pub layout_placeholder_object_id: ::core::option::Option<String>,
@@ -1052,10 +1052,10 @@ pub struct PageElementProperties {
     pub page_object_id: ::core::option::Option<String>,
     /// The size of the element.
     #[serde(default)]
-    pub size: ::core::option::Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// The transform for the element.
     #[serde(default)]
-    pub transform: ::core::option::Option<AffineTransform>,
+    pub transform: ::core::option::Option<::std::boxed::Box<AffineTransform>>,
 }
 
 /// A criteria that matches a specific string of text in a shape or table.
@@ -1080,7 +1080,7 @@ pub struct TableRange {
     pub column_span: ::core::option::Option<i32>,
     /// The starting location of the table range.
     #[serde(default)]
-    pub location: ::core::option::Option<TableCellLocation>,
+    pub location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The row span of the table range.
     #[serde(default, rename = "rowSpan")]
     pub row_span: ::core::option::Option<i32>,
@@ -1134,7 +1134,7 @@ pub struct AutoText {
     pub content: ::core::option::Option<String>,
     /// The styling applied to this auto text.
     #[serde(default)]
-    pub style: ::core::option::Option<TextStyle>,
+    pub style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
     /// The type of this auto text. // TODO: enum values: ["TYPE_UNSPECIFIED", "SLIDE_NUMBER"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -1159,7 +1159,7 @@ pub struct Autofit {
 pub struct Bullet {
     /// The paragraph specific text style applied to this bullet.
     #[serde(default, rename = "bulletStyle")]
-    pub bullet_style: ::core::option::Option<TextStyle>,
+    pub bullet_style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
     /// The rendered bullet glyph for this paragraph.
     #[serde(default)]
     pub glyph: ::core::option::Option<String>,
@@ -1176,7 +1176,7 @@ pub struct Bullet {
 pub struct ColorScheme {
     /// The ThemeColorType and corresponding concrete color pairs.
     #[serde(default)]
-    pub colors: ::core::option::Option<::std::vec::Vec<ThemeColorPair>>,
+    pub colors: ::std::vec::Vec<::std::boxed::Box<ThemeColorPair>>,
 }
 
 /// A color and position in a gradient band.
@@ -1187,7 +1187,7 @@ pub struct ColorStop {
     pub alpha: ::core::option::Option<f32>,
     /// The color of the gradient stop.
     #[serde(default)]
-    pub color: ::core::option::Option<OpaqueColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<OpaqueColor>>,
     /// The relative position of the color stop in the gradient band measured in percentage. The value should be in the interval [0.0, 1.0].
     #[serde(default)]
     pub position: ::core::option::Option<f32>,
@@ -1229,7 +1229,7 @@ pub struct Dimension {
 pub struct Group {
     /// The collection of elements in the group. The minimum size of a group is 2.
     #[serde(default)]
-    pub children: ::core::option::Option<::std::vec::Vec<PageElement>>,
+    pub children: ::std::vec::Vec<::std::boxed::Box<PageElement>>,
 }
 
 /// A PageElement kind representing an image.
@@ -1240,10 +1240,10 @@ pub struct Image {
     pub content_url: ::core::option::Option<String>,
     /// The properties of the image.
     #[serde(default, rename = "imageProperties")]
-    pub image_properties: ::core::option::Option<ImageProperties>,
+    pub image_properties: ::core::option::Option<::std::boxed::Box<ImageProperties>>,
     /// Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.
     #[serde(default)]
-    pub placeholder: ::core::option::Option<Placeholder>,
+    pub placeholder: ::core::option::Option<::std::boxed::Box<Placeholder>>,
     /// The source URL is the URL used to insert the image. The source URL can be empty.
     #[serde(default, rename = "sourceUrl")]
     pub source_url: ::core::option::Option<String>,
@@ -1260,19 +1260,19 @@ pub struct ImageProperties {
     pub contrast: ::core::option::Option<f32>,
     /// The crop properties of the image. If not set, the image is not cropped. This property is read-only.
     #[serde(default, rename = "cropProperties")]
-    pub crop_properties: ::core::option::Option<CropProperties>,
+    pub crop_properties: ::core::option::Option<::std::boxed::Box<CropProperties>>,
     /// The hyperlink destination of the image. If unset, there is no link.
     #[serde(default)]
-    pub link: ::core::option::Option<Link>,
+    pub link: ::core::option::Option<::std::boxed::Box<Link>>,
     /// The outline of the image. If not set, the image has no outline.
     #[serde(default)]
-    pub outline: ::core::option::Option<Outline>,
+    pub outline: ::core::option::Option<::std::boxed::Box<Outline>>,
     /// The recolor effect of the image. If not set, the image is not recolored. This property is read-only.
     #[serde(default)]
-    pub recolor: ::core::option::Option<Recolor>,
+    pub recolor: ::core::option::Option<::std::boxed::Box<Recolor>>,
     /// The shadow of the image. If not set, the image has no shadow. This property is read-only.
     #[serde(default)]
-    pub shadow: ::core::option::Option<Shadow>,
+    pub shadow: ::core::option::Option<::std::boxed::Box<Shadow>>,
     /// The transparency effect of the image. The value should be in the interval [0.0, 1.0], where 0 means no effect and 1 means completely transparent. This property is read-only.
     #[serde(default)]
     pub transparency: ::core::option::Option<f32>,
@@ -1300,7 +1300,7 @@ pub struct Line {
     pub line_category: ::core::option::Option<String>,
     /// The properties of the line.
     #[serde(default, rename = "lineProperties")]
-    pub line_properties: ::core::option::Option<LineProperties>,
+    pub line_properties: ::core::option::Option<::std::boxed::Box<LineProperties>>,
     /// The type of the line. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRAIGHT_CONNECTOR_1", "BENT_CONNECTOR_2", "BENT_CONNECTOR_3", "BENT_CONNECTOR_4", "BENT_CONNECTOR_5", "CURVED_CONNECTOR_2", "CURVED_CONNECTOR_3", "CURVED_CONNECTOR_4", "CURVED_CONNECTOR_5", "STRAIGHT_LINE"]
     #[serde(default, rename = "lineType")]
     pub line_type: ::core::option::Option<String>,
@@ -1322,7 +1322,7 @@ pub struct LineConnection {
 pub struct LineFill {
     /// Solid color fill.
     #[serde(default, rename = "solidFill")]
-    pub solid_fill: ::core::option::Option<SolidFill>,
+    pub solid_fill: ::core::option::Option<::std::boxed::Box<SolidFill>>,
 }
 
 /// The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.
@@ -1336,22 +1336,22 @@ pub struct LineProperties {
     pub end_arrow: ::core::option::Option<String>,
     /// The connection at the end of the line. If unset, there is no connection. Only lines with a Type indicating it is a "connector" can have an end_connection.
     #[serde(default, rename = "endConnection")]
-    pub end_connection: ::core::option::Option<LineConnection>,
+    pub end_connection: ::core::option::Option<::std::boxed::Box<LineConnection>>,
     /// The fill of the line. The default line fill matches the defaults for new lines created in the Slides editor.
     #[serde(default, rename = "lineFill")]
-    pub line_fill: ::core::option::Option<LineFill>,
+    pub line_fill: ::core::option::Option<::std::boxed::Box<LineFill>>,
     /// The hyperlink destination of the line. If unset, there is no link.
     #[serde(default)]
-    pub link: ::core::option::Option<Link>,
+    pub link: ::core::option::Option<::std::boxed::Box<Link>>,
     /// The style of the arrow at the beginning of the line. // TODO: enum values: ["ARROW_STYLE_UNSPECIFIED", "NONE", "STEALTH_ARROW", "FILL_ARROW", "FILL_CIRCLE", "FILL_SQUARE", "FILL_DIAMOND", "OPEN_ARROW", "OPEN_CIRCLE", "OPEN_SQUARE", "OPEN_DIAMOND"]
     #[serde(default, rename = "startArrow")]
     pub start_arrow: ::core::option::Option<String>,
     /// The connection at the beginning of the line. If unset, there is no connection. Only lines with a Type indicating it is a "connector" can have a start_connection.
     #[serde(default, rename = "startConnection")]
-    pub start_connection: ::core::option::Option<LineConnection>,
+    pub start_connection: ::core::option::Option<::std::boxed::Box<LineConnection>>,
     /// The thickness of the line.
     #[serde(default)]
-    pub weight: ::core::option::Option<Dimension>,
+    pub weight: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// A hypertext link.
@@ -1392,7 +1392,7 @@ pub struct NotesProperties {
 pub struct OpaqueColor {
     /// An opaque RGB color.
     #[serde(default, rename = "rgbColor")]
-    pub rgb_color: ::core::option::Option<RgbColor>,
+    pub rgb_color: ::core::option::Option<::std::boxed::Box<RgbColor>>,
     /// An opaque theme color. // TODO: enum values: ["THEME_COLOR_TYPE_UNSPECIFIED", "DARK1", "LIGHT1", "DARK2", "LIGHT2", "ACCENT1", "ACCENT2", "ACCENT3", "ACCENT4", "ACCENT5", "ACCENT6", "HYPERLINK", "FOLLOWED_HYPERLINK", "TEXT1", "BACKGROUND1", "TEXT2", "BACKGROUND2"]
     #[serde(default, rename = "themeColor")]
     pub theme_color: ::core::option::Option<String>,
@@ -1403,7 +1403,7 @@ pub struct OpaqueColor {
 pub struct OptionalColor {
     /// If set, this will be used as an opaque color. If unset, this represents a transparent color.
     #[serde(default, rename = "opaqueColor")]
-    pub opaque_color: ::core::option::Option<OpaqueColor>,
+    pub opaque_color: ::core::option::Option<::std::boxed::Box<OpaqueColor>>,
 }
 
 /// The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.
@@ -1414,13 +1414,13 @@ pub struct Outline {
     pub dash_style: ::core::option::Option<String>,
     /// The fill of the outline.
     #[serde(default, rename = "outlineFill")]
-    pub outline_fill: ::core::option::Option<OutlineFill>,
+    pub outline_fill: ::core::option::Option<::std::boxed::Box<OutlineFill>>,
     /// The outline property state. Updating the outline on a page element will implicitly update this field to RENDERED, unless another value is specified in the same request. To have no outline on a page element, set this field to NOT_RENDERED. In this case, any other outline fields set in the same request will be ignored. // TODO: enum values: ["RENDERED", "NOT_RENDERED", "INHERIT"]
     #[serde(default, rename = "propertyState")]
     pub property_state: ::core::option::Option<String>,
     /// The thickness of the outline.
     #[serde(default)]
-    pub weight: ::core::option::Option<Dimension>,
+    pub weight: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// The fill of the outline.
@@ -1428,7 +1428,7 @@ pub struct Outline {
 pub struct OutlineFill {
     /// Solid color fill.
     #[serde(default, rename = "solidFill")]
-    pub solid_fill: ::core::option::Option<SolidFill>,
+    pub solid_fill: ::core::option::Option<::std::boxed::Box<SolidFill>>,
 }
 
 /// A page in a presentation.
@@ -1436,22 +1436,22 @@ pub struct OutlineFill {
 pub struct Page {
     /// Layout specific properties. Only set if page_type = LAYOUT.
     #[serde(default, rename = "layoutProperties")]
-    pub layout_properties: ::core::option::Option<LayoutProperties>,
+    pub layout_properties: ::core::option::Option<::std::boxed::Box<LayoutProperties>>,
     /// Master specific properties. Only set if page_type = MASTER.
     #[serde(default, rename = "masterProperties")]
-    pub master_properties: ::core::option::Option<MasterProperties>,
+    pub master_properties: ::core::option::Option<::std::boxed::Box<MasterProperties>>,
     /// Notes specific properties. Only set if page_type = NOTES.
     #[serde(default, rename = "notesProperties")]
-    pub notes_properties: ::core::option::Option<NotesProperties>,
+    pub notes_properties: ::core::option::Option<::std::boxed::Box<NotesProperties>>,
     /// The object ID for this page. Object IDs used by Page and PageElement share the same namespace.
     #[serde(default, rename = "objectId")]
     pub object_id: ::core::option::Option<String>,
     /// The page elements rendered on the page.
     #[serde(default, rename = "pageElements")]
-    pub page_elements: ::core::option::Option<::std::vec::Vec<PageElement>>,
+    pub page_elements: ::std::vec::Vec<::std::boxed::Box<PageElement>>,
     /// The properties of the page.
     #[serde(default, rename = "pageProperties")]
-    pub page_properties: ::core::option::Option<PageProperties>,
+    pub page_properties: ::core::option::Option<::std::boxed::Box<PageProperties>>,
     /// The type of the page. // TODO: enum values: ["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"]
     #[serde(default, rename = "pageType")]
     pub page_type: ::core::option::Option<String>,
@@ -1460,7 +1460,7 @@ pub struct Page {
     pub revision_id: ::core::option::Option<String>,
     /// Slide specific properties. Only set if page_type = SLIDE.
     #[serde(default, rename = "slideProperties")]
-    pub slide_properties: ::core::option::Option<SlideProperties>,
+    pub slide_properties: ::core::option::Option<::std::boxed::Box<SlideProperties>>,
 }
 
 /// The page background fill.
@@ -1471,10 +1471,10 @@ pub struct PageBackgroundFill {
     pub property_state: ::core::option::Option<String>,
     /// Solid color fill.
     #[serde(default, rename = "solidFill")]
-    pub solid_fill: ::core::option::Option<SolidFill>,
+    pub solid_fill: ::core::option::Option<::std::boxed::Box<SolidFill>>,
     /// Stretched picture fill.
     #[serde(default, rename = "stretchedPictureFill")]
-    pub stretched_picture_fill: ::core::option::Option<StretchedPictureFill>,
+    pub stretched_picture_fill: ::core::option::Option<::std::boxed::Box<StretchedPictureFill>>,
 }
 
 /// A visual element rendered on a page.
@@ -1485,43 +1485,43 @@ pub struct PageElement {
     pub description: ::core::option::Option<String>,
     /// A collection of page elements joined as a single unit.
     #[serde(default, rename = "elementGroup")]
-    pub element_group: ::core::option::Option<Group>,
+    pub element_group: ::core::option::Option<::std::boxed::Box<Group>>,
     /// An image page element.
     #[serde(default)]
-    pub image: ::core::option::Option<Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A line page element.
     #[serde(default)]
-    pub line: ::core::option::Option<Line>,
+    pub line: ::core::option::Option<::std::boxed::Box<Line>>,
     /// The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.
     #[serde(default, rename = "objectId")]
     pub object_id: ::core::option::Option<String>,
     /// A generic shape.
     #[serde(default)]
-    pub shape: ::core::option::Option<Shape>,
+    pub shape: ::core::option::Option<::std::boxed::Box<Shape>>,
     /// A linked chart embedded from Google Sheets. Unlinked charts are represented as images.
     #[serde(default, rename = "sheetsChart")]
-    pub sheets_chart: ::core::option::Option<SheetsChart>,
+    pub sheets_chart: ::core::option::Option<::std::boxed::Box<SheetsChart>>,
     /// The size of the page element.
     #[serde(default)]
-    pub size: ::core::option::Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
     /// A Speaker Spotlight.
     #[serde(default, rename = "speakerSpotlight")]
-    pub speaker_spotlight: ::core::option::Option<SpeakerSpotlight>,
+    pub speaker_spotlight: ::core::option::Option<::std::boxed::Box<SpeakerSpotlight>>,
     /// A table page element.
     #[serde(default)]
-    pub table: ::core::option::Option<Table>,
+    pub table: ::core::option::Option<::std::boxed::Box<Table>>,
     /// The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
     /// The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element''s transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.
     #[serde(default)]
-    pub transform: ::core::option::Option<AffineTransform>,
+    pub transform: ::core::option::Option<::std::boxed::Box<AffineTransform>>,
     /// A video page element.
     #[serde(default)]
-    pub video: ::core::option::Option<Video>,
+    pub video: ::core::option::Option<::std::boxed::Box<Video>>,
     /// A word art page element.
     #[serde(default, rename = "wordArt")]
-    pub word_art: ::core::option::Option<WordArt>,
+    pub word_art: ::core::option::Option<::std::boxed::Box<WordArt>>,
 }
 
 /// The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.
@@ -1529,10 +1529,10 @@ pub struct PageElement {
 pub struct PageProperties {
     /// The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on Master pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.
     #[serde(default, rename = "colorScheme")]
-    pub color_scheme: ::core::option::Option<ColorScheme>,
+    pub color_scheme: ::core::option::Option<::std::boxed::Box<ColorScheme>>,
     /// The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.
     #[serde(default, rename = "pageBackgroundFill")]
-    pub page_background_fill: ::core::option::Option<PageBackgroundFill>,
+    pub page_background_fill: ::core::option::Option<::std::boxed::Box<PageBackgroundFill>>,
 }
 
 /// A TextElement kind that represents the beginning of a new paragraph.
@@ -1540,10 +1540,10 @@ pub struct PageProperties {
 pub struct ParagraphMarker {
     /// The bullet for this paragraph. If not present, the paragraph does not belong to a list.
     #[serde(default)]
-    pub bullet: ::core::option::Option<Bullet>,
+    pub bullet: ::core::option::Option<::std::boxed::Box<Bullet>>,
     /// The paragraph''s style
     #[serde(default)]
-    pub style: ::core::option::Option<ParagraphStyle>,
+    pub style: ::core::option::Option<::std::boxed::Box<ParagraphStyle>>,
 }
 
 /// Styles that apply to a whole paragraph. If this text is contained in a shape with a parent placeholder, then these paragraph styles may be inherited from the parent. Which paragraph styles are inherited depend on the nesting level of lists: * A paragraph not in a list will inherit its paragraph style from the paragraph at the 0 nesting level of the list inside the parent placeholder. * A paragraph in a list will inherit its paragraph style from the paragraph at its corresponding nesting level of the list inside the parent placeholder. Inherited paragraph styles are represented as unset fields in this message.
@@ -1557,22 +1557,22 @@ pub struct ParagraphStyle {
     pub direction: ::core::option::Option<String>,
     /// The amount indentation for the paragraph on the side that corresponds to the end of the text, based on the current text direction. If unset, the value is inherited from the parent.
     #[serde(default, rename = "indentEnd")]
-    pub indent_end: ::core::option::Option<Dimension>,
+    pub indent_end: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of indentation for the start of the first line of the paragraph. If unset, the value is inherited from the parent.
     #[serde(default, rename = "indentFirstLine")]
-    pub indent_first_line: ::core::option::Option<Dimension>,
+    pub indent_first_line: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount indentation for the paragraph on the side that corresponds to the start of the text, based on the current text direction. If unset, the value is inherited from the parent.
     #[serde(default, rename = "indentStart")]
-    pub indent_start: ::core::option::Option<Dimension>,
+    pub indent_start: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of space between lines, as a percentage of normal, where normal is represented as 100.0. If unset, the value is inherited from the parent.
     #[serde(default, rename = "lineSpacing")]
     pub line_spacing: ::core::option::Option<f32>,
     /// The amount of extra space above the paragraph. If unset, the value is inherited from the parent.
     #[serde(default, rename = "spaceAbove")]
-    pub space_above: ::core::option::Option<Dimension>,
+    pub space_above: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The amount of extra space below the paragraph. If unset, the value is inherited from the parent.
     #[serde(default, rename = "spaceBelow")]
-    pub space_below: ::core::option::Option<Dimension>,
+    pub space_below: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The spacing mode for the paragraph. // TODO: enum values: ["SPACING_MODE_UNSPECIFIED", "NEVER_COLLAPSE", "COLLAPSE_LISTS"]
     #[serde(default, rename = "spacingMode")]
     pub spacing_mode: ::core::option::Option<String>,
@@ -1600,7 +1600,7 @@ pub struct Recolor {
     pub name: ::core::option::Option<String>,
     /// The recolor effect is represented by a gradient, which is a list of color stops. The colors in the gradient will replace the corresponding colors at the same position in the color palette and apply to the image. This property is read-only.
     #[serde(default, rename = "recolorStops")]
-    pub recolor_stops: ::core::option::Option<::std::vec::Vec<ColorStop>>,
+    pub recolor_stops: ::std::vec::Vec<::std::boxed::Box<ColorStop>>,
 }
 
 /// An RGB color.
@@ -1628,10 +1628,10 @@ pub struct Shadow {
     pub alpha: ::core::option::Option<f32>,
     /// The radius of the shadow blur. The larger the radius, the more diffuse the shadow becomes.
     #[serde(default, rename = "blurRadius")]
-    pub blur_radius: ::core::option::Option<Dimension>,
+    pub blur_radius: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The shadow color value.
     #[serde(default)]
-    pub color: ::core::option::Option<OpaqueColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<OpaqueColor>>,
     /// The shadow property state. Updating the shadow on a page element will implicitly update this field to RENDERED, unless another value is specified in the same request. To have no shadow on a page element, set this field to NOT_RENDERED. In this case, any other shadow fields set in the same request will be ignored. // TODO: enum values: ["RENDERED", "NOT_RENDERED", "INHERIT"]
     #[serde(default, rename = "propertyState")]
     pub property_state: ::core::option::Option<String>,
@@ -1640,7 +1640,7 @@ pub struct Shadow {
     pub rotate_with_shape: ::core::option::Option<bool>,
     /// Transform that encodes the translate, scale, and skew of the shadow, relative to the alignment position.
     #[serde(default)]
-    pub transform: ::core::option::Option<AffineTransform>,
+    pub transform: ::core::option::Option<::std::boxed::Box<AffineTransform>>,
     /// The type of the shadow. This property is read-only. // TODO: enum values: ["SHADOW_TYPE_UNSPECIFIED", "OUTER"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -1651,16 +1651,16 @@ pub struct Shadow {
 pub struct Shape {
     /// Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.
     #[serde(default)]
-    pub placeholder: ::core::option::Option<Placeholder>,
+    pub placeholder: ::core::option::Option<::std::boxed::Box<Placeholder>>,
     /// The properties of the shape.
     #[serde(default, rename = "shapeProperties")]
-    pub shape_properties: ::core::option::Option<ShapeProperties>,
+    pub shape_properties: ::core::option::Option<::std::boxed::Box<ShapeProperties>>,
     /// The type of the shape. // TODO: enum values: ["TYPE_UNSPECIFIED", "TEXT_BOX", "RECTANGLE", "ROUND_RECTANGLE", "ELLIPSE", "ARC", "BENT_ARROW", "BENT_UP_ARROW", "BEVEL", "BLOCK_ARC", "BRACE_PAIR", "BRACKET_PAIR", "CAN", "CHEVRON", "CHORD", "CLOUD", "CORNER", "CUBE", "CURVED_DOWN_ARROW", "CURVED_LEFT_ARROW", "CURVED_RIGHT_ARROW", "CURVED_UP_ARROW", "DECAGON", "DIAGONAL_STRIPE", "DIAMOND", "DODECAGON", "DONUT", "DOUBLE_WAVE", "DOWN_ARROW", "DOWN_ARROW_CALLOUT", "FOLDED_CORNER", "FRAME", "HALF_FRAME", "HEART", "HEPTAGON", "HEXAGON", "HOME_PLATE", "HORIZONTAL_SCROLL", "IRREGULAR_SEAL_1", "IRREGULAR_SEAL_2", "LEFT_ARROW", "LEFT_ARROW_CALLOUT", "LEFT_BRACE", "LEFT_BRACKET", "LEFT_RIGHT_ARROW", "LEFT_RIGHT_ARROW_CALLOUT", "LEFT_RIGHT_UP_ARROW", "LEFT_UP_ARROW", "LIGHTNING_BOLT", "MATH_DIVIDE", "MATH_EQUAL", "MATH_MINUS", "MATH_MULTIPLY", "MATH_NOT_EQUAL", "MATH_PLUS", "MOON", "NO_SMOKING", "NOTCHED_RIGHT_ARROW", "OCTAGON", "PARALLELOGRAM", "PENTAGON", "PIE", "PLAQUE", "PLUS", "QUAD_ARROW", "QUAD_ARROW_CALLOUT", "RIBBON", "RIBBON_2", "RIGHT_ARROW", "RIGHT_ARROW_CALLOUT", "RIGHT_BRACE", "RIGHT_BRACKET", "ROUND_1_RECTANGLE", "ROUND_2_DIAGONAL_RECTANGLE", "ROUND_2_SAME_RECTANGLE", "RIGHT_TRIANGLE", "SMILEY_FACE", "SNIP_1_RECTANGLE", "SNIP_2_DIAGONAL_RECTANGLE", "SNIP_2_SAME_RECTANGLE", "SNIP_ROUND_RECTANGLE", "STAR_10", "STAR_12", "STAR_16", "STAR_24", "STAR_32", "STAR_4", "STAR_5", "STAR_6", "STAR_7", "STAR_8", "STRIPED_RIGHT_ARROW", "SUN", "TRAPEZOID", "TRIANGLE", "UP_ARROW", "UP_ARROW_CALLOUT", "UP_DOWN_ARROW", "UTURN_ARROW", "VERTICAL_SCROLL", "WAVE", "WEDGE_ELLIPSE_CALLOUT", "WEDGE_RECTANGLE_CALLOUT", "WEDGE_ROUND_RECTANGLE_CALLOUT", "FLOW_CHART_ALTERNATE_PROCESS", "FLOW_CHART_COLLATE", "FLOW_CHART_CONNECTOR", "FLOW_CHART_DECISION", "FLOW_CHART_DELAY", "FLOW_CHART_DISPLAY", "FLOW_CHART_DOCUMENT", "FLOW_CHART_EXTRACT", "FLOW_CHART_INPUT_OUTPUT", "FLOW_CHART_INTERNAL_STORAGE", "FLOW_CHART_MAGNETIC_DISK", "FLOW_CHART_MAGNETIC_DRUM", "FLOW_CHART_MAGNETIC_TAPE", "FLOW_CHART_MANUAL_INPUT", "FLOW_CHART_MANUAL_OPERATION", "FLOW_CHART_MERGE", "FLOW_CHART_MULTIDOCUMENT", "FLOW_CHART_OFFLINE_STORAGE", "FLOW_CHART_OFFPAGE_CONNECTOR", "FLOW_CHART_ONLINE_STORAGE", "FLOW_CHART_OR", "FLOW_CHART_PREDEFINED_PROCESS", "FLOW_CHART_PREPARATION", "FLOW_CHART_PROCESS", "FLOW_CHART_PUNCHED_CARD", "FLOW_CHART_PUNCHED_TAPE", "FLOW_CHART_SORT", "FLOW_CHART_SUMMING_JUNCTION", "FLOW_CHART_TERMINATOR", "ARROW_EAST", "ARROW_NORTH_EAST", "ARROW_NORTH", "SPEECH", "STARBURST", "TEARDROP", "ELLIPSE_RIBBON", "ELLIPSE_RIBBON_2", "CLOUD_CALLOUT", "CUSTOM"]
     #[serde(default, rename = "shapeType")]
     pub shape_type: ::core::option::Option<String>,
     /// The text content of the shape.
     #[serde(default)]
-    pub text: ::core::option::Option<TextContent>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextContent>>,
 }
 
 /// The shape background fill.
@@ -1671,7 +1671,7 @@ pub struct ShapeBackgroundFill {
     pub property_state: ::core::option::Option<String>,
     /// Solid color fill.
     #[serde(default, rename = "solidFill")]
-    pub solid_fill: ::core::option::Option<SolidFill>,
+    pub solid_fill: ::core::option::Option<::std::boxed::Box<SolidFill>>,
 }
 
 /// The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.
@@ -1679,22 +1679,22 @@ pub struct ShapeBackgroundFill {
 pub struct ShapeProperties {
     /// The autofit properties of the shape. This property is only set for shapes that allow text.
     #[serde(default)]
-    pub autofit: ::core::option::Option<Autofit>,
+    pub autofit: ::core::option::Option<::std::boxed::Box<Autofit>>,
     /// The alignment of the content in the shape. If unspecified, the alignment is inherited from a parent placeholder if it exists. If the shape has no parent, the default alignment matches the alignment for new shapes created in the Slides editor. // TODO: enum values: ["CONTENT_ALIGNMENT_UNSPECIFIED", "CONTENT_ALIGNMENT_UNSUPPORTED", "TOP", "MIDDLE", "BOTTOM"]
     #[serde(default, rename = "contentAlignment")]
     pub content_alignment: ::core::option::Option<String>,
     /// The hyperlink destination of the shape. If unset, there is no link. Links are not inherited from parent placeholders.
     #[serde(default)]
-    pub link: ::core::option::Option<Link>,
+    pub link: ::core::option::Option<::std::boxed::Box<Link>>,
     /// The outline of the shape. If unset, the outline is inherited from a parent placeholder if it exists. If the shape has no parent, then the default outline depends on the shape type, matching the defaults for new shapes created in the Slides editor.
     #[serde(default)]
-    pub outline: ::core::option::Option<Outline>,
+    pub outline: ::core::option::Option<::std::boxed::Box<Outline>>,
     /// The shadow properties of the shape. If unset, the shadow is inherited from a parent placeholder if it exists. If the shape has no parent, then the default shadow matches the defaults for new shapes created in the Slides editor. This property is read-only.
     #[serde(default)]
-    pub shadow: ::core::option::Option<Shadow>,
+    pub shadow: ::core::option::Option<::std::boxed::Box<Shadow>>,
     /// The background fill of the shape. If unset, the background fill is inherited from a parent placeholder if it exists. If the shape has no parent, then the default background fill depends on the shape type, matching the defaults for new shapes created in the Slides editor.
     #[serde(default, rename = "shapeBackgroundFill")]
-    pub shape_background_fill: ::core::option::Option<ShapeBackgroundFill>,
+    pub shape_background_fill: ::core::option::Option<::std::boxed::Box<ShapeBackgroundFill>>,
 }
 
 /// A PageElement kind representing a linked chart embedded from Google Sheets.
@@ -1708,7 +1708,7 @@ pub struct SheetsChart {
     pub content_url: ::core::option::Option<String>,
     /// The properties of the Sheets chart.
     #[serde(default, rename = "sheetsChartProperties")]
-    pub sheets_chart_properties: ::core::option::Option<SheetsChartProperties>,
+    pub sheets_chart_properties: ::core::option::Option<::std::boxed::Box<SheetsChartProperties>>,
     /// The ID of the Google Sheets spreadsheet that contains the source chart.
     #[serde(default, rename = "spreadsheetId")]
     pub spreadsheet_id: ::core::option::Option<String>,
@@ -1719,7 +1719,7 @@ pub struct SheetsChart {
 pub struct SheetsChartProperties {
     /// The properties of the embedded chart image.
     #[serde(default, rename = "chartImageProperties")]
-    pub chart_image_properties: ::core::option::Option<ImageProperties>,
+    pub chart_image_properties: ::core::option::Option<::std::boxed::Box<ImageProperties>>,
 }
 
 /// A width and height.
@@ -1727,10 +1727,10 @@ pub struct SheetsChartProperties {
 pub struct Size {
     /// The height of the object.
     #[serde(default)]
-    pub height: ::core::option::Option<Dimension>,
+    pub height: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The width of the object.
     #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
+    pub width: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// The properties of Page that are only relevant for pages with page_type SLIDE.
@@ -1747,7 +1747,7 @@ pub struct SlideProperties {
     pub master_object_id: ::core::option::Option<String>,
     /// The notes page that this slide is associated with. It defines the visual appearance of a notes page when printing or exporting slides with speaker notes. A notes page inherits properties from the notes master. The placeholder shape with type BODY on the notes page contains the speaker notes for this slide. The ID of this shape is identified by the speakerNotesObjectId field. The notes page is read-only except for the text content and styles of the speaker notes shape. This property is read-only.
     #[serde(default, rename = "notesPage")]
-    pub notes_page: ::core::option::Option<Page>,
+    pub notes_page: ::core::option::Option<::std::boxed::Box<Page>>,
 }
 
 /// A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.
@@ -1758,7 +1758,7 @@ pub struct SolidFill {
     pub alpha: ::core::option::Option<f32>,
     /// The color value of the solid fill.
     #[serde(default)]
-    pub color: ::core::option::Option<OpaqueColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<OpaqueColor>>,
 }
 
 /// A PageElement kind representing a Speaker Spotlight.
@@ -1766,7 +1766,8 @@ pub struct SolidFill {
 pub struct SpeakerSpotlight {
     /// The properties of the Speaker Spotlight.
     #[serde(default, rename = "speakerSpotlightProperties")]
-    pub speaker_spotlight_properties: ::core::option::Option<SpeakerSpotlightProperties>,
+    pub speaker_spotlight_properties:
+        ::core::option::Option<::std::boxed::Box<SpeakerSpotlightProperties>>,
 }
 
 /// The properties of the SpeakerSpotlight.
@@ -1774,10 +1775,10 @@ pub struct SpeakerSpotlight {
 pub struct SpeakerSpotlightProperties {
     /// The outline of the Speaker Spotlight. If not set, it has no outline.
     #[serde(default)]
-    pub outline: ::core::option::Option<Outline>,
+    pub outline: ::core::option::Option<::std::boxed::Box<Outline>>,
     /// The shadow of the Speaker Spotlight. If not set, it has no shadow.
     #[serde(default)]
-    pub shadow: ::core::option::Option<Shadow>,
+    pub shadow: ::core::option::Option<::std::boxed::Box<Shadow>>,
 }
 
 /// The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.
@@ -1788,7 +1789,7 @@ pub struct StretchedPictureFill {
     pub content_url: ::core::option::Option<String>,
     /// The original size of the picture fill. This field is read-only.
     #[serde(default)]
-    pub size: ::core::option::Option<Size>,
+    pub size: ::core::option::Option<::std::boxed::Box<Size>>,
 }
 
 /// A PageElement kind representing a table.
@@ -1799,19 +1800,19 @@ pub struct Table {
     pub columns: ::core::option::Option<i32>,
     /// Properties of horizontal cell borders. A table''s horizontal cell borders are represented as a grid. The grid has one more row than the number of rows in the table and the same number of columns as the table. For example, if the table is 3 x 3, its horizontal borders will be represented as a grid with 4 rows and 3 columns.
     #[serde(default, rename = "horizontalBorderRows")]
-    pub horizontal_border_rows: ::core::option::Option<::std::vec::Vec<TableBorderRow>>,
+    pub horizontal_border_rows: ::std::vec::Vec<::std::boxed::Box<TableBorderRow>>,
     /// Number of rows in the table.
     #[serde(default)]
     pub rows: ::core::option::Option<i32>,
     /// Properties of each column.
     #[serde(default, rename = "tableColumns")]
-    pub table_columns: ::core::option::Option<::std::vec::Vec<TableColumnProperties>>,
+    pub table_columns: ::std::vec::Vec<::std::boxed::Box<TableColumnProperties>>,
     /// Properties and contents of each row. Cells that span multiple rows are contained in only one of these rows and have a row_span greater than 1.
     #[serde(default, rename = "tableRows")]
-    pub table_rows: ::core::option::Option<::std::vec::Vec<TableRow>>,
+    pub table_rows: ::std::vec::Vec<::std::boxed::Box<TableRow>>,
     /// Properties of vertical cell borders. A table''s vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.
     #[serde(default, rename = "verticalBorderRows")]
-    pub vertical_border_rows: ::core::option::Option<::std::vec::Vec<TableBorderRow>>,
+    pub vertical_border_rows: ::std::vec::Vec<::std::boxed::Box<TableBorderRow>>,
 }
 
 /// The properties of each border cell.
@@ -1819,10 +1820,10 @@ pub struct Table {
 pub struct TableBorderCell {
     /// The location of the border within the border table.
     #[serde(default)]
-    pub location: ::core::option::Option<TableCellLocation>,
+    pub location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// The border properties.
     #[serde(default, rename = "tableBorderProperties")]
-    pub table_border_properties: ::core::option::Option<TableBorderProperties>,
+    pub table_border_properties: ::core::option::Option<::std::boxed::Box<TableBorderProperties>>,
 }
 
 /// The fill of the border.
@@ -1830,7 +1831,7 @@ pub struct TableBorderCell {
 pub struct TableBorderFill {
     /// Solid fill.
     #[serde(default, rename = "solidFill")]
-    pub solid_fill: ::core::option::Option<SolidFill>,
+    pub solid_fill: ::core::option::Option<::std::boxed::Box<SolidFill>>,
 }
 
 /// The border styling properties of the TableBorderCell.
@@ -1841,10 +1842,10 @@ pub struct TableBorderProperties {
     pub dash_style: ::core::option::Option<String>,
     /// The fill of the table border.
     #[serde(default, rename = "tableBorderFill")]
-    pub table_border_fill: ::core::option::Option<TableBorderFill>,
+    pub table_border_fill: ::core::option::Option<::std::boxed::Box<TableBorderFill>>,
     /// The thickness of the border.
     #[serde(default)]
-    pub weight: ::core::option::Option<Dimension>,
+    pub weight: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// Contents of each border row in a table.
@@ -1852,7 +1853,7 @@ pub struct TableBorderProperties {
 pub struct TableBorderRow {
     /// Properties of each border cell. When a border''s adjacent table cells are merged, it is not included in the response.
     #[serde(default, rename = "tableBorderCells")]
-    pub table_border_cells: ::core::option::Option<::std::vec::Vec<TableBorderCell>>,
+    pub table_border_cells: ::std::vec::Vec<::std::boxed::Box<TableBorderCell>>,
 }
 
 /// Properties and contents of each table cell.
@@ -1863,16 +1864,16 @@ pub struct TableCell {
     pub column_span: ::core::option::Option<i32>,
     /// The location of the cell within the table.
     #[serde(default)]
-    pub location: ::core::option::Option<TableCellLocation>,
+    pub location: ::core::option::Option<::std::boxed::Box<TableCellLocation>>,
     /// Row span of the cell.
     #[serde(default, rename = "rowSpan")]
     pub row_span: ::core::option::Option<i32>,
     /// The properties of the table cell.
     #[serde(default, rename = "tableCellProperties")]
-    pub table_cell_properties: ::core::option::Option<TableCellProperties>,
+    pub table_cell_properties: ::core::option::Option<::std::boxed::Box<TableCellProperties>>,
     /// The text content of the cell.
     #[serde(default)]
-    pub text: ::core::option::Option<TextContent>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextContent>>,
 }
 
 /// The table cell background fill.
@@ -1883,7 +1884,7 @@ pub struct TableCellBackgroundFill {
     pub property_state: ::core::option::Option<String>,
     /// Solid color fill.
     #[serde(default, rename = "solidFill")]
-    pub solid_fill: ::core::option::Option<SolidFill>,
+    pub solid_fill: ::core::option::Option<::std::boxed::Box<SolidFill>>,
 }
 
 /// A location of a single table cell within a table.
@@ -1905,7 +1906,8 @@ pub struct TableCellProperties {
     pub content_alignment: ::core::option::Option<String>,
     /// The background fill of the table cell. The default fill matches the fill for newly created table cells in the Slides editor.
     #[serde(default, rename = "tableCellBackgroundFill")]
-    pub table_cell_background_fill: ::core::option::Option<TableCellBackgroundFill>,
+    pub table_cell_background_fill:
+        ::core::option::Option<::std::boxed::Box<TableCellBackgroundFill>>,
 }
 
 /// Properties of each column in a table.
@@ -1913,7 +1915,7 @@ pub struct TableCellProperties {
 pub struct TableColumnProperties {
     /// Width of a column.
     #[serde(default, rename = "columnWidth")]
-    pub column_width: ::core::option::Option<Dimension>,
+    pub column_width: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// Properties and contents of each row in a table.
@@ -1921,13 +1923,13 @@ pub struct TableColumnProperties {
 pub struct TableRow {
     /// Height of a row.
     #[serde(default, rename = "rowHeight")]
-    pub row_height: ::core::option::Option<Dimension>,
+    pub row_height: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// Properties and contents of each cell. Cells that span multiple columns are represented only once with a column_span greater than 1. As a result, the length of this collection does not always match the number of columns of the entire table.
     #[serde(default, rename = "tableCells")]
-    pub table_cells: ::core::option::Option<::std::vec::Vec<TableCell>>,
+    pub table_cells: ::std::vec::Vec<::std::boxed::Box<TableCell>>,
     /// Properties of the row.
     #[serde(default, rename = "tableRowProperties")]
-    pub table_row_properties: ::core::option::Option<TableRowProperties>,
+    pub table_row_properties: ::core::option::Option<::std::boxed::Box<TableRowProperties>>,
 }
 
 /// Properties of each row in a table.
@@ -1935,7 +1937,7 @@ pub struct TableRow {
 pub struct TableRowProperties {
     /// Minimum height of the row. The row will be rendered in the Slides editor at a height equal to or greater than this value in order to show all the text in the row''s cell(s).
     #[serde(default, rename = "minRowHeight")]
-    pub min_row_height: ::core::option::Option<Dimension>,
+    pub min_row_height: ::core::option::Option<::std::boxed::Box<Dimension>>,
 }
 
 /// The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.
@@ -1946,7 +1948,7 @@ pub struct TextContent {
     pub lists: ::core::option::Option<serde_json::Value>,
     /// The text contents broken down into its component parts, including styling information. This property is read-only.
     #[serde(default, rename = "textElements")]
-    pub text_elements: ::core::option::Option<::std::vec::Vec<TextElement>>,
+    pub text_elements: ::std::vec::Vec<::std::boxed::Box<TextElement>>,
 }
 
 /// A TextElement describes the content of a range of indices in the text content of a Shape or TableCell.
@@ -1954,19 +1956,19 @@ pub struct TextContent {
 pub struct TextElement {
     /// A TextElement representing a spot in the text that is dynamically replaced with content that can change over time.
     #[serde(default, rename = "autoText")]
-    pub auto_text: ::core::option::Option<AutoText>,
+    pub auto_text: ::core::option::Option<::std::boxed::Box<AutoText>>,
     /// The zero-based end index of this text element, exclusive, in Unicode code units.
     #[serde(default, rename = "endIndex")]
     pub end_index: ::core::option::Option<i32>,
     /// A marker representing the beginning of a new paragraph. The start_index and end_index of this TextElement represent the range of the paragraph. Other TextElements with an index range contained inside this paragraph''s range are considered to be part of this paragraph. The range of indices of two separate paragraphs will never overlap.
     #[serde(default, rename = "paragraphMarker")]
-    pub paragraph_marker: ::core::option::Option<ParagraphMarker>,
+    pub paragraph_marker: ::core::option::Option<::std::boxed::Box<ParagraphMarker>>,
     /// The zero-based start index of this text element, in Unicode code units.
     #[serde(default, rename = "startIndex")]
     pub start_index: ::core::option::Option<i32>,
     /// A TextElement representing a run of text where all of the characters in the run have the same TextStyle. The start_index and end_index of TextRuns will always be fully contained in the index range of a single paragraph_marker TextElement. In other words, a TextRun will never span multiple paragraphs.
     #[serde(default, rename = "textRun")]
-    pub text_run: ::core::option::Option<TextRun>,
+    pub text_run: ::core::option::Option<::std::boxed::Box<TextRun>>,
 }
 
 /// A TextElement kind that represents a run of text that all has the same styling.
@@ -1977,7 +1979,7 @@ pub struct TextRun {
     pub content: ::core::option::Option<String>,
     /// The styling applied to this run.
     #[serde(default)]
-    pub style: ::core::option::Option<TextStyle>,
+    pub style: ::core::option::Option<::std::boxed::Box<TextStyle>>,
 }
 
 /// Represents the styling that can be applied to a TextRun. If this text is contained in a shape with a parent placeholder, then these text styles may be inherited from the parent. Which text styles are inherited depend on the nesting level of lists: * A text run in a paragraph that is not in a list will inherit its text style from the the newline character in the paragraph at the 0 nesting level of the list inside the parent placeholder. * A text run in a paragraph that is in a list will inherit its text style from the newline character in the paragraph at its corresponding nesting level of the list inside the parent placeholder. Inherited text styles are represented as unset fields in this message. If text is contained in a shape without a parent placeholder, unsetting these fields will revert the style to a value matching the defaults in the Slides editor.
@@ -1985,7 +1987,7 @@ pub struct TextRun {
 pub struct TextStyle {
     /// The background color of the text. If set, the color is either opaque or transparent, depending on if the opaque_color field in it is set.
     #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<OptionalColor>,
+    pub background_color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// The text''s vertical offset from its normal position. Text with SUPERSCRIPT or SUBSCRIPT baseline offsets is automatically rendered in a smaller font size, computed based on the font_size field. The font_size itself is not affected by changes in this field. // TODO: enum values: ["BASELINE_OFFSET_UNSPECIFIED", "NONE", "SUPERSCRIPT", "SUBSCRIPT"]
     #[serde(default, rename = "baselineOffset")]
     pub baseline_offset: ::core::option::Option<String>,
@@ -1997,16 +1999,16 @@ pub struct TextStyle {
     pub font_family: ::core::option::Option<String>,
     /// The size of the text''s font. When read, the font_size will specified in points.
     #[serde(default, rename = "fontSize")]
-    pub font_size: ::core::option::Option<Dimension>,
+    pub font_size: ::core::option::Option<::std::boxed::Box<Dimension>>,
     /// The color of the text itself. If set, the color is either opaque or transparent, depending on if the opaque_color field in it is set.
     #[serde(default, rename = "foregroundColor")]
-    pub foreground_color: ::core::option::Option<OptionalColor>,
+    pub foreground_color: ::core::option::Option<::std::boxed::Box<OptionalColor>>,
     /// Whether or not the text is italicized.
     #[serde(default)]
     pub italic: ::core::option::Option<bool>,
     /// The hyperlink destination of the text. If unset, there is no link. Links are not inherited from parent text. Changing the link in an update request causes some other changes to the text style of the range: * When setting a link, the text foreground color will be set to ThemeColorType.HYPERLINK and the text will be underlined. If these fields are modified in the same request, those values will be used instead of the link defaults. * Setting a link on a text range that overlaps with an existing link will also update the existing link to point to the new URL. * Links are not settable on newline characters. As a result, setting a link on a text range that crosses a paragraph boundary, such as "ABC\n123", will separate the newline character(s) into their own text runs. The link will be applied separately to the runs before and after the newline. * Removing a link will update the text style of the range to match the style of the preceding text (or the default text styles if the preceding text is another link) unless different styles are being set in the same request.
     #[serde(default)]
-    pub link: ::core::option::Option<Link>,
+    pub link: ::core::option::Option<::std::boxed::Box<Link>>,
     /// Whether or not the text is in small capital letters.
     #[serde(default, rename = "smallCaps")]
     pub small_caps: ::core::option::Option<bool>,
@@ -2018,7 +2020,7 @@ pub struct TextStyle {
     pub underline: ::core::option::Option<bool>,
     /// The font family and rendered weight of the text. This field is an extension of font_family meant to support explicit font weights without breaking backwards compatibility. As such, when reading the style of a range of text, the value of weighted_font_family#font_family will always be equal to that of font_family. However, when writing, if both fields are included in the field mask (either explicitly or through the wildcard "*"), their values are reconciled as follows: * If font_family is set and weighted_font_family is not, the value of font_family is applied with weight 400 ("normal"). * If both fields are set, the value of font_family must match that of weighted_font_family#font_family. If so, the font family and weight of weighted_font_family is applied. Otherwise, a 400 bad request error is returned. * If weighted_font_family is set and font_family is not, the font family and weight of weighted_font_family is applied. * If neither field is set, the font family and weight of the text inherit from the parent. Note that these properties cannot inherit separately from each other. If an update request specifies values for both weighted_font_family and bold, the weighted_font_family is applied first, then bold. If weighted_font_family#weight is not set, it defaults to 400. If weighted_font_family is set, then weighted_font_family#font_family must also be set with a non-empty value. Otherwise, a 400 bad request error is returned.
     #[serde(default, rename = "weightedFontFamily")]
-    pub weighted_font_family: ::core::option::Option<WeightedFontFamily>,
+    pub weighted_font_family: ::core::option::Option<::std::boxed::Box<WeightedFontFamily>>,
 }
 
 /// A pair mapping a theme color type to the concrete color it represents.
@@ -2026,7 +2028,7 @@ pub struct TextStyle {
 pub struct ThemeColorPair {
     /// The concrete color corresponding to the theme color type above.
     #[serde(default)]
-    pub color: ::core::option::Option<RgbColor>,
+    pub color: ::core::option::Option<::std::boxed::Box<RgbColor>>,
     /// The type of the theme color. // TODO: enum values: ["THEME_COLOR_TYPE_UNSPECIFIED", "DARK1", "LIGHT1", "DARK2", "LIGHT2", "ACCENT1", "ACCENT2", "ACCENT3", "ACCENT4", "ACCENT5", "ACCENT6", "HYPERLINK", "FOLLOWED_HYPERLINK", "TEXT1", "BACKGROUND1", "TEXT2", "BACKGROUND2"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -2046,7 +2048,7 @@ pub struct Video {
     pub url: ::core::option::Option<String>,
     /// The properties of the video.
     #[serde(default, rename = "videoProperties")]
-    pub video_properties: ::core::option::Option<VideoProperties>,
+    pub video_properties: ::core::option::Option<::std::boxed::Box<VideoProperties>>,
 }
 
 /// The properties of the Video.
@@ -2063,7 +2065,7 @@ pub struct VideoProperties {
     pub mute: ::core::option::Option<bool>,
     /// The outline of the video. The default outline matches the defaults for new videos created in the Slides editor.
     #[serde(default)]
-    pub outline: ::core::option::Option<Outline>,
+    pub outline: ::core::option::Option<::std::boxed::Box<Outline>>,
     /// The time at which to start playback, measured in seconds from the beginning of the video. If set, the start time should be before the end time. If you set this to a value that exceeds the video''s length in seconds, the video will be played from the last second. If not set, the video will be played from the beginning.
     #[serde(default)]
     pub start: ::core::option::Option<i64>,

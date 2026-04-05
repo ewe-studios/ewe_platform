@@ -107,7 +107,8 @@ pub struct EnterpriseCrmEventbusProtoScatterResponse {
         ::core::option::Option<::std::vec::Vec<EnterpriseCrmEventbusProtoParameterEntry>>,
     /// The element that was scattered for this execution.
     #[serde(default, rename = "scatterElement")]
-    pub scatter_element: ::core::option::Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub scatter_element:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
 }
 
 /// EnterpriseCrmEventbusProtoStringArray resource type.
@@ -583,8 +584,7 @@ pub struct GoogleCloudIntegrationsV1alphaListExecutionsResponse {
     >,
     /// The detailed information of requested executions
     #[serde(default)]
-    pub executions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudIntegrationsV1alphaExecution>>,
+    pub executions: ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecution>>,
     /// The token used to retrieve the next page results.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
@@ -1587,7 +1587,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecution {
     /// Direct sub executions of the following Execution.
     #[serde(default, rename = "directSubExecutions")]
     pub direct_sub_executions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudIntegrationsV1alphaExecution>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudIntegrationsV1alphaExecution>>,
     /// The execution info about this event.
     #[serde(default, rename = "eventExecutionDetails")]
     pub event_execution_details:
@@ -1933,7 +1933,8 @@ pub struct EnterpriseCrmEventbusProtoField {
     pub cardinality: ::core::option::Option<String>,
     /// This holds the default values for the fields. This value is supplied by user so may or may not contain PII or SPII data.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub default_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
     /// Specifies the data type of the field. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "fieldType")]
     pub field_type: ::core::option::Option<String>,
@@ -1945,7 +1946,8 @@ pub struct EnterpriseCrmEventbusProtoField {
     pub reference_key: ::core::option::Option<String>,
     /// This is the transform expression to fetch the input field value. for e.g. $param1$.CONCAT(''test''). Keep points - 1. Only input field can have a transform expression. 2. If a transform expression is provided, reference_key will be ignored. 3. If no value is returned after evaluation of transform expression, default_value can be mapped if provided. 4. The field_type should be the type of the final object returned after the transform expression is evaluated. Scrubs the transform expression before logging as value provided by user so may or may not contain PII or SPII data.
     #[serde(default, rename = "transformExpression")]
-    pub transform_expression: ::core::option::Option<EnterpriseCrmEventbusProtoTransformExpression>,
+    pub transform_expression:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoTransformExpression>>,
 }
 
 /// Field represents either the key or value in an entry.
@@ -1953,7 +1955,8 @@ pub struct EnterpriseCrmEventbusProtoField {
 pub struct EnterpriseCrmEventbusProtoParameterMapField {
     /// Passing a literal value.
     #[serde(default, rename = "literalValue")]
-    pub literal_value: ::core::option::Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub literal_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
     /// Referencing one of the WF variables.
     #[serde(default, rename = "referenceKey")]
     pub reference_key: ::core::option::Option<String>,
@@ -3663,8 +3666,8 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationConfigParameter {
 pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
     /// Parameters are a part of Event and can be used to communiticate between different tasks that are part of the same workflow execution.
     #[serde(default)]
-    pub parameters: ::core::option::Option<
-        ::std::vec::Vec<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>,
+    pub parameters: ::std::vec::Vec<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>,
     >,
 }
 
@@ -4028,8 +4031,8 @@ pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
     pub attributes: ::core::option::Option<EnterpriseCrmEventbusProtoAttributes>,
     /// Child parameters nested within this parameter. This field only applies to protobuf parameters
     #[serde(default)]
-    pub children: ::core::option::Option<
-        ::std::vec::Vec<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>,
+    pub children: ::std::vec::Vec<
+        ::std::boxed::Box<EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry>,
     >,
     /// Indicates whether this variable contains large data and need to be uploaded to Cloud Storage.
     #[serde(default, rename = "containsLargeData")]
@@ -4891,7 +4894,8 @@ pub struct EnterpriseCrmEventbusProtoParameterEntry {
     pub masked: ::core::option::Option<bool>,
     /// Values for the defined keys. Each value can either be string, int, double or any proto message.
     #[serde(default)]
-    pub value: ::core::option::Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
 }
 
 /// EnterpriseCrmEventbusProtoParamSpecEntryConfig resource type.
@@ -5089,10 +5093,12 @@ pub struct EnterpriseCrmEventbusProtoBaseFunction {
 pub struct EnterpriseCrmEventbusProtoBaseValue {
     /// Start with a function that does not build on existing values. Eg. CurrentTime, Min, Max, Exists, etc.
     #[serde(default, rename = "baseFunction")]
-    pub base_function: ::core::option::Option<EnterpriseCrmEventbusProtoFunction>,
+    pub base_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoFunction>>,
     /// Start with a literal value.
     #[serde(default, rename = "literalValue")]
-    pub literal_value: ::core::option::Option<EnterpriseCrmEventbusProtoParameterValueType>,
+    pub literal_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoParameterValueType>>,
     /// Start with a reference value to dereference.
     #[serde(default, rename = "referenceValue")]
     pub reference_value: ::core::option::Option<String>,
@@ -5149,11 +5155,12 @@ pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
 pub struct EnterpriseCrmEventbusProtoFunction {
     /// The name of the function to perform.
     #[serde(default, rename = "functionType")]
-    pub function_type: ::core::option::Option<EnterpriseCrmEventbusProtoFunctionType>,
+    pub function_type:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoFunctionType>>,
     /// List of parameters required for the transformation.
     #[serde(default)]
     pub parameters:
-        ::core::option::Option<::std::vec::Vec<EnterpriseCrmEventbusProtoTransformExpression>>,
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoTransformExpression>>,
 }
 
 /// EnterpriseCrmEventbusProtoFunctionType resource type.
@@ -5161,27 +5168,35 @@ pub struct EnterpriseCrmEventbusProtoFunction {
 pub struct EnterpriseCrmEventbusProtoFunctionType {
     /// LINT.IfChange
     #[serde(default, rename = "baseFunction")]
-    pub base_function: ::core::option::Option<EnterpriseCrmEventbusProtoBaseFunction>,
+    pub base_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBaseFunction>>,
     #[serde(default, rename = "booleanArrayFunction")]
     pub boolean_array_function:
-        ::core::option::Option<EnterpriseCrmEventbusProtoBooleanArrayFunction>,
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBooleanArrayFunction>>,
     #[serde(default, rename = "booleanFunction")]
-    pub boolean_function: ::core::option::Option<EnterpriseCrmEventbusProtoBooleanFunction>,
+    pub boolean_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBooleanFunction>>,
     #[serde(default, rename = "doubleArrayFunction")]
     pub double_array_function:
-        ::core::option::Option<EnterpriseCrmEventbusProtoDoubleArrayFunction>,
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoDoubleArrayFunction>>,
     #[serde(default, rename = "doubleFunction")]
-    pub double_function: ::core::option::Option<EnterpriseCrmEventbusProtoDoubleFunction>,
+    pub double_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoDoubleFunction>>,
     #[serde(default, rename = "intArrayFunction")]
-    pub int_array_function: ::core::option::Option<EnterpriseCrmEventbusProtoIntArrayFunction>,
+    pub int_array_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoIntArrayFunction>>,
     #[serde(default, rename = "intFunction")]
-    pub int_function: ::core::option::Option<EnterpriseCrmEventbusProtoIntFunction>,
+    pub int_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoIntFunction>>,
     #[serde(default, rename = "jsonFunction")]
-    pub json_function: ::core::option::Option<EnterpriseCrmEventbusProtoJsonFunction>,
+    pub json_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoJsonFunction>>,
     #[serde(default, rename = "protoArrayFunction")]
-    pub proto_array_function: ::core::option::Option<EnterpriseCrmEventbusProtoProtoArrayFunction>,
+    pub proto_array_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoProtoArrayFunction>>,
     #[serde(default, rename = "protoFunction")]
-    pub proto_function: ::core::option::Option<EnterpriseCrmEventbusProtoProtoFunction>,
+    pub proto_function:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoProtoFunction>>,
     #[serde(default, rename = "stringArrayFunction")]
     pub string_array_function:
         ::core::option::Option<EnterpriseCrmEventbusProtoStringArrayFunction>,
@@ -5224,24 +5239,29 @@ pub struct EnterpriseCrmEventbusProtoJsonFunction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnterpriseCrmEventbusProtoParameterValueType {
     #[serde(default, rename = "booleanArray")]
-    pub boolean_array: ::core::option::Option<EnterpriseCrmEventbusProtoBooleanParameterArray>,
+    pub boolean_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBooleanParameterArray>>,
     #[serde(default, rename = "booleanValue")]
     pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "doubleArray")]
-    pub double_array: ::core::option::Option<EnterpriseCrmEventbusProtoDoubleParameterArray>,
+    pub double_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoDoubleParameterArray>>,
     #[serde(default, rename = "doubleValue")]
     pub double_value: ::core::option::Option<f64>,
     #[serde(default, rename = "intArray")]
-    pub int_array: ::core::option::Option<EnterpriseCrmEventbusProtoIntParameterArray>,
+    pub int_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoIntParameterArray>>,
     #[serde(default, rename = "intValue")]
     pub int_value: ::core::option::Option<String>,
     #[serde(default, rename = "protoArray")]
-    pub proto_array: ::core::option::Option<EnterpriseCrmEventbusProtoProtoParameterArray>,
+    pub proto_array:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoProtoParameterArray>>,
     #[serde(default, rename = "protoValue")]
     pub proto_value: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "serializedObjectValue")]
-    pub serialized_object_value:
-        ::core::option::Option<EnterpriseCrmEventbusProtoSerializedObjectParameter>,
+    pub serialized_object_value: ::core::option::Option<
+        ::std::boxed::Box<EnterpriseCrmEventbusProtoSerializedObjectParameter>,
+    >,
     #[serde(default, rename = "stringArray")]
     pub string_array: ::core::option::Option<EnterpriseCrmEventbusProtoStringParameterArray>,
     #[serde(default, rename = "stringValue")]
@@ -5283,9 +5303,10 @@ pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
 pub struct EnterpriseCrmEventbusProtoTransformExpression {
     /// Initial value upon which to perform transformations.
     #[serde(default, rename = "initialValue")]
-    pub initial_value: ::core::option::Option<EnterpriseCrmEventbusProtoBaseValue>,
+    pub initial_value:
+        ::core::option::Option<::std::boxed::Box<EnterpriseCrmEventbusProtoBaseValue>>,
     /// Transformations to be applied sequentially.
     #[serde(default, rename = "transformationFunctions")]
     pub transformation_functions:
-        ::core::option::Option<::std::vec::Vec<EnterpriseCrmEventbusProtoFunction>>,
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoFunction>>,
 }
