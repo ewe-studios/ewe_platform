@@ -567,6 +567,22 @@ pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// Metadata describing the feedback from the operator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1beta1OperatorFeedbackMetadata {}
+
+/// Request message for PauseEvaluationJob.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1beta1PauseEvaluationJobRequest {}
+
+/// Metadata describing the feedback from the labeling task requester.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1beta1RequesterFeedbackMetadata {}
+
+/// Request message ResumeEvaluationJob.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1beta1ResumeEvaluationJobRequest {}
+
 /// Results of searching evaluations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse {
@@ -948,6 +964,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Statistics about annotation specs.
 #[derive(Debug, Clone, Serialize, Deserialize)]

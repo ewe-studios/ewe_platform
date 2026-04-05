@@ -10,6 +10,18 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Certificate is required to serve in any country and the existing certificate does not cover the ad''s domain.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint {}
+
+/// Certificate is required to serve in any country.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint {}
+
+/// Policy topic was constrained due to disapproval of the website for reseller purposes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdPolicyTopicConstraintAdPolicyResellerConstraint {}
+
 /// Rule-based algorithm.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AlgorithmRules {
@@ -485,6 +497,10 @@ pub struct EditInventorySourceReadWriteAccessorsRequest {
     #[serde(default, rename = "partnerId")]
     pub partner_id: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// A single Floodlight group.
 #[derive(Debug, Clone, Serialize, Deserialize)]

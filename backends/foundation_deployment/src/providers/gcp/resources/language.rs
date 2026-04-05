@@ -195,6 +195,14 @@ pub struct XPSColumnSpec {
         ::core::option::Option<::std::vec::Vec<XPSColumnSpecCorrelatedColumn>>,
 }
 
+/// A model format used for iOS mobile devices.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSCoreMlFormat {}
+
+/// A model format used for [Edge TPU](https://cloud.google.com/edge-tpu/) devices.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSEdgeTpuTfLiteFormat {}
+
 /// XPSPreprocessResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSPreprocessResponse {
@@ -251,6 +259,22 @@ pub struct XPSStringStatsUnigramStats {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
+
+/// TextToSpeech train response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSTextToSpeechTrainResponse {}
+
+/// A [TensorFlow.js](https://www.tensorflow.org/js) model that can be used in the browser and in Node.js using JavaScript.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSTfJsFormat {}
+
+/// LINT.IfChange A model format used for mobile and IoT devices. See https://www.tensorflow.org/lite.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSTfLiteFormat {}
+
+/// A tensorflow model format in SavedModel format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSTfSavedModelFormat {}
 
 /// Stats split by a defined in context granularity.
 #[derive(Debug, Clone, Serialize, Deserialize)]

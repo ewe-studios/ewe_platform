@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Describes the project/location configuration of Cloud Scheduler Resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CmekConfig {
@@ -20,6 +24,10 @@ pub struct CmekConfig {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Response message for listing jobs using ListJobs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,6 +91,10 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
+/// Request message for PauseJob.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PauseJobRequest {}
+
 /// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PubsubMessage {
@@ -102,6 +114,14 @@ pub struct PubsubMessage {
     #[serde(default, rename = "publishTime")]
     pub publish_time: ::core::option::Option<String>,
 }
+
+/// Request message for ResumeJob.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeJobRequest {}
+
+/// Request message for forcing a job to run now using RunJob.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunJobRequest {}
 
 /// Configuration for a job. The maximum allowed size for a job is 1MB.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -21,6 +21,10 @@ pub struct ApproveSingleTenantHsmInstanceProposalRequest {
     pub required_action_quorum_reply: ::core::option::Option<RequiredActionQuorumReply>,
 }
 
+/// Response message for HsmManagement.ApproveSingleTenantHsmInstanceProposal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApproveSingleTenantHsmInstanceProposalResponse {}
+
 /// Request message for KeyManagementService.AsymmetricDecrypt.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AsymmetricDecryptRequest {
@@ -174,6 +178,18 @@ pub struct DecryptResponse {
     pub used_primary: ::core::option::Option<bool>,
 }
 
+/// Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must not be in the DELETING or DELETED state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteSingleTenantHsmInstance {}
+
+/// Request message for KeyManagementService.DestroyCryptoKeyVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DestroyCryptoKeyVersionRequest {}
+
+/// Disable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableSingleTenantHsmInstance {}
+
 /// An EkmConfig is a singleton resource that represents configuration parameters that apply to all CryptoKeys and CryptoKeyVersions with a ProtectionLevel of EXTERNAL_VPC in a given project and location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EkmConfig {
@@ -184,6 +200,14 @@ pub struct EkmConfig {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Enable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the DISABLED state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableSingleTenantHsmInstance {}
 
 /// Request message for KeyManagementService.Encrypt.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -224,6 +248,10 @@ pub struct EncryptResponse {
     #[serde(default, rename = "verifiedPlaintextCrc32c")]
     pub verified_plaintext_crc32c: ::core::option::Option<bool>,
 }
+
+/// Request message for HsmManagement.ExecuteSingleTenantHsmInstanceProposal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecuteSingleTenantHsmInstanceProposalRequest {}
 
 /// Request message for KeyManagementService.GenerateRandomBytes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -641,6 +669,14 @@ pub struct RawEncryptResponse {
     pub verified_plaintext_crc32c: ::core::option::Option<bool>,
 }
 
+/// Refreshes the SingleTenantHsmInstance. This operation must be performed periodically to keep the SingleTenantHsmInstance active. This operation must be performed before unrefreshed_duration_until_disable has passed. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefreshSingleTenantHsmInstance {}
+
+/// Request message for KeyManagementService.RestoreCryptoKeyVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreCryptoKeyVersionRequest {}
+
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SetIamPolicyRequest {
@@ -705,6 +741,10 @@ pub struct UpdateCryptoKeyPrimaryVersionRequest {
     #[serde(default, rename = "cryptoKeyVersionId")]
     pub crypto_key_version_id: ::core::option::Option<String>,
 }
+
+/// Response message for EkmService.VerifyConnectivity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyConnectivityResponse {}
 
 /// The reply to QuorumParameters for approving the proposal.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// AdaptingOSStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdaptingOSStep {}
+
 /// Request message for ''AddGroupMigration'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddGroupMigrationRequest {
@@ -17,6 +21,54 @@ pub struct AddGroupMigrationRequest {
     #[serde(default, rename = "migratingVm")]
     pub migrating_vm: ::core::option::Option<String>,
 }
+
+/// Request message for ''CancelCloneJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelCloneJobRequest {}
+
+/// Request message for ''CancelCutoverJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelCutoverJobRequest {}
+
+/// Request message for ''CancelDiskMigrationJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelDiskMigrationJobRequest {}
+
+/// Request message for ''CancelImageImportJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelImageImportJobRequest {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// CopyingSourceDiskSnapshotStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CopyingSourceDiskSnapshotStep {}
+
+/// CreatingImageStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreatingImageStep {}
+
+/// CreatingSourceDiskSnapshotStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreatingSourceDiskSnapshotStep {}
+
+/// Details for a disk only migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisksMigrationDisksTargetDefaults {}
+
+/// Details for a disks-only migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisksMigrationDisksTargetDetails {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Request message for ''ExtendMigrationRequest'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtendMigrationRequest {}
 
 /// Response message for fetchInventory.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,6 +103,22 @@ pub struct FetchStorageInventoryResponse {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Request message for ''FinalizeMigration'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FinalizeMigrationRequest {}
+
+/// InitializingImageImportStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitializingImageImportStep {}
+
+/// InitializingReplicationStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitializingReplicationStep {}
+
+/// InstantiatingMigratedVMStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstantiatingMigratedVMStep {}
 
 /// Response message for ''ListCloneJobs'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -245,6 +313,10 @@ pub struct ListUtilizationReportsResponse {
     pub utilization_reports: ::core::option::Option<::std::vec::Vec<UtilizationReport>>,
 }
 
+/// LoadingImageSourceFilesStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoadingImageSourceFilesStep {}
+
 /// Represents migration resource error information that can be used with google.rpc.Status message. MigrationError is used to present the user with error information in migration operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MigrationError {
@@ -291,6 +363,22 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
+/// Request message for ''PauseMigration'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PauseMigrationRequest {}
+
+/// PostProcessingStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostProcessingStep {}
+
+/// PreparingVMDisksStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreparingVMDisksStep {}
+
+/// ProvisioningTargetDiskStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisioningTargetDiskStep {}
+
 /// Request message for ''RemoveMigration'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoveGroupMigrationRequest {
@@ -298,6 +386,26 @@ pub struct RemoveGroupMigrationRequest {
     #[serde(default, rename = "migratingVm")]
     pub migrating_vm: ::core::option::Option<String>,
 }
+
+/// Request message for ''ResumeMigration'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeMigrationRequest {}
+
+/// Request message for ''RunDiskMigrationJobRequest'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunDiskMigrationJobRequest {}
+
+/// ShuttingDownSourceVMStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShuttingDownSourceVMStep {}
+
+/// Mentions that the machine image import is not using OS adaptation process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SkipOsAdaptation {}
+
+/// Request message for ''StartMigrationRequest'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartMigrationRequest {}
 
 /// Request message for ''UpgradeAppliance'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]

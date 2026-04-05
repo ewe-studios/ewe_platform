@@ -21,6 +21,14 @@ pub struct ApplyParametersRequest {
     pub node_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Request message for GetTags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetTagsRequest {
@@ -84,6 +92,10 @@ pub struct GoogleCloudMemcacheV1UpgradeInstanceRequest {
     #[serde(default, rename = "memcacheVersion")]
     pub memcache_version: ::core::option::Option<String>,
 }
+
+/// GoogleCloudMemcacheV1ZoneMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMemcacheV1ZoneMetadata {}
 
 /// Instance represents the interface for SLM services to actuate the state of control plane resources. Example Instance in JSON, where consumer-project-number=123456, producer-project-id=cloud-sql: json Instance: { "name": "projects/123456/locations/us-east1/instances/prod-instance", "create_time": { "seconds": 1526406431, }, "labels": { "env": "prod", "foo": "bar" }, "state": READY, "software_versions": { "software_update": "cloud-sql-09-28-2018", }, "maintenance_policy_names": { "UpdatePolicy": "projects/123456/locations/us-east1/maintenancePolicies/prod-update-policy", } "tenant_project_id": "cloud-sql-test-tenant", "producer_metadata": { "cloud-sql-tier": "basic", "cloud-sql-instance-size": "1G", }, "provisioned_resources": [ { "resource-type": "compute-instance", "resource-url": "https://www.googleapis.com/compute/v1/projects/cloud-sql/zones/us-east1-b/instances/vm-1", } ], "maintenance_schedules": { "csa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, }, "ncsa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, } }, "consumer_defined_name": "my-sql-instance1", }  LINT.IfChange
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -338,6 +350,10 @@ pub struct UpdateParametersRequest {
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
 }
+
+/// ZoneMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ZoneMetadata {}
 
 /// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]

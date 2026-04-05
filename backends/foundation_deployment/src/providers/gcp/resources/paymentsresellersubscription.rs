@@ -154,6 +154,10 @@ pub struct ResumeSubscriptionResponse {
     pub subscription: ::core::option::Option<Subscription>,
 }
 
+/// Request to suspend a subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuspendSubscriptionRequest {}
+
 /// Response that contains the suspended subscription.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SuspendSubscriptionResponse {
@@ -161,6 +165,10 @@ pub struct SuspendSubscriptionResponse {
     #[serde(default)]
     pub subscription: ::core::option::Option<Subscription>,
 }
+
+/// Request to revoke a cancellation request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndoCancelSubscriptionRequest {}
 
 /// Response that contains the updated subscription resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -7,19 +7,35 @@ this_file: "specifications/11-foundation-deployment/features/20-gen-resource-typ
 status: shipped
 priority: high
 created: 2026-04-05
-updated: 2026-04-05
+updated: 2026-04-05 - Merged into gen_resources command
 
 depends_on: ["10-provider-spec-fetcher-core"]
 
 tasks:
-  completed: 5
+  completed: 6
   uncompleted: 0
-  total: 5
+  total: 6
   completion_percentage: 100%
 ---
 
 
 # Gen Resource Types - Rust Code Generation from OpenAPI Specs
+
+## Overview
+
+**Note:** As of 2026-04-05, `gen_resource_types` has been merged with `gen_provider_clients` into a unified `gen_resources` command with subcommands.
+
+**New usage:**
+```bash
+# Generate types (new unified command)
+cargo run --bin ewe_platform gen_resources types
+
+# Generate types for a specific provider
+cargo run --bin ewe_platform gen_resources types --provider gcp
+cargo run --bin ewe_platform gen_resources types --provider fly_io
+```
+
+The `gen_resources types` subcommand generates **valid, idiomatic Rust code** from OpenAPI specifications.
 
 ## Iron Law: Zero Warnings
 
@@ -410,6 +426,12 @@ use crate::providers::gcp::resources::{CloudRunService, Revision, TrafficTarget}
    - [x] Add examples of before/after transformations
    - [x] List known edge cases and how they're handled
 
+6. **Merge with gen_provider_clients**
+   - [x] Create unified `gen_resources` command with `types` and `clients` subcommands
+   - [x] Remove standalone commands from main.rs CLI registration
+   - [x] Support provider name normalization (fly_io -> fly-io)
+   - [x] Update documentation
+
 ## Implementation Notes
 
 ### Generator Fixes Applied
@@ -445,20 +467,26 @@ cargo check -p foundation_deployment --features gcp,cloudflare,stripe
 
 ## Success Criteria
 
-- [ ] All 5 tasks completed
-- [ ] Generated doc comments pass rustdoc validation
-- [ ] No HTML interpretation warnings from rustdoc
-- [ ] Generated code follows Rust naming conventions
-- [ ] Directory structure matches specification
-- [ ] Provider modules can import generated types cleanly
+- [x] All 6 tasks completed
+- [x] Generated doc comments pass rustdoc validation
+- [x] No HTML interpretation warnings from rustdoc
+- [x] Generated code follows Rust naming conventions
+- [x] Directory structure matches specification
+- [x] Provider modules can import generated types cleanly
+- [x] Merged into unified `gen_resources` command
 
 ## Verification
+
+**Note:** The `gen_resource_types` command has been merged into `gen_resources types`.
 
 ```bash
 cd /home/darkvoid/Boxxed/@dev/ewe_platform
 
-# Regenerate all resource types
-cargo run --bin ewe_platform gen_resource_types
+# Regenerate all resource types (new unified command)
+cargo run --bin ewe_platform gen_resources types
+
+# Regenerate types for a specific provider
+cargo run --bin ewe_platform gen_resources types --provider gcp
 
 # Verify compilation
 cargo check -p foundation_deployment
@@ -469,6 +497,8 @@ cargo doc -p foundation_deployment --no-deps 2>&1 | grep -c "warning" | grep -q 
 # Verify clippy
 cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic
 ```
+
+**Provider name convention:** Use underscores in provider names (e.g., `fly_io`, `prisma_postgres`, `mongodb_atlas`) - they are automatically converted to hyphens for directory lookup.
 
 ## Edge Cases
 

@@ -18,6 +18,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest {
     pub ip_override_data: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1IpOverrideData>,
 }
 
+/// Response for AddIpOverride.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse {}
+
 /// The request message to annotate an Assessment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest {
@@ -41,6 +45,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest {
     #[serde(default, rename = "transactionEvent")]
     pub transaction_event: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1TransactionEvent>,
 }
+
+/// Empty response for AnnotateAssessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse {}
 
 /// A reCAPTCHA Enterprise assessment resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,6 +97,26 @@ pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
     #[serde(default, rename = "tokenProperties")]
     pub token_properties: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1TokenProperties>,
 }
+
+/// Settings specific to keys that can be used for reCAPTCHA Express.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1ExpressKeySettings {}
+
+/// An allow action continues processing a request unimpeded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {}
+
+/// A block action serves an HTTP error code a prevents the request from hitting the backend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {}
+
+/// An include reCAPTCHA script action involves injecting reCAPTCHA JavaScript code into the HTML returned by the site backend. This reCAPTCHA script is tasked with collecting user signals on the requested web page, issuing tokens as a cookie within the site domain, and enabling their utilization in subsequent page requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {}
+
+/// A redirect action returns a 307 (temporary redirect) response, pointing the user to a reCAPTCHA interstitial page to attach a token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction {}
 
 /// Response to request to list firewall policies belonging to a project.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -186,6 +214,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest {
     pub ip_override_data: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1IpOverrideData>,
 }
 
+/// Response for RemoveIpOverride.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse {}
+
 /// The reorder firewall policies request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest {
@@ -193,6 +225,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest {
     #[serde(default)]
     pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The reorder firewall policies response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse {}
 
 /// Secret key is used only in legacy reCAPTCHA. It must be used in a 3rd party integration with legacy reCAPTCHA.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -231,6 +267,10 @@ pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsR
         ::std::vec::Vec<GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership>,
     >,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Details on a phone authentication event
 #[derive(Debug, Clone, Serialize, Deserialize)]

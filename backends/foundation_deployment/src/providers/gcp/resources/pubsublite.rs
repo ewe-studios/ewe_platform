@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Request for CommitCursor.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitCursorRequest {
@@ -20,6 +24,10 @@ pub struct CommitCursorRequest {
     #[serde(default)]
     pub partition: ::core::option::Option<String>,
 }
+
+/// Response for CommitCursor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommitCursorResponse {}
 
 /// Compute the current head cursor for a partition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -86,6 +94,10 @@ pub struct ComputeTimeCursorResponse {
     #[serde(default)]
     pub cursor: ::core::option::Option<Cursor>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -194,6 +206,10 @@ pub struct SeekSubscriptionRequest {
     #[serde(default, rename = "timeTarget")]
     pub time_target: ::core::option::Option<TimeTarget>,
 }
+
+/// Response for SeekSubscription long running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SeekSubscriptionResponse {}
 
 /// Response for GetTopicPartitions.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -46,6 +46,14 @@ pub struct BatchModifyMessagesRequest {
     pub remove_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Requests to turn off a client-side encryption key pair.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableCseKeyPairRequest {}
+
+/// Requests to turn on a client-side encryption key pair.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableCseKeyPairRequest {}
+
 /// IMAP settings for an account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImapSettings {
@@ -218,6 +226,10 @@ pub struct ModifyThreadRequest {
     #[serde(default, rename = "removeLabelIds")]
     pub remove_label_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Request to obliterate a CSE key pair.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObliterateCseKeyPairRequest {}
 
 /// POP settings for an account.
 #[derive(Debug, Clone, Serialize, Deserialize)]

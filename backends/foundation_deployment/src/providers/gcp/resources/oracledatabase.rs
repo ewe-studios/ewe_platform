@@ -47,6 +47,10 @@ pub struct AutonomousDatabaseConnectionStrings {
     pub profiles: ::core::option::Option<::std::vec::Vec<DatabaseConnectionStringProfile>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// The connection string profile to allow clients to group. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DatabaseConnectionStringProfile
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseConnectionStringProfile {
@@ -86,6 +90,10 @@ pub struct DefinedTagValue {
     #[serde(default)]
     pub tags: ::core::option::Option<serde_json::Value>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// The request for OracleDatabase.FailoverAutonomousDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -456,6 +464,10 @@ pub struct RemoveVirtualMachineExadbVmClusterRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
+/// The request for AutonomousDatabase.Restart.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestartAutonomousDatabaseRequest {}
+
 /// The request for AutonomousDatabase.Restore.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestoreAutonomousDatabaseRequest {
@@ -463,6 +475,14 @@ pub struct RestoreAutonomousDatabaseRequest {
     #[serde(default, rename = "restoreTime")]
     pub restore_time: ::core::option::Option<String>,
 }
+
+/// The request for AutonomousDatabase.Start.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartAutonomousDatabaseRequest {}
+
+/// The request for AutonomousDatabase.Stop.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopAutonomousDatabaseRequest {}
 
 /// The request for OracleDatabase.SwitchoverAutonomousDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize)]

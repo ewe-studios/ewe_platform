@@ -10,6 +10,26 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Action details for invalid data arrangement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionInvalidDataOrganization {}
+
+/// Action details for absence of data detected by discovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionMissingData {}
+
+/// Action details for resource references in assets that cannot be located.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionMissingResource {}
+
+/// Action details for unauthorized resource issues raised to indicate that the service account associated with the lake instance is not authorized to access or manage the resource associated with an asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionUnauthorizedResource {}
+
 /// An aspect is a single piece of metadata describing an entry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1Aspect {
@@ -46,6 +66,14 @@ pub struct GoogleCloudDataplexV1BusinessGlossaryEvent {
     #[serde(default)]
     pub resource: ::core::option::Option<String>,
 }
+
+/// Cancel task jobs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1CancelJobRequest {}
+
+/// Cancel metadata job request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1CancelMetadataJobRequest {}
 
 /// Configuration for access group inherited from the parent data product.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,6 +113,14 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFi
     #[serde(default, rename = "minLength")]
     pub min_length: ::core::option::Option<String>,
 }
+
+/// Evaluates whether each column value is null.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleNonNullExpectation {}
+
+/// Evaluates whether the column has duplicates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleUniquenessExpectation {}
 
 /// Information about the result of a data quality rule for data quality scan. The monitored resource is ''DataScan''.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -129,6 +165,14 @@ pub struct GoogleCloudDataplexV1DataQualityScanRuleResult {
     #[serde(default, rename = "thresholdPercent")]
     pub threshold_percent: ::core::option::Option<f64>,
 }
+
+/// This trigger is triggered whenever a scan job run ends, regardless of the result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger {}
+
+/// This trigger is triggered when the scan job itself fails, regardless of the result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger {}
 
 /// These messages contain information about the execution of a datascan. The monitored resource is ''DataScan''
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -244,6 +288,10 @@ pub struct GoogleCloudDataplexV1EntryLinkEvent {
     #[serde(default)]
     pub resource: ::core::option::Option<String>,
 }
+
+/// Request details for generating data quality rule recommendations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1GenerateDataQualityRulesRequest {}
 
 /// Response details for data quality rule recommendations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -701,6 +749,10 @@ pub struct GoogleCloudDataplexV1OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
+/// Run DataScan Request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1RunDataScanRequest {}
+
 /// Run DataScan Response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1RunDataScanResponse {
@@ -774,6 +826,10 @@ pub struct GoogleCloudDataplexV1SessionEvent {
     pub user_id: ::core::option::Option<String>,
 }
 
+/// The scan runs once via RunDataScan API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TriggerOnDemand {}
+
 /// The response message for Locations.ListLocations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudLocationListLocationsResponse {
@@ -811,6 +867,10 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]

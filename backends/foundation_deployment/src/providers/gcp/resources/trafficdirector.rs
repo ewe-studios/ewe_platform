@@ -39,6 +39,10 @@ pub struct ContextParams {
     pub params: ::core::option::Option<serde_json::Value>,
 }
 
+/// NullMatch is an empty message to specify a null value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NullMatch {}
+
 /// Specifies the way to match a string. [#next-free-field: 9]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StringMatcher {

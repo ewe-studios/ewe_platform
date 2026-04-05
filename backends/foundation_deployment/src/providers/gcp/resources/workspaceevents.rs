@@ -18,6 +18,10 @@ pub struct CancelTaskRequest {
     pub tenant: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The response message for SubscriptionsService.ListSubscriptions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListSubscriptionsResponse {
@@ -59,6 +63,10 @@ pub struct Operation {
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
 }
+
+/// The request message for SubscriptionsService.ReactivateSubscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReactivateSubscriptionRequest {}
 
 /// /////////// Request Messages ///////////
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// When set in OperationStep, indicates that cluster health check should be performed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckClusterHealth {}
+
 /// A resource defining how virtual machines and accelerators should be provisioned for the cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComputeResource {
@@ -17,6 +25,34 @@ pub struct ComputeResource {
     #[serde(default)]
     pub config: ::core::option::Option<ComputeResourceConfig>,
 }
+
+/// When set in OperationStep, indicates that a login node should be created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateLoginNode {}
+
+/// When set in OperationStep, indicates that an orchestrator should be created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateOrchestrator {}
+
+/// When set in OperationStep, indicates that a new private service access should be created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreatePrivateServiceAccess {}
+
+/// When set in OperationStep, indicates that a login node should be deleted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteLoginNode {}
+
+/// When set in OperationStep, indicates that an orchestrator should be deleted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteOrchestrator {}
+
+/// When set in OperationStep, indicates private service access deletion step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeletePrivateServiceAccess {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Response message for ListClusters.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,6 +146,14 @@ pub struct StorageResource {
     #[serde(default)]
     pub lustre: ::core::option::Option<LustreReference>,
 }
+
+/// When set in OperationStep, indicates that a login node should be updated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateLoginNode {}
+
+/// When set in OperationStep, indicates that an orchestrator should be updated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateOrchestrator {}
 
 /// Describes how a compute resource should be created at runtime.
 #[derive(Debug, Clone, Serialize, Deserialize)]

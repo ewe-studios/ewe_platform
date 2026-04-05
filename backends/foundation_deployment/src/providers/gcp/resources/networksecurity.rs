@@ -41,6 +41,14 @@ pub struct AuthzPolicyAuthzRuleStringMatch {
     pub suffix: ::core::option::Option<String>,
 }
 
+/// Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthzPolicyCustomProviderCloudIap {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Request used by the CloneAddressGroupItems method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloneAddressGroupItemsRequest {
@@ -51,6 +59,10 @@ pub struct CloneAddressGroupItemsRequest {
     #[serde(default, rename = "sourceAddressGroup")]
     pub source_address_group: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]

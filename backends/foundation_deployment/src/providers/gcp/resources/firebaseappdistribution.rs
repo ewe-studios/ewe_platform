@@ -94,6 +94,10 @@ pub struct GoogleFirebaseAppdistroV1DistributeReleaseRequest {
     pub tester_emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// The response message for DistributeRelease.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1DistributeReleaseResponse {}
+
 /// The response message for ListFeedbackReports.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirebaseAppdistroV1ListFeedbackReportsResponse {
@@ -139,6 +143,10 @@ pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
     pub testers: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Tester>>,
 }
 
+/// Operation metadata for UploadRelease.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1UploadReleaseMetadata {}
+
 /// Request message for UploadRelease.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirebaseAppdistroV1UploadReleaseRequest {
@@ -157,6 +165,10 @@ pub struct GoogleFirebaseAppdistroV1UploadReleaseResponse {
     #[serde(default)]
     pub result: ::core::option::Option<String>,
 }
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -179,6 +191,10 @@ pub struct GoogleLongrunningWaitOperationRequest {
     #[serde(default)]
     pub timeout: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// App bundle test certificate
 #[derive(Debug, Clone, Serialize, Deserialize)]

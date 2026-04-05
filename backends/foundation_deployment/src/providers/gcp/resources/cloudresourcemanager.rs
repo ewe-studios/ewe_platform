@@ -80,6 +80,42 @@ pub struct CreateProjectMetadata {
     pub ready: ::core::option::Option<bool>,
 }
 
+/// Runtime operation information for creating a TagValue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateTagBindingMetadata {}
+
+/// Runtime operation information for creating a TagKey.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateTagKeyMetadata {}
+
+/// Runtime operation information for creating a TagValue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateTagValueMetadata {}
+
+/// A status object which is used as the metadata field for the Operation returned by DeleteFolder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteFolderMetadata {}
+
+/// A status object which is used as the metadata field for the operation returned by DeleteOrganization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteOrganizationMetadata {}
+
+/// A status object which is used as the metadata field for the Operation returned by DeleteProject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteProjectMetadata {}
+
+/// Runtime operation information for deleting a TagBinding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteTagBindingMetadata {}
+
+/// Runtime operation information for deleting a TagKey.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteTagKeyMetadata {}
+
+/// Runtime operation information for deleting a TagValue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteTagValueMetadata {}
+
 /// Represents a collection of effective tag bindings for a GCP resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EffectiveTagBindingCollection {
@@ -93,6 +129,10 @@ pub struct EffectiveTagBindingCollection {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Metadata describing a long running folder operation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -237,6 +277,10 @@ pub struct MoveFolderRequest {
     pub destination_parent: ::core::option::Option<String>,
 }
 
+/// A status object which is used as the metadata field for the Operation returned by MoveProject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MoveProjectMetadata {}
+
 /// The request sent to MoveProject method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MoveProjectRequest {
@@ -355,6 +399,42 @@ pub struct TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A status object which is used as the metadata field for the Operation returned by UndeleteFolder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteFolderMetadata {}
+
+/// The UndeleteFolder request message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteFolderRequest {}
+
+/// A status object which is used as the metadata field for the Operation returned by UndeleteOrganization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteOrganizationMetadata {}
+
+/// A status object which is used as the metadata field for the Operation returned by UndeleteProject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteProjectMetadata {}
+
+/// The request sent to the UndeleteProject method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteProjectRequest {}
+
+/// A status object which is used as the metadata field for the Operation returned by UpdateFolder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateFolderMetadata {}
+
+/// A status object which is used as the metadata field for the Operation returned by UpdateProject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateProjectMetadata {}
+
+/// Runtime operation information for updating a TagKey.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTagKeyMetadata {}
+
+/// Runtime operation information for updating a TagValue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTagValueMetadata {}
 
 /// Encapsulates settings provided to GetIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize)]

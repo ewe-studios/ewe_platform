@@ -21,6 +21,10 @@ pub struct ConversionList {
     pub kind: ::core::option::Option<String>,
 }
 
+/// File returned to https://developers.google.com/search-ads/v2/reference/reports/getIdMappingFile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdMappingFile {}
+
 /// A DoubleClick Search report. This object contains the report request, some report metadata such as currency code, and the generated report rows or report files.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Report {
@@ -52,6 +56,10 @@ pub struct Report {
     #[serde(default, rename = "statisticsTimeZone")]
     pub statistics_time_zone: ::core::option::Option<String>,
 }
+
+/// A row in a DoubleClick Search report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportRow {}
 
 /// A list of saved columns. Advertisers create saved columns to report on Floodlight activities, Google Analytics goals, or custom KPIs. To request reports with saved columns, you''ll need the saved column names that are available from this list.
 #[derive(Debug, Clone, Serialize, Deserialize)]

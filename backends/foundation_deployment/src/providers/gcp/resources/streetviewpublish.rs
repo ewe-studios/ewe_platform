@@ -50,6 +50,10 @@ pub struct BatchUpdatePhotosResponse {
     pub results: ::core::option::Option<::std::vec::Vec<PhotoResponse>>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Response to list all photo sequences that belong to a user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListPhotoSequencesResponse {

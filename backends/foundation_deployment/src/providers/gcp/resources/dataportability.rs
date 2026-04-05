@@ -10,6 +10,18 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request to cancel a Portability Archive job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelPortabilityArchiveRequest {}
+
+/// Response to canceling a Data Portability Archive job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelPortabilityArchiveResponse {}
+
+/// Request to check the token''s access type. All required information is derived from the attached OAuth token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckAccessTypeRequest {}
+
 /// Response to checking the token''s access type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckAccessTypeResponse {
@@ -20,6 +32,10 @@ pub struct CheckAccessTypeResponse {
     #[serde(default, rename = "timeBasedResources")]
     pub time_based_resources: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Request to kick off an Archive job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,6 +81,14 @@ pub struct PortabilityArchiveState {
     #[serde(default)]
     pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Request to reset exhausted OAuth scopes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetAuthorizationRequest {}
+
+/// Request to retry a failed Portability Archive job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetryPortabilityArchiveRequest {}
 
 /// Response from retrying a Portability Archive.
 #[derive(Debug, Clone, Serialize, Deserialize)]

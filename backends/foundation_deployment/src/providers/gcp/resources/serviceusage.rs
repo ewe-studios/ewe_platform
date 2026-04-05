@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Metadata for the AddEnableRules method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddEnableRulesMetadata {}
+
 /// The response message of AddEnableRules method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddEnableRulesResponse {
@@ -20,6 +24,10 @@ pub struct AddEnableRulesResponse {
     #[serde(default)]
     pub parent: ::core::option::Option<String>,
 }
+
+/// Metadata for the AnalyzeConsumerPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyzeConsumerPolicyMetadata {}
 
 /// The response of analyzing a consumer policy update.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -72,6 +80,10 @@ pub struct BatchGetServicesResponse {
     pub services: ::core::option::Option<::std::vec::Vec<GoogleApiServiceusageV1Service>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Consumer Policy is a set of rules that define what services or service groups can be used for a cloud resource hierarchy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsumerPolicy {
@@ -103,6 +115,14 @@ pub struct ContentSecurityPolicy {
     pub name: ::core::option::Option<String>,
 }
 
+/// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by CreateAdminQuotaPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateAdminQuotaPolicyMetadata {}
+
+/// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by DeleteAdminQuotaPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteAdminQuotaPolicyMetadata {}
+
 /// Request message for the DisableService method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DisableServiceRequest {
@@ -122,6 +142,14 @@ pub struct DisableServiceResponse {
     pub service: ::core::option::Option<GoogleApiServiceusageV1Service>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Request message for the EnableService method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableServiceRequest {}
+
 /// Response message for the EnableService method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnableServiceResponse {
@@ -129,6 +157,10 @@ pub struct EnableServiceResponse {
     #[serde(default)]
     pub service: ::core::option::Option<GoogleApiServiceusageV1Service>,
 }
+
+/// Metadata for the GetServiceIdentity method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetServiceIdentityMetadata {}
 
 /// Response message for getting service identity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -276,6 +308,14 @@ pub struct GoogleApiServiceusageV2alphaConsumerPolicy {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Metadata for the UpdateConsumerPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleApiServiceusageV2alphaUpdateConsumerPolicyMetadata {}
+
+/// Metadata for the AnalyzeConsumerPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleApiServiceusageV2betaAnalyzeConsumerPolicyMetadata {}
+
 /// The response of analyzing a consumer policy update.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleApiServiceusageV2betaAnalyzeConsumerPolicyResponse {
@@ -326,6 +366,18 @@ pub struct GoogleApiServiceusageV2betaMcpPolicy {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Metadata for the UpdateConsumerPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleApiServiceusageV2betaUpdateConsumerPolicyMetadata {}
+
+/// Metadata for the UpdateMcpPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleApiServiceusageV2betaUpdateMcpPolicyMetadata {}
+
+/// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by ImportAdminOverrides.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportAdminOverridesMetadata {}
+
 /// Response message for ImportAdminOverrides
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportAdminOverridesResponse {
@@ -334,6 +386,10 @@ pub struct ImportAdminOverridesResponse {
     pub overrides: ::core::option::Option<::std::vec::Vec<QuotaOverride>>,
 }
 
+/// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by ImportAdminQuotaPolicies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportAdminQuotaPoliciesMetadata {}
+
 /// Response message for ImportAdminQuotaPolicies
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportAdminQuotaPoliciesResponse {
@@ -341,6 +397,10 @@ pub struct ImportAdminQuotaPoliciesResponse {
     #[serde(default)]
     pub policies: ::core::option::Option<::std::vec::Vec<AdminQuotaPolicy>>,
 }
+
+/// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by ImportConsumerOverrides.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportConsumerOverridesMetadata {}
 
 /// Response message for ImportConsumerOverrides
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -383,6 +443,10 @@ pub struct OperationMetadata {
     pub resource_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Metadata for the RemoveEnableRules method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveEnableRulesMetadata {}
+
 /// The response message of RemoveEnableRules method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoveEnableRulesResponse {
@@ -393,6 +457,18 @@ pub struct RemoveEnableRulesResponse {
     #[serde(default, rename = "removedValues")]
     pub removed_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by UpdateAdminQuotaPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateAdminQuotaPolicyMetadata {}
+
+/// Metadata for the UpdateConsumerPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateConsumerPolicyMetadata {}
+
+/// Metadata for the UpdateContentSecurityPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateContentSecurityPolicyMetadata {}
 
 /// A message to group the analysis information.
 #[derive(Debug, Clone, Serialize, Deserialize)]

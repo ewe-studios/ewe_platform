@@ -18,6 +18,10 @@ pub struct AcknowledgeRequest {
     pub ack_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the data field of a Pub/Sub message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AvroFormat {}
+
 /// Request for CommitSchema method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitSchemaRequest {
@@ -39,6 +43,14 @@ pub struct CreateSnapshotRequest {
     #[serde(default)]
     pub tags: ::core::option::Option<serde_json::Value>,
 }
+
+/// Response for the DetachSubscription method. Reserved for future use.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetachSubscriptionResponse {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Response for the ListSchemaRevisions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -136,6 +148,10 @@ pub struct ModifyPushConfigRequest {
     pub push_config: ::core::option::Option<PushConfig>,
 }
 
+/// Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PubSubAvroFormat {}
+
 /// Request for the Publish method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishRequest {
@@ -151,6 +167,10 @@ pub struct PublishResponse {
     #[serde(default, rename = "messageIds")]
     pub message_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PubsubWrapper {}
 
 /// Request for the Pull method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -190,6 +210,10 @@ pub struct SeekRequest {
     pub time: ::core::option::Option<String>,
 }
 
+/// Response for the Seek method (this response is empty).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SeekResponse {}
+
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SetIamPolicyRequest {
@@ -213,6 +237,10 @@ pub struct TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextConfig {}
 
 /// Request for the UpdateSnapshot method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -264,6 +292,10 @@ pub struct ValidateMessageRequest {
     pub schema: ::core::option::Option<Schema>,
 }
 
+/// Response for the ValidateMessage method. Empty for now.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateMessageResponse {}
+
 /// Request for the ValidateSchema method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidateSchemaRequest {
@@ -271,6 +303,10 @@ pub struct ValidateSchemaRequest {
     #[serde(default)]
     pub schema: ::core::option::Option<Schema>,
 }
+
+/// Response for the ValidateSchema method. Empty for now.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateSchemaResponse {}
 
 /// A message and its corresponding acknowledgment ID.
 #[derive(Debug, Clone, Serialize, Deserialize)]

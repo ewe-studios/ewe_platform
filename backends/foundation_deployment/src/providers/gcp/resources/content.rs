@@ -321,6 +321,10 @@ pub struct GenerateRecommendationsResponse {
     pub response_token: ::core::option::Option<String>,
 }
 
+/// Checkbox input allows merchants to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox). If merchant checks the box, the input value for the field is true, otherwise it is false. This type of input is often used as a confirmation that the merchant completed required steps before they are allowed to start the action. In such a case, the input field is marked as required and the button to trigger the action should stay disabled until the merchant checks the box.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputFieldCheckboxInput {}
+
 /// Request message for the InsertCheckoutSettings method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InsertCheckoutSettingsRequest {
@@ -1085,6 +1089,10 @@ pub struct TriggerActionResponse {
     #[serde(default)]
     pub message: ::core::option::Option<String>,
 }
+
+/// Request message for the UndeleteConversionSource method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteConversionSourceRequest {}
 
 /// Request message for the VerifyPhoneNumber method.
 #[derive(Debug, Clone, Serialize, Deserialize)]

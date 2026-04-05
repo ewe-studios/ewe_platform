@@ -10,6 +10,42 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Configuration for AES-128 encryption.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Aes128Encryption {}
+
+/// Clearkey configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Clearkey {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Fairplay configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Fairplay {}
+
+/// Convert the input video to a Hybrid Log Gamma (HLG) video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct H264ColorFormatHLG {}
+
+/// Convert the input video to a Standard Dynamic Range (SDR) video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct H264ColorFormatSDR {}
+
+/// Convert the input video to a High Dynamic Range 10 (HDR10) video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct H265ColorFormatHDR10 {}
+
+/// Convert the input video to a Hybrid Log Gamma (HLG) video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct H265ColorFormatHLG {}
+
+/// Convert the input video to a Standard Dynamic Range (SDR) video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct H265ColorFormatSDR {}
+
 /// Response message for TranscoderService.ListJobTemplates.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListJobTemplatesResponse {
@@ -37,6 +73,26 @@ pub struct ListJobsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Playready configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Playready {}
+
+/// Configuration for SAMPLE-AES encryption.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SampleAesEncryption {}
+
+/// Convert the input video to a Hybrid Log Gamma (HLG) video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Vp9ColorFormatHLG {}
+
+/// Convert the input video to a Standard Dynamic Range (SDR) video.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Vp9ColorFormatSDR {}
+
+/// Widevine configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Widevine {}
 
 /// Transcoding job template resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request message for CancelSubmission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelSubmissionRequest {}
+
+/// Response message for CancelSubmission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelSubmissionResponse {}
+
 /// Response message for FetchItemStatus.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchItemStatusResponse {
@@ -74,6 +82,14 @@ pub struct SetPublishedDeployPercentageRequest {
     #[serde(default, rename = "deployPercentage")]
     pub deploy_percentage: ::core::option::Option<i32>,
 }
+
+/// Response message for SetPublishedDeployPercentage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetPublishedDeployPercentageResponse {}
+
+/// Request message for UploadItemPackage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadItemPackageRequest {}
 
 /// Response message for UploadItemPackage.
 #[derive(Debug, Clone, Serialize, Deserialize)]

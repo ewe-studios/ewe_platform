@@ -30,6 +30,10 @@ pub struct BucketMetadata {
     pub update_bucket_request: ::core::option::Option<UpdateBucketRequest>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Metadata for CopyLogEntries long running operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CopyLogEntriesMetadata {
@@ -72,6 +76,10 @@ pub struct CopyLogEntriesResponse {
     #[serde(default, rename = "logEntriesCopiedCount")]
     pub log_entries_copied_count: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -480,6 +488,10 @@ pub struct TestIamPermissionsResponse {
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// The parameters to UndeleteBucket.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteBucketRequest {}
+
 /// The parameters to WriteLogEntries.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WriteLogEntriesRequest {
@@ -502,6 +514,10 @@ pub struct WriteLogEntriesRequest {
     #[serde(default)]
     pub resource: ::core::option::Option<MonitoredResource>,
 }
+
+/// Result returned from WriteLogEntries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WriteLogEntriesResponse {}
 
 /// The parameters to CreateBucket.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -181,6 +181,10 @@ pub struct GoogleCloudDialogflowCxV3ExportAgentResponse {
     pub commit_sha: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3ExportEntityTypesMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ExportEntityTypesMetadata {}
+
 /// GoogleCloudDialogflowCxV3ExportEntityTypesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportEntityTypesRequest {
@@ -224,6 +228,10 @@ pub struct GoogleCloudDialogflowCxV3ExportFlowResponse {
     pub flow_uri: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3ExportIntentsMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ExportIntentsMetadata {}
+
 /// GoogleCloudDialogflowCxV3ExportIntentsRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ExportIntentsRequest {
@@ -256,6 +264,10 @@ pub struct GoogleCloudDialogflowCxV3ExportPlaybookRequest {
     #[serde(default, rename = "playbookUri")]
     pub playbook_uri: ::core::option::Option<String>,
 }
+
+/// GoogleCloudDialogflowCxV3ExportTestCasesMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ExportTestCasesMetadata {}
 
 /// GoogleCloudDialogflowCxV3ExportTestCasesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -322,6 +334,10 @@ pub struct GoogleCloudDialogflowCxV3GenerativeSettings {
     pub name: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3ImportEntityTypesMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ImportEntityTypesMetadata {}
+
 /// GoogleCloudDialogflowCxV3ImportEntityTypesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3ImportEntityTypesRequest {
@@ -367,6 +383,10 @@ pub struct GoogleCloudDialogflowCxV3ImportFlowResponse {
     #[serde(default)]
     pub flow: ::core::option::Option<String>,
 }
+
+/// GoogleCloudDialogflowCxV3ImportIntentsMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ImportIntentsMetadata {}
 
 /// GoogleCloudDialogflowCxV3ImportIntentsRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -671,6 +691,14 @@ pub struct GoogleCloudDialogflowCxV3MatchIntentResponse {
     pub trigger_intent: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3ResponseMessageEndInteraction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageEndInteraction {}
+
+/// GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard {}
+
 /// GoogleCloudDialogflowCxV3RestoreAgentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RestoreAgentRequest {
@@ -685,12 +713,20 @@ pub struct GoogleCloudDialogflowCxV3RestoreAgentRequest {
     pub restore_option: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest {}
+
 /// GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse {
     #[serde(default)]
     pub playbook: ::core::option::Option<GoogleCloudDialogflowCxV3Playbook>,
 }
+
+/// GoogleCloudDialogflowCxV3RestoreToolVersionRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3RestoreToolVersionRequest {}
 
 /// GoogleCloudDialogflowCxV3RestoreToolVersionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -706,6 +742,10 @@ pub struct GoogleCloudDialogflowCxV3RunContinuousTestMetadata {
     pub errors: ::core::option::Option<::std::vec::Vec<GoogleCloudDialogflowCxV3TestError>>,
 }
 
+/// GoogleCloudDialogflowCxV3RunContinuousTestRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3RunContinuousTestRequest {}
+
 /// GoogleCloudDialogflowCxV3RunContinuousTestResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3RunContinuousTestResponse {
@@ -713,6 +753,10 @@ pub struct GoogleCloudDialogflowCxV3RunContinuousTestResponse {
     pub continuous_test_result:
         ::core::option::Option<GoogleCloudDialogflowCxV3ContinuousTestResult>,
 }
+
+/// GoogleCloudDialogflowCxV3RunTestCaseMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3RunTestCaseMetadata {}
 
 /// GoogleCloudDialogflowCxV3RunTestCaseRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -728,6 +772,14 @@ pub struct GoogleCloudDialogflowCxV3RunTestCaseResponse {
     pub result: ::core::option::Option<GoogleCloudDialogflowCxV3TestCaseResult>,
 }
 
+/// GoogleCloudDialogflowCxV3StartExperimentRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3StartExperimentRequest {}
+
+/// GoogleCloudDialogflowCxV3StopExperimentRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3StopExperimentRequest {}
+
 /// GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest {
@@ -738,6 +790,14 @@ pub struct GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest {
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
 }
+
+/// GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt {}
+
+/// GoogleCloudDialogflowCxV3TrainFlowRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3TrainFlowRequest {}
 
 /// GoogleCloudDialogflowCxV3ValidateAgentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -881,6 +941,10 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportAgentResponse {
     pub commit_sha: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3beta1ExportEntityTypesMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ExportEntityTypesMetadata {}
+
 /// GoogleCloudDialogflowCxV3beta1ExportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportEntityTypesResponse {
@@ -900,6 +964,10 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportFlowResponse {
     pub flow_uri: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3beta1ExportIntentsMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ExportIntentsMetadata {}
+
 /// GoogleCloudDialogflowCxV3beta1ExportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportIntentsResponse {
@@ -909,6 +977,10 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportIntentsResponse {
     pub intents_uri: ::core::option::Option<String>,
 }
 
+/// GoogleCloudDialogflowCxV3beta1ExportTestCasesMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ExportTestCasesMetadata {}
+
 /// GoogleCloudDialogflowCxV3beta1ExportTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1ExportTestCasesResponse {
@@ -917,6 +989,10 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportTestCasesResponse {
     #[serde(default, rename = "gcsUri")]
     pub gcs_uri: ::core::option::Option<String>,
 }
+
+/// GoogleCloudDialogflowCxV3beta1ImportEntityTypesMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ImportEntityTypesMetadata {}
 
 /// GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -935,6 +1011,10 @@ pub struct GoogleCloudDialogflowCxV3beta1ImportFlowResponse {
     #[serde(default)]
     pub flow: ::core::option::Option<String>,
 }
+
+/// GoogleCloudDialogflowCxV3beta1ImportIntentsMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ImportIntentsMetadata {}
 
 /// GoogleCloudDialogflowCxV3beta1ImportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -962,6 +1042,14 @@ pub struct GoogleCloudDialogflowCxV3beta1ImportTestCasesResponse {
     pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// GoogleCloudDialogflowCxV3beta1ResponseMessageEndInteraction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageEndInteraction {}
+
+/// GoogleCloudDialogflowCxV3beta1ResponseMessageKnowledgeInfoCard resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageKnowledgeInfoCard {}
+
 /// GoogleCloudDialogflowCxV3beta1RunContinuousTestMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowCxV3beta1RunContinuousTestMetadata {
@@ -976,6 +1064,10 @@ pub struct GoogleCloudDialogflowCxV3beta1RunContinuousTestResponse {
     pub continuous_test_result:
         ::core::option::Option<GoogleCloudDialogflowCxV3beta1ContinuousTestResult>,
 }
+
+/// GoogleCloudDialogflowCxV3beta1RunTestCaseMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowCxV3beta1RunTestCaseMetadata {}
 
 /// GoogleCloudDialogflowCxV3beta1RunTestCaseResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1164,6 +1256,10 @@ pub struct GoogleCloudDialogflowV2CreateConversationModelOperationMetadata {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
+
+/// GoogleCloudDialogflowV2DeleteConversationDatasetOperationMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowV2DeleteConversationDatasetOperationMetadata {}
 
 /// GoogleCloudDialogflowV2DeleteConversationModelOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1401,6 +1497,11 @@ pub struct GoogleCloudDialogflowV2beta1InitializeEncryptionSpecMetadata {
         ::core::option::Option<GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest>,
 }
 
+/// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation
+{}
+
 /// GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata {
@@ -1415,6 +1516,10 @@ pub struct GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
+
+/// GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction {}
 
 /// GoogleCloudDialogflowV2beta1SetSuggestionFeatureConfigOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1500,6 +1605,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// GoogleProtobufEmpty resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// GoogleCloudDialogflowCxV3FlowValidationResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]

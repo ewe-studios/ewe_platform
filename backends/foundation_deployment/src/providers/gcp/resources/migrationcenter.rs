@@ -46,6 +46,30 @@ pub struct AggregateAssetsValuesResponse {
     pub results: ::core::option::Option<::std::vec::Vec<AggregationResult>>,
 }
 
+/// Object count.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationCount {}
+
+/// Frequency distribution of all field values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationFrequency {}
+
+/// Sum of field values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationSum {}
+
+/// Configuration for asset inventory details exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetsExportJobInventory {}
+
+/// Configuration for network dependencies exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetsExportJobNetworkDependencies {}
+
+/// Specific details for an AWS RDS database deployment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AwsRds {}
+
 /// A request to delete a list of asset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchDeleteAssetsRequest {
@@ -75,6 +99,18 @@ pub struct BatchUpdateAssetsResponse {
     #[serde(default)]
     pub assets: ::core::option::Option<::std::vec::Vec<Asset>>,
 }
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// Cascading rule for related logical DBs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CascadeLogicalDBsRule {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Collection of frame data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -310,6 +346,10 @@ pub struct RemoveAssetsFromGroupRequest {
     #[serde(default, rename = "requestId")]
     pub request_id: ::core::option::Option<String>,
 }
+
+/// A response to a call to ReportAssetFrame.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportAssetFramesResponse {}
 
 /// A request to run an assets export job.
 #[derive(Debug, Clone, Serialize, Deserialize)]

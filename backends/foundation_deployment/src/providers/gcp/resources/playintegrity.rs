@@ -53,6 +53,10 @@ pub struct WriteDeviceRecallRequest {
     pub new_values: ::core::option::Option<Values>,
 }
 
+/// Response for the Write Device Recall action. Currently empty.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WriteDeviceRecallResponse {}
+
 /// Contains basic app information and integrity signals like device attestation and licensing details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenPayloadExternal {

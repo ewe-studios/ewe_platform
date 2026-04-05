@@ -69,6 +69,10 @@ pub struct A2aV1AgentCard {
     pub version: ::core::option::Option<String>,
 }
 
+/// A2aV1CancelTaskRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct A2aV1CancelTaskRequest {}
+
 /// A2aV1ListTaskPushNotificationConfigResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct A2aV1ListTaskPushNotificationConfigResponse {
@@ -422,6 +426,10 @@ pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesResponse {
         ::core::option::Option<::std::vec::Vec<GoogleCloudDiscoveryengineV1UserLicense>>,
 }
 
+/// Request message for SiteSearchEngineService.BatchVerifyTargetSites method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1BatchVerifyTargetSitesRequest {}
+
 /// The column family of the Bigtable.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1BigtableOptionsBigtableColumnFamily {
@@ -719,6 +727,19 @@ pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchMetadata {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Request message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest {}
+
+/// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchResponse {}
+
+/// The digital parsing configurations for documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig {
+}
+
 /// Double list.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1DoubleList {
@@ -737,6 +758,14 @@ pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Request message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest {}
+
+/// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchResponse {}
 
 /// Response message for SiteSearchEngineService.FetchDomainVerificationStatus method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1280,6 +1309,10 @@ pub struct GoogleCloudDiscoveryengineV1ProjectServiceTerms {
     pub version: ::core::option::Option<String>,
 }
 
+/// Metadata associated with a project provision operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1ProvisionProjectMetadata {}
+
 /// Request for ProjectService.ProvisionProject method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1ProvisionProjectRequest {
@@ -1305,6 +1338,10 @@ pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Request message for CompletionService.PurgeCompletionSuggestions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest {}
 
 /// Response message for CompletionService.PurgeCompletionSuggestions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1395,6 +1432,10 @@ pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Request message for CompletionService.PurgeSuggestionDenyListEntries method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest {}
 
 /// Response message for CompletionService.PurgeSuggestionDenyListEntries method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1687,6 +1728,10 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Metadata for DataConnectorService.SetUpDataConnector method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1SetUpDataConnectorMetadata {}
+
 /// Request for DataConnectorService.SetUpDataConnector method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1SetUpDataConnectorRequest {
@@ -1730,6 +1775,18 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequest {
     #[serde(default, rename = "userMetadata")]
     pub user_metadata: ::core::option::Option<GoogleCloudDiscoveryengineV1AssistUserMetadata>,
 }
+
+/// Specification of the image generation tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecImageGenerationSpec {}
+
+/// Specification of the video generation tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVideoGenerationSpec {}
+
+/// Specification of the web grounding tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecWebGroundingSpec {}
 
 /// Response for the AssistantService.StreamAssist method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2187,6 +2244,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaCreateEngineMetadata {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Metadata for EvaluationService.CreateEvaluation method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaCreateEvaluationMetadata {}
+
 /// Metadata for Create Schema LRO.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1alphaCreateSchemaMetadata {
@@ -2445,6 +2506,15 @@ pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchMetadata {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchResponse {}
+
+/// The digital parsing configurations for documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigDigitalParsingConfig
+{}
+
 /// Metadata related to the progress of the SiteSearchEngineService.EnableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchMetadata {
@@ -2455,6 +2525,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchResponse {}
 
 /// Metadata that describes the training and serving parameters of an Engine.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2548,6 +2622,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngine {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Additional config specs for a similar-items engine.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaEngineSimilarDocumentsEngineConfig {}
+
 /// Metadata related to the progress of the EstimateDataSize operation. This is returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1alphaEstimateDataSizeMetadata {
@@ -2607,6 +2685,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Response of the ExportMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsResponse {}
 
 /// Request for GetSession method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2955,6 +3037,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectServiceTerms {
     pub version: ::core::option::Option<String>,
 }
 
+/// Metadata associated with a project provision operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaProvisionProjectMetadata {}
+
 /// Metadata related to the progress of the PurgeCompletionSuggestions operation. This is returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeCompletionSuggestionsMetadata {
@@ -3175,6 +3261,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaSetDedicatedCrawlRateResponse {
     pub state: ::core::option::Option<String>,
 }
 
+/// Metadata for DataConnectorService.SetUpDataConnector method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaSetUpDataConnectorMetadata {}
+
 /// Metadata related to the progress of the SiteSearchEngineService.SetUriPatternDocumentData operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataMetadata {
@@ -3185,6 +3275,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Response message for SiteSearchEngineService.SetUriPatternDocumentData method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataResponse {}
 
 /// A sitemap for the SiteSearchEngine.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -3238,6 +3332,10 @@ pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineMetadata {
     #[serde(default)]
     pub engine: ::core::option::Option<String>,
 }
+
+/// Response associated with a tune operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineResponse {}
 
 /// Metadata related to the progress of the CmekConfigService.UpdateCmekConfig operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -3417,6 +3515,10 @@ pub struct GoogleCloudDiscoveryengineV1betaCreateEngineMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Metadata for EvaluationService.CreateEvaluation method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1betaCreateEvaluationMetadata {}
 
 /// Metadata for Create Schema LRO.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -3613,6 +3715,15 @@ pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchMetadata {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchResponse {}
+
+/// The digital parsing configurations for documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfigDigitalParsingConfig
+{}
+
 /// Metadata related to the progress of the SiteSearchEngineService.EnableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchMetadata {
@@ -3623,6 +3734,10 @@ pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchResponse {}
 
 /// Metadata that describes the training and serving parameters of an Engine.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -4015,6 +4130,10 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectServiceTerms {
     pub version: ::core::option::Option<String>,
 }
 
+/// Metadata associated with a project provision operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1betaProvisionProjectMetadata {}
+
 /// Metadata related to the progress of the PurgeDocuments operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1betaPurgeDocumentsMetadata {
@@ -4165,6 +4284,10 @@ pub struct GoogleCloudDiscoveryengineV1betaTuneEngineMetadata {
     pub engine: ::core::option::Option<String>,
 }
 
+/// Response associated with a tune operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDiscoveryengineV1betaTuneEngineResponse {}
+
 /// Metadata for UpdateSchema LRO.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDiscoveryengineV1betaUpdateSchemaMetadata {
@@ -4215,6 +4338,10 @@ pub struct GoogleIamV1SetIamPolicyRequest {
     pub policy: ::core::option::Option<GoogleIamV1Policy>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
+
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningListOperationsResponse {
@@ -4228,6 +4355,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Defines additional transport information for the agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]

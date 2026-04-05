@@ -21,6 +21,10 @@ pub struct AddAclEntryResponse {
     pub acl_created: ::core::option::Option<bool>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Request for CheckCompatibility.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckCompatibilityRequest {
@@ -120,6 +124,10 @@ pub struct CreateVersionResponse {
     #[serde(default)]
     pub id: ::core::option::Option<i32>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -286,6 +294,14 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
+/// Request for PauseConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PauseConnectorRequest {}
+
+/// Response for PauseConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PauseConnectorResponse {}
+
 /// Response for RemoveAclEntry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoveAclEntryResponse {
@@ -296,6 +312,22 @@ pub struct RemoveAclEntryResponse {
     #[serde(default, rename = "aclDeleted")]
     pub acl_deleted: ::core::option::Option<bool>,
 }
+
+/// Request for RestartConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestartConnectorRequest {}
+
+/// Response for RestartConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestartConnectorResponse {}
+
+/// Request for ResumeConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeConnectorRequest {}
+
+/// Response for ResumeConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeConnectorResponse {}
 
 /// Schema for a Kafka message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -355,6 +387,14 @@ pub struct SchemaVersion {
     #[serde(default)]
     pub version: ::core::option::Option<i32>,
 }
+
+/// Request for StopConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopConnectorRequest {}
+
+/// Response for StopConnector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopConnectorResponse {}
 
 /// Request for updating schema config. On a SchemaSubject-level SchemaConfig, an unset field will be removed from the SchemaConfig.
 #[derive(Debug, Clone, Serialize, Deserialize)]

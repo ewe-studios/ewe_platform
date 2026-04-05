@@ -10,6 +10,18 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// AppendOnly mode defines that all changes to a table will be written to the destination table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppendOnly {}
+
+/// AVRO file format configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AvroFileFormat {}
+
+/// Backfill strategy to disable automatic backfill for the Stream''s objects.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackfillNoneStrategy {}
+
 /// Describes violations in a client request. This error type focuses on the syntactic aspects of the request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BadRequest {
@@ -17,6 +29,22 @@ pub struct BadRequest {
     #[serde(default, rename = "fieldViolations")]
     pub field_violations: ::core::option::Option<::std::vec::Vec<FieldViolation>>,
 }
+
+/// Message to represent the option where Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BasicEncryption {}
+
+/// Profile for connecting to a BigQuery destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigQueryProfile {}
+
+/// Use Binary log position based replication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BinaryLogPosition {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
 
 /// Describes additional debugging info.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,6 +121,18 @@ pub struct DiscoverConnectionProfileResponse {
     pub sql_server_rdbms: ::core::option::Option<SqlServerRdbms>,
 }
 
+/// Configuration to drop large object values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DropLargeObjects {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Message to represent the option where encryption is not enforced. An empty message right now to allow future extensibility.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionNotEnforced {}
+
 /// Describes the cause of the error with structured details. Example of an error when contacting the "pubsub.googleapis.com" API when it is not enabled: { "reason": "API_DISABLED" "domain": "googleapis.com" "metadata": { "resource": "projects/123", "service": "pubsub.googleapis.com" } } This response indicates that the pubsub.googleapis.com API is not enabled. Example of an error that is returned when attempting to create a Spanner instance in a region that is out of stock: { "reason": "STOCKOUT" "domain": "spanner.googleapis.com", "metadata": { "availableRegions": "us-central1,us-east2" } }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorInfo {
@@ -117,6 +157,10 @@ pub struct FetchStaticIpsResponse {
     #[serde(default, rename = "staticIps")]
     pub static_ips: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Use GTID based replication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Gtid {}
 
 /// Provides links to documentation or for performing an out of band action. For example, if a quota check failed with an error indicating the calling project hasn''t enabled the accessed service, this can contain a URL pointing directly to the right place in the developer console to flip the bit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -218,6 +262,10 @@ pub struct ListStreamsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Configuration to use LogMiner CDC method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogMiner {}
+
 /// Request for looking up a specific stream object by its source object identifier.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LookupStreamObjectRequest {
@@ -225,6 +273,18 @@ pub struct LookupStreamObjectRequest {
     #[serde(default, rename = "sourceObjectIdentifier")]
     pub source_object_identifier: ::core::option::Option<SourceObjectIdentifier>,
 }
+
+/// Merge mode defines that all changes to a table will be merged at the destination table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Merge {}
+
+/// CDC strategy to start replicating from the most recent position in the source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MostRecentStartPosition {}
+
+/// CDC strategy to resume replication from the next available position in the source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NextAvailableStartPosition {}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -254,6 +314,10 @@ pub struct OperationMetadata {
     #[serde(default)]
     pub verb: ::core::option::Option<String>,
 }
+
+/// Configuration to use Oracle ASM to access the log files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleAsmLogFileAccess {}
 
 /// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -318,6 +382,18 @@ pub struct RunStreamRequest {
     pub force: ::core::option::Option<bool>,
 }
 
+/// Configuration to use Change Tables CDC read method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerChangeTables {}
+
+/// Configuration to use Transaction Logs CDC read method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerTransactionLogs {}
+
+/// Srv connection format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SrvConnectionFormat {}
+
 /// Request for manually initiating a backfill job for a specific stream object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StartBackfillJobRequest {
@@ -334,6 +410,14 @@ pub struct StartBackfillJobResponse {
     pub object: ::core::option::Option<StreamObject>,
 }
 
+/// Static IP address connectivity. Used when the source database is configured to allow incoming connections from the Datastream public IP addresses for the region specified in the connection profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StaticServiceIpConnectivity {}
+
+/// Request for manually stopping a running backfill job for a specific stream object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopBackfillJobRequest {}
+
 /// Response for manually stop a backfill job for a specific stream object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StopBackfillJobResponse {
@@ -341,6 +425,10 @@ pub struct StopBackfillJobResponse {
     #[serde(default)]
     pub object: ::core::option::Option<StreamObject>,
 }
+
+/// Configuration to stream large object values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StreamLargeObjects {}
 
 /// A message type used to describe a single bad request field.
 #[derive(Debug, Clone, Serialize, Deserialize)]

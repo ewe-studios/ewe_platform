@@ -10,6 +10,30 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request for the AbortFunctionUpgrade method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbortFunctionUpgradeRequest {}
+
+/// Security patches are applied automatically to the runtime without requiring the function to be redeployed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutomaticUpdatePolicy {}
+
+/// Request for the CommitFunctionUpgradeAsGen2 method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommitFunctionUpgradeAsGen2Request {}
+
+/// Request for the CommitFunctionUpgrade method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommitFunctionUpgradeRequest {}
+
+/// Request for the DetachFunction method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetachFunctionRequest {}
+
+/// Request of GenerateDownloadUrl method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GenerateDownloadUrlRequest {}
+
 /// Response of GenerateDownloadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateDownloadUrlResponse {
@@ -167,6 +191,14 @@ pub struct OperationMetadataV1 {
     #[serde(default, rename = "versionId")]
     pub version_id: ::core::option::Option<String>,
 }
+
+/// Request for the RedirectFunctionUpgradeTraffic method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedirectFunctionUpgradeTrafficRequest {}
+
+/// Request for the RollbackFunctionUpgradeTraffic method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollbackFunctionUpgradeTrafficRequest {}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]

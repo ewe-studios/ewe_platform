@@ -21,6 +21,14 @@ pub struct SasPortalCreateSignedDeviceRequest {
     pub installer_id: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalEmpty {}
+
+/// Request for GenerateSecret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalGenerateSecretRequest {}
+
 /// Response for GenerateSecret.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SasPortalGenerateSecretResponse {
@@ -202,6 +210,10 @@ pub struct SasPortalSetPolicyRequest {
     pub resource: ::core::option::Option<String>,
 }
 
+/// Metadata returned by the long running operation for the SetupSasAnalytics rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalSetupSasAnalyticsMetadata {}
+
 /// Request for the SetupSasAnalytics rpc.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SasPortalSetupSasAnalyticsRequest {
@@ -209,6 +221,10 @@ pub struct SasPortalSetupSasAnalyticsRequest {
     #[serde(default, rename = "userId")]
     pub user_id: ::core::option::Option<String>,
 }
+
+/// Response returned by the long running operation for the SetupSasAnalytics rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalSetupSasAnalyticsResponse {}
 
 /// Request for SignDevice.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -261,6 +277,10 @@ pub struct SasPortalValidateInstallerRequest {
     #[serde(default)]
     pub secret: ::core::option::Option<String>,
 }
+
+/// Response for ValidateInstaller.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SasPortalValidateInstallerResponse {}
 
 /// Entity representing a SAS customer.
 #[derive(Debug, Clone, Serialize, Deserialize)]

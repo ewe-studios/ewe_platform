@@ -49,6 +49,10 @@ pub struct ContactDetails {
     pub contacts: ::core::option::Option<::std::vec::Vec<Contact>>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The LRO metadata for a ExportFindings request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportFindingsMetadata {
@@ -60,6 +64,10 @@ pub struct ExportFindingsMetadata {
     pub export_start_time: ::core::option::Option<String>,
 }
 
+/// The response to a ExportFindings request. Contains the LRO information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportFindingsResponse {}
+
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetIamPolicyRequest {
@@ -67,6 +75,10 @@ pub struct GetIamPolicyRequest {
     #[serde(default)]
     pub options: ::core::option::Option<GetPolicyOptions>,
 }
+
+/// The response to a BulkMute request. Contains the LRO information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1BulkMuteFindingsResponse {}
 
 /// Representation of third party SIEM/SOAR fields within SCC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -198,6 +210,10 @@ pub struct GoogleCloudSecuritycenterV2BigQueryExport {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// The response to a BulkMute request. Contains the LRO information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2BulkMuteFindingsResponse {}
 
 /// Details about specific contacts
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -688,6 +704,10 @@ pub struct OrganizationSettings {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// Request message for running asset discovery for an organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunAssetDiscoveryRequest {}
 
 /// Request message for updating a finding''s state.
 #[derive(Debug, Clone, Serialize, Deserialize)]

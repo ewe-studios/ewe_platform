@@ -46,6 +46,10 @@ pub struct AttachTenantProjectRequest {
     pub tag: ::core::option::Option<String>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Request to create a tenancy unit for a service consumer of a managed service.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateTenancyUnitRequest {
@@ -61,6 +65,10 @@ pub struct DeleteTenantProjectRequest {
     #[serde(default)]
     pub tag: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -222,6 +230,14 @@ pub struct V1Beta1BatchCreateProducerOverridesResponse {
     pub overrides: ::core::option::Option<::std::vec::Vec<V1Beta1QuotaOverride>>,
 }
 
+/// Response message for the DisableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V1Beta1DisableConsumerResponse {}
+
+/// Response message for the EnableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V1Beta1EnableConsumerResponse {}
+
 /// Response message for the GenerateServiceIdentity method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct V1Beta1GenerateServiceIdentityResponse {
@@ -246,6 +262,18 @@ pub struct V1Beta1ImportProducerQuotaPoliciesResponse {
     pub policies: ::core::option::Option<::std::vec::Vec<V1Beta1ProducerQuotaPolicy>>,
 }
 
+/// Response message for the RefreshConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V1Beta1RefreshConsumerResponse {}
+
+/// Response message for the DisableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V1DisableConsumerResponse {}
+
+/// Response message for the EnableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V1EnableConsumerResponse {}
+
 /// Response message for the GenerateDefaultIdentity method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct V1GenerateDefaultIdentityResponse {
@@ -267,6 +295,10 @@ pub struct V1GenerateServiceAccountResponse {
     #[serde(default)]
     pub account: ::core::option::Option<V1ServiceAccount>,
 }
+
+/// Response message for the RefreshConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V1RefreshConsumerResponse {}
 
 /// Response message for the RemoveVisibilityLabels method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize)]

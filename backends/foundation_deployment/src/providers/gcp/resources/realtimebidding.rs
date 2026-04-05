@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A request to activate a pretargeting configuration. Sets the configuration''s state to ACTIVE.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivatePretargetingConfigRequest {}
+
 /// A request to start targeting the provided app IDs in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddTargetedAppsRequest {
@@ -74,6 +78,14 @@ pub struct BatchRejectPublisherConnectionsResponse {
     #[serde(default, rename = "publisherConnections")]
     pub publisher_connections: ::core::option::Option<::std::vec::Vec<PublisherConnection>>,
 }
+
+/// A request to close a specified user list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloseUserListRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Response for a request to get remarketing tag.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -160,6 +172,10 @@ pub struct ListUserListsResponse {
     pub user_lists: ::core::option::Option<::std::vec::Vec<UserList>>,
 }
 
+/// A request to open a specified user list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenUserListRequest {}
+
 /// A request to stop targeting the provided apps in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoveTargetedAppsRequest {
@@ -194,6 +210,14 @@ pub struct StringTargetingDimension {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A request to suspend a pretargeting configuration. Sets the configuration''s state to SUSPENDED.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuspendPretargetingConfigRequest {}
+
+/// A request to receive push notifications when any of the creatives belonging to the bidder changes status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WatchCreativesRequest {}
 
 /// A response for the request to receive push notification when a bidder''s creatives change status.
 #[derive(Debug, Clone, Serialize, Deserialize)]

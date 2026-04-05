@@ -459,6 +459,10 @@ pub struct GoogleCloudChannelV1RegisterSubscriberResponse {
     pub topic: ::core::option::Option<String>,
 }
 
+/// Applies the repricing configuration at the channel partner level. The channel partner value is derived from the resource name. Takes an empty json object. Deprecated: This is no longer supported. Use RepricingConfig.EntitlementGranularity instead.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1RepricingConfigChannelPartnerGranularity {}
+
 /// Request message for CloudChannelReportsService.RunReportJob.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1RunReportJobRequest {
@@ -623,6 +627,10 @@ pub struct GoogleCloudChannelV1alpha1TransferEntitlementsResponse {
         ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1alpha1Entitlement>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
+
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningListOperationsResponse {
@@ -636,6 +644,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Entity representing a Cloud Identity account that may be associated with a Channel Services API partner.
 #[derive(Debug, Clone, Serialize, Deserialize)]

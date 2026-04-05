@@ -145,6 +145,10 @@ pub struct Project {
     pub quota: ::core::option::Option<Quota>,
 }
 
+/// ResourceRecordSetsDeleteResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceRecordSetsDeleteResponse {}
+
 /// ResourceRecordSetsListResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceRecordSetsListResponse {

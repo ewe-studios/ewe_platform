@@ -21,6 +21,10 @@ pub struct GoogleCloudRunV2CancelExecutionRequest {
     pub validate_only: ::core::option::Option<bool>,
 }
 
+/// Build the source using Docker. This means the source has a Dockerfile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRunV2DockerBuild {}
+
 /// Request message for exporting Cloud Run image.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRunV2ExportImageRequest {
@@ -281,6 +285,14 @@ pub struct GoogleLongrunningWaitOperationRequest {
     #[serde(default)]
     pub timeout: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
+
+/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Proto2BridgeMessageSet {}
 
 /// The status of an image export job.
 #[derive(Debug, Clone, Serialize, Deserialize)]

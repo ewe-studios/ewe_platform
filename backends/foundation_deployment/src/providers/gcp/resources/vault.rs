@@ -43,6 +43,14 @@ pub struct AddMatterPermissionsRequest {
     pub send_emails: ::core::option::Option<bool>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// Close a matter by ID.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloseMatterRequest {}
+
 /// Response to a CloseMatterRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloseMatterResponse {
@@ -92,6 +100,18 @@ pub struct CountArtifactsResponse {
     #[serde(default, rename = "totalCount")]
     pub total_count: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Additional options for Gemini search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeminiOptions {}
+
+/// Options for Calendar holds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeldCalendarQuery {}
 
 /// The exports for a matter.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -183,6 +203,10 @@ pub struct RemoveMatterPermissionsRequest {
     pub account_id: ::core::option::Option<String>,
 }
 
+/// Reopen a matter by ID.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReopenMatterRequest {}
+
 /// Response to a ReopenMatterRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReopenMatterResponse {
@@ -190,6 +214,10 @@ pub struct ReopenMatterResponse {
     #[serde(default)]
     pub matter: ::core::option::Option<Matter>,
 }
+
+/// Undelete a matter by ID.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteMatterRequest {}
 
 /// The status of each account creation, and the **HeldAccount**, if successful.
 #[derive(Debug, Clone, Serialize, Deserialize)]

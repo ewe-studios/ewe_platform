@@ -30,6 +30,10 @@ pub struct CreateJobFromTemplateRequest {
     pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
+/// Response from deleting a snapshot.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteSnapshotResponse {}
+
 /// Request to get updated debug configuration for component.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetDebugConfigRequest {
@@ -289,6 +293,10 @@ pub struct ReportWorkItemStatusResponse {
     pub work_item_service_states: ::core::option::Option<::std::vec::Vec<WorkItemServiceState>>,
 }
 
+/// Service-side response to WorkerMessage reporting resource utilization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceUtilizationReportResponse {}
+
 /// Request to send encoded debug information. Next ID: 8
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendDebugCaptureRequest {
@@ -308,6 +316,10 @@ pub struct SendDebugCaptureRequest {
     #[serde(default, rename = "workerId")]
     pub worker_id: ::core::option::Option<String>,
 }
+
+/// Response to a send capture request. nothing
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SendDebugCaptureResponse {}
 
 /// A request for sending worker messages to the service.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -371,6 +383,10 @@ pub struct StringList {
     #[serde(default)]
     pub elements: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Service-side response to WorkerMessage issuing shutdown notice.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkerShutdownNoticeResponse {}
 
 /// RuntimeMetadata describing a runtime environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]

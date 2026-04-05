@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetIamPolicyRequest {
@@ -188,6 +192,18 @@ pub struct GoogleCloudDatacatalogV1OrganizationConfig {
     pub config: ::core::option::Option<serde_json::Value>,
 }
 
+/// Marks a CSV-encoded data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema {}
+
+/// Marks an ORC-encoded data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema {}
+
+/// Marks a Parquet-encoded data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema {}
+
 /// Long-running operation metadata message returned by the ReconcileTags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatacatalogV1ReconcileTagsMetadata {
@@ -302,6 +318,14 @@ pub struct GoogleCloudDatacatalogV1SetConfigRequest {
     pub tag_template_migration: ::core::option::Option<String>,
 }
 
+/// Request message for StarEntry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1StarEntryRequest {}
+
+/// Response message for StarEntry. Empty for now
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1StarEntryResponse {}
+
 /// Contains the value and additional information on a field within a Tag.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatacatalogV1TagField {
@@ -373,6 +397,14 @@ pub struct GoogleCloudDatacatalogV1TagTemplateField {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<GoogleCloudDatacatalogV1FieldType>,
 }
+
+/// Request message for UnstarEntry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1UnstarEntryRequest {}
+
+/// Response message for UnstarEntry. Empty for now
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatacatalogV1UnstarEntryResponse {}
 
 /// Detailed statistics on the entry''s usage. Usage statistics have the following limitations: - Only BigQuery tables have them. - They only include BigQuery query jobs. - They might be underestimated because wildcard table references are not yet counted. For more information, see [Querying multiple tables using a wildcard table] (https://cloud.google.com/bigquery/docs/querying-wildcard-tables)
 #[derive(Debug, Clone, Serialize, Deserialize)]

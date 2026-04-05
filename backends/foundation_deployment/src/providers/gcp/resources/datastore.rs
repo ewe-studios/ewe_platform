@@ -82,6 +82,10 @@ pub struct CommitResponse {
     pub mutation_results: ::core::option::Option<::std::vec::Vec<MutationResult>>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Metadata for Datastore to Firestore migration operations. The DatastoreFirestoreMigration operation is not started by the end-user via an explicit "creation" method. This is an intentional deviation from the LRO design pattern. This singleton resource can be accessed at: "projects/{project_id}/operations/datastore-firestore-migration"
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDatastoreAdminV1DatastoreFirestoreMigrationMetadata {
@@ -327,6 +331,10 @@ pub struct ReserveIdsRequest {
     pub keys: ::core::option::Option<::std::vec::Vec<Key>>,
 }
 
+/// The response for Datastore.ReserveIds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReserveIdsResponse {}
+
 /// The request for Datastore.Rollback.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RollbackRequest {
@@ -337,6 +345,10 @@ pub struct RollbackRequest {
     #[serde(default)]
     pub transaction: ::core::option::Option<String>,
 }
+
+/// The response for Datastore.Rollback. (an empty message).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollbackResponse {}
 
 /// The request for Datastore.RunAggregationQuery.
 #[derive(Debug, Clone, Serialize, Deserialize)]

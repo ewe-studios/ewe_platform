@@ -26,6 +26,10 @@ pub struct AddIdpCredentialRequest {
     pub pem_data: ::core::option::Option<String>,
 }
 
+/// Request to cancel sent invitation for target email in UserInvitation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelUserInvitationRequest {}
+
 /// The response message for MembershipsService.CheckTransitiveMembership.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckTransitiveMembershipResponse {
@@ -33,6 +37,10 @@ pub struct CheckTransitiveMembershipResponse {
     #[serde(default, rename = "hasMembership")]
     pub has_membership: ::core::option::Option<bool>,
 }
+
+/// Metadata for CreateGroup LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateGroupMetadata {}
 
 /// LRO response metadata for InboundOidcSsoProfilesService.CreateInboundOidcSsoProfile.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,6 +58,42 @@ pub struct CreateInboundSamlSsoProfileOperationMetadata {
     pub state: ::core::option::Option<String>,
 }
 
+/// LRO response metadata for InboundSsoAssignmentsService.CreateInboundSsoAssignment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateInboundSsoAssignmentOperationMetadata {}
+
+/// Metadata for CreateMembership LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateMembershipMetadata {}
+
+/// Metadata for DeleteGroup LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteGroupMetadata {}
+
+/// LRO response metadata for InboundSamlSsoProfilesService.DeleteIdpCredential.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteIdpCredentialOperationMetadata {}
+
+/// LRO response metadata for InboundOidcSsoProfilesService.DeleteInboundOidcSsoProfile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteInboundOidcSsoProfileOperationMetadata {}
+
+/// LRO response metadata for InboundSamlSsoProfilesService.DeleteInboundSamlSsoProfile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteInboundSamlSsoProfileOperationMetadata {}
+
+/// LRO response metadata for InboundSsoAssignmentsService.DeleteInboundSsoAssignment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteInboundSsoAssignmentOperationMetadata {}
+
+/// Metadata for DeleteMembership LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteMembershipMetadata {}
+
+/// Metadata of GetMembershipGraphResponse LRO. This is currently empty to permit future extensibility.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetMembershipGraphMetadata {}
+
 /// The response message for MembershipsService.GetMembershipGraph.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetMembershipGraphResponse {
@@ -60,6 +104,10 @@ pub struct GetMembershipGraphResponse {
     #[serde(default)]
     pub groups: ::core::option::Option<::std::vec::Vec<Group>>,
 }
+
+/// Metadata for ApproveDeviceUser LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserMetadata {}
 
 /// Request message for approving the device to access user data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -77,6 +125,10 @@ pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserResponse {
     pub device_user: ::core::option::Option<GoogleAppsCloudidentityDevicesV1DeviceUser>,
 }
 
+/// Metadata for BlockDeviceUser LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserMetadata {}
+
 /// Request message for blocking account on device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserRequest {
@@ -92,6 +144,10 @@ pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserResponse {
     #[serde(default, rename = "deviceUser")]
     pub device_user: ::core::option::Option<GoogleAppsCloudidentityDevicesV1DeviceUser>,
 }
+
+/// Metadata for CancelWipeDevice LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceMetadata {}
 
 /// Request message for cancelling an unfinished device wipe.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -109,6 +165,10 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceResponse {
     pub device: ::core::option::Option<GoogleAppsCloudidentityDevicesV1Device>,
 }
 
+/// Metadata for CancelWipeDeviceUser LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserMetadata {}
+
 /// Request message for cancelling an unfinished user account wipe.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserRequest {
@@ -125,6 +185,10 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserResponse {
     pub device_user: ::core::option::Option<GoogleAppsCloudidentityDevicesV1DeviceUser>,
 }
 
+/// Metadata for CreateDevice LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1CreateDeviceMetadata {}
+
 /// Additional custom attribute values may be one of these types
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsCloudidentityDevicesV1CustomAttributeValue {
@@ -138,6 +202,14 @@ pub struct GoogleAppsCloudidentityDevicesV1CustomAttributeValue {
     #[serde(default, rename = "stringValue")]
     pub string_value: ::core::option::Option<String>,
 }
+
+/// Metadata for DeleteDevice LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceMetadata {}
+
+/// Metadata for DeleteDeviceUser LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceUserMetadata {}
 
 /// Response message that is returned in ListClientStates.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -174,6 +246,10 @@ pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// Metadata for ListEndpointApps LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1ListEndpointAppsMetadata {}
+
 /// Response containing resource names of the DeviceUsers associated with the caller''s credentials.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse {
@@ -187,6 +263,22 @@ pub struct GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// Metadata for SignoutDeviceUser LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1SignoutDeviceUserMetadata {}
+
+/// Metadata for UpdateClientState LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1UpdateClientStateMetadata {}
+
+/// Metadata for UpdateDevice LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1UpdateDeviceMetadata {}
+
+/// Metadata for WipeDevice LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceMetadata {}
 
 /// Request message for wiping all data on the device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -206,6 +298,10 @@ pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceResponse {
     #[serde(default)]
     pub device: ::core::option::Option<GoogleAppsCloudidentityDevicesV1Device>,
 }
+
+/// Metadata for WipeDeviceUser LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserMetadata {}
 
 /// Request message for starting an account wipe on device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -432,6 +528,14 @@ pub struct SecuritySettings {
     pub name: ::core::option::Option<String>,
 }
 
+/// A request to send email for inviting target user corresponding to the UserInvitation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SendUserInvitationRequest {}
+
+/// Metadata for UpdateGroup LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateGroupMetadata {}
+
 /// LRO response metadata for InboundOidcSsoProfilesService.UpdateInboundOidcSsoProfile.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateInboundOidcSsoProfileOperationMetadata {
@@ -447,6 +551,14 @@ pub struct UpdateInboundSamlSsoProfileOperationMetadata {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
+
+/// LRO response metadata for InboundSsoAssignmentsService.UpdateInboundSsoAssignment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateInboundSsoAssignmentOperationMetadata {}
+
+/// Metadata for UpdateMembership LRO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateMembershipMetadata {}
 
 /// Membership graph''s path information as an adjacency list.
 #[derive(Debug, Clone, Serialize, Deserialize)]

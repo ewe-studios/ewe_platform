@@ -18,6 +18,14 @@ pub struct ConfigRef {
     pub name: ::core::option::Option<String>,
 }
 
+/// Strategy used to delete a service. This strategy is a placeholder only used by the system generated rollout to delete a service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteServiceStrategy {}
+
+/// Operation payload for EnableService method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnableServiceResponse {}
+
 /// Encapsulation of flow-specific error details for debugging. Used as a details field on an error Status, not intended for external use.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FlowErrorDetails {

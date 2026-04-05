@@ -81,6 +81,10 @@ pub struct CompleteIPRotationRequest {
     pub zone: ::core::option::Option<String>,
 }
 
+/// CompleteNodePoolUpgradeRequest sets the name of target node pool to complete upgrade.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompleteNodePoolUpgradeRequest {}
+
 /// CreateClusterRequest creates a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateClusterRequest {
@@ -117,6 +121,10 @@ pub struct CreateNodePoolRequest {
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// GetJSONWebKeysResponse is a valid JSON Web Key Set as specified in rfc 7517
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -247,6 +255,10 @@ pub struct RollbackNodePoolUpgradeRequest {
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
 }
+
+/// SecondaryBootDiskUpdateStrategy is a placeholder which will be extended in the future to define different options for updating secondary boot disks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecondaryBootDiskUpdateStrategy {}
 
 /// SecurityBulletinEvent is a notification sent to customers when a security bulletin has been posted that they are vulnerable to.
 #[derive(Debug, Clone, Serialize, Deserialize)]

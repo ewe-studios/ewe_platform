@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Response for the ListCrawledUrls method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListCrawledUrlsResponse {
@@ -61,6 +65,14 @@ pub struct ListScanRunsResponse {
     #[serde(default, rename = "scanRuns")]
     pub scan_runs: ::core::option::Option<::std::vec::Vec<ScanRun>>,
 }
+
+/// Request for the StartScanRun method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartScanRunRequest {}
+
+/// Request for the StopScanRun method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopScanRunRequest {}
 
 /// A CrawledUrl resource represents a URL that was crawled during a ScanRun. Web Security Scanner Service crawls the web applications, following all links within the scope of sites, to find the URLs to test against.
 #[derive(Debug, Clone, Serialize, Deserialize)]

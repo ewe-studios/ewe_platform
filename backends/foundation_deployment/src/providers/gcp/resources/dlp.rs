@@ -10,6 +10,38 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request message for ActivateJobTrigger.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2ActivateJobTriggerRequest {}
+
+/// Apply transformation to all findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2AllInfoTypes {}
+
+/// Catch-all for all other tables not specified by other filters. Should always be last, except for single-table configurations, which will only have a TableReference target.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2AllOtherBigQueryTables {}
+
+/// Match database resources not covered by any other filter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2AllOtherDatabaseResources {}
+
+/// Match discovery resources not covered by any other filter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2AllOtherResources {}
+
+/// Apply to all text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2AllText {}
+
+/// The request message for canceling a DLP job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2CancelDlpJobRequest {}
+
+/// Use IAM authentication to connect. This requires the Cloud SQL IAM feature to be enabled on the instance, which is not the default for Cloud SQL. See https://cloud.google.com/sql/docs/postgres/authentication and https://cloud.google.com/sql/docs/mysql/authentication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2CloudSqlIamCredential {}
+
 /// Request message for CreateConnection.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePrivacyDlpV2CreateConnectionRequest {
@@ -199,6 +231,26 @@ pub struct GooglePrivacyDlpV2DeidentifyContentResponse {
     pub overview: ::core::option::Option<GooglePrivacyDlpV2TransformationOverview>,
 }
 
+/// Do not profile the tables.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2Disabled {}
+
+/// Defines a condition where one bounding box encloses another.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2Encloses {}
+
+/// The request message for finishing a DLP hybrid job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2FinishDlpJobRequest {}
+
+/// Defines a condition where one bounding box is fully inside another.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2FullyInside {}
+
+/// Processing occurs in the global region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2GlobalProcessing {}
+
 /// Request to search for potentially sensitive info in a custom location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePrivacyDlpV2HybridInspectDlpJobRequest {
@@ -214,6 +266,10 @@ pub struct GooglePrivacyDlpV2HybridInspectJobTriggerRequest {
     #[serde(default, rename = "hybridItem")]
     pub hybrid_item: ::core::option::Option<GooglePrivacyDlpV2HybridContentItem>,
 }
+
+/// Quota exceeded errors will be thrown once quota has been met.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2HybridInspectResponse {}
 
 /// Request to search for potentially sensitive info in a ContentItem.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -239,6 +295,14 @@ pub struct GooglePrivacyDlpV2InspectContentResponse {
     #[serde(default)]
     pub result: ::core::option::Option<GooglePrivacyDlpV2InspectResult>,
 }
+
+/// Sends an email when the job completes. The email goes to IAM project owners and technical [Essential Contacts](https://cloud.google.com/resource-manager/docs/managing-notification-contacts).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2JobNotificationEmails {}
+
+/// Skips the data without modifying it if the requested transformation would cause an error. For example, if a DateShift transformation were applied an an IP address, this mode would leave the IP address unchanged in the response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2LeaveUntransformed {}
 
 /// List of profiles generated for a given organization or project.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -377,6 +441,46 @@ pub struct GooglePrivacyDlpV2ListTableDataProfilesResponse {
         ::core::option::Option<::std::vec::Vec<GooglePrivacyDlpV2TableDataProfile>>,
 }
 
+/// Job trigger option for hybrid jobs. Jobs must be manually created and finished.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2Manual {}
+
+/// Processing occurs in a multi-region that contains the current region if available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2MultiRegionProcessing {}
+
+/// Defines a condition for overlapping bounding boxes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2Overlap {}
+
+/// Publish findings of a DlpJob to Data Catalog. In Data Catalog, tag templates are applied to the resource that Cloud DLP scanned. Data Catalog tag templates are stored in the same project and region where the BigQuery table exists. For Cloud DLP to create and apply the tag template, the Cloud DLP service agent must have the roles/datacatalog.tagTemplateOwner permission on the project. The tag template contains fields summarizing the results of the DlpJob. Any field values previously written by another DlpJob are deleted. InfoType naming patterns are strictly enforced when using this feature. Findings are persisted in Data Catalog storage and are governed by service-specific policies for Data Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog {}
+
+/// Publish findings of a DlpJob to Dataplex Universal Catalog as a sensitive-data-protection-job-result aspect. For more information, see [Send inspection results to Dataplex Universal Catalog as aspects](https://cloud.google.com/sensitive-data-protection/docs/add-aspects-inspection-job). Aspects are stored in Dataplex Universal Catalog storage and are governed by service-specific policies for Dataplex Universal Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2PublishFindingsToDataplexCatalog {}
+
+/// Publish the result summary of a DlpJob to [Security Command Center](https://cloud.google.com/security-command-center). This action is available for only projects that belong to an organization. This action publishes the count of finding instances and their infoTypes. The summary of findings are persisted in Security Command Center and are governed by [service-specific policies for Security Command Center](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. Compatible with: Inspect
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2PublishSummaryToCscc {}
+
+/// Message expressing intention to publish to Google Security Operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2PublishToChronicle {}
+
+/// If set, a summary finding will be created or updated in Security Command Center for each profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2PublishToSecurityCommandCenter {}
+
+/// Enable Stackdriver metric dlp.googleapis.com/finding_count. This will publish a metric to stack driver on each infotype requested and how many findings were found for it. CustomDetectors will be bucketed as ''Custom'' under the Stackdriver label ''info_type''.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2PublishToStackdriver {}
+
+/// Redact a given value. For example, if used with an InfoTypeTransformation transforming PHONE_NUMBER, and input ''My phone number is 206-555-0123'', the output would be ''My phone number is ''.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2RedactConfig {}
+
 /// Request to search for potentially sensitive info in an image and redact it by covering it with a colored rectangle.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePrivacyDlpV2RedactImageRequest {
@@ -452,6 +556,10 @@ pub struct GooglePrivacyDlpV2ReidentifyContentResponse {
     pub overview: ::core::option::Option<GooglePrivacyDlpV2TransformationOverview>,
 }
 
+/// Replace each matching finding with the name of the info_type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2ReplaceWithInfoTypeConfig {}
+
 /// Collection of findings saved to a Cloud Storage bucket. This is used as the proto schema for textproto files created when specifying a cloud storage path to save Inspect findings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePrivacyDlpV2SaveToGcsFindingsOutput {
@@ -470,6 +578,18 @@ pub struct GooglePrivacyDlpV2SearchConnectionsResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// Discovery target for credentials and secrets in cloud resource metadata. This target does not include any filtering or frequency controls. Cloud DLP will scan cloud resource metadata for secrets daily. No inspect template should be included in the discovery config for a security benchmarks scan. Instead, the built-in list of secrets and credentials infoTypes will be used (see https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets). Credentials and secrets discovered will be reported as vulnerabilities to Security Command Center.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2SecretsDiscoveryTarget {}
+
+/// Message for detecting output from deidentification transformations such as [CryptoReplaceFfxFpeConfig](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as surrogate_info_type. This CustomInfoType does not support the use of detection_rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2SurrogateType {}
+
+/// Throw an error and fail the request when a transformation error occurs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePrivacyDlpV2ThrowError {}
 
 /// Details about a single transformation. This object contains a description of the transformation, information about whether the transformation was successfully applied, and the precise location where the transformation occurred. These details are stored in a user-specified BigQuery table.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -560,6 +680,14 @@ pub struct GooglePrivacyDlpV2UpdateStoredInfoTypeRequest {
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
+
+/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Proto2BridgeMessageSet {}
 
 /// Wire-format for a Status object
 #[derive(Debug, Clone, Serialize, Deserialize)]

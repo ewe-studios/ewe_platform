@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// EncryptVolumesRequest specifies the KMS config to encrypt existing volumes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptVolumesRequest {}
+
 /// EstablishPeeringRequest establishes cluster and svm peerings between the source and the destination replications.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EstablishPeeringRequest {
@@ -91,6 +99,10 @@ pub struct ExecuteOntapPostResponse {
     #[serde(default)]
     pub body: ::core::option::Option<serde_json::Value>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// ListActiveDirectoriesResponse contains all the active directories requested.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -328,6 +340,14 @@ pub struct RestoreBackupFilesRequest {
     pub restore_destination_path: ::core::option::Option<String>,
 }
 
+/// ResumeReplicationRequest resumes a stopped replication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeReplicationRequest {}
+
+/// ReverseReplicationDirectionRequest reverses direction of replication. Source becomes destination and destination becomes source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReverseReplicationDirectionRequest {}
+
 /// RevertVolumeRequest reverts the given volume to the specified snapshot.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RevertVolumeRequest {
@@ -344,6 +364,14 @@ pub struct StopReplicationRequest {
     pub force: ::core::option::Option<bool>,
 }
 
+/// SwitchActiveReplicaZoneRequest switch the active/replica zone for a regional storagePool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwitchActiveReplicaZoneRequest {}
+
+/// SyncReplicationRequest syncs the replication from source to destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncReplicationRequest {}
+
 /// ValidateDirectoryServiceRequest validates the directory service policy attached to the storage pool.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidateDirectoryServiceRequest {
@@ -351,6 +379,10 @@ pub struct ValidateDirectoryServiceRequest {
     #[serde(default, rename = "directoryServiceType")]
     pub directory_service_type: ::core::option::Option<String>,
 }
+
+/// VerifyKmsConfigRequest specifies the KMS config to be validated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyKmsConfigRequest {}
 
 /// VerifyKmsConfigResponse contains the information if the config is correctly and error message.
 #[derive(Debug, Clone, Serialize, Deserialize)]

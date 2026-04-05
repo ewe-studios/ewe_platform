@@ -52,6 +52,10 @@ pub struct ConfigureManagementSettingsRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Request for the ExportRegistration method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportRegistrationRequest {}
+
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Request for the ImportDomain method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportDomainRequest {
@@ -160,6 +164,10 @@ pub struct RenewDomainRequest {
     #[serde(default, rename = "yearlyPrice")]
     pub yearly_price: ::core::option::Option<Money>,
 }
+
+/// Request for the ResetAuthorizationCode method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetAuthorizationCodeRequest {}
 
 /// Response for the RetrieveGoogleDomainsDnsRecords method.
 #[derive(Debug, Clone, Serialize, Deserialize)]

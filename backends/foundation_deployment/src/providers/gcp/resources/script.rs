@@ -32,6 +32,10 @@ pub struct CreateProjectRequest {
     pub title: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// An object that provides information about the nature of an error resulting from an attempted execution of a script function using the Apps Script API. If a run call succeeds but the script function (or Apps Script itself) throws an exception, the response body''s error field contains a Status object. The Status object''s details field contains an array with a single one of these ExecutionError objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionError {

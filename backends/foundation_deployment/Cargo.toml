@@ -25,6 +25,9 @@ chrono = { workspace = true }
 toml = "0.8"
 serde_yaml = "0.9"
 
+# -- hashing for config change detection
+sha2 = "0.10"
+
 # -- file system utilities (for spec fetcher)
 walkdir = "2.5"
 

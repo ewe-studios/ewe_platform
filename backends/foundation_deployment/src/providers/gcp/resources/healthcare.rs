@@ -122,6 +122,14 @@ pub struct ApplyConsentsResponse {
     pub failed_resources: ::core::option::Option<String>,
 }
 
+/// Archives the specified User data mapping.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchiveUserDataMappingRequest {}
+
+/// Archives the specified User data mapping.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchiveUserDataMappingResponse {}
+
 /// Request to bulk delete FHIR resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BulkDeleteResourcesRequest {
@@ -138,6 +146,10 @@ pub struct BulkDeleteResourcesRequest {
     #[serde(default, rename = "versionConfig")]
     pub version_config: ::core::option::Option<String>,
 }
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
 
 /// Checks if a particular data_id of a User data mapping in the given consent store is consented for a given use.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -234,6 +246,10 @@ pub struct DeidentifyFhirStoreRequest {
     pub skip_modified_resources: ::core::option::Option<bool>,
 }
 
+/// Contains a summary of the Deidentify operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeidentifySummary {}
+
 /// DicomStoreMetrics contains metrics describing a DICOM store.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DicomStoreMetrics {
@@ -256,6 +272,10 @@ pub struct DicomStoreMetrics {
     #[serde(default, rename = "studyCount")]
     pub study_count: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Evaluate a user''s Consents for all matching User data mappings. Note: User data mappings are indexed asynchronously, causing slight delays between the time mappings are created or updated and when they are included in EvaluateUserConsents results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -317,6 +337,10 @@ pub struct ExportDicomDataRequest {
     pub gcs_destination: ::core::option::Option<GoogleCloudHealthcareV1DicomGcsDestination>,
 }
 
+/// Returns additional information in regards to a completed DICOM store export.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportDicomDataResponse {}
+
 /// Request to schedule an export.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportMessagesRequest {
@@ -337,6 +361,10 @@ pub struct ExportMessagesRequest {
     pub start_time: ::core::option::Option<String>,
 }
 
+/// Final response for the export operation. This structure is included in the response to describe the detailed outcome.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportMessagesResponse {}
+
 /// Request to export resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportResourcesRequest {
@@ -355,6 +383,10 @@ pub struct ExportResourcesRequest {
     pub gcs_destination: ::core::option::Option<GoogleCloudHealthcareV1FhirGcsDestination>,
 }
 
+/// Response when all resources export successfully. This structure is included in the response to describe the detailed outcome after the operation finishes successfully.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportResourcesResponse {}
+
 /// List of metrics for a given FHIR store.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FhirStoreMetrics {
@@ -365,6 +397,14 @@ pub struct FhirStoreMetrics {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// Contains a summary of the DeidentifyDicomStore operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyDicomStoreSummary {}
+
+/// Contains a summary of the DeidentifyFhirStore operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyFhirStoreSummary {}
 
 /// List of metrics for a given HL7v2 store.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -402,6 +442,10 @@ pub struct ImportDicomDataRequest {
     pub gcs_source: ::core::option::Option<GoogleCloudHealthcareV1DicomGcsSource>,
 }
 
+/// Returns additional information in regards to a completed DICOM store import.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportDicomDataResponse {}
+
 /// Request to import messages.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportMessagesRequest {
@@ -409,6 +453,10 @@ pub struct ImportMessagesRequest {
     #[serde(default, rename = "gcsSource")]
     pub gcs_source: ::core::option::Option<GcsSource>,
 }
+
+/// Final response of importing messages. This structure is included in the response to describe the detailed outcome. It is only included when the operation finishes successfully.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportMessagesResponse {}
 
 /// Request to import resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -420,6 +468,10 @@ pub struct ImportResourcesRequest {
     #[serde(default, rename = "gcsSource")]
     pub gcs_source: ::core::option::Option<GoogleCloudHealthcareV1FhirGcsSource>,
 }
+
+/// Final response of importing resources. This structure is included in the response to describe the detailed outcome after the operation finishes successfully.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportResourcesResponse {}
 
 /// Ingests a message into the specified HL7v2 store.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -630,6 +682,10 @@ pub struct QueryAccessibleDataResponse {
     pub gcs_uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Define how to redact sensitive values. Default behaviour is erase. For example, "My name is Jane." becomes "My name is ."
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedactConfig {}
+
 /// Rejects the latest revision of the specified Consent by committing a new revision with state updated to REJECTED. If the latest revision of the given Consent is in the REJECTED state, no new revision is committed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RejectConsentRequest {
@@ -637,6 +693,10 @@ pub struct RejectConsentRequest {
     #[serde(default, rename = "consentArtifact")]
     pub consent_artifact: ::core::option::Option<String>,
 }
+
+/// When using the INSPECT_AND_TRANSFORM action, each match is replaced with the name of the info_type. For example, "My name is Jane" becomes "My name is [PERSON_NAME]." The TRANSFORM action is equivalent to redacting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplaceWithInfoTypeConfig {}
 
 /// Revokes the latest revision of the specified Consent by committing a new revision with state updated to REVOKED. If the latest revision of the given Consent is in the REVOKED state, no new revision is committed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -717,6 +777,14 @@ pub struct RollbackHl7v2MessagesResponse {
     pub hl7v2_store: ::core::option::Option<String>,
 }
 
+/// Using this field will flatten the DICOM instances into a BigQuery table. The table will have one column for each DICOM tag. The column name will be the DICOM tag''s textual representation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaFlattened {}
+
+/// Using this field will set the schema such that all DICOM tags will be included in the BigQuery table as a single JSON type column. The BigQuery table schema will include the following columns: * StudyInstanceUID (Type: STRING): DICOM Tag 0020000D. * SeriesInstanceUID (Type: STRING): DICOM Tag 0020000E. * SOPInstanceUID (Type: STRING): DICOM Tag 00080018. * SourceDicomStore (Type: STRING): The name of the source DICOM store. This field is only included if the include_source_store option is set to true. * Metadata (Type: JSON): All DICOM tags for the instance, stored in a single JSON object. * StructuredStorageSize (Type: INTEGER): Size of the structured storage in bytes. * DroppedTags (Type: STRING, Repeated: Yes): List of tags that were dropped during the conversion. * StorageClass (Type: STRING): The storage class of the instance. * LastUpdated (Type: TIMESTAMP): Timestamp of the last update to the instance. * BlobStorageSize (Type: INTEGER): Size of the blob storage in bytes. * Type (Type: STRING): Indicates the type of operation (e.g., INSERT, DELETE).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaJSON {}
+
 /// SeriesMetrics contains metrics describing a DICOM series.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SeriesMetrics {
@@ -744,6 +812,10 @@ pub struct SetBlobStorageSettingsRequest {
     #[serde(default, rename = "filterConfig")]
     pub filter_config: ::core::option::Option<DicomFilterConfig>,
 }
+
+/// Returns additional info in regards to a completed set blob storage settings API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetBlobStorageSettingsResponse {}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]

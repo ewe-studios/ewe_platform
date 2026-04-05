@@ -43,6 +43,10 @@ pub struct ApproveEntitlementRequest {
     pub properties: ::core::option::Option<serde_json::Value>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Response message for [PartnerProcurementService.ListAccounts[].
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListAccountsResponse {
@@ -94,6 +98,10 @@ pub struct RejectEntitlementRequest {
     #[serde(default)]
     pub reason: ::core::option::Option<String>,
 }
+
+/// Request message for PartnerProcurementService.ResetAccount.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetAccountRequest {}
 
 /// Request message for ParterProcurementService.SuspendEntitlement. This is not yet supported.
 #[derive(Debug, Clone, Serialize, Deserialize)]

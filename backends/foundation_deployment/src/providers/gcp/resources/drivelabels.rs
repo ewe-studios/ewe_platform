@@ -80,6 +80,38 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse {
     pub updated_label: ::core::option::Option<GoogleAppsDriveLabelsV2Label>,
 }
 
+/// Response following field delete.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse {}
+
+/// Response following choice delete.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse {}
+
+/// Response following field disable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse {}
+
+/// Response following choice disable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableSelectionChoiceResponse {}
+
+/// Response following field enable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse {}
+
+/// Response following choice enable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse {}
+
+/// Response following update to field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse {}
+
+/// Response following update to label properties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse {}
+
 /// Request to deprecate a published label.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsDriveLabelsV2DisableLabelRequest {
@@ -242,6 +274,10 @@ pub struct GoogleAppsDriveLabelsV2UserCapabilities {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Deletes a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 #[derive(Debug, Clone, Serialize, Deserialize)]

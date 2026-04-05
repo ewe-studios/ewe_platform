@@ -21,6 +21,10 @@ pub struct AlterMetadataResourceLocationRequest {
     pub resource_name: ::core::option::Option<String>,
 }
 
+/// Response message for DataprocMetastore.AlterMetadataResourceLocation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlterMetadataResourceLocationResponse {}
+
 /// Request message for DataprocMetastore.AlterTableProperties.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AlterTablePropertiesRequest {
@@ -59,6 +63,22 @@ pub struct BackendMetastore {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+/// Request message for DataprocMetastore.CancelMigration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelMigrationRequest {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// Request message for DataprocMetastore.CompleteMigration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompleteMigrationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Error details in public error message for DataprocMetastore.QueryMetadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -192,6 +212,10 @@ pub struct LocationMetadata {
         ::core::option::Option<::std::vec::Vec<HiveMetastoreVersion>>,
 }
 
+/// This is proto2''s version of MessageSet.DEPRECATED: DO NOT USE FOR NEW FIELDS.If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead.MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2.This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageSet {}
+
 /// Request message for DataprocMetastore.MoveTableToDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MoveTableToDatabaseRequest {
@@ -205,6 +229,10 @@ pub struct MoveTableToDatabaseRequest {
     #[serde(default, rename = "tableName")]
     pub table_name: ::core::option::Option<String>,
 }
+
+/// Response message for DataprocMetastore.MoveTableToDatabase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MoveTableToDatabaseResponse {}
 
 /// Represents the metadata of a long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]

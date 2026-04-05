@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetIamPolicyRequest {
@@ -63,6 +67,10 @@ pub struct ListTunnelDestGroupsResponse {
     pub tunnel_dest_groups: ::core::option::Option<::std::vec::Vec<TunnelDestGroup>>,
 }
 
+/// The request sent to ResetIdentityAwareProxyClientSecret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetIdentityAwareProxyClientSecretRequest {}
+
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SetIamPolicyRequest {
@@ -86,6 +94,10 @@ pub struct TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// IAP Expression Linter endpoint returns empty response body.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateIapAttributeExpressionResponse {}
 
 /// Encapsulates settings provided to GetIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize)]

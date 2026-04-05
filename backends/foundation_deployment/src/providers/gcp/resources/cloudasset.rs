@@ -32,6 +32,10 @@ pub struct AnalyzeIamPolicyLongrunningRequest {
     pub saved_analysis_query: ::core::option::Option<String>,
 }
 
+/// A response message for AssetService.AnalyzeIamPolicyLongrunning.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyzeIamPolicyLongrunningResponse {}
+
 /// A response message for AssetService.AnalyzeIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalyzeIamPolicyResponse {
@@ -127,6 +131,10 @@ pub struct CreateFeedRequest {
     pub feed_id: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Export asset request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportAssetsRequest {
@@ -146,6 +154,10 @@ pub struct ExportAssetsRequest {
     #[serde(default, rename = "relationshipTypes")]
     pub relationship_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A Constraint that is either enforced or not. For example a constraint constraints/compute.disableSerialPortAccess. If it is enforced on a VM instance, serial port connections will not be opened to that instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssetV1BooleanConstraint {}
 
 /// The string values for the list constraints.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -196,6 +208,10 @@ pub struct GoogleCloudAssetV1p7beta1Asset {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Ignores policies set above this resource and restores the constraint_default enforcement behavior of the specific Constraint at this resource. Suppose that constraint_default is set to ALLOW for the Constraint constraints/serviceuser.services. Suppose that organization foo.com sets a Policy at their Organization resource node that restricts the allowed service activations to deny all service activations. They could then set a Policy with the policy_type restore_default on several experimental projects, restoring the constraint_default enforcement of the Constraint for only those projects, allowing those projects to have all services activated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudOrgpolicyV1RestoreDefault {}
 
 /// A single piece of inventory on a VM.
 #[derive(Debug, Clone, Serialize, Deserialize)]

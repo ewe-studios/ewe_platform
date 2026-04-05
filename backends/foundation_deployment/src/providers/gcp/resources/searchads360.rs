@@ -10,6 +10,30 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// An automated bidding strategy that raises bids for clicks that seem more likely to lead to a conversion and lowers them for clicks where they seem less likely. This bidding strategy is deprecated and cannot be created anymore. Use ManualCpc with enhanced_cpc_enabled set to true for equivalent functionality.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonEnhancedCpc {}
+
+/// A rule specifying the maximum number of times an ad (or some set of ads) can be shown to a user over a particular time period.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonFrequencyCapEntry {}
+
+/// Manual bidding strategy that allows advertiser to set the bid per advertiser-specified action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonManualCpa {}
+
+/// Manual impression-based bidding where user pays per thousand impressions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonManualCpm {}
+
+/// A Search Ads 360 product ad.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonSearchAds360ProductAdInfo {}
+
+/// Target CPM (cost per thousand impressions) is an automated bidding strategy that sets bids to optimize performance given the target CPM you set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAdsSearchads360v0CommonTargetCpm {}
+
 /// Describes how a Search Ads 360 API call failed. It''s returned inside google.rpc.Status.details when a call fails.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Failure {

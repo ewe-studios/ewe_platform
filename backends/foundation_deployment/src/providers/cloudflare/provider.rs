@@ -270,7 +270,7 @@ impl DeploymentProvider for CloudflareCliProvider {
 }
 
 /// Cloudflare deployment resources/status information.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct CloudflareResources {
     /// Deployment identifier.
     pub deployment_id: String,

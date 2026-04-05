@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Request message for CreateIaCValidationReport.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateIaCValidationReportRequest {
@@ -17,6 +21,10 @@ pub struct CreateIaCValidationReportRequest {
     #[serde(default)]
     pub iac: ::core::option::Option<IaC>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Request message for ExtractPosture.
 #[derive(Debug, Clone, Serialize, Deserialize)]

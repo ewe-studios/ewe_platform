@@ -68,6 +68,10 @@ pub struct AndroidAppConfig {
     pub config_filename: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// FinalizeDefaultLocationRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FinalizeDefaultLocationRequest {
@@ -161,6 +165,10 @@ pub struct ListWebAppsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageSet {}
+
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -180,6 +188,10 @@ pub struct Operation {
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
 }
+
+/// Describes the progress of an LRO. It is included in the metadata field of the Operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {}
 
 /// Metadata about a long-running Product operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
